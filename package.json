@@ -1,0 +1,20 @@
+{
+  "name": "tinyking",
+  "version": "1.0.0",
+  "description": "Tiny King game",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrismdp/tinyking.git"
+  },
+  "author": "Chris Parsons (chris@revelationgames.co)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/chrismdp/tinyking/issues"
+  },
+  "homepage": "https://github.com/chrismdp/tinyking#readme"
+}

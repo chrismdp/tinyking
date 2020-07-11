@@ -1,6 +1,6 @@
 # Ting King
 
-This an open source kingdom building game, that will live at https://tinyking.io.
+This is an open source kingdom building game, that will live at https://tinyking.io.
 
 You are a tiny King, destined to make a name for yourself and your descendents! You take the role of the leader of a minature kingdom, initially just a few people in simple farmsteads. Your job is to get a bustling economy flowing purely through interacting with and directing your subjects through the seasons. You'll watch them grow, have families, form relationshps, and grow old, giving way to the next generation. Along the way, your character too will pass his mantle on to their descendants.
 

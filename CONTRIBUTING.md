@@ -1,31 +1,37 @@
 # Contributing
 
+Thanks so much for deciding to help out this project!
+
 When contributing to this repository, please first discuss the change you wish
 to make via issue, email, or any other method with the owners of this
-repository before making a change. 
+repository before making a change.
 
 Please note we have a code of conduct, please follow it in all your
 interactions with the project.
 
 ## Contributor License Agreement
 
-To ensure that we can also distribute this application via third parties that
-do not allow GPL licenses, I need to ask for the right to re-license any
-contributions made too the project. Therefore all new contributors will be
-asked to signed a Contribution License Agreement. The text of this license can
-be found here:
+To ensure that I can also distribute this application via third parties that do
+not allow GPL licenses, I need to ask for the right to re-license any
+contributions made to the project. Therefore all new contributors will be asked
+to signed a Contribution License Agreement before Pull Requests can be
+accepted. The text of this license can be found here:
 
 https://gist.github.com/chrismdp/d03639b726d2e87375ae2b21d93a28b8
 
 ## Pull Request Process
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
-2. Update the README.md with details of changes to the interface, this includes new environment 
-   variables, exposed ports, useful file locations and container parameters.
-3. Increase the version numbers in any examples files and the README.md to the new version that this
-   Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. You may merge the Pull Request in once you have the sign-off of two other developers, or if you 
-   do not have permission to do that, you may request the second reviewer to merge it for you.
+1. Ensure any install or build dependencies are removed before the end of the
+   layer when doing a build.
+2. Update the README.md with details of changes to the game, this includes new
+   gameplay, environment variables, exposed ports, useful file locations and
+   container parameters.
+3. Increase the version numbers in any examples files and the README.md to the
+   new version that this Pull Request would represent. The versioning scheme we
+   use is [SemVer](http://semver.org/).
+4. You may merge the Pull Request in once you have the sign-off of one
+   reviewer, or if you do not have permission to do that, you may request the
+   reviewer to merge it for you.
 
 ## Code of Conduct
 
@@ -52,7 +58,7 @@ include:
 Examples of unacceptable behavior by participants include:
 
 * The use of sexualized language or imagery and unwelcome sexual attention or
-advances
+  advances
 * Trolling, insulting/derogatory comments, and personal or political attacks
 * Public or private harassment
 * Publishing others' private information, such as a physical or electronic
@@ -77,9 +83,9 @@ threatening, offensive, or harmful.
 This Code of Conduct applies both within project spaces and in public spaces
 when an individual is representing the project or its community. Examples of
 representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
+address, posting via an official social media account, or acting as an
+appointed representative at an online or offline event. Representation of a
+project may be further defined and clarified by project maintainers.
 
 ### Enforcement
 
@@ -87,8 +93,9 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported by contacting the project team at hello@revelationgames.co. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
+obligated to maintain confidentiality with regard to the reporter of an
+incident. Further details of specific enforcement policies may be posted
+separately.
 
 Project maintainers who do not follow or enforce the Code of Conduct in good
 faith may face temporary or permanent repercussions as determined by other

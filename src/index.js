@@ -10,8 +10,10 @@ let app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
   antialias: true,
-  resolution: 1
+  resolution: window.devicePixelRatio || 1,
+  autoResize: true
 });
+
 app.renderer.backgroundColor = 0x444444;
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";

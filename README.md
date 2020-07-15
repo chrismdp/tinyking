@@ -1,6 +1,6 @@
 # Ting King
 
-[![Discord](https://img.shields.io/discord/731912590489288795?color=blue&label=discord)](https://discord.gg/ZgXcVyn)
+![License GPL](https://img.shields.io/github/license/chrismdp/tinyking?color=brightgreen)
 
 This is an open source kingdom building game, that will live at https://tinyking.io.
 
@@ -9,6 +9,10 @@ You are a tiny King, destined to make a name for yourself and your descendents! 
 It's very much focused on the people and relationships as with my previous game [Sol Trader](https://soltrader.net/) - not everyone will be happy about your choices, and you'll have to deal with a number of difficult social situations along the way.
 
 I plan to distribute a paid standalone copy on Steam and Itch.io, but the web version will remain free to use, and people will always be able to build from source.
+
+## Join the community
+
+[![Discord](https://img.shields.io/discord/731912590489288795?color=blue&label=discord)](https://discord.gg/ZgXcVyn)
 
 ## Development
 

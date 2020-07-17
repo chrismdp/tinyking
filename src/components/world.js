@@ -2,11 +2,8 @@ import * as React from "react";
 import * as PIXI from "pixi.js";
 
 import { Viewport } from "pixi-viewport";
-import * as Honeycomb from "honeycomb-grid";
 
-import * as mapgen from "mapgen";
-
-export function World() {
+export function World(props) {
   const container = React.useRef(null);
 
   let app = new PIXI.Application({
@@ -22,24 +19,11 @@ export function World() {
   app.renderer.view.style.position = "absolute";
   app.renderer.view.style.display = "block";
 
-  const seed = "1234567890"; // TODO: will obviously change this later
-  const mapRadius = 50;
-  const hexSize = 50;
-
-  const Hex = Honeycomb.extendHex({
-    size: hexSize,
-    orientation: "flat"
-  });
-
-  const Grid = Honeycomb.defineGrid(Hex);
-  const map = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
-  mapgen.generate(map, seed);
-
   var viewport = new Viewport({
     screenWidth: app.view.offsetWidth,
     screenHeight: app.view.offsetHeight,
-    worldWidth: map.pointWidth(),
-    worldHeight: map.pointHeight(),
+    worldWidth: props.map.pointWidth(),
+    worldHeight: props.map.pointHeight(),
     passiveWheel: false,
     disableOnContextMenu: true
   });
@@ -52,7 +36,7 @@ export function World() {
     clampZoom({minScale: 0.1, maxScale: 1}).
     clamp({direction: "all"}).
     zoomPercent(-0.9).
-    moveCenter(map.pointWidth() * 0.5, map.pointHeight() * 0.5);
+    moveCenter(props.map.pointWidth() * 0.5, props.map.pointHeight() * 0.5);
 
   let message = new PIXI.Text("Tiny King", new PIXI.TextStyle({ fill: "white" }));
   message.position.set(window.innerWidth * 0.5, 50);
@@ -79,7 +63,7 @@ export function World() {
   };
 
   // Render
-  map.forEach(hex => {
+  props.map.forEach(hex => {
     const graphics = new PIXI.Graphics();
 
     const point = hex.toPoint();

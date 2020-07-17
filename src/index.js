@@ -9,6 +9,8 @@ import * as Honeycomb from "honeycomb-grid";
 
 import "./style.scss";
 
+import * as mapgen from "./mapgen";
+
 let app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
@@ -16,6 +18,19 @@ let app = new PIXI.Application({
   resolution: window.devicePixelRatio || 1,
   autoResize: true
 });
+
+const seed = "1234567890"; // TODO: will obviously change this later
+const mapRadius = 50;
+const hexSize = 50;
+
+const Hex = Honeycomb.extendHex({
+  size: hexSize,
+  orientation: "flat"
+});
+const Grid = Honeycomb.defineGrid(Hex);
+const map = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
+
+mapgen.generate(map, seed);
 
 app.renderer.backgroundColor = 0x444444;
 app.renderer.view.style.position = "absolute";
@@ -25,8 +40,8 @@ document.body.appendChild(app.view);
 var viewport = new Viewport({
   screenWidth: app.view.offsetWidth,
   screenHeight: app.view.offsetHeight,
-  worldWidth: 5000,
-  worldHeight: 5000,
+  worldWidth: map.pointWidth(),
+  worldHeight: map.pointHeight(),
   passiveWheel: false,
   disableOnContextMenu: true
 });
@@ -36,9 +51,10 @@ viewport.
   drag().
   wheel().
   pinch().
-  clampZoom({minScale: 0.2, maxScale: 1}).
+  clampZoom({minScale: 0.1, maxScale: 1}).
   clamp({direction: "all"}).
-  moveCenter(2500, 2500);
+  zoomPercent(-0.9).
+  moveCenter(map.pointWidth() * 0.5, map.pointHeight() * 0.5);
 
 let message = new PIXI.Text("Tiny King", new PIXI.TextStyle({ fill: "white" }));
 message.position.set(window.innerWidth * 0.5, 50);
@@ -56,23 +72,26 @@ window.onresize = () => {
   disclaimer.position.set(3, window.innerHeight - 3);
 };
 
-const Hex = Honeycomb.extendHex({
-  size: 50,
-  orientation: "flat"
-});
 
-const Grid = Honeycomb.defineGrid(Hex);
-Grid.rectangle({width: 100, height: 100}).forEach(hex => {
+const terrainColours = {
+  "mountain": 0x3C3A44,
+  "water": 0x3F6FAE,
+  "grassland": 0x80C05D,
+  "forest": 0x30512F,
+  "stone": 0x5D7084,
+};
+
+// Render
+map.forEach(hex => {
   const graphics = new PIXI.Graphics();
-  graphics.lineStyle({color: 0xffffff, width: 1, alpha: 0.25});
 
   const point = hex.toPoint();
   const corners = hex.corners().map(corner => corner.add(point));
-  const [firstCorner, ...otherCorners] = corners;
 
-  graphics.moveTo(firstCorner.x, firstCorner.y);
-  otherCorners.forEach(({ x, y }) => graphics.lineTo(x, y));
-  graphics.lineTo(firstCorner.x, firstCorner.y);
+  graphics.beginFill(terrainColours[hex.tile.terrain]);
+  graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
+  graphics.drawPolygon(...corners);
+  graphics.endFill();
 
   viewport.addChild(graphics);
 });

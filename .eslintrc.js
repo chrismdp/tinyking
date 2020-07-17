@@ -3,7 +3,12 @@ module.exports = {
         "browser": true,
         "es2020": true
     },
-    "extends": "eslint:recommended",
+    "extends": [ "eslint:recommended", "plugin:react/recommended" ],
+    "settings": {
+      "react": {
+        "version": "detect",
+      }
+    },
     "parserOptions": {
         "ecmaVersion": 11,
         "sourceType": "module"

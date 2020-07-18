@@ -55,8 +55,8 @@ export function World(props) {
     };
 
     let viewport = new Viewport({
-      screenWidth: app.view.width,
-      screenHeight: app.view.height,
+      screenWidth: app.view.offsetWidth,
+      screenHeight: app.view.offsetHeight,
       worldWidth: props.width,
       worldHeight: props.height,
       passiveWheel: false,

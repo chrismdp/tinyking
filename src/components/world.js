@@ -2,6 +2,8 @@ import * as React from "react";
 import * as PIXI from "pixi.js";
 import PropTypes from "prop-types";
 
+import * as Honeycomb from "honeycomb-grid";
+
 import { Viewport } from "pixi-viewport";
 
 export function World(props) {
@@ -55,8 +57,8 @@ export function World(props) {
     let viewport = new Viewport({
       screenWidth: app.view.width,
       screenHeight: app.view.height,
-      worldWidth: props.map.pointWidth(),
-      worldHeight: props.map.pointHeight(),
+      worldWidth: props.width,
+      worldHeight: props.height,
       passiveWheel: false,
       disableOnContextMenu: true
     });
@@ -72,16 +74,23 @@ export function World(props) {
       clampZoom({minScale: 0.1, maxScale: 1}).
       clamp({direction: "all"}).
       zoomPercent(-0.4).
-      moveCenter(props.map.pointWidth() * 0.5, props.map.pointHeight() * 0.5);
+      moveCenter(props.width * 0.5, props.height * 0.5);
+
+    const hexSize = 50;
+    const Hex = Honeycomb.extendHex({
+      size: hexSize,
+      orientation: "flat"
+    });
 
     // Add map to viewport
-    props.map.forEach(hex => {
+    props.map.forEach(tile => {
       const graphics = new PIXI.Graphics();
 
+      const hex = Hex(tile.x, tile.y);
       const point = hex.toPoint();
       const corners = hex.corners().map(corner => corner.add(point));
 
-      graphics.beginFill(terrainColours[hex.tile.terrain]);
+      graphics.beginFill(terrainColours[tile.terrain]);
       graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
       graphics.drawPolygon(...corners);
       graphics.endFill();
@@ -99,5 +108,7 @@ export function World(props) {
 }
 
 World.propTypes = {
-  map: PropTypes.array, // Actually a Honeycomb grid but close enough
+  map: PropTypes.any.isRequired,
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired
 };

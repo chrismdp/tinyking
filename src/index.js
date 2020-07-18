@@ -6,7 +6,14 @@ import "./style.scss";
 
 import React from "react";
 import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 
-import { Game } from "components/game";
+import mapReducer from "features/map_slice";
+import ConnectedGame from "containers/connected_game";
 
-ReactDOM.render( <Game/> , document.getElementById("root"));
+import { configureStore } from "@reduxjs/toolkit";
+
+const store = configureStore({ reducer: mapReducer });
+
+ReactDOM.render(<Provider store={store}><ConnectedGame/></Provider>,
+  document.getElementById("root"));

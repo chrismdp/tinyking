@@ -5,7 +5,7 @@ import * as mapgen from "mapgen";
 const hexSize = 50;
 const mapRadius = 50;
 
-const Hex = Honeycomb.extendHex({
+export const Hex = Honeycomb.extendHex({
   size: hexSize,
   orientation: "flat"
 });

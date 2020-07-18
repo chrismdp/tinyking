@@ -2,7 +2,7 @@ import * as React from "react";
 import * as PIXI from "pixi.js";
 import PropTypes from "prop-types";
 
-import * as Honeycomb from "honeycomb-grid";
+import { Hex } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
@@ -73,14 +73,8 @@ export function World(props) {
       pinch().
       clampZoom({minScale: 0.1, maxScale: 1}).
       clamp({direction: "all"}).
-      zoomPercent(-0.4).
+      //zoomPercent(-0.4).
       moveCenter(props.width * 0.5, props.height * 0.5);
-
-    const hexSize = 50;
-    const Hex = Honeycomb.extendHex({
-      size: hexSize,
-      orientation: "flat"
-    });
 
     // Add map to viewport
     props.map.forEach(tile => {

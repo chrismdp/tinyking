@@ -6,9 +6,10 @@ export function MapGenParams({ seed, onChange }) {
 
   return (
     <div className='panel'>
+      <h1>Map generation</h1>
       <label>Random seed:
         <input type='text' ref={input} defaultValue={seed}/></label>
-      <button onClick={() => onChange(input.current.value)}>Regenerate</button>
+      <button onClick={() => onChange(input.current.value)}>Generate map</button>
     </div>
   );
 }

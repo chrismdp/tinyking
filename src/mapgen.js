@@ -1,6 +1,7 @@
 import * as SimplexNoise from "simplex-noise";
 
 export function generate(map, seed) {
+  console.log("Generating map");
   const simplex = new SimplexNoise(seed);
   // Terrain
   const centre = { x: map.width * 0.5, y: map.height * 0.5 };

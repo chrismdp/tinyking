@@ -17,6 +17,7 @@ export function World({ map, width, height }) {
       width: window.innerWidth,
       height: window.innerHeight,
       antialias: true,
+      transparent: true,
       resolution: window.devicePixelRatio || 1,
       autoResize: true
     });

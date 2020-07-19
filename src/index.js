@@ -19,4 +19,8 @@ const store = configureStore({ reducer: mapReducer });
 ReactDOM.render(<Provider store={store}><ConnectedGame/></Provider>,
   document.getElementById("root"));
 
-ReactGA.initialize("UA-431118-26", {debug: true});
+if (process.env.NODE_ENV !== "production") {
+  console.log("Tiny King: development mode!");
+}
+
+ReactGA.initialize("UA-431118-26", {debug: process.env.NODE_ENV !== "production"});

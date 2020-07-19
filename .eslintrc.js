@@ -3,6 +3,9 @@ module.exports = {
         "browser": true,
         "es2020": true
     },
+    "globals": {
+      "process": true
+    },
     "extends": [ "eslint:recommended", "plugin:react/recommended" ],
     "settings": {
       "react": {

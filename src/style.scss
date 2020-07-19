@@ -66,3 +66,14 @@ canvas {
   width: 275px;
   border-radius: 4px;
 }
+
+.social {
+  position: absolute;
+  bottom: 3px;
+  right: 7px;
+
+  a {
+    display: inline-block;
+    margin-left: 5px;
+  }
+}

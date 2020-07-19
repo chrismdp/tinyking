@@ -6,9 +6,10 @@ import { Hex } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
-export function World(props) {
+export function World({ map, width, height }) {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
+  const [viewport, setViewport] = React.useState(null);
 
   React.useEffect(() => {
     console.log("creating app");
@@ -36,11 +37,52 @@ export function World(props) {
   }, []);
 
   React.useEffect(() => {
-    if (props.map.length == 0) {
+    console.log("width/height changed");
+    if (!app) {
+      console.log("app not ready");
+      return;
+    }
+
+    let vp = new Viewport({
+      screenWidth: app.view.offsetWidth,
+      screenHeight: app.view.offsetHeight,
+      worldWidth: width,
+      worldHeight: height,
+      passiveWheel: false,
+      disableOnContextMenu: true
+    });
+
+    console.log("viewport", vp);
+
+    app.stage.addChild(vp);
+
+    vp.
+      drag().
+      wheel().
+      pinch().
+      clampZoom({minScale: 0.1, maxScale: 1}).
+      clamp({direction: "all"}).
+      //zoomPercent(-0.4).
+      moveCenter(width * 0.5, height * 0.5);
+
+    setViewport(vp);
+
+    return function cleanup() {
+      console.log("Destroy old map viewport");
+      vp.destroy({children: true});
+      setViewport(null);
+    };
+  }, [app, width, height]);
+
+  React.useEffect(() => {
+    if (map.length == 0) {
       console.log("map not ready");
       return;
     } else if (!app) {
       console.log("app not ready");
+      return;
+    } else if (!viewport) {
+      console.log("viewport not ready");
       return;
     }
 
@@ -54,30 +96,10 @@ export function World(props) {
       "stone": 0x5D7084,
     };
 
-    let viewport = new Viewport({
-      screenWidth: app.view.offsetWidth,
-      screenHeight: app.view.offsetHeight,
-      worldWidth: props.width,
-      worldHeight: props.height,
-      passiveWheel: false,
-      disableOnContextMenu: true
-    });
-
-    console.log("viewport", viewport);
-
-    app.stage.addChild(viewport);
-
-    viewport.
-      drag().
-      wheel().
-      pinch().
-      clampZoom({minScale: 0.1, maxScale: 1}).
-      clamp({direction: "all"}).
-      //zoomPercent(-0.4).
-      moveCenter(props.width * 0.5, props.height * 0.5);
+    var mapContainer = new PIXI.Container();
 
     // Add map to viewport
-    props.map.forEach(tile => {
+    map.forEach(tile => {
       const graphics = new PIXI.Graphics();
 
       const hex = Hex(tile.x, tile.y);
@@ -89,14 +111,17 @@ export function World(props) {
       graphics.drawPolygon(...corners);
       graphics.endFill();
 
-      viewport.addChild(graphics);
+      mapContainer.addChild(graphics);
     });
 
+    viewport.addChild(mapContainer);
+
     return function cleanup() {
-      console.log("Destroy old map viewport");
-      viewport.destroy({children: true});
+      console.log("Destroy old map");
+      viewport.removeChild(mapContainer);
+      mapContainer.destroy({children: true});
     };
-  }, [app, props.map]);
+  }, [app, map, viewport]);
 
   return (<div ref={containingDiv}></div>);
 }

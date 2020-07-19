@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import ReactGA from "react-ga";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -14,6 +15,8 @@ const Grid = Honeycomb.defineGrid(Hex);
 
 function generateTerrain(grid, seed) {
   console.log("Generating map");
+  ReactGA.event({category: "Map generation", action: "generate"});
+
   const simplex = new SimplexNoise(seed);
   // Terrain
   const centre = { x: grid.width * 0.5, y: grid.height * 0.5 };

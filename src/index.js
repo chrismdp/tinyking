@@ -6,6 +6,7 @@ import "./style.scss";
 
 import React from "react";
 import ReactDOM from "react-dom";
+import ReactGA from "react-ga";
 import { Provider } from "react-redux";
 
 import mapReducer from "features/map_slice";
@@ -17,3 +18,5 @@ const store = configureStore({ reducer: mapReducer });
 
 ReactDOM.render(<Provider store={store}><ConnectedGame/></Provider>,
   document.getElementById("root"));
+
+ReactGA.initialize("UA-431118-26", {debug: true});

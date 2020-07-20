@@ -91,7 +91,8 @@ export function World({ map, width, height }) {
 
     const terrainColours = {
       "mountain": 0x3C3A44,
-      "water": 0x3F6FAE,
+      "deep_water": 0x2F4999,
+      "shallow_water": 0x3F6FAE,
       "grassland": 0x80C05D,
       "forest": 0x30512F,
       "stone": 0x5D7084,
@@ -113,6 +114,19 @@ export function World({ map, width, height }) {
       graphics.endFill();
 
       mapContainer.addChild(graphics);
+
+      if (tile.economic_value) {
+        if (tile.economic_value >= 25) {
+          graphics.beginFill(0x0000cc);
+          graphics.drawCircle(point.x, point.y, 25);
+          graphics.endFill();
+        }
+
+        var text = new PIXI.Text("E" + tile.economic_value.toFixed(2), {fontSize: 12, fill: "white"});
+        text.position = point;
+        text.anchor = { x: 0.5, y: 0.5 };
+        mapContainer.addChild(text);
+      }
     });
 
     viewport.addChild(mapContainer);

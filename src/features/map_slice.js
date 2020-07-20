@@ -21,7 +21,7 @@ function generateTerrain(grid, seed) {
   const simplex = new SimplexNoise(seed);
   // Terrain
   const centre = { x: grid.width * 0.5, y: grid.height * 0.5 };
-  return grid.map(hex => {
+  return grid.reduce((result, hex) => {
     const d = { x: (centre.x - hex.x), y: (centre.y - hex.y) };
     const relativeDistance = (d.x * d.x + d.y * d.y) / (grid.width * grid.width);
     hex.customHeight =
@@ -36,8 +36,10 @@ function generateTerrain(grid, seed) {
     var terrain = "";
     if (hex.customHeight > 1.4) {
       terrain = "mountain";
+    } else if (hex.customHeight <= -0.2) {
+      terrain = "deep_water";
     } else if (hex.customHeight < 0) {
-      terrain = "water";
+      terrain = "shallow_water";
     } else {
       if (simplex.noise2D(hex.x * 0.2, hex.y * 0.2) > 0.45) {
         terrain = "forest";
@@ -47,12 +49,45 @@ function generateTerrain(grid, seed) {
         terrain = "grassland";
       }
     }
-    return {
+    result[hex] = {
       x: hex.x,
       y: hex.y,
       terrain: terrain
     };
-  });
+    return result;
+  }, {});
+}
+
+const terrainValueFn = {
+  "mountain": (distance) => distance <= 2 ? 2 : (15 - distance * 3),
+  "shallow_water": (distance) => (10 - distance * 2),
+  "deep_water": () => 0,
+  "forest": (distance) => distance <= 2 ? 2 : (10 - distance * 2),
+  "stone": (distance) => distance <= 2 ? 3 : (15 - distance * 3),
+  "grassland": (distance) => (10 - distance * 2),
+};
+
+function generateEconomicValue(grid, landscape) {
+  const spiral = Grid.spiral({ radius: 5 });
+  spiral.shift(); // Ignore centre
+  for (let grid_index = 0; grid_index < grid.length; grid_index++) {
+    var found = {};
+    const target = grid[grid_index];
+    if (landscape[target].terrain == "grassland") {
+      for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
+        const hex = target.add(spiral[spiral_index]);
+        if (hex in landscape) {
+          const terrain = landscape[hex].terrain;
+          if (!(terrain in found)) {
+            //console.log(terrain, target.distance(hex));
+            found[terrain] = terrainValueFn[terrain](target.distance(hex));
+          }
+        }
+      }
+      landscape[target].economic_value = Object.values(found).reduce((a, b) => a + b, 0);
+      //console.log(target, found);
+    }
+  }
 }
 
 const mapSlice = createSlice({
@@ -70,7 +105,11 @@ const mapSlice = createSlice({
       const grid = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
       const pointWidth = grid.pointWidth();
       const pointHeight = grid.pointHeight();
-      const landscape = generateTerrain(grid, seed);
+      var landscape = generateTerrain(grid, seed);
+      console.log("generate economic");
+      generateEconomicValue(grid, landscape);
+      landscape = Object.values(landscape);
+      console.log("finished");
       return Object.assign({}, state, { seed, landscape, pointWidth, pointHeight });
     }
   }

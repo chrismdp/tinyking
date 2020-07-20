@@ -4,6 +4,7 @@ module.exports = {
         "es2020": true
     },
     "globals": {
+      "VERSION": true,
       "process": true
     },
     "extends": [ "eslint:recommended", "plugin:react/recommended" ],

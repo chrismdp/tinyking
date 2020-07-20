@@ -2,6 +2,10 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackRootPlugin = require("html-webpack-root-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const GitRevisionPlugin = require("git-revision-webpack-plugin");
+const webpack =  require("webpack");
+
+var gitRevisionPlugin = new GitRevisionPlugin();
 
 module.exports = {
   entry: {
@@ -22,7 +26,11 @@ module.exports = {
         "apple-mobile-web-app-capable": "yes"
       }
     }),
-    new HtmlWebpackRootPlugin()
+    new HtmlWebpackRootPlugin(),
+    gitRevisionPlugin,
+    new webpack.DefinePlugin({
+      VERSION: JSON.stringify(gitRevisionPlugin.version())
+    })
   ],
   output: {
     filename: "[name].[contenthash].js",

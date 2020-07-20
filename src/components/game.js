@@ -1,10 +1,20 @@
 import React from "react";
-import PropTypes from "prop-types";
+import { useSelector, useDispatch } from "react-redux";
 
 import { World } from "components/world";
 import { MapGenParams } from "components/mapgen";
 
-export function Game({map, seed, changeSeed, width, height}) {
+import { generate } from "features/map_slice";
+
+export function Game() {
+  const map = useSelector(state => state.landscape);
+  const seed = useSelector(state => state.seed);
+  const width = useSelector(state => state.pointWidth);
+  const height = useSelector( state => state.pointHeight);
+
+  const dispatch = useDispatch();
+  const changeSeed = React.useCallback((seed) => dispatch(generate({ seed })), [dispatch]);
+
   return (
     <div id='game'>
       <World map={map} width={width} height={height}/>
@@ -17,11 +27,3 @@ export function Game({map, seed, changeSeed, width, height}) {
       </div>
     </div>);
 }
-
-Game.propTypes = {
-  map: PropTypes.any.isRequired,
-  seed: PropTypes.string.isRequired,
-  changeSeed: PropTypes.func.isRequired,
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired
-};

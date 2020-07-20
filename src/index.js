@@ -10,13 +10,13 @@ import ReactGA from "react-ga";
 import { Provider } from "react-redux";
 
 import mapReducer from "features/map_slice";
-import ConnectedGame from "containers/connected_game";
+import { Game } from "components/game";
 
 import { configureStore } from "@reduxjs/toolkit";
 
 const store = configureStore({ reducer: mapReducer });
 
-ReactDOM.render(<Provider store={store}><ConnectedGame/></Provider>,
+ReactDOM.render(<Provider store={store}><Game/></Provider>,
   document.getElementById("root"));
 
 if (process.env.NODE_ENV !== "production") {

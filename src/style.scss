@@ -1,19 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&family=Roboto+Slab&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&family=Roboto+Slab&display=swap');*/
+/*@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@500&family=Roboto+Slab&display=swap');*/
+@import url('https://fonts.googleapis.com/css2?family=Podkova:wght@600&family=Raleway:wght@500&display=swap');
 
 body {
   padding: 0;
   margin: 0;
-  font-family: 'Roboto Slab', serif;
   user-select: none;
-  background: #3F6FAE;
+  background: #2f4999;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Roboto Condensed', sans-serif;
+  font-family: 'Podkova', serif;
 }
 
-input, button {
-  font-family: 'Roboto Slab', serif;
+body, input, button {
+  font-family: 'Raleway', sans-serif;
 }
 
 canvas {
@@ -42,9 +43,18 @@ canvas {
   }
 }
 
+button {
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 15px;
+  background: #417154;
+  color: white;
+  -webkit-appearance: none;
+}
+
 .panel {
   h1 {
-    font-size: 1.25em;
+    font-size: 1.5em;
     margin: 0px 0px 5px 0px;
   }
 

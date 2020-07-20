@@ -9,7 +9,8 @@ const mapRadius = 50;
 
 export const Hex = Honeycomb.extendHex({
   size: hexSize,
-  orientation: "flat"
+  orientation: "flat",
+  origin: [ hexSize, hexSize * Math.sqrt(3) * 0.5 ]
 });
 const Grid = Honeycomb.defineGrid(Hex);
 

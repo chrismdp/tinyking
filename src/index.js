@@ -14,6 +14,10 @@ import { Game } from "components/game";
 
 import { configureStore } from "@reduxjs/toolkit";
 
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faDice } from "@fortawesome/free-solid-svg-icons";
+library.add(faDice);
+
 const store = configureStore({ reducer: mapReducer });
 
 ReactDOM.render(<Provider store={store}><Game/></Provider>,

@@ -1,9 +1,21 @@
 import React from "react";
-import PropTypes from "prop-types";
+import { useSelector, useDispatch } from "react-redux";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export function MapGenParams({ seed, onChange }) {
+import { toggleDebugMapLayer } from "features/ui_slice";
+import { generate } from "features/map_slice";
+
+export function MapGenParams() {
   const input = React.useRef();
+  const mapLayer = useSelector(state => state.ui.debug.mapLayer);
+  const seed = useSelector(state => state.map.seed);
+
+  const dispatch = useDispatch();
+  const clickedMapLayer = React.useCallback(() =>
+    dispatch(toggleDebugMapLayer()), [dispatch]);
+  const clickedGenerate = React.useCallback((seed) =>
+    dispatch(generate({ seed })), [dispatch]);
 
   return (
     <div className='panel'>
@@ -13,12 +25,11 @@ export function MapGenParams({ seed, onChange }) {
         <input id='seed' type='text' ref={input} defaultValue={seed}/>
         <button onClick={() => input.current.value = Math.round(Math.random() * 10000000)}><FontAwesomeIcon icon="dice"/></button>
       </div>
-      <button onClick={() => onChange(input.current.value)}>Generate map</button>
+      <div className='row'>
+        <label htmlFor='mapLayer'>Show debug map layer:</label>
+        <input id='mapLayer' type='checkbox' defaultValue={mapLayer} onChange={clickedMapLayer}/>
+      </div>
+      <button onClick={() => clickedGenerate(input.current.value)}>Generate map</button>
     </div>
   );
 }
-
-MapGenParams.propTypes = {
-  seed: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired
-};

@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useSelector } from "react-redux";
+
 import * as PIXI from "pixi.js";
 import PropTypes from "prop-types";
 
@@ -10,6 +12,7 @@ export function World({ map, width, height }) {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);
+  const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
   React.useEffect(() => {
     console.log("creating app");
@@ -114,19 +117,6 @@ export function World({ map, width, height }) {
       graphics.endFill();
 
       mapContainer.addChild(graphics);
-
-      if (tile.economic_value) {
-        if (tile.economic_value >= 25) {
-          graphics.beginFill(0x0000cc);
-          graphics.drawCircle(point.x, point.y, 25);
-          graphics.endFill();
-        }
-
-        var text = new PIXI.Text("E" + tile.economic_value.toFixed(2), {fontSize: 12, fill: "white"});
-        text.position = point;
-        text.anchor = { x: 0.5, y: 0.5 };
-        mapContainer.addChild(text);
-      }
     });
 
     viewport.addChild(mapContainer);
@@ -137,6 +127,55 @@ export function World({ map, width, height }) {
       mapContainer.destroy({children: true});
     };
   }, [app, map, viewport]);
+
+  React.useEffect(() => {
+    if (map.length == 0) {
+      console.log("map not ready");
+      return;
+    } else if (!app) {
+      console.log("app not ready");
+      return;
+    } else if (!viewport) {
+      console.log("viewport not ready");
+      return;
+    }
+
+    console.log("rendering debug layer");
+
+    var container;
+
+    if (debugLayer) {
+      container = new PIXI.Container();
+
+      map.forEach(tile => {
+        const hex = Hex(tile.x, tile.y);
+        const point = hex.toPoint();
+        if (tile.economic_value) {
+          if (tile.economic_value >= 25) {
+            const graphics = new PIXI.Graphics();
+            graphics.beginFill(0x0000cc);
+            graphics.drawCircle(point.x, point.y, 25);
+            graphics.endFill();
+            container.addChild(graphics);
+          }
+
+          var text = new PIXI.Text("E" + tile.economic_value.toFixed(2), {fontSize: 12, fill: "white"});
+          text.position = point;
+          text.anchor = { x: 0.5, y: 0.5 };
+          container.addChild(text);
+        }
+      });
+      viewport.addChild(container);
+    }
+
+    return function cleanup() {
+      if (container) {
+        console.log("destroy old debug layer");
+        viewport.removeChild(container);
+        container.destroy({children: true});
+      }
+    };
+  }, [app, map, viewport, debugLayer]);
 
   return (<div ref={containingDiv}></div>);
 }

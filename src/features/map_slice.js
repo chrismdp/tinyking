@@ -19,7 +19,6 @@ function generateTerrain(grid, seed) {
   ReactGA.event({category: "Map generation", action: "generate"});
 
   const simplex = new SimplexNoise(seed);
-  // Terrain
   const centre = { x: grid.width * 0.5, y: grid.height * 0.5 };
   return grid.reduce((result, hex) => {
     const d = { x: (centre.x - hex.x), y: (centre.y - hex.y) };
@@ -79,15 +78,26 @@ function generateEconomicValue(grid, landscape) {
         if (hex in landscape) {
           const terrain = landscape[hex].terrain;
           if (!(terrain in found)) {
-            //console.log(terrain, target.distance(hex));
             found[terrain] = terrainValueFn[terrain](target.distance(hex));
           }
         }
       }
       landscape[target].economic_value = Object.values(found).reduce((a, b) => a + b, 0);
-      //console.log(target, found);
     }
   }
+}
+
+function generateMap(seed) {
+  console.log("generate", seed);
+  const grid = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
+  const pointWidth = grid.pointWidth();
+  const pointHeight = grid.pointHeight();
+  var landscape = generateTerrain(grid, seed);
+  console.log("generate economic");
+  generateEconomicValue(grid, landscape);
+  landscape = Object.values(landscape);
+  console.log("finished");
+  return { landscape, pointWidth, pointHeight };
 }
 
 const mapSlice = createSlice({
@@ -101,15 +111,7 @@ const mapSlice = createSlice({
   reducers: {
     generate(state, action) {
       const { seed } = action.payload;
-      console.log("generate", action.payload);
-      const grid = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
-      const pointWidth = grid.pointWidth();
-      const pointHeight = grid.pointHeight();
-      var landscape = generateTerrain(grid, seed);
-      console.log("generate economic");
-      generateEconomicValue(grid, landscape);
-      landscape = Object.values(landscape);
-      console.log("finished");
+      const { landscape, pointWidth, pointHeight } = generateMap(seed);
       return Object.assign({}, state, { seed, landscape, pointWidth, pointHeight });
     }
   }

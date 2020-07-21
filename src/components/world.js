@@ -128,8 +128,8 @@ export function World() {
       const hex = Hex(tile.x, tile.y);
       const point = hex.toPoint();
 
-      graphics.beginFill(0x6C4332);
-      graphics.lineStyle({color: "black", width: 4, alpha: 1});
+      graphics.beginFill(tile.type == "house" ? 0x6C4332 : 0xE2C879);
+      graphics.lineStyle({color: "black", width: 2, alpha: 1});
       graphics.drawRect(point.x - 25, point.y - 30, 50, 35);
       graphics.endFill();
       landscapeContainer.addChild(graphics);

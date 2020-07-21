@@ -6,13 +6,15 @@ import * as SimplexNoise from "simplex-noise";
 
 import MersenneTwister from "mersenne-twister";
 
-const hexSize = 50;
-const mapRadius = 50;
+const HEX_SIZE = 50;
+const MAP_RADIUS= 50;
+
+const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 
 export const Hex = Honeycomb.extendHex({
-  size: hexSize,
+  size: HEX_SIZE,
   orientation: "flat",
-  origin: [ hexSize, hexSize * Math.sqrt(3) * 0.5 ]
+  origin: [ HEX_SIZE, HEX_SIZE * Math.sqrt(3) * 0.5 ]
 });
 
 const Grid = Honeycomb.defineGrid(Hex);
@@ -91,18 +93,31 @@ function generateEconomicValue(grid, landscape) {
 }
 
 function generateSettlements(seed, grid, landscape) {
-  var settlements = [];
+  var settlements = {};
   var generator = new MersenneTwister(seed);
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
     const target = grid[grid_index];
-    if (landscape[target].terrain == "grassland") {
-      const dieRoll = Math.max(3, 50 - landscape[target].economic_value * 2);
+    if (!settlements[target] && landscape[target].terrain == "grassland") {
+      const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
-        settlements.push({
+        settlements[target] = {
           x: target.x,
           y: target.y,
           type: "house"
-        });
+        };
+        const adj = grid.neighborsOf(target);
+        const start = generator.random_int() % adj.length;
+        for (let n_index = 0; n_index < adj.length; n_index++) {
+          const n = adj[(n_index + start) % adj.length];
+          if (!settlements[n] && landscape[n].terrain == "grassland") {
+            settlements[n] = {
+              x: n.x,
+              y: n.y,
+              type: "field"
+            };
+            break;
+          }
+        }
       }
     }
   }
@@ -111,7 +126,7 @@ function generateSettlements(seed, grid, landscape) {
 
 function generateMap(seed) {
   console.log("generate", seed);
-  const grid = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
+  const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
   var landscape = generateTerrain(grid, seed);
 
   console.log("generate economic");
@@ -122,7 +137,7 @@ function generateMap(seed) {
 
   console.log("finished");
   return {
-    settlements,
+    settlements: Object.values(settlements),
     landscape: Object.values(landscape),
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()

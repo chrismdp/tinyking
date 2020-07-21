@@ -30,4 +30,4 @@ if (process.env.NODE_ENV !== "production") {
   console.log("Tiny King: development mode!");
 }
 
-ReactGA.initialize("UA-431118-26", {debug: process.env.NODE_ENV !== "production"});
+ReactGA.initialize("UA-431118-26", {debug: false});//process.env.NODE_ENV !== "production"});

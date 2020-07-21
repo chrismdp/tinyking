@@ -4,6 +4,8 @@ import ReactGA from "react-ga";
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
 
+import MersenneTwister from "mersenne-twister";
+
 const hexSize = 50;
 const mapRadius = 50;
 
@@ -12,6 +14,7 @@ export const Hex = Honeycomb.extendHex({
   orientation: "flat",
   origin: [ hexSize, hexSize * Math.sqrt(3) * 0.5 ]
 });
+
 const Grid = Honeycomb.defineGrid(Hex);
 
 function generateTerrain(grid, seed) {
@@ -87,17 +90,43 @@ function generateEconomicValue(grid, landscape) {
   }
 }
 
+function generateSettlements(seed, grid, landscape) {
+  var settlements = [];
+  var generator = new MersenneTwister(seed);
+  for (let grid_index = 0; grid_index < grid.length; grid_index++) {
+    const target = grid[grid_index];
+    if (landscape[target].terrain == "grassland") {
+      const dieRoll = Math.max(3, 50 - landscape[target].economic_value * 2);
+      if (generator.random_int() % dieRoll == 0) {
+        settlements.push({
+          x: target.x,
+          y: target.y,
+          type: "house"
+        });
+      }
+    }
+  }
+  return settlements;
+}
+
 function generateMap(seed) {
   console.log("generate", seed);
   const grid = Grid.rectangle({width: mapRadius * 2, height: mapRadius * 2});
-  const pointWidth = grid.pointWidth();
-  const pointHeight = grid.pointHeight();
   var landscape = generateTerrain(grid, seed);
+
   console.log("generate economic");
   generateEconomicValue(grid, landscape);
-  landscape = Object.values(landscape);
+
+  console.log("generate settlements");
+  const settlements = generateSettlements(seed, grid, landscape);
+
   console.log("finished");
-  return { landscape, pointWidth, pointHeight };
+  return {
+    settlements,
+    landscape: Object.values(landscape),
+    pointWidth: grid.pointWidth(),
+    pointHeight: grid.pointHeight()
+  };
 }
 
 const mapSlice = createSlice({
@@ -111,8 +140,9 @@ const mapSlice = createSlice({
   reducers: {
     generate(state, action) {
       const { seed } = action.payload;
-      const { landscape, pointWidth, pointHeight } = generateMap(seed);
-      return Object.assign({}, state, { seed, landscape, pointWidth, pointHeight });
+      const { settlements, landscape, pointWidth, pointHeight } = generateMap(seed);
+      return Object.assign({}, state,
+        { seed, settlements, landscape, pointWidth, pointHeight });
     }
   }
 });

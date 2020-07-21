@@ -2,17 +2,21 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import * as PIXI from "pixi.js";
-import PropTypes from "prop-types";
 
 import { Hex } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
-export function World({ map, width, height }) {
+export function World() {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
+
+  const landscape = useSelector(state => state.map.landscape);
+  const settlements = useSelector(state => state.map.settlements);
+  const width = useSelector(state => state.map.pointWidth);
+  const height = useSelector(state => state.map.pointHeight);
 
   React.useEffect(() => {
     console.log("creating app");
@@ -79,8 +83,8 @@ export function World({ map, width, height }) {
   }, [app, width, height]);
 
   React.useEffect(() => {
-    if (map.length == 0) {
-      console.log("map not ready");
+    if (landscape.length == 0) {
+      console.log("landscape not ready");
       return;
     } else if (!app) {
       console.log("app not ready");
@@ -90,7 +94,7 @@ export function World({ map, width, height }) {
       return;
     }
 
-    console.log("rendering map");
+    console.log("rendering landscape");
 
     const terrainColours = {
       "mountain": 0x3C3A44,
@@ -101,10 +105,10 @@ export function World({ map, width, height }) {
       "stone": 0x5D7084,
     };
 
-    var mapContainer = new PIXI.Container();
+    var landscapeContainer = new PIXI.Container();
 
-    // Add map to viewport
-    map.forEach(tile => {
+    // Add landscape to viewport
+    landscape.forEach(tile => {
       const graphics = new PIXI.Graphics();
 
       const hex = Hex(tile.x, tile.y);
@@ -116,21 +120,33 @@ export function World({ map, width, height }) {
       graphics.drawPolygon(...corners);
       graphics.endFill();
 
-      mapContainer.addChild(graphics);
+      landscapeContainer.addChild(graphics);
     });
 
-    viewport.addChild(mapContainer);
+    settlements.forEach(tile => {
+      const graphics = new PIXI.Graphics();
+      const hex = Hex(tile.x, tile.y);
+      const point = hex.toPoint();
+
+      graphics.beginFill(0x6C4332);
+      graphics.lineStyle({color: "black", width: 4, alpha: 1});
+      graphics.drawRect(point.x - 25, point.y - 30, 50, 35);
+      graphics.endFill();
+      landscapeContainer.addChild(graphics);
+    });
+
+    viewport.addChild(landscapeContainer);
 
     return function cleanup() {
-      console.log("Destroy old map");
-      viewport.removeChild(mapContainer);
-      mapContainer.destroy({children: true});
+      console.log("Destroy old landscape");
+      viewport.removeChild(landscapeContainer);
+      landscapeContainer.destroy({children: true});
     };
-  }, [app, map, viewport]);
+  }, [app, landscape, settlements, viewport]);
 
   React.useEffect(() => {
-    if (map.length == 0) {
-      console.log("map not ready");
+    if (landscape.length == 0) {
+      console.log("landscape not ready");
       return;
     } else if (!app) {
       console.log("app not ready");
@@ -147,7 +163,7 @@ export function World({ map, width, height }) {
     if (debugLayer) {
       container = new PIXI.Container();
 
-      map.forEach(tile => {
+      landscape.forEach(tile => {
         const hex = Hex(tile.x, tile.y);
         const point = hex.toPoint();
         if (tile.economic_value) {
@@ -175,13 +191,7 @@ export function World({ map, width, height }) {
         container.destroy({children: true});
       }
     };
-  }, [app, map, viewport, debugLayer]);
+  }, [app, landscape, viewport, debugLayer]);
 
   return (<div ref={containingDiv}></div>);
 }
-
-World.propTypes = {
-  map: PropTypes.any.isRequired,
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired
-};

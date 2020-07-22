@@ -34,6 +34,9 @@ module.exports = {
         "semi": [
             "error",
             "always"
+        ],
+        "require-yield": [
+            "warn"
         ]
     }
 };

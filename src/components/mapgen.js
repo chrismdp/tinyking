@@ -10,6 +10,7 @@ export function MapGenParams() {
   const input = React.useRef();
   const mapLayer = useSelector(state => state.ui.debug.mapLayer);
   const seed = useSelector(state => state.map.seed);
+  const progress = useSelector(state => state.map.progress);
 
   const dispatch = useDispatch();
   const clickedMapLayer = React.useCallback(() =>
@@ -29,7 +30,10 @@ export function MapGenParams() {
         <label htmlFor='mapLayer'>Show debug map layer:</label>
         <input id='mapLayer' type='checkbox' defaultValue={mapLayer} onChange={clickedMapLayer}/>
       </div>
-      <button onClick={() => clickedGenerate(input.current.value)}>Generate map</button>
+      <div className='row'>
+        <button onClick={() => clickedGenerate(input.current.value)}>Generate map</button>
+        { progress.label && <div className='progress'>{progress.progress * 100}% {progress.label}</div> }
+      </div>
     </div>
   );
 }

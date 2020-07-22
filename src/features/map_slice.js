@@ -1,10 +1,31 @@
 import { createSlice } from "@reduxjs/toolkit";
 import ReactGA from "react-ga";
+import { delay, put, putResolve } from "redux-saga/effects";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
 
 import MersenneTwister from "mersenne-twister";
+
+const mapSlice = createSlice({
+  name: "map",
+  initialState: {
+    seed: "12345",
+    progress: {},
+    landscape: [],
+    pointWidth: 0,
+    pointHeight: 0
+  },
+  reducers: {
+    generate() {},
+    storeMap(state, action) {
+      return Object.assign({}, state, action.payload);
+    },
+    generationProgress(state, action) {
+      state.progress = action.payload;
+    }
+  }
+});
 
 const HEX_SIZE = 50;
 const MAP_RADIUS= 50;
@@ -20,7 +41,7 @@ export const Hex = Honeycomb.extendHex({
 const Grid = Honeycomb.defineGrid(Hex);
 
 function generateTerrain(grid, seed) {
-  console.log("Generating map");
+  console.log("Generating terrain");
   ReactGA.event({category: "Map generation", action: "generate"});
 
   const simplex = new SimplexNoise(seed);
@@ -124,43 +145,38 @@ function generateSettlements(seed, grid, landscape) {
   return settlements;
 }
 
-function generateMap(seed) {
-  console.log("generate", seed);
+export function* generateMap(action) {
+  const { seed } = action.payload;
+
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
+
+  yield put(mapSlice.actions.generationProgress({ progress: 0, label: "terrain" }));
+  yield delay(100);
+
   var landscape = generateTerrain(grid, seed);
 
-  console.log("generate economic");
+  yield put(mapSlice.actions.generationProgress({ progress: 0.2, label: "economic" }));
+  yield delay(100);
+
   generateEconomicValue(grid, landscape);
 
-  console.log("generate settlements");
+  yield put(mapSlice.actions.generationProgress({ progress: 0.5, label: "settlements" }));
+  yield delay(100);
+
   const settlements = generateSettlements(seed, grid, landscape);
 
-  console.log("finished");
-  return {
+  yield putResolve(mapSlice.actions.generationProgress({ progress: 0.9, label: "store" }));
+  yield delay(100);
+
+  yield put(mapSlice.actions.storeMap({
+    seed: seed,
     settlements: Object.values(settlements),
     landscape: Object.values(landscape),
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
-  };
+  }));
+  yield put(mapSlice.actions.generationProgress({ progress: 1, label: "complete" }));
 }
-
-const mapSlice = createSlice({
-  name: "map",
-  initialState: {
-    seed: "12345",
-    landscape: [],
-    pointWidth: 0,
-    pointHeight: 0
-  },
-  reducers: {
-    generate(state, action) {
-      const { seed } = action.payload;
-      const { settlements, landscape, pointWidth, pointHeight } = generateMap(seed);
-      return Object.assign({}, state,
-        { seed, settlements, landscape, pointWidth, pointHeight });
-    }
-  }
-});
 
 export const { generate } = mapSlice.actions;
 export default mapSlice.reducer;

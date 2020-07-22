@@ -32,7 +32,7 @@ export function MapGenParams() {
       </div>
       <div className='row'>
         <button onClick={() => clickedGenerate(input.current.value)}>Generate map</button>
-        { progress.label && <div className='progress'>{progress.progress * 100}% {progress.label}</div> }
+        { progress.label && <div className='progress'>{Math.round(progress.progress * 100)}% {progress.label}</div> }
       </div>
     </div>
   );

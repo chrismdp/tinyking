@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 
 import * as PIXI from "pixi.js";
 
-import { Hex } from "features/map_slice";
+import { Hex } from "sagas/map";
 
 import { Viewport } from "pixi-viewport";
 

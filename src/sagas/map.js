@@ -1,5 +1,6 @@
 import { delay, put, putResolve, call } from "redux-saga/effects";
 import { clearMap, storeMap, generationProgress } from "features/map_slice";
+import { clearEntities, newEntities } from "features/entities_slice";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -145,6 +146,7 @@ function* generateSettlements(seed, grid, landscape) {
 export function* generateMap(action) {
   const { seed } = action.payload;
   yield putResolve(clearMap(seed));
+  yield putResolve(clearEntities());
 
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
 
@@ -154,10 +156,37 @@ export function* generateMap(action) {
   const settlements = yield call(generateSettlements, seed, grid, landscape);
 
   yield put(generationProgress({ progress: 0.9, label: "store" }));
+
+  const terrainColours = {
+    "mountain": 0x3C3A44,
+    "deep_water": 0x2F4999,
+    "shallow_water": 0x3F6FAE,
+    "grassland": 0x80C05D,
+    "forest": 0x30512F,
+    "stone": 0x5D7084,
+  };
+
+  const entities = [
+    ...Object.values(landscape).map((tile) => ({
+      spatial: { x: tile.x, y: tile.y },
+      mappable: { terrain: tile.terrain },
+      valuable: { value: tile.economic_value },
+      renderable: { fill: terrainColours[tile.terrain], x: tile.x, y: tile.y, type: "hex", layer: 0 }
+    })),
+    ...Object.values(settlements).map((s) => {
+      var entity = { spatial: { x: s.x, y: s.y }, renderable: { x: s.x, y: s.y, type: s.type, layer: 1 } };
+      if (s.type == "house") {
+        entity.liveable = true;
+        entity.renderable.fill = 0x6C4332;
+      } else if (s.type == "field") {
+        entity.farmable = true;
+        entity.renderable.fill = 0xE2C879;
+      }
+      return entity;
+    })];
+  yield put(newEntities(entities));
   yield put(storeMap({
     seed: seed,
-    settlements: Object.values(settlements),
-    landscape: Object.values(landscape),
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
   }));

@@ -5,7 +5,12 @@ import * as PIXI from "pixi.js";
 
 import { Hex } from "sagas/map";
 
+import { getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
+
 import { Viewport } from "pixi-viewport";
+
+const getAllRenderable = getAllComponents("renderable");
+const getAllValuableXY = getAllComponentsWithXY("valuable");
 
 export function World() {
   const containingDiv = React.useRef(null);
@@ -13,8 +18,8 @@ export function World() {
   const [viewport, setViewport] = React.useState(null);
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
-  const landscape = useSelector(state => state.map.landscape);
-  const settlements = useSelector(state => state.map.settlements);
+  const renderables = useSelector(getAllRenderable);
+  const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
 
@@ -83,8 +88,9 @@ export function World() {
   }, [app, width, height]);
 
   React.useEffect(() => {
-    if (landscape.length == 0) {
-      console.log("landscape not ready");
+    console.log("rendering landscape");
+    if (renderables.length == 0) {
+      console.log("renderables not ready");
       return;
     } else if (!app) {
       console.log("app not ready");
@@ -94,59 +100,63 @@ export function World() {
       return;
     }
 
-    console.log("rendering landscape");
-
-    const terrainColours = {
-      "mountain": 0x3C3A44,
-      "deep_water": 0x2F4999,
-      "shallow_water": 0x3F6FAE,
-      "grassland": 0x80C05D,
-      "forest": 0x30512F,
-      "stone": 0x5D7084,
-    };
-
-    var landscapeContainer = new PIXI.Container();
+    var layers = {};
 
     // Add landscape to viewport
-    landscape.forEach(tile => {
+    for (var i = 0; i < renderables.length; i++) {
+      const renderable = renderables[i];
       const graphics = new PIXI.Graphics();
-
-      const hex = Hex(tile.x, tile.y);
-      const point = hex.toPoint();
-      const corners = hex.corners().map(corner => corner.add(point));
-
-      graphics.beginFill(terrainColours[tile.terrain]);
-      graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-      graphics.drawPolygon(...corners);
-      graphics.endFill();
-
-      landscapeContainer.addChild(graphics);
-    });
-
-    settlements.forEach(tile => {
-      const graphics = new PIXI.Graphics();
-      const hex = Hex(tile.x, tile.y);
+      const hex = Hex(renderable.x, renderable.y);
       const point = hex.toPoint();
 
-      graphics.beginFill(tile.type == "house" ? 0x6C4332 : 0xE2C879);
-      graphics.lineStyle({color: "black", width: 2, alpha: 1});
-      graphics.drawRect(point.x - 25, point.y - 30, 50, 35);
-      graphics.endFill();
-      landscapeContainer.addChild(graphics);
-    });
+      switch(renderable.type) {
+      case "hex": {
+        const corners = hex.corners().map(corner => corner.add(point));
+        graphics.beginFill(renderable.fill);
+        graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
+        graphics.drawPolygon(...corners);
+        graphics.endFill();
+        break;
+      }
+      case "house": {
+        graphics.beginFill(renderable.fill);
+        graphics.lineStyle({color: "black", width: 2, alpha: 1});
+        graphics.drawRect(point.x - 25, point.y - 30, 50, 35);
+        graphics.endFill();
+        break;
+      }
+      case "field":
+        graphics.beginFill(renderable.fill);
+        graphics.lineStyle({color: "black", width: 2, alpha: 1});
+        graphics.drawRect(point.x - 25, point.y - 30, 50, 50);
+        graphics.endFill();
+        break;
+      }
 
-    viewport.addChild(landscapeContainer);
+      if (!(renderable.layer in layers)) {
+        layers[renderable.layer] = { layer: renderable.layer, container: new PIXI.Container() };
+      }
+      layers[renderable.layer].container.addChild(graphics);
+    }
+
+    const containers = Object.values(layers).sort((a, b) => a.layer - b.layer);
+    containers.forEach(c => {
+      viewport.addChild(c.container);
+    });
 
     return function cleanup() {
-      console.log("Destroy old landscape");
-      viewport.removeChild(landscapeContainer);
-      landscapeContainer.destroy({children: true});
+      console.log("Destroy old containers");
+      containers.forEach(c => {
+        viewport.removeChild(c.container);
+        c.container.destroy({children: true});
+      });
     };
-  }, [app, landscape, settlements, viewport]);
+  }, [app, renderables, viewport]);
 
   React.useEffect(() => {
-    if (landscape.length == 0) {
-      console.log("landscape not ready");
+    console.log("rendering debug layer");
+    if (renderables.length == 0) {
+      console.log("renderables not ready");
       return;
     } else if (!app) {
       console.log("app not ready");
@@ -155,19 +165,18 @@ export function World() {
       console.log("viewport not ready");
       return;
     }
-
-    console.log("rendering debug layer");
 
     var container;
 
     if (debugLayer) {
       container = new PIXI.Container();
 
-      landscape.forEach(tile => {
-        const hex = Hex(tile.x, tile.y);
-        const point = hex.toPoint();
-        if (tile.economic_value) {
-          if (tile.economic_value >= 25) {
+      for (var i = 0; i < valuables.length; i++) {
+        const valuable = valuables[i];
+        if (valuable.value && valuable.x && valuable.y) {
+          const hex = Hex(valuable.x, valuable.y);
+          const point = hex.toPoint();
+          if (valuable.value >= 25) {
             const graphics = new PIXI.Graphics();
             graphics.beginFill(0x0000cc);
             graphics.drawCircle(point.x, point.y, 25);
@@ -175,12 +184,12 @@ export function World() {
             container.addChild(graphics);
           }
 
-          var text = new PIXI.Text("E" + tile.economic_value.toFixed(2), {fontSize: 12, fill: "white"});
+          var text = new PIXI.Text("E" + valuable.value.toFixed(2), {fontSize: 12, fill: "white"});
           text.position = point;
           text.anchor = { x: 0.5, y: 0.5 };
           container.addChild(text);
         }
-      });
+      }
       viewport.addChild(container);
     }
 
@@ -191,7 +200,7 @@ export function World() {
         container.destroy({children: true});
       }
     };
-  }, [app, landscape, viewport, debugLayer]);
+  }, [app, valuables, viewport, debugLayer]);
 
   return (<div ref={containingDiv}></div>);
 }

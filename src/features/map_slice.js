@@ -1,9 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export const blankMap = {
+const blankMap = {
   seed: "12345",
   progress: {},
-  landscape: [],
   pointWidth: 0,
   pointHeight: 0
 };
@@ -26,7 +25,6 @@ const mapSlice = createSlice({
     }
   }
 });
-
 
 export const { generate, clearMap, storeMap, generationProgress } = mapSlice.actions;
 export default mapSlice.reducer;

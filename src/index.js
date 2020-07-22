@@ -12,8 +12,6 @@ import { combineReducers } from "redux";
 import { configureStore } from "@reduxjs/toolkit";
 import createSagaMiddleware from "redux-saga";
 
-import mapReducer from "features/map_slice";
-import uiReducer from "features/ui_slice";
 import { Game } from "components/game";
 import baseSaga from "sagas";
 
@@ -22,7 +20,12 @@ import { faDice } from "@fortawesome/free-solid-svg-icons";
 library.add(faDice);
 
 const sagaMiddleware = createSagaMiddleware();
-const reducer = combineReducers({ map: mapReducer, ui: uiReducer });
+
+import map from "features/map_slice";
+import ui from "features/ui_slice";
+import entities from "features/entities_slice";
+
+const reducer = combineReducers({ map, ui, entities });
 const store = configureStore({
   reducer: reducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware)

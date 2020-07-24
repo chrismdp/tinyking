@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,7 +9,7 @@ import Draggable from "react-draggable";
 import { toggleDebugMapLayer } from "features/ui_slice";
 import { getMapSeed, generate } from "features/map_slice";
 
-export function MapGenParams() {
+export function MapGenParams({ x, y }) {
   const input = React.useRef();
   const mapLayer = useSelector(state => state.ui.debug.mapLayer);
   const seed = useSelector(getMapSeed);
@@ -21,7 +22,7 @@ export function MapGenParams() {
     dispatch(generate({ seed })), [dispatch]);
 
   return (
-    <Draggable handle=".handle" bounds="parent">
+    <Draggable handle=".handle" bounds="parent" defaultPosition={{ x, y }}>
       <div className='panel'>
         <h1 className="handle">Map generation</h1>
         <div className='row'>
@@ -41,3 +42,8 @@ export function MapGenParams() {
     </Draggable>
   );
 }
+
+MapGenParams.propTypes = {
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired
+};

@@ -1,9 +1,10 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import * as PIXI from "pixi.js";
 
 import { getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
+import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
@@ -21,6 +22,8 @@ export function World() {
   const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
+
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
     console.log("creating app");
@@ -150,6 +153,9 @@ export function World() {
         layers[renderable.layer] = { layer: renderable.layer, container: new PIXI.Container() };
       }
       layers[renderable.layer].container.addChild(graphics);
+
+      graphics.interactive = true;
+      graphics.on("click", () => dispatch(entityClicked(renderable.id)));
     }
 
     const containers = Object.values(layers).sort((a, b) => a.layer - b.layer);
@@ -215,5 +221,5 @@ export function World() {
     };
   }, [app, valuables, viewport, debugLayer]);
 
-  return (<div ref={containingDiv}></div>);
+  return (<div id="world" ref={containingDiv}></div>);
 }

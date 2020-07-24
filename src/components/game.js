@@ -1,13 +1,13 @@
 import React from "react";
 
 import { World } from "components/world";
-import { MapGenParams } from "components/mapgen";
+import { UserInterface } from "components/user_interface";
 
 export function Game() {
   return (
     <div id='game'>
       <World/>
-      <MapGenParams/>
+      <UserInterface/>
       <h1 className='header'>Tiny King</h1>
       <div className='disclaimer'>Technical Demo {VERSION}<br/>All features in very early stages and subject to change.<br/>Copyright (c) 2020 Think Code Learn Ltd t/a Revelation Games</div>
       <div className='social'>

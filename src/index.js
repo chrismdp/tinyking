@@ -17,7 +17,8 @@ import baseSaga from "sagas";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDice } from "@fortawesome/free-solid-svg-icons";
-library.add(faDice);
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
+library.add(faDice, faTimes);
 
 const sagaMiddleware = createSagaMiddleware();
 

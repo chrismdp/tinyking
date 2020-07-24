@@ -26,7 +26,8 @@ const mapSlice = createSlice({
   initialState: blankMap,
   reducers: {
     generate() {},
-    clearMap(state, seed) {
+    clearMap(state, action) {
+      const seed = action.payload;
       var newState = Object.assign({}, state, blankMap);
       newState.seed = seed;
       return newState;

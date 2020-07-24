@@ -45,7 +45,7 @@ export const getAllComponentsWithXY = type => createSelector(
 
     var result = [];
     for (var i = 0; i < keys.length; i++) {
-      var e = { ...components[i] };
+      var e = { ...components[keys[i]] };
       const r = renderables[keys[i]];
       if (r) {
         e.x = r.x;

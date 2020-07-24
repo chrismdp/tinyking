@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { delay, put, putResolve, call } from "redux-saga/effects";
 import { clearEntities, newEntities } from "features/entities_slice";
+import { generateFamilies } from "features/families_slice";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -9,8 +10,8 @@ import MersenneTwister from "mersenne-twister";
 
 import ReactGA from "react-ga";
 
-const HEX_SIZE = 50;
-const MAP_RADIUS= 50;
+export const HEX_SIZE = 50;
+const MAP_RADIUS = 10;
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 
@@ -203,7 +204,7 @@ export function* generateMap(action) {
     ...Object.values(settlements).map((s) => {
       var entity = { spatial: { x: s.x, y: s.y }, renderable: { x: s.x, y: s.y, type: s.type, layer: 1 } };
       if (s.type == "house") {
-        entity.liveable = true;
+        entity.habitable = true;
         entity.renderable.fill = 0x6C4332;
       } else if (s.type == "field") {
         entity.farmable = true;
@@ -217,8 +218,13 @@ export function* generateMap(action) {
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
   }));
+  yield put(generationProgress({ progress: 0.6, label: "families" }));
+  yield delay(10);
+  yield put(generateFamilies({ seed }));
   yield put(generationProgress({ progress: 1, label: "complete" }));
 }
+
+export const getMapSeed = state => state.map.seed;
 
 export const { generate, clearMap, storeMap, generationProgress } = mapSlice.actions;
 export default mapSlice.reducer;

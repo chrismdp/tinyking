@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import * as PIXI from "pixi.js";
 
 import { getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
-import { Hex } from "features/map_slice";
+import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
@@ -107,29 +107,43 @@ export function World() {
       const graphics = new PIXI.Graphics();
       const hex = Hex(renderable.x, renderable.y);
       const point = hex.toPoint();
+      graphics.position.set(point.x, point.y);
 
       switch(renderable.type) {
       case "hex": {
-        const corners = hex.corners().map(corner => corner.add(point));
         graphics.beginFill(renderable.fill);
         graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-        graphics.drawPolygon(...corners);
+        graphics.drawPolygon(...hex.corners());
         graphics.endFill();
         break;
       }
       case "house": {
         graphics.beginFill(renderable.fill);
         graphics.lineStyle({color: "black", width: 2, alpha: 1});
-        graphics.drawRect(point.x - 25, point.y - 30, 50, 35);
+        graphics.drawRect(-25, -30, 50, 35);
         graphics.endFill();
         break;
       }
-      case "field":
+      case "field": {
         graphics.beginFill(renderable.fill);
         graphics.lineStyle({color: "black", width: 2, alpha: 1});
-        graphics.drawRect(point.x - 25, point.y - 30, 50, 50);
+        graphics.drawRect(-25, -30, 50, 50);
         graphics.endFill();
         break;
+      }
+      case "person": {
+        const person = new PIXI.Graphics();
+        person.position.set(-Math.cos(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.75, Math.sin(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.75);
+        person.lineStyle({color: "black", width: 2, alpha: 1});
+        person.beginFill(renderable.body);
+        person.drawEllipse(0, 0, renderable.size * 0.55, renderable.size * 0.65);
+        person.endFill();
+        person.beginFill(renderable.hair);
+        person.drawCircle(0, -renderable.size * 0.5, renderable.size * 0.5);
+        person.endFill();
+        graphics.addChild(person);
+        break;
+      }
       }
 
       if (!(renderable.layer in layers)) {

@@ -4,12 +4,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { toggleDebugMapLayer } from "features/ui_slice";
-import { generate } from "features/map_slice";
+import { getMapSeed, generate } from "features/map_slice";
 
 export function MapGenParams() {
   const input = React.useRef();
   const mapLayer = useSelector(state => state.ui.debug.mapLayer);
-  const seed = useSelector(state => state.map.seed);
+  const seed = useSelector(getMapSeed);
   const progress = useSelector(state => state.map.progress);
 
   const dispatch = useDispatch();

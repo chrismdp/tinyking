@@ -18,9 +18,6 @@ body, input, button {
 }
 
 canvas {
-  position: absolute;
-  top: 0px;
-  left: 0px;
   z-index: -1;
 }
 
@@ -82,7 +79,14 @@ button {
 
   h1 {
     font-size: 1.5em;
-    margin: 0px 0px 5px 0px;
+    padding: 5px 5px;
+    margin: 0px -5px;
+    border-radius: 4px;
+
+    &:hover {
+      transition: background 0.2s;
+      background-color: #eee;
+    }
   }
 
   .progress {
@@ -100,6 +104,13 @@ button {
   padding: 10px;
   width: 275px;
   border-radius: 4px;
+
+  opacity: 1;
+  transition: opacity 0.2s;
+  &.react-draggable-dragging {
+    transition: opacity 0.2s;
+    opacity: 0.8;
+  }
 }
 
 .social {

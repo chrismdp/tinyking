@@ -9,7 +9,8 @@ const uiSlice = createSlice({
     },
     entityClicked(state, action) {
       const entityId = action.payload;
-      if (!(entityId in state.windows.filter(w => w.type == "info").map(w => w.entityId))) {
+      const existingEntities = state.windows.filter(w => w.type == "info").map(w => w.entityId);
+      if (!existingEntities.includes(entityId)) {
         state.windows.push({ id: "info-" + entityId, type: "info", entityId });
       }
     },

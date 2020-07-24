@@ -17,19 +17,10 @@ const entitiesSlice = createSlice({
         const components = Object.keys(entity);
         for (var c = 0; c < components.length; c++) {
           const name = components[c];
-
           if (!(name in state.components)) {
             state.components[name] = {};
           }
-          if (name == "spatial") {
-            const key = entity[name].x + "-" + entity[name].y;
-            if (!(key in state.components[name])) {
-              state.components[name][key] = [];
-            }
-            state.components[name][key].push(nextId);
-          } else {
-            state.components[name][nextId] = { ...entity[name], id: nextId };
-          }
+          state.components[name][nextId] = { ...entity[name], id: nextId };
         }
         nextId++;
       }
@@ -64,6 +55,10 @@ export const getAllComponentsWithXY = type => createSelector(
     }
     return result;
   });
+
+export const getEntity = id => state => (
+  Object.keys(state.entities.components).reduce((result, name) => (
+    {...result, [name]: Object.values(state.entities.components[name]).filter(c => c.id == id)[0]}), {}));
 
 export const { clearEntities, newEntities } = entitiesSlice.actions;
 export default entitiesSlice.reducer;

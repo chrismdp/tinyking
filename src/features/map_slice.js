@@ -196,18 +196,24 @@ export function* generateMap(action) {
 
   const entities = [
     ...Object.values(landscape).map((tile) => ({
+      nameable: { nickname: "Map tile" },
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
       valuable: { value: tile.economic_value },
       renderable: { fill: terrainColours[tile.terrain], x: tile.x, y: tile.y, type: "hex", layer: 0 }
     })),
     ...Object.values(settlements).map((s) => {
-      var entity = { spatial: { x: s.x, y: s.y }, renderable: { x: s.x, y: s.y, type: s.type, layer: 1 } };
+      var entity = {
+        spatial: { x: s.x, y: s.y },
+        renderable: { x: s.x, y: s.y, type: s.type, layer: 1 }
+      };
       if (s.type == "house") {
-        entity.habitable = true;
+        entity.nameable = { nickname: "Wooden building" };
+        entity.habitable = {};
         entity.renderable.fill = 0x6C4332;
       } else if (s.type == "field") {
-        entity.farmable = true;
+        entity.nameable = { nickname: "Field" };
+        entity.farmable = {};
         entity.renderable.fill = 0xE2C879;
       }
       return entity;

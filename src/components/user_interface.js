@@ -15,7 +15,7 @@ export function UserInterface() {
         const offset = (index + 2) * 30;
         switch(w.type) {
         case "info":
-          return (<Info windowId={w.id} key={w.id} entity={w.entity} x={offset} y={offset}/>);
+          return (<Info windowId={w.id} key={w.id} entityId={w.entityId} x={offset} y={offset}/>);
         case "mapgen":
           return (<MapGenParams key={w.id} x={offset} y={offset}/>);
         }

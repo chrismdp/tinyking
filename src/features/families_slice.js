@@ -33,7 +33,7 @@ function* generateFamiliesSaga(action) {
     const familySize = 1 + (generator.random_int() % 5);
     for (var p = 0; p < familySize; p++) {
       people.push({
-        nameable: { seed: generator.random_int() },
+        nameable: { type: "person", seed: generator.random_int() },
         renderable: {
           x: habitable.x,
           y: habitable.y,

@@ -12,6 +12,49 @@ import { Viewport } from "pixi-viewport";
 const getAllRenderable = getAllComponents("renderable");
 const getAllValuableXY = getAllComponentsWithXY("valuable");
 
+const entityMouseMove = e => {
+  if (e.currentTarget.custom.clicking) {
+    e.currentTarget.custom.data = e.data;
+    e.currentTarget.custom.clicking = false;
+    e.currentTarget.custom.parent.removeChild(e.currentTarget);
+    e.currentTarget.custom.viewport.addChild(e.currentTarget);
+    e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
+    e.currentTarget.custom.base.filters = [ new PIXI.filters.BlurFilter(2) ];
+    e.currentTarget.custom.base.alpha = 0.5;
+  }
+  e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
+};
+
+const entityMouseDown = (viewport, base, parent) => e => {
+  e.currentTarget.custom = {};
+  e.currentTarget.custom.viewport = viewport;
+  e.currentTarget.custom.base = base;
+  e.currentTarget.custom.parent = parent;
+  e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
+
+  viewport.plugins.pause("drag");
+
+  e.currentTarget.custom.clicking = true;
+  e.currentTarget.on("mousemove", entityMouseMove);
+};
+
+const entityMouseUp = (cb) => e => {
+  if (e.currentTarget.custom.clicking) {
+    cb(e.currentTarget);
+  } else {
+    e.currentTarget.custom.viewport.plugins.resume("drag");
+    e.currentTarget.custom.base.alpha = 1.0;
+    e.currentTarget.custom.base.filters = null;
+    e.currentTarget.custom.viewport.removeChild(e.currentTarget);
+    e.currentTarget.custom.parent.addChild(e.currentTarget);
+    // If leaving it there
+    //e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
+    e.currentTarget.position = { ...e.currentTarget.custom.startPosition };
+  }
+  e.currentTarget.off("mousemove", entityMouseMove);
+  delete e.currentTarget.custom;
+};
+
 export function World() {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
@@ -104,6 +147,8 @@ export function World() {
 
     var layers = {};
 
+    var base = new PIXI.Container();
+
     // Add landscape to viewport
     for (var i = 0; i < renderables.length; i++) {
       const renderable = renderables[i];
@@ -136,7 +181,7 @@ export function World() {
       }
       case "person": {
         const person = new PIXI.Graphics();
-        person.position.set(-Math.cos(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.75, Math.sin(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.75);
+        person.position.set(-Math.cos(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
         person.lineStyle({color: "black", width: 2, alpha: 1});
         person.beginFill(renderable.body);
         person.drawEllipse(0, 0, renderable.size * 0.55, renderable.size * 0.65);
@@ -145,6 +190,12 @@ export function World() {
         person.drawCircle(0, -renderable.size * 0.5, renderable.size * 0.5);
         person.endFill();
         graphics.addChild(person);
+
+        person.interactive = true;
+        person.on("mousedown", entityMouseDown(viewport, base, graphics));
+        person.on("mouseup", entityMouseUp(() => { dispatch(entityClicked(renderable.id)); }));
+        person.on("mouseupoutside", entityMouseUp(() => { dispatch(entityClicked(renderable.id)); }));
+
         break;
       }
       }
@@ -153,22 +204,25 @@ export function World() {
         layers[renderable.layer] = { layer: renderable.layer, container: new PIXI.Container() };
       }
       layers[renderable.layer].container.addChild(graphics);
-
-      graphics.interactive = true;
-      graphics.on("click", () => dispatch(entityClicked(renderable.id)));
     }
 
     const containers = Object.values(layers).sort((a, b) => a.layer - b.layer);
     containers.forEach(c => {
-      viewport.addChild(c.container);
+      base.addChild(c.container);
     });
+
+    viewport.addChild(base);
+
+    var highlight = new PIXI.Container();
+    viewport.addChild(highlight);
 
     return function cleanup() {
       console.log("Destroy old containers");
-      containers.forEach(c => {
-        viewport.removeChild(c.container);
-        c.container.destroy({children: true});
-      });
+
+      viewport.removeChild(base);
+      base.destroy({children: true});
+      viewport.removeChild(highlight);
+      highlight.destroy({children: true});
     };
   }, [app, renderables, viewport]);
 

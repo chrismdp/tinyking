@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const MULTIPLE_INFO_WINDOWS_ALLOWED = false;
+
 const uiSlice = createSlice({
   name: "ui",
   initialState: { debug: { mapLayer: false }, windows: [ { id: 0, type: "mapgen" } ] },
@@ -11,6 +13,11 @@ const uiSlice = createSlice({
       const entityId = action.payload;
       const existingEntities = state.windows.filter(w => w.type == "info").map(w => w.entityId);
       if (!existingEntities.includes(entityId)) {
+
+        if (!MULTIPLE_INFO_WINDOWS_ALLOWED) {
+          state.windows = state.windows.filter(w => w.type != "info");
+        }
+
         state.windows.push({ id: "info-" + entityId, type: "info", entityId });
       }
     },

@@ -10,7 +10,7 @@ import MersenneTwister from "mersenne-twister";
 
 import ReactGA from "react-ga";
 
-export const HEX_SIZE = 50;
+export const HEX_SIZE = 80;
 const MAP_RADIUS = 10;
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
@@ -171,6 +171,18 @@ function* generateSettlements(seed, grid, landscape) {
   return settlements;
 }
 
+function workableForTile(tile) {
+  if (tile.terrain == "forest") {
+    return { actions: [{ type: "chop_trees" }, { type: "plant_trees" }] };
+  } else if (tile.terrain == "stone") {
+    return { actions: [{ type: "gather_rocks" }] };
+  } else if (tile.terrain == "grassland") {
+    // TODO: too slow for now
+    //return { actions: [{ type: "plough_field" }, { type: "fence_pasture" }, { type: "explore"}] };
+  }
+  return null;
+}
+
 export function* generateMap(action) {
   const { seed } = action.payload;
   yield putResolve(clearMap(seed));
@@ -200,6 +212,7 @@ export function* generateMap(action) {
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
       valuable: { value: tile.economic_value },
+      workable: workableForTile(tile),
       renderable: { fill: terrainColours[tile.terrain], x: tile.x, y: tile.y, type: "hex", layer: 0 }
     })),
     ...Object.values(settlements).map((s) => {
@@ -211,9 +224,11 @@ export function* generateMap(action) {
         entity.nameable = { nickname: "Wooden building" };
         entity.habitable = {};
         entity.renderable.fill = 0x6C4332;
+        entity.workable = { actions: [ { type: "tidy_house" }, { type: "socialise" } ] };
       } else if (s.type == "field") {
         entity.nameable = { nickname: "Field" };
         entity.farmable = {};
+        entity.workable = { actions: [ { type: "plough" } ] };
         entity.renderable.fill = 0xE2C879;
       }
       return entity;

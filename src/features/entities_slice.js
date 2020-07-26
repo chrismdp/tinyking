@@ -20,7 +20,9 @@ const entitiesSlice = createSlice({
           if (!(name in state.components)) {
             state.components[name] = {};
           }
-          state.components[name][nextId] = { ...entity[name], id: nextId };
+          if (entity[name]) {
+            state.components[name][nextId] = { ...entity[name], id: nextId };
+          }
         }
         nextId++;
       }

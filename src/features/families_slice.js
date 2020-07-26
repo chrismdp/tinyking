@@ -13,10 +13,10 @@ const familiesSlice = createSlice({
 });
 
 const HAIR = {
-  red: 0xAA733B,
+  red: 0x8D3633,
   brown: 0x292021,
   black: 0x20232A,
-  blonde: 0xDEC984
+  blonde: 0x957E3C
 };
 
 const BODY_MALE = 0x4E3F30;

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 
@@ -12,6 +13,15 @@ import { Viewport } from "pixi-viewport";
 const getAllRenderable = getAllComponents("renderable");
 const getAllValuableXY = getAllComponentsWithXY("valuable");
 
+const getAllWorkables = createSelector(getAllComponentsWithXY("workable"),
+  workables => workables.reduce((result, w) => {
+    const key = w.x + "," + w.y;
+    if (!(key in result)) { result[key] = []; }
+    w.actions.forEach(a => result[key].push({ id: w.id, action: a, hex: Hex(w.x, w.y) }));
+    return result;
+  }, {})
+);
+
 const entityMouseMove = e => {
   if (e.currentTarget.custom.clicking) {
     e.currentTarget.custom.data = e.data;
@@ -19,38 +29,48 @@ const entityMouseMove = e => {
     e.currentTarget.custom.parent.removeChild(e.currentTarget);
     e.currentTarget.custom.viewport.addChild(e.currentTarget);
     e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
-    e.currentTarget.custom.base.filters = [ new PIXI.filters.BlurFilter(2) ];
-    e.currentTarget.custom.base.alpha = 0.5;
+    e.currentTarget.custom.base.filters = [ new PIXI.filters.BlurFilter(4) ];
+    e.currentTarget.custom.base.alpha = 1.0;
+    e.currentTarget.custom.highlight.visible = true;
   }
   e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
 };
 
-const entityMouseDown = (viewport, base, parent) => e => {
-  e.currentTarget.custom = {};
-  e.currentTarget.custom.viewport = viewport;
-  e.currentTarget.custom.base = base;
-  e.currentTarget.custom.parent = parent;
+const entityMouseDown = (viewport, highlight, base, targets, parent) => e => {
+  e.currentTarget.custom = { viewport, base, targets, highlight, parent };
   e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
 
   viewport.plugins.pause("drag");
 
   e.currentTarget.custom.clicking = true;
   e.currentTarget.on("mousemove", entityMouseMove);
+  e.currentTarget.on("touchmove", entityMouseMove);
 };
 
-const entityMouseUp = (cb) => e => {
+const entityMouseUp = (id, click, drop) => e => {
   if (e.currentTarget.custom.clicking) {
-    cb(e.currentTarget);
+    click(id);
   } else {
-    e.currentTarget.custom.viewport.plugins.resume("drag");
     e.currentTarget.custom.base.alpha = 1.0;
     e.currentTarget.custom.base.filters = null;
+    e.currentTarget.custom.highlight.visible = false;
     e.currentTarget.custom.viewport.removeChild(e.currentTarget);
     e.currentTarget.custom.parent.addChild(e.currentTarget);
+
+    e.currentTarget.custom.targets.forEach(t => {
+      const x = t.x - e.currentTarget.position.x;
+      const y = t.y - e.currentTarget.position.y;
+      const d2 = x * x + y * y;
+      if (d2 < 12 * 12) {
+        drop(t.id, t.action);
+      }
+    });
     // If leaving it there
     //e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
     e.currentTarget.position = { ...e.currentTarget.custom.startPosition };
   }
+
+  e.currentTarget.custom.viewport.plugins.resume("drag");
   e.currentTarget.off("mousemove", entityMouseMove);
   delete e.currentTarget.custom;
 };
@@ -62,11 +82,15 @@ export function World() {
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
   const renderables = useSelector(getAllRenderable);
+  const workables = useSelector(getAllWorkables);
   const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
 
   const dispatch = useDispatch();
+  const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
+  // TODO: turn this into a better event
+  const drop = React.useCallback((id, action) => dispatch(entityClicked(id)), [dispatch]);
 
   React.useEffect(() => {
     console.log("creating app");
@@ -95,11 +119,10 @@ export function World() {
   }, []);
 
   React.useEffect(() => {
-    console.log("width/height changed");
     if (!app) {
-      console.log("app not ready");
       return;
     }
+    console.log("width/height changed");
 
     let vp = new Viewport({
       screenWidth: app.view.offsetWidth,
@@ -118,7 +141,7 @@ export function World() {
       drag().
       wheel().
       pinch().
-      clampZoom({minScale: 0.1, maxScale: 1}).
+      clampZoom({minScale: 0.1, maxScale: 10}).
       clamp({direction: "all"}).
       //zoomPercent(-0.4).
       moveCenter(width * 0.5, height * 0.5);
@@ -133,20 +156,47 @@ export function World() {
   }, [app, width, height]);
 
   React.useEffect(() => {
-    console.log("rendering landscape");
     if (renderables.length == 0) {
-      console.log("renderables not ready");
       return;
     } else if (!app) {
-      console.log("app not ready");
       return;
     } else if (!viewport) {
-      console.log("viewport not ready");
       return;
     }
 
-    var layers = {};
+    console.log("rendering workables");
 
+    var highlight = new PIXI.Container();
+    var dropTargets = [];
+    const keys = Object.keys(workables);
+    for (i = 0; i < keys.length; i++) {
+      const record  = workables[keys[i]];
+      record.forEach((r, index) => {
+        const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
+        const point = r.hex.toPoint();
+        const graphics = new PIXI.Graphics();
+        graphics.position.set(point.x - Math.sin(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1), point.y + Math.cos(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1));
+        graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
+        graphics.drawCircle(0, 0, 15);
+        graphics.endFill();
+        var text = new PIXI.Text(r.action.type.toUpperCase(), {fontFamily: "Raleway", fontSize: 12, fill: "white"});
+        text.position.set(0, 30);
+        text.anchor = { x: 0.5, y: 0.5 };
+        graphics.addChild(text);
+        highlight.addChild(graphics);
+        dropTargets.push({
+          x: graphics.position.x,
+          y: graphics.position.y,
+          id: r.id,
+          action: r.action
+        });
+      });
+    }
+    highlight.visible = false;
+
+    console.log("rendering landscape");
+
+    var layers = {};
     var base = new PIXI.Container();
 
     // Add landscape to viewport
@@ -187,14 +237,23 @@ export function World() {
         person.drawEllipse(0, 0, renderable.size * 0.55, renderable.size * 0.65);
         person.endFill();
         person.beginFill(renderable.hair);
-        person.drawCircle(0, -renderable.size * 0.5, renderable.size * 0.5);
+        person.drawCircle(0, -renderable.size * 0.6, renderable.size * 0.5);
         person.endFill();
+
+        person.lineStyle(null);
+        person.beginFill(0xEACAAA);
+        person.drawCircle(0, -renderable.size * 0.48, renderable.size * 0.35);
+        person.endFill();
+
         graphics.addChild(person);
 
         person.interactive = true;
-        person.on("mousedown", entityMouseDown(viewport, base, graphics));
-        person.on("mouseup", entityMouseUp(() => { dispatch(entityClicked(renderable.id)); }));
-        person.on("mouseupoutside", entityMouseUp(() => { dispatch(entityClicked(renderable.id)); }));
+        person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+        person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+        person.on("mouseup", entityMouseUp(renderable.id, click, drop));
+        person.on("mouseupoutside", entityMouseUp(renderable.id, click, drop));
+        person.on("touchend", entityMouseUp(renderable.id, click, drop));
+        person.on("touchendoutside", entityMouseUp(renderable.id, click, drop));
 
         break;
       }
@@ -210,14 +269,11 @@ export function World() {
     containers.forEach(c => {
       base.addChild(c.container);
     });
-
     viewport.addChild(base);
-
-    var highlight = new PIXI.Container();
     viewport.addChild(highlight);
 
     return function cleanup() {
-      console.log("Destroy old containers");
+      console.log("Destroy old layers");
 
       viewport.removeChild(base);
       base.destroy({children: true});
@@ -227,17 +283,14 @@ export function World() {
   }, [app, renderables, viewport]);
 
   React.useEffect(() => {
-    console.log("rendering debug layer");
     if (renderables.length == 0) {
-      console.log("renderables not ready");
       return;
     } else if (!app) {
-      console.log("app not ready");
       return;
     } else if (!viewport) {
-      console.log("viewport not ready");
       return;
     }
+    console.log("rendering debug layer");
 
     var container;
 

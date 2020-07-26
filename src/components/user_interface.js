@@ -17,7 +17,7 @@ export function UserInterface() {
         case "info":
           return (<Info windowId={w.id} key={w.id} entityId={w.entityId} x={offset} y={offset}/>);
         case "mapgen":
-          return (<MapGenParams key={w.id} x={offset} y={offset}/>);
+          return (<MapGenParams windowId={w.id} key={w.id} x={offset} y={offset}/>);
         }
       })
       }

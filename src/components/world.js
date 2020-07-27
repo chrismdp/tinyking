@@ -72,6 +72,7 @@ const entityMouseUp = (id, click, drop) => e => {
 
   e.currentTarget.custom.viewport.plugins.resume("drag");
   e.currentTarget.off("mousemove", entityMouseMove);
+  e.currentTarget.off("touchmove", entityMouseMove);
   delete e.currentTarget.custom;
 };
 

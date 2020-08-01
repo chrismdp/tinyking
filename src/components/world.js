@@ -90,8 +90,8 @@ export function World() {
 
   const dispatch = useDispatch();
   const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
-  // TODO: turn this into a better event
-  const drop = React.useCallback((id, action) => dispatch(entityClicked(id)), [dispatch]);
+  // TODO: turn this into a better event - there's a second 'action' param we can use.
+  const drop = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
 
   React.useEffect(() => {
     console.log("creating app");

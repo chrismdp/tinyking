@@ -14,10 +14,11 @@ export const HEX_SIZE = 80;
 const MAP_RADIUS = 10;
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
+const MIN_START_SETTLEMENT_DISTANCE = 3;
 
 const blankMap = {
   seed: "12345",
-  progress: {},
+  progress: { count: 0 },
   pointWidth: 0,
   pointHeight: 0
 };
@@ -37,7 +38,7 @@ const mapSlice = createSlice({
       return Object.assign({}, state, action.payload);
     },
     generationProgress(state, action) {
-      state.progress = action.payload;
+      state.progress = { ...action.payload, count: state.progress.count + 1 };
     }
   }
 });
@@ -95,7 +96,7 @@ function* generateTerrain(grid, seed) {
     };
     if (grid_index % 500 == 0) {
       yield delay(10);
-      yield put(generationProgress({ progress: (grid_index / grid.length) * 0.2, label: "terrain" }));
+      yield put(generationProgress({ label: "terrain" }));
     }
   }
   return result;
@@ -109,6 +110,25 @@ const terrainValueFn = {
   "stone": (distance) => distance <= 2 ? 3 : (15 - distance * 3),
   "grassland": (distance) => (10 - distance * 2),
 };
+
+
+function* findPlayerStart(grid, landscape) {
+  const center = Grid.pointToHex(grid.pointWidth() * 0.5, grid.pointHeight() * 0.5);
+
+  const spiral = Grid.spiral({ radius: MAP_RADIUS });
+  for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
+    const hex = center.add(spiral[spiral_index]);
+    if (landscape[hex].terrain == "grassland") {
+      return hex;
+    }
+    if (spiral_index % 500 == 0) {
+      yield delay(10);
+      yield put(generationProgress({ label: "find start" }));
+    }
+  }
+  throw "Cannot find any grassland for player to start on!";
+  // TODO: do something more useful here
+}
 
 function* generateEconomicValue(grid, landscape) {
   const spiral = Grid.spiral({ radius: 5 });
@@ -130,12 +150,33 @@ function* generateEconomicValue(grid, landscape) {
     }
     if (grid_index % 500 == 0) {
       yield delay(10);
-      yield put(generationProgress({ progress: 0.2 + (grid_index / grid.length) * 0.2, label: "economic" }));
+      yield put(generationProgress({ label: "economic" }));
     }
   }
 }
 
-function* generateSettlements(seed, grid, landscape) {
+function makeHouseAndField(settlements, grid, target, landscape, generator) {
+  settlements[target] = {
+    x: target.x,
+    y: target.y,
+    type: "house"
+  };
+  const adj = grid.neighborsOf(target);
+  const start = generator.random_int() % adj.length;
+  for (let n_index = 0; n_index < adj.length; n_index++) {
+    const n = adj[(n_index + start) % adj.length];
+    if (!settlements[n] && landscape[n].terrain == "grassland") {
+      settlements[n] = {
+        x: n.x,
+        y: n.y,
+        type: "field"
+      };
+      break;
+    }
+  }
+}
+
+function* generateSettlements(seed, grid, landscape, start) {
   var settlements = {};
   var generator = new MersenneTwister(seed);
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
@@ -143,31 +184,18 @@ function* generateSettlements(seed, grid, landscape) {
     if (!settlements[target] && landscape[target].terrain == "grassland") {
       const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
-        settlements[target] = {
-          x: target.x,
-          y: target.y,
-          type: "house"
-        };
-        const adj = grid.neighborsOf(target);
-        const start = generator.random_int() % adj.length;
-        for (let n_index = 0; n_index < adj.length; n_index++) {
-          const n = adj[(n_index + start) % adj.length];
-          if (!settlements[n] && landscape[n].terrain == "grassland") {
-            settlements[n] = {
-              x: n.x,
-              y: n.y,
-              type: "field"
-            };
-            break;
-          }
+        if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
+          makeHouseAndField(settlements, grid, target, landscape, generator);
         }
       }
     }
     if (grid_index % 500 == 0) {
       yield delay(10);
-      yield put(generationProgress({ progress: 0.4 + (grid_index / grid.length) * 0.2, label: "settlements" }));
+      yield put(generationProgress({ label: "settlements" }));
     }
   }
+
+  makeHouseAndField(settlements, grid, start, landscape, generator);
   return settlements;
 }
 
@@ -193,9 +221,10 @@ export function* generateMap(action) {
   var landscape = yield call(generateTerrain, grid, seed);
 
   yield call(generateEconomicValue, grid, landscape);
-  const settlements = yield call(generateSettlements, seed, grid, landscape);
+  var start = yield call(findPlayerStart, grid, landscape);
+  const settlements = yield call(generateSettlements, seed, grid, landscape, start);
 
-  yield put(generationProgress({ progress: 0.9, label: "store" }));
+  yield put(generationProgress({ label: "store" }));
 
   const terrainColours = {
     "mountain": 0x3C3A44,
@@ -239,10 +268,10 @@ export function* generateMap(action) {
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
   }));
-  yield put(generationProgress({ progress: 0.6, label: "families" }));
+  yield put(generationProgress({ label: "families" }));
   yield delay(10);
   yield put(generateFamilies({ seed }));
-  yield put(generationProgress({ progress: 1, label: "complete" }));
+  yield put(generationProgress({ label: "complete" }));
 }
 
 export const getMapSeed = state => state.map.seed;

@@ -67,7 +67,11 @@ export const getEntity = id => state => (
     {...result, [name]: Object.values(state.entities.components[name]).filter(c => c.id == id)[0]}), {}));
 
 export const getPlayerId = state => {
-  return Object.keys(state.entities.components.playable)[0];
+  if (state.entities.components.playable) {
+    return Object.values(state.entities.components.playable)[0].id;
+  } else {
+    return null;
+  }
 };
 
 export const { clearEntities, newEntities, discoverTiles } = entitiesSlice.actions;

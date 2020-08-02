@@ -1,12 +1,15 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 import { World } from "components/world";
 import { UserInterface } from "components/user_interface";
+import { getPlayerId } from "features/entities_slice";
 
 export function Game() {
+  const playerId = useSelector(getPlayerId);
   return (
     <div id='game'>
-      <World/>
+      <World playerId={playerId}/>
       <UserInterface/>
       <h1 className='header'>Tiny King</h1>
       <div className='disclaimer'>Technical Demo {VERSION}<br/>All features in very early stages and subject to change.<br/>Copyright (c) 2020 Think Code Learn Ltd t/a Revelation Games</div>

@@ -1,4 +1,5 @@
 import * as React from "react";
+import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from "@reduxjs/toolkit";
 
@@ -12,6 +13,11 @@ import { Viewport } from "pixi-viewport";
 
 const getAllRenderable = getAllComponents("renderable");
 const getAllValuableXY = getAllComponentsWithXY("valuable");
+
+const makeAllRenderablesAtKnownTiles = () => createSelector(
+  getAllRenderable,
+  (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [],
+  (renderables, known) => renderables.filter(r => known.some(k => k.x == r.x && k.y == r.y)));
 
 const getAllWorkables = createSelector(getAllComponentsWithXY("workable"),
   workables => workables.reduce((result, w) => {
@@ -76,17 +82,20 @@ const entityMouseUp = (id, click, drop) => e => {
   delete e.currentTarget.custom;
 };
 
-export function World() {
+export function World({ playerId }) {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
-  const renderables = useSelector(getAllRenderable);
+  const getAllRenderableAtKnownTiles = React.useMemo(makeAllRenderablesAtKnownTiles, []);
+
+  const renderables = useSelector(state => getAllRenderableAtKnownTiles(state, playerId));
   const workables = useSelector(getAllWorkables);
   const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
+  const playerStart = useSelector(state => state.map.playerStart);
 
   const dispatch = useDispatch();
   const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
@@ -123,7 +132,9 @@ export function World() {
     if (!app) {
       return;
     }
-    console.log("width/height changed");
+    if (!playerStart) {
+      return;
+    }
 
     let vp = new Viewport({
       screenWidth: app.view.offsetWidth,
@@ -134,9 +145,11 @@ export function World() {
       disableOnContextMenu: true
     });
 
-    console.log("viewport", vp);
+    console.log("create viewport", vp);
 
     app.stage.addChild(vp);
+
+    const point = Hex(playerStart.x, playerStart.y).toPoint();
 
     vp.
       drag().
@@ -144,8 +157,8 @@ export function World() {
       pinch().
       clampZoom({minScale: 0.1, maxScale: 10}).
       clamp({direction: "all"}).
-      //zoomPercent(-0.4).
-      moveCenter(width * 0.5, height * 0.5);
+      zoomPercent(-0.5).
+      moveCenter(point.x, point.y);
 
     setViewport(vp);
 
@@ -327,7 +340,11 @@ export function World() {
         container.destroy({children: true});
       }
     };
-  }, [app, valuables, viewport, debugLayer]);
+  }, [app, valuables, viewport, debugLayer, renderables]);
 
   return (<div id="world" ref={containingDiv}></div>);
 }
+
+World.propTypes = {
+  playerId: PropTypes.number
+};

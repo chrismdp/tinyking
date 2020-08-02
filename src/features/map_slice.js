@@ -262,15 +262,17 @@ export function* generateMap(action) {
       }
       return entity;
     })];
+  const playerStart = { x: start.x, y: start.y };
   yield put(newEntities(entities));
   yield put(storeMap({
-    seed: seed,
+    seed,
+    playerStart,
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
   }));
   yield put(generationProgress({ label: "families" }));
   yield delay(10);
-  yield put(generateFamilies({ seed }));
+  yield put(generateFamilies({ seed, playerStart }));
   yield put(generationProgress({ label: "complete" }));
 }
 

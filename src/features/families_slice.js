@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { delay, takeEvery, select, put } from "redux-saga/effects";
+import { select, put } from "redux-saga/effects";
 import { newEntities, getAllComponentsWithXY } from "features/entities_slice";
 
 import MersenneTwister from "mersenne-twister";
@@ -41,8 +41,7 @@ function generateFamily(size, x, y, generator) {
   return result;
 }
 
-function* generateFamiliesSaga(action) {
-  const { seed, playerStart } = action.payload;
+export function* generateFamilies({ seed, playerStart }) {
   var people = [];
   var generator = new MersenneTwister(seed);
   var habitables = yield select(getAllComponentsWithXY("habitable"));
@@ -64,9 +63,4 @@ function* generateFamiliesSaga(action) {
   yield put(newEntities(people));
 }
 
-export function* familySaga() {
-  yield takeEvery(generateFamilies, generateFamiliesSaga);
-}
-
-export const { generateFamilies } = familiesSlice.actions;
 export default familiesSlice.reducer;

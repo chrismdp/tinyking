@@ -40,7 +40,7 @@ export function MapGenParams({ windowId, x, y }) {
         </div>
         <div className='row'>
           <button onClick={() => clickedGenerate(input.current.value)}>Generate map</button>
-          { progress.label && <div className='progress'>{progress.count} {progress.label}</div> }
+          { progress.label && <div className='progress'>{progress.label}</div> }
         </div>
       </div>
     </Draggable>

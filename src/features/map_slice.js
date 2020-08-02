@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { delay, put, putResolve, call } from "redux-saga/effects";
-import { clearEntities, newEntities } from "features/entities_slice";
+import { select, delay, put, putResolve, call } from "redux-saga/effects";
+import { clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
 import { generateFamilies } from "features/families_slice";
 
 import * as Honeycomb from "honeycomb-grid";
@@ -15,6 +15,7 @@ const MAP_RADIUS = 10;
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
+const STARTING_KNOWN_DISTANCE = 2;
 
 const blankMap = {
   seed: "12345",
@@ -49,7 +50,7 @@ export const Hex = Honeycomb.extendHex({
   origin: [ HEX_SIZE, HEX_SIZE * Math.sqrt(3) * 0.5 ]
 });
 
-const Grid = Honeycomb.defineGrid(Hex);
+export const Grid = Honeycomb.defineGrid(Hex);
 
 function* generateTerrain(grid, seed) {
   console.log("Generating terrain", seed);
@@ -211,6 +212,12 @@ function workableForTile(tile) {
   return null;
 }
 
+function* discoverStartingTiles(id, center) {
+  const tiles = Grid.spiral({ radius: STARTING_KNOWN_DISTANCE })
+    .map(s => ({ x: center.x + s.x, y: center.y + s.y }));
+  yield put(discoverTiles({ id, tiles }));
+}
+
 export function* generateMap(action) {
   const { seed } = action.payload;
   yield putResolve(clearMap(seed));
@@ -272,7 +279,11 @@ export function* generateMap(action) {
   }));
   yield put(generationProgress({ label: "families" }));
   yield delay(10);
-  yield put(generateFamilies({ seed, playerStart }));
+  yield call(generateFamilies, { seed, playerStart });
+
+  const playerId = yield select(getPlayerId);
+  yield call(discoverStartingTiles, playerId, playerStart);
+
   yield put(generationProgress({ label: "complete" }));
 }
 

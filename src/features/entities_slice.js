@@ -28,6 +28,10 @@ const entitiesSlice = createSlice({
       }
       state.nextId = nextId;
     },
+    discoverTiles(state, action) {
+      const { id, tiles } = action.payload;
+      state.components.playable[id].known.push(...tiles);
+    }
   }
 });
 
@@ -62,5 +66,9 @@ export const getEntity = id => state => (
   Object.keys(state.entities.components).reduce((result, name) => (
     {...result, [name]: Object.values(state.entities.components[name]).filter(c => c.id == id)[0]}), {}));
 
-export const { clearEntities, newEntities } = entitiesSlice.actions;
+export const getPlayerId = state => {
+  return Object.keys(state.entities.components.playable)[0];
+};
+
+export const { clearEntities, newEntities, discoverTiles } = entitiesSlice.actions;
 export default entitiesSlice.reducer;

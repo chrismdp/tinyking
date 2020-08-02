@@ -1,11 +1,9 @@
-import { fork, takeEvery, call, all } from "redux-saga/effects";
+import { takeEvery, call, all } from "redux-saga/effects";
 import { generate, generateMap } from "features/map_slice";
-import { familySaga } from "features/families_slice";
 
 export default function* baseSaga() {
   yield all([
     takeEvery(generate, generateMap),
-    fork(familySaga)
   ]);
 
   // Get the map generating each time we reload for now

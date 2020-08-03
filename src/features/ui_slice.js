@@ -4,7 +4,14 @@ const MULTIPLE_INFO_WINDOWS_ALLOWED = false;
 
 const uiSlice = createSlice({
   name: "ui",
-  initialState: { debug: { mapLayer: false }, windows: [ { id: "mapgen", type: "mapgen" } ] },
+  initialState: {
+    debug: {
+      mapLayer: false
+    },
+    windows: [
+      { id: "mapgen", type: "mapgen" }
+    ]
+  },
   reducers: {
     toggleDebugMapLayer(state) {
       state.debug.mapLayer = !state.debug.mapLayer;

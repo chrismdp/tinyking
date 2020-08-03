@@ -9,7 +9,6 @@ const uiSlice = createSlice({
       mapLayer: false
     },
     windows: [
-      { id: "mapgen", type: "mapgen" }
     ]
   },
   reducers: {

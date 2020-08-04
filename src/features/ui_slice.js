@@ -62,6 +62,8 @@ export function* tutorial() {
   yield put(stepTutorial({ description: "You are a Tiny King, destined for greatness! It's the beginning of spring, and there's plenty of time until winter, but your food supplies are dwindling."}));
   yield take(continueTutorial);
   yield put(stepTutorial({ description: "You have a small field to plough. Time to make use of it."}));
+  yield take(continueTutorial);
+  yield put(stepTutorial({ task: { main: "Survive The Winter", sub: [ "Drag your character to the nearest field to plough it" ] }}));
 }
 
 export const getWindows = state => state.ui.windows;

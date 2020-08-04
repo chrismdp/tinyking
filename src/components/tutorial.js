@@ -12,7 +12,7 @@ export function Tutorial() {
     window.setTimeout(() => {
       dispatch(continueTutorial());
       setHiding(false);
-    }, 500);
+    }, 250);
   }, [dispatch]);
   return (
     <div id="tutorial">

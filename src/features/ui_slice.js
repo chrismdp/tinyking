@@ -5,15 +5,22 @@ const MULTIPLE_INFO_WINDOWS_ALLOWED = false;
 const uiSlice = createSlice({
   name: "ui",
   initialState: {
+    showMainMenu: true,
     debug: {
       mapLayer: false
     },
-    windows: [
-    ]
+    windows: []
   },
   reducers: {
     toggleDebugMapLayer(state) {
       state.debug.mapLayer = !state.debug.mapLayer;
+    },
+    startGame(state) {
+      state.showMainMenu = false;
+    },
+    customGame(state) {
+      state.showMainMenu = false;
+      state.windows.push({ id: "mapgen", type: "mapgen" });
     },
     entityClicked(state, action) {
       const entityId = action.payload;
@@ -36,5 +43,5 @@ const uiSlice = createSlice({
 
 export const getWindows = state => state.ui.windows;
 
-export const { entityClicked, closeWindow, toggleDebugMapLayer } = uiSlice.actions;
+export const { entityClicked, closeWindow, startGame, customGame, toggleDebugMapLayer } = uiSlice.actions;
 export default uiSlice.reducer;

@@ -47,6 +47,13 @@ canvas {
   display: grid;
 
   #overlay {
+
+    &.hiding {
+      opacity: 0;
+      visibility: hidden;
+      transition: visibility 0.5s, opacity 0.5s;
+    }
+
     display: grid;
     grid-template-columns: minmax(5px, 25px) 5fr minmax(5px, 25px);
     grid-template-rows: auto auto min-content;
@@ -134,11 +141,9 @@ button {
     float: right;
     margin: -10px -13px -5px -10px;
     padding: 5px 10px 5px 10px;
-    color: #3C4542;
+    color: white;
     &:hover { transform: scale(1.25); color: #666; transition: transform 0.2s, color 0.5s; }
   }
-
-  box-shadow: 10px 10px 20px 10px rgba(0, 0, 0, 0.1);
 
   .row {
     display: flex;
@@ -165,6 +170,9 @@ button {
       height: 25px;
     }
 
+    .progress {
+      padding: 0 5px;
+    }
   }
 
   h1 {
@@ -172,31 +180,37 @@ button {
     padding: 5px 5px;
     margin: -8px -8px 0px -8px;
     border-radius: 4px;
-
-    &:hover {
-      transition: background 0.2s;
-      background-color: #eee;
-    }
-  }
-
-  .progress {
-    padding: 0 5px;
   }
 
   font-size: 0.75em;
-  color: black;
-  background: white;
-
-  position: absolute;
+  color: white;
+  background: #3C4542;
 
   padding: 10px;
-  width: 275px;
   border-radius: 4px;
 
-  opacity: 1;
-  transition: opacity 0.2s;
-  &.react-draggable-dragging {
+  @media (max-width: 499px) {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    height: 120px;
+  }
+
+  @media (min-width: 500px) {
+    box-shadow: 10px 10px 20px 10px rgba(0, 0, 0, 0.1);
+    &.react-draggable-dragging {
+      transition: opacity 0.2s;
+      opacity: 0.8;
+    }
+
+    width: 275px;
+    opacity: 1;
     transition: opacity 0.2s;
-    opacity: 0.8;
+
+    h1:hover {
+      transition: background 0.2s;
+      background-color: #555;
+    }
   }
 }

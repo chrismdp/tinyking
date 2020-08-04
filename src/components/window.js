@@ -25,12 +25,14 @@ export function Window({ windowId, x, y, onclose, children }) {
   }
 
   return (
-    <Draggable handle=".handle" bounds="parent" {...attrs}>
-      <div className='panel'>
-        <div onClick={close} className='close'><FontAwesomeIcon icon="times"/></div>
-        {children}
-      </div>
-    </Draggable>
+    <div className='desktop'>
+      <Draggable handle=".handle" bounds="parent" {...attrs}>
+        <div className='panel'>
+          <div onClick={close} className='close'><FontAwesomeIcon icon="times"/></div>
+          {children}
+        </div>
+      </Draggable>
+    </div>
   );
 }
 

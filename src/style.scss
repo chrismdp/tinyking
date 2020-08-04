@@ -85,7 +85,7 @@ canvas {
     display: grid;
   }
 
-  #ui, #world, #main-menu, #tutorial {
+  #ui, #world, #main-menu, #tutorial, .desktop {
     grid-area: 1 / 1 / 2 / 2;
   }
 

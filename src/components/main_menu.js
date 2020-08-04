@@ -12,7 +12,7 @@ export function MainMenu() {
   const custom = React.useCallback(() => dispatch(customGame()), [dispatch]);
 
   return (
-    <div id="overlay" className={showMainMenu ? "" : "hiding"}>
+    <div id="main-menu" className={showMainMenu ? "" : "hiding"}>
       <div className="header">
         <div className="small">Welcome to</div>
         <div className="main">Tiny King</div>

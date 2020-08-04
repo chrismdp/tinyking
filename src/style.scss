@@ -5,6 +5,15 @@
 /* Fix mobile Safari weirdness: https://chanind.github.io/javascript/2019/09/28/avoid-100vh-on-mobile-web.html#comment-4634290908 */
 html, body { height: 100%; }
 
+@mixin menu-link {
+  display: inline-block;
+  &::after {
+    content: "\00BB";
+    display: inline-block;
+    padding-left: 5px;
+  }
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -31,7 +40,7 @@ canvas {
   z-index: -1;
 }
 
-@keyframes fade-in {
+@keyframes slide-and-fade-in {
   from {
     opacity: 0;
     transform: translate(-20px);
@@ -41,24 +50,82 @@ canvas {
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    visibility: visible;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 #game {
   color: white;
   width: 100%;
   display: grid;
 
-  #overlay {
+  .hiding {
+    animation: fade-out 0.5s forwards !important;
+  }
 
-    &.hiding {
-      opacity: 0;
-      visibility: hidden;
-      transition: visibility 0.5s, opacity 0.5s;
-    }
+  #ui {
+    display: grid;
+  }
 
+  #ui, #world, #main-menu, #tutorial {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+  #main-menu, #tutorial {
     display: grid;
     grid-template-columns: minmax(5px, 25px) 5fr minmax(5px, 25px);
     grid-template-rows: auto auto min-content;
     grid-template-areas: ". Header ." ". . ." ". Menu .";
+  }
 
+  #tutorial {
+    .task {
+      grid-area: Header;
+
+      padding-top: 20px;
+      font-size: 2vh;
+      text-shadow: 1px 1px #000000;
+      pointer-events: none;
+      opacity: 0;
+      animation: fade-in 0.5s 0.5s forwards;
+      .main {
+        font-size: 1.25em;
+      }
+    }
+    .description {
+      grid-area: Menu;
+      font-style: italic;
+      font-size: 2.5vh;
+      text-shadow: 1px 1px #000000;
+      margin: 50px 20px;
+      animation: fade-in 0.5s forwards;
+      opacity: 0;
+      text-align: center;
+      a {
+        @include menu-link;
+      }
+    }
+  }
+
+  #main-menu {
     .header {
       font-size: 5vh;
       grid-area: Header;
@@ -80,9 +147,9 @@ canvas {
         line-height: 1.0em;
       }
 
-      .small { animation: fade-in 1.5s 0.25s forwards; }
-      .main { animation: fade-in 2.15s 1.0s forwards; }
-      .strapline { animation: fade-in 3s 2.5s forwards; }
+      .small { animation: slide-and-fade-in 1.5s 0.25s forwards; }
+      .main { animation: slide-and-fade-in 2.15s 1.0s forwards; }
+      .strapline { animation: slide-and-fade-in 3s 2.5s forwards; }
     }
 
     menu {
@@ -98,13 +165,7 @@ canvas {
         a {
           font-size: 1.25em;
           line-height: 1.75em;
-          display: inline-block;
-          &::after {
-            content: "  \2767";
-          }
-          &::before {
-            content: "\2619  ";
-          }
+          @include menu-link;
         }
       }
     }
@@ -119,10 +180,6 @@ canvas {
       margin: 20px 0;
       font-size: 0.5em;
     }
-  }
-
-  #ui, #world, #overlay {
-    grid-area: 1 / 1 / 2 / 2;
   }
 }
 

@@ -73,7 +73,7 @@ export function* tutorial() {
   yield put(stepTutorial({ description: "It's the beginning of spring - plenty of time until winter. You can take three actions a season."}));
   yield take(continueTutorial);
   yield put(changeVisibility({ supplies: true }));
-  yield put(stepTutorial({ description: "Time to grow some grain to stop your supplies dwindling too much. You have a small field to plough; time to make use of it."}));
+  yield put(stepTutorial({ description: "You have some food stored, but it's a great time to grow some grain to stop your supplies dwindling too much: one person eats one food at the end of each season. You have a small field to plough; time to make use of it."}));
   yield take(continueTutorial);
   yield put(stepTutorial({ task: { main: "Survive The Winter", sub: [ "Drag your character to the nearest field to plough it" ] }}));
 }

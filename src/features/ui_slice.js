@@ -32,7 +32,9 @@ const uiSlice = createSlice({
     },
     startGame(state) {
       state.showMainMenu = false;
-      state.windows.push({ id: "tutorial", type: "tutorial" });
+      if (!(state.windows.some(w => w.type == "tutorial"))) {
+        state.windows.push({ id: "tutorial", type: "tutorial" });
+      }
     },
     customGame(state) {
       state.showMainMenu = false;

@@ -7,6 +7,7 @@ export function Tutorial() {
   const [ hiding, setHiding ] = React.useState(false);
   const step = useSelector(getTutorialSteps);
   const dispatch = useDispatch();
+
   const nextStep = React.useCallback(() => {
     setHiding(true);
     window.setTimeout(() => {
@@ -14,6 +15,7 @@ export function Tutorial() {
       setHiding(false);
     }, 250);
   }, [dispatch]);
+
   return (
     <div id="tutorial">
       {step.task &&

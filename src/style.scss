@@ -83,24 +83,44 @@ canvas {
 
   #ui {
     display: grid;
+    grid-template-columns: 5px 25px 2fr 1fr 25px 5px;
+    grid-template-rows: 5px 25px auto 25px 5px;
+    grid-template-areas:
+      ". . . . . ."
+      ". Supplies . Clock Clock ."
+      ". Main Main Main Main ."
+      ". . . . . ."
+      ". . . . . ."
   }
 
-  #ui, #world, #main-menu, #tutorial, .desktop {
-    grid-area: 1 / 1 / 2 / 2;
+  #ui, #world, #main-menu, .desktop {
+    grid-area: Main;
   }
 
-  #main-menu, #tutorial {
-    display: grid;
-    grid-template-columns: minmax(5px, 25px) 5fr minmax(5px, 25px);
-    grid-template-rows: auto auto min-content;
-    grid-template-areas: ". Header ." ". . ." ". Menu .";
+  #clock {
+    grid-area: Clock;
+    text-align: right;
+  }
+
+  #supplies { grid-area: Supplies; }
+
+  #clock, #supplies {
+    text-shadow: 1px 1px #000000;
+    animation: fade-in 1.5s forwards;
+    opacity: 0;
+    font-size: 1.5vh;
   }
 
   #tutorial {
-    .task {
-      grid-area: Header;
+    grid-area: Main;
 
-      padding-top: 20px;
+    display: grid;
+    grid-template-rows: auto auto min-content;
+    grid-template-areas: "Task" "." "Lower";
+
+    .task {
+      margin-left: 5px;
+      grid-area: Task;
       font-size: 2vh;
       text-shadow: 1px 1px #000000;
       pointer-events: none;
@@ -109,9 +129,16 @@ canvas {
       .main {
         font-size: 1.25em;
       }
+      li {
+        list-style: none;
+        &::before {
+          content: "\002767";
+          margin-right: 0.5em;
+        }
+      }
     }
     .description {
-      grid-area: Menu;
+      grid-area: Lower;
       font-style: italic;
       font-size: 2.5vh;
       text-shadow: 1px 1px #000000;
@@ -126,6 +153,11 @@ canvas {
   }
 
   #main-menu {
+    display: grid;
+    grid-template-rows: auto auto min-content;
+    grid-template-areas: "Header" "." "Menu";
+    margin: 10px;
+
     .header {
       font-size: 5vh;
       grid-area: Header;

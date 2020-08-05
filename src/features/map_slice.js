@@ -307,7 +307,7 @@ export function* generateMap(action) {
         entity.nameable = { nickname: "Wooden building" };
         entity.habitable = {};
         entity.renderable.fill = 0x6C4332;
-        entity.workable = { actions: [ { type: "tidy_house" }, { type: "socialise" } ] };
+        entity.workable = { actions: [ { type: "rest" } ] };
       } else if (s.type == "field") {
         entity.nameable = { nickname: "Field" };
         entity.farmable = {};

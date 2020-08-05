@@ -18,7 +18,7 @@ export function MainMenu() {
         <div className="main">Tiny King</div>
         <div className="strapline">The kingdom builder that&rsquo;s all about the people.<br/>Placeholder art, alpha gameplay, open development.</div>
       </div>
-      <menu>
+      <menu className={showMainMenu ? "" : "hiding"}>
         <li><a onClick={start}>Quick start</a></li>
         <li><a onClick={custom}>Create a custom map</a></li>
         <div className="social">

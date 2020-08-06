@@ -5,7 +5,7 @@ import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 
-import { getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
+import { assign, getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
@@ -13,13 +13,21 @@ import { Viewport } from "pixi-viewport";
 
 const getAllRenderable = getAllComponents("renderable");
 const getAllValuableXY = getAllComponentsWithXY("valuable");
+const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
+const filterByKnown = (renderables, known) => renderables.filter(r => known.some(k => k.x == r.x && k.y == r.y));
 
 const makeAllRenderablesAtKnownTiles = () => createSelector(
   getAllRenderable,
-  (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [],
-  (renderables, known) => renderables.filter(r => known.some(k => k.x == r.x && k.y == r.y)));
+  getKnown,
+  filterByKnown);
 
-const getAllWorkables = createSelector(getAllComponentsWithXY("workable"),
+const workablesAtKnownTiles = createSelector(
+  getAllComponentsWithXY("workable"),
+  getKnown,
+  filterByKnown);
+
+const makeAllWorkablesAtKnownTiles = () => createSelector(
+  workablesAtKnownTiles,
   workables => workables.reduce((result, w) => {
     const key = w.x + "," + w.y;
     if (!(key in result)) { result[key] = []; }
@@ -68,7 +76,7 @@ const entityMouseUp = (id, click, drop) => e => {
       const y = t.y - e.currentTarget.position.y;
       const d2 = x * x + y * y;
       if (d2 < 12 * 12) {
-        drop(t.id, t.action);
+        drop(id, t);
       }
     });
     // If leaving it there
@@ -89,9 +97,10 @@ export function World({ playerId }) {
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
   const getAllRenderableAtKnownTiles = React.useMemo(makeAllRenderablesAtKnownTiles, []);
+  const getAllWorkablesAtKnownTiles = React.useMemo(makeAllWorkablesAtKnownTiles, []);
 
   const renderables = useSelector(state => getAllRenderableAtKnownTiles(state, playerId));
-  const workables = useSelector(getAllWorkables);
+  const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
   const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
@@ -100,7 +109,7 @@ export function World({ playerId }) {
   const dispatch = useDispatch();
   const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
   // TODO: turn this into a better event - there's a second 'action' param we can use.
-  const drop = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
+  const drop = React.useCallback((id, task) => dispatch(assign({ id, task })), [dispatch]);
 
   React.useEffect(() => {
     console.log("creating app");
@@ -202,7 +211,8 @@ export function World({ playerId }) {
           x: graphics.position.x,
           y: graphics.position.y,
           id: r.id,
-          action: r.action
+          action: r.action,
+          hex: { x: r.hex.x, y: r.hex.y },
         });
       });
     }

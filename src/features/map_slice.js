@@ -80,7 +80,8 @@ export function* generateFamilies({ seed, playerStart }) {
     var habitable = habitables[i];
     if (habitable.x == playerStart.x && habitable.y == playerStart.y) {
       const player = { ...generateFamily(1, habitable.x, habitable.y, generator)[0],
-        playable: { known: [] }
+        playable: { known: [] },
+        assignable: {}
       };
       people = [ ...people, player ];
     } else {

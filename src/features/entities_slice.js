@@ -28,9 +28,16 @@ const entitiesSlice = createSlice({
       }
       state.nextId = nextId;
     },
+    // TODO: This probably belongs in a "playable slice" below this slice
     discoverTiles(state, action) {
       const { id, tiles } = action.payload;
       state.components.playable[id].known.push(...tiles);
+    },
+    assign(state, action) {
+      const { id, task } = action.payload;
+      state.components.assignable[id].task = task;
+      state.components.renderable[id].x = task.hex.x;
+      state.components.renderable[id].y = task.hex.y;
     }
   }
 });
@@ -74,5 +81,5 @@ export const getPlayerId = state => {
   }
 };
 
-export const { clearEntities, newEntities, discoverTiles } = entitiesSlice.actions;
+export const { clearEntities, newEntities, discoverTiles, assign } = entitiesSlice.actions;
 export default entitiesSlice.reducer;

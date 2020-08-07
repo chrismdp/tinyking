@@ -5,11 +5,13 @@ import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 
-import { assign, getAllComponents } from "features/entities_slice";
+import { getEntity, assign, getAllComponents } from "features/entities_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
+
+import { actions } from "data/actions";
 
 // TODO: belongs in a playable slice
 const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
@@ -35,12 +37,22 @@ const workablesAtKnownTiles = createSelector(
   getKnown,
   filterByKnown);
 
-const makeAllWorkablesAtKnownTiles = () => createSelector(
+const makeAllActionsAtKnownTiles = () => createSelector(
   workablesAtKnownTiles,
-  workables => workables.reduce((result, w) => {
-    const key = w.spatial.x + "," + w.spatial.y;
+  state => state,
+  (workables, state) => workables.reduce((result, e) => {
+    const entity = getEntity(e.spatial.id)(state);
+
+    const key = e.spatial.x + "," + e.spatial.y;
     if (!(key in result)) { result[key] = []; }
-    w.workable.actions.forEach(a => result[key].push({ id: w.workable.id, action: a, hex: Hex(w.spatial.x, w.spatial.y) }));
+
+    result[key] = [...result[key], ...Object.values(actions)
+      .filter(a => ((a.needs || {}).terrain == (entity.mappable || {}).terrain))
+      .map(a => ({
+        id: e.spatial.id,
+        action: a,
+        hex: Hex(e.spatial.x, e.spatial.y)
+      }))];
     return result;
   }, {})
 );
@@ -107,12 +119,12 @@ export function World({ playerId }) {
   const getAllMappablesAtKnownTiles = React.useMemo(mappablesAtKnownTiles, [playerId]);
   const getAllPersonablesAtKnownTiles = React.useMemo(personablesAtKnownTiles, [playerId]);
   const getAllHabitablesAtKnownTiles = React.useMemo(habitablesAtKnownTiles, [playerId]);
-  const getAllWorkablesAtKnownTiles = React.useMemo(makeAllWorkablesAtKnownTiles, [playerId]);
+  const getAllActionsAtKnownTiles = React.useMemo(makeAllActionsAtKnownTiles, [playerId]);
 
   const mappables = useSelector(state => getAllMappablesAtKnownTiles(state, playerId));
   const personables = useSelector(state => getAllPersonablesAtKnownTiles(state, playerId));
   const habitables = useSelector(state => getAllHabitablesAtKnownTiles(state, playerId));
-  const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
+  const possibleActions = useSelector(state => getAllActionsAtKnownTiles(state, playerId));
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
   const playerStart = useSelector(state => state.map.playerStart);
@@ -275,19 +287,19 @@ export function World({ playerId }) {
   React.useEffect(() => {
     if (personables.length == 0) {
       return;
-    } else if (workables.length == 0) {
+    } else if (possibleActions.length == 0) {
       return;
     } else if (!app || !viewport) {
       return;
     }
 
-    console.log("rendering workables");
+    console.log("rendering possibleActions");
 
     var highlight = new PIXI.Container();
     var dropTargets = [];
-    const keys = Object.keys(workables);
+    const keys = Object.keys(possibleActions);
     for (var i = 0; i < keys.length; i++) {
-      const record  = workables[keys[i]];
+      const record  = possibleActions[keys[i]];
       record.forEach((r, index) => {
         const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
         const point = r.hex.toPoint();
@@ -296,7 +308,7 @@ export function World({ playerId }) {
         graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
         graphics.drawCircle(0, 0, 15);
         graphics.endFill();
-        var text = new PIXI.Text(r.action.type.toUpperCase(), {fontFamily: "Raleway", fontSize: 12, fill: "white"});
+        var text = new PIXI.Text(r.action.name, {fontFamily: "Raleway", fontSize: 12, fill: "white"});
         text.position.set(0, 30);
         text.anchor = { x: 0.5, y: 0.5 };
         graphics.addChild(text);
@@ -365,7 +377,7 @@ export function World({ playerId }) {
       viewport.removeChild(highlight);
       highlight.destroy({children: true});
     };
-  }, [app, workables, personables, viewport]);
+  }, [app, possibleActions, personables, viewport]);
 
   return (<div id="world" ref={containingDiv}></div>);
 }

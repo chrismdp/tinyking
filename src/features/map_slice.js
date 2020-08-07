@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { select, delay, put, putResolve, call } from "redux-saga/effects";
 import { getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
-import { actions } from "data/actions";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -236,11 +235,6 @@ function* generateSettlements(seed, grid, landscape, start) {
   return settlements;
 }
 
-function workableForTile(tile) {
-  const types = Object.keys(actions).filter(id => ((actions[id].needs || {}).terrain || {}) == tile.terrain);
-  return { actions: types.map(t => ({ type: t })) };
-}
-
 function* discoverStartingTiles(id, center) {
   const tiles = Grid.spiral({ radius: STARTING_KNOWN_DISTANCE })
     .map(s => ({ x: center.x + s.x, y: center.y + s.y }));
@@ -268,7 +262,7 @@ export function* generateMap(action) {
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
       valuable: { value: tile.economic_value },
-      workable: workableForTile(tile),
+      workable: {},
     })),
     ...Object.values(settlements).map((s) => {
       var entity = {
@@ -277,7 +271,7 @@ export function* generateMap(action) {
       if (s.type == "house") {
         entity.nameable = { nickname: "Wooden building" };
         entity.habitable = {};
-        entity.workable = { actions: [ { type: "rest" } ] };
+        entity.workable = {};
       }
       return entity;
     })];

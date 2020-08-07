@@ -43,31 +43,22 @@ const entitiesSlice = createSlice({
 });
 
 export const getNextEntity = state => state.entities.next;
-export const getAllComponents = type => createSelector(
-  state => state.entities.components[type],
-  components => {
-    return Object.values(components || {});
-  });
-export const getAllComponentsWithXY = type => createSelector(
-  [
-    state => state.entities.components[type],
-    state => state.entities.components.spatial
-  ],
-  (components, spatials) => {
-    const keys = Object.keys(components || {});
 
-    var result = [];
-    for (var i = 0; i < keys.length; i++) {
-      var e = { ...components[keys[i]] };
-      const s = spatials[keys[i]];
-      if (s) {
-        e.x = s.x;
-        e.y = s.y;
+export const getAllComponents = (...types) => createSelector(
+  types.map(t => state => ([ t, state.entities.components[t] || {} ])),
+  (...pairs) => Object.values(pairs.reduce((result, pair) => {
+    const [type, components] = pair;
+    Object.values(components).forEach(e => {
+      if (type == types[0]) { // Inner join only
+        result[e.id] = result[e.id] || {};
       }
-      result.push(e);
-    }
+      if (e.id in result) {
+        result[e.id][type] = e;
+      }
+    });
     return result;
-  });
+  }, {}))
+);
 
 export const getEntity = id => state => (
   Object.keys(state.entities.components).reduce((result, name) => (

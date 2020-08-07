@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { select, delay, put, putResolve, call } from "redux-saga/effects";
-import { getAllComponentsWithXY, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
+import { getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -75,18 +75,18 @@ function generateFamily(size, x, y, generator) {
 export function* generateFamilies({ seed, playerStart }) {
   var people = [];
   var generator = new MersenneTwister(seed);
-  var habitables = yield select(getAllComponentsWithXY("habitable"));
+  var habitables = yield select(getAllComponents("habitable", "spatial"));
   for (var i = 0; i < habitables.length; i++) {
-    var habitable = habitables[i];
-    if (habitable.x == playerStart.x && habitable.y == playerStart.y) {
-      const player = { ...generateFamily(1, habitable.x, habitable.y, generator)[0],
+    var spatial = habitables[i].spatial;
+    if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
+      const player = { ...generateFamily(1, spatial.x, spatial.y, generator)[0],
         playable: { known: [] },
         assignable: {}
       };
       people = [ ...people, player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = [ ...people, ...generateFamily(familySize, habitable.x, habitable.y, generator) ];
+      people = [ ...people, ...generateFamily(familySize, spatial.x, spatial.y, generator) ];
     }
   }
   yield put(newEntities(people));

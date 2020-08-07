@@ -5,33 +5,34 @@ import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 
-import { assign, getAllComponentsWithXY } from "features/entities_slice";
+import { assign, getAllComponents } from "features/entities_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
-const getAllRenderable = getAllComponentsWithXY("renderable");
-const getAllValuableXY = getAllComponentsWithXY("valuable");
+const getAllValuableXY = getAllComponents("valuable", "spatial");
+
+// TODO: belongs in a playable slice
 const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
-const filterByKnown = (renderables, known) => renderables.filter(r => known.some(k => k.x == r.x && k.y == r.y));
+const filterByKnown = (list, known) => list.filter(e => known.some(k => k.x == e.spatial.x && k.y == e.spatial.y));
 
 const makeAllRenderablesAtKnownTiles = () => createSelector(
-  getAllRenderable,
+  getAllComponents("renderable", "spatial"),
   getKnown,
   filterByKnown);
 
 const workablesAtKnownTiles = createSelector(
-  getAllComponentsWithXY("workable"),
+  getAllComponents("workable", "spatial"),
   getKnown,
   filterByKnown);
 
 const makeAllWorkablesAtKnownTiles = () => createSelector(
   workablesAtKnownTiles,
   workables => workables.reduce((result, w) => {
-    const key = w.x + "," + w.y;
+    const key = w.spatial.x + "," + w.spatial.y;
     if (!(key in result)) { result[key] = []; }
-    w.actions.forEach(a => result[key].push({ id: w.id, action: a, hex: Hex(w.x, w.y) }));
+    w.workable.actions.forEach(a => result[key].push({ id: w.workable.id, action: a, hex: Hex(w.spatial.x, w.spatial.y) }));
     return result;
   }, {})
 );
@@ -96,8 +97,8 @@ export function World({ playerId }) {
   const [viewport, setViewport] = React.useState(null);
   const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
-  const getAllRenderableAtKnownTiles = React.useMemo(makeAllRenderablesAtKnownTiles, []);
-  const getAllWorkablesAtKnownTiles = React.useMemo(makeAllWorkablesAtKnownTiles, []);
+  const getAllRenderableAtKnownTiles = React.useMemo(makeAllRenderablesAtKnownTiles, [playerId]);
+  const getAllWorkablesAtKnownTiles = React.useMemo(makeAllWorkablesAtKnownTiles, [playerId]);
 
   const renderables = useSelector(state => getAllRenderableAtKnownTiles(state, playerId));
   const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
@@ -225,9 +226,10 @@ export function World({ playerId }) {
 
     // Add landscape to viewport
     for (var i = 0; i < renderables.length; i++) {
-      const renderable = renderables[i];
+      const entity = renderables[i];
+      const renderable = entity.renderable;
       const graphics = new PIXI.Graphics();
-      const hex = Hex(renderable.x, renderable.y);
+      const hex = Hex(entity.spatial.x, entity.spatial.y);
       const point = hex.toPoint();
       graphics.position.set(point.x, point.y);
 
@@ -322,9 +324,10 @@ export function World({ playerId }) {
       container = new PIXI.Container();
 
       for (var i = 0; i < valuables.length; i++) {
-        const valuable = valuables[i];
-        if (valuable.value && valuable.x && valuable.y) {
-          const hex = Hex(valuable.x, valuable.y);
+        const entity = valuables[i];
+        const valuable = entity.valuable;
+        if (valuable.value && valuable.spatial.x && valuable.spatial.y) {
+          const hex = Hex(valuable.spatial.x, valuable.spatial.y);
           const point = hex.toPoint();
           if (valuable.value >= 25) {
             const graphics = new PIXI.Graphics();

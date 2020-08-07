@@ -40,21 +40,33 @@ const workablesAtKnownTiles = createSelector(
 const makeAllActionsAtKnownTiles = () => createSelector(
   workablesAtKnownTiles,
   state => state,
-  (workables, state) => workables.reduce((result, e) => {
-    const entity = getEntity(e.spatial.id)(state);
+  (_, playerId) => playerId,
+  (workables, state, playerId) => {
+    var as = workables.reduce((result, e) => {
+      const entity = getEntity(e.spatial.id)(state);
 
-    const key = e.spatial.x + "," + e.spatial.y;
-    if (!(key in result)) { result[key] = []; }
+      const key = e.spatial.x + "," + e.spatial.y;
+      if (!(key in result)) { result[key] = []; }
 
-    result[key] = [...result[key], ...Object.values(actions)
-      .filter(a => ((a.needs || {}).terrain == (entity.mappable || {}).terrain))
-      .map(a => ({
-        id: e.spatial.id,
-        action: a,
-        hex: Hex(e.spatial.x, e.spatial.y)
-      }))];
-    return result;
-  }, {})
+      result[key] = [...result[key], ...Object.values(actions)
+        .filter(a => ((a.needs || {}).terrain == (entity.mappable || {}).terrain))
+        .filter(a => ((a.needs || {}).habitable != "home" ||
+          ((entity.habitable || {}).owners || []).includes(playerId)))
+        .map(a => ({
+          id: e.spatial.id,
+          action: a,
+          hex: Hex(e.spatial.x, e.spatial.y)
+        }))];
+      return result;
+    }, {});
+    // Remove actions that cannot be on entity because of the same tile
+    for (var key in as) {
+      as[key] = as[key].filter(a =>
+        ((a.action.needs || {}).habitable != "none" ||
+          as[key].every(a => getEntity(a.id)(state).habitable == null)));
+    }
+    return as;
+  }
 );
 
 const entityMouseMove = e => {

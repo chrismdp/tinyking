@@ -8,6 +8,7 @@ const tiring = {
 export const actions = {
   rest: {
     name: "Rest",
+    needs: { habitable: "home" },
     me: [
       { remove_trait: "tired" },
       { remove_trait: "very_tired" },
@@ -19,7 +20,7 @@ export const actions = {
   },
   plough_field: {
     name: "Plough field",
-    needs: { terrain: "grassland" },
+    needs: { terrain: "grassland", habitable: "none" },
     me: [ tiring ],
     target: [
       { change_terrain: "ploughed" }

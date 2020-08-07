@@ -38,6 +38,12 @@ const entitiesSlice = createSlice({
       state.components.assignable[id].task = task;
       state.components.spatial[id].x = task.hex.x;
       state.components.spatial[id].y = task.hex.y;
+    },
+    moveIn(state, action) {
+      action.payload.forEach(m => {
+        state.components.habitable[m.habitable].owners =
+          [ ...state.components.habitable[m.habitable].owners, m.personable];
+      });
     }
   }
 });
@@ -71,5 +77,5 @@ export const getPlayerId = state => {
   }
 };
 
-export const { clearEntities, newEntities, discoverTiles, assign } = entitiesSlice.actions;
+export const { moveIn, clearEntities, newEntities, discoverTiles, assign } = entitiesSlice.actions;
 export default entitiesSlice.reducer;

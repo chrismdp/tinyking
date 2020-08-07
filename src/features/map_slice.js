@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { select, delay, put, putResolve, call } from "redux-saga/effects";
-import { getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
+import { moveIn, getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -90,6 +90,16 @@ export function* generateFamilies({ seed, playerStart }) {
     }
   }
   yield put(newEntities(people));
+
+  // Move people in
+  const  personables = yield select(getAllComponents("personable", "spatial"));
+  const moves = personables.map(p => ({
+    habitable: habitables.filter(h => h.spatial.x == p.spatial.x && h.spatial.y == p.spatial.y)[0].habitable.id,
+    personable: p.personable.id
+  }));
+
+  yield put(moveIn(moves));
+
 }
 
 export const Hex = Honeycomb.extendHex({
@@ -270,7 +280,7 @@ export function* generateMap(action) {
       };
       if (s.type == "house") {
         entity.nameable = { nickname: "Wooden building" };
-        entity.habitable = {};
+        entity.habitable = { owners: [] };
         entity.workable = {};
       }
       return entity;

@@ -36,8 +36,8 @@ const entitiesSlice = createSlice({
     assign(state, action) {
       const { id, task } = action.payload;
       state.components.assignable[id].task = task;
-      state.components.renderable[id].x = task.hex.x;
-      state.components.renderable[id].y = task.hex.y;
+      state.components.spatial[id].x = task.hex.x;
+      state.components.spatial[id].y = task.hex.y;
     }
   }
 });
@@ -51,18 +51,18 @@ export const getAllComponents = type => createSelector(
 export const getAllComponentsWithXY = type => createSelector(
   [
     state => state.entities.components[type],
-    state => state.entities.components.renderable
+    state => state.entities.components.spatial
   ],
-  (components, renderables) => {
+  (components, spatials) => {
     const keys = Object.keys(components || {});
 
     var result = [];
     for (var i = 0; i < keys.length; i++) {
       var e = { ...components[keys[i]] };
-      const r = renderables[keys[i]];
-      if (r) {
-        e.x = r.x;
-        e.y = r.y;
+      const s = spatials[keys[i]];
+      if (s) {
+        e.x = s.x;
+        e.y = s.y;
       }
       result.push(e);
     }

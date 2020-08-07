@@ -59,8 +59,8 @@ function generateFamily(size, x, y, generator) {
   for (var p = 0; p < size; p++) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
+      spatial: { x, y },
       renderable: {
-        x, y,
         type: "person",
         familyIndex: p / (size * 1.5),
         size: p > 1 ? 12 : 20,
@@ -297,12 +297,12 @@ export function* generateMap(action) {
       mappable: { terrain: tile.terrain },
       valuable: { value: tile.economic_value },
       workable: workableForTile(tile),
-      renderable: { fill: terrainColours[tile.terrain], x: tile.x, y: tile.y, type: "hex", layer: 0 }
+      renderable: { fill: terrainColours[tile.terrain], type: "hex", layer: 0 }
     })),
     ...Object.values(settlements).map((s) => {
       var entity = {
         spatial: { x: s.x, y: s.y },
-        renderable: { x: s.x, y: s.y, type: s.type, layer: 1 }
+        renderable: { type: s.type, layer: 1 }
       };
       if (s.type == "house") {
         entity.nameable = { nickname: "Wooden building" };

@@ -5,13 +5,13 @@ import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 
-import { assign, getAllComponents,  getAllComponentsWithXY } from "features/entities_slice";
+import { assign, getAllComponentsWithXY } from "features/entities_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
-const getAllRenderable = getAllComponents("renderable");
+const getAllRenderable = getAllComponentsWithXY("renderable");
 const getAllValuableXY = getAllComponentsWithXY("valuable");
 const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
 const filterByKnown = (renderables, known) => renderables.filter(r => known.some(k => k.x == r.x && k.y == r.y));

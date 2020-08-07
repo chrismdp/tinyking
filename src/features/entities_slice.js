@@ -45,15 +45,14 @@ const entitiesSlice = createSlice({
 export const getNextEntity = state => state.entities.next;
 
 export const getAllComponents = (...types) => createSelector(
-  types.map(t => state => ([ t, state.entities.components[t] || {} ])),
-  (...pairs) => Object.values(pairs.reduce((result, pair) => {
-    const [type, components] = pair;
-    Object.values(components).forEach(e => {
-      if (type == types[0]) { // Inner join only
+  types.map(t => state => state.entities.components[t]),
+  (...components) => Object.values(components.filter(c => c).reduce((result, c, i) => {
+    Object.values(c).forEach(e => {
+      if (i == 0) { // Only first component gets all ids
         result[e.id] = result[e.id] || {};
       }
       if (e.id in result) {
-        result[e.id][type] = e;
+        result[e.id][types[i]] = e;
       }
     });
     return result;

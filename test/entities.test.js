@@ -15,7 +15,7 @@ describe("entity selectors", () => {
 });
 
 describe("Arrays of related components", () => {
-  it("allows fetchingand joining of multiple componentts", () => {
+  it("allows fetching and joining of multiple componentts", () => {
     const sut = getAllComponents("renderable", "spatial");
     const state = {
       entities: {
@@ -53,5 +53,10 @@ describe("Arrays of related components", () => {
         spatial: { s: "s1", id: 1 },
       }
     ]);
+  });
+
+  it("handles no components yet", () => {
+    const sut = getAllComponents("renderable", "spatial");
+    expect(sut({ entities: { components: {}}})).toEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { select, delay, put, putResolve, call } from "redux-saga/effects";
 import { getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
+import { actions } from "data/actions";
 
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
@@ -204,25 +205,12 @@ function* generateEconomicValue(grid, landscape) {
   }
 }
 
-function makeHouseAndField(settlements, grid, target, landscape, generator) {
+function makeHouseAndField(settlements, grid, target) {
   settlements[target] = {
     x: target.x,
     y: target.y,
     type: "house"
   };
-  const adj = grid.neighborsOf(target);
-  const start = generator.random_int() % adj.length;
-  for (let n_index = 0; n_index < adj.length; n_index++) {
-    const n = adj[(n_index + start) % adj.length];
-    if (!settlements[n] && landscape[n].terrain == "grassland") {
-      settlements[n] = {
-        x: n.x,
-        y: n.y,
-        type: "field"
-      };
-      break;
-    }
-  }
 }
 
 function* generateSettlements(seed, grid, landscape, start) {
@@ -234,7 +222,7 @@ function* generateSettlements(seed, grid, landscape, start) {
       const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
         if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
-          makeHouseAndField(settlements, grid, target, landscape, generator);
+          makeHouseAndField(settlements, grid, target);
         }
       }
     }
@@ -249,15 +237,8 @@ function* generateSettlements(seed, grid, landscape, start) {
 }
 
 function workableForTile(tile) {
-  if (tile.terrain == "forest") {
-    return { actions: [{ type: "chop_trees" }, { type: "plant_trees" }] };
-  } else if (tile.terrain == "stone") {
-    return { actions: [{ type: "gather_rocks" }] };
-  } else if (tile.terrain == "grassland") {
-    // TODO: too slow for now
-    //return { actions: [{ type: "plough_field" }, { type: "fence_pasture" }, { type: "explore"}] };
-  }
-  return null;
+  const types = Object.keys(actions).filter(id => ((actions[id].needs || {}).terrain || {}) == tile.terrain);
+  return { actions: types.map(t => ({ type: t })) };
 }
 
 function* discoverStartingTiles(id, center) {
@@ -309,11 +290,6 @@ export function* generateMap(action) {
         entity.habitable = {};
         entity.renderable.fill = 0x6C4332;
         entity.workable = { actions: [ { type: "rest" } ] };
-      } else if (s.type == "field") {
-        entity.nameable = { nickname: "Field" };
-        entity.farmable = {};
-        entity.workable = { actions: [ { type: "plough" } ] };
-        entity.renderable.fill = 0xE2C879;
       }
       return entity;
     })];

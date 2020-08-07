@@ -248,13 +248,6 @@ export function World({ playerId }) {
         graphics.endFill();
         break;
       }
-      case "field": {
-        graphics.beginFill(renderable.fill);
-        graphics.lineStyle({color: "black", width: 2, alpha: 1});
-        graphics.drawRect(-25, -30, 50, 50);
-        graphics.endFill();
-        break;
-      }
       case "person": {
         const person = new PIXI.Graphics();
         person.position.set(-Math.cos(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);

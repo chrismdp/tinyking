@@ -11,14 +11,22 @@ import { Hex, HEX_SIZE } from "features/map_slice";
 
 import { Viewport } from "pixi-viewport";
 
-const getAllValuableXY = getAllComponents("valuable", "spatial");
-
 // TODO: belongs in a playable slice
 const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
 const filterByKnown = (list, known) => list.filter(e => known.some(k => k.x == e.spatial.x && k.y == e.spatial.y));
 
-const makeAllRenderablesAtKnownTiles = () => createSelector(
-  getAllComponents("renderable", "spatial"),
+const mappablesAtKnownTiles = () => createSelector(
+  getAllComponents("mappable", "spatial"),
+  getKnown,
+  filterByKnown);
+
+const personablesAtKnownTiles = () => createSelector(
+  getAllComponents("personable", "spatial"),
+  getKnown,
+  filterByKnown);
+
+const habitablesAtKnownTiles = () => createSelector(
+  getAllComponents("habitable", "spatial"),
   getKnown,
   filterByKnown);
 
@@ -95,14 +103,16 @@ export function World({ playerId }) {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);
-  const debugLayer = useSelector(state => state.ui.debug.mapLayer);
 
-  const getAllRenderableAtKnownTiles = React.useMemo(makeAllRenderablesAtKnownTiles, [playerId]);
+  const getAllMappablesAtKnownTiles = React.useMemo(mappablesAtKnownTiles, [playerId]);
+  const getAllPersonablesAtKnownTiles = React.useMemo(personablesAtKnownTiles, [playerId]);
+  const getAllHabitablesAtKnownTiles = React.useMemo(habitablesAtKnownTiles, [playerId]);
   const getAllWorkablesAtKnownTiles = React.useMemo(makeAllWorkablesAtKnownTiles, [playerId]);
 
-  const renderables = useSelector(state => getAllRenderableAtKnownTiles(state, playerId));
+  const mappables = useSelector(state => getAllMappablesAtKnownTiles(state, playerId));
+  const personables = useSelector(state => getAllPersonablesAtKnownTiles(state, playerId));
+  const habitables = useSelector(state => getAllHabitablesAtKnownTiles(state, playerId));
   const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
-  const valuables = useSelector(getAllValuableXY);
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
   const playerStart = useSelector(state => state.map.playerStart);
@@ -180,11 +190,94 @@ export function World({ playerId }) {
   }, [app, width, height]);
 
   React.useEffect(() => {
-    if (renderables.length == 0) {
+    if (mappables.length == 0) {
       return;
-    } else if (!app) {
+    } else if (!app || !viewport) {
       return;
-    } else if (!viewport) {
+    }
+
+    console.log("rendering mappables");
+
+    var base = new PIXI.Container();
+
+    const terrainColours = {
+      "mountain": 0x3C3A44,
+      "deep_water": 0x2F4999,
+      "shallow_water": 0x3F6FAE,
+      "grassland": 0x80C05D,
+      "forest": 0x30512F,
+      "stone": 0x5D7084,
+    };
+
+    // Add mappables to viewport
+    for (var i = 0; i < mappables.length; i++) {
+      const entity = mappables[i];
+      const graphics = new PIXI.Graphics();
+      const hex = Hex(entity.spatial.x, entity.spatial.y);
+      const point = hex.toPoint();
+      graphics.position.set(point.x, point.y);
+
+      graphics.beginFill(terrainColours[entity.mappable.terrain]);
+      graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
+      graphics.drawPolygon(...hex.corners());
+      graphics.endFill();
+
+      base.addChild(graphics);
+    }
+
+    viewport.addChild(base);
+
+    return function cleanup() {
+      console.log("Destroy old mappables");
+
+      viewport.removeChild(base);
+      base.destroy({children: true});
+    };
+  }, [app, mappables, viewport]);
+
+  React.useEffect(() => {
+    if (habitables.length == 0) {
+      return;
+    } else if (!app || !viewport) {
+      return;
+    }
+
+    console.log("rendering habitables");
+
+    var base = new PIXI.Container();
+
+    // Add habitables to viewport
+    for (var i = 0; i < habitables.length; i++) {
+      const entity = habitables[i];
+      const graphics = new PIXI.Graphics();
+      const hex = Hex(entity.spatial.x, entity.spatial.y);
+      const point = hex.toPoint();
+      graphics.position.set(point.x, point.y);
+
+      graphics.beginFill(0x6C4332);
+      graphics.lineStyle({color: "black", width: 2, alpha: 1});
+      graphics.drawRect(-25, -30, 50, 35);
+      graphics.endFill();
+
+      base.addChild(graphics);
+    }
+
+    viewport.addChild(base);
+
+    return function cleanup() {
+      console.log("Destroy old habitables");
+
+      viewport.removeChild(base);
+      base.destroy({children: true});
+    };
+  }, [app, habitables, viewport]);
+
+  React.useEffect(() => {
+    if (personables.length == 0) {
+      return;
+    } else if (workables.length == 0) {
+      return;
+    } else if (!app || !viewport) {
       return;
     }
 
@@ -193,7 +286,7 @@ export function World({ playerId }) {
     var highlight = new PIXI.Container();
     var dropTargets = [];
     const keys = Object.keys(workables);
-    for (i = 0; i < keys.length; i++) {
+    for (var i = 0; i < keys.length; i++) {
       const record  = workables[keys[i]];
       record.forEach((r, index) => {
         const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
@@ -219,134 +312,60 @@ export function World({ playerId }) {
     }
     highlight.visible = false;
 
-    console.log("rendering landscape");
+    console.log("rendering personables");
 
-    var layers = {};
     var base = new PIXI.Container();
 
-    // Add landscape to viewport
-    for (var i = 0; i < renderables.length; i++) {
-      const entity = renderables[i];
-      const renderable = entity.renderable;
+    // Add personables to viewport
+    for (i = 0; i < personables.length; i++) {
+      const entity = personables[i];
+      const personable = entity.personable;
       const graphics = new PIXI.Graphics();
       const hex = Hex(entity.spatial.x, entity.spatial.y);
       const point = hex.toPoint();
       graphics.position.set(point.x, point.y);
 
-      switch(renderable.type) {
-      case "hex": {
-        graphics.beginFill(renderable.fill);
-        graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-        graphics.drawPolygon(...hex.corners());
-        graphics.endFill();
-        break;
-      }
-      case "house": {
-        graphics.beginFill(renderable.fill);
-        graphics.lineStyle({color: "black", width: 2, alpha: 1});
-        graphics.drawRect(-25, -30, 50, 35);
-        graphics.endFill();
-        break;
-      }
-      case "person": {
-        const person = new PIXI.Graphics();
-        person.position.set(-Math.cos(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(renderable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
-        person.lineStyle({color: "black", width: 2, alpha: 1});
-        person.beginFill(renderable.body);
-        person.drawEllipse(0, 0, renderable.size * 0.55, renderable.size * 0.65);
-        person.endFill();
-        person.beginFill(renderable.hair);
-        person.drawCircle(0, -renderable.size * 0.6, renderable.size * 0.5);
-        person.endFill();
+      const person = new PIXI.Graphics();
+      person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
+      person.lineStyle({color: "black", width: 2, alpha: 1});
+      person.beginFill(personable.body);
+      person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
+      person.endFill();
+      person.beginFill(personable.hair);
+      person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
+      person.endFill();
 
-        person.lineStyle(null);
-        person.beginFill(0xEACAAA);
-        person.drawCircle(0, -renderable.size * 0.48, renderable.size * 0.35);
-        person.endFill();
+      person.lineStyle(null);
+      person.beginFill(0xEACAAA);
+      person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
+      person.endFill();
 
-        graphics.addChild(person);
+      graphics.addChild(person);
 
-        person.interactive = true;
-        person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-        person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-        person.on("mouseup", entityMouseUp(renderable.id, click, drop));
-        person.on("mouseupoutside", entityMouseUp(renderable.id, click, drop));
-        person.on("touchend", entityMouseUp(renderable.id, click, drop));
-        person.on("touchendoutside", entityMouseUp(renderable.id, click, drop));
+      person.interactive = true;
+      person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+      person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+      person.on("mouseup", entityMouseUp(personable.id, click, drop));
+      person.on("mouseupoutside", entityMouseUp(personable.id, click, drop));
+      person.on("touchend", entityMouseUp(personable.id, click, drop));
+      person.on("touchendoutside", entityMouseUp(personable.id, click, drop));
 
-        break;
-      }
-      }
-
-      if (!(renderable.layer in layers)) {
-        layers[renderable.layer] = { layer: renderable.layer, container: new PIXI.Container() };
-      }
-      layers[renderable.layer].container.addChild(graphics);
+      base.addChild(graphics);
     }
 
-    const containers = Object.values(layers).sort((a, b) => a.layer - b.layer);
-    containers.forEach(c => {
-      base.addChild(c.container);
-    });
     viewport.addChild(base);
     viewport.addChild(highlight);
 
     return function cleanup() {
-      console.log("Destroy old layers");
+      console.log("Destroy old personables and workables");
 
       viewport.removeChild(base);
       base.destroy({children: true});
+
       viewport.removeChild(highlight);
       highlight.destroy({children: true});
     };
-  }, [app, renderables, viewport]);
-
-  React.useEffect(() => {
-    if (renderables.length == 0) {
-      return;
-    } else if (!app) {
-      return;
-    } else if (!viewport) {
-      return;
-    }
-    console.log("rendering debug layer");
-
-    var container;
-
-    if (debugLayer) {
-      container = new PIXI.Container();
-
-      for (var i = 0; i < valuables.length; i++) {
-        const entity = valuables[i];
-        const valuable = entity.valuable;
-        if (valuable.value && valuable.spatial.x && valuable.spatial.y) {
-          const hex = Hex(valuable.spatial.x, valuable.spatial.y);
-          const point = hex.toPoint();
-          if (valuable.value >= 25) {
-            const graphics = new PIXI.Graphics();
-            graphics.beginFill(0x0000cc);
-            graphics.drawCircle(point.x, point.y, 25);
-            graphics.endFill();
-            container.addChild(graphics);
-          }
-
-          var text = new PIXI.Text("E" + valuable.value.toFixed(2), {fontSize: 12, fill: "white"});
-          text.position = point;
-          text.anchor = { x: 0.5, y: 0.5 };
-          container.addChild(text);
-        }
-      }
-      viewport.addChild(container);
-    }
-
-    return function cleanup() {
-      if (container) {
-        console.log("destroy old debug layer");
-        viewport.removeChild(container);
-        container.destroy({children: true});
-      }
-    };
-  }, [app, valuables, viewport, debugLayer, renderables]);
+  }, [app, workables, personables, viewport]);
 
   return (<div id="world" ref={containingDiv}></div>);
 }

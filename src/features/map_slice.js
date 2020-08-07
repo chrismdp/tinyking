@@ -61,7 +61,7 @@ function generateFamily(size, x, y, generator) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
-      renderable: {
+      personable: {
         type: "person",
         familyIndex: p / (size * 1.5),
         size: p > 1 ? 12 : 20,
@@ -262,15 +262,6 @@ export function* generateMap(action) {
 
   yield put(generationProgress({ label: "store" }));
 
-  const terrainColours = {
-    "mountain": 0x3C3A44,
-    "deep_water": 0x2F4999,
-    "shallow_water": 0x3F6FAE,
-    "grassland": 0x80C05D,
-    "forest": 0x30512F,
-    "stone": 0x5D7084,
-  };
-
   const entities = [
     ...Object.values(landscape).map((tile) => ({
       nameable: { nickname: "Map tile" },
@@ -278,17 +269,14 @@ export function* generateMap(action) {
       mappable: { terrain: tile.terrain },
       valuable: { value: tile.economic_value },
       workable: workableForTile(tile),
-      renderable: { fill: terrainColours[tile.terrain], type: "hex", layer: 0 }
     })),
     ...Object.values(settlements).map((s) => {
       var entity = {
         spatial: { x: s.x, y: s.y },
-        renderable: { type: s.type, layer: 1 }
       };
       if (s.type == "house") {
         entity.nameable = { nickname: "Wooden building" };
         entity.habitable = {};
-        entity.renderable.fill = 0x6C4332;
         entity.workable = { actions: [ { type: "rest" } ] };
       }
       return entity;

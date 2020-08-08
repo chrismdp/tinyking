@@ -1,75 +1,141 @@
-const tiring = {
-  when: { trait: "tired" },
-  then: { add_trait: "very_tired" },
-  otherwise: { when: { trait: "very_tired" },
-    then: { add_trait: "exhausted" },
-    otherwise: { add_trait: "tired" } } };
+const tiring = [
+  {
+    conditions: {
+      "me.traits": {
+        not: { includes: [ "exhausted", "very_tired", "tired" ] }
+      }
+    },
+    event: { "me.traits": { add: "tired" } }
+  },
+  {
+    conditions: {
+      "me.traits": {
+        includes: "tired"
+      }
+    },
+    event: { "me.traits": { change: [ "tired", "very_tired" ] } },
+  },
+  {
+    conditions: {
+      "me.traits": {
+        includes: "very_tired"
+      }
+    },
+    event: { "me.traits": { change: [ "very_tired", "exhausted" ] } },
+  },
+];
 
-export const actions = {
-  rest: {
-    name: "Rest",
-    needs: { habitable: "home" },
-    me: [
-      { remove_trait: "tired" },
-      { remove_trait: "very_tired" },
-      { add_trait: "rested" },
-      { when: { trait: "rested" }, then: { remove_trait: "exhausted" } },
-      { socialise: "all_others_in_tile" },
-    ],
-    target: []
+export const actions = [
+  {
+    conditions: {
+      "target.mappable.terrain": { is: "grassland" },
+      not: { other: { habitable: "exists" } }
+    },
+    event: {
+      name: "Plough field",
+      rules: [
+        ...tiring,
+        { event: { "target.mappable.terrain": "ploughed" } }
+      ]
+    },
   },
-  plough_field: {
-    name: "Plough field",
-    needs: { terrain: "grassland", habitable: "none" },
-    me: [ tiring ],
-    target: [
-      { change_terrain: "ploughed" }
-    ]
+  {
+    conditions: {
+      "target.mappable.terrain": {
+        is: "ploughed"
+      },
+      "me.supplies.wheat": { greater: 0 }
+    },
+    event: {
+      name: "Sow field",
+      rules: [
+        { event: { "target.mappable.terrain": "sown" } },
+        { event: { "me.supplies.wheat": { lose: 1 } } }
+      ]
+    },
   },
-  sow_wheat: {
-    name: "Sow wheat",
-    needs: { wheat: 1, terrain: "ploughed" },
-    me: [
-      { lose: { wheat: 1 } }
-    ],
-    target: [
-      { change_terrain: "sown" },
-    ]
+  {
+    conditions: {
+      "target.habitable": "exists",
+      "target.habitable.owners": { includes: "$me.id" } },
+    event: {
+      name: "Rest",
+      rules: [
+        { event: { "me.traits": { remove: "tired" } } },
+        { event: { "me.traits": { remove: "very_tired" } } },
+        { event: { "me.traits": { add: "rested" } } },
+        { conditions: { "me.traits": { includes: "rested" } },
+          event: { "me.traits": { remove: "exhausted" } } },
+        { conditions: { "other.personable": "exists" },
+          event: { me: { socialise: "random_other" } } },
+      ],
+    }
   },
-  chop_trees: {
-    name: "Chop trees",
-    needs: { terrain: "forest" },
-    me: [
-      tiring,
-      { gain: { wood: 1 } }
-    ],
-    target: [
-      { when: { trait: "thinned" },
-        then: { add_trait: "deforested" },
-        otherwise: {
-          when: { trait: "deforested" },
-          then: { add_trait: "decimated" },
-          otherwise: {
-            when: { trait: "decimated" },
-            then: { change_terrain: "grassland" },
-          }
-        }
-      }
-    ],
+  {
+    conditions: {
+      "target.mappable.terrain": { is: "forest" },
+    },
+    event: {
+      name: "Chop trees",
+      rules: [
+        ...tiring,
+        { event: { "me.supplies.wood": { gain: 1 } } },
+        {
+          conditions: {
+            "target.traits": {
+              not: { includes: ["thinned", "deforested", "decimated" ] }
+            }
+          },
+          event: { "target.traits": { add: "thinned" } }
+        },
+        {
+          conditions: {
+            "target.traits": {
+              includes: "thinned"
+            }
+          },
+          event: { "target.traits": { change: [ "thinned", "deforested" ] } }
+        },
+        {
+          conditions: {
+            "target.traits": {
+              includes: "deforested"
+            }
+          },
+          event: { "target.traits": { change: [ "deforested", "decimated" ] } }
+        },
+        {
+          conditions: {
+            "target.traits": {
+              includes: "deforested"
+            }
+          },
+          event: { "target.mappable.terrain": { change: "grassland" } },
+        },
+      ]
+    },
   },
-  plant_trees: {
-    name: "Plant trees",
-    needs: { terrain: "forest" },
-    target: [
-      { add_trait: "planted" },
-      { remove_trait: "thinned" },
-      { when: { trait: "deforested" },
-        then: [ { add_trait: "thinned" }, { remove_trait: "deforested" } ],
-        otherwise: {
-          when: [ { trait: "decimated" }, { trait: "planted" } ],
-          then: { add_trait: "deforested" }
-        }
-      }
-    ]
+  {
+    conditions: {
+      "target.mappable.terrain": { is: "forest" },
+      not: { "target.traits": { include: "planted" } },
+    },
+    event: {
+      name: "Plant trees",
+      rules: [
+        { event: { "target.traits": { add: "planted" } } },
+      ],
+    }
+  },
+  {
+    conditions: {
+      "target.mappable.terrain": { is: "shallow_water" },
+    },
+    event: {
+      name: "Fish",
+      rules: [
+        { event: { "target.traits": { add: "fished" } } },
+      ],
+    }
   }
-};
+];

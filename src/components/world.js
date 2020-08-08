@@ -4,18 +4,16 @@ import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
+import { Viewport } from "pixi-viewport";
 
-import { getEntity, assign, getAllComponents } from "features/entities_slice";
+import Engine from "json-rules-engine-simplified";
+
+import { getEntity, assign, getAllComponents, getEntitiesByTile } from "features/entities_slice";
+import { getKnown, filterByKnown, filterTilesByKnown } from "features/entities/playable_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
 
-import { Viewport } from "pixi-viewport";
-
 import { actions } from "data/actions";
-
-// TODO: belongs in a playable slice
-const getKnown = (state, playerId) => playerId ? state.entities.components.playable[playerId].known : [];
-const filterByKnown = (list, known) => list.filter(e => known.some(k => k.x == e.spatial.x && k.y == e.spatial.y));
 
 const mappablesAtKnownTiles = () => createSelector(
   getAllComponents("mappable", "spatial"),
@@ -32,42 +30,12 @@ const habitablesAtKnownTiles = () => createSelector(
   getKnown,
   filterByKnown);
 
-const workablesAtKnownTiles = createSelector(
-  getAllComponents("workable", "spatial"),
+const workablesAtKnownTiles = () => createSelector(
+  getEntitiesByTile("workable", "spatial", "mappable", "habitable"),
   getKnown,
-  filterByKnown);
+  filterTilesByKnown);
 
-const makeAllActionsAtKnownTiles = () => createSelector(
-  workablesAtKnownTiles,
-  state => state,
-  (_, playerId) => playerId,
-  (workables, state, playerId) => {
-    var as = workables.reduce((result, e) => {
-      const entity = getEntity(e.spatial.id)(state);
-
-      const key = e.spatial.x + "," + e.spatial.y;
-      if (!(key in result)) { result[key] = []; }
-
-      result[key] = [...result[key], ...Object.values(actions)
-        .filter(a => ((a.needs || {}).terrain == (entity.mappable || {}).terrain))
-        .filter(a => ((a.needs || {}).habitable != "home" ||
-          ((entity.habitable || {}).owners || []).includes(playerId)))
-        .map(a => ({
-          id: e.spatial.id,
-          action: a,
-          hex: Hex(e.spatial.x, e.spatial.y)
-        }))];
-      return result;
-    }, {});
-    // Remove actions that cannot be on entity because of the same tile
-    for (var key in as) {
-      as[key] = as[key].filter(a =>
-        ((a.action.needs || {}).habitable != "none" ||
-          as[key].every(a => getEntity(a.id)(state).habitable == null)));
-    }
-    return as;
-  }
-);
+const engine = new Engine(actions);
 
 const entityMouseMove = e => {
   if (e.currentTarget.custom.clicking) {
@@ -127,19 +95,23 @@ export function World({ playerId }) {
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);
+  const [possibleActions, setPossibleActions] = React.useState([]);
 
   const getAllMappablesAtKnownTiles = React.useMemo(mappablesAtKnownTiles, [playerId]);
   const getAllPersonablesAtKnownTiles = React.useMemo(personablesAtKnownTiles, [playerId]);
   const getAllHabitablesAtKnownTiles = React.useMemo(habitablesAtKnownTiles, [playerId]);
-  const getAllActionsAtKnownTiles = React.useMemo(makeAllActionsAtKnownTiles, [playerId]);
+  const getAllWorkablesAtKnownTiles = React.useMemo(workablesAtKnownTiles, [playerId]);
 
   const mappables = useSelector(state => getAllMappablesAtKnownTiles(state, playerId));
   const personables = useSelector(state => getAllPersonablesAtKnownTiles(state, playerId));
   const habitables = useSelector(state => getAllHabitablesAtKnownTiles(state, playerId));
-  const possibleActions = useSelector(state => getAllActionsAtKnownTiles(state, playerId));
+  const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
+
   const width = useSelector(state => state.map.pointWidth);
   const height = useSelector(state => state.map.pointHeight);
   const playerStart = useSelector(state => state.map.playerStart);
+
+  const player = useSelector(getEntity(playerId));
 
   const dispatch = useDispatch();
   const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
@@ -296,6 +268,27 @@ export function World({ playerId }) {
     };
   }, [app, habitables, viewport]);
 
+  // Create actions
+  React.useEffect(() => {
+    (async () => {
+      const actions = {};
+      for (const key in workables) {
+        const tile = Object.values(workables[key]);
+        for (const idx in tile) {
+          const target = tile[idx];
+          const other = tile.filter(e => e.id != target.id);
+          const events = await engine.run({ target, me: player, other });
+          actions[key] = [...(actions[key] || []), ...events.map(a => ({
+            id: target.spatial.id,
+            action: a,
+            hex: Hex(target.spatial.x, target.spatial.y)
+          }))];
+        }
+      }
+      setPossibleActions(actions);
+    })();
+  }, [workables]);
+
   React.useEffect(() => {
     if (personables.length == 0) {
       return;
@@ -305,10 +298,11 @@ export function World({ playerId }) {
       return;
     }
 
-    console.log("rendering possibleActions");
-
     var highlight = new PIXI.Container();
     var dropTargets = [];
+
+    console.log("rendering possibleActions");
+
     const keys = Object.keys(possibleActions);
     for (var i = 0; i < keys.length; i++) {
       const record  = possibleActions[keys[i]];
@@ -334,6 +328,7 @@ export function World({ playerId }) {
         });
       });
     }
+
     highlight.visible = false;
 
     console.log("rendering personables");

@@ -52,7 +52,7 @@ export const getNextEntity = state => state.entities.next;
 
 export const getAllComponents = (...types) => createSelector(
   types.map(t => state => state.entities.components[t]),
-  (...components) => Object.values(components.filter(c => c).reduce((result, c, i) => {
+  (...components) => Object.values(components.filter(c => !!c).reduce((result, c, i) => {
     Object.values(c).forEach(e => {
       if (i == 0) { // Only first component gets all ids
         result[e.id] = result[e.id] || {};
@@ -65,9 +65,27 @@ export const getAllComponents = (...types) => createSelector(
   }, {}))
 );
 
+export const getEntitiesByTile = (...types) => createSelector(
+  ["spatial", ...types].map(t => state => state.entities.components[t]),
+  (spatials, ...components) => components.filter(c => !!c).reduce((result, c, i) => {
+    Object.values(c).forEach(e => {
+      const s = spatials[e.id];
+      const key = s.x + "," + s.y;
+      result[key] = result[key] || {};
+      if (i == 0) { // Only first component gets all ids
+        result[key][e.id] = result[key][e.id] || { id: e.id };
+      }
+      if (e.id in result[key]) {
+        result[key][e.id][types[i]] = e;
+      }
+    });
+    return result;
+  }, {})
+);
+
 export const getEntity = id => state => (
   Object.keys(state.entities.components).reduce((result, name) => (
-    {...result, [name]: Object.values(state.entities.components[name]).filter(c => c.id == id)[0]}), {}));
+    {...result, [name]: Object.values(state.entities.components[name]).filter(c => c.id == id)[0]}), {id: id}));
 
 export const getPlayerId = state => {
   if (state.entities.components.playable) {

@@ -17,17 +17,21 @@ export function Tutorial() {
   }, [dispatch]);
 
   return (
-    <div id="tutorial">
-      {step.task &&
-        (<div className={`task ${hiding ? "hiding" : ""}`}>
-          <div className="main">{step.task.main}</div>
-          { step.task.sub && step.task.sub.map((sub, i) => (<li key={i}>{sub}</li>))}
-        </div>)}
-      {step.description && (
-        <div className={`description ${hiding ? "hiding" : ""}`}>
-          <p>{step.description}</p>
-          <p><a onClick={nextStep}>Continue</a></p>
-        </div>)}
-    </div>
+    <>
+      { step &&
+        <div id="tutorial">
+          {step.task &&
+            (<div className={`task ${hiding ? "hiding" : ""}`}>
+              <div className="main">{step.task.main}</div>
+              { step.task.sub && step.task.sub.map((sub, i) => (<li key={i}>{sub}</li>))}
+            </div>)}
+          {step.description && (
+            <div className={`description ${hiding ? "hiding" : ""}`}>
+              <p>{step.description}</p>
+              <p><a onClick={nextStep}>Continue</a></p>
+            </div>)}
+        </div>
+      }
+    </>
   );
 }

@@ -25,8 +25,9 @@ const sagaMiddleware = createSagaMiddleware();
 import map from "features/map_slice";
 import ui from "features/ui_slice";
 import entities from "features/entities_slice";
+import turn from "features/turn_slice";
 
-const reducer = combineReducers({ map, ui, entities });
+const reducer = combineReducers({ map, ui, entities, turn });
 const store = configureStore({
   reducer: reducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware)

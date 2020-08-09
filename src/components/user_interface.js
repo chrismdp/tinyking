@@ -9,6 +9,7 @@ import { MainMenu } from "components/main_menu";
 import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
 import { Supplies } from "components/supplies";
+import { NextAction } from "components/next_action";
 import { startGame, getWindows, getVisibility } from "features/ui_slice";
 
 export function UserInterface() {
@@ -22,6 +23,7 @@ export function UserInterface() {
     <div id="ui">
       {show.clock && <Clock/>}
       {show.supplies && <Supplies/>}
+      {show.next_action && <NextAction/>}
       {windows.map((w, index) => {
         const offset = (index + 2) * 30;
         switch(w.type) {

@@ -12,6 +12,7 @@ import { getEntity, assign, getAllComponents, getEntitiesByTile } from "features
 import { getKnown, filterByKnown, filterTilesByKnown } from "features/entities/playable_slice";
 import { entityClicked } from "features/ui_slice";
 import { Hex, HEX_SIZE } from "features/map_slice";
+import { PlayerContext } from "components/player_context";
 
 import { actions } from "data/actions";
 
@@ -91,7 +92,8 @@ const entityMouseUp = (id, click, drop) => e => {
   delete e.currentTarget.custom;
 };
 
-export function World({ playerId }) {
+export function World() {
+  const playerId = React.useContext(PlayerContext);
   const containingDiv = React.useRef(null);
   const [app, setApp] = React.useState(null);
   const [viewport, setViewport] = React.useState(null);

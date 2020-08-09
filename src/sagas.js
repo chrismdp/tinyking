@@ -1,12 +1,13 @@
-import { takeEvery, call, all } from "redux-saga/effects";
+import { debounce, call, all } from "redux-saga/effects";
 import { generate, generateMap } from "features/map_slice";
-import { tutorial } from "features/ui_slice";
-import { startGame } from "features/ui_slice";
+import { tutorial, startGame } from "features/ui_slice";
+import { handleEndTurn, endTurn } from "features/turn_slice";
 
 export default function* baseSaga() {
   yield all([
-    takeEvery(generate, generateMap),
-    takeEvery(startGame, tutorial),
+    debounce(200, generate, generateMap),
+    debounce(200, startGame, tutorial),
+    debounce(200, endTurn, handleEndTurn)
   ]);
 
   // Get the map generating each time we reload for now

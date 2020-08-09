@@ -84,12 +84,12 @@ canvas {
   #ui {
     display: grid;
     grid-template-columns: 5px 25px 2fr 1fr 25px 5px;
-    grid-template-rows: 5px 25px auto 25px 5px;
+    grid-template-rows: 5px 25px auto 35px 5px;
     grid-template-areas:
       ". . . . . ."
       ". Supplies Supplies Clock Clock ."
       ". Main Main Main Main ."
-      ". . . . . ."
+      ". . . NextAction NextAction ."
       ". . . . . ."
   }
 
@@ -103,6 +103,13 @@ canvas {
   }
 
   #supplies { grid-area: Supplies; }
+  #next-action { grid-area: NextAction; }
+
+  #next-action {
+    animation: fade-in 1.5s forwards;
+    opacity: 0;
+    text-align: right;
+  }
 
   #clock, #supplies {
     text-shadow: 1px 1px #000000;
@@ -222,6 +229,9 @@ button {
   background: #417154;
   color: white;
   -webkit-appearance: none;
+  &:disabled {
+    background: #aaa;
+  }
 }
 
 .panel {

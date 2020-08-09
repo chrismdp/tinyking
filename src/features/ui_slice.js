@@ -13,15 +13,6 @@ const uiSlice = createSlice({
     debug: {
       mapLayer: false
     },
-    tutorial: {
-      description: "",
-      task: {
-        main: "",
-        sub: [
-          { main: "step 1", complete: false }
-        ]
-      },
-    },
     windows: [
       { id: "main-menu", type: "main-menu" }
     ]
@@ -76,6 +67,7 @@ export function* tutorial() {
   yield put(stepTutorial({ description: "You have some food stored, but it's a great time to grow some grain to stop your supplies dwindling too much: one person eats one food at the end of each season. You have a small field to plough; time to make use of it."}));
   yield take(continueTutorial);
   yield put(stepTutorial({ task: { main: "Survive The Winter", sub: [ "Drag your character to the nearest field to plough it" ] }}));
+  yield put(changeVisibility({ next_action: true }));
 }
 
 export const getWindows = state => state.ui.windows;

@@ -13,6 +13,7 @@ module.exports = {
         "version": "detect",
       }
     },
+    "parser": "babel-eslint",
     "parserOptions": {
         "ecmaVersion": 11,
         "sourceType": "module"

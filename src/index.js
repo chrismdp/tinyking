@@ -7,35 +7,15 @@ import "./style.scss";
 import React from "react";
 import ReactDOM from "react-dom";
 import ReactGA from "react-ga";
-import { Provider } from "react-redux";
-import { combineReducers } from "redux";
-import { configureStore } from "@reduxjs/toolkit";
-import createSagaMiddleware from "redux-saga";
 
-import { Game } from "components/game";
-import baseSaga from "sagas";
+import { World } from "components/world";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDice } from "@fortawesome/free-solid-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 library.add(faDice, faTimes);
 
-const sagaMiddleware = createSagaMiddleware();
-
-import map from "features/map_slice";
-import ui from "features/ui_slice";
-import entities from "features/entities_slice";
-import turn from "features/turn_slice";
-
-const reducer = combineReducers({ map, ui, entities, turn });
-const store = configureStore({
-  reducer: reducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware)
-});
-sagaMiddleware.run(baseSaga);
-
-ReactDOM.render(<Provider store={store}><Game/></Provider>,
-  document.getElementById("root"));
+ReactDOM.render(<World/>, document.getElementById("root"));
 
 if (process.env.NODE_ENV !== "production") {
   console.log("Tiny King: development mode!");

@@ -1,40 +1,17 @@
 import * as React from "react";
 import PropTypes from "prop-types";
-import { useSelector, useDispatch } from "react-redux";
-import { createSelector } from "@reduxjs/toolkit";
 
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 
 import Engine from "json-rules-engine-simplified";
 
-import { getEntity, assign, getAllComponents, getEntitiesByTile } from "features/entities_slice";
-import { getKnown, filterByKnown, filterTilesByKnown } from "features/entities/playable_slice";
-import { entityClicked } from "features/ui_slice";
-import { Hex, HEX_SIZE } from "features/map_slice";
-import { PlayerContext } from "components/player_context";
+import { Hex, HEX_SIZE, generateMap } from "game/map";
+import { fullEntity } from "game/entities";
+import { GameState } from "components/contexts";
+import { UserInterface } from "components/user_interface";
 
 import { actions } from "data/actions";
-
-const mappablesAtKnownTiles = () => createSelector(
-  getAllComponents("mappable", "spatial"),
-  getKnown,
-  filterByKnown);
-
-const personablesAtKnownTiles = () => createSelector(
-  getAllComponents("personable", "spatial"),
-  getKnown,
-  filterByKnown);
-
-const habitablesAtKnownTiles = () => createSelector(
-  getAllComponents("habitable", "spatial"),
-  getKnown,
-  filterByKnown);
-
-const workablesAtKnownTiles = () => createSelector(
-  getEntitiesByTile("workable", "spatial", "mappable", "habitable"),
-  getKnown,
-  filterTilesByKnown);
 
 const engine = new Engine(actions);
 
@@ -92,163 +69,103 @@ const entityMouseUp = (id, click, drop) => e => {
   delete e.currentTarget.custom;
 };
 
-export function World() {
-  const playerId = React.useContext(PlayerContext);
-  const containingDiv = React.useRef(null);
-  const [app, setApp] = React.useState(null);
-  const [viewport, setViewport] = React.useState(null);
-  const [possibleActions, setPossibleActions] = React.useState([]);
-
-  const getAllMappablesAtKnownTiles = React.useMemo(mappablesAtKnownTiles, [playerId]);
-  const getAllPersonablesAtKnownTiles = React.useMemo(personablesAtKnownTiles, [playerId]);
-  const getAllHabitablesAtKnownTiles = React.useMemo(habitablesAtKnownTiles, [playerId]);
-  const getAllWorkablesAtKnownTiles = React.useMemo(workablesAtKnownTiles, [playerId]);
-
-  const mappables = useSelector(state => getAllMappablesAtKnownTiles(state, playerId));
-  const personables = useSelector(state => getAllPersonablesAtKnownTiles(state, playerId));
-  const habitables = useSelector(state => getAllHabitablesAtKnownTiles(state, playerId));
-  const workables = useSelector(state => getAllWorkablesAtKnownTiles(state, playerId));
-
-  const width = useSelector(state => state.map.pointWidth);
-  const height = useSelector(state => state.map.pointHeight);
-  const playerStart = useSelector(state => state.map.playerStart);
-
-  const player = useSelector(getEntity(playerId));
-
-  const dispatch = useDispatch();
-  const click = React.useCallback((id) => dispatch(entityClicked(id)), [dispatch]);
-  // TODO: turn this into a better event - there's a second 'action' param we can use.
-  const drop = React.useCallback((id, task) => dispatch(assign({ id, task })), [dispatch]);
-
-  React.useEffect(() => {
-    console.log("creating app");
-    let a = new PIXI.Application({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      antialias: true,
-      transparent: true,
-      resolution: window.devicePixelRatio || 1,
-      autoResize: true
-    });
-
-    containingDiv.current.appendChild(a.view);
-
-    window.onresize = () => {
-      a.renderer.resize(window.innerWidth, window.innerHeight);
-    };
-    setApp(a);
-
-    return function cleanup() {
-      if (app) {
-        containingDiv.current.removeChild(app);
-        app.destroy({children: true, texture: true, baseTexture: true});
+const knownIds = (ecs, playerId) => {
+  var result = [];
+  for (const id in ecs.spatial) {
+    for (const tile of ecs.playable[playerId].known) {
+      if (ecs.spatial[id].x == tile.x && ecs.spatial[id].y == tile.y) {
+        result.push(id);
+        break;
       }
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (!app) {
-      return;
     }
-    if (!playerStart) {
-      return;
-    }
+  }
+  return result;
+};
 
-    let vp = new Viewport({
-      screenWidth: app.view.offsetWidth,
-      screenHeight: app.view.offsetHeight,
-      worldWidth: width,
-      worldHeight: height,
-      passiveWheel: false,
-      disableOnContextMenu: true
-    });
+const generate = async (state, seed, progressUpdate) => {
+  state.ecs = { nextId: 1 };
+  state.pixi = {};
+  state.ui.progress = { count: 0 };
 
-    console.log("create viewport", vp);
+  const results = await generateMap(state.ecs, seed, progressUpdate);
+  state.map = results.map;
+  state.ui.playerId = results.playerId;
+};
 
-    app.stage.addChild(vp);
+const renderMap = (app, state) => {
+  const width = state.map.pointWidth;
+  const height = state.map.pointHeight;
+  const playerStart = state.map.playerStart;
 
-    const point = Hex(playerStart.x, playerStart.y).toPoint();
+  const { ui, ecs, pixi } = state;
 
-    vp.
-      drag().
-      wheel().
-      pinch().
-      clampZoom({minScale: 0.1, maxScale: 10}).
-      clamp({direction: "all"}).
-      zoomPercent(-0.5).
-      moveCenter(point.x, point.y);
+  let viewport = new Viewport({
+    screenWidth: app.view.offsetWidth,
+    screenHeight: app.view.offsetHeight,
+    worldWidth: width,
+    worldHeight: height,
+    passiveWheel: false,
+    disableOnContextMenu: true
+  });
 
-    setViewport(vp);
+  console.log("create viewport", viewport);
 
-    return function cleanup() {
-      console.log("Destroy old map viewport");
-      vp.destroy({children: true});
-      setViewport(null);
-    };
-  }, [app, width, height]);
+  app.stage.addChild(viewport);
 
-  React.useEffect(() => {
-    if (mappables.length == 0) {
-      return;
-    } else if (!app || !viewport) {
-      return;
-    }
+  const point = Hex(playerStart.x, playerStart.y).toPoint();
 
-    console.log("rendering mappables");
+  viewport.
+    drag().
+    wheel().
+    pinch().
+    clampZoom({minScale: 0.1, maxScale: 10}).
+    clamp({direction: "all"}).
+    zoomPercent(-0.5).
+    moveCenter(point.x, point.y);
 
-    var base = new PIXI.Container();
+  console.log("rendering map");
 
-    const terrainColours = {
-      "mountain": 0x3C3A44,
-      "deep_water": 0x2F4999,
-      "shallow_water": 0x3F6FAE,
-      "grassland": 0x80C05D,
-      "forest": 0x30512F,
-      "stone": 0x5D7084,
-    };
+  var base = new PIXI.Container();
 
-    // Add mappables to viewport
-    for (var i = 0; i < mappables.length; i++) {
-      const entity = mappables[i];
+  const terrainColours = {
+    "mountain": 0x3C3A44,
+    "deep_water": 0x2F4999,
+    "shallow_water": 0x3F6FAE,
+    "grassland": 0x80C05D,
+    "forest": 0x30512F,
+    "stone": 0x5D7084,
+  };
+
+  const known = knownIds(ecs, ui.playerId);
+
+  // Add mappables to viewport
+  for (const id of known) {
+    if (ecs.mappable[id]) {
       const graphics = new PIXI.Graphics();
-      const hex = Hex(entity.spatial.x, entity.spatial.y);
+      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
       const point = hex.toPoint();
       graphics.position.set(point.x, point.y);
 
-      graphics.beginFill(terrainColours[entity.mappable.terrain]);
+      graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
       graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
       graphics.drawPolygon(...hex.corners());
       graphics.endFill();
 
       base.addChild(graphics);
+
+      pixi[id] = graphics;
     }
+  }
 
-    viewport.addChild(base);
+  viewport.addChild(base);
 
-    return function cleanup() {
-      console.log("Destroy old mappables");
+  base = new PIXI.Container();
 
-      viewport.removeChild(base);
-      base.destroy({children: true});
-    };
-  }, [app, mappables, viewport]);
-
-  React.useEffect(() => {
-    if (habitables.length == 0) {
-      return;
-    } else if (!app || !viewport) {
-      return;
-    }
-
-    console.log("rendering habitables");
-
-    var base = new PIXI.Container();
-
-    // Add habitables to viewport
-    for (var i = 0; i < habitables.length; i++) {
-      const entity = habitables[i];
+  // Add habitables to container
+  for (const id of known) {
+    if (ecs.habitable[id]) {
       const graphics = new PIXI.Graphics();
-      const hex = Hex(entity.spatial.x, entity.spatial.y);
+      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
       const point = hex.toPoint();
       graphics.position.set(point.x, point.y);
 
@@ -258,46 +175,40 @@ export function World() {
       graphics.endFill();
 
       base.addChild(graphics);
+      if (id in pixi) {
+        throw "ID " + id + " Should not already be rendered. Check state.";
+      }
+      pixi[id] = graphics;
     }
+  }
 
-    viewport.addChild(base);
+  viewport.addChild(base);
 
-    return function cleanup() {
-      console.log("Destroy old habitables");
+  (async () => {
+    const possibleActions = {};
+    const tiles = known.reduce((o, id) => {
+      if (ecs.spatial[id]) {
+        const key = ecs.spatial[id].x + "," + ecs.spatial[id].y;
+        if (!(key in o)) {
+          o[key] = [];
+        }
+        o[key].push(fullEntity(ecs, id));
+      }
+      return o;
+    }, {});
 
-      viewport.removeChild(base);
-      base.destroy({children: true});
-    };
-  }, [app, habitables, viewport]);
+    const player = fullEntity(ecs, ui.playerId);
 
-  // Create actions
-  React.useEffect(() => {
-    (async () => {
-      const actions = {};
-      for (const key in workables) {
-        const tile = Object.values(workables[key]);
-        for (const idx in tile) {
-          const target = tile[idx];
-          const other = tile.filter(e => e.id != target.id);
+    for (const coord in tiles) {
+      for (const target of tiles[coord]) {
+        if (target.workable) {
+          const other = tiles[coord].filter(e => e.id != target.id);
           const events = await engine.run({ target, me: player, other });
-          actions[key] = [...(actions[key] || []), ...events.map(a => ({
-            id: target.spatial.id,
-            action: a,
-            hex: Hex(target.spatial.x, target.spatial.y)
+          possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
+            id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
           }))];
         }
       }
-      setPossibleActions(actions);
-    })();
-  }, [workables]);
-
-  React.useEffect(() => {
-    if (personables.length == 0) {
-      return;
-    } else if (possibleActions.length == 0) {
-      return;
-    } else if (!app || !viewport) {
-      return;
     }
 
     var highlight = new PIXI.Container();
@@ -307,7 +218,7 @@ export function World() {
 
     const keys = Object.keys(possibleActions);
     for (var i = 0; i < keys.length; i++) {
-      const record  = possibleActions[keys[i]];
+      const record = possibleActions[keys[i]];
       record.forEach((r, index) => {
         const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
         const point = r.hex.toPoint();
@@ -335,60 +246,143 @@ export function World() {
 
     console.log("rendering personables");
 
-    var base = new PIXI.Container();
+    base = new PIXI.Container();
 
-    // Add personables to viewport
-    for (i = 0; i < personables.length; i++) {
-      const entity = personables[i];
-      const personable = entity.personable;
-      const graphics = new PIXI.Graphics();
-      const hex = Hex(entity.spatial.x, entity.spatial.y);
-      const point = hex.toPoint();
-      graphics.position.set(point.x, point.y);
+    for (const id of known) {
+      const personable = ecs.personable[id];
+      if (personable) {
+        const graphics = new PIXI.Graphics();
+        const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+        const point = hex.toPoint();
+        graphics.position.set(point.x, point.y);
 
-      const person = new PIXI.Graphics();
-      person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
-      person.lineStyle({color: "black", width: 2, alpha: 1});
-      person.beginFill(personable.body);
-      person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
-      person.endFill();
-      person.beginFill(personable.hair);
-      person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
-      person.endFill();
+        const person = new PIXI.Graphics();
+        person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
+        person.lineStyle({color: "black", width: 2, alpha: 1});
+        person.beginFill(personable.body);
+        person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
+        person.endFill();
+        person.beginFill(personable.hair);
+        person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
+        person.endFill();
 
-      person.lineStyle(null);
-      person.beginFill(0xEACAAA);
-      person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
-      person.endFill();
+        person.lineStyle(null);
+        person.beginFill(0xEACAAA);
+        person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
+        person.endFill();
 
-      graphics.addChild(person);
+        graphics.addChild(person);
 
-      person.interactive = true;
-      person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-      person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-      person.on("mouseup", entityMouseUp(personable.id, click, drop));
-      person.on("mouseupoutside", entityMouseUp(personable.id, click, drop));
-      person.on("touchend", entityMouseUp(personable.id, click, drop));
-      person.on("touchendoutside", entityMouseUp(personable.id, click, drop));
+        person.interactive = true;
+        person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+        person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+        person.on("mouseup", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+        person.on("mouseupoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+        person.on("touchend", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+        person.on("touchendoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
 
-      base.addChild(graphics);
+        base.addChild(graphics);
+      }
     }
 
     viewport.addChild(base);
     viewport.addChild(highlight);
+  })();
+};
 
-    return function cleanup() {
-      console.log("Destroy old personables and workables");
+export function World() {
+  const stateContainer = React.useRef({});
+  const state = stateContainer.current;
 
-      viewport.removeChild(base);
-      base.destroy({children: true});
+  // I'm aware you shouldn't render components imperatively, but because the
+  // React code is a declarative shell around an imperative core, this is the
+  // best way I can find to sync the UI.
+  const [, render] = React.useState();
+  const renderUI = React.useCallback(() => render({}), []);
 
-      viewport.removeChild(highlight);
-      highlight.destroy({children: true});
+  const containingDiv = React.useRef(null);
+
+  React.useEffect(() => {
+    console.log("creating app");
+    let app = new PIXI.Application({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      antialias: true,
+      transparent: true,
+      resolution: window.devicePixelRatio || 1,
+      autoResize: true
+    });
+
+    state.ui = { ...state.ui, show: { main_menu: true }, actions: {
+      drop: (id, target) => {
+        state.ecs.assignable[id].task = target;
+        state.ecs.spatial[id].x = target.hex.x;
+        state.ecs.spatial[id].y = target.hex.y;
+        renderUI();
+      },
+      end_turn: () => {},
+      click: id => {
+        state.ui.show.info = id;
+        renderUI();
+      },
+      change_visibility: action => {
+        state.ui.show = { ...state.ui.show, ...action };
+        renderUI();
+      },
+      close_window: (id) => {
+        if (id == "mapgen") {
+          state.ui.actions.start_game();
+        }
+        delete state.ui.show[id];
+        renderUI();
+      },
+      custom_game: () => {
+        state.ui.show.main_menu = false;
+        state.ui.show.mapgen = true;
+        renderUI();
+      },
+      start_game: () => {
+        state.ui.show.main_menu = false;
+        state.ui.show.tutorial = true;
+        renderUI();
+      },
+      generate_map: async (seed) => {
+        await generate(state, seed, state.ui.actions.progress_update);
+        if (app.stage.children.length > 0) {
+          app.stage.removeChildren();
+        }
+        renderMap(app, state);
+        renderUI();
+      },
+      progress_update: async (label) => {
+        state.ui.progress.label = label;
+        state.ui.progress.count++;
+        renderUI();
+        return new Promise(resolve => setTimeout(resolve, 10));
+      }
+    } };
+
+    containingDiv.current.appendChild(app.view);
+
+    window.onresize = () => {
+      app.renderer.resize(window.innerWidth, window.innerHeight);
     };
-  }, [app, possibleActions, personables, viewport]);
 
-  return (<div id="world" ref={containingDiv}></div>);
+    (async () => {
+      const seed =  Math.round(Math.random() * 10000000);
+      await state.ui.actions.generate_map(seed);
+      renderUI();
+    })();
+  }, []);
+
+  return (
+    <div id="game">
+      <div id="world" ref={containingDiv}></div>
+      <GameState.Provider value={state}>
+        <UserInterface/>
+      </GameState.Provider>
+    </div>
+  );
 }
 
 World.propTypes = {

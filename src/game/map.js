@@ -1,13 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { select, delay, put, putResolve, call } from "redux-saga/effects";
-import { moveIn, getAllComponents, clearEntities, newEntities, getPlayerId, discoverTiles } from "features/entities_slice";
-
 import * as Honeycomb from "honeycomb-grid";
 import * as SimplexNoise from "simplex-noise";
 
 import MersenneTwister from "mersenne-twister";
 
 import ReactGA from "react-ga";
+
+import { newEntities } from "game/entities";
+import { discoverTiles } from "game/playable";
 
 export const HEX_SIZE = 80;
 const MAP_RADIUS = 10;
@@ -16,32 +15,7 @@ const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
 const STARTING_KNOWN_DISTANCE = 2;
 
-const blankMap = {
-  seed: "12345",
-  progress: { count: 0 },
-  pointWidth: 0,
-  pointHeight: 0
-};
-
-const mapSlice = createSlice({
-  name: "map",
-  initialState: blankMap,
-  reducers: {
-    generate() {},
-    clearMap(state, action) {
-      const seed = action.payload;
-      var newState = Object.assign({}, state, blankMap);
-      newState.seed = seed;
-      return newState;
-    },
-    storeMap(state, action) {
-      return Object.assign({}, state, action.payload);
-    },
-    generationProgress(state, action) {
-      state.progress = { ...action.payload, count: state.progress.count + 1 };
-    }
-  }
-});
+const UPDATE_PROGRESS_EVERY = 500;
 
 const HAIR = {
   red: 0x8D3633,
@@ -72,15 +46,14 @@ function generateFamily(size, x, y, generator) {
   return result;
 }
 
-export function* generateFamilies({ seed, playerStart }) {
-  var people = [];
+export function generateFamilies({ ecs, seed, playerStart }) {
   var generator = new MersenneTwister(seed);
-  var habitables = yield select(getAllComponents("habitable", "spatial"));
-  for (var i = 0; i < habitables.length; i++) {
-    var spatial = habitables[i].spatial;
+  for (const id in ecs.habitable) {
+    var people = [];
+    var spatial = ecs.spatial[id];
     if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
       const player = { ...generateFamily(1, spatial.x, spatial.y, generator)[0],
-        playable: { known: [] },
+        playable: { known: [], controls: [] },
         assignable: {}
       };
       people = [ ...people, player ];
@@ -88,18 +61,9 @@ export function* generateFamilies({ seed, playerStart }) {
       const familySize = 1 + (generator.random_int() % 5);
       people = [ ...people, ...generateFamily(familySize, spatial.x, spatial.y, generator) ];
     }
+    const ids = newEntities(ecs, people);
+    ecs.habitable[id].owners = ids;
   }
-  yield put(newEntities(people));
-
-  // Move people in
-  const  personables = yield select(getAllComponents("personable", "spatial"));
-  const moves = personables.map(p => ({
-    habitable: habitables.filter(h => h.spatial.x == p.spatial.x && h.spatial.y == p.spatial.y)[0].habitable.id,
-    personable: p.personable.id
-  }));
-
-  yield put(moveIn(moves));
-
 }
 
 export const Hex = Honeycomb.extendHex({
@@ -110,7 +74,7 @@ export const Hex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
-function* generateTerrain(grid, seed) {
+async function generateTerrain(grid, seed, progressUpdate) {
   console.log("Generating terrain", seed);
 
   ReactGA.event({category: "Map generation", action: "generate"});
@@ -153,9 +117,8 @@ function* generateTerrain(grid, seed) {
       y: hex.y,
       terrain: terrain
     };
-    if (grid_index % 500 == 0) {
-      yield delay(10);
-      yield put(generationProgress({ label: "terrain" }));
+    if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
+      await progressUpdate("terrain");
     }
   }
   return result;
@@ -170,8 +133,7 @@ const terrainValueFn = {
   "grassland": (distance) => (10 - distance * 2),
 };
 
-
-function* findPlayerStart(grid, landscape) {
+async function findPlayerStart(grid, landscape, progressUpdate) {
   const center = Grid.pointToHex(grid.pointWidth() * 0.5, grid.pointHeight() * 0.5);
 
   const spiral = Grid.spiral({ radius: MAP_RADIUS });
@@ -180,16 +142,15 @@ function* findPlayerStart(grid, landscape) {
     if (landscape[hex].terrain == "grassland") {
       return hex;
     }
-    if (spiral_index % 500 == 0) {
-      yield delay(10);
-      yield put(generationProgress({ label: "find start" }));
+    if (spiral_index % UPDATE_PROGRESS_EVERY == 0) {
+      await progressUpdate("player start");
     }
   }
-  throw "Cannot find any grassland for player to start on!";
   // TODO: do something more useful here
+  throw "Cannot find any grassland for player to start on!";
 }
 
-function* generateEconomicValue(grid, landscape) {
+async function generateEconomicValue(grid, landscape, progressUpdate) {
   const spiral = Grid.spiral({ radius: 5 });
   spiral.shift(); // Ignore centre
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
@@ -207,9 +168,8 @@ function* generateEconomicValue(grid, landscape) {
       }
       landscape[target].economic_value = Object.values(found).reduce((a, b) => a + b, 0);
     }
-    if (grid_index % 500 == 0) {
-      yield delay(10);
-      yield put(generationProgress({ label: "economic" }));
+    if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
+      await progressUpdate("economic");
     }
   }
 }
@@ -222,7 +182,7 @@ function makeHouseAndField(settlements, grid, target) {
   };
 }
 
-function* generateSettlements(seed, grid, landscape, start) {
+async function generateSettlements(seed, grid, landscape, start, progressUpdate) {
   var settlements = {};
   var generator = new MersenneTwister(seed);
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
@@ -235,9 +195,8 @@ function* generateSettlements(seed, grid, landscape, start) {
         }
       }
     }
-    if (grid_index % 500 == 0) {
-      yield delay(10);
-      yield put(generationProgress({ label: "settlements" }));
+    if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
+      await progressUpdate("settlements");
     }
   }
 
@@ -245,27 +204,18 @@ function* generateSettlements(seed, grid, landscape, start) {
   return settlements;
 }
 
-function* discoverStartingTiles(id, center) {
+function discoverStartingTiles(ecs, id, center) {
   const tiles = Grid.spiral({ radius: STARTING_KNOWN_DISTANCE })
     .map(s => ({ x: center.x + s.x, y: center.y + s.y }));
-  yield put(discoverTiles({ id, tiles }));
+  discoverTiles(ecs, { id, tiles });
 }
 
-export function* generateMap(action) {
-  const { seed } = action.payload;
-  yield putResolve(clearMap(seed));
-  yield putResolve(clearEntities());
-
+export async function generateMap(ecs, seed, progressUpdate) {
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
-
-  var landscape = yield call(generateTerrain, grid, seed);
-
-  yield call(generateEconomicValue, grid, landscape);
-  var start = yield call(findPlayerStart, grid, landscape);
-  const settlements = yield call(generateSettlements, seed, grid, landscape, start);
-
-  yield put(generationProgress({ label: "store" }));
-
+  var landscape = await generateTerrain(grid, seed, progressUpdate);
+  await generateEconomicValue(grid, landscape, progressUpdate);
+  const start = await findPlayerStart(grid, landscape, progressUpdate);
+  const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
   const entities = [
     ...Object.values(landscape).map((tile) => ({
       nameable: { nickname: "Map tile" },
@@ -284,26 +234,22 @@ export function* generateMap(action) {
         entity.workable = {};
       }
       return entity;
-    })];
+    })
+  ];
+
   const playerStart = { x: start.x, y: start.y };
-  yield put(newEntities(entities));
-  yield put(storeMap({
+  newEntities(ecs, entities);
+  const map = {
     seed,
     playerStart,
     pointWidth: grid.pointWidth(),
     pointHeight: grid.pointHeight()
-  }));
-  yield put(generationProgress({ label: "families" }));
-  yield delay(10);
-  yield call(generateFamilies, { seed, playerStart });
+  };
 
-  const playerId = yield select(getPlayerId);
-  yield call(discoverStartingTiles, playerId, playerStart);
+  generateFamilies({ ecs, seed, playerStart });
+  const playerId = Object.values(ecs.playable)[0].id;
+  ecs.playable[playerId].controls = [playerId];
+  discoverStartingTiles(ecs, playerId, playerStart);
 
-  yield put(generationProgress({ label: "complete" }));
+  return { playerId, map };
 }
-
-export const getMapSeed = state => state.map.seed;
-
-export const { generate, clearMap, storeMap, generationProgress } = mapSlice.actions;
-export default mapSlice.reducer;

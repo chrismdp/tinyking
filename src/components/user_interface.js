@@ -1,7 +1,5 @@
 import React from "react";
 
-import { useSelector, useDispatch } from "react-redux";
-
 import { MapGenParams } from "components/mapgen";
 import { Info } from "components/info";
 import { Window } from "components/window";
@@ -10,33 +8,20 @@ import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
 import { Supplies } from "components/supplies";
 import { NextAction } from "components/next_action";
-import { startGame, getWindows, getVisibility } from "features/ui_slice";
+import { GameState } from "components/contexts";
 
 export function UserInterface() {
-  const windows = useSelector(getWindows);
-  const show = useSelector(getVisibility);
-
-  const dispatch = useDispatch();
-  const start = React.useCallback(() => dispatch(startGame()), [dispatch]);
-
+  const state = React.useContext(GameState);
+  const show = state.ui && state.ui.show || {};
   return (
     <div id="ui">
       {show.clock && <Clock/>}
       {show.supplies && <Supplies/>}
       {show.next_action && <NextAction/>}
-      {windows.map((w, index) => {
-        const offset = (index + 2) * 30;
-        switch(w.type) {
-        case "main-menu":
-          return (<MainMenu key={w.id}/>);
-        case "tutorial":
-          return (<Tutorial key={w.id}/>);
-        case "info":
-          return (<Window windowId={w.id} key={w.id} x={offset} y={offset}><Info entityId={w.entityId}/></Window>);
-        case "mapgen":
-          return (<Window onclose={start} windowId={w.id} key={w.id} x={offset} y={offset}><MapGenParams/></Window>);
-        }
-      })
-      }
-    </div>);
+      {("main_menu" in show) && <MainMenu show={show.main_menu}/>}
+      {show.tutorial && <Tutorial/>}
+      {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
+      {show.mapgen && <Window windowId="mapgen" x={60} y={70}><MapGenParams/></Window>}
+    </div>
+  );
 }

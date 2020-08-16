@@ -40,7 +40,7 @@ const entityMouseDown = (viewport, highlight, base, targets, parent) => e => {
   e.currentTarget.on("touchmove", entityMouseMove);
 };
 
-const entityMouseUp = (id, click, drop) => e => {
+const entityMouseUp = (id, click, drop, state) => e => {
   if (e.currentTarget.custom.clicking) {
     click(id);
   } else {
@@ -50,23 +50,25 @@ const entityMouseUp = (id, click, drop) => e => {
     e.currentTarget.custom.viewport.removeChild(e.currentTarget);
     e.currentTarget.custom.parent.addChild(e.currentTarget);
 
+    var dropped = false;
+
     e.currentTarget.custom.targets.forEach(t => {
       const x = t.x - e.currentTarget.position.x;
       const y = t.y - e.currentTarget.position.y;
       const d2 = x * x + y * y;
       if (d2 < 12 * 12) {
+        dropped = true;
         drop(id, t);
       }
     });
-    // If leaving it there
-    //e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
-    e.currentTarget.position = { ...e.currentTarget.custom.startPosition };
+    e.currentTarget.position = dropped ? e.data.getLocalPosition(e.currentTarget.parent) : { ...e.currentTarget.custom.startPosition };
   }
 
   e.currentTarget.custom.viewport.plugins.resume("drag");
   e.currentTarget.off("mousemove", entityMouseMove);
   e.currentTarget.off("touchmove", entityMouseMove);
   delete e.currentTarget.custom;
+  state.redraws.push(id);
 };
 
 const knownIds = (ecs, playerId) => {
@@ -82,7 +84,87 @@ const knownIds = (ecs, playerId) => {
   return result;
 };
 
+const terrainColours = {
+  "mountain": 0x3C3A44,
+  "deep_water": 0x2F4999,
+  "shallow_water": 0x3F6FAE,
+  "grassland": 0x80C05D,
+  "forest": 0x30512F,
+  "stone": 0x5D7084,
+};
+
+const renderTile = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+  const point = hex.toPoint();
+  graphics.position.set(point.x, point.y);
+
+  graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
+  graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
+  graphics.drawPolygon(...hex.corners());
+  graphics.endFill();
+  //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
+  return graphics;
+};
+
+const renderBuilding = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+  const point = hex.toPoint();
+  graphics.position.set(point.x, point.y);
+
+  graphics.beginFill(0x6C4332);
+  graphics.lineStyle({color: "black", width: 2, alpha: 1});
+  graphics.drawRect(-25, -30, 50, 35);
+  graphics.endFill();
+  return graphics;
+};
+
+const renderPerson = (ecs, id, fn) => {
+  const personable = ecs.personable[id];
+  const graphics = new PIXI.Graphics();
+  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+  const point = hex.toPoint();
+  graphics.position.set(point.x, point.y);
+
+  const person = new PIXI.Graphics();
+  person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
+  person.lineStyle({color: "black", width: 2, alpha: 1});
+  person.beginFill(personable.body);
+  person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
+  person.endFill();
+  person.beginFill(personable.hair);
+  person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
+  person.endFill();
+
+  person.lineStyle(null);
+  person.beginFill(0xEACAAA);
+  person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
+  person.endFill();
+
+  if (ecs.assignable[id] && ecs.assignable[id].task) {
+    person.beginFill(0x333333);
+    person.drawRoundedRect(-30, 20, 60, 15, 5);
+    person.endFill();
+    var text = new PIXI.Text(ecs.assignable[id].task.action.name, {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    text.position.set(0, 27.5);
+    text.anchor = { x: 0.5, y: 0.5 };
+    person.addChild(text);
+  }
+
+  fn(person, graphics);
+
+  graphics.addChild(person);
+  return graphics;
+};
+
 const renderMap = async (app, state) => {
+  app.stage.destroy({children: true});
+  app.stage = new PIXI.Container();
+
+  state.pixi = {};
+  state.redraws = [];
+
   const width = state.map.pointWidth;
   const height = state.map.pointHeight;
   const playerStart = state.map.playerStart;
@@ -111,65 +193,13 @@ const renderMap = async (app, state) => {
     zoomPercent(-0.5).
     moveCenter(point.x, point.y);
 
-  var base = new PIXI.Container();
-
-  const terrainColours = {
-    "mountain": 0x3C3A44,
-    "deep_water": 0x2F4999,
-    "shallow_water": 0x3F6FAE,
-    "grassland": 0x80C05D,
-    "forest": 0x30512F,
-    "stone": 0x5D7084,
+  var layer = {
+    tiles: new PIXI.Container(),
+    buildings: new PIXI.Container(),
+    people: new PIXI.Container(),
   };
 
   const known = knownIds(ecs, ui.playerId);
-
-  // Add mappables to viewport
-  for (const id of known) {
-    if (ecs.mappable[id]) {
-      const graphics = new PIXI.Graphics();
-      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-      const point = hex.toPoint();
-      graphics.position.set(point.x, point.y);
-
-      graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
-      graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-      graphics.drawPolygon(...hex.corners());
-      graphics.endFill();
-      //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
-
-      base.addChild(graphics);
-
-      pixi[id] = graphics;
-    }
-  }
-
-  viewport.addChild(base);
-
-  base = new PIXI.Container();
-
-  // Add habitables to container
-  for (const id of known) {
-    if (ecs.habitable[id]) {
-      const graphics = new PIXI.Graphics();
-      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-      const point = hex.toPoint();
-      graphics.position.set(point.x, point.y);
-
-      graphics.beginFill(0x6C4332);
-      graphics.lineStyle({color: "black", width: 2, alpha: 1});
-      graphics.drawRect(-25, -30, 50, 35);
-      graphics.endFill();
-
-      base.addChild(graphics);
-      if (id in pixi) {
-        throw "ID " + id + " Should not already be rendered. Check state.";
-      }
-      pixi[id] = graphics;
-    }
-  }
-
-  viewport.addChild(base);
 
   const possibleActions = {};
   const tiles = known.reduce((o, id) => {
@@ -197,8 +227,9 @@ const renderMap = async (app, state) => {
     }
   }
 
-  var highlight = new PIXI.Container();
   var dropTargets = [];
+
+  var highlight = new PIXI.Container();
 
   const keys = Object.keys(possibleActions);
   for (var i = 0; i < keys.length; i++) {
@@ -211,7 +242,7 @@ const renderMap = async (app, state) => {
       graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
       graphics.drawCircle(0, 0, 15);
       graphics.endFill();
-      var text = new PIXI.Text(r.action.name, {fontFamily: "Raleway", fontSize: 12, fill: "white"});
+      var text = new PIXI.Text(r.action.name, {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
       text.position.set(0, 30);
       text.anchor = { x: 0.5, y: 0.5 };
       graphics.addChild(text);
@@ -228,47 +259,45 @@ const renderMap = async (app, state) => {
 
   highlight.visible = false;
 
-  base = new PIXI.Container();
+  var base = new PIXI.Container();
 
-  for (const id of known) {
-    const personable = ecs.personable[id];
-    if (personable) {
-      const graphics = new PIXI.Graphics();
-      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-      const point = hex.toPoint();
-      graphics.position.set(point.x, point.y);
+  state.redraws = [ ...known ];
 
-      const person = new PIXI.Graphics();
-      person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
-      person.lineStyle({color: "black", width: 2, alpha: 1});
-      person.beginFill(personable.body);
-      person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
-      person.endFill();
-      person.beginFill(personable.hair);
-      person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
-      person.endFill();
-
-      person.lineStyle(null);
-      person.beginFill(0xEACAAA);
-      person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
-      person.endFill();
-
-      graphics.addChild(person);
-
-      person.interactive = true;
-      person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-      person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-      person.on("mouseup", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-      person.on("mouseupoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-      person.on("touchend", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-      person.on("touchendoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-
-      base.addChild(graphics);
-    }
-  }
+  Object.values(layer).forEach(l => base.addChild(l));
 
   viewport.addChild(base);
   viewport.addChild(highlight);
+
+  app.ticker.add(() => {
+    for (const id of state.redraws) {
+      console.log("REDRAWING", id);
+      if (id in pixi) {
+        pixi[id].destroy();
+        delete pixi[id];
+      }
+      if (ecs.mappable[id]) {
+        pixi[id] = renderTile(ecs, id);
+        layer.tiles.addChild(pixi[id]);
+      } else if (ecs.habitable[id]) {
+        pixi[id] = renderBuilding(ecs, id);
+        layer.buildings.addChild(pixi[id]);
+      } else if (ecs.personable[id]) {
+        pixi[id] = renderPerson(ecs, id, (person, parent) => {
+          if (ecs.assignable[id]) {
+            person.interactive = true;
+            person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, parent));
+            person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, parent));
+            person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+            person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+            person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+            person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+          }
+        });
+        layer.people.addChild(pixi[id]);
+      }
+    }
+    state.redraws = [];
+  });
 };
 
 export function World() {
@@ -294,7 +323,7 @@ export function World() {
     });
 
     state.ui = { ...state.ui, show: { main_menu: true }, actions: {
-      drop: (id, target) => {
+      drop: async (id, target) => {
         state.ecs.assignable[id].task = target;
         state.ecs.spatial[id].x = target.hex.x;
         state.ecs.spatial[id].y = target.hex.y;

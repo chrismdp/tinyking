@@ -329,7 +329,10 @@ export function World() {
         state.ecs.spatial[id].y = target.hex.y;
         renderUI();
       },
-      end_turn: () => {},
+      end_turn: () => {
+        state.clock++;
+        renderUI();
+      },
       click: id => {
         state.ui.show.info = id;
         renderUI();
@@ -353,6 +356,7 @@ export function World() {
       start_game: () => {
         state.ui.show.main_menu = false;
         state.ui.show.tutorial = true;
+        state.clock = 0;
         renderUI();
       },
       generate_map: async (seed) => {

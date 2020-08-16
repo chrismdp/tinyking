@@ -75,8 +75,6 @@ export const Hex = Honeycomb.extendHex({
 export const Grid = Honeycomb.defineGrid(Hex);
 
 async function generateTerrain(grid, seed, progressUpdate) {
-  console.log("Generating terrain", seed);
-
   ReactGA.event({category: "Map generation", action: "generate"});
 
   const simplex = new SimplexNoise(seed);

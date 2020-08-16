@@ -98,8 +98,6 @@ const renderMap = async (app, state) => {
     disableOnContextMenu: true
   });
 
-  console.log("create viewport", viewport);
-
   app.stage.addChild(viewport);
 
   const point = Hex(playerStart.x, playerStart.y).toPoint();
@@ -112,8 +110,6 @@ const renderMap = async (app, state) => {
     clamp({direction: "all"}).
     zoomPercent(-0.5).
     moveCenter(point.x, point.y);
-
-  console.log("rendering map");
 
   var base = new PIXI.Container();
 
@@ -140,6 +136,7 @@ const renderMap = async (app, state) => {
       graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
       graphics.drawPolygon(...hex.corners());
       graphics.endFill();
+      //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
 
       base.addChild(graphics);
 
@@ -203,8 +200,6 @@ const renderMap = async (app, state) => {
   var highlight = new PIXI.Container();
   var dropTargets = [];
 
-  console.log("rendering possibleActions");
-
   const keys = Object.keys(possibleActions);
   for (var i = 0; i < keys.length; i++) {
     const record = possibleActions[keys[i]];
@@ -232,8 +227,6 @@ const renderMap = async (app, state) => {
   }
 
   highlight.visible = false;
-
-  console.log("rendering personables");
 
   base = new PIXI.Container();
 
@@ -291,7 +284,6 @@ export function World() {
   const containingDiv = React.useRef(null);
 
   React.useEffect(() => {
-    console.log("creating app");
     let app = new PIXI.Application({
       width: window.innerWidth,
       height: window.innerHeight,

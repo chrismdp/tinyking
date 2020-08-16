@@ -134,9 +134,9 @@ const terrainValueFn = {
 async function findPlayerStart(grid, landscape, progressUpdate) {
   const center = Grid.pointToHex(grid.pointWidth() * 0.5, grid.pointHeight() * 0.5);
 
-  const spiral = Grid.spiral({ radius: MAP_RADIUS });
+  const spiral = Grid.spiral({ center, radius: MAP_RADIUS });
   for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
-    const hex = center.add(spiral[spiral_index]);
+    const hex = spiral[spiral_index];
     if (landscape[hex].terrain == "grassland") {
       return hex;
     }
@@ -203,8 +203,8 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
 }
 
 function discoverStartingTiles(ecs, id, center) {
-  const tiles = Grid.spiral({ radius: STARTING_KNOWN_DISTANCE })
-    .map(s => ({ x: center.x + s.x, y: center.y + s.y }));
+  const tiles = Grid.spiral({ center, radius: STARTING_KNOWN_DISTANCE })
+    .map(s => ({ x: s.x, y: s.y }));
   discoverTiles(ecs, { id, tiles });
 }
 

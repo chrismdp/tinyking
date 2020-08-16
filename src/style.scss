@@ -101,6 +101,7 @@ canvas {
   #clock {
     grid-area: Clock;
     text-align: right;
+    text-transform: capitalize;
   }
 
   #supplies { grid-area: Supplies; }

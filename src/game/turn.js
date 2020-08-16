@@ -26,7 +26,10 @@ export async function endTurn(state) {
     events.forEach(event => {
       for (const key in event) {
         if (event[key].add) {
-          selectn(key, payload).push(event[key].add);
+          const a = selectn(key, payload);
+          if (!a.includes(event[key].add)) {
+            a.push(event[key].add);
+          }
         } else if (event[key].remove) {
           const a = selectn(key, payload);
           for (let i = a.length - 1; i >= 0; i--) {

@@ -5,7 +5,7 @@ const tiring = [
         not: {
           or: [
             { includes: "exhausted" },
-            { includes: "very_tired" },
+            { includes: "very tired" },
             { includes: "tired" }
           ]
         }
@@ -19,15 +19,15 @@ const tiring = [
         includes: "tired"
       }
     },
-    event: { "me.traits.values": { change: [ "tired", "very_tired" ] } },
+    event: { "me.traits.values": { change: [ "tired", "very tired" ] } },
   },
   {
     conditions: {
       "me.traits.values": {
-        includes: "very_tired"
+        includes: "very tired"
       }
     },
-    event: { "me.traits.values": { change: [ "very_tired", "exhausted" ] } },
+    event: { "me.traits.values": { change: [ "very tired", "exhausted" ] } },
   },
 ];
 
@@ -47,10 +47,28 @@ export const actions = [
   },
   {
     conditions: {
+      "target.mappable.terrain": { is: "grassland" },
+      not: { other: { habitable: "exists" } },
+      season: {
+        or: [ { is: "summer" } , { is: "autumn" } ]
+      }
+    },
+    event: {
+      name: "Gather wheat",
+      rules: [
+        { event: { "me.supplies": { gain: { wheat: 1 } } } },
+      ]
+    },
+  },
+  {
+    conditions: {
       "target.mappable.terrain": {
         is: "ploughed"
       },
-      "me.supplies.wheat": { greater: 0 }
+      "me.supplies.wheat": { greater: 0 },
+      season: {
+        or: [ { is: "spring" } , { is: "summer" } ]
+      }
     },
     event: {
       name: "Sow field",
@@ -69,12 +87,12 @@ export const actions = [
       name: "Rest",
       rules: [
         { event: { "me.traits.values": { remove: "tired" } } },
-        { event: { "me.traits.values": { remove: "very_tired" } } },
+        { event: { "me.traits.values": { remove: "very tired" } } },
         { event: { "me.traits.values": { add: "rested" } } },
         { conditions: { "me.traits.values": { includes: "rested" } },
           event: { "me.traits.values": { remove: "exhausted" } } },
         { conditions: { other: { personable: "exists" } },
-          event: { me: { socialise: "random_other" } } },
+          event: { me: { socialise: "random other" } } },
       ],
     }
   },

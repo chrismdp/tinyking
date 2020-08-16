@@ -9,6 +9,7 @@ import Engine from "json-rules-engine-simplified";
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { endTurn } from "game/turn";
+import * as time from "game/time";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 
@@ -91,6 +92,7 @@ const terrainColours = {
   "shallow_water": 0x3F6FAE,
   "grassland": 0x80C05D,
   "ploughed": 0x6C4332,
+  "sown": 0x6C4332,
   "forest": 0x30512F,
   "stone": 0x5D7084,
 };
@@ -104,6 +106,13 @@ const renderTile = (ecs, id) => {
   graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
   graphics.drawPolygon(...hex.corners());
+  graphics.endFill();
+  graphics.beginFill(0xe2c879);
+  if (ecs.mappable[id].terrain == "sown") {
+    for(var i = 0; i < 20; i++) {
+      graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, 3);
+    }
+  }
   graphics.endFill();
   //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
   return graphics;
@@ -183,7 +192,8 @@ const generateActions = async (state, known, playerId) => {
     for (const target of tiles[coord]) {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
-        const events = await engine.run({ target, me: player, other });
+        const season = time.season(state.clock);
+        const events = await engine.run({ season, target, me: player, other });
         possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
           id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
         }))];

@@ -45,8 +45,18 @@ export async function endTurn(state) {
           for (const k in event[key].set) {
             selectn(key, payload)[k] = event[key].set[k];
           }
+        } else if (event[key].gain) {
+          for (const k in event[key].gain) {
+            const thing = selectn(key, payload);
+            thing[k] = (thing[k] || 0) + event[key].gain[k];
+          }
+        } else if (event[key].lose) {
+          for (const k in event[key].lose) {
+            const thing = selectn(key, payload);
+            thing[k] = (thing[k] || 0) - event[key].lose[k];
+          }
         } else {
-          throw "Don't know how to process event: " + event[key];
+          throw "Don't know how to process event: " + JSON.stringify([ key, event[key] ]);
         }
       }
     });

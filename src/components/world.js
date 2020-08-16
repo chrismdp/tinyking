@@ -339,12 +339,12 @@ export function World() {
         state.ecs.spatial[id].y = target.hex.y;
         renderUI();
       },
-      end_turn: () => {
+      end_turn: async () => {
         endTurn(state);
         const known = knownIds(state.ecs, state.ui.playerId);
         // TODO: Either I have to re-render _all_ my droptargets that are saved - or I just store
         // a reference to state in the dragging things
-        generateActions(state, known, state.ui.playerId);
+        await generateActions(state, known, state.ui.playerId);
         renderUI();
       },
       click: id => {

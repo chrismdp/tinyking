@@ -35,6 +35,7 @@ function generateFamily(size, x, y, generator, id) {
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
       traits: { values: [] },
+      supplies: {},
       homeable: { home: id },
       personable: {
         type: "person",

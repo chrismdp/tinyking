@@ -56,7 +56,7 @@ export const actions = [
       name: "Sow field",
       rules: [
         { event: { "target.mappable": { set: { terrain: "sown" } } } },
-        { event: { "me.supplies.wheat": { lose: 1 } } }
+        { event: { "me.supplies": { lose: { wheat: 1 } } } }
       ]
     },
   },
@@ -86,7 +86,7 @@ export const actions = [
       name: "Chop trees",
       rules: [
         ...tiring,
-        { event: { "me.supplies.wood": { gain: 1 } } },
+        { event: { "me.supplies": { gain: { wood: 1 } } } },
         {
           conditions: {
             "target.traits.values": {

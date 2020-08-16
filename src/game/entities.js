@@ -15,4 +15,4 @@ export function newEntities(ecs, entities) {
 
 export const fullEntity = (ecs, id) => (
   Object.keys(ecs).reduce((result, name) => (
-    {...result, [name]: Object.values(ecs[name]).filter(c => c.id == id)[0]}), {id: id}));
+    { ...result, [name]: ecs[name][id] }), {id: id}));

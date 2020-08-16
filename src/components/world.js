@@ -92,7 +92,7 @@ const generate = async (state, seed, progressUpdate) => {
   state.ui.playerId = results.playerId;
 };
 
-const renderMap = (app, state) => {
+const renderMap = async (app, state) => {
   const width = state.map.pointWidth;
   const height = state.map.pointHeight;
   const playerStart = state.map.playerStart;
@@ -184,110 +184,108 @@ const renderMap = (app, state) => {
 
   viewport.addChild(base);
 
-  (async () => {
-    const possibleActions = {};
-    const tiles = known.reduce((o, id) => {
-      if (ecs.spatial[id]) {
-        const key = ecs.spatial[id].x + "," + ecs.spatial[id].y;
-        if (!(key in o)) {
-          o[key] = [];
-        }
-        o[key].push(fullEntity(ecs, id));
+  const possibleActions = {};
+  const tiles = known.reduce((o, id) => {
+    if (ecs.spatial[id]) {
+      const key = ecs.spatial[id].x + "," + ecs.spatial[id].y;
+      if (!(key in o)) {
+        o[key] = [];
       }
-      return o;
-    }, {});
+      o[key].push(fullEntity(ecs, id));
+    }
+    return o;
+  }, {});
 
-    const player = fullEntity(ecs, ui.playerId);
+  const player = fullEntity(ecs, ui.playerId);
 
-    for (const coord in tiles) {
-      for (const target of tiles[coord]) {
-        if (target.workable) {
-          const other = tiles[coord].filter(e => e.id != target.id);
-          const events = await engine.run({ target, me: player, other });
-          possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
-            id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
-          }))];
-        }
+  for (const coord in tiles) {
+    for (const target of tiles[coord]) {
+      if (target.workable) {
+        const other = tiles[coord].filter(e => e.id != target.id);
+        const events = await engine.run({ target, me: player, other });
+        possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
+          id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
+        }))];
       }
     }
+  }
 
-    var highlight = new PIXI.Container();
-    var dropTargets = [];
+  var highlight = new PIXI.Container();
+  var dropTargets = [];
 
-    console.log("rendering possibleActions");
+  console.log("rendering possibleActions");
 
-    const keys = Object.keys(possibleActions);
-    for (var i = 0; i < keys.length; i++) {
-      const record = possibleActions[keys[i]];
-      record.forEach((r, index) => {
-        const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
-        const point = r.hex.toPoint();
-        const graphics = new PIXI.Graphics();
-        graphics.position.set(point.x - Math.sin(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1), point.y + Math.cos(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1));
-        graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
-        graphics.drawCircle(0, 0, 15);
-        graphics.endFill();
-        var text = new PIXI.Text(r.action.name, {fontFamily: "Raleway", fontSize: 12, fill: "white"});
-        text.position.set(0, 30);
-        text.anchor = { x: 0.5, y: 0.5 };
-        graphics.addChild(text);
-        highlight.addChild(graphics);
-        dropTargets.push({
-          x: graphics.position.x,
-          y: graphics.position.y,
-          id: r.id,
-          action: r.action,
-          hex: { x: r.hex.x, y: r.hex.y },
-        });
+  const keys = Object.keys(possibleActions);
+  for (var i = 0; i < keys.length; i++) {
+    const record = possibleActions[keys[i]];
+    record.forEach((r, index) => {
+      const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
+      const point = r.hex.toPoint();
+      const graphics = new PIXI.Graphics();
+      graphics.position.set(point.x - Math.sin(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1), point.y + Math.cos(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1));
+      graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
+      graphics.drawCircle(0, 0, 15);
+      graphics.endFill();
+      var text = new PIXI.Text(r.action.name, {fontFamily: "Raleway", fontSize: 12, fill: "white"});
+      text.position.set(0, 30);
+      text.anchor = { x: 0.5, y: 0.5 };
+      graphics.addChild(text);
+      highlight.addChild(graphics);
+      dropTargets.push({
+        x: graphics.position.x,
+        y: graphics.position.y,
+        id: r.id,
+        action: r.action,
+        hex: { x: r.hex.x, y: r.hex.y },
       });
+    });
+  }
+
+  highlight.visible = false;
+
+  console.log("rendering personables");
+
+  base = new PIXI.Container();
+
+  for (const id of known) {
+    const personable = ecs.personable[id];
+    if (personable) {
+      const graphics = new PIXI.Graphics();
+      const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+      const point = hex.toPoint();
+      graphics.position.set(point.x, point.y);
+
+      const person = new PIXI.Graphics();
+      person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
+      person.lineStyle({color: "black", width: 2, alpha: 1});
+      person.beginFill(personable.body);
+      person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
+      person.endFill();
+      person.beginFill(personable.hair);
+      person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
+      person.endFill();
+
+      person.lineStyle(null);
+      person.beginFill(0xEACAAA);
+      person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
+      person.endFill();
+
+      graphics.addChild(person);
+
+      person.interactive = true;
+      person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+      person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
+      person.on("mouseup", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+      person.on("mouseupoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+      person.on("touchend", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+      person.on("touchendoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
+
+      base.addChild(graphics);
     }
+  }
 
-    highlight.visible = false;
-
-    console.log("rendering personables");
-
-    base = new PIXI.Container();
-
-    for (const id of known) {
-      const personable = ecs.personable[id];
-      if (personable) {
-        const graphics = new PIXI.Graphics();
-        const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-        const point = hex.toPoint();
-        graphics.position.set(point.x, point.y);
-
-        const person = new PIXI.Graphics();
-        person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
-        person.lineStyle({color: "black", width: 2, alpha: 1});
-        person.beginFill(personable.body);
-        person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
-        person.endFill();
-        person.beginFill(personable.hair);
-        person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
-        person.endFill();
-
-        person.lineStyle(null);
-        person.beginFill(0xEACAAA);
-        person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
-        person.endFill();
-
-        graphics.addChild(person);
-
-        person.interactive = true;
-        person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-        person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, graphics));
-        person.on("mouseup", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-        person.on("mouseupoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-        person.on("touchend", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-        person.on("touchendoutside", entityMouseUp(personable.id, ui.actions.click, ui.actions.drop));
-
-        base.addChild(graphics);
-      }
-    }
-
-    viewport.addChild(base);
-    viewport.addChild(highlight);
-  })();
+  viewport.addChild(base);
+  viewport.addChild(highlight);
 };
 
 export function World() {
@@ -351,7 +349,7 @@ export function World() {
         if (app.stage.children.length > 0) {
           app.stage.removeChildren();
         }
-        renderMap(app, state);
+        await renderMap(app, state);
         renderUI();
       },
       progress_update: async (label) => {
@@ -371,7 +369,6 @@ export function World() {
     (async () => {
       const seed =  Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
-      renderUI();
     })();
   }, []);
 

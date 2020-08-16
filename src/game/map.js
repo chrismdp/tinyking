@@ -251,5 +251,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
   ecs.playable[playerId].controls = [playerId];
   discoverStartingTiles(ecs, playerId, playerStart);
 
+  await progressUpdate("complete");
+
   return { playerId, map };
 }

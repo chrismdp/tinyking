@@ -82,16 +82,6 @@ const knownIds = (ecs, playerId) => {
   return result;
 };
 
-const generate = async (state, seed, progressUpdate) => {
-  state.ecs = { nextId: 1 };
-  state.pixi = {};
-  state.ui.progress = { count: 0 };
-
-  const results = await generateMap(state.ecs, seed, progressUpdate);
-  state.map = results.map;
-  state.ui.playerId = results.playerId;
-};
-
 const renderMap = async (app, state) => {
   const width = state.map.pointWidth;
   const height = state.map.pointHeight;
@@ -345,11 +335,20 @@ export function World() {
         renderUI();
       },
       generate_map: async (seed) => {
-        await generate(state, seed, state.ui.actions.progress_update);
+        state.ecs = { nextId: 1 };
+        state.pixi = {};
+        state.ui.progress = { count: 0 };
+
+        const results = await generateMap(state.ecs, seed, state.ui.actions.progress_update);
+        state.map = results.map;
+        state.ui.playerId = results.playerId;
+
         if (app.stage.children.length > 0) {
           app.stage.removeChildren();
         }
+
         await renderMap(app, state);
+
         renderUI();
       },
       progress_update: async (label) => {

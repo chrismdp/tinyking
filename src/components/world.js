@@ -8,6 +8,7 @@ import Engine from "json-rules-engine-simplified";
 
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
+import { endTurn } from "game/turn";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 
@@ -20,20 +21,20 @@ const entityMouseMove = e => {
     e.currentTarget.custom.data = e.data;
     e.currentTarget.custom.clicking = false;
     e.currentTarget.custom.parent.removeChild(e.currentTarget);
-    e.currentTarget.custom.viewport.addChild(e.currentTarget);
+    e.currentTarget.custom.state.pixi.viewport.addChild(e.currentTarget);
     e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
     e.currentTarget.custom.base.filters = [ new PIXI.filters.BlurFilter(4) ];
     e.currentTarget.custom.base.alpha = 1.0;
-    e.currentTarget.custom.highlight.visible = true;
+    e.currentTarget.custom.state.pixi.highlight.visible = true;
   }
   e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
 };
 
-const entityMouseDown = (viewport, highlight, base, targets, parent) => e => {
-  e.currentTarget.custom = { viewport, base, targets, highlight, parent };
+const entityMouseDown = (state, base, parent) => e => {
+  e.currentTarget.custom = { state, base, parent };
   e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
 
-  viewport.plugins.pause("drag");
+  state.pixi.viewport.plugins.pause("drag");
 
   e.currentTarget.custom.clicking = true;
   e.currentTarget.on("mousemove", entityMouseMove);
@@ -46,13 +47,13 @@ const entityMouseUp = (id, click, drop, state) => e => {
   } else {
     e.currentTarget.custom.base.alpha = 1.0;
     e.currentTarget.custom.base.filters = null;
-    e.currentTarget.custom.highlight.visible = false;
-    e.currentTarget.custom.viewport.removeChild(e.currentTarget);
+    e.currentTarget.custom.state.pixi.highlight.visible = false;
+    e.currentTarget.custom.state.pixi.viewport.removeChild(e.currentTarget);
     e.currentTarget.custom.parent.addChild(e.currentTarget);
 
     var dropped = false;
 
-    e.currentTarget.custom.targets.forEach(t => {
+    e.currentTarget.custom.state.pixi.dropTargets.forEach(t => {
       const x = t.x - e.currentTarget.position.x;
       const y = t.y - e.currentTarget.position.y;
       const d2 = x * x + y * y;
@@ -64,7 +65,7 @@ const entityMouseUp = (id, click, drop, state) => e => {
     e.currentTarget.position = dropped ? e.data.getLocalPosition(e.currentTarget.parent) : { ...e.currentTarget.custom.startPosition };
   }
 
-  e.currentTarget.custom.viewport.plugins.resume("drag");
+  e.currentTarget.custom.state.pixi.viewport.plugins.resume("drag");
   e.currentTarget.off("mousemove", entityMouseMove);
   e.currentTarget.off("touchmove", entityMouseMove);
   delete e.currentTarget.custom;
@@ -89,6 +90,7 @@ const terrainColours = {
   "deep_water": 0x2F4999,
   "shallow_water": 0x3F6FAE,
   "grassland": 0x80C05D,
+  "ploughed": 0x6C4332,
   "forest": 0x30512F,
   "stone": 0x5D7084,
 };
@@ -158,62 +160,24 @@ const renderPerson = (ecs, id, fn) => {
   return graphics;
 };
 
-const renderMap = async (app, state) => {
-  app.stage.destroy({children: true});
-  app.stage = new PIXI.Container();
-
-  state.pixi = {};
-  state.redraws = [];
-
-  const width = state.map.pointWidth;
-  const height = state.map.pointHeight;
-  const playerStart = state.map.playerStart;
-
-  const { ui, ecs, pixi } = state;
-
-  let viewport = new Viewport({
-    screenWidth: app.view.offsetWidth,
-    screenHeight: app.view.offsetHeight,
-    worldWidth: width,
-    worldHeight: height,
-    passiveWheel: false,
-    disableOnContextMenu: true
-  });
-
-  app.stage.addChild(viewport);
-
-  const point = Hex(playerStart.x, playerStart.y).toPoint();
-
-  viewport.
-    drag().
-    wheel().
-    pinch().
-    clampZoom({minScale: 0.1, maxScale: 10}).
-    clamp({direction: "all"}).
-    zoomPercent(-0.5).
-    moveCenter(point.x, point.y);
-
-  var layer = {
-    tiles: new PIXI.Container(),
-    buildings: new PIXI.Container(),
-    people: new PIXI.Container(),
-  };
-
-  const known = knownIds(ecs, ui.playerId);
+const generateActions = async (state, known, playerId) => {
+  if (state.pixi.highlight) {
+    state.pixi.highlight.destroy({children: true});
+  }
 
   const possibleActions = {};
   const tiles = known.reduce((o, id) => {
-    if (ecs.spatial[id]) {
-      const key = ecs.spatial[id].x + "," + ecs.spatial[id].y;
+    if (state.ecs.spatial[id]) {
+      const key = state.ecs.spatial[id].x + "," + state.ecs.spatial[id].y;
       if (!(key in o)) {
         o[key] = [];
       }
-      o[key].push(fullEntity(ecs, id));
+      o[key].push(fullEntity(state.ecs, id));
     }
     return o;
   }, {});
 
-  const player = fullEntity(ecs, ui.playerId);
+  const player = fullEntity(state.ecs, playerId);
 
   for (const coord in tiles) {
     for (const target of tiles[coord]) {
@@ -227,9 +191,9 @@ const renderMap = async (app, state) => {
     }
   }
 
-  var dropTargets = [];
+  state.pixi.dropTargets = [];
 
-  var highlight = new PIXI.Container();
+  state.pixi.highlight = new PIXI.Container();
 
   const keys = Object.keys(possibleActions);
   for (var i = 0; i < keys.length; i++) {
@@ -246,8 +210,8 @@ const renderMap = async (app, state) => {
       text.position.set(0, 30);
       text.anchor = { x: 0.5, y: 0.5 };
       graphics.addChild(text);
-      highlight.addChild(graphics);
-      dropTargets.push({
+      state.pixi.highlight.addChild(graphics);
+      state.pixi.dropTargets.push({
         x: graphics.position.x,
         y: graphics.position.y,
         id: r.id,
@@ -257,7 +221,52 @@ const renderMap = async (app, state) => {
     });
   }
 
-  highlight.visible = false;
+  state.pixi.highlight.visible = false;
+  state.pixi.viewport.addChild(state.pixi.highlight);
+};
+
+const renderMap = async (app, state) => {
+  app.stage.destroy({children: true});
+  app.stage = new PIXI.Container();
+
+  state.pixi = {};
+  state.redraws = [];
+
+  const width = state.map.pointWidth;
+  const height = state.map.pointHeight;
+  const playerStart = state.map.playerStart;
+
+  const { ui, ecs, pixi } = state;
+
+  pixi.viewport = new Viewport({
+    screenWidth: app.view.offsetWidth,
+    screenHeight: app.view.offsetHeight,
+    worldWidth: width,
+    worldHeight: height,
+    passiveWheel: false,
+    disableOnContextMenu: true
+  });
+
+  app.stage.addChild(pixi.viewport);
+
+  const point = Hex(playerStart.x, playerStart.y).toPoint();
+
+  pixi.viewport.
+    drag().
+    wheel().
+    pinch().
+    clampZoom({minScale: 0.1, maxScale: 10}).
+    clamp({direction: "all"}).
+    zoomPercent(-0.5).
+    moveCenter(point.x, point.y);
+
+  var layer = {
+    tiles: new PIXI.Container(),
+    buildings: new PIXI.Container(),
+    people: new PIXI.Container(),
+  };
+
+  const known = knownIds(ecs, ui.playerId);
 
   var base = new PIXI.Container();
 
@@ -265,8 +274,9 @@ const renderMap = async (app, state) => {
 
   Object.values(layer).forEach(l => base.addChild(l));
 
-  viewport.addChild(base);
-  viewport.addChild(highlight);
+  pixi.viewport.addChild(base);
+
+  await generateActions(state, known, ui.playerId);
 
   app.ticker.add(() => {
     for (const id of state.redraws) {
@@ -285,8 +295,8 @@ const renderMap = async (app, state) => {
         pixi[id] = renderPerson(ecs, id, (person, parent) => {
           if (ecs.assignable[id]) {
             person.interactive = true;
-            person.on("mousedown", entityMouseDown(viewport, highlight, base, dropTargets, parent));
-            person.on("touchstart", entityMouseDown(viewport, highlight, base, dropTargets, parent));
+            person.on("mousedown", entityMouseDown(state, base, parent));
+            person.on("touchstart", entityMouseDown(state, base, parent));
             person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
             person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
             person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
@@ -330,7 +340,11 @@ export function World() {
         renderUI();
       },
       end_turn: () => {
-        state.clock++;
+        endTurn(state);
+        const known = knownIds(state.ecs, state.ui.playerId);
+        // TODO: Either I have to re-render _all_ my droptargets that are saved - or I just store
+        // a reference to state in the dragging things
+        generateActions(state, known, state.ui.playerId);
         renderUI();
       },
       click: id => {

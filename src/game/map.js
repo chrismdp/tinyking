@@ -28,12 +28,14 @@ const hair = Object.values(HAIR);
 const BODY_MALE = 0x4E3F30;
 const BODY_FEMALE = 0x3B6071;
 
-function generateFamily(size, x, y, generator) {
+function generateFamily(size, x, y, generator, id) {
   var result = [];
   for (var p = 0; p < size; p++) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
+      traits: { values: [] },
+      homeable: { home: id },
       personable: {
         type: "person",
         familyIndex: p / (size * 1.5),
@@ -52,14 +54,14 @@ export function generateFamilies({ ecs, seed, playerStart }) {
     var people = [];
     var spatial = ecs.spatial[id];
     if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
-      const player = { ...generateFamily(1, spatial.x, spatial.y, generator)[0],
+      const player = { ...generateFamily(1, spatial.x, spatial.y, generator, id)[0],
         playable: { known: [], controls: [] },
         assignable: {}
       };
       people = [ ...people, player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = [ ...people, ...generateFamily(familySize, spatial.x, spatial.y, generator) ];
+      people = [ ...people, ...generateFamily(familySize, spatial.x, spatial.y, generator, id) ];
     }
     const ids = newEntities(ecs, people);
     ecs.habitable[id].owners = ids;
@@ -219,6 +221,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
       nameable: { nickname: "Map tile" },
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
+      traits: { values: [] },
       valuable: { value: tile.economic_value },
       workable: {},
     })),

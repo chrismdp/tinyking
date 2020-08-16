@@ -1,27 +1,33 @@
 const tiring = [
   {
     conditions: {
-      "me.traits": {
-        not: { includes: [ "exhausted", "very_tired", "tired" ] }
+      "me.traits.values": {
+        not: {
+          or: [
+            { includes: "exhausted" },
+            { includes: "very_tired" },
+            { includes: "tired" }
+          ]
+        }
       }
     },
-    event: { "me.traits": { add: "tired" } }
+    event: { "me.traits.values": { add: "tired" } }
   },
   {
     conditions: {
-      "me.traits": {
+      "me.traits.values": {
         includes: "tired"
       }
     },
-    event: { "me.traits": { change: [ "tired", "very_tired" ] } },
+    event: { "me.traits.values": { change: [ "tired", "very_tired" ] } },
   },
   {
     conditions: {
-      "me.traits": {
+      "me.traits.values": {
         includes: "very_tired"
       }
     },
-    event: { "me.traits": { change: [ "very_tired", "exhausted" ] } },
+    event: { "me.traits.values": { change: [ "very_tired", "exhausted" ] } },
   },
 ];
 
@@ -35,7 +41,7 @@ export const actions = [
       name: "Plough field",
       rules: [
         ...tiring,
-        { event: { "target.mappable.terrain": "ploughed" } }
+        { event: { "target.mappable": { set: { terrain: "ploughed" } } } }
       ]
     },
   },
@@ -49,7 +55,7 @@ export const actions = [
     event: {
       name: "Sow field",
       rules: [
-        { event: { "target.mappable.terrain": "sown" } },
+        { event: { "target.mappable": { set: { terrain: "sown" } } } },
         { event: { "me.supplies.wheat": { lose: 1 } } }
       ]
     },
@@ -57,16 +63,17 @@ export const actions = [
   {
     conditions: {
       "target.habitable": "exists",
-      "target.habitable.owners": { includes: "$me.id" } },
+      "target.habitable.owners": { includes: "$me.id" }
+    },
     event: {
       name: "Rest",
       rules: [
-        { event: { "me.traits": { remove: "tired" } } },
-        { event: { "me.traits": { remove: "very_tired" } } },
-        { event: { "me.traits": { add: "rested" } } },
-        { conditions: { "me.traits": { includes: "rested" } },
-          event: { "me.traits": { remove: "exhausted" } } },
-        { conditions: { "other.personable": "exists" },
+        { event: { "me.traits.values": { remove: "tired" } } },
+        { event: { "me.traits.values": { remove: "very_tired" } } },
+        { event: { "me.traits.values": { add: "rested" } } },
+        { conditions: { "me.traits.values": { includes: "rested" } },
+          event: { "me.traits.values": { remove: "exhausted" } } },
+        { conditions: { other: { personable: "exists" } },
           event: { me: { socialise: "random_other" } } },
       ],
     }
@@ -82,35 +89,41 @@ export const actions = [
         { event: { "me.supplies.wood": { gain: 1 } } },
         {
           conditions: {
-            "target.traits": {
-              not: { includes: ["thinned", "deforested", "decimated" ] }
+            "target.traits.values": {
+              not: {
+                or: [
+                  { includes: "thinned" },
+                  { includes: "deforested" },
+                  { includes:  "decimated" }
+                ]
+              }
             }
           },
-          event: { "target.traits": { add: "thinned" } }
+          event: { "target.traits.values": { add: "thinned" } }
         },
         {
           conditions: {
-            "target.traits": {
+            "target.traits.values": {
               includes: "thinned"
             }
           },
-          event: { "target.traits": { change: [ "thinned", "deforested" ] } }
+          event: { "target.traits.values": { change: [ "thinned", "deforested" ] } }
         },
         {
           conditions: {
-            "target.traits": {
+            "target.traits.values": {
               includes: "deforested"
             }
           },
-          event: { "target.traits": { change: [ "deforested", "decimated" ] } }
+          event: { "target.traits.values": { change: [ "deforested", "decimated" ] } }
         },
         {
           conditions: {
-            "target.traits": {
+            "target.traits.values": {
               includes: "deforested"
             }
           },
-          event: { "target.mappable.terrain": { change: "grassland" } },
+          event: { "target.mappable": { set: { terrain: "grassland" } } },
         },
       ]
     },
@@ -118,12 +131,12 @@ export const actions = [
   {
     conditions: {
       "target.mappable.terrain": { is: "forest" },
-      not: { "target.traits": { include: "planted" } },
+      not: { "target.traits.values": { includes: "planted" } },
     },
     event: {
       name: "Plant trees",
       rules: [
-        { event: { "target.traits": { add: "planted" } } },
+        { event: { "target.traits.values": { add: "planted" } } },
       ],
     }
   },
@@ -134,7 +147,7 @@ export const actions = [
     event: {
       name: "Fish",
       rules: [
-        { event: { "target.traits": { add: "fished" } } },
+        { event: { "target.traits.values": { add: "fished" } } },
       ],
     }
   }

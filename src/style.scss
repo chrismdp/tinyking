@@ -84,7 +84,7 @@ canvas {
 
   #ui {
     display: grid;
-    grid-template-columns: 5px 25px 2fr 1fr 25px 5px;
+    grid-template-columns: 5px 25px 1fr 1fr 25px 5px;
     grid-template-rows: 5px 25px auto 35px 5px;
     grid-template-areas:
       ". . . . . ."

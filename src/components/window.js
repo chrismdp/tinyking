@@ -9,7 +9,7 @@ import { GameState } from "components/contexts";
 
 export function Window({ windowId, x, y, children }) {
   const state = React.useContext(GameState);
-  const close = React.useCallback(() => state.ui.actions.close_window(windowId), []);
+  const close = React.useCallback(() => state.ui.actions.close_window(windowId), [state, windowId]);
 
   const fixed = window.innerWidth < 500;
 

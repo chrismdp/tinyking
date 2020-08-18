@@ -1,6 +1,8 @@
 import * as React from "react";
 import PropTypes from "prop-types";
 
+import { createPopper } from "@popperjs/core";
+
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 
@@ -12,6 +14,7 @@ import { endTurn } from "game/turn";
 import * as time from "game/time";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
+import { Info } from "components/info";
 
 import { actions } from "data/actions";
 
@@ -235,7 +238,7 @@ const generateActions = async (state, known, playerId) => {
   state.pixi.viewport.addChild(state.pixi.highlight);
 };
 
-const renderMap = async (app, state) => {
+const renderMap = async (app, state, popupOver) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
@@ -290,7 +293,6 @@ const renderMap = async (app, state) => {
 
   app.ticker.add(() => {
     for (const id of state.redraws) {
-      console.log("REDRAWING", id);
       if (id in pixi) {
         pixi[id].destroy();
         delete pixi[id];
@@ -315,9 +317,25 @@ const renderMap = async (app, state) => {
         });
         layer.people.addChild(pixi[id]);
       }
+      pixi[id].entityId = id;
+      pixi[id].interactive = true;
+      pixi[id].on("mouseover", popupOver);
+      pixi[id].on("touchstart", popupOver);
     }
     state.redraws = [];
   });
+};
+
+const virtualPosition = {
+  x: 100,
+  y: 100,
+  getBoundingClientRect: function() {
+    return { top: this.y, left: this.x, bottom: this.y, right: this.x, width: 0, height: 0 };
+  },
+  set: function(x, y) {
+    this.x = x;
+    this.y = y;
+  }
 };
 
 export function World() {
@@ -331,6 +349,46 @@ export function World() {
   const renderUI = React.useCallback(() => render({}), []);
 
   const containingDiv = React.useRef(null);
+
+  const [popupEntity, setPopupEntity] = React.useState(null);
+  const virtualReference = React.useRef(virtualPosition);
+  const popperElement = React.useRef(null);
+  const arrowElement = React.useRef(null);
+  const popper = React.useRef(null);
+
+  const popupOver = React.useCallback(event => {
+    if (event.currentTarget.entityId) {
+      setPopupEntity(event.currentTarget.entityId);
+
+      const point = event.data.global;
+      virtualReference.current.set(point.x, point.y);
+      popper.current = createPopper(virtualReference.current, popperElement.current, {
+        placement: "bottom-start",
+        modifiers: [
+          { name: "arrow", options: { element: arrowElement.current } },
+          { name: "offset", options: { offset: [-15, 20] } }
+        ]
+      });
+
+      event.currentTarget.on("mousemove", popupMove);
+      event.currentTarget.on("mouseout", popupOut);
+    }
+  }, [popupMove, popupOut]);
+
+  const popupMove = React.useCallback(event => {
+    const point = event.data.global;
+    virtualReference.current.set(point.x, point.y);
+    popper.current.update();
+  }, []);
+
+  const popupOut = React.useCallback(event => {
+    if (event.currentTarget.entityId) {
+      setPopupEntity(null);
+      event.currentTarget.off("mousemove", popupMove);
+      event.currentTarget.off("mouseout", popupOut);
+      popper.current = null;
+    }
+  }, [popupMove]);
 
   React.useEffect(() => {
     let app = new PIXI.Application({
@@ -352,8 +410,6 @@ export function World() {
       end_turn: async () => {
         endTurn(state);
         const known = knownIds(state.ecs, state.ui.playerId);
-        // TODO: Either I have to re-render _all_ my droptargets that are saved - or I just store
-        // a reference to state in the dragging things
         await generateActions(state, known, state.ui.playerId);
         renderUI();
       },
@@ -396,7 +452,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state);
+        await renderMap(app, state, popupOver);
 
         renderUI();
       },
@@ -418,13 +474,17 @@ export function World() {
       const seed =  Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
     })();
-  }, []);
+  }, [renderUI, state, popupOver]);
 
   return (
     <div id="game">
       <div id="world" ref={containingDiv}></div>
       <GameState.Provider value={state}>
         <UserInterface/>
+        <div className="popper" ref={popperElement} style={{visibility: popupEntity ? "visible" : "hidden" }}>
+          {popupEntity && (<Info entityId={popupEntity}/>)}
+          <div className="arrow" ref={arrowElement}/>
+        </div>
       </GameState.Provider>
     </div>
   );

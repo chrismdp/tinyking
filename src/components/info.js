@@ -6,7 +6,7 @@ import { fullEntity } from "game/entities";
 
 export function Info({ entityId }) {
   const state = React.useContext(GameState);
-  const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [entityId]);
+  const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
   const title = entity.nameable ? (<Name nameable={entity.nameable}/>) : "Information";
 
   return (

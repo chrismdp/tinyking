@@ -7,7 +7,11 @@ module.exports = {
       "VERSION": true,
       "process": true
     },
-    "extends": [ "eslint:recommended", "plugin:react/recommended" ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended",
+      "plugin:react-hooks/recommended"
+    ],
     "settings": {
       "react": {
         "version": "detect",

@@ -33,10 +33,10 @@ export function Tutorial() {
   const nextStep = React.useCallback(() => {
     setHiding(true);
     window.setTimeout(() => {
-      setStepCount(stepCount + 1);
+      setStepCount(s => s + 1);
       setHiding(false);
     }, 250);
-  });
+  }, []);
 
   const step = tutorial[stepCount];
 

@@ -41,7 +41,7 @@ export function Tutorial() {
   const step = tutorial[stepCount];
 
   React.useEffect(() => {
-    if (step.show && ui.show[Object.keys(step.show)[0]] != true) {
+    if (step && step.show && ui.show[Object.keys(step.show)[0]] != true) {
       ui.actions.change_visibility(step.show);
     }
   });

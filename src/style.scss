@@ -321,7 +321,7 @@ button {
   color: white;
   background: #3C4542;
 
-  padding: 4px 8px;
+  padding: 8px 15px;
   border-radius: 4px;
 
   .arrow, .arrow::before {
@@ -335,6 +335,16 @@ button {
     content: "";
     transform: rotate(45deg);
     background: #3C4542;
+  }
+
+  h1 {
+    margin: 0px;
+    padding-bottom: 5px;
+    font-size: 1.5em;
+  }
+  
+  p {
+    margin: 0px 0px 3px 0px;
   }
 }
 
@@ -352,4 +362,8 @@ button {
 
 .popper[data-popper-placement^='right'] > .arrow {
   left: -4px;
+}
+
+.capitalise {
+  text-transform: capitalize;
 }

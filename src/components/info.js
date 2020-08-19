@@ -14,7 +14,7 @@ export function Info({ entityId }) {
     <div>
       {title && (<h1 className="capitalise handle">{title}</h1>)}
       { entity.traits && entity.traits.values.length > 0 && (<div>Traits: <strong>{ entity.traits.values.join(", ") }</strong></div>) }
-      { entity.habitable && entity.habitable.owners.map({o => state.ecs.nameable[o].name}
+      { entity.habitable && ("Owners: " + entity.habitable.owners)}
       { iControl && (<p>You control this character. Click and drag to assign to a job.</p>) }
     </div>
   );

@@ -361,31 +361,42 @@ export function World() {
       setPopupEntity(event.currentTarget.entityId);
 
       const point = event.data.global;
-      virtualReference.current.set(point.x, point.y);
+      console.log("EV", event.data.pointerType);
+
       popper.current = createPopper(virtualReference.current, popperElement.current, {
-        placement: "bottom-start",
+        placement: (event.data.pointerType == "touch" ? "top" : "bottom-start"),
         modifiers: [
           { name: "arrow", options: { element: arrowElement.current } },
-          { name: "offset", options: { offset: [-15, 20] } }
+          { name: "offset", options: { offset: [-15, 20] } },
+          { name: "preventOverflow", options: { mainAxis: false } },
         ]
       });
 
+      virtualReference.current.set(point.x, point.y);
       event.currentTarget.on("mousemove", popupMove);
+      event.currentTarget.on("touchmove", popupMove);
       event.currentTarget.on("mouseout", popupOut);
+      event.currentTarget.on("touchend", popupOut);
+      event.currentTarget.on("touchendoutside", popupOut);
     }
   }, [popupMove, popupOut]);
 
   const popupMove = React.useCallback(event => {
-    const point = event.data.global;
-    virtualReference.current.set(point.x, point.y);
-    popper.current.update();
+    if (popper.current) {
+      const point = event.data.global;
+      virtualReference.current.set(point.x, point.y);
+      popper.current.update();
+    }
   }, []);
 
   const popupOut = React.useCallback(event => {
     if (event.currentTarget.entityId) {
       setPopupEntity(null);
       event.currentTarget.off("mousemove", popupMove);
+      event.currentTarget.off("touchmove", popupMove);
       event.currentTarget.off("mouseout", popupOut);
+      event.currentTarget.off("touchend", popupOut);
+      event.currentTarget.off("touchendoutside", popupOut);
       popper.current = null;
     }
   }, [popupMove]);
@@ -413,9 +424,10 @@ export function World() {
         await generateActions(state, known, state.ui.playerId);
         renderUI();
       },
-      click: id => {
-        state.ui.show.info = id;
-        renderUI();
+      click: () => {
+        // NOTE: For now we don't need clicking on entities - we show everything in the popup
+        //state.ui.show.info = id;
+        //renderUI();
       },
       change_visibility: action => {
         state.ui.show = { ...state.ui.show, ...action };
@@ -481,7 +493,7 @@ export function World() {
       <div id="world" ref={containingDiv}></div>
       <GameState.Provider value={state}>
         <UserInterface/>
-        <div className="popper" ref={popperElement} style={{visibility: popupEntity ? "visible" : "hidden" }}>
+        <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupEntity ? "visible" : "hidden" }} {...popper.attributes}>
           {popupEntity && (<Info entityId={popupEntity}/>)}
           <div className="arrow" ref={arrowElement}/>
         </div>

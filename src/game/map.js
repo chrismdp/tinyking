@@ -37,6 +37,7 @@ function generateFamily(size, x, y, generator, id) {
       traits: { values: [] },
       supplies: {},
       homeable: { home: id },
+      attributes: { energy: 10 },
       personable: {
         type: "person",
         familyIndex: p / (size * 1.5),

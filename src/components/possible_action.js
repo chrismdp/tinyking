@@ -36,7 +36,10 @@ export function PossibleAction({ actorId, targetId, action }) {
     <div>
       <h1>{ action.name }</h1>
       { events && (<ul>
-        { events.map(e => (<li key={e}>{e}</li>)) }
+        { (events.length == 0)
+          ? (<li>Nothing happens</li>)
+          : events.map(e => (<li key={e}>{e}</li>))
+        }
       </ul>)
       }
     </div>

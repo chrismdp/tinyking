@@ -1,7 +1,7 @@
 import { phrasesFromObjectTree } from "../src/game/i18n";
 
 describe("phrasesFromObjectTree", () => {
-  it("is working", () => {
+  it("is working with multiple depths", () => {
     expect(phrasesFromObjectTree({})).toEqual([]);
     expect(phrasesFromObjectTree({ foo: "bar" })).toEqual([{
       phrase: "foo",
@@ -21,5 +21,11 @@ describe("phrasesFromObjectTree", () => {
         value: "quux"
       },
     ]);
+  });
+  it("allows number values", () => {
+    expect(phrasesFromObjectTree({ foo: { bar: 1 } })).toEqual([{
+      phrase: "foo.bar",
+      value: 1
+    }]);
   });
 });

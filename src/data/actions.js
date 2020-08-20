@@ -1,35 +1,8 @@
-const tiring = [
+const tiring = factor => ([
   {
-    conditions: {
-      "me.traits.values": {
-        not: {
-          or: [
-            { includes: "exhausted" },
-            { includes: "very tired" },
-            { includes: "tired" }
-          ]
-        }
-      }
-    },
-    event: { "me.traits.values": { add: "tired" } }
-  },
-  {
-    conditions: {
-      "me.traits.values": {
-        includes: "tired"
-      }
-    },
-    event: { "me.traits.values": { remove: "tired", add: "very tired" } },
-  },
-  {
-    conditions: {
-      "me.traits.values": {
-        includes: "very tired"
-      }
-    },
-    event: { "me.traits.values": { remove: "very tired", add: "exhausted" } },
-  },
-];
+    event: { "me.attributes": { lose: { energy: factor * 2 } } }
+  }
+]);
 
 export const actions = [
   {
@@ -40,7 +13,7 @@ export const actions = [
     event: {
       name: "Plough field",
       rules: [
-        ...tiring,
+        ...tiring(2),
         { event: { "target.mappable": { set: { terrain: "ploughed" } } } }
       ]
     },
@@ -56,6 +29,7 @@ export const actions = [
     event: {
       name: "Gather wheat",
       rules: [
+        ...tiring(1),
         { event: { "me.supplies": { gain: { wheat: 1 } } } },
       ]
     },
@@ -73,6 +47,7 @@ export const actions = [
     event: {
       name: "Sow field",
       rules: [
+        ...tiring(1),
         { event: { "target.mappable": { set: { terrain: "sown" } } } },
         { event: { "me.supplies": { lose: { wheat: 1 } } } }
       ]
@@ -86,15 +61,22 @@ export const actions = [
     event: {
       name: "Rest",
       rules: [
-        { conditions: { "me.traits.values": { includes: "tired" } },
-          event: { "me.traits.values": { remove: "tired" } } },
-        { conditions: { "me.traits.values": { includes: "very tired" } },
-          event: { "me.traits.values": { remove: "very tired" } } },
-        { event: { "me.traits.values": { add: "rested" } } },
-        { conditions: { "me.traits.values": { includes: "rested" } },
-          event: { "me.traits.values": { remove: "exhausted" } } },
-        { conditions: { other: { personable: "exists" } },
-          event: { me: { socialise: "random other" } } },
+        {
+          conditions: { "me.attributes.energy": { less: 2 } },
+          event: { "me.attributes": { gain: { energy: 1 } } }
+        },
+        {
+          conditions: { "me.attributes.energy": { greaterEq: 2, less: 5 } },
+          event: { "me.attributes": { gain: { energy: 2 } } }
+        },
+        {
+          conditions: { "me.attributes.energy": { greaterEq: 5, less: 9 } },
+          event: { "me.attributes": { gain: { energy: 4 } } }
+        },
+        {
+          conditions: { "me.attributes.energy": { is: 9 } },
+          event: { "me.attributes": { gain: { energy: 1 } } }
+        },
       ],
     }
   },
@@ -105,7 +87,7 @@ export const actions = [
     event: {
       name: "Chop trees",
       rules: [
-        ...tiring,
+        ...tiring(2),
         { event: { "me.supplies": { gain: { wood: 1 } } } },
         {
           conditions: {
@@ -156,6 +138,7 @@ export const actions = [
     event: {
       name: "Plant trees",
       rules: [
+        ...tiring(2),
         { event: { "target.traits.values": { add: "planted" } } },
       ],
     }
@@ -166,6 +149,7 @@ export const actions = [
     },
     event: {
       name: "Fish",
+      ...tiring(1),
       rules: [
         { event: { "target.traits.values": { add: "fished" } } },
       ],

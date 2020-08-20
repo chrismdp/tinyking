@@ -14,6 +14,18 @@ export function Info({ entityId }) {
     <div>
       {title && (<h1 className="capitalise handle">{title}</h1>)}
       { entity.traits && entity.traits.values.length > 0 && (<div>Traits: <strong>{ entity.traits.values.join(", ") }</strong></div>) }
+      { entity.attributes && (<div>
+        {
+          Object.keys(entity.attributes).filter(a => a != "id").map(k => {
+            return (
+              <div className="capitalise attribute" key={k}>
+                {k} ({entity.attributes[k]} / 10)
+                <progress max="10" value={entity.attributes[k]}/>
+              </div>
+            );
+          })
+        }
+      </div>)}
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
       { iControl && (<p>You control this character. Click and drag to assign to a job.</p>) }
     </div>

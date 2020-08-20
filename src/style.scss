@@ -327,6 +327,7 @@ button {
   font-size: 0.75em;
   color: white;
   background: #3C4542;
+  max-width: 60%;
 
   padding: 8px 15px;
   border-radius: 4px;
@@ -344,11 +345,20 @@ button {
     background: #3C4542;
   }
 
-  h1 {
+  h1, h2 {
     margin: 0px;
     padding-bottom: 5px;
     font-weight: bold;
+  }
+
+  h1 {
     font-size: 1.25em;
+    padding-bottom: 5px;
+  }
+
+  h2 {
+    font-size: 1em;
+    padding-bottom: 3px;
   }
 
   p, ul {

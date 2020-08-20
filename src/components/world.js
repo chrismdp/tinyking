@@ -127,6 +127,8 @@ const terrainColours = {
   "grassland": 0x80C05D,
   "ploughed": 0x6C4332,
   "sown": 0x6C4332,
+  "growing": 0x6C4332,
+  "harvest": 0xE2C879,
   "forest": 0x30512F,
   "stone": 0x5D7084,
 };
@@ -141,9 +143,9 @@ const renderTile = (ecs, id) => {
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
   graphics.drawPolygon(...hex.corners());
   graphics.endFill();
-  graphics.beginFill(0xe2c879);
-  if (ecs.mappable[id].terrain == "sown") {
-    for(var i = 0; i < 20; i++) {
+  graphics.beginFill(0xE2C879);
+  if (ecs.mappable[id].terrain == "sown" || ecs.mappable[id].terrain == "growing") {
+    for(var i = 0; i < (ecs.mappable[id].terrain == "sown" ? 20 : 80); i++) {
       graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, 3);
     }
   }

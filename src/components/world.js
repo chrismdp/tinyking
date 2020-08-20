@@ -64,6 +64,10 @@ const entityMouseDown = (state, base, parent, setPopupEntity) => e => {
 
   state.pixi.viewport.plugins.pause("drag");
 
+  if (state.ui.show.main_menu) {
+    state.ui.actions.start_game();
+  }
+
   e.currentTarget.custom.clicking = true;
   e.currentTarget.on("mousemove", entityMouseMove);
   e.currentTarget.on("touchmove", entityMouseMove);

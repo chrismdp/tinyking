@@ -15,10 +15,13 @@ import * as time from "game/time";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
+import { PossibleAction } from "components/possible_action";
 
 import { actions } from "data/actions";
 
 const engine = new Engine(actions);
+
+const DROP_RADIUS = 12;
 
 const entityMouseMove = e => {
   if (e.currentTarget.custom.clicking) {
@@ -32,10 +35,31 @@ const entityMouseMove = e => {
     e.currentTarget.custom.state.pixi.highlight.visible = true;
   }
   e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
+
+  var over = false;
+
+  e.currentTarget.custom.state.pixi.dropTargets.forEach(t => {
+    const x = t.x - e.currentTarget.position.x;
+    const y = t.y - e.currentTarget.position.y;
+    const d2 = x * x + y * y;
+    if (d2 < DROP_RADIUS * DROP_RADIUS) {
+      over = true;
+      e.currentTarget.custom.setPopupEntity({
+        possibleAction: {
+          actorId: e.currentTarget.custom.parent.entityId,
+          targetId: t.id,
+          action: t.action
+        }
+      });
+    }
+  });
+  if (!over) {
+    e.currentTarget.custom.setPopupEntity(null);
+  }
 };
 
-const entityMouseDown = (state, base, parent) => e => {
-  e.currentTarget.custom = { state, base, parent };
+const entityMouseDown = (state, base, parent, setPopupEntity) => e => {
+  e.currentTarget.custom = { state, base, parent, setPopupEntity };
   e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
 
   state.pixi.viewport.plugins.pause("drag");
@@ -46,6 +70,9 @@ const entityMouseDown = (state, base, parent) => e => {
 };
 
 const entityMouseUp = (id, click, drop, state) => e => {
+  if (!e.currentTarget.custom) {
+    return;
+  }
   if (e.currentTarget.custom.clicking) {
     click(id);
   } else {
@@ -61,7 +88,7 @@ const entityMouseUp = (id, click, drop, state) => e => {
       const x = t.x - e.currentTarget.position.x;
       const y = t.y - e.currentTarget.position.y;
       const d2 = x * x + y * y;
-      if (d2 < 12 * 12) {
+      if (d2 < DROP_RADIUS * DROP_RADIUS) {
         dropped = true;
         drop(id, t);
       }
@@ -238,7 +265,7 @@ const generateActions = async (state, known, playerId) => {
   state.pixi.viewport.addChild(state.pixi.highlight);
 };
 
-const renderMap = async (app, state, popupOver) => {
+const renderMap = async (app, state, popupOver, setPopupEntity) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
@@ -307,8 +334,8 @@ const renderMap = async (app, state, popupOver) => {
         pixi[id] = renderPerson(ecs, id, (person, parent) => {
           if (ecs.assignable[id]) {
             person.interactive = true;
-            person.on("mousedown", entityMouseDown(state, base, parent));
-            person.on("touchstart", entityMouseDown(state, base, parent));
+            person.on("mousedown", entityMouseDown(state, base, parent, setPopupEntity));
+            person.on("touchstart", entityMouseDown(state, base, parent, setPopupEntity));
             person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
             person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
             person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
@@ -358,17 +385,16 @@ export function World() {
 
   const popupOver = React.useCallback(event => {
     if (event.currentTarget.entityId) {
-      setPopupEntity(event.currentTarget.entityId);
+      setPopupEntity({info: event.currentTarget.entityId});
 
       const point = event.data.global;
-      console.log("EV", event.data.pointerType);
 
       popper.current = createPopper(virtualReference.current, popperElement.current, {
         placement: (event.data.pointerType == "touch" ? "top" : "bottom-start"),
         modifiers: [
           { name: "arrow", options: { element: arrowElement.current } },
           { name: "offset", options: { offset: [-15, 20] } },
-          { name: "preventOverflow", options: { mainAxis: false } },
+          { name: "preventOverflow" },
         ]
       });
 
@@ -464,7 +490,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state, popupOver);
+        await renderMap(app, state, popupOver, setPopupEntity);
 
         renderUI();
       },
@@ -494,7 +520,10 @@ export function World() {
       <GameState.Provider value={state}>
         <UserInterface/>
         <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupEntity ? "visible" : "hidden" }} {...popper.attributes}>
-          {popupEntity && (<Info entityId={popupEntity}/>)}
+          {popupEntity && popupEntity.info &&
+            (<Info entityId={popupEntity.info}/>)}
+          {popupEntity && popupEntity.possibleAction &&
+            (<PossibleAction actorId={popupEntity.possibleAction.actorId} targetId={popupEntity.possibleAction.targetId} action={popupEntity.possibleAction.action}/>) }
           <div className="arrow" ref={arrowElement}/>
         </div>
       </GameState.Provider>

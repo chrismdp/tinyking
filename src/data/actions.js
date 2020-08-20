@@ -19,7 +19,7 @@ const tiring = [
         includes: "tired"
       }
     },
-    event: { "me.traits.values": { change: [ "tired", "very tired" ] } },
+    event: { "me.traits.values": { remove: "tired", add: "very tired" } },
   },
   {
     conditions: {
@@ -27,7 +27,7 @@ const tiring = [
         includes: "very tired"
       }
     },
-    event: { "me.traits.values": { change: [ "very tired", "exhausted" ] } },
+    event: { "me.traits.values": { remove: "very tired", add: "exhausted" } },
   },
 ];
 
@@ -86,8 +86,10 @@ export const actions = [
     event: {
       name: "Rest",
       rules: [
-        { event: { "me.traits.values": { remove: "tired" } } },
-        { event: { "me.traits.values": { remove: "very tired" } } },
+        { conditions: { "me.traits.values": { includes: "tired" } },
+          event: { "me.traits.values": { remove: "tired" } } },
+        { conditions: { "me.traits.values": { includes: "very tired" } },
+          event: { "me.traits.values": { remove: "very tired" } } },
         { event: { "me.traits.values": { add: "rested" } } },
         { conditions: { "me.traits.values": { includes: "rested" } },
           event: { "me.traits.values": { remove: "exhausted" } } },
@@ -125,7 +127,7 @@ export const actions = [
               includes: "thinned"
             }
           },
-          event: { "target.traits.values": { change: [ "thinned", "deforested" ] } }
+          event: { "target.traits.values": { remove: "thinned", add: "deforested" } }
         },
         {
           conditions: {
@@ -133,7 +135,7 @@ export const actions = [
               includes: "deforested"
             }
           },
-          event: { "target.traits.values": { change: [ "deforested", "decimated" ] } }
+          event: { "target.traits.values": { remove: "deforested", add: "decimated" } }
         },
         {
           conditions: {

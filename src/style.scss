@@ -347,11 +347,22 @@ button {
   h1 {
     margin: 0px;
     padding-bottom: 5px;
-    font-size: 1.5em;
+    font-size: 1.25em;
   }
 
-  p {
+  p, ul {
     margin: 0px 0px 3px 0px;
+    padding: 0;
+  }
+
+  li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    &::before {
+      content: "\002767";
+      margin-right: 0.5em;
+    }
   }
 }
 

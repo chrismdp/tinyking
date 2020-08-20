@@ -2,24 +2,30 @@ import { fullEntity } from "game/entities";
 import Engine from "json-rules-engine-simplified";
 import selectn from "selectn";
 
+export async function validEvents(ecs, actorId, targetId, action) {
+  const rules = action.rules.map(r => ({ conditions: {}, ...r }));
+  const target = fullEntity(ecs, targetId);
+  const me = fullEntity(ecs, actorId);
+  const spatial = ecs.spatial[actorId];
+  const other = Object.values(ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != me.id && o.id != target.id);
+  const payload = { target, me, other };
+  const events = await new Engine(rules).run(payload);
+  return { events, payload };
+}
+
 export async function endTurn(state) {
   state.clock++;
-  for (const id in state.ecs.assignable) {
-    const assignable = state.ecs.assignable[id];
+  for (const actorId in state.ecs.assignable) {
+    const assignable = state.ecs.assignable[actorId];
     if (!assignable.task) {
       // TODO: AI to pick a random eligible task?
     }
-    const rules = assignable.task.action.rules.map(r => ({ conditions: {}, ...r }));
-    const target = fullEntity(state.ecs, assignable.task.id);
-    const me = fullEntity(state.ecs, id);
-    const spatial = state.ecs.spatial[id];
-    const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != me.id && o.id != target.id);
-    const payload = { target, me, other };
-    const events = await new Engine(rules).run(payload);
 
-    state.redraws.push(target.id);
-    state.redraws.push(me.id);
-    for (const o of other) {
+    const { events, payload } = await validEvents(state.ecs, actorId, assignable.task.id, assignable.task.action);
+
+    state.redraws.push(assignable.task.id);
+    state.redraws.push(actorId);
+    for (const o of payload.other) {
       state.redraws.push(o.id);
     }
 
@@ -63,8 +69,8 @@ export async function endTurn(state) {
         }
       }
     });
-    me.assignable.task = null;
-    me.spatial.x = state.ecs.spatial[me.homeable.home].x;
-    me.spatial.y = state.ecs.spatial[me.homeable.home].y;
+    payload.me.assignable.task = null;
+    payload.me.spatial.x = state.ecs.spatial[payload.me.homeable.home].x;
+    payload.me.spatial.y = state.ecs.spatial[payload.me.homeable.home].y;
   }
 }

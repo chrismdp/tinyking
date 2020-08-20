@@ -38,6 +38,13 @@ export function Tutorial() {
     }, 250);
   }, []);
 
+  const skip = React.useCallback(() => {
+    tutorial.map(s => s.show).forEach(show => {
+      show && ui.actions.change_visibility(show);
+    });
+    setHiding(true);
+  }, [ui.actions]);
+
   const step = tutorial[stepCount];
 
   React.useEffect(() => {
@@ -59,6 +66,7 @@ export function Tutorial() {
             <div className={`description ${hiding ? "hiding" : ""}`}>
               <p>{step.description}</p>
               <p><a onClick={nextStep}>Continue</a></p>
+              <p><a onClick={skip}>Skip tutorial</a></p>
             </div>)}
         </div>
       }

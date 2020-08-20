@@ -15,6 +15,7 @@ export function PossibleAction({ actorId, targetId, action }) {
   const t = useTranslate();
 
   React.useEffect(() => {
+    var isCancelled = false;
     (async () => {
       const { events, payload } = await validEvents(state.ecs, actorId, targetId, action);
       const phrases = events.reduce((result, event) => [...result, ...phrasesFromObjectTree(event)], []);
@@ -23,8 +24,12 @@ export function PossibleAction({ actorId, targetId, action }) {
         target: name(payload.target.nameable),
         value
       }));
-      setEvents(translated);
+      if (!isCancelled) {
+        setEvents(translated);
+      }
     })();
+
+    return () => { isCancelled = true; };
   }, [state, actorId, targetId, action, t]);
 
   return (

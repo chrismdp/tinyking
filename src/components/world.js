@@ -118,8 +118,8 @@ const knownIds = (ecs, playerId) => {
 
 const terrainColours = {
   "mountain": 0x3C3A44,
-  "deep_water": 0x2F4999,
-  "shallow_water": 0x3F6FAE,
+  "deep water": 0x2F4999,
+  "shallow water": 0x3F6FAE,
   "grassland": 0x80C05D,
   "ploughed": 0x6C4332,
   "sown": 0x6C4332,

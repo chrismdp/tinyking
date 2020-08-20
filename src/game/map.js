@@ -101,9 +101,9 @@ async function generateTerrain(grid, seed, progressUpdate) {
     if (hex.customHeight > 1.4) {
       terrain = "mountain";
     } else if (hex.customHeight <= -0.2) {
-      terrain = "deep_water";
+      terrain = "deep water";
     } else if (hex.customHeight < 0) {
-      terrain = "shallow_water";
+      terrain = "shallow water";
     } else {
       if (simplex.noise2D(hex.x * 0.2, hex.y * 0.2) > 0.45) {
         terrain = "forest";
@@ -127,8 +127,8 @@ async function generateTerrain(grid, seed, progressUpdate) {
 
 const terrainValueFn = {
   "mountain": (distance) => distance <= 2 ? 2 : (15 - distance * 3),
-  "shallow_water": (distance) => (10 - distance * 2),
-  "deep_water": () => 0,
+  "shallow water": (distance) => (10 - distance * 2),
+  "deep water": () => 0,
   "forest": (distance) => distance <= 2 ? 2 : (10 - distance * 2),
   "stone": (distance) => distance <= 2 ? 3 : (15 - distance * 3),
   "grassland": (distance) => (10 - distance * 2),

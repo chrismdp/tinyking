@@ -162,7 +162,7 @@ export const actions = [
   },
   {
     conditions: {
-      "target.mappable.terrain": { is: "shallow_water" },
+      "target.mappable.terrain": { is: "shallow water" },
     },
     event: {
       name: "Fish",

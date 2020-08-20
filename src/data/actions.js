@@ -12,6 +12,7 @@ export const actions = [
     },
     event: {
       name: "Plough field",
+      description: "Create furrows with minimal tools suitable for growing crops.",
       rules: [
         ...tiring(2),
         { event: { "target.mappable": { set: { terrain: "ploughed" } } } }
@@ -28,6 +29,7 @@ export const actions = [
     },
     event: {
       name: "Gather wheat",
+      description: "Comb the fields for enough kernels of wild wheat to be able to sow a field.",
       rules: [
         ...tiring(1),
         { event: { "me.supplies": { gain: { wheat: 1 } } } },
@@ -146,6 +148,7 @@ export const actions = [
   {
     conditions: {
       "target.mappable.terrain": { is: "shallow water" },
+      "me.traits.values": { includes: "boat" } // TODO: Really a placeholder
     },
     event: {
       name: "Fish",

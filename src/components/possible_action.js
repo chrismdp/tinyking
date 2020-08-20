@@ -34,7 +34,8 @@ export function PossibleAction({ actorId, targetId, action }) {
 
   return (
     <div>
-      <h1>{ action.name }</h1>
+      <h1>Assign to { action.name }</h1>
+      { action.description && (<p>{action.description}</p>) }
       { events && (<ul>
         { (events.length == 0)
           ? (<li>Nothing happens</li>)

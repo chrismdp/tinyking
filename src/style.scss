@@ -158,6 +158,7 @@ canvas {
       text-align: center;
       a {
         @include menu-link;
+        margin: 0 15px;
       }
     }
   }

@@ -65,8 +65,7 @@ export function Tutorial() {
           {step.description && (
             <div className={`description ${hiding ? "hiding" : ""}`}>
               <p>{step.description}</p>
-              <p><a onClick={nextStep}>Continue</a></p>
-              <p><a onClick={skip}>Skip tutorial</a></p>
+              <p><a onClick={nextStep}>Continue</a> <a onClick={skip}>Skip tutorial</a></p>
             </div>)}
         </div>
       }

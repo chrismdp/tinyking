@@ -5,9 +5,11 @@ export const turnRules = [
       season: { is: "summer" }
     },
     event: {
-      rules: [
-        { event: { "target.mappable": { set: { terrain: "growing" } } } }
-      ]
+      rules: {
+        target: [
+          { event: { mappable: { set: { terrain: "growing" } } } }
+        ]
+      }
     }
   },
   {
@@ -16,9 +18,11 @@ export const turnRules = [
       season: { is: "autumn" }
     },
     event: {
-      rules: [
-        { event: { "target.mappable": { set: { terrain: "harvestable" } } } }
-      ]
+      rules: {
+        target: [
+          { event: { mappable: { set: { terrain: "harvestable" } } } }
+        ]
+      }
     }
   }
 ];

@@ -4,10 +4,31 @@ import { useTranslate } from "react-polyglot";
 
 import { name } from "game/name";
 
-import { validEvents } from "game/turn";
+import { fullEntity } from "game/entities";
+import { validEventsFor } from "game/turn";
 import { phrasesFromObjectTree } from "game/i18n";
 
 import { GameState } from "components/contexts";
+import { EventList } from "components/event_list";
+
+export function describeConditions(conditions, entity, t) {
+  return phrasesFromObjectTree(conditions).map(({ phrase, value }) => t(phrase, {
+    target: name(entity.nameable),
+    value,
+  }));
+}
+
+export async function describeValidEvents(rules, payload, t) {
+  const events = await validEventsFor(rules, payload);
+  const phrases = events.reduce((result, event) => [
+    ...result,
+    ...phrasesFromObjectTree(event)
+  ], []);
+  return {
+    [name(payload.nameable)]: phrases.map(({ phrase, value }) =>
+      t(phrase, { name: name(payload.nameable), value }))
+  };
+}
 
 export function PossibleAction({ actorId, targetId, action }) {
   const [events, setEvents] = React.useState(null);
@@ -17,15 +38,11 @@ export function PossibleAction({ actorId, targetId, action }) {
   React.useEffect(() => {
     var isCancelled = false;
     (async () => {
-      const { events, payload } = await validEvents(state.ecs, actorId, targetId, action);
-      const phrases = events.reduce((result, event) => [...result, ...phrasesFromObjectTree(event)], []);
-      const translated = phrases.map(({ phrase, value }) => t(phrase, {
-        me: name(payload.me.nameable),
-        target: name(payload.target.nameable),
-        value
-      }));
       if (!isCancelled) {
-        setEvents(translated);
+        setEvents({
+          ...await describeValidEvents(action.rules.me, fullEntity(state.ecs, actorId), t),
+          ...await describeValidEvents(action.rules.target, fullEntity(state.ecs, targetId), t)
+        });
       }
     })();
 
@@ -35,14 +52,7 @@ export function PossibleAction({ actorId, targetId, action }) {
   return (
     <div>
       <h1>Assign to { action.name }</h1>
-      { action.description && (<p>{action.description}</p>) }
-      { events && (<ul>
-        { (events.length == 0)
-          ? (<li>Nothing happens</li>)
-          : events.map(e => (<li key={e}>{e}</li>))
-        }
-      </ul>)
-      }
+      <EventList description={action.description} events={events}/>
     </div>
   );
 }

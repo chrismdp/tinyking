@@ -5,13 +5,13 @@ import { useTranslate } from "react-polyglot";
 
 import Engine from "json-rules-engine-simplified";
 
-import { phrasesFromObjectTree } from "game/i18n";
 import { fullEntity } from "game/entities";
-import { name } from "game/name";
 import * as time from "game/time";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
+import { describeConditions, describeValidEvents } from "components/possible_action";
+import { EventList } from "components/event_list";
 
 import { turnRules } from "data/turn";
 
@@ -30,21 +30,13 @@ export function Info({ entityId }) {
       const rules = turnRules.map(r => ({ conditions: {}, ...{...r, event: { conditions: r.conditions, ...r.event } } }));
       const season = time.season(state.clock);
       const events = await new Engine(rules).run({ target: entity, season });
-      const effects = events.map(event => ({
+      const textEvents = await Promise.all(events.map(async event => ({
         description: event.description,
-        conditions: phrasesFromObjectTree(event.conditions).map(({ phrase, value }) => t(phrase, {
-          target: name(entity.nameable),
-          value,
-        })),
-        effects: event.rules.reduce((result, e) => [
-          ...result, ...phrasesFromObjectTree(e.event)
-        ], []).map(({ phrase, value }) => t(phrase, {
-          target: name(entity.nameable),
-          value,
-        }))
-      }));
+        conditions: describeConditions(event.conditions, entity, t),
+        effects: await describeValidEvents(event.rules.target, entity, t)
+      })));
       if (!isCancelled) {
-        setEndTurnEvents(effects);
+        setEndTurnEvents(textEvents);
       }
     })();
 
@@ -67,18 +59,18 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
-      { iControl && (<p>You control this character. Click and drag to assign to a job.</p>) }
+      { iControl && (<p>{t("info.youcontrol")}</p>) }
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
       { endTurnEvents && endTurnEvents.length > 0 &&
           (<>
-            <h2>At the end of this turn:</h2>
-            <ul>
-              { endTurnEvents.map(event => {
-                return (<li key={event}>
-                  {t("grammar.sentence." + event.effects.length, { ...event.effects })}
-                  &nbsp;({t("grammar.sentence." + event.conditions.length, { ...event.conditions })})
-                </li>); }) }
-            </ul>
+            <p>{t("info.endturnconditions")}</p>
+            { endTurnEvents.map(event => (
+              <EventList
+                key={event}
+                description={event.description}
+                events={event.effects}
+                conditions={event.conditions}/>))
+            }
           </>)
       }
     </div>

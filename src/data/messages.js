@@ -1,20 +1,21 @@
 export const messages = {
-  "me.traits.values.add": "%{me} gains the trait %{value}",
-  "me.traits.values.remove": "%{me} loses the trait %{value}",
-  "me.attributes.gain.energy": "%{me} gains %{value} energy",
-  "me.attributes.lose.energy": "%{me} loses %{value} energy",
-  "me.supplies.gain.wood": "%{me} gains %{value} wood",
-  "me.supplies.lose.wood": "%{me} loses %{value} wood",
-  "me.supplies.gain.wheat": "%{me} gains %{value} grain",
-  "me.supplies.lose.wheat": "%{me} loses %{value} grain",
+  "traits.values.add": "gains the trait %{value}",
+  "traits.values.remove": "loses the trait %{value}",
+  "attributes.gain.energy": "gains %{value} energy",
+  "attributes.lose.energy": "loses %{value} energy",
+  "supplies.gain.wood": "gains %{value} wood",
+  "supplies.lose.wood": "loses %{value} wood",
+  "supplies.gain.grain": "gains %{value} grain",
+  "supplies.lose.grain": "loses %{value} grain",
+  "mappable.set.terrain": "the terrain changes to %{value}",
 
-  "target.traits.values.add": "%{target} gains the trait %{value}",
   "target.mappable.terrain.is": "the terrain is %{value}",
-  "target.mappable.set.terrain": "the terrain changes to %{value}",
+
   "season.is": "it is %{value}",
-  "grammar.sentence.1": "%{0}",
-  "grammar.sentence.2": "%{0} and %{1}",
-  "grammar.sentence.3": "%{0}, %{1} and %{2}",
+  info: {
+    "endturnconditions": "At the end of this turn, because:",
+    "youcontrol": "You control this character. Click and drag to assign to a job."
+  },
   terrain: {
     "mountain": "Mountains",
     "deep water": "Ocean",

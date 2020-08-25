@@ -13,8 +13,7 @@ export async function validEvents(ecs, actorId, targetId, action) {
   return { events, payload };
 }
 
-export async function endTurn(state) {
-  state.clock++;
+async function doAssignableJobs(state) {
   for (const actorId in state.ecs.assignable) {
     const assignable = state.ecs.assignable[actorId];
     if (!assignable.task) {
@@ -73,4 +72,13 @@ export async function endTurn(state) {
     payload.me.spatial.x = state.ecs.spatial[payload.me.homeable.home].x;
     payload.me.spatial.y = state.ecs.spatial[payload.me.homeable.home].y;
   }
+}
+
+async function doEndTurnEffects(state) {
+}
+
+export async function endTurn(state) {
+  state.clock++;
+  await doAssignableJobs(state);
+  await doEndTurnEffects(state);
 }

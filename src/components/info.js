@@ -78,7 +78,6 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
-      { iControl && (<p>{t("info.you_control")}</p>) }
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
       { actionDescription && (<>
         <p>
@@ -86,7 +85,7 @@ export function Info({ entityId }) {
         </p>
         <EventList events={actionDescription.events}/>
       </>)
-      }
+      || (iControl && (<p>{t("info.you_control")}</p>)) }
       { endTurnEvents && endTurnEvents.length > 0 &&
           (<>
             <p>

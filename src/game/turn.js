@@ -46,12 +46,16 @@ async function applyActionRules(rules, payload) {
       } else if (event[key].gain) {
         for (const k in event[key].gain) {
           const thing = selectn(key, payload);
-          thing[k] = (thing[k] || 0) + event[key].gain[k];
+          if (key == "attributes") {
+            thing[k] = Math.min(10, (thing[k] || 0) + event[key].gain[k]);
+          } else {
+            thing[k] = (thing[k] || 0) + event[key].gain[k];
+          }
         }
       } else if (event[key].lose) {
         for (const k in event[key].lose) {
           const thing = selectn(key, payload);
-          thing[k] = (thing[k] || 0) - event[key].lose[k];
+          thing[k] = Math.max(0, (thing[k] || 0) - event[key].lose[k]);
         }
       } else {
         throw "Don't know how to process event: " + JSON.stringify([ key, event[key] ]);
@@ -104,7 +108,7 @@ async function doEndTurnEffects(state) {
 }
 
 export async function endTurn(state) {
-  state.clock++;
-  await doEndTurnEffects(state);
   await doAssignableJobs(state);
+  await doEndTurnEffects(state);
+  state.clock++;
 }

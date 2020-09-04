@@ -16,7 +16,7 @@ export const actions = [
       rules: {
         me: tiring(2),
         target: [
-          { event: { "mappable": { set: { terrain: "sown" } } } } // TODO: Debug
+          { event: { "mappable": { set: { terrain: "ploughed" } } } }
         ]
       }
     },

@@ -23,6 +23,8 @@ export const messages = {
     "grassland": "Grassland",
     "ploughed": "Ploughed field",
     "sown": "Sown field",
+    "growing": "Growing field",
+    "harvestable": "Harvestable field",
     "forest": "Forest",
     "stone": "Stony ground"
   }

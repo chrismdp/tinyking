@@ -1,15 +1,25 @@
-import { fullEntity } from "game/entities";
 import Engine from "json-rules-engine-simplified";
 import selectn from "selectn";
 
+import * as time from "game/time";
+import { turnRules } from "data/turn";
+import { fullEntity } from "game/entities";
+
 export async function validEventsFor(rules, payload) {
-  return rules ? await new Engine(rules.map(r => ({ conditions: {}, ...r }))).run(payload) : [];
+  if (!rules) {
+    return [];
+  }
+  const rulesWithConditions = rules.map(r => ({ conditions: {}, ...{...r, event: { conditions: r.conditions || {}, ...r.event } } }));
+  return await new Engine(rulesWithConditions).run(payload);
 }
 
 async function applyActionRules(rules, payload) {
   const events = await validEventsFor(rules, payload);
   events.forEach(event => {
     for (const key in event) {
+      if (key == "conditions") {
+        continue;
+      }
       if (event[key].add) {
         const a = selectn(key, payload);
         if (!a.includes(event[key].add)) {
@@ -55,6 +65,7 @@ async function doAssignableJobs(state) {
     const assignable = state.ecs.assignable[actorId];
     if (!assignable.task) {
       // TODO: AI to pick a random eligible task?
+      continue;
     }
 
     const actor = fullEntity(state.ecs, actorId);
@@ -81,10 +92,19 @@ async function doAssignableJobs(state) {
 }
 
 async function doEndTurnEffects(state) {
+  const season = time.season(state.clock);
+  for (const tickableId in state.ecs.tickable) {
+    const payload = { target: fullEntity(state.ecs, tickableId), season };
+    const events = await validEventsFor(turnRules, payload);
+    for (const event of events) {
+      applyActionRules(event.rules.target, payload.target);
+      state.redraws.push(tickableId);
+    }
+  }
 }
 
 export async function endTurn(state) {
   state.clock++;
-  await doAssignableJobs(state);
   await doEndTurnEffects(state);
+  await doAssignableJobs(state);
 }

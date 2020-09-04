@@ -128,7 +128,7 @@ const terrainColours = {
   "ploughed": 0x6C4332,
   "sown": 0x6C4332,
   "growing": 0x6C4332,
-  "harvest": 0xE2C879,
+  "harvestable": 0xE2C879,
   "forest": 0x30512F,
   "stone": 0x5D7084,
 };
@@ -451,7 +451,7 @@ export function World() {
         renderUI();
       },
       end_turn: async () => {
-        endTurn(state);
+        await endTurn(state);
         const known = knownIds(state.ecs, state.ui.playerId);
         await generateActions(state, known, state.ui.playerId);
         renderUI();

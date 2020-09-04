@@ -223,6 +223,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
       nameable: { nickname: "Map tile" },
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
+      tickable: {},
       traits: { values: [] },
       valuable: { value: tile.economic_value },
       workable: {},

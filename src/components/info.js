@@ -3,10 +3,9 @@ import PropTypes from "prop-types";
 
 import { useTranslate } from "react-polyglot";
 
-import Engine from "json-rules-engine-simplified";
-
 import { fullEntity } from "game/entities";
 import * as time from "game/time";
+import { validEventsFor } from "game/turn";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
@@ -27,9 +26,8 @@ export function Info({ entityId }) {
   React.useEffect(() => {
     var isCancelled = false;
     (async () => {
-      const rules = turnRules.map(r => ({ conditions: {}, ...{...r, event: { conditions: r.conditions, ...r.event } } }));
       const season = time.season(state.clock);
-      const events = await new Engine(rules).run({ target: entity, season });
+      const events = await validEventsFor(turnRules, { target: entity, season });
       const textEvents = await Promise.all(events.map(async event => ({
         description: event.description,
         conditions: describeConditions(event.conditions, entity, t),

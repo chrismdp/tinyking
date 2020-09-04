@@ -38,11 +38,12 @@ export function PossibleAction({ actorId, targetId, action }) {
   React.useEffect(() => {
     var isCancelled = false;
     (async () => {
+      const events = {
+        ...await describeValidEvents(action.rules.me, fullEntity(state.ecs, actorId), t),
+        ...await describeValidEvents(action.rules.target, fullEntity(state.ecs, targetId), t)
+      };
       if (!isCancelled) {
-        setEvents({
-          ...await describeValidEvents(action.rules.me, fullEntity(state.ecs, actorId), t),
-          ...await describeValidEvents(action.rules.target, fullEntity(state.ecs, targetId), t)
-        });
+        setEvents(events);
       }
     })();
 
@@ -51,7 +52,7 @@ export function PossibleAction({ actorId, targetId, action }) {
 
   return (
     <div>
-      <h1>Assign to { action.name }</h1>
+      <h1>{ action.name }</h1>
       <EventList description={action.description} events={events}/>
     </div>
   );

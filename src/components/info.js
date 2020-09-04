@@ -69,7 +69,7 @@ export function Info({ entityId }) {
       { entity.traits && entity.traits.values.length > 0 && (<div>Traits: <strong>{ entity.traits.values.join(", ") }</strong></div>) }
       { entity.attributes && (<div>
         {
-          Object.keys(entity.attributes).filter(a => a != "id").map(k => {
+          Object.keys(entity.attributes).filter(a => a != "id" && entity.attributes[a] < 10).map(k => {
             return (
               <div className="capitalise attribute" key={k}>
                 {k} ({entity.attributes[k]} / 10)
@@ -80,6 +80,16 @@ export function Info({ entityId }) {
         }
       </div>)}
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
+      { endTurnEvents && endTurnEvents.length > 0 && endTurnEvents.map((event, idx) => (
+        <div key={idx}>
+          <p>
+            <strong>{t("info.end_turn_conditions")}</strong>
+          </p>
+          <EventList
+            description={event.description}
+            events={event.effects}
+            conditions={event.conditions}/>
+        </div>)) }
       { actionDescription && (<>
         <p>
           <strong>{t("info.chosen_action")} {actionDescription.action.name}</strong>
@@ -87,20 +97,6 @@ export function Info({ entityId }) {
         <EventList events={actionDescription.events}/>
       </>)
       || (iControl && (<p>{t("info.you_control")}</p>)) }
-      { endTurnEvents && endTurnEvents.length > 0 &&
-          (<>
-            <p>
-              <strong>{t("info.end_turn_conditions")}</strong>
-            </p>
-            { endTurnEvents.map(event => (
-              <EventList
-                key={event}
-                description={event.description}
-                events={event.effects}
-                conditions={event.conditions}/>))
-            }
-          </>)
-      }
     </div>
   );
 }

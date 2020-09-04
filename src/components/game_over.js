@@ -3,7 +3,6 @@ import React from "react";
 import { GameState } from "components/contexts";
 
 export function GameOver() {
-  const state = React.useContext(GameState);
   return (
     <div id="game-over">
       <div className="header">

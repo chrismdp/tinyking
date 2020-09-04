@@ -17,6 +17,7 @@ import { turnRules } from "data/turn";
 export function Info({ entityId }) {
   const state = React.useContext(GameState);
   const [endTurnEvents, setEndTurnEvents] = React.useState(null);
+  const [actionDescription, setActionDescription] = React.useState(null);
   const t = useTranslate();
 
   const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
@@ -41,6 +42,26 @@ export function Info({ entityId }) {
     return () => { isCancelled = true; };
   }, [entity, t, state.clock]);
 
+  // Job assignment
+  React.useEffect(() => {
+    var isCancelled = false;
+    (async () => {
+      if (entity.assignable && entity.assignable.task) {
+        const target = fullEntity(state.ecs, entity.assignable.task.id);
+        const action = entity.assignable.task.action;
+        const events = {
+          ...await describeValidEvents(action.rules.me, entity, t),
+          ...await describeValidEvents(action.rules.target, target, t)
+        };
+        if (!isCancelled) {
+          setActionDescription({ action, events });
+        }
+      }
+    })();
+
+    return () => { isCancelled = true; };
+  }, [entity, t, state.ecs]);
+
   return (
     <div>
       {title && (<h1 className="capitalise handle">{title}</h1>)}
@@ -57,11 +78,20 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
-      { iControl && (<p>{t("info.youcontrol")}</p>) }
+      { iControl && (<p>{t("info.you_control")}</p>) }
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
+      { actionDescription && (<>
+        <p>
+          <strong>{t("info.chosen_action")} {actionDescription.action.name}</strong>
+        </p>
+        <EventList events={actionDescription.events}/>
+      </>)
+      }
       { endTurnEvents && endTurnEvents.length > 0 &&
           (<>
-            <p>{t("info.endturnconditions")}</p>
+            <p>
+              <strong>{t("info.end_turn_conditions")}</strong>
+            </p>
             { endTurnEvents.map(event => (
               <EventList
                 key={event}

@@ -13,8 +13,9 @@ export const messages = {
 
   "season.is": "it is %{value}",
   info: {
-    "endturnconditions": "At the end of this turn, because:",
-    "youcontrol": "You control this character. Click and drag to assign to a job."
+    "end_turn_conditions": "At the end of this turn, because:",
+    "you_control": "You control this character. Click and drag to assign to a job.",
+    "chosen_action": "Chosen action:"
   },
   terrain: {
     "mountain": "Mountains",

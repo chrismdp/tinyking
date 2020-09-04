@@ -34,6 +34,7 @@ export const messages = {
     "sown": "Sown field",
     "growing": "Growing field",
     "harvestable": "Harvestable field",
+    "dirt": "Mud and soil",
     "forest": "Forest",
     "stone": "Stony ground"
   }

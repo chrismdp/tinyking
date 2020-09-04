@@ -130,6 +130,7 @@ const terrainColours = {
   "sown": 0x6C4332,
   "growing": 0x6C4332,
   "harvestable": 0xE2C879,
+  "dirt": 0x6C4332,
   "forest": 0x30512F,
   "stone": 0x5D7084,
 };

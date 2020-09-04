@@ -1,7 +1,5 @@
 import React from "react";
 
-import { GameState } from "components/contexts";
-
 export function GameOver() {
   return (
     <div id="game-over">

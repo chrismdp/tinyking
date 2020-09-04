@@ -12,7 +12,7 @@ export const actions = [
   {
     conditions: {
       ...energy(4),
-      "target.mappable.terrain": { is: "grassland" },
+      "target.mappable.terrain": { or: [ { is: "grassland" }, { is: "dirt" } ] },
       not: { other: { habitable: "exists" } }
     },
     event: {
@@ -48,6 +48,25 @@ export const actions = [
   },
   {
     conditions: {
+      ...energy(4),
+      "target.mappable.terrain": { is: "harvestable" },
+    },
+    event: {
+      name: "Harvest field",
+      description: "Time to bring in the crops and reap the rewards of your hard work.",
+      rules: {
+        me: [
+          ...tiring(4),
+          { event: { "supplies": { gain: { grain: 5 } } } }
+        ],
+        target: [
+          { event: { "mappable": { set: { terrain: "dirt" } } } },
+        ],
+      }
+    },
+  },
+  {
+    conditions: {
       "target.mappable.terrain": {
         is: "ploughed"
       },
@@ -74,16 +93,32 @@ export const actions = [
     conditions: {
       "target.habitable": "exists",
       "target.habitable.owners": { includes: "$me.id" },
-      "me.attributes.energy": { less: 4 },
+      "me.attributes.energy": { less: 3 },
     },
     event: {
       name: "Recover",
-      description: "Time to crash out and recuperate.",
+      description: "The world is starting to swim before your eyes... time to crash out and recuperate.",
       rules: {
         me: [
           {
             event: { attributes: { gain: { energy: 1 } } }
           },
+        ],
+      }
+    }
+  },
+  {
+    conditions: {
+      "target.habitable": "exists",
+      "target.habitable.owners": { includes: "$me.id" },
+      "me.attributes.energy": { greaterEq: 3, less: 10 },
+    },
+    event: {
+      name: "Rest",
+      description: "There's nothing to eat, but at least there's time to relax.",
+      rules: {
+        me: [
+          { event: { attributes: { gain: { energy: 1 } } } },
         ],
       }
     }
@@ -155,7 +190,7 @@ export const actions = [
                 includes: "deforested"
               }
             },
-            event: { "mappable": { set: { terrain: "grassland" } } },
+            event: { "mappable": { set: { terrain: "dirt" } } },
           },
         ]
       }

@@ -202,6 +202,26 @@ const renderPerson = (ecs, id, fn) => {
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
+  } else if (ecs.attributes[id]) {
+    const attributes = ecs.attributes[id];
+    if (attributes.energy && attributes.energy < 10) {
+      person.beginFill(0x333333);
+      person.drawRoundedRect(-27.5, 20, 25, 15, 5);
+      person.endFill();
+      var elabel = new PIXI.Text(attributes.energy + "/10", {fontFamily: "Alegreya", fontSize: 10, fill: "green"});
+      elabel.position.set(-15, 27.5);
+      elabel.anchor = { x: 0.5, y: 0.5 };
+      person.addChild(elabel);
+    }
+    if (attributes.health && attributes.health < 10) {
+      person.beginFill(0x333333);
+      person.drawRoundedRect(2.5, 20, 25, 15, 5);
+      person.endFill();
+      var hlabel = new PIXI.Text(attributes.health + "/10", {fontFamily: "Alegreya", fontSize: 10, fill: "red"});
+      hlabel.position.set(15, 27.5);
+      hlabel.anchor = { x: 0.5, y: 0.5 };
+      person.addChild(hlabel);
+    }
   }
 
   fn(person, graphics);

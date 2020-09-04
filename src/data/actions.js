@@ -82,7 +82,7 @@ export const actions = [
       rules: {
         me: [
           {
-            event: { attributes: { gain: { energy: 2 } } }
+            event: { attributes: { gain: { energy: 1 } } }
           },
         ],
       }
@@ -92,16 +92,16 @@ export const actions = [
     conditions: {
       "target.habitable": "exists",
       "target.habitable.owners": { includes: "$me.id" },
-      "me.attributes.energy": { greaterEq: 4, less: 10 },
+      "me.supplies.grain": { greater: 0 },
+      "me.attributes.energy": { greater: 0, less: 10 },
     },
     event: {
-      name: "Rest",
-      description: "Relax at home to boost energy.",
+      name: "Prepare gruel",
+      description: "Mash together a basic gruel from the grain you have, and eat it cold.",
       rules: {
         me: [
-          {
-            event: { attributes: { gain: { energy: 4 } } }
-          },
+          { event: { attributes: { gain: { energy: 5 } } } },
+          { event: { supplies: { lose: { grain: 1 } } } },
         ],
       }
     }

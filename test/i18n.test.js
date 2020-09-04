@@ -24,6 +24,10 @@ describe("phrasesFromObjectTree", () => {
         value: "quux"
       },
     ]);
+    expect(phrasesFromObjectTree({ personable: { die: { "exhaustion": true } } })).toEqual([{
+      phrase: "personable.die.exhaustion",
+      value: true
+    }]);
   });
   it("allows number values", () => {
     expect(phrasesFromObjectTree({ foo: { bar: 1 } })).toEqual([{

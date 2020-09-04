@@ -28,7 +28,8 @@ export function Info({ entityId }) {
     var isCancelled = false;
     (async () => {
       const season = time.season(state.clock);
-      const events = await validEventsFor(turnRules, { target: entity, season });
+      const time_of_day = time.time(state.clock);
+      const events = await validEventsFor(turnRules.filter(r => !r.hidden), { target: entity, season, time_of_day });
       const textEvents = await Promise.all(events.map(async event => ({
         description: event.description,
         conditions: describeConditions(event.conditions, entity, t),

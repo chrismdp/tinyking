@@ -24,6 +24,32 @@ export const turnRules = [
         ]
       }
     }
+  },
+  {
+    conditions: {
+      "target.attributes.energy": { lessEq: 2 },
+      "target.attributes.health": { greater: 2 }
+    },
+    event: {
+      rules: {
+        target: [
+          { event: { attributes: { lose: { health: 2 } } } }
+        ]
+      }
+    }
+  },
+  {
+    conditions: {
+      "target.attributes.energy": { lessEq: 2 },
+      "target.attributes.health": { lessEq: 2 }
+    },
+    event: {
+      rules: {
+        target: [
+          { event: { personable: { die: { exhaustion: true } } } }
+        ]
+      }
+    }
   }
 ];
 

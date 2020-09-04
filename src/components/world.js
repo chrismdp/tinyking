@@ -10,6 +10,7 @@ import Engine from "json-rules-engine-simplified";
 
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
+import { anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
 import { GameState } from "components/contexts";
@@ -175,6 +176,9 @@ const renderPerson = (ecs, id, fn) => {
   graphics.position.set(point.x, point.y);
 
   const person = new PIXI.Graphics();
+  if (personable.dead) {
+    person.angle = 90;
+  }
   person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
   person.lineStyle({color: "black", width: 2, alpha: 1});
   person.beginFill(personable.body);
@@ -451,9 +455,15 @@ export function World() {
         renderUI();
       },
       end_turn: async () => {
-        await endTurn(state);
-        const known = knownIds(state.ecs, state.ui.playerId);
-        await generateActions(state, known, state.ui.playerId);
+        var known = knownIds(state.ecs, state.ui.playerId);
+        await endTurn(state, known);
+        if (anyControlledAlive(state.ecs, state.ui.playerId)) {
+          known = knownIds(state.ecs, state.ui.playerId); // NOTE: Regenerate in case it's changed in the meantime
+          await generateActions(state, known, state.ui.playerId);
+        } else {
+          state.ui.show.game_over = true;
+          delete state.ui.show.next_action;
+        }
         renderUI();
       },
       click: () => {

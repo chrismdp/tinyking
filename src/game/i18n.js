@@ -4,7 +4,7 @@ export function phrasesFromObjectTree(object, sofar = "") {
       return arr;
     }
     const value = object[key];
-    if (typeof value === "string" || typeof value === "number") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
       return [...arr, { phrase: [...sofar, key].join("."), value } ];
     } else {
       return [...arr, ...phrasesFromObjectTree(value, [...sofar, key]) ];

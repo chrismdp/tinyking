@@ -3,12 +3,12 @@ import PropTypes from "prop-types";
 
 export function EventList({ description, conditions, events }) {
   return (<>
-    { description && (<p>{description}</p>) }
     { conditions && (<ul>{
       conditions.map(c => (
         <li key={c}>{c}</li>
       ))
     }</ul>) }
+    { description && (<p>{description}</p>) }
     { events && (Object.keys(events).map(name => (events[name].length > 0 ? <div key={name}>
       <span>{name}:</span>
       <ul>

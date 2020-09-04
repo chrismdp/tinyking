@@ -4,6 +4,7 @@ import { MapGenParams } from "components/mapgen";
 import { Info } from "components/info";
 import { Window } from "components/window";
 import { MainMenu } from "components/main_menu";
+import { GameOver } from "components/game_over";
 import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
 import { Supplies } from "components/supplies";
@@ -19,6 +20,7 @@ export function UserInterface() {
       {show.supplies && <Supplies/>}
       {show.next_action && <NextAction/>}
       {("main_menu" in show) && <MainMenu show={show.main_menu}/>}
+      {show.game_over && <GameOver/>}
       {show.tutorial && <Tutorial/>}
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
       {show.mapgen && <Window windowId="mapgen" x={60} y={70}><MapGenParams/></Window>}

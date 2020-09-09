@@ -1,4 +1,4 @@
-export const messages = {
+{
   "traits.values.add": "gains the trait %{value}",
   "traits.values.remove": "loses the trait %{value}",
   "attributes.gain.energy": "gains %{value} energy",
@@ -20,12 +20,12 @@ export const messages = {
   "season.is": "it is %{value}",
   "time_of_day.is": "it is the %{value}",
 
-  info: {
+  "info": {
     "end_turn_conditions": "At the end of this turn, because:",
     "you_control": "You control this character. Click and drag to assign to a job.",
     "chosen_action": "Chosen action:"
   },
-  terrain: {
+  "terrain": {
     "mountain": "Mountains",
     "deep water": "Ocean",
     "shallow water": "Coastal waters",
@@ -38,4 +38,4 @@ export const messages = {
     "forest": "Forest",
     "stone": "Stony ground"
   }
-};
+}

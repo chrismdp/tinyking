@@ -2,7 +2,7 @@ import Engine from "json-rules-engine-simplified";
 import selectn from "selectn";
 
 import * as time from "game/time";
-import { turnRules } from "data/turn";
+import turnRules from "data/turn.json";
 import { fullEntity } from "game/entities";
 
 export async function validEventsFor(rules, payload) {

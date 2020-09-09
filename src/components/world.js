@@ -18,7 +18,7 @@ import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
 import { PossibleAction } from "components/possible_action";
 
-import { actions } from "data/actions";
+import actions from "data/actions.json";
 
 const engine = new Engine(actions);
 

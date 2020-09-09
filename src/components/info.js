@@ -12,7 +12,7 @@ import { Name } from "components/name";
 import { describeConditions, describeValidEvents } from "components/possible_action";
 import { EventList } from "components/event_list";
 
-import { turnRules } from "data/turn";
+import turnRules from "data/turn.json";
 
 export function Info({ entityId }) {
   const state = React.useContext(GameState);

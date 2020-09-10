@@ -1,6 +1,6 @@
 import selectn from "selectn";
 
-export default function handleEvent(event, payload) {
+export default function handleEvent(event, payload, clock) {
   for (const key in event) {
     if (key === "conditions") {
       continue;
@@ -12,18 +12,17 @@ export default function handleEvent(event, payload) {
     }
     if (event[key].add) {
       const a = selectn(key, payload);
-      if (!a.includes(event[key].add)) {
-        a.push(event[key].add);
+      if (typeof event[key].add !== "object") {
+        throw "Add event must be passed an object" + JSON.stringify([ event[key], event[key].add ]);
+      }
+      for (const k in event[key].add) {
+        a[k] = event[key].add[k] === true ? true : event[key].add[k] + clock;
       }
       handled = true;
     }
     if (event[key].remove) {
       const a = selectn(key, payload);
-      for (let i = a.length - 1; i >= 0; i--) {
-        if (event[key].remove === a[i]) {
-          a.splice(i, 1);
-        }
-      }
+      delete a[event[key].remove];
       handled = true;
     }
     if (event[key].set) {

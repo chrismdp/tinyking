@@ -4,6 +4,7 @@ import * as time from "game/time";
 import turnRules from "data/turn.json";
 import { fullEntity } from "game/entities";
 import handleEvent from "game/events";
+import removeExpiredTraits from "game/traits";
 
 export async function validEventsFor(rules, payload) {
   if (!rules) {
@@ -16,9 +17,9 @@ export async function validEventsFor(rules, payload) {
   return await new Engine(rulesWithConditions).run(payload);
 }
 
-async function applyActionRules(rules, payload) {
+async function applyActionRules(rules, payload, clock) {
   const events = await validEventsFor(rules, payload);
-  events.forEach(event => handleEvent(event, payload));
+  events.forEach(event => handleEvent(event, payload, clock));
 }
 
 async function doAssignableJobs(state, known) {
@@ -32,8 +33,8 @@ async function doAssignableJobs(state, known) {
     const actor = fullEntity(state.ecs, actorId);
     const target = fullEntity(state.ecs, assignable.task.id);
 
-    applyActionRules(assignable.task.action.rules.me, actor);
-    applyActionRules(assignable.task.action.rules.target, target);
+    applyActionRules(assignable.task.action.rules.me, actor, state.clock);
+    applyActionRules(assignable.task.action.rules.target, target, state.clock);
 
     if (known.includes(assignable.task.id)) {
       state.redraws.push(assignable.task.id);
@@ -64,7 +65,7 @@ async function doEndTurnEffects(state, known) {
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
       if (event.rules) {
-        applyActionRules(event.rules.target, payload.target);
+        applyActionRules(event.rules.target, payload.target, state.clock);
       }
       if (known.includes(tickableId)) {
         state.redraws.push(tickableId);
@@ -77,4 +78,5 @@ export async function endTurn(state, known) {
   await doAssignableJobs(state, known);
   await doEndTurnEffects(state, known);
   state.clock++;
+  removeExpiredTraits(state.ecs.traits, state.clock);
 }

@@ -34,7 +34,7 @@ function generateFamily(size, x, y, generator, id) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
-      traits: { values: [] },
+      traits: { values: {} },
       supplies: { grain: 1 },
       homeable: { home: id },
       attributes: { energy: 10, health: 10 },
@@ -225,7 +225,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
       spatial: { x: tile.x, y: tile.y },
       mappable: { terrain: tile.terrain },
       tickable: {},
-      traits: { values: [] },
+      traits: { values: {} },
       valuable: { value: tile.economic_value },
       workable: {},
     })),

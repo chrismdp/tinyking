@@ -80,7 +80,7 @@
       "key": "prepare_gruel",
       "rules": {
         "me": [
-          { "event": { "traits.values": { "add": "eaten" } } },
+          { "event": { "traits.values": { "add": { "eaten": 4 } } } },
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
         ]
       }
@@ -103,35 +103,43 @@
               "traits.values": {
                 "not": {
                   "or": [
-                    { "includes": "thinned" },
-                    { "includes": "deforested" },
-                    { "includes":  "decimated" }
+                    { "has": "thinned" },
+                    { "has": "deforested" },
+                    { "has":  "decimated" }
                   ]
                 }
               }
             },
-            "event": { "traits.values": { "add": "thinned" } }
+            "event": { "traits.values": { "add": { "thinned" : 16 } } }
           },
           {
             "conditions": {
               "traits.values": {
-                "includes": "thinned"
+                "has": "thinned"
               }
             },
-            "event": { "traits.values": { "remove": "thinned", "add": "deforested" } }
+            "event": { "traits.values": { "remove": "thinned", "add": { "deforested": 32 } } }
           },
           {
             "conditions": {
               "traits.values": {
-                "includes": "deforested"
+                "has": "deforested"
               }
             },
-            "event": { "traits.values": { "remove": "deforested", "add": "decimated" } }
+            "event": { "traits.values": { "remove": "deforested", "add": { "decimated": 64 } } }
           },
           {
             "conditions": {
               "traits.values": {
-                "includes": "deforested"
+                "has": "decimated"
+              }
+            },
+            "event": { "traits.values": { "remove": "decimated" } }
+          },
+          {
+            "conditions": {
+              "traits.values": {
+                "has": "decimated"
               }
             },
             "event": { "mappable": { "set": { "terrain": "dirt" } } }
@@ -144,13 +152,13 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "forest" },
-      "not": { "target.traits.values": { "includes": "planted" } }
+      "not": { "target.traits.values": { "has": "planted" } }
     },
     "event": {
       "key": "plant_trees",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "add": "planted" } } }
+          { "event": { "traits.values": { "add": { "planted": true } } } }
         ]
       }
     }
@@ -158,13 +166,13 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "shallow water" },
-      "me.traits.values": { "includes": "boat" }
+      "me.traits.values": { "has": "boat" }
     },
     "event": {
       "key": "fish",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "add": "fished" } } }
+          { "event": { "traits.values": { "add": { "fished": 4 } } } }
         ]
       }
     }

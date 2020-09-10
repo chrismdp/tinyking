@@ -26,16 +26,14 @@
     }
   },
   {
+    "hidden": true,
     "conditions": {
       "target.personable": "exists",
-      "target.traits.values": { "includes": "eaten" },
-      "time_of_day": { "is": "night" }
+      "target.traits.values": { "has": "eaten" }
     },
     "event": {
-      "summary": "turn.eaten",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "remove": "eaten" } } },
           { "event": { "traits.values": { "remove": "hungry" } } },
           { "event": { "traits.values": { "remove": "starving" } } }
         ]
@@ -49,9 +47,9 @@
       "target.traits.values": {
         "not": {
           "or": [
-            { "includes": "eaten" },
-            { "includes": "hungry" },
-            { "includes": "starving" }
+            { "has": "eaten" },
+            { "has": "hungry" },
+            { "has": "starving" }
           ]
         }
       }
@@ -61,7 +59,7 @@
       "level": "warning",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "add": "hungry" } } }
+          { "event": { "traits.values": { "add": { "hungry": true } } } }
         ]
       }
     }
@@ -71,15 +69,16 @@
       "time_of_day": { "is": "night" },
       "target.personable": "exists",
       "target.traits.values": {
-        "includes": "hungry",
-        "not": { "includes": "eaten" }
+        "has": "hungry",
+        "not": { "has": "eaten" }
        }
     },
     "event": {
       "summary": "turn.starve",
+      "level": "warning",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "remove": "hungry", "add": "starving" } } }
+          { "event": { "traits.values": { "remove": "hungry", "add": { "starving": true } } } }
         ]
       }
     }
@@ -89,12 +88,13 @@
       "time_of_day": { "is": "night" },
       "target.personable": "exists",
       "target.traits.values": {
-        "includes": "starving",
-        "not": { "includes": "eaten" }
+        "has": "starving",
+        "not": { "has": "eaten" }
        }
     },
     "event": {
-      "summary": "turn.starvation",
+      "summary": "turn.die",
+      "level": "warning",
       "rules": {
         "target": [
           { "event": { "personable": { "die": { "hunger": true } } } }

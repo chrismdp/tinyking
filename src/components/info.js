@@ -68,7 +68,17 @@ export function Info({ entityId }) {
   return (
     <div>
       {title && (<h1 className="capitalise handle">{title}</h1>)}
-      { entity.traits && entity.traits.values.length > 0 && (<div>Traits: <strong>{ entity.traits.values.join(", ") }</strong></div>) }
+      { entity.traits && (Object.keys(entity.traits.values).length > 0) && (
+        <div><strong>{ Object.keys(entity.traits.values).map(trait => {
+          return (<span key={trait}>{trait} {
+            entity.traits.values[trait] !== true && (
+              <span className="knockedback">{t("info.until", {
+                time: time.full(entity.traits.values[trait]),
+                turns: entity.traits.values[trait] - state.clock
+              })}</span>)}
+          </span>);
+        }) }
+        </strong></div>) }
       { entity.attributes && (<div>
         {
           Object.keys(entity.attributes).filter(a => a != "id" && entity.attributes[a] < 10).map(k => {

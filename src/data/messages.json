@@ -1,27 +1,27 @@
 {
-  "traits.values.add": "gains the trait %{value}",
-  "traits.values.remove": "loses the trait %{value}",
-  "attributes.gain.energy": "gains %{value} energy",
-  "attributes.lose.energy": "loses %{value} energy",
+  "traits.values.add.eaten": "eats a meal",
+  "traits.values.add.hungry": "gets hungry",
+  "traits.values.add.starving": "begins to starve",
+  "traits.values.add.thinned": "has thinned vegetation",
+  "traits.values.add.planted": "is planted with new saplings",
+  "traits.values.add.deforested": "becomes deforested",
+  "traits.values.add.decimated": "loses almost all its trees",
+  "traits.values.remove": "loses '%{value}'",
   "supplies.gain.wood": "gains %{value} wood",
   "supplies.lose.wood": "loses %{value} wood",
   "supplies.gain.grain": "gains %{value} grain",
   "supplies.lose.grain": "loses %{value} grain",
-  "mappable.set.terrain": "the terrain changes to %{value}",
-  "attributes.lose.health": "loses %{value} health",
+  "mappable.set.terrain": "changes to %{value}",
   "personable.die.exhaustion": "dies of exhaustion!",
+  "personable.die.hunger": "dies of hunger!",
 
   "target.mappable.terrain.is": "the terrain is %{value}",
-  "target.attributes.energy.lessEq": "%{target}'s energy is %{value} or under",
-  "target.attributes.health.is": "%{target}'s health is %{value}",
-  "target.attributes.health.greater": "%{target}'s health is at least %{value}",
-  "target.attributes.health.lessEq": "%{target}'s health is %{value} or less",
 
-  "target.traits.values.not.includes": "%{target} is not marked %{value}",
-  "target.traits.values.not.or.0.includes": "%{target} is not marked %{value}",
-  "target.traits.values.not.or.1.includes": "%{target} is not marked %{value}",
-  "target.traits.values.not.or.2.includes": "%{target} is not marked %{value}",
-  "target.traits.values.includes": "%{target} has %{value}",
+  "target.traits.values.not.has": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.0.has": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.1.has": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.2.has": "%{target} is not marked %{value}",
+  "target.traits.values.has": "%{target} is marked %{value}",
 
   "target.personable": "%{target} is a person",
 
@@ -34,7 +34,8 @@
     "unless_actions": "(unless actions change things)",
     "because": "Because:",
     "you_control": "You control this character. Click and drag to assign to a job.",
-    "chosen_action": "Chosen action:"
+    "chosen_action": "Chosen action:",
+    "until": "(%{turns} turns left - until %{time})"
   },
 
   "next_action": {
@@ -58,7 +59,8 @@
   "turn": {
     "hunger": "%{target} will get hungry.",
     "eaten": "%{target} will think about where tomorrow's meal will come from...",
-    "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!"
+    "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!",
+    "die": "%{target} will die!"
   },
   "action": {
     "gather_grain": {

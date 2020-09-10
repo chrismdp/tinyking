@@ -20,7 +20,6 @@ export function EventList({ summary, conditions, events, level }) {
         { events[name].map(e => (<li key={e}>{e}</li>)) }
       </ul>
     </div> : null))) }
-    { events && Object.keys(events).some(n => events[n].length > 0) ? null : <p className="knockedback">Nothing happens</p> }
   </>);
 }
 

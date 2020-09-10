@@ -74,7 +74,7 @@ async function doEndTurnEffects(state, known) {
 }
 
 export async function endTurn(state, known) {
-  await doEndTurnEffects(state, known);
   await doAssignableJobs(state, known);
+  await doEndTurnEffects(state, known);
   state.clock++;
 }

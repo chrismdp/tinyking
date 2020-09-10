@@ -31,10 +31,17 @@
 
   "info": {
     "end_turn_conditions": "At the end of this turn",
+    "unless_actions": "(unless actions change things)",
     "because": "Because:",
     "you_control": "You control this character. Click and drag to assign to a job.",
     "chosen_action": "Chosen action:"
   },
+
+  "next_action": {
+    "left": "End turn (%{to_assign} to assign)",
+    "end_turn": "End turn"
+  },
+
   "terrain": {
     "mountain": "Mountains",
     "deep water": "Ocean",
@@ -49,9 +56,9 @@
     "stone": "Stony ground"
   },
   "turn": {
-    "hunger": "Because %{target} hasn't eaten today, they will get hungry later on tonight.",
-    "eaten": "%{target} has eaten today.",
-    "starve": "Because %{target} still hasn't eaten today, they will begin to starve!"
+    "hunger": "%{target} will get hungry.",
+    "eaten": "%{target} will think about where tomorrow's meal will come from...",
+    "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!"
   },
   "action": {
     "gather_grain": {

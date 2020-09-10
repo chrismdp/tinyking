@@ -94,6 +94,7 @@ export function Info({ entityId }) {
           <p>
             <strong>{t("info.end_turn_conditions")}</strong>
           </p>
+          <p>{t("info.unless_actions")}</p>
           <EventList
             events={event.effects}
             level={event.level}

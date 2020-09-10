@@ -256,7 +256,8 @@ const generateActions = async (state, known, playerId, t) => {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
         const season = time.season(state.clock);
-        const events = await engine.run({ season, target, me: player, other });
+        const time_of_day = time.time(state.clock);
+        const events = await engine.run({ season, time_of_day, target, me: player, other });
         possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
           id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
         }))];

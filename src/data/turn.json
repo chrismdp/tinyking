@@ -28,7 +28,8 @@
   {
     "conditions": {
       "target.personable": "exists",
-      "target.traits.values": { "includes": "eaten" }
+      "target.traits.values": { "includes": "eaten" },
+      "time_of_day": { "is": "night" }
     },
     "event": {
       "summary": "turn.eaten",
@@ -39,17 +40,6 @@
           { "event": { "traits.values": { "remove": "starving" } } }
         ]
       }
-    }
-  },
-  {
-    "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
-      "target.personable": "exists",
-      "target.traits.values": { "not": { "includes": "eaten" } }
-    },
-    "event": {
-      "summary": "turn.hunger",
-      "level": "warning"
     }
   },
   {
@@ -67,6 +57,8 @@
       }
     },
     "event": {
+      "summary": "turn.hunger",
+      "level": "warning",
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": "hungry" } } }

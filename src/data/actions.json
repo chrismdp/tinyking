@@ -5,8 +5,7 @@
       "not": { "other": { "habitable": "exists" } }
     },
     "event": {
-      "name": "Plough field",
-      "description": "Create furrows with minimal tools suitable for growing crops.",
+      "key": "plough_field",
       "rules": {
         "target": [
           { "event": { "mappable": { "set": { "terrain": "ploughed" } } } }
@@ -23,8 +22,7 @@
       }
     },
     "event": {
-      "name": "Gather grain",
-      "description": "Comb the fields for enough kernels of wild wheat to be able to sow a field.",
+      "key": "gather_grain",
       "rules": {
         "me": [
           { "event": { "supplies": { "gain": { "grain": 1 } } } }
@@ -37,8 +35,7 @@
       "target.mappable.terrain": { "is": "harvestable" }
     },
     "event": {
-      "name": "Harvest field",
-      "description": "Time to bring in the crops and reap the rewards of your hard work.",
+      "key": "harvest_field",
       "rules": {
         "me": [
           { "event": { "supplies": { "gain": { "grain": 5 } } } }
@@ -60,7 +57,7 @@
       }
     },
     "event": {
-      "name": "Sow field",
+      "key": "sow_field",
       "rules": {
         "me": [
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
@@ -78,8 +75,7 @@
       "me.attributes.energy": { "less": 3 }
     },
     "event": {
-      "name": "Recover",
-      "description": "The world is starting to swim before your eyes... time to crash out and recuperate.",
+      "key": "recover",
       "rules": {
         "me": [
           {
@@ -96,8 +92,7 @@
       "me.attributes.energy": { "greaterEq": 3, "less": 10 }
     },
     "event": {
-      "name": "Rest",
-      "description": "There's nothing to eat, but at least there's time to relax.",
+      "key": "rest",
       "rules": {
         "me": [
           { "event": { "attributes": { "gain": { "energy": 1 } } } }
@@ -113,8 +108,7 @@
       "me.attributes.energy": { "greater": 0, "less": 10 }
     },
     "event": {
-      "name": "Prepare gruel",
-      "description": "Mash together a basic gruel from the grain you have, and eat it cold.",
+      "key": "prepare_gruel",
       "rules": {
         "me": [
           { "event": { "attributes": { "gain": { "energy": 5 } } } },
@@ -128,7 +122,7 @@
       "target.mappable.terrain": { "is": "forest" }
     },
     "event": {
-      "name": "Chop trees",
+      "key": "chop_trees",
       "rules": {
         "me": [
           { "event": { "supplies": { "gain": { "wood": 1 } } } }
@@ -182,7 +176,7 @@
       "not": { "target.traits.values": { "includes": "planted" } }
     },
     "event": {
-      "name": "Plant trees",
+      "key": "plant_trees",
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": "planted" } } }
@@ -196,7 +190,7 @@
       "me.traits.values": { "includes": "boat" }
     },
     "event": {
-      "name": "Fish",
+      "key": "fish",
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": "fished" } } }

@@ -52,8 +52,9 @@ export function PossibleAction({ actorId, targetId, action }) {
 
   return (
     <div>
-      <h1>{ action.name }</h1>
-      <EventList description={action.description} events={events}/>
+      <h1>{ t("action." + action.key + ".name") }</h1>
+      <p>{ t("action." + action.key + ".summary") }</p>
+      <EventList events={events}/>
     </div>
   );
 }

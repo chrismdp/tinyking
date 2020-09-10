@@ -9,7 +9,10 @@ export async function validEventsFor(rules, payload) {
   if (!rules) {
     return [];
   }
-  const rulesWithConditions = rules.map(r => ({ conditions: {}, ...{...r, event: { conditions: r.conditions || {}, ...r.event } } }));
+  const rulesWithConditions = rules.map(r => ({ conditions: {}, ...{...r, event: {
+    conditions: r.conditions || {},
+    ...r.event
+  } } }));
   return await new Engine(rulesWithConditions).run(payload);
 }
 
@@ -22,8 +25,7 @@ async function applyActionRules(rules, payload) {
       }
       if (event[key].die) {
         payload.personable.dead = true;
-      }
-      else if (event[key].add) {
+      } else if (event[key].add) {
         const a = selectn(key, payload);
         if (!a.includes(event[key].add)) {
           a.push(event[key].add);
@@ -108,7 +110,9 @@ async function doEndTurnEffects(state, known) {
     const payload = { target: fullEntity(state.ecs, tickableId), season };
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
-      applyActionRules(event.rules.target, payload.target);
+      if (event.rules) {
+        applyActionRules(event.rules.target, payload.target);
+      }
       if (known.includes(tickableId)) {
         state.redraws.push(tickableId);
       }

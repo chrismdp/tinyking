@@ -8,6 +8,8 @@ import { Viewport } from "pixi-viewport";
 
 import Engine from "json-rules-engine-simplified";
 
+import { useTranslate } from "react-polyglot";
+
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { anyControlledAlive } from "game/playable";
@@ -169,7 +171,7 @@ const renderBuilding = (ecs, id) => {
   return graphics;
 };
 
-const renderPerson = (ecs, id, fn) => {
+const renderPerson = (ecs, id, fn, t) => {
   const personable = ecs.personable[id];
   const graphics = new PIXI.Graphics();
   const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
@@ -198,7 +200,7 @@ const renderPerson = (ecs, id, fn) => {
     person.beginFill(0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
-    var text = new PIXI.Text(ecs.assignable[id].task.action.name, {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    var text = new PIXI.Text(t("action." + ecs.assignable[id].task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
@@ -230,7 +232,7 @@ const renderPerson = (ecs, id, fn) => {
   return graphics;
 };
 
-const generateActions = async (state, known, playerId) => {
+const generateActions = async (state, known, playerId, t) => {
   if (state.pixi.highlight) {
     state.pixi.highlight.destroy({children: true});
   }
@@ -277,7 +279,7 @@ const generateActions = async (state, known, playerId) => {
       graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
       graphics.drawCircle(0, 0, 15);
       graphics.endFill();
-      var text = new PIXI.Text(r.action.name, {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
+      var text = new PIXI.Text(t("action." + r.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
       text.position.set(0, 30);
       text.anchor = { x: 0.5, y: 0.5 };
       graphics.addChild(text);
@@ -296,7 +298,7 @@ const generateActions = async (state, known, playerId) => {
   state.pixi.viewport.addChild(state.pixi.highlight);
 };
 
-const renderMap = async (app, state, popupOver, setPopupEntity) => {
+const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
@@ -347,7 +349,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity) => {
 
   pixi.viewport.addChild(base);
 
-  await generateActions(state, known, ui.playerId);
+  await generateActions(state, known, ui.playerId, t);
 
   app.ticker.add(() => {
     for (const id of state.redraws) {
@@ -372,7 +374,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity) => {
             person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
             person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
           }
-        });
+        }, t);
         layer.people.addChild(pixi[id]);
       }
       pixi[id].entityId = id;
@@ -413,6 +415,7 @@ export function World() {
   const popperElement = React.useRef(null);
   const arrowElement = React.useRef(null);
   const popper = React.useRef(null);
+  const t = useTranslate();
 
   const popupOver = React.useCallback(event => {
     if (event.currentTarget.entityId) {
@@ -480,7 +483,7 @@ export function World() {
         await endTurn(state, known);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
           known = knownIds(state.ecs, state.ui.playerId); // NOTE: Regenerate in case it's changed in the meantime
-          await generateActions(state, known, state.ui.playerId);
+          await generateActions(state, known, state.ui.playerId, t);
         } else {
           state.ui.show.game_over = true;
           delete state.ui.show.next_action;
@@ -527,7 +530,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state, popupOver, setPopupEntity);
+        await renderMap(app, state, popupOver, setPopupEntity, t);
 
         renderUI();
       },
@@ -549,7 +552,7 @@ export function World() {
       const seed =  Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
     })();
-  }, [renderUI, state, popupOver]);
+  }, [renderUI, state, popupOver, t]);
 
   return (
     <div id="game">

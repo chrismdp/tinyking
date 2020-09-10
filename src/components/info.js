@@ -9,6 +9,7 @@ import { validEventsFor } from "game/turn";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
+import { name } from "game/name";
 import { describeConditions, describeValidEvents } from "components/possible_action";
 import { EventList } from "components/event_list";
 
@@ -31,9 +32,9 @@ export function Info({ entityId }) {
       const time_of_day = time.time(state.clock);
       const events = await validEventsFor(turnRules.filter(r => !r.hidden), { target: entity, season, time_of_day });
       const textEvents = await Promise.all(events.map(async event => ({
-        description: event.description,
+        summary: event.summary,
         conditions: describeConditions(event.conditions, entity, t),
-        effects: await describeValidEvents(event.rules.target, entity, t)
+        effects: event.rules ? await describeValidEvents(event.rules.target, entity, t) : {},
       })));
       if (!isCancelled) {
         setEndTurnEvents(textEvents);
@@ -80,23 +81,22 @@ export function Info({ entityId }) {
         }
       </div>)}
       { entity.habitable && ("Owners: " + entity.habitable.owners)}
+      { actionDescription && (<>
+        <p>
+          <strong>{t("info.chosen_action")} {t("action." + actionDescription.action.key + ".name")}</strong>
+        </p>
+        <EventList summary={t("action." + actionDescription.action.key + ".summary")} events={actionDescription.events}/>
+      </>) || (iControl && (<p>{t("info.you_control")}</p>)) }
       { endTurnEvents && endTurnEvents.length > 0 && endTurnEvents.map((event, idx) => (
         <div key={idx}>
           <p>
             <strong>{t("info.end_turn_conditions")}</strong>
           </p>
           <EventList
-            description={event.description}
             events={event.effects}
+            summary={t(event.summary, { target: name(entity.nameable) })}
             conditions={event.conditions}/>
         </div>)) }
-      { actionDescription && (<>
-        <p>
-          <strong>{t("info.chosen_action")} {actionDescription.action.name}</strong>
-        </p>
-        <EventList events={actionDescription.events}/>
-      </>)
-      || (iControl && (<p>{t("info.you_control")}</p>)) }
     </div>
   );
 }

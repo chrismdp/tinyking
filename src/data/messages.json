@@ -17,11 +17,23 @@
   "target.attributes.health.greater": "%{target}'s health is at least %{value}",
   "target.attributes.health.lessEq": "%{target}'s health is %{value} or less",
 
+  "target.traits.values.not.includes": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.0.includes": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.1.includes": "%{target} is not marked %{value}",
+  "target.traits.values.not.or.2.includes": "%{target} is not marked %{value}",
+  "target.traits.values.includes": "%{target} is marked %{value}",
+  "target.traits.values.change.0": "%{target} will be marked %{value}",
+  "target.traits.values.change.1": "%{target} will be marked %{value}",
+
+  "target.personable": "%{target} is a person",
+
   "season.is": "it is %{value}",
   "time_of_day.is": "it is the %{value}",
+  "time_of_day.not.is": "it is not the %{value}",
 
   "info": {
-    "end_turn_conditions": "At the end of this turn, because:",
+    "end_turn_conditions": "At the end of this turn",
+    "because": "Because:",
     "you_control": "You control this character. Click and drag to assign to a job.",
     "chosen_action": "Chosen action:"
   },
@@ -37,5 +49,49 @@
     "dirt": "Mud and soil",
     "forest": "Forest",
     "stone": "Stony ground"
+  },
+  "turn": {
+    "hunger": "Because %{target} hasn't eaten today, they will get hungry overnight."
+  },
+  "action": {
+    "gather_grain": {
+      "name": "Gather Grain",
+      "summary": "Comb the fields for enough kernels of wild wheat to be able to sow a field."
+    },
+    "harvest_field": {
+      "name": "Harvest field",
+      "summary": "Time to bring in the crops and reap the rewards of all the hard work."
+    },
+    "plough_field": {
+      "name": "Plough field",
+      "summary": "Create furrows with minimal tools suitable for growing crops."
+    },
+    "sow_field": {
+      "name": "Sow field",
+      "summary": "Scatter grain into the ploughed furrows by hand, covering it as far as possible."
+    },
+    "recover": {
+      "name": "Recover",
+      "summary": "The world is starting to swim before your eyes... time to crash out and recuperate."
+    },
+    "rest": {
+      "name": "Rest",
+      "summary": "There's nothing to eat, but at least there's time to relax."
+    },
+    "prepare_gruel": {
+      "name": "Prepare gruel",
+      "summary": "Mash together a basic gruel from the grain you have, and eat it cold."
+    },
+    "chop_trees": {
+      "name": "Chop trees",
+      "summary": "Cut a few trees down using makeshift tools."
+    },
+    "plant_trees": {
+      "name": "Forestry",
+      "summary": "Attempt to restore the forest by spacing seedlings and planting where possible."
+    },
+    "fish": {
+      "name": "Fish"
+    }
   }
 }

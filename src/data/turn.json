@@ -86,7 +86,7 @@
       "summary": "turn.starve",
       "rules": {
         "target": [
-          { "event": { "traits.values": { "change": ["hungry", "starving"] } } }
+          { "event": { "traits.values": { "remove": "hungry", "add": "starving" } } }
         ]
       }
     }

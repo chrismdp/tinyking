@@ -1,9 +1,9 @@
 import Engine from "json-rules-engine-simplified";
-import selectn from "selectn";
 
 import * as time from "game/time";
 import turnRules from "data/turn.json";
 import { fullEntity } from "game/entities";
+import handleEvent from "game/events";
 
 export async function validEventsFor(rules, payload) {
   if (!rules) {
@@ -18,55 +18,7 @@ export async function validEventsFor(rules, payload) {
 
 async function applyActionRules(rules, payload) {
   const events = await validEventsFor(rules, payload);
-  events.forEach(event => {
-    for (const key in event) {
-      if (key === "conditions") {
-        continue;
-      }
-      if (event[key].die) {
-        payload.personable.dead = true;
-      } else if (event[key].add) {
-        const a = selectn(key, payload);
-        if (!a.includes(event[key].add)) {
-          a.push(event[key].add);
-        }
-      } else if (event[key].remove) {
-        const a = selectn(key, payload);
-        for (let i = a.length - 1; i >= 0; i--) {
-          if (event[key].remove === a[i]) {
-            a.splice(i, 1);
-          }
-        }
-      } else if (event[key].change) {
-        const a = selectn(key, payload);
-        for (let i = a.length - 1; i >= 0; i--) {
-          if (event[key].change[0] === a[i]) {
-            a[i] = event[key].change[1];
-          }
-        }
-      } else if (event[key].set) {
-        for (const k in event[key].set) {
-          selectn(key, payload)[k] = event[key].set[k];
-        }
-      } else if (event[key].gain) {
-        for (const k in event[key].gain) {
-          const thing = selectn(key, payload);
-          if (key == "attributes") {
-            thing[k] = Math.min(10, (thing[k] || 0) + event[key].gain[k]);
-          } else {
-            thing[k] = (thing[k] || 0) + event[key].gain[k];
-          }
-        }
-      } else if (event[key].lose) {
-        for (const k in event[key].lose) {
-          const thing = selectn(key, payload);
-          thing[k] = Math.max(0, (thing[k] || 0) - event[key].lose[k]);
-        }
-      } else {
-        throw "Don't know how to process event: " + JSON.stringify([ key, event[key] ]);
-      }
-    }
-  });
+  events.forEach(event => handleEvent(event, payload));
 }
 
 async function doAssignableJobs(state, known) {
@@ -106,8 +58,9 @@ async function doAssignableJobs(state, known) {
 
 async function doEndTurnEffects(state, known) {
   const season = time.season(state.clock);
+  const time_of_day = time.time(state.clock);
   for (const tickableId in state.ecs.tickable) {
-    const payload = { target: fullEntity(state.ecs, tickableId), season };
+    const payload = { target: fullEntity(state.ecs, tickableId), season, time_of_day };
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
       if (event.rules) {

@@ -47,7 +47,8 @@
       "target.traits.values": { "not": { "includes": "eaten" } }
     },
     "event": {
-      "summary": "turn.hunger"
+      "summary": "turn.hunger",
+      "level": "warning"
     }
   },
   {
@@ -65,7 +66,6 @@
       }
     },
     "event": {
-      "summary": "turn.hunger",
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": "hungry" } } }

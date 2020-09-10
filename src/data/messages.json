@@ -49,7 +49,7 @@
     "stone": "Stony ground"
   },
   "turn": {
-    "hunger": "Because %{target} hasn't eaten today, they will get hungry overnight.",
+    "hunger": "Because %{target} hasn't eaten today, they will get hungry later on tonight.",
     "starve": "Because %{target} still hasn't eaten today, they will begin to starve!"
   },
   "action": {

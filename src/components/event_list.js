@@ -2,10 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useTranslate } from "react-polyglot";
 
-export function EventList({ summary, conditions, events }) {
+export function EventList({ summary, conditions, events, level }) {
   const t = useTranslate();
   return (<>
-    { summary && (<p>{(summary)}</p>) }
+    { summary && (<p className={"level-" + level || "info"}>{(summary)}</p>) }
     { conditions && (<div className={summary ? "knockedback" : ""}>
       <p>{t("info.because")}</p>
       <ul>{
@@ -26,6 +26,7 @@ export function EventList({ summary, conditions, events }) {
 
 EventList.propTypes = {
   summary: PropTypes.string,
+  level: PropTypes.string,
   description: PropTypes.string,
   conditions: PropTypes.arrayOf(PropTypes.string),
   events: PropTypes.object,

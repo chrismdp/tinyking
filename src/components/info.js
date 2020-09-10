@@ -33,6 +33,7 @@ export function Info({ entityId }) {
       const events = await validEventsFor(turnRules.filter(r => !r.hidden), { target: entity, season, time_of_day });
       const textEvents = await Promise.all(events.map(async event => ({
         summary: event.summary,
+        level: event.level,
         conditions: describeConditions(event.conditions, entity, t),
         effects: event.rules ? await describeValidEvents(event.rules.target, entity, t) : {},
       })));
@@ -85,8 +86,9 @@ export function Info({ entityId }) {
         <p>
           <strong>{t("info.chosen_action")} {t("action." + actionDescription.action.key + ".name")}</strong>
         </p>
-        <EventList summary={t("action." + actionDescription.action.key + ".summary")} events={actionDescription.events}/>
-      </>) || (iControl && (<p>{t("info.you_control")}</p>)) }
+        <EventList level={actionDescription.action.level} summary={t("action." + actionDescription.action.key + ".summary")} events={actionDescription.events}/>
+      </>)
+          || (iControl && (<p>{t("info.you_control")}</p>)) }
       { endTurnEvents && endTurnEvents.length > 0 && endTurnEvents.map((event, idx) => (
         <div key={idx}>
           <p>
@@ -94,6 +96,7 @@ export function Info({ entityId }) {
           </p>
           <EventList
             events={event.effects}
+            level={event.level}
             summary={t(event.summary, { target: name(entity.nameable) })}
             conditions={event.conditions}/>
         </div>)) }

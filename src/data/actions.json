@@ -72,46 +72,13 @@
     "conditions": {
       "target.habitable": "exists",
       "target.habitable.owners": { "includes": "$me.id" },
-      "me.attributes.energy": { "less": 3 }
-    },
-    "event": {
-      "key": "recover",
-      "rules": {
-        "me": [
-          {
-            "event": { "attributes": { "gain": { "energy": 1 } } }
-          }
-        ]
-      }
-    }
-  },
-  {
-    "conditions": {
-      "target.habitable": "exists",
-      "target.habitable.owners": { "includes": "$me.id" },
-      "me.attributes.energy": { "greaterEq": 3, "less": 10 }
-    },
-    "event": {
-      "key": "rest",
-      "rules": {
-        "me": [
-          { "event": { "attributes": { "gain": { "energy": 1 } } } }
-        ]
-      }
-    }
-  },
-  {
-    "conditions": {
-      "target.habitable": "exists",
-      "target.habitable.owners": { "includes": "$me.id" },
-      "me.supplies.grain": { "greater": 0 },
-      "me.attributes.energy": { "greater": 0, "less": 10 }
+      "me.supplies.grain": { "greater": 0 }
     },
     "event": {
       "key": "prepare_gruel",
       "rules": {
         "me": [
-          { "event": { "attributes": { "gain": { "energy": 5 } } } },
+          { "event": { "traits.values": { "add": "eaten" } } },
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
         ]
       }

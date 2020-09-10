@@ -31,6 +31,7 @@
       "target.traits.values": { "includes": "eaten" }
     },
     "event": {
+      "summary": "turn.eaten",
       "rules": {
         "target": [
           { "event": { "traits.values": { "remove": "eaten" } } },

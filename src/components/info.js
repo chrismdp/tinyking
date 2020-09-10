@@ -97,7 +97,7 @@ export function Info({ entityId }) {
           <EventList
             events={event.effects}
             level={event.level}
-            summary={t(event.summary, { target: name(entity.nameable) })}
+            summary={event.summary && t(event.summary, { target: name(entity.nameable) })}
             conditions={event.conditions}/>
         </div>)) }
     </div>

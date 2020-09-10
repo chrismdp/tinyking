@@ -21,7 +21,7 @@
   "target.traits.values.not.or.0.includes": "%{target} is not marked %{value}",
   "target.traits.values.not.or.1.includes": "%{target} is not marked %{value}",
   "target.traits.values.not.or.2.includes": "%{target} is not marked %{value}",
-  "target.traits.values.includes": "%{target} has '%{value}'",
+  "target.traits.values.includes": "%{target} has %{value}",
 
   "target.personable": "%{target} is a person",
 
@@ -50,6 +50,7 @@
   },
   "turn": {
     "hunger": "Because %{target} hasn't eaten today, they will get hungry later on tonight.",
+    "eaten": "%{target} has eaten today.",
     "starve": "Because %{target} still hasn't eaten today, they will begin to starve!"
   },
   "action": {

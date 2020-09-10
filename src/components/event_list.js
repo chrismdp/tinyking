@@ -6,7 +6,7 @@ export function EventList({ summary, conditions, events, level }) {
   const t = useTranslate();
   return (<>
     { summary && (<p className={"level-" + level || "info"}>{(summary)}</p>) }
-    { conditions && (<div className={summary ? "knockedback" : ""}>
+    { conditions && (<div className="knockedback">
       <p>{t("info.because")}</p>
       <ul>{
         conditions.map(c => (

@@ -4,6 +4,7 @@
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "or": [ { "is": "grassland" }, { "is": "dirt" } ] },
       "not": { "other": { "habitable": "exists" } },
+      "season": { "not": { "is": "winter" } },
       "distance": { "lessEq": 2 }
     },
     "event": {
@@ -57,9 +58,7 @@
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "ploughed" },
       "me.supplies.grain": { "greater": 0 },
-      "season": {
-        "or": [ { "is": "spring" } , { "is": "summer" } ]
-      },
+      "season": { "not": { "is": "winter" } },
       "distance": { "lessEq": 2 }
     },
     "event": {

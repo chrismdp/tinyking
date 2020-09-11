@@ -140,6 +140,13 @@ const renderTile = (ecs, id) => {
       graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, 3);
     }
   }
+  if (ecs.mappable[id].terrain == "dirt") {
+    graphics.beginFill(0x000000);
+    for(i = 0; i < 20; i++) {
+      graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, Math.random() * 7);
+    }
+    graphics.endFill();
+  }
   graphics.endFill();
   //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
   return graphics;
@@ -524,7 +531,7 @@ export function World() {
       autoResize: true
     });
 
-    state.ui = { ...state.ui, show: { main_menu: true }, actions: {
+    state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, target) => {
         state.ecs.assignable[id].task = target;
         state.ecs.spatial[id].x = target.hex.x;

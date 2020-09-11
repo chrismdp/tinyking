@@ -63,9 +63,10 @@ async function doEndTurnEffects(state) {
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
       if (event.rules) {
+        const changed = await applyActionRules(event.rules.target, payload.target, state);
         state.redraws = [
           ...state.redraws,
-          await applyActionRules(event.rules.target, payload.target, state)
+          ...changed
         ];
       }
     }

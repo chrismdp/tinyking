@@ -67,7 +67,9 @@ export function Info({ entityId }) {
 
   return (
     <div>
-      {title && (<h1 className="capitalise handle">{title}</h1>)}
+      {title && (<h1 className="capitalise handle">{title}
+        <span className="knockedback"> #{entity.id}</span>
+      </h1>)}
       { entity.traits && (Object.keys(entity.traits.values).length > 0) && (
         <div><strong>{ Object.keys(entity.traits.values).map(trait => {
           return (<span key={trait}>{trait} {

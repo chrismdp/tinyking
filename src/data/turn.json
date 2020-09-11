@@ -2,7 +2,10 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "sown" },
-      "season": { "is": "summer" }
+      "or": [
+        { "season": { "is": "summer" } },
+        { "season": { "is": "spring" }, "time_of_day": { "is": "night" } }
+      ]
     },
     "event": {
       "rules": {
@@ -15,12 +18,38 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "growing" },
-      "season": { "is": "autumn" }
+      "or": [
+        { "season": { "is": "autumn" } },
+        { "season": { "is": "summer" }, "time_of_day": { "is": "night" } }
+      ]
     },
     "event": {
       "rules": {
         "target": [
           { "event": { "mappable": { "set": { "terrain": "harvestable" } } } }
+        ]
+      }
+    }
+  },
+  {
+    "conditions": {
+      "target.mappable.terrain": {
+        "or": [
+          { "is": "growing" },
+          { "is": "harvestable" },
+          { "is": "sown" },
+          { "is": "ploughed" }
+        ]
+      },
+      "or": [
+        { "season": { "is": "winter" } },
+        { "season": { "is": "autumn" }, "time_of_day": { "is": "night" } }
+      ]
+    },
+    "event": {
+      "rules": {
+        "target": [
+          { "event": { "mappable": { "set": { "terrain": "dirt" } } } }
         ]
       }
     }

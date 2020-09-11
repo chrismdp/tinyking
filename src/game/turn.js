@@ -58,6 +58,8 @@ async function doAssignableJobs(state) {
 async function doEndTurnEffects(state) {
   const season = time.season(state.clock);
   const time_of_day = time.time(state.clock);
+  // NOTE: The order of this will become important, as the people who are
+  // processed first will be fed first!
   for (const tickableId in state.ecs.tickable) {
     const payload = { target: fullEntity(state.ecs, tickableId), season, time_of_day };
     const events = await validEventsFor(turnRules, payload);

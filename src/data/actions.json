@@ -75,22 +75,6 @@
   },
   {
     "conditions": {
-      "target.habitable": "exists",
-      "target.habitable.owners": { "includes": "$me.id" },
-      "me.supplies.grain": { "greater": 0 }
-    },
-    "event": {
-      "key": "prepare_gruel",
-      "rules": {
-        "me": [
-          { "event": { "traits.values": { "add": { "eaten": 4 } } } },
-          { "event": { "supplies": { "lose": { "grain": 1 } } } }
-        ]
-      }
-    }
-  },
-  {
-    "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "forest" },
       "distance": { "lessEq": 2 }

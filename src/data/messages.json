@@ -20,6 +20,7 @@
 
   "target.traits.values.not.has": "%{target} is not marked %{value}",
   "target.traits.values.has": "%{target} is marked %{value}",
+  "target.supplies.grain.greaterEq": "%{target} has at least %{value} grain",
 
   "target.personable": "%{target} is a person",
 
@@ -112,10 +113,10 @@
       "start": "You are a Tiny King, destined for greatness! Your little lands may only consist of a small wooden shack, and a field, but in them there is the potential for a bustling economy.",
       "time": "It's the beginning of spring - plenty of time until winter. There's one day in each season, and you can take four actions a day: one each for morning, afternoon, evening and night.",
       "supplies": "You have some food stored, but you'll need to grow some grain to stop your supplies dwindling too much. You must eat each day, or you'll get hungry.",
-      "afternoon": "The day has brightened up, but you have a hard decision to make. You have only one portion of grain. Do you mash it together to make a simple meal, or do you sow it into your field?",
-      "eat": "Your stomach made the decision for you! If you tap or hover on your character, you'll see that they've now eaten, and this effect will last until this time tomorrow. Your field will have to go un-sown for now.",
-      "skipping_turns": "Luckily there are other ways to pick up grain, but you'll need to wait for the summer. You don't have to take an action each turn if you don't want to. You can see that evening has drawn in, and certain actions will be unavailable at night.",
-      "summer": "It's now the summer, and the grasslands are full of wild grain, waiting to be picked. Time to get that field planted, and to make another meal.",
+      "afternoon": "The day has brightened up, but you have a hard decision to make. You have only one portion of grain. Do you keep it to make a simple meal this evening, or do you sow it into your field?",
+      "eat": "Your stomach made the decision for you! If you tap or hover on your character, you'll see that they've now eaten, and this effect will last until this time tomorrow. There's lots of detail about what will happen in grey text in case you need it.",
+      "skipping_turns": "Luckily there are other ways to pick up grain, but you'll need to wait for the summer. Night has drawn in, and certain actions will be unavailable until tomorrow. Time to barricade the doors, and get a good night's sleep.",
+      "summer": "It's now the summer, and the grasslands are full of wild grain, waiting to be picked. Time to get that field planted.",
       "sow": "Excellent - now you have enough to eat today, and to sow your field.",
       "harvest": "Your crops are ready! Time to reap the rewards, quite literally. Now you'll have enough grain to last for quite some time.",
       "survived": "Well done! You've learnt how to survive the winter. Try some different actions, and explore the world. Who knows who (or what) already lives here..."
@@ -128,12 +129,13 @@
       },
       "eat_grain": {
         "main": "Survive the Winter",
-        "steps.0": "Drag your character to 'Prepare Gruel' on your house",
-        "steps.1": "Press 'End turn'"
+        "steps.0": "Wait for evening by pressing 'End turn'",
+        "steps.1": "Hover or tap on your character to check they will eat this evening",
+        "steps.2": "Press 'End turn' again"
       },
       "skip_turns": {
         "main": "Survive the Winter",
-        "steps.0": "Press 'End turn' twice to wait for the morning"
+        "steps.0": "Press 'End turn' to wait for the morning"
       },
       "gather": {
         "main": "Survive the Winter",
@@ -144,13 +146,11 @@
       "sow": {
         "main": "Survive the Winter",
         "steps.0": "Sow the grain in the field",
-        "steps.1": "Prepare yourself another meal",
-        "steps.2": "Press 'End turn' until the morning"
+        "steps.1": "Press 'End turn' twice to wait for the morning"
       },
       "harvest": {
         "main": "Survive the Winter",
-        "steps.0": "Harvest your field",
-        "steps.1": "Prepare yourself another meal"
+        "steps.0": "Harvest your field"
       }
     }
   }

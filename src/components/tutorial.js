@@ -23,8 +23,8 @@ const tutorial = [
   { description: "afternoon" },
   {
     task: "eat_grain",
-    count: 2,
-    continueOnClock: 2
+    count: 3,
+    continueOnClock: 3
   },
   { description: "eat" },
   { description: "skipping_turns" },
@@ -48,8 +48,8 @@ const tutorial = [
   { description: "harvest" },
   {
     task: "harvest",
-    count: 2,
-    continueOnClock: 10
+    count: 1,
+    continueOnClock: 9
   },
   { description: "survived" },
 ];

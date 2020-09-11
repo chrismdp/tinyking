@@ -55,16 +55,19 @@
     }
   },
   {
-    "hidden": true,
     "conditions": {
       "target.personable": "exists",
-      "target.traits.values": { "has": "eaten" }
+      "time_of_day": { "is": "evening" },
+      "target.traits.values": { "not": { "has": "eaten" } },
+      "target.supplies.grain": { "greaterEq": 1 }
     },
     "event": {
       "rules": {
         "target": [
+          { "event": { "traits.values": { "add": { "eaten": 4 } } } },
           { "event": { "traits.values": { "remove": "hungry" } } },
-          { "event": { "traits.values": { "remove": "starving" } } }
+          { "event": { "traits.values": { "remove": "starving" } } },
+          { "event": { "supplies": { "lose": { "grain": 1 } } } }
         ]
       }
     }

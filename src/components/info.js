@@ -23,7 +23,7 @@ export function Info({ entityId }) {
 
   const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
   const title = entity.mappable ? t("terrain." + entity.mappable.terrain) : (entity.nameable ? (<Name nameable={entity.nameable}/>) : "Information");
-  const iControl = state.ecs.playable[state.ui.playerId].controls.includes(entityId);
+  const iControl = entity.personable && entity.personable.controller == state.ui.playerId;
 
   React.useEffect(() => {
     var isCancelled = false;

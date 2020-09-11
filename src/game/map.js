@@ -58,7 +58,7 @@ export function generateFamilies({ ecs, seed, playerStart }) {
     var spatial = ecs.spatial[id];
     if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
       const player = { ...generateFamily(1, spatial.x, spatial.y, generator, id)[0],
-        playable: { known: [], controls: [] },
+        playable: { known: [] },
         assignable: {}
       };
       people = [ ...people, player ];
@@ -253,7 +253,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
 
   generateFamilies({ ecs, seed, playerStart });
   const playerId = Object.values(ecs.playable)[0].id;
-  ecs.playable[playerId].controls = [playerId];
+  ecs.personable[playerId].controller = playerId;
   discoverStartingTiles(ecs, playerId, playerStart);
 
   await progressUpdate("complete");

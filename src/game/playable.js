@@ -3,6 +3,10 @@ export function discoverTiles(ecs, action) {
   ecs.playable[id].known.push(...tiles);
 }
 
+export function controlled(ecs, playableId) {
+  return Object.values(ecs.personable).filter(p => p.controller == playableId);
+}
+
 export function anyControlledAlive(ecs, playableId) {
-  return ecs.playable[playableId].controls.some(id => !ecs.personable[id].dead);
+  return controlled(ecs, playableId).some(p => !p.dead);
 }

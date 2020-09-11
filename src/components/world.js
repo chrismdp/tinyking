@@ -100,7 +100,9 @@ const entityMouseUp = (id, click, drop, state) => e => {
         drop(id, t);
       }
     });
-    e.currentTarget.position = dropped ? e.data.getLocalPosition(e.currentTarget.parent) : { ...e.currentTarget.custom.startPosition };
+    e.currentTarget.position = dropped ?
+      e.data.getLocalPosition(e.currentTarget.parent) :
+      { ...e.currentTarget.custom.startPosition };
   }
 
   e.currentTarget.custom.state.pixi.viewport.plugins.resume("drag");
@@ -110,10 +112,10 @@ const entityMouseUp = (id, click, drop, state) => e => {
   state.redraws.push(id);
 };
 
-const knownIds = (ecs, playerId) => {
+const knownIds = (ecs, tiles) => {
   var result = [];
   for (const id in ecs.spatial) {
-    for (const tile of ecs.playable[playerId].known) {
+    for (const tile of tiles) {
       if (ecs.spatial[id].x == tile.x && ecs.spatial[id].y == tile.y) {
         result.push(id);
         break;
@@ -340,7 +342,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
     people: new PIXI.Container(),
   };
 
-  const known = knownIds(ecs, ui.playerId);
+  const known = knownIds(ecs, ecs.playable[ui.playerId].known);
 
   var base = new PIXI.Container();
 
@@ -480,10 +482,10 @@ export function World() {
         renderUI();
       },
       end_turn: async () => {
-        var known = knownIds(state.ecs, state.ui.playerId);
+        var known = knownIds(state.ecs, state.ecs.playable[state.ui.playerId].known);
         await endTurn(state, known);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
-          known = knownIds(state.ecs, state.ui.playerId); // NOTE: Regenerate in case it's changed in the meantime
+          known = knownIds(state.ecs, state.ecs.playable[state.ui.playerId].known); // NOTE: Regenerate in case it's changed in the meantime
           await generateActions(state, known, state.ui.playerId, t);
         } else {
           state.ui.show.game_over = true;

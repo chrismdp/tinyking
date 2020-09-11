@@ -61,12 +61,14 @@ const handlers = {
 
 export default function handleEvent(target, payload, state) {
   return [ ...Object.keys(target).reduce((redraws, key) => {
-    const actions = target[key];
-    for (const action in actions) {
-      if (!(action in handlers)) {
-        throw "Don't know how to process action: " + JSON.stringify([ action, target ]);
+    if (key != "conditions") {
+      const actions = target[key];
+      for (const action in actions) {
+        if (!(action in handlers)) {
+          throw "Don't know how to process action: " + JSON.stringify([ action, target ]);
+        }
+        handlers[action](key, actions[action], payload, state).forEach(id => redraws.add(id));
       }
-      handlers[action](key, actions[action], payload, state).forEach(id => redraws.add(id));
     }
     return redraws;
   }, new Set()) ];

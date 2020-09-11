@@ -21,10 +21,7 @@ export function describeConditions(conditions, entity, t) {
 
 export async function describeValidEvents(rules, payload, t) {
   const events = await validEventsFor(rules, payload);
-  const phrases = events.reduce((result, event) => [
-    ...result,
-    ...phrasesFromObjectTree(event)
-  ], []);
+  const phrases = events.map(event => phrasesFromObjectTree(event)).flat();
   return {
     [name(payload.nameable)]: phrases.map(({ phrase, value }) =>
       t(phrase, { name: name(payload.nameable), value, smart_count: value }))

@@ -9,5 +9,5 @@ export function phrasesFromObjectTree(object, sofar = "") {
     } else {
       return [...arr, ...phrasesFromObjectTree(value, [...sofar, key]) ];
     }
-  }, []);
+  }, []).map(p => ({ ...p, phrase: p.phrase.replace(/or\.\d+\./g, "")}));
 }

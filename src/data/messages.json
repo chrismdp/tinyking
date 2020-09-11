@@ -35,7 +35,7 @@
     "because": "Because:",
     "you_control": "You control this character. Click and drag to assign to a job.",
     "chosen_action": "Chosen action:",
-    "until": "(%{turns} turns left - until %{time})"
+    "until": "(%{smart_count} turn left - until %{time}) |||| (%{smart_count} turns left - until %{time})"
   },
 
   "next_action": {

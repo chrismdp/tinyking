@@ -74,7 +74,7 @@ export function Info({ entityId }) {
             entity.traits.values[trait] !== true && (
               <span className="knockedback">{t("info.until", {
                 time: time.full(entity.traits.values[trait]),
-                turns: entity.traits.values[trait] - state.clock
+                smart_count: entity.traits.values[trait] - state.clock
               })}</span>)}
           </span>);
         }) }

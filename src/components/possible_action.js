@@ -15,6 +15,7 @@ export function describeConditions(conditions, entity, t) {
   return phrasesFromObjectTree(conditions).map(({ phrase, value }) => t(phrase, {
     target: name(entity.nameable),
     value,
+    smart_count: value
   }));
 }
 
@@ -26,7 +27,7 @@ export async function describeValidEvents(rules, payload, t) {
   ], []);
   return {
     [name(payload.nameable)]: phrases.map(({ phrase, value }) =>
-      t(phrase, { name: name(payload.nameable), value }))
+      t(phrase, { name: name(payload.nameable), value, smart_count: value }))
   };
 }
 

@@ -12,6 +12,7 @@
   "supplies.gain.grain": "gains %{value} grain",
   "supplies.lose.grain": "loses %{value} grain",
   "mappable.set.terrain": "changes to %{value}",
+  "personable.explore.radius": "explore %{smart_count} tile in each direction |||| reveal %{smart_count} tiles in each direction",
   "personable.die.exhaustion": "dies of exhaustion!",
   "personable.die.hunger": "dies of hunger!",
 
@@ -101,6 +102,10 @@
     },
     "fish": {
       "name": "Fish"
+    },
+    "explore": {
+      "name": "Explore",
+      "summary": "Explore the surrounding area."
     }
   }
 }

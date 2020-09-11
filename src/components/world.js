@@ -10,11 +10,12 @@ import Engine from "json-rules-engine-simplified";
 
 import { useTranslate } from "react-polyglot";
 
-import { Hex, HEX_SIZE, generateMap } from "game/map";
+import { Grid, Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
+import { entitiesAtLocation } from "game/spatial";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -110,19 +111,6 @@ const entityMouseUp = (id, click, drop, state) => e => {
   e.currentTarget.off("touchmove", entityMouseMove);
   delete e.currentTarget.custom;
   state.redraws.push(id);
-};
-
-const knownIds = (ecs, tiles) => {
-  var result = [];
-  for (const id in ecs.spatial) {
-    for (const tile of tiles) {
-      if (ecs.spatial[id].x == tile.x && ecs.spatial[id].y == tile.y) {
-        result.push(id);
-        break;
-      }
-    }
-  }
-  return result;
 };
 
 const terrainColours = {
@@ -252,16 +240,28 @@ const generateActions = async (state, known, playerId, t) => {
   }, {});
 
   const player = fullEntity(state.ecs, playerId);
+  const playerHex = Hex(player.spatial.x, player.spatial.y);
 
+  const knownTiles = Object.keys(tiles);
   for (const coord in tiles) {
     for (const target of tiles[coord]) {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
-        const season = time.season(state.clock);
-        const time_of_day = time.time(state.clock);
-        const events = await engine.run({ season, time_of_day, target, me: player, other });
+
+        const hex = Hex(target.spatial.x, target.spatial.y);
+        const neighbours = Grid.hexagon({ radius: 1, center: hex }).map(n => n.x + "," + n.y);
+
+        const events = await engine.run({
+          season: time.season(state.clock),
+          time_of_day: time.time(state.clock),
+          distance: hex.distance(playerHex),
+          neighbour_count: neighbours.filter(t => knownTiles.includes(t)).length - 1,
+          me: player,
+          target,
+          other
+        });
         possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
-          id: target.id, action, hex: Hex(target.spatial.x, target.spatial.y)
+          id: target.id, action, hex
         }))];
       }
     }
@@ -342,7 +342,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
     people: new PIXI.Container(),
   };
 
-  const known = knownIds(ecs, ecs.playable[ui.playerId].known);
+  const known = entitiesAtLocation(ecs, ecs.playable[ui.playerId].known);
 
   var base = new PIXI.Container();
 
@@ -355,37 +355,43 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
   await generateActions(state, known, ui.playerId, t);
 
   app.ticker.add(() => {
-    for (const id of state.redraws) {
-      if (id in pixi) {
-        pixi[id].destroy();
-        delete pixi[id];
+    if (state.redraws.length > 0) {
+      const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
+      for (const id of state.redraws) {
+        if (!known.includes(id)) {
+          continue;
+        }
+        if (id in pixi) {
+          pixi[id].destroy();
+          delete pixi[id];
+        }
+        if (ecs.mappable[id]) {
+          pixi[id] = renderTile(ecs, id);
+          layer.tiles.addChild(pixi[id]);
+        } else if (ecs.habitable[id]) {
+          pixi[id] = renderBuilding(ecs, id);
+          layer.buildings.addChild(pixi[id]);
+        } else if (ecs.personable[id]) {
+          pixi[id] = renderPerson(ecs, id, (person, parent) => {
+            if (ecs.assignable[id]) {
+              person.interactive = true;
+              person.on("mousedown", entityMouseDown(state, base, parent, setPopupEntity));
+              person.on("touchstart", entityMouseDown(state, base, parent, setPopupEntity));
+              person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+              person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+              person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+              person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+            }
+          }, t);
+          layer.people.addChild(pixi[id]);
+        }
+        pixi[id].entityId = id;
+        pixi[id].interactive = true;
+        pixi[id].on("mouseover", popupOver);
+        pixi[id].on("touchstart", popupOver);
       }
-      if (ecs.mappable[id]) {
-        pixi[id] = renderTile(ecs, id);
-        layer.tiles.addChild(pixi[id]);
-      } else if (ecs.habitable[id]) {
-        pixi[id] = renderBuilding(ecs, id);
-        layer.buildings.addChild(pixi[id]);
-      } else if (ecs.personable[id]) {
-        pixi[id] = renderPerson(ecs, id, (person, parent) => {
-          if (ecs.assignable[id]) {
-            person.interactive = true;
-            person.on("mousedown", entityMouseDown(state, base, parent, setPopupEntity));
-            person.on("touchstart", entityMouseDown(state, base, parent, setPopupEntity));
-            person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-            person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-            person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-            person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-          }
-        }, t);
-        layer.people.addChild(pixi[id]);
-      }
-      pixi[id].entityId = id;
-      pixi[id].interactive = true;
-      pixi[id].on("mouseover", popupOver);
-      pixi[id].on("touchstart", popupOver);
+      state.redraws = [];
     }
-    state.redraws = [];
   });
 };
 
@@ -482,10 +488,9 @@ export function World() {
         renderUI();
       },
       end_turn: async () => {
-        var known = knownIds(state.ecs, state.ecs.playable[state.ui.playerId].known);
-        await endTurn(state, known);
+        await endTurn(state);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
-          known = knownIds(state.ecs, state.ecs.playable[state.ui.playerId].known); // NOTE: Regenerate in case it's changed in the meantime
+          const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
           await generateActions(state, known, state.ui.playerId, t);
         } else {
           state.ui.show.game_over = true;

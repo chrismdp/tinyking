@@ -3,7 +3,8 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "or": [ { "is": "grassland" }, { "is": "dirt" } ] },
-      "not": { "other": { "habitable": "exists" } }
+      "not": { "other": { "habitable": "exists" } },
+      "distance": { "lessEq": 2 }
     },
     "event": {
       "key": "plough_field",
@@ -21,7 +22,8 @@
       "time_of_day": { "not": { "is": "night" } },
       "season": {
         "or": [ { "is": "summer" } , { "is": "autumn" } ]
-      }
+      },
+      "distance": { "lessEq": 3 }
     },
     "event": {
       "key": "gather_grain",
@@ -35,7 +37,8 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "harvestable" },
-      "time_of_day": { "not": { "is": "night" } }
+      "time_of_day": { "not": { "is": "night" } },
+      "distance": { "lessEq": 2 }
     },
     "event": {
       "key": "harvest_field",
@@ -56,7 +59,8 @@
       "me.supplies.grain": { "greater": 0 },
       "season": {
         "or": [ { "is": "spring" } , { "is": "summer" } ]
-      }
+      },
+      "distance": { "lessEq": 2 }
     },
     "event": {
       "key": "sow_field",
@@ -89,7 +93,8 @@
   {
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
-      "target.mappable.terrain": { "is": "forest" }
+      "target.mappable.terrain": { "is": "forest" },
+      "distance": { "lessEq": 2 }
     },
     "event": {
       "key": "chop_trees",
@@ -152,6 +157,7 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "forest" },
+      "distance": { "lessEq": 2 },
       "not": { "target.traits.values": { "has": "planted" } }
     },
     "event": {
@@ -166,6 +172,7 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "shallow water" },
+      "distance": { "lessEq": 2 },
       "me.traits.values": { "has": "boat" }
     },
     "event": {
@@ -173,6 +180,22 @@
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": { "fished": 4 } } } }
+        ]
+      }
+    }
+  },
+  {
+    "conditions": {
+      "time_of_day": { "not": { "is": "night" } },
+      "neighbour_count": { "less": 6 },
+      "distance": { "lessEq": 4 },
+      "target.mappable.walkable": { "is": true }
+    },
+    "event": {
+      "key": "explore",
+      "rules": {
+        "me": [
+          { "event": { "personable": { "explore": { "radius": 1 } } } }
         ]
       }
     }

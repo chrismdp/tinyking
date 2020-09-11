@@ -17,12 +17,12 @@ export async function validEventsFor(rules, payload) {
   return await new Engine(rulesWithConditions).run(payload);
 }
 
-async function applyActionRules(rules, payload, clock) {
+async function applyActionRules(rules, payload, state) {
   const events = await validEventsFor(rules, payload);
-  events.forEach(event => handleEvent(event, payload, clock));
+  return events.map(event => handleEvent(event, payload, state)).flat();
 }
 
-async function doAssignableJobs(state, known) {
+async function doAssignableJobs(state) {
   for (const actorId in state.ecs.assignable) {
     const assignable = state.ecs.assignable[actorId];
     if (!assignable.task) {
@@ -33,15 +33,13 @@ async function doAssignableJobs(state, known) {
     const actor = fullEntity(state.ecs, actorId);
     const target = fullEntity(state.ecs, assignable.task.id);
 
-    applyActionRules(assignable.task.action.rules.me, actor, state.clock);
-    applyActionRules(assignable.task.action.rules.target, target, state.clock);
-
-    if (known.includes(assignable.task.id)) {
-      state.redraws.push(assignable.task.id);
-    }
-    if (known.includes(actorId)) {
-      state.redraws.push(actorId);
-    }
+    state.redraws = [...new Set([
+      ...state.redraws,
+      ...await applyActionRules(assignable.task.action.rules.me, actor, state),
+      ...await applyActionRules(assignable.task.action.rules.target, target, state),
+      target.id,
+      actor.id
+    ])];
 
     const spatial = state.ecs.spatial[actorId];
     const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != actor.id && o.id != target.id);
@@ -57,7 +55,7 @@ async function doAssignableJobs(state, known) {
   }
 }
 
-async function doEndTurnEffects(state, known) {
+async function doEndTurnEffects(state) {
   const season = time.season(state.clock);
   const time_of_day = time.time(state.clock);
   for (const tickableId in state.ecs.tickable) {
@@ -65,18 +63,18 @@ async function doEndTurnEffects(state, known) {
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
       if (event.rules) {
-        applyActionRules(event.rules.target, payload.target, state.clock);
-      }
-      if (known.includes(tickableId)) {
-        state.redraws.push(tickableId);
+        state.redraws = [
+          ...state.redraws,
+          await applyActionRules(event.rules.target, payload.target, state)
+        ];
       }
     }
   }
 }
 
-export async function endTurn(state, known) {
-  await doAssignableJobs(state, known);
-  await doEndTurnEffects(state, known);
+export async function endTurn(state) {
+  await doAssignableJobs(state);
+  await doEndTurnEffects(state);
   state.clock++;
   removeExpiredTraits(state.ecs.traits, state.clock);
 }

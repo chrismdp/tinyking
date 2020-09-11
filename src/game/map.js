@@ -136,6 +136,15 @@ const terrainValueFn = {
   "grassland": (distance) => (10 - distance * 2),
 };
 
+const walkable = {
+  "mountain": false,
+  "shallow water": false,
+  "deep water": false,
+  "forest": true,
+  "stone": true,
+  "grassland": true
+};
+
 async function findPlayerStart(grid, landscape, progressUpdate) {
   const center = Grid.pointToHex(grid.pointWidth() * 0.5, grid.pointHeight() * 0.5);
 
@@ -223,7 +232,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
     ...Object.values(landscape).map((tile) => ({
       nameable: { nickname: "Map tile" },
       spatial: { x: tile.x, y: tile.y },
-      mappable: { terrain: tile.terrain },
+      mappable: { terrain: tile.terrain, walkable: walkable[tile.terrain] },
       tickable: {},
       traits: { values: {} },
       valuable: { value: tile.economic_value },
@@ -234,7 +243,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
         spatial: { x: s.x, y: s.y },
       };
       if (s.type == "house") {
-        entity.nameable = { nickname: "Wooden building" };
+        entity.nameable = { nickname: "Log cabin" };
         entity.habitable = { owners: [] };
         entity.workable = {};
       }

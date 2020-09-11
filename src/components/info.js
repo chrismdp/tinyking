@@ -93,7 +93,12 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
-      { entity.habitable && ("Owners: " + entity.habitable.owners)}
+      { entity.habitable && (<>
+        <span>Owners: </span>
+        {entity.habitable.owners.map(o => (<span key={o}>
+          <Name nameable={state.ecs.nameable[o]}/>&nbsp;
+        </span>))}
+      </>)}
       { actionDescription && (<>
         <p>
           <strong>{t("info.chosen_action")} {t("action." + actionDescription.action.key + ".name")}</strong>

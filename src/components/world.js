@@ -2,6 +2,7 @@ import * as React from "react";
 import PropTypes from "prop-types";
 
 import { createPopper } from "@popperjs/core";
+import TWEEN from "@tweenjs/tween.js";
 
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
@@ -34,8 +35,6 @@ const entityMouseMove = e => {
     e.currentTarget.custom.parent.removeChild(e.currentTarget);
     e.currentTarget.custom.state.pixi.viewport.addChild(e.currentTarget);
     e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
-    e.currentTarget.custom.base.filters = [ new PIXI.filters.BlurFilter(4) ];
-    e.currentTarget.custom.base.alpha = 1.0;
     e.currentTarget.custom.state.pixi.highlight.visible = true;
   }
   e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
@@ -62,8 +61,8 @@ const entityMouseMove = e => {
   }
 };
 
-const entityMouseDown = (state, base, parent, setPopupEntity) => e => {
-  e.currentTarget.custom = { state, base, parent, setPopupEntity };
+const entityMouseDown = (state, parent, setPopupEntity) => e => {
+  e.currentTarget.custom = { state, parent, setPopupEntity };
   e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
 
   state.pixi.viewport.plugins.pause("drag");
@@ -84,8 +83,6 @@ const entityMouseUp = (id, click, drop, state) => e => {
   if (e.currentTarget.custom.clicking) {
     click(id);
   } else {
-    e.currentTarget.custom.base.alpha = 1.0;
-    e.currentTarget.custom.base.filters = null;
     e.currentTarget.custom.state.pixi.highlight.visible = false;
     e.currentTarget.custom.state.pixi.viewport.removeChild(e.currentTarget);
     e.currentTarget.custom.parent.addChild(e.currentTarget);
@@ -158,6 +155,7 @@ const renderBuilding = (ecs, id) => {
   graphics.lineStyle({color: "black", width: 2, alpha: 1});
   graphics.drawRect(-25, -30, 50, 35);
   graphics.endFill();
+
   return graphics;
 };
 
@@ -343,16 +341,38 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
   };
 
   const known = entitiesAtLocation(ecs, ecs.playable[ui.playerId].known);
-
-  var base = new PIXI.Container();
-
   state.redraws = [ ...known ];
 
-  Object.values(layer).forEach(l => base.addChild(l));
+  pixi.base = new PIXI.Container();
 
-  pixi.viewport.addChild(base);
+  Object.values(layer).forEach(l => pixi.base.addChild(l));
+
+  pixi.viewport.addChild(pixi.base);
 
   await generateActions(state, known, ui.playerId, t);
+
+  pixi.filters = {
+    sunset: new PIXI.filters.ColorMatrixFilter(),
+    night: new PIXI.filters.ColorMatrixFilter(),
+    game_over: new PIXI.filters.ColorMatrixFilter()
+  };
+  pixi.base.filters = Object.values(pixi.filters);
+
+  // See: https://github.com/pixijs/pixi.js/issues/4607
+  const tint = 0xFFBA86;
+  const r = tint >> 16 & 0xFF;
+  const g = tint >> 8 & 0xFF;
+  const b = tint & 0xFF;
+  pixi.filters.sunset.matrix[0] = r / 255;
+  pixi.filters.sunset.matrix[6] = g / 255;
+  pixi.filters.sunset.matrix[12] = b / 255;
+  pixi.filters.night.night(0.75);
+
+  startTimeFilter(state.pixi, time.time(state.clock));
+
+  app.ticker.add(() => {
+    TWEEN.update();
+  });
 
   app.ticker.add(() => {
     if (state.redraws.length > 0) {
@@ -375,8 +395,8 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
           pixi[id] = renderPerson(ecs, id, (person, parent) => {
             if (ecs.assignable[id]) {
               person.interactive = true;
-              person.on("mousedown", entityMouseDown(state, base, parent, setPopupEntity));
-              person.on("touchstart", entityMouseDown(state, base, parent, setPopupEntity));
+              person.on("mousedown", entityMouseDown(state, parent, setPopupEntity));
+              person.on("touchstart", entityMouseDown(state, parent, setPopupEntity));
               person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
               person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
               person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
@@ -406,6 +426,30 @@ const virtualPosition = {
     this.y = y;
   }
 };
+
+function startTimeFilter(pixi, time_of_day) {
+  const effect = {
+    "morning": ({ sunset, night }, t) => {
+      night.alpha = 0.5 - 0.5 * t;
+      sunset.alpha = t * 0.5;
+    },
+    "afternoon": ({ sunset }, t) => {
+      sunset.alpha = 0.5 - 0.5 * t;
+    },
+    "evening": ({ sunset }, t) => {
+      sunset.alpha = t;
+    },
+    "night": ({ sunset, night }, t) => {
+      sunset.alpha = 1 - t;
+      night.alpha = 0.5 * t;
+    }
+  };
+  const tweenValue = { time: 0 };
+  new TWEEN.Tween(tweenValue)
+    .to({ time: 1 }, 1500)
+    .onUpdate(() => effect[time_of_day](pixi.filters, tweenValue.time))
+    .start();
+}
 
 export function World() {
   const stateContainer = React.useRef({});
@@ -492,9 +536,15 @@ export function World() {
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
           const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
           await generateActions(state, known, state.ui.playerId, t);
+          startTimeFilter(state.pixi, time.time(state.clock));
         } else {
           state.ui.show.game_over = true;
           delete state.ui.show.next_action;
+          const value = { s: 0 };
+          new TWEEN.Tween(value)
+            .to({ s: -1 }, 2500)
+            .onUpdate(() => state.pixi.filters.game_over.saturate(value.s))
+            .start();
         }
         renderUI();
       },

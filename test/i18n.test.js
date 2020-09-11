@@ -1,4 +1,4 @@
-import { phrasesFromObjectTree } from "../src/game/i18n";
+import { phrasesFromObjectTree } from "game/i18n";
 
 describe("phrasesFromObjectTree", () => {
   it("allows null", () => {

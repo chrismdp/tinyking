@@ -9,6 +9,11 @@
     "build": "webpack --config webpack.prod.js",
     "start": "webpack-dev-server --config webpack.dev.js"
   },
+  "jest": {
+    "moduleNameMapper": {
+      "game/(.*)": "<rootDir>/src/game/$1"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/chrismdp/tinyking.git"

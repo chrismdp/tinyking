@@ -1,4 +1,4 @@
-import removeExpiredTraits from "../src/game/traits";
+import removeExpiredTraits from "game/traits";
 
 describe("removeExpiredTraits", () => {
   it("leaves forever traits", () => {

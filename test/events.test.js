@@ -1,4 +1,4 @@
-import handleEvent from "../src/game/events";
+import handleEvent from "game/events";
 
 describe("handlingEvent", () => {
   it("handles death", () => {

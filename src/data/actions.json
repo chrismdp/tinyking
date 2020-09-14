@@ -29,7 +29,7 @@
     "event": {
       "key": "gather_grain",
       "rules": {
-        "me": [
+        "controller": [
           { "event": { "supplies": { "gain": { "grain": 1 } } } }
         ]
       }
@@ -44,7 +44,7 @@
     "event": {
       "key": "harvest_field",
       "rules": {
-        "me": [
+        "controller": [
           { "event": { "supplies": { "gain": { "grain": 5 } } } }
         ],
         "target": [
@@ -57,14 +57,14 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "ploughed" },
-      "me.supplies.grain": { "greater": 0 },
+      "controller.supplies.grain": { "greater": 0 },
       "season": { "not": { "is": "winter" } },
       "distance": { "lessEq": 2 }
     },
     "event": {
       "key": "sow_field",
       "rules": {
-        "me": [
+        "controller": [
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
         ],
         "target": [
@@ -82,7 +82,7 @@
     "event": {
       "key": "chop_trees",
       "rules": {
-        "me": [
+        "controller": [
           { "event": { "supplies": { "gain": { "wood": 1 } } } }
         ],
         "target": [

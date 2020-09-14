@@ -59,14 +59,16 @@
       "target.personable": "exists",
       "time_of_day": { "is": "evening" },
       "target.traits.values": { "not": { "has": "eaten" } },
-      "target.supplies.grain": { "greaterEq": 1 }
+      "controller.supplies.grain": { "greaterEq": 1 }
     },
     "event": {
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": { "eaten": 4 } } } },
           { "event": { "traits.values": { "remove": "hungry" } } },
-          { "event": { "traits.values": { "remove": "starving" } } },
+          { "event": { "traits.values": { "remove": "starving" } } }
+        ],
+        "controller": [
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
         ]
       }
@@ -103,7 +105,7 @@
       "target.traits.values": {
         "has": "hungry",
         "not": { "has": "eaten" }
-       }
+      }
     },
     "event": {
       "summary": "turn.starve",
@@ -122,7 +124,7 @@
       "target.traits.values": {
         "has": "starving",
         "not": { "has": "eaten" }
-       }
+      }
     },
     "event": {
       "summary": "turn.die",

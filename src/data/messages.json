@@ -20,7 +20,7 @@
 
   "target.traits.values.not.has": "%{target} is not marked %{value}",
   "target.traits.values.has": "%{target} is marked %{value}",
-  "target.supplies.grain.greaterEq": "%{target} has at least %{value} grain",
+  "controller.supplies.grain.greaterEq": "%{target} has access to at least %{value} grain",
 
   "target.personable": "%{target} is a person",
 

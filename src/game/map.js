@@ -28,15 +28,15 @@ const hair = Object.values(HAIR);
 const BODY_MALE = 0x4E3F30;
 const BODY_FEMALE = 0x3B6071;
 
-function generateFamily(size, x, y, generator, id) {
+function generateFamily(size, x, y, generator, homeId) {
   var result = [];
   for (var p = 0; p < size; p++) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
       traits: { values: {} },
-      supplies: { grain: 1 },
-      homeable: { home: id },
+      supplies: { },
+      homeable: { home: homeId },
       attributes: { energy: 10, health: 10 },
       tickable: {},
       personable: {
@@ -51,23 +51,31 @@ function generateFamily(size, x, y, generator, id) {
   return result;
 }
 
+function giveStartingGrain(supplies, id, amount) {
+  supplies[id].grain = amount;
+}
+
 export function generateFamilies({ ecs, seed, playerStart }) {
   var generator = new MersenneTwister(seed);
-  for (const id in ecs.habitable) {
+  for (const habitableId in ecs.habitable) {
     var people = [];
-    var spatial = ecs.spatial[id];
+    var spatial = ecs.spatial[habitableId];
     if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
-      const player = { ...generateFamily(1, spatial.x, spatial.y, generator, id)[0],
+      const player = { ...generateFamily(1, spatial.x, spatial.y, generator, habitableId)[0],
         playable: { known: [] },
         assignable: {}
       };
-      people = [ ...people, player ];
+      people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = [ ...people, ...generateFamily(familySize, spatial.x, spatial.y, generator, id) ];
+      people = generateFamily(familySize, spatial.x, spatial.y, generator, habitableId);
     }
     const ids = newEntities(ecs, people);
-    ecs.habitable[id].owners = ids;
+    giveStartingGrain(ecs.supplies, ids[0], people.length);
+    for (const id of ids) {
+      ecs.personable[id].controller = ids[0];
+    }
+    ecs.habitable[habitableId].owners = ids;
   }
 }
 

@@ -5,6 +5,7 @@ import turnRules from "data/turn.json";
 import { fullEntity } from "game/entities";
 import handleEvent from "game/events";
 import removeExpiredTraits from "game/traits";
+import { topController } from "game/playable";
 
 export async function validEventsFor(rules, payload) {
   if (!rules) {
@@ -55,21 +56,32 @@ async function doAssignableJobs(state) {
   }
 }
 
+export function endTurnPayload(ecs, target, clock) {
+  const topId = topController(ecs, target.id);
+  return {
+    target: target,
+    season: time.season(clock),
+    time_of_day: time.time(clock),
+    controller: topId && fullEntity(ecs, topId)
+  };
+}
+
 async function doEndTurnEffects(state) {
-  const season = time.season(state.clock);
-  const time_of_day = time.time(state.clock);
   // NOTE: The order of this will become important, as the people who are
   // processed first will be fed first!
   for (const tickableId in state.ecs.tickable) {
-    const payload = { target: fullEntity(state.ecs, tickableId), season, time_of_day };
+    const payload = endTurnPayload(state.ecs, fullEntity(state.ecs, tickableId), state.clock);
     const events = await validEventsFor(turnRules, payload);
     for (const event of events) {
       if (event.rules) {
-        const changed = await applyActionRules(event.rules.target, payload.target, state);
-        state.redraws = [
-          ...state.redraws,
-          ...changed
-        ];
+        const set = new Set(state.redraws);
+        for (const affected in event.rules) {
+          const changed = await applyActionRules(event.rules[affected], payload[affected], state);
+          for (const change of changed) {
+            set.add(change);
+          }
+        }
+        state.redraws = [...set];
       }
     }
   }

@@ -5,7 +5,7 @@ import { useTranslate } from "react-polyglot";
 
 import { fullEntity } from "game/entities";
 import * as time from "game/time";
-import { validEventsFor } from "game/turn";
+import { validEventsFor, endTurnPayload } from "game/turn";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
@@ -28,9 +28,8 @@ export function Info({ entityId }) {
   React.useEffect(() => {
     var isCancelled = false;
     (async () => {
-      const season = time.season(state.clock);
-      const time_of_day = time.time(state.clock);
-      const events = await validEventsFor(turnRules.filter(r => !r.hidden), { target: entity, season, time_of_day });
+      const payload = endTurnPayload(state.ecs, entity, state.clock);
+      const events = await validEventsFor(turnRules.filter(r => !r.hidden), payload);
       const textEvents = await Promise.all(events.map(async event => ({
         summary: event.summary,
         level: event.level,
@@ -43,7 +42,7 @@ export function Info({ entityId }) {
     })();
 
     return () => { isCancelled = true; };
-  }, [entity, t, state.clock]);
+  }, [entity, t, state.clock, state.ecs]);
 
   // Job assignment
   React.useEffect(() => {

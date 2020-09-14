@@ -2,6 +2,7 @@ import selectn from "selectn";
 
 import { Grid, Hex } from "game/map";
 import { entitiesAtLocation } from "game/spatial";
+import { topController } from "game/playable";
 
 const handlers = {
   die: (key, param, payload) => {
@@ -52,7 +53,7 @@ const handlers = {
       radius: param.radius,
       center: Hex(payload.spatial.x, payload.spatial.y)
     });
-    const playable = state.ecs.playable[payload.personable.controller];
+    const playable = state.ecs.playable[topController(state.ecs, payload.id)];
     const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
     playable.known = [ ...playable.known, ...newTiles ];
     return [ payload.id, ...entitiesAtLocation(state.ecs, newTiles) ];

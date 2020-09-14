@@ -2,11 +2,11 @@ import React from "react";
 import { GameState } from "components/contexts";
 
 import { useTranslate } from "react-polyglot";
-import { controlled } from "game/playable";
+import { directlyControlledBy } from "game/playable";
 
 export function NextAction() {
   const state = React.useContext(GameState);
-  const toAssign = controlled(state.ecs, state.ui.playerId).reduce((total, e) => state.ecs.assignable[e.id].task ? 0 : 1, 0);
+  const toAssign = directlyControlledBy(state.ecs, state.ui.playerId).reduce((total, e) => state.ecs.assignable[e.id].task ? 0 : 1, 0);
 
   const t = useTranslate();
 

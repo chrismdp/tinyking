@@ -13,7 +13,7 @@ import { useTranslate } from "react-polyglot";
 
 import { Grid, Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
-import { anyControlledAlive } from "game/playable";
+import { topController, anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
 import { entitiesAtLocation } from "game/spatial";
@@ -244,30 +244,37 @@ const generateActions = async (state, known, playerId, t) => {
     return o;
   }, {});
 
-  const player = fullEntity(state.ecs, playerId);
-  const playerHex = Hex(player.spatial.x, player.spatial.y);
+  const actor = fullEntity(state.ecs, playerId);
+  const actorHex = Hex(actor.spatial.x, actor.spatial.y);
+  const topId = topController(state.ecs, actor.id);
+  const controller = topId && fullEntity(state.ecs, topId);
 
   const knownTiles = Object.keys(tiles);
   for (const coord in tiles) {
     for (const target of tiles[coord]) {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
-
         const hex = Hex(target.spatial.x, target.spatial.y);
-        const neighbours = Grid.hexagon({ radius: 1, center: hex }).map(n => n.x + "," + n.y);
 
-        const events = await engine.run({
+        const neighbours = Grid.hexagon({ radius: 1, center: hex })
+          .map(n => n.x + "," + n.y);
+
+        const payload = {
           season: time.season(state.clock),
           time_of_day: time.time(state.clock),
-          distance: hex.distance(playerHex),
+          distance: hex.distance(actorHex),
           neighbour_count: neighbours.filter(t => knownTiles.includes(t)).length - 1,
-          me: player,
+          me: actor,
           target,
-          other
-        });
-        possibleActions[coord] = [...(possibleActions[coord] || []), ...events.map(action => ({
-          id: target.id, action, hex
-        }))];
+          other,
+          controller
+        };
+
+        const events = await engine.run(payload);
+        possibleActions[coord] = [
+          ...(possibleActions[coord] || []),
+          ...events.map(action => ({ id: target.id, action, hex }))
+        ];
       }
     }
   }

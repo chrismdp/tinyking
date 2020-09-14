@@ -1,5 +1,7 @@
 import handleEvent from "game/events";
 
+import { fullEntity } from "game/entities";
+
 describe("handlingEvent", () => {
   it("returns an empty array of changes when passed no events", () => {
     expect(handleEvent({})).toEqual([]);
@@ -28,17 +30,21 @@ describe("handlingEvent", () => {
     expect(() => handleEvent({ "traits.values": { add: "hungry" }}, payload)).toThrow();
   });
   it ("explores neigbouring tiles", () => {
-    var payload = { personable: { id: 2, controller: 1 }, spatial: {id: 2, x: 2, y: 2 } };
     var state = {
       ecs: {
-        playable: { "1": { id: 1,  known: [ { x: 2, y: 2 } ] } },
+        personable: {
+          1: { id: 1, controller: 1 },
+          2: { id: 2, controller: 1 }
+        },
+        playable: { 1: { id: 1,  known: [ { x: 2, y: 2 } ] } },
         spatial: {
-          "2": payload.spatial,
-          "3": { id: 3, x: 1, y: 2 },
-          "4": { id: 4, x: 13, y: 2 }
+          2: { id: 2, x: 2, y: 2 },
+          3: { id: 3, x: 1, y: 2 },
+          4: { id: 4, x: 13, y: 2 }
         }
       }
     };
+    var payload = fullEntity(state.ecs, 2);
     handleEvent({ "personable": { explore: { radius: 1 }}}, payload, state);
     expect(state.ecs.playable["1"].known.length).toEqual(7);
   });

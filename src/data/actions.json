@@ -182,5 +182,24 @@
         ]
       }
     }
+  },
+  {
+    "conditions": {
+      "target.personable": "exists",
+      "target.personable.controller": {
+        "not": { "is": "$me.id" },
+        "is": "$target.id"
+      },
+      "distance": { "lessEq": 4 },
+      "time_of_day": { "not": { "is": "night" } }
+    },
+    "event": {
+      "key": "recruit",
+      "rules": {
+        "target": [
+          { "event": { "personable": { "recruited": "controller" } } }
+        ]
+      }
+    }
   }
 ]

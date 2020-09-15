@@ -39,6 +39,8 @@ function generateFamily(size, x, y, generator, homeId) {
       homeable: { home: homeId },
       attributes: { energy: 10, health: 10 },
       tickable: {},
+      workable: {},
+      assignable: {},
       personable: {
         type: "person",
         familyIndex: p / (size * 1.5),
@@ -63,7 +65,6 @@ export function generateFamilies({ ecs, seed, playerStart }) {
     if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
       const player = { ...generateFamily(1, spatial.x, spatial.y, generator, habitableId)[0],
         playable: { known: [] },
-        assignable: {}
       };
       people = [ player ];
     } else {

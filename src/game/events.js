@@ -2,14 +2,22 @@ import selectn from "selectn";
 
 import { Grid, Hex } from "game/map";
 import { entitiesAtLocation } from "game/spatial";
-import { topController } from "game/playable";
+import { topController, directlyControlledBy } from "game/playable";
+
+function mergeSupplies(target, incoming) {
+  if (incoming && target) {
+    Object.keys(incoming).filter(k => k != "id").forEach(k => {
+      target[k] = (target[k] || 0) + incoming[k];
+    });
+  }
+}
 
 const handlers = {
   die: (key, param, payload) => {
     payload.personable.dead = true;
     return [ payload.id ];
   },
-  add: (key, param, payload, state) => {
+  add: (key, param, payload, context, state) => {
     if (typeof param !== "object") {
       throw "Add event must be passed an object" + JSON.stringify(param);
     }
@@ -48,7 +56,7 @@ const handlers = {
     }
     return [ payload.id ];
   },
-  explore: (key, param, payload, state) => {
+  explore: (key, param, payload, context, state) => {
     const neighbours = Grid.hexagon({
       radius: param.radius,
       center: Hex(payload.spatial.x, payload.spatial.y)
@@ -57,10 +65,19 @@ const handlers = {
     const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
     playable.known = [ ...playable.known, ...newTiles ];
     return [ payload.id, ...entitiesAtLocation(state.ecs, newTiles) ];
+  },
+  recruited: (key, param, payload, context, state) => {
+    const thing = selectn(key, payload);
+    const controllerId = context[param].id;
+    [thing, ...directlyControlledBy(state.ecs, thing.id)].forEach(p => {
+      p.controller = controllerId;
+      mergeSupplies(state.ecs.supplies[controllerId], state.ecs.supplies[p.id]);
+    });
+    return [ payload.id, context[param].id ];
   }
 };
 
-export default function handleEvent(target, payload, state) {
+export default function handleEvent(target, payload, context, state) {
   return [ ...Object.keys(target).reduce((redraws, key) => {
     if (key != "conditions") {
       const actions = target[key];
@@ -68,7 +85,7 @@ export default function handleEvent(target, payload, state) {
         if (!(action in handlers)) {
           throw "Don't know how to process action: " + JSON.stringify([ action, target ]);
         }
-        handlers[action](key, actions[action], payload, state).forEach(id => redraws.add(id));
+        handlers[action](key, actions[action], payload, context, state).forEach(id => redraws.add(id));
       }
     }
     return redraws;

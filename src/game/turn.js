@@ -18,9 +18,9 @@ export async function validEventsFor(rules, payload) {
   return await new Engine(rulesWithConditions).run(payload);
 }
 
-async function applyActionRules(rules, payload, state) {
+async function applyActionRules(rules, payload, context, state) {
   const events = await validEventsFor(rules, payload);
-  return events.map(event => handleEvent(event, payload, state)).flat();
+  return events.map(event => handleEvent(event, payload, context, state)).flat();
 }
 
 async function doAssignableJobs(state) {
@@ -33,11 +33,13 @@ async function doAssignableJobs(state) {
 
     const actor = fullEntity(state.ecs, actorId);
     const target = fullEntity(state.ecs, assignable.task.id);
+    const controller = fullEntity(state.ecs, actor.personable.controller);
+    const payload = { actor, target, controller };
 
     state.redraws = [...new Set([
       ...state.redraws,
-      ...await applyActionRules(assignable.task.action.rules.me, actor, state),
-      ...await applyActionRules(assignable.task.action.rules.target, target, state),
+      ...await applyActionRules(assignable.task.action.rules.me, actor, payload, state),
+      ...await applyActionRules(assignable.task.action.rules.target, target, payload, state),
       target.id,
       actor.id
     ])];
@@ -76,7 +78,7 @@ async function doEndTurnEffects(state) {
       if (event.rules) {
         const set = new Set(state.redraws);
         for (const affected in event.rules) {
-          const changed = await applyActionRules(event.rules[affected], payload[affected], state);
+          const changed = await applyActionRules(event.rules[affected], payload[affected], payload, state);
           for (const change of changed) {
             set.add(change);
           }

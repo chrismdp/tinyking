@@ -15,6 +15,7 @@
   "personable.explore.radius": "explore %{smart_count} tile in each direction |||| reveal %{smart_count} tiles in each direction",
   "personable.die.exhaustion": "dies of exhaustion!",
   "personable.die.hunger": "dies of hunger!",
+  "personable.recruited": "joins your kingdom",
 
   "target.mappable.terrain.is": "the terrain is %{value}",
 
@@ -104,6 +105,10 @@
     "explore": {
       "name": "Explore",
       "summary": "Explore the surrounding area."
+    },
+    "recruit": {
+      "name": "Recruit",
+      "summary": "Encourage to join your kingdom"
     }
   },
   "tutorial": {

@@ -21,7 +21,7 @@ describe("handlingEvent", () => {
     expect(Object.keys(payload.traits.values)).toEqual(["starving"]);
     expect(payload.traits.values.starving).toBe(true);
     const state = { clock: 3 };
-    handleEvent({ "traits.values": { remove: "foo", add: {"bar": 5} }}, payload, state);
+    handleEvent({ "traits.values": { remove: "foo", add: {"bar": 5} }}, payload, {}, state);
     expect(payload.traits.values.starving).toBe(true);
     expect(payload.traits.values.bar).toEqual(8);
   });
@@ -45,9 +45,63 @@ describe("handlingEvent", () => {
       }
     };
     var payload = fullEntity(state.ecs, 2);
-    handleEvent({ "personable": { explore: { radius: 1 }}}, payload, state);
+    handleEvent({ "personable": { explore: { radius: 1 }}}, payload, {}, state);
     expect(state.ecs.playable["1"].known.length).toEqual(7);
   });
+
+  describe("recruiting", () => {
+    it ("recruits a character", () => {
+      var state = {
+        ecs: {
+          personable: {
+            1: { controller: 1, id: 1 },
+            2: { controller: 2, id: 2 }
+          },
+          supplies: {}
+        }
+      };
+      var context = { actor: fullEntity(state.ecs, 1), target: fullEntity(state.ecs, 2) };
+      handleEvent({ "personable": { recruited: "actor"}}, context.target, context, state);
+      expect(state.ecs.personable["2"].controller).toEqual(1);
+    });
+
+    it ("recruits the whole household", () => {
+      var state = {
+        ecs: {
+          personable: {
+            1: { controller: 1, id: 1 },
+            2: { controller: 2, id: 2 },
+            3: { controller: 2, id: 3 }
+          },
+          supplies: {}
+        }
+      };
+      var context = { actor: fullEntity(state.ecs, 1), target: fullEntity(state.ecs, 2) };
+      handleEvent({ "personable": { recruited: "actor"}}, context.target, context, state);
+      expect(state.ecs.personable["3"].controller).toEqual(1);
+    });
+
+    it ("transfers over supplies", () => {
+      var state = {
+        ecs: {
+          personable: {
+            1: { controller: 1, id: 1 },
+            2: { controller: 2, id: 2 },
+            3: { controller: 2, id: 3 }
+          },
+          supplies: {
+            1: { id: 1, grain: 1, stone: 1 },
+            2: { id: 2, grain: 2, wood: 1 },
+            3: { id: 3, grain: 1 }
+          }
+        }
+      };
+      var context = { actor: fullEntity(state.ecs, 1), target: fullEntity(state.ecs, 2) };
+      handleEvent({ "personable": { recruited: "actor"}}, context.target, context, state);
+      expect(state.ecs.supplies["1"]).toEqual({ id: 1, grain: 4, stone: 1, wood: 1 });
+    });
+  });
+
   it ("throws an error on unknown actions", () => {
     expect(() => handleEvent(
       { "traits.values": { UNKNOWN_ACTION: "hungry" }},

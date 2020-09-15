@@ -29,40 +29,46 @@ const engine = new Engine(actions);
 const DROP_RADIUS = 12;
 
 const entityMouseMove = e => {
-  if (e.currentTarget.custom.clicking) {
-    e.currentTarget.custom.data = e.data;
-    e.currentTarget.custom.clicking = false;
-    e.currentTarget.custom.parent.removeChild(e.currentTarget);
-    e.currentTarget.custom.state.pixi.viewport.addChild(e.currentTarget);
-    e.currentTarget.position = e.data.getLocalPosition(e.currentTarget.parent);
-    e.currentTarget.custom.state.pixi.highlight.visible = true;
+  const target = e.currentTarget;
+  const state = target.custom.state;
+  if (target.custom.clicking) {
+    target.custom.data = e.data;
+    target.custom.clicking = false;
+    target.custom.parent.removeChild(target);
+    state.pixi.viewport.addChild(target);
+    target.position = e.data.getLocalPosition(target.parent);
+
+    const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
+    generateActions(state, known, target.custom.parent.entityId, target.custom.t);
   }
-  e.currentTarget.position = e.currentTarget.custom.data.getLocalPosition(e.currentTarget.parent);
+  target.position = target.custom.data.getLocalPosition(target.parent);
 
-  var over = false;
 
-  e.currentTarget.custom.state.pixi.dropTargets.forEach(t => {
-    const x = t.x - e.currentTarget.position.x;
-    const y = t.y - e.currentTarget.position.y;
-    const d2 = x * x + y * y;
-    if (d2 < DROP_RADIUS * DROP_RADIUS) {
-      over = true;
-      e.currentTarget.custom.setPopupEntity({
-        possibleAction: {
-          actorId: e.currentTarget.custom.parent.entityId,
-          targetId: t.id,
-          action: t.action
-        }
-      });
+  if (state.pixi.dropTargets) { // generateActions is async so these might not be here yet
+    var over = false;
+    state.pixi.dropTargets.forEach(t => {
+      const x = t.x - target.position.x;
+      const y = t.y - target.position.y;
+      const d2 = x * x + y * y;
+      if (d2 < DROP_RADIUS * DROP_RADIUS) {
+        over = true;
+        target.custom.setPopupEntity({
+          possibleAction: {
+            actorId: target.custom.parent.entityId,
+            targetId: t.id,
+            action: t.action
+          }
+        });
+      }
+    });
+    if (!over) {
+      target.custom.setPopupEntity(null);
     }
-  });
-  if (!over) {
-    e.currentTarget.custom.setPopupEntity(null);
   }
 };
 
-const entityMouseDown = (state, parent, setPopupEntity) => e => {
-  e.currentTarget.custom = { state, parent, setPopupEntity };
+const entityMouseDown = (state, parent, setPopupEntity, t) => e => {
+  e.currentTarget.custom = { state, parent, setPopupEntity, t };
   e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
 
   state.pixi.viewport.plugins.pause("drag");
@@ -166,59 +172,42 @@ const renderBuilding = (ecs, id) => {
   return graphics;
 };
 
-const renderPerson = (ecs, id, fn, t) => {
-  const personable = ecs.personable[id];
+const renderPerson = (entity, fn, t) => {
   const graphics = new PIXI.Graphics();
-  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
+  const hex = Hex(entity.spatial.x, entity.spatial.y);
   const point = hex.toPoint();
   graphics.position.set(point.x, point.y);
 
   const person = new PIXI.Graphics();
-  if (personable.dead) {
+
+  const HIT_RADIUS = 22.5;
+
+  if (entity.personable.dead) {
     person.angle = 90;
   }
-  person.position.set(-Math.cos(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5, Math.sin(personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.5);
+  person.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
+  person.position.set(-Math.cos(entity.personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.7, Math.sin(entity.personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.7);
   person.lineStyle({color: "black", width: 2, alpha: 1});
-  person.beginFill(personable.body);
-  person.drawEllipse(0, 0, personable.size * 0.55, personable.size * 0.65);
+  person.beginFill(entity.personable.body);
+  person.drawEllipse(0, 0, entity.personable.size * 0.55, entity.personable.size * 0.65);
   person.endFill();
-  person.beginFill(personable.hair);
-  person.drawCircle(0, -personable.size * 0.6, personable.size * 0.5);
+  person.beginFill(entity.personable.hair);
+  person.drawCircle(0, -entity.personable.size * 0.6, entity.personable.size * 0.5);
   person.endFill();
 
   person.lineStyle(null);
   person.beginFill(0xEACAAA);
-  person.drawCircle(0, -personable.size * 0.48, personable.size * 0.35);
+  person.drawCircle(0, -entity.personable.size * 0.48, entity.personable.size * 0.35);
   person.endFill();
 
-  if (ecs.assignable[id] && ecs.assignable[id].task) {
+  if (entity.assignable && entity.assignable.task) {
     person.beginFill(0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
-    var text = new PIXI.Text(t("action." + ecs.assignable[id].task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    var text = new PIXI.Text(t("action." + entity.assignable.task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
-  } else if (ecs.attributes[id]) {
-    const attributes = ecs.attributes[id];
-    if (attributes.energy && attributes.energy < 10) {
-      person.beginFill(0x333333);
-      person.drawRoundedRect(-27.5, 20, 25, 15, 5);
-      person.endFill();
-      var elabel = new PIXI.Text(attributes.energy + "/10", {fontFamily: "Alegreya", fontSize: 10, fill: "green"});
-      elabel.position.set(-15, 27.5);
-      elabel.anchor = { x: 0.5, y: 0.5 };
-      person.addChild(elabel);
-    }
-    if (attributes.health && attributes.health < 10) {
-      person.beginFill(0x333333);
-      person.drawRoundedRect(2.5, 20, 25, 15, 5);
-      person.endFill();
-      var hlabel = new PIXI.Text(attributes.health + "/10", {fontFamily: "Alegreya", fontSize: 10, fill: "red"});
-      hlabel.position.set(15, 27.5);
-      hlabel.anchor = { x: 0.5, y: 0.5 };
-      person.addChild(hlabel);
-    }
   }
 
   fn(person, graphics);
@@ -227,7 +216,7 @@ const renderPerson = (ecs, id, fn, t) => {
   return graphics;
 };
 
-const generateActions = async (state, known, playerId, t) => {
+const generateActions = async (state, known, actorId, t) => {
   if (state.pixi.highlight) {
     state.pixi.highlight.destroy({children: true});
   }
@@ -244,7 +233,7 @@ const generateActions = async (state, known, playerId, t) => {
     return o;
   }, {});
 
-  const actor = fullEntity(state.ecs, playerId);
+  const actor = fullEntity(state.ecs, actorId);
   const actorHex = Hex(actor.spatial.x, actor.spatial.y);
   const topId = topController(state.ecs, actor.id);
   const controller = topId && fullEntity(state.ecs, topId);
@@ -309,7 +298,6 @@ const generateActions = async (state, known, playerId, t) => {
     });
   }
 
-  state.pixi.highlight.visible = false;
   state.pixi.viewport.addChild(state.pixi.highlight);
 };
 
@@ -363,8 +351,6 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
 
   pixi.viewport.addChild(pixi.base);
 
-  await generateActions(state, known, ui.playerId, t);
-
   pixi.filters = {
     sunset: new PIXI.filters.ColorMatrixFilter(),
     night: new PIXI.filters.ColorMatrixFilter(),
@@ -406,15 +392,22 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
           pixi[id] = renderBuilding(ecs, id);
           layer.buildings.addChild(pixi[id]);
         } else if (ecs.personable[id]) {
-          pixi[id] = renderPerson(ecs, id, (person, parent) => {
-            if (ecs.assignable[id]) {
+          const entity = fullEntity(ecs, id);
+          const controlled = entity.personable.controller == state.ui.playerId;
+          pixi[id] = renderPerson(entity, (person, parent) => {
+            if (controlled && entity.assignable) {
               person.interactive = true;
-              person.on("mousedown", entityMouseDown(state, parent, setPopupEntity));
-              person.on("touchstart", entityMouseDown(state, parent, setPopupEntity));
+              person.on("mousedown", entityMouseDown(state, parent, setPopupEntity, t));
+              person.on("touchstart", entityMouseDown(state, parent, setPopupEntity, t));
               person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
               person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
               person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
               person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+              if (!entity.assignable.task) {
+                person.beginFill(0x990000, 0.75);
+                person.drawCircle(15, -20, 4);
+                person.endFill();
+              }
             }
           }, t);
           layer.people.addChild(pixi[id]);
@@ -548,8 +541,6 @@ export function World() {
       end_turn: async () => {
         await endTurn(state);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
-          const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
-          await generateActions(state, known, state.ui.playerId, t);
           startTimeFilter(state.pixi, time.time(state.clock));
         } else {
           state.ui.show.game_over = true;

@@ -71,13 +71,13 @@ export function Info({ entityId }) {
       </h1>)}
       { entity.traits && (Object.keys(entity.traits.values).length > 0) && (
         <div><strong>{ Object.keys(entity.traits.values).map(trait => {
-          return (<span key={trait}>{trait} {
+          return (<div key={trait}>{trait} {
             entity.traits.values[trait] !== true && (
               <span className="knockedback">{t("info.until", {
                 time: time.full(entity.traits.values[trait]),
                 smart_count: entity.traits.values[trait] - state.clock
               })}</span>)}
-          </span>);
+          </div>);
         }) }
         </strong></div>) }
       { entity.attributes && (<div>

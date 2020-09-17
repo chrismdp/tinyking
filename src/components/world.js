@@ -93,20 +93,29 @@ const entityMouseUp = (id, click, drop, state) => e => {
     e.currentTarget.custom.state.pixi.viewport.removeChild(e.currentTarget);
     e.currentTarget.custom.parent.addChild(e.currentTarget);
 
-    var dropped = false;
-
+    const spatial = state.ecs.spatial[id];
     e.currentTarget.custom.state.pixi.dropTargets.forEach(t => {
       const x = t.x - e.currentTarget.position.x;
       const y = t.y - e.currentTarget.position.y;
       const d2 = x * x + y * y;
       if (d2 < DROP_RADIUS * DROP_RADIUS) {
-        dropped = true;
         drop(id, t);
+
+        if (!state.ecs.assignable[id].base) {
+          state.ecs.assignable[id].base = { ...spatial };
+        }
+
+        const pos = e.data.getLocalPosition(e.currentTarget.parent);
+        const tP = Hex(t.hex).toPoint();
+        const oP = Hex({x: spatial.x, y: spatial.y}).toPoint();
+
+        spatial.x = t.hex.x;
+        spatial.y = t.hex.y;
+        spatial.dx = pos.x - (tP.x - oP.x);
+        spatial.dy = pos.y - (tP.y - oP.y);
       }
     });
-    e.currentTarget.position = dropped ?
-      e.data.getLocalPosition(e.currentTarget.parent) :
-      { ...e.currentTarget.custom.startPosition };
+    e.currentTarget.position = { x: spatial.dx, y: spatial.dy };
   }
 
   e.currentTarget.custom.state.pixi.viewport.plugins.resume("drag");
@@ -186,7 +195,7 @@ const renderPerson = (entity, fn, t) => {
     person.angle = 90;
   }
   person.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
-  person.position.set(-Math.cos(entity.personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.7, Math.sin(entity.personable.familyIndex * Math.PI * 2) * HEX_SIZE * 0.7);
+  person.position.set(entity.spatial.dx, entity.spatial.dy);
   person.lineStyle({color: "black", width: 2, alpha: 1});
   person.beginFill(entity.personable.body);
   person.drawEllipse(0, 0, entity.personable.size * 0.55, entity.personable.size * 0.65);
@@ -234,7 +243,9 @@ const generateActions = async (state, known, actorId, t) => {
   }, {});
 
   const actor = fullEntity(state.ecs, actorId);
-  const actorHex = Hex(actor.spatial.x, actor.spatial.y);
+  const actorHex = actor.assignable.base ?
+    Hex(actor.assignable.base.x, actor.assignable.base.y) :
+    Hex(actor.spatial.x, actor.spatial.y);
   const topId = topController(state.ecs, actor.id);
   const controller = topId && fullEntity(state.ecs, topId);
 
@@ -534,8 +545,6 @@ export function World() {
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, target) => {
         state.ecs.assignable[id].task = target;
-        state.ecs.spatial[id].x = target.hex.x;
-        state.ecs.spatial[id].y = target.hex.y;
         renderUI();
       },
       end_turn: async () => {

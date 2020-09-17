@@ -49,12 +49,6 @@ async function doAssignableJobs(state) {
     for (const o of other) {
       state.redraws.push(o.id);
     }
-
-    // Clear action
-    actor.assignable.task = null;
-    // Return home
-    actor.spatial.x = state.ecs.spatial[actor.homeable.home].x;
-    actor.spatial.y = state.ecs.spatial[actor.homeable.home].y;
   }
 }
 
@@ -89,9 +83,17 @@ async function doEndTurnEffects(state) {
   }
 }
 
+function clearAssignableJobs(assignable) {
+  for (const id in assignable) {
+    delete assignable[id].task;
+    delete assignable[id].base;
+  }
+}
+
 export async function endTurn(state) {
   await doAssignableJobs(state);
   await doEndTurnEffects(state);
   state.clock++;
+  clearAssignableJobs(state.ecs.assignable);
   removeExpiredTraits(state.ecs.traits, state.clock);
 }

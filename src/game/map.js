@@ -33,7 +33,11 @@ function generateFamily(size, x, y, generator, homeId) {
   for (var p = 0; p < size; p++) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
-      spatial: { x, y },
+      spatial: {
+        x, y,
+        dx: -Math.cos(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7,
+        dy: Math.sin(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7
+      },
       traits: { values: {} },
       supplies: { },
       homeable: { home: homeId },
@@ -43,7 +47,6 @@ function generateFamily(size, x, y, generator, homeId) {
       assignable: {},
       personable: {
         type: "person",
-        familyIndex: p / (size * 1.5),
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
         body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE

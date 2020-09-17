@@ -102,6 +102,21 @@ describe("handlingEvent", () => {
     });
   });
 
+  it ("moves characters around", () => {
+    var state = {
+      ecs: {
+        personable: { 1: { id: 1 } },
+        spatial: {
+          1: { id: 1, x: 1, y: 2 },
+          2: { id: 2, x: 4, y: 4 }
+        }
+      }
+    };
+    var context = { actor: fullEntity(state.ecs, 1), target: fullEntity(state.ecs, 2) };
+    handleEvent({ "spatial": { move: "target"}}, context.actor, context, state);
+    expect(state.ecs.spatial["1"]).toEqual({ id: 1, x: 4, y: 4 });
+  });
+
   it ("throws an error on unknown actions", () => {
     expect(() => handleEvent(
       { "traits.values": { UNKNOWN_ACTION: "hungry" }},

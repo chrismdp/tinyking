@@ -74,6 +74,13 @@ const handlers = {
       mergeSupplies(state.ecs.supplies[controllerId], state.ecs.supplies[p.id]);
     });
     return [ payload.id, context[param].id ];
+  },
+  move: (key, param, payload, context, state) => {
+    const thing = selectn(key, payload);
+    const destination = state.ecs.spatial[context[param].id];
+    thing.x = destination.x;
+    thing.y = destination.y;
+    return [ payload.id ];
   }
 };
 

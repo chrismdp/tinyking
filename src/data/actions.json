@@ -5,7 +5,7 @@
       "target.mappable.terrain": { "or": [ { "is": "grassland" }, { "is": "dirt" } ] },
       "not": { "other": { "habitable": "exists" } },
       "season": { "not": { "is": "winter" } },
-      "distance": { "lessEq": 2 }
+      "distance": { "is": 0 }
     },
     "event": {
       "key": "plough_field",
@@ -24,7 +24,7 @@
       "season": {
         "or": [ { "is": "summer" } , { "is": "autumn" } ]
       },
-      "distance": { "lessEq": 3 }
+      "distance": { "is": 0 }
     },
     "event": {
       "key": "gather_grain",
@@ -39,7 +39,7 @@
     "conditions": {
       "target.mappable.terrain": { "is": "harvestable" },
       "time_of_day": { "not": { "is": "night" } },
-      "distance": { "lessEq": 2 }
+      "distance": { "is": 0 }
     },
     "event": {
       "key": "harvest_field",
@@ -77,7 +77,7 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "forest" },
-      "distance": { "lessEq": 2 }
+      "distance": { "is": 0 }
     },
     "event": {
       "key": "chop_trees",
@@ -140,7 +140,7 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "target.mappable.terrain": { "is": "forest" },
-      "distance": { "lessEq": 2 },
+      "distance": { "is": 0 },
       "not": { "target.traits.values": { "has": "planted" } }
     },
     "event": {
@@ -171,7 +171,7 @@
     "conditions": {
       "time_of_day": { "not": { "is": "night" } },
       "neighbour_count": { "less": 6 },
-      "distance": { "lessEq": 4 },
+      "distance": { "is": 0 },
       "target.mappable.walkable": { "is": true }
     },
     "event": {
@@ -190,7 +190,7 @@
         "not": { "is": "$controller.id" },
         "is": "$target.id"
       },
-      "distance": { "lessEq": 4 },
+      "distance": { "is": 0 },
       "time_of_day": { "not": { "is": "night" } }
     },
     "event": {
@@ -206,12 +206,29 @@
     "conditions": {
       "target.habitable": "exists",
       "target.habitable.owners": { "includes": "$me.id" },
-      "distance": { "lessEq": 4 },
+      "distance": { "is": 0 },
       "time_of_day": { "is": "night" }
     },
     "event": {
       "key": "sleep",
       "rules": {}
+    }
+  },
+  {
+    "hidden": true,
+    "conditions": {
+      "target.mappable": "exists",
+      "distance": { "is": 1 },
+      "me.attributes.moves": { "greaterEq": 0 }
+    },
+    "event": {
+      "key": "move",
+      "rules": {
+        "me": [
+          { "event": { "spatial": { "move": "target" } } },
+          { "event": { "attributes": { "lose": {"moves": 1 } } } }
+        ]
+      }
     }
   }
 ]

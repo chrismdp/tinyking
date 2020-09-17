@@ -172,6 +172,19 @@
     }
   },
   {
+    "hidden": true,
+    "conditions": {
+      "target.attributes.moved": { "greater": 0 }
+    },
+    "event": {
+      "rules": {
+        "target": [
+          { "event": { "attributes": { "set": {"moved": 0 } } } }
+        ]
+      }
+    }
+  },
+  {
     "conditions": {
       "time_of_day": { "is": "night" },
       "season": { "not": { "is": "summer" } },

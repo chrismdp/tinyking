@@ -219,14 +219,14 @@
     "conditions": {
       "target.mappable": "exists",
       "distance": { "is": 1 },
-      "me.attributes.moves": { "greaterEq": 0 }
+      "me.attributes.moved": { "less": "$me.attributes.moves" }
     },
     "event": {
       "key": "move",
       "rules": {
         "me": [
           { "event": { "spatial": { "move": "target" } } },
-          { "event": { "attributes": { "lose": {"moves": 1 } } } }
+          { "event": { "attributes": { "gain": {"moved": 1 } } } }
         ]
       }
     }

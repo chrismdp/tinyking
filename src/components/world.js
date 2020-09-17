@@ -14,7 +14,7 @@ import { useTranslate } from "react-polyglot";
 import { Grid, Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
-import { endTurn } from "game/turn";
+import { doJob, endTurn } from "game/turn";
 import * as time from "game/time";
 import { entitiesAtLocations } from "game/spatial";
 import { GameState } from "components/contexts";
@@ -100,10 +100,6 @@ const entityMouseUp = (id, click, drop, state) => e => {
       const d2 = x * x + y * y;
       if (d2 < DROP_RADIUS * DROP_RADIUS) {
         drop(id, t);
-
-        if (!state.ecs.assignable[id].base) {
-          state.ecs.assignable[id].base = { ...spatial };
-        }
 
         const pos = e.data.getLocalPosition(e.currentTarget.parent);
         const tP = Hex(t.hex).toPoint();
@@ -243,9 +239,7 @@ const generateActions = async (state, known, actorId, t) => {
   }, {});
 
   const actor = fullEntity(state.ecs, actorId);
-  const actorHex = actor.assignable.base ?
-    Hex(actor.assignable.base.x, actor.assignable.base.y) :
-    Hex(actor.spatial.x, actor.spatial.y);
+  const actorHex = Hex(actor.spatial.x, actor.spatial.y);
   const topId = topController(state.ecs, actor.id);
   const controller = topId && fullEntity(state.ecs, topId);
 
@@ -543,8 +537,8 @@ export function World() {
     });
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
-      drop: async (id, target) => {
-        state.ecs.assignable[id].task = target;
+      drop: async (id, task) => {
+        await doJob(state, id, task);
         renderUI();
       },
       end_turn: async () => {

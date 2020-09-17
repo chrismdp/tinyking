@@ -18,7 +18,7 @@
   "personable.die.hunger": "dies of hunger!",
   "personable.recruited": "joins your kingdom",
   "spatial.move": "moves here",
-  "attributes.lose.moves": "uses one movement point",
+  "attributes.gain.moved": "uses %{smart_count} movement point |||| uses %{smart_count} movement points",
 
   "target.mappable.terrain.is": "the terrain is %{value}",
   "target.assignable.task.not": "There is no task assigned",

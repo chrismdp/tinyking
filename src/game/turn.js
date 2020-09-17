@@ -23,6 +23,29 @@ async function applyActionRules(rules, payload, context, state) {
   return events.map(event => handleEvent(event, payload, context, state)).flat();
 }
 
+export async function doJob(state, actorId, task) {
+  const actor = fullEntity(state.ecs, actorId);
+  const target = fullEntity(state.ecs, task.id);
+  const controller = fullEntity(state.ecs, actor.personable.controller);
+
+  const payload = { actor, target, controller };
+
+  state.redraws = [...new Set([
+    ...state.redraws,
+    ...await applyActionRules(task.action.rules.me, actor, payload, state),
+    ...await applyActionRules(task.action.rules.target, target, payload, state),
+    ...await applyActionRules(task.action.rules.controller, controller, payload, state),
+    target.id,
+    actor.id
+  ])];
+
+  const spatial = state.ecs.spatial[actorId];
+  const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != actor.id && o.id != target.id);
+  for (const o of other) {
+    state.redraws.push(o.id);
+  }
+}
+
 async function doAssignableJobs(state) {
   for (const actorId in state.ecs.assignable) {
     const assignable = state.ecs.assignable[actorId];
@@ -30,26 +53,7 @@ async function doAssignableJobs(state) {
       // TODO: AI to pick a random eligible task?
       continue;
     }
-
-    const actor = fullEntity(state.ecs, actorId);
-    const target = fullEntity(state.ecs, assignable.task.id);
-    const controller = fullEntity(state.ecs, actor.personable.controller);
-    const payload = { actor, target, controller };
-
-    state.redraws = [...new Set([
-      ...state.redraws,
-      ...await applyActionRules(assignable.task.action.rules.me, actor, payload, state),
-      ...await applyActionRules(assignable.task.action.rules.target, target, payload, state),
-      ...await applyActionRules(assignable.task.action.rules.controller, controller, payload, state),
-      target.id,
-      actor.id
-    ])];
-
-    const spatial = state.ecs.spatial[actorId];
-    const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != actor.id && o.id != target.id);
-    for (const o of other) {
-      state.redraws.push(o.id);
-    }
+    await doJob(state, actorId, assignable.task);
   }
 }
 

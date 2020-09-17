@@ -40,6 +40,7 @@ async function doAssignableJobs(state) {
       ...state.redraws,
       ...await applyActionRules(assignable.task.action.rules.me, actor, payload, state),
       ...await applyActionRules(assignable.task.action.rules.target, target, payload, state),
+      ...await applyActionRules(assignable.task.action.rules.controller, controller, payload, state),
       target.id,
       actor.id
     ])];

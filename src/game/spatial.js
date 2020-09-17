@@ -1,4 +1,4 @@
-export const entitiesAtLocation = (ecs, tiles) => {
+export const entitiesAtLocations = (ecs, tiles) => {
   var result = [];
   for (const id in ecs.spatial) {
     for (const tile of tiles) {

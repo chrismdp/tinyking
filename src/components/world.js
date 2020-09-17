@@ -16,7 +16,7 @@ import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
-import { entitiesAtLocation } from "game/spatial";
+import { entitiesAtLocations } from "game/spatial";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -38,7 +38,7 @@ const entityMouseMove = e => {
     state.pixi.viewport.addChild(target);
     target.position = e.data.getLocalPosition(target.parent);
 
-    const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
+    const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
     generateActions(state, known, target.custom.parent.entityId, target.custom.t);
   }
   target.position = target.custom.data.getLocalPosition(target.parent);
@@ -342,7 +342,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
     people: new PIXI.Container(),
   };
 
-  const known = entitiesAtLocation(ecs, ecs.playable[ui.playerId].known);
+  const known = entitiesAtLocations(ecs, ecs.playable[ui.playerId].known);
   state.redraws = [ ...known ];
 
   pixi.base = new PIXI.Container();
@@ -376,7 +376,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
 
   app.ticker.add(() => {
     if (state.redraws.length > 0) {
-      const known = entitiesAtLocation(state.ecs, state.ecs.playable[state.ui.playerId].known);
+      const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
       for (const id of state.redraws) {
         if (!known.includes(id)) {
           continue;

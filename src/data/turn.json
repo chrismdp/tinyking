@@ -135,5 +135,58 @@
         ]
       }
     }
+  },
+  {
+    "conditions": {
+      "time_of_day": { "is": "night" },
+      "season": { "not": { "is": "summer" } },
+      "target.personable": "exists",
+      "target.assignable.task": { "not": "exists" }
+    },
+    "event": {
+      "summary": "turn.colder",
+      "level": "warning",
+      "rules": {
+        "target": [
+          {
+            "conditions": {
+              "traits.values": {
+                "not": {
+                  "or": [
+                    { "has": "cold" },
+                    { "has": "freezing" }
+                  ]
+                }
+              }
+            },
+            "event": { "traits.values": { "add": { "cold": 4 } } }
+          },
+          {
+            "conditions": {
+              "traits.values": { "has": "cold" }
+            },
+            "event": { "traits.values": { "remove": "cold", "add": { "freezing": 8 } } }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "conditions": {
+      "time_of_day": { "is": "night" },
+      "season": { "not": { "is": "summer" } },
+      "target.personable": "exists",
+      "target.traits.values": { "has": "freezing" },
+      "target.assignable.task": { "not": "exists" }
+    },
+    "event": {
+      "summary": "turn.die",
+      "level": "warning",
+      "rules": {
+        "target": [
+          { "event": { "personable": { "die": { "hypothermia": true } } } }
+        ]
+      }
+    }
   }
 ]

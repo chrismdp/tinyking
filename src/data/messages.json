@@ -1,6 +1,7 @@
 {
   "traits.values.add.eaten": "eats a meal",
   "traits.values.add.hungry": "gets hungry",
+  "traits.values.add.cold": "gets cold",
   "traits.values.add.starving": "begins to starve",
   "traits.values.add.thinned": "has thinned vegetation",
   "traits.values.add.planted": "is planted with new saplings",
@@ -18,6 +19,7 @@
   "personable.recruited": "joins your kingdom",
 
   "target.mappable.terrain.is": "the terrain is %{value}",
+  "target.assignable.task.not": "There is no task assigned",
 
   "target.traits.values.not.has": "%{target} is not marked %{value}",
   "target.traits.values.has": "%{target} is marked %{value}",
@@ -26,6 +28,7 @@
   "target.personable": "%{target} is a person",
 
   "season.is": "it is %{value}",
+  "season.not.is": "it is not %{value}",
   "time_of_day.is": "it is the %{value}",
   "time_of_day.not.is": "it is not the %{value}",
 
@@ -60,7 +63,8 @@
     "hunger": "%{target} will get hungry.",
     "eaten": "%{target} will think about where tomorrow's meal will come from...",
     "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!",
-    "die": "%{target} will die!"
+    "die": "%{target} will die!",
+    "colder": "%{target} will get colder."
   },
   "action": {
     "gather_grain": {
@@ -108,7 +112,11 @@
     },
     "recruit": {
       "name": "Recruit",
-      "summary": "Encourage to join your kingdom"
+      "summary": "Encourage this household to join your kingdom."
+    },
+    "sleep": {
+      "name": "Sleep indoors",
+      "summary": "Get some rest in a proper bed."
     }
   },
   "tutorial": {

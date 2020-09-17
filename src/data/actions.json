@@ -187,7 +187,7 @@
     "conditions": {
       "target.personable": "exists",
       "target.personable.controller": {
-        "not": { "is": "$me.id" },
+        "not": { "is": "$controller.id" },
         "is": "$target.id"
       },
       "distance": { "lessEq": 4 },
@@ -200,6 +200,18 @@
           { "event": { "personable": { "recruited": "controller" } } }
         ]
       }
+    }
+  },
+  {
+    "conditions": {
+      "target.habitable": "exists",
+      "target.habitable.owners": { "includes": "$me.id" },
+      "distance": { "lessEq": 4 },
+      "time_of_day": { "is": "night" }
+    },
+    "event": {
+      "key": "sleep",
+      "rules": {}
     }
   }
 ]

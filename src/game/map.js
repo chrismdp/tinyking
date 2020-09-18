@@ -28,15 +28,23 @@ const hair = Object.values(HAIR);
 const BODY_MALE = 0x4E3F30;
 const BODY_FEMALE = 0x3B6071;
 
+export const Hex = Honeycomb.extendHex({
+  size: HEX_SIZE,
+  orientation: "flat",
+  origin: [ HEX_SIZE, HEX_SIZE * Math.sqrt(3) * 0.5 ]
+});
+
+export const Grid = Honeycomb.defineGrid(Hex);
+
 function generateFamily(size, x, y, generator, homeId) {
   var result = [];
+  const point = Hex(x, y).toPoint();
   for (var p = 0; p < size; p++) {
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
       spatial: {
-        x, y,
-        dx: -Math.cos(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7,
-        dy: Math.sin(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7
+        x: point.x - Math.cos(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7,
+        y: point.y + Math.sin(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7
       },
       traits: { values: {} },
       supplies: { },
@@ -60,12 +68,12 @@ function giveStartingGrain(supplies, id, amount) {
   supplies[id].grain = amount;
 }
 
-export function generateFamilies({ ecs, seed, playerStart }) {
+export function generateFamilies({ ecs, seed, playerStartTile }) {
   var generator = new MersenneTwister(seed);
   for (const habitableId in ecs.habitable) {
     var people = [];
-    var spatial = ecs.spatial[habitableId];
-    if (spatial.x == playerStart.x && spatial.y == playerStart.y) {
+    var spatial = Hex().fromPoint(ecs.spatial[habitableId]);
+    if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
       const player = { ...generateFamily(1, spatial.x, spatial.y, generator, habitableId)[0],
         playable: { known: [] },
       };
@@ -82,14 +90,6 @@ export function generateFamilies({ ecs, seed, playerStart }) {
     ecs.habitable[habitableId].owners = ids;
   }
 }
-
-export const Hex = Honeycomb.extendHex({
-  size: HEX_SIZE,
-  orientation: "flat",
-  origin: [ HEX_SIZE, HEX_SIZE * Math.sqrt(3) * 0.5 ]
-});
-
-export const Grid = Honeycomb.defineGrid(Hex);
 
 async function generateTerrain(grid, seed, progressUpdate) {
   ReactGA.event({category: "Map generation", action: "generate"});
@@ -127,9 +127,10 @@ async function generateTerrain(grid, seed, progressUpdate) {
         terrain = "grassland";
       }
     }
+    const point = hex.toPoint();
     result[hex] = {
-      x: hex.x,
-      y: hex.y,
+      x: point.x,
+      y: point.y,
       terrain: terrain
     };
     if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
@@ -251,8 +252,12 @@ export async function generateMap(ecs, seed, progressUpdate) {
       workable: {},
     })),
     ...Object.values(settlements).map((s) => {
+      const point = Hex(s.x, s.y).toPoint();
       var entity = {
-        spatial: { x: s.x, y: s.y },
+        spatial: {
+          x: point.x,
+          y: point.y
+        },
       };
       if (s.type == "house") {
         entity.nameable = { nickname: "Log cabin" };
@@ -263,19 +268,19 @@ export async function generateMap(ecs, seed, progressUpdate) {
     })
   ];
 
-  const playerStart = { x: start.x, y: start.y };
+  const playerStartTile = { x: start.x, y: start.y };
   newEntities(ecs, entities);
   const map = {
     seed,
-    playerStart,
-    pointWidth: grid.pointWidth(),
-    pointHeight: grid.pointHeight()
+    playerStartTile,
+    width: grid.pointWidth(),
+    height: grid.pointHeight()
   };
 
-  generateFamilies({ ecs, seed, playerStart });
+  generateFamilies({ ecs, seed, playerStartTile });
   const playerId = Object.values(ecs.playable)[0].id;
   ecs.personable[playerId].controller = playerId;
-  discoverStartingTiles(ecs, playerId, playerStart);
+  discoverStartingTiles(ecs, playerId, playerStartTile);
 
   await progressUpdate("complete");
 

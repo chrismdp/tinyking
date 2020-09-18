@@ -1,5 +1,7 @@
 import handleEvent from "game/events";
 
+import { Hex } from "game/map";
+
 import { fullEntity } from "game/entities";
 
 describe("handlingEvent", () => {
@@ -30,6 +32,12 @@ describe("handlingEvent", () => {
     expect(() => handleEvent({ "traits.values": { add: "hungry" }}, payload)).toThrow();
   });
   it ("explores neigbouring tiles", () => {
+    const tiles = {
+      2: Hex(2, 2).toPoint(),
+      3: Hex(1, 2).toPoint(),
+      4: Hex(13, 2).toPoint(),
+    };
+
     var state = {
       ecs: {
         personable: {
@@ -38,9 +46,9 @@ describe("handlingEvent", () => {
         },
         playable: { 1: { id: 1,  known: [ { x: 2, y: 2 } ] } },
         spatial: {
-          2: { id: 2, x: 2, y: 2 },
-          3: { id: 3, x: 1, y: 2 },
-          4: { id: 4, x: 13, y: 2 }
+          2: { id: 2, x: tiles["2"].x, y: tiles["2"].y },
+          3: { id: 3, x: tiles["3"].x, y: tiles["3"].y },
+          4: { id: 4, x: tiles["4"].x, y: tiles["4"].y },
         }
       }
     };

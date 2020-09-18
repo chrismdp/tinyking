@@ -59,7 +59,7 @@ const handlers = {
   explore: (key, param, payload, context, state) => {
     const neighbours = Grid.hexagon({
       radius: param.radius,
-      center: Hex(payload.spatial.x, payload.spatial.y)
+      center: Hex().fromPoint(payload.spatial)
     });
     const playable = state.ecs.playable[topController(state.ecs, payload.id)];
     const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));

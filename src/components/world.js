@@ -47,7 +47,7 @@ const selectEntity = (state, id, renderUI, t, setPopupEntity) => () => {
 
   var person = renderPerson(entity, null, t);
   person.scale.set(2.5, 2.5);
-  person.position.set(175, state.pixi.viewport.screenHeight - 20);
+  person.position.set(30, state.pixi.viewport.screenHeight - 20);
   state.pixi.uiOverlay.addChild(person);
   state.redraws.push(id);
 
@@ -72,9 +72,8 @@ const terrainColours = {
 
 const renderTile = (ecs, id) => {
   const graphics = new PIXI.Graphics();
-  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-  const point = hex.toPoint();
-  graphics.position.set(point.x, point.y);
+  const hex = Hex().fromPoint(ecs.spatial[id]);
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
 
   graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
@@ -100,9 +99,7 @@ const renderTile = (ecs, id) => {
 
 const renderBuilding = (ecs, id) => {
   const graphics = new PIXI.Graphics();
-  const hex = Hex(ecs.spatial[id].x, ecs.spatial[id].y);
-  const point = hex.toPoint();
-  graphics.position.set(point.x, point.y);
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
 
   graphics.beginFill(0x6C4332);
   graphics.lineStyle({color: "black", width: 2, alpha: 1});
@@ -114,9 +111,7 @@ const renderBuilding = (ecs, id) => {
 
 const renderPerson = (entity, fn, t) => {
   const graphics = new PIXI.Graphics();
-  const hex = Hex(entity.spatial.x, entity.spatial.y);
-  const point = hex.toPoint();
-  graphics.position.set(point.x, point.y);
+  graphics.position.set(entity.spatial.x, entity.spatial.y);
 
   const person = new PIXI.Graphics();
 
@@ -124,7 +119,6 @@ const renderPerson = (entity, fn, t) => {
     person.angle = 90;
   }
   person.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
-  person.position.set(entity.spatial.dx, entity.spatial.dy);
   person.lineStyle({color: "black", width: 2, alpha: 1});
   person.beginFill(entity.personable.body);
   person.drawEllipse(0, 0, entity.personable.size * 0.55, entity.personable.size * 0.65);
@@ -162,7 +156,8 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
   const possibleActions = {};
   const tiles = known.reduce((o, id) => {
     if (state.ecs.spatial[id]) {
-      const key = state.ecs.spatial[id].x + "," + state.ecs.spatial[id].y;
+      const hex = Hex().fromPoint(state.ecs.spatial[id]);
+      const key = hex.x + "," + hex.y;
       if (!(key in o)) {
         o[key] = [];
       }
@@ -172,7 +167,7 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
   }, {});
 
   const actor = fullEntity(state.ecs, actorId);
-  const actorHex = Hex(actor.spatial.x, actor.spatial.y);
+  const actorHex = Hex().fromPoint(actor.spatial);
   const topId = topController(state.ecs, actor.id);
   const controller = topId && fullEntity(state.ecs, topId);
 
@@ -185,7 +180,7 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
     for (const target of tiles[coord]) {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
-        const hex = Hex(target.spatial.x, target.spatial.y);
+        const hex = Hex().fromPoint(target.spatial);
 
         const neighbours = Grid.hexagon({ radius: 1, center: hex })
           .map(n => n.x + "," + n.y);
@@ -289,9 +284,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
   state.pixi = {};
   state.redraws = [];
 
-  const width = state.map.pointWidth;
-  const height = state.map.pointHeight;
-  const playerStart = state.map.playerStart;
+  const { width, height, playerStartTile } = state.map;
 
   const { ui, ecs, pixi } = state;
 
@@ -308,7 +301,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
   pixi.uiOverlay = new PIXI.Container();
   app.stage.addChild(pixi.uiOverlay);
 
-  const point = Hex(playerStart.x, playerStart.y).toPoint();
+  const point = Hex(playerStartTile.x, playerStartTile.y).toPoint();
 
   pixi.viewport.
     drag().

@@ -50,12 +50,6 @@ export async function finishJob(state, actorId, task) {
     target.id,
     actor.id
   ])];
-
-  const spatial = state.ecs.spatial[actorId];
-  const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != actor.id && o.id != target.id);
-  for (const o of other) {
-    state.redraws.push(o.id);
-  }
 }
 
 export function endTurnPayload(ecs, target, clock) {

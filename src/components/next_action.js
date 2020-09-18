@@ -6,13 +6,17 @@ import { directlyControlledBy } from "game/playable";
 
 export function NextAction() {
   const state = React.useContext(GameState);
-  const toAssign = directlyControlledBy(state.ecs, state.ui.playerId).reduce((total, e) => total + (state.ecs.assignable[e.id].task ? 0 : 1), 0);
+  const haveMovesOrActions = [
+    state.ui.playerId,
+    ...directlyControlledBy(state.ecs, state.ui.playerId).map(p => p.id)
+  ].filter(id => state.ecs.attributes[id].moves + state.ecs.attributes[id].actions > 0)
+    .length;
 
   const t = useTranslate();
 
   return (
     <div id="next-action">
-      <button onClick={state.ui.actions.end_turn}>{t(toAssign > 0 ? "next_action.left" : "next_action.end_turn", { to_assign: toAssign})}</button>
+      <button onClick={state.ui.actions.end_turn}>{t(haveMovesOrActions > 0 ? "next_action.left" : "next_action.end_turn", { to_assign: haveMovesOrActions})}</button>
     </div>
   );
 }

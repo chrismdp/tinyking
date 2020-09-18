@@ -23,7 +23,19 @@ async function applyActionRules(rules, payload, context, state) {
   return events.map(event => handleEvent(event, payload, context, state)).flat();
 }
 
-export async function doJob(state, actorId, task) {
+export async function startJob(state, actorId, task) {
+  const assignable = state.ecs.assignable[actorId];
+  delete assignable.task;
+  if (task.action.turns > 0) {
+    assignable.task = task;
+    assignable.endTime = state.clock + task.action.turns;
+    state.redraws.push(actorId);
+  } else {
+    await finishJob(state, actorId, task);
+  }
+}
+
+export async function finishJob(state, actorId, task) {
   const actor = fullEntity(state.ecs, actorId);
   const target = fullEntity(state.ecs, task.id);
   const controller = fullEntity(state.ecs, actor.personable.controller);
@@ -43,17 +55,6 @@ export async function doJob(state, actorId, task) {
   const other = Object.values(state.ecs.spatial).filter(o => spatial.x == o.x && spatial.y == o.y && o.id != actor.id && o.id != target.id);
   for (const o of other) {
     state.redraws.push(o.id);
-  }
-}
-
-async function doAssignableJobs(state) {
-  for (const actorId in state.ecs.assignable) {
-    const assignable = state.ecs.assignable[actorId];
-    if (!assignable.task) {
-      // TODO: AI to pick a random eligible task?
-      continue;
-    }
-    await doJob(state, actorId, assignable.task);
   }
 }
 
@@ -88,17 +89,19 @@ async function doEndTurnEffects(state) {
   }
 }
 
-function clearAssignableJobs(assignable) {
-  for (const id in assignable) {
-    delete assignable[id].task;
-    delete assignable[id].base;
+function tickAssignedJobs(state) {
+  for (const id in state.ecs.assignable) {
+    const assignable = state.ecs.assignable[id];
+    if (assignable.task && state.clock >= assignable.endTime) {
+      finishJob(state, id, assignable.task);
+      delete assignable.task;
+    }
   }
 }
 
 export async function endTurn(state) {
-  await doAssignableJobs(state);
   await doEndTurnEffects(state);
   state.clock++;
-  clearAssignableJobs(state.ecs.assignable);
+  tickAssignedJobs(state);
   removeExpiredTraits(state.ecs.traits, state.clock);
 }

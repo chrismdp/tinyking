@@ -4,11 +4,11 @@ import PropTypes from "prop-types";
 import { useTranslate } from "react-polyglot";
 
 import { fullEntity } from "game/entities";
-import * as time from "game/time";
 import { validEventsFor, endTurnPayload } from "game/turn";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
+import { Until } from "components/until";
 import { name } from "game/name";
 import { describeConditions, describeValidEvents } from "components/possible_action";
 import { EventList } from "components/event_list";
@@ -73,10 +73,9 @@ export function Info({ entityId }) {
         <div><strong>{ Object.keys(entity.traits.values).map(trait => {
           return (<div key={trait}>{trait} {
             entity.traits.values[trait] !== true && (
-              <span className="knockedback">{t("info.until", {
-                time: time.full(entity.traits.values[trait]),
-                smart_count: entity.traits.values[trait] - state.clock
-              })}</span>)}
+              <span className="knockedback">
+                <Until time={entity.traits.values[trait]}/>
+              </span>)}
           </div>);
         }) }
         </strong></div>) }
@@ -102,6 +101,7 @@ export function Info({ entityId }) {
         <p>
           <strong>{t("info.chosen_action")} {t("action." + actionDescription.action.key + ".name")}</strong>
         </p>
+        <p><Until time={entity.assignable.endTime}/></p>
         <EventList level={actionDescription.action.level} summary={t("action." + actionDescription.action.key + ".summary")} events={actionDescription.events}/>
       </>)
           || (iControl && (<p>{t("info.you_control")}</p>)) }

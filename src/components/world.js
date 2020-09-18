@@ -14,7 +14,7 @@ import { useTranslate } from "react-polyglot";
 import { Grid, Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
-import { doJob, endTurn } from "game/turn";
+import { startJob, endTurn } from "game/turn";
 import * as time from "game/time";
 import { entitiesAtLocations } from "game/spatial";
 import { GameState } from "components/contexts";
@@ -35,6 +35,9 @@ const selectEntity = (state, id, renderUI, t, setPopupEntity) => () => {
 
   if (state.ui.show.main_menu) {
     state.ui.actions.start_game();
+  }
+  if (state.ui.show.selected_person) {
+    state.redraws.push(state.ui.show.selected_person); // NOTE: Remove the selection indicators
   }
   state.ui.show.selected_person = id;
   renderUI();
@@ -490,7 +493,7 @@ export function World() {
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, task) => {
-        await doJob(state, id, task);
+        await startJob(state, id, task);
         const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
         generateActions(state, known, id, t, setPopupEntity);
         renderUI();
@@ -499,6 +502,10 @@ export function World() {
         await endTurn(state);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
           startTimeFilter(state.pixi, time.time(state.clock));
+          if (state.ui.show.selected_person) {
+            const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+            generateActions(state, known, state.ui.show.selected_person, t, setPopupEntity);
+          }
         } else {
           state.ui.show.game_over = true;
           delete state.ui.show.next_action;

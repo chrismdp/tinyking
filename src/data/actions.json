@@ -1,7 +1,7 @@
 [
   {
     "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] },
       "target.mappable.terrain": { "or": [ { "is": "grassland" }, { "is": "dirt" } ] },
       "not": { "other": { "habitable": "exists" } },
       "season": { "not": { "is": "winter" } },
@@ -9,6 +9,7 @@
     },
     "event": {
       "key": "plough_field",
+      "turns": 2,
       "rules": {
         "target": [
           { "event": { "mappable": { "set": { "terrain": "ploughed" } } } }
@@ -28,6 +29,7 @@
     },
     "event": {
       "key": "gather_grain",
+      "turns": 1,
       "rules": {
         "controller": [
           { "event": { "supplies": { "gain": { "grain": 1 } } } }
@@ -38,11 +40,12 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "harvestable" },
-      "time_of_day": { "not": { "is": "night" } },
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] },
       "distance": { "is": 0 }
     },
     "event": {
       "key": "harvest_field",
+      "turns": 2,
       "rules": {
         "controller": [
           { "event": { "supplies": { "gain": { "grain": 5 } } } }
@@ -55,7 +58,7 @@
   },
   {
     "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] },
       "target.mappable.terrain": { "is": "ploughed" },
       "controller.supplies.grain": { "greater": 0 },
       "season": { "not": { "is": "winter" } },
@@ -63,6 +66,7 @@
     },
     "event": {
       "key": "sow_field",
+      "turns": 2,
       "rules": {
         "controller": [
           { "event": { "supplies": { "lose": { "grain": 1 } } } }
@@ -75,12 +79,13 @@
   },
   {
     "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] },
       "target.mappable.terrain": { "is": "forest" },
       "distance": { "is": 0 }
     },
     "event": {
       "key": "chop_trees",
+      "turns": 2,
       "rules": {
         "controller": [
           { "event": { "supplies": { "gain": { "wood": 1 } } } }
@@ -138,13 +143,14 @@
   },
   {
     "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] },
       "target.mappable.terrain": { "is": "forest" },
       "distance": { "is": 0 },
       "not": { "target.traits.values": { "has": "planted" } }
     },
     "event": {
       "key": "plant_trees",
+      "turns": 2,
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": { "planted": true } } } }
@@ -169,32 +175,17 @@
   },
   {
     "conditions": {
-      "time_of_day": { "not": { "is": "night" } },
-      "neighbour_count": { "less": 6 },
-      "distance": { "is": 0 },
-      "target.mappable.walkable": { "is": true }
-    },
-    "event": {
-      "key": "explore",
-      "rules": {
-        "me": [
-          { "event": { "personable": { "explore": { "radius": 1 } } } }
-        ]
-      }
-    }
-  },
-  {
-    "conditions": {
       "target.personable": "exists",
       "target.personable.controller": {
         "not": { "is": "$controller.id" },
         "is": "$target.id"
       },
       "distance": { "is": 0 },
-      "time_of_day": { "not": { "is": "night" } }
+      "time_of_day": { "or": [ { "is": "morning" }, { "is": "afternoon" } ] }
     },
     "event": {
       "key": "recruit",
+      "turns": 3,
       "rules": {
         "target": [
           { "event": { "personable": { "recruited": "controller" } } }
@@ -211,6 +202,7 @@
     },
     "event": {
       "key": "sleep",
+      "turns": 1,
       "rules": {}
     }
   },
@@ -233,6 +225,7 @@
     },
     "event": {
       "key": "move",
+      "turns": 0,
       "rules": {
         "me": [
           { "event": { "spatial": { "move": "target" } } },
@@ -252,6 +245,7 @@
     },
     "event": {
       "key": "move",
+      "turns": 0,
       "rules": {
         "me": [
           { "event": { "spatial": { "move": "target" } } },

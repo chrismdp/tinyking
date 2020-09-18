@@ -26,99 +26,31 @@ import actions from "data/actions.json";
 
 const engine = new Engine(actions);
 
-const DROP_RADIUS = 12;
+const HIT_RADIUS = 22.5;
 
-const entityMouseMove = e => {
-  const target = e.currentTarget;
-  const state = target.custom.state;
-  if (target.custom.clicking) {
-    target.custom.data = e.data;
-    target.custom.clicking = false;
-    target.custom.parent.removeChild(target);
-    state.pixi.viewport.addChild(target);
-    target.position = e.data.getLocalPosition(target.parent);
-
-    const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
-    generateActions(state, known, target.custom.parent.entityId, target.custom.t);
+const selectEntity = (state, id, renderUI, t, setPopupEntity) => () => {
+  if (!state.ecs.personable[id]) {
+    return;
   }
-  target.position = target.custom.data.getLocalPosition(target.parent);
-
-
-  if (state.pixi.dropTargets) { // generateActions is async so these might not be here yet
-    var over = false;
-    state.pixi.dropTargets.forEach(t => {
-      const x = t.x - target.position.x;
-      const y = t.y - target.position.y;
-      const d2 = x * x + y * y;
-      if (d2 < DROP_RADIUS * DROP_RADIUS) {
-        over = true;
-        target.custom.setPopupEntity({
-          possibleAction: {
-            actorId: target.custom.parent.entityId,
-            targetId: t.id,
-            action: t.action
-          }
-        });
-      }
-    });
-    if (!over) {
-      target.custom.setPopupEntity(null);
-    }
-  }
-};
-
-const entityMouseDown = (state, parent, setPopupEntity, t) => e => {
-  e.currentTarget.custom = { state, parent, setPopupEntity, t };
-  e.currentTarget.custom.startPosition = { x: e.currentTarget.position.x, y: e.currentTarget.position.y };
-
-  state.pixi.viewport.plugins.pause("drag");
 
   if (state.ui.show.main_menu) {
     state.ui.actions.start_game();
   }
+  state.ui.show.selected_person = id;
+  renderUI();
 
-  e.currentTarget.custom.clicking = true;
-  e.currentTarget.on("mousemove", entityMouseMove);
-  e.currentTarget.on("touchmove", entityMouseMove);
-};
+  const entity = fullEntity(state.ecs, id);
+  state.pixi.uiOverlay.removeChildren();
 
-const entityMouseUp = (id, click, drop, state) => e => {
-  if (!e.currentTarget.custom) {
-    return;
-  }
-  if (e.currentTarget.custom.clicking) {
-    click(id);
-  } else {
-    e.currentTarget.custom.state.pixi.highlight.visible = false;
-    e.currentTarget.custom.state.pixi.viewport.removeChild(e.currentTarget);
-    e.currentTarget.custom.parent.addChild(e.currentTarget);
-
-    const spatial = state.ecs.spatial[id];
-    e.currentTarget.custom.state.pixi.dropTargets.forEach(t => {
-      const x = t.x - e.currentTarget.position.x;
-      const y = t.y - e.currentTarget.position.y;
-      const d2 = x * x + y * y;
-      if (d2 < DROP_RADIUS * DROP_RADIUS) {
-        drop(id, t);
-
-        const pos = e.data.getLocalPosition(e.currentTarget.parent);
-        const tP = Hex(t.hex).toPoint();
-        const oP = Hex({x: spatial.x, y: spatial.y}).toPoint();
-
-        spatial.x = t.hex.x;
-        spatial.y = t.hex.y;
-        spatial.dx = pos.x - (tP.x - oP.x);
-        spatial.dy = pos.y - (tP.y - oP.y);
-      }
-    });
-    e.currentTarget.position = { x: spatial.dx, y: spatial.dy };
-  }
-
-  e.currentTarget.custom.state.pixi.viewport.plugins.resume("drag");
-  e.currentTarget.off("mousemove", entityMouseMove);
-  e.currentTarget.off("touchmove", entityMouseMove);
-  delete e.currentTarget.custom;
+  var person = renderPerson(entity, null, t);
+  person.scale.set(2.5, 2.5);
+  person.position.set(175, state.pixi.viewport.screenHeight - 20);
+  state.pixi.uiOverlay.addChild(person);
   state.redraws.push(id);
+
+  // TODO: Assumes a hardcoded player
+  const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+  generateActions(state, known, id, t, setPopupEntity);
 };
 
 const terrainColours = {
@@ -185,8 +117,6 @@ const renderPerson = (entity, fn, t) => {
 
   const person = new PIXI.Graphics();
 
-  const HIT_RADIUS = 22.5;
-
   if (entity.personable.dead) {
     person.angle = 90;
   }
@@ -215,13 +145,13 @@ const renderPerson = (entity, fn, t) => {
     person.addChild(text);
   }
 
-  fn(person, graphics);
+  if (fn) { fn(person, graphics); }
 
   graphics.addChild(person);
   return graphics;
 };
 
-const generateActions = async (state, known, actorId, t) => {
+const generateActions = async (state, known, actorId, t, setPopupEntity) => {
   if (state.pixi.highlight) {
     state.pixi.highlight.destroy({children: true});
   }
@@ -273,8 +203,6 @@ const generateActions = async (state, known, actorId, t) => {
     }
   }
 
-  state.pixi.dropTargets = [];
-
   state.pixi.highlight = new PIXI.Container();
 
   const keys = Object.keys(possibleActions);
@@ -292,21 +220,29 @@ const generateActions = async (state, known, actorId, t) => {
       text.position.set(0, 30);
       text.anchor = { x: 0.5, y: 0.5 };
       graphics.addChild(text);
-      state.pixi.highlight.addChild(graphics);
-      state.pixi.dropTargets.push({
+      const action = {
         x: graphics.position.x,
         y: graphics.position.y,
         id: r.id,
         action: r.action,
         hex: { x: r.hex.x, y: r.hex.y },
-      });
+      };
+      graphics.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
+      graphics.interactive = true;
+      graphics.on("mouseover", () => setPopupEntity({
+        possibleAction: { actorId, action: r.action, targetId: r.id }
+      }));
+
+      graphics.on("click", () => { state.ui.actions.drop(actorId, action); });
+      graphics.on("tap", () => { state.ui.actions.drop(actorId, action); });
+      state.pixi.highlight.addChild(graphics);
     });
   }
 
   state.pixi.viewport.addChild(state.pixi.highlight);
 };
 
-const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
+const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
@@ -329,6 +265,8 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
   });
 
   app.stage.addChild(pixi.viewport);
+  pixi.uiOverlay = new PIXI.Container();
+  app.stage.addChild(pixi.uiOverlay);
 
   const point = Hex(playerStart.x, playerStart.y).toPoint();
 
@@ -399,15 +337,29 @@ const renderMap = async (app, state, popupOver, setPopupEntity, t) => {
         } else if (ecs.personable[id]) {
           const entity = fullEntity(ecs, id);
           const controlled = entity.personable.controller == state.ui.playerId;
-          pixi[id] = renderPerson(entity, (person, parent) => {
+          pixi[id] = renderPerson(entity, (person) => {
+            if (state.ui.show.selected_person == id) {
+              person.lineStyle({color: 0xff0000, width: 2, alpha: 1});
+              person.moveTo(-25, -25);
+              person.lineTo(-25, -30);
+              person.lineTo(-20, -30);
+
+              person.moveTo(20, -30);
+              person.lineTo(25, -30);
+              person.lineTo(25, -25);
+
+              person.moveTo(25, 15);
+              person.lineTo(25, 20);
+              person.lineTo(20, 20);
+
+              person.moveTo(-20, 20);
+              person.lineTo(-25, 20);
+              person.lineTo(-25, 15);
+            }
             if (controlled && entity.assignable) {
               person.interactive = true;
-              person.on("mousedown", entityMouseDown(state, parent, setPopupEntity, t));
-              person.on("touchstart", entityMouseDown(state, parent, setPopupEntity, t));
-              person.on("mouseup", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-              person.on("mouseupoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-              person.on("touchend", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
-              person.on("touchendoutside", entityMouseUp(id, ui.actions.click, ui.actions.drop, state));
+              person.on("click", selectEntity(state, id, renderUI, t, setPopupEntity));
+              person.on("tap", selectEntity(state, id, renderUI, t, setPopupEntity));
               if (!entity.assignable.task) {
                 person.beginFill(0x990000, 0.75);
                 person.drawCircle(15, -20, 4);
@@ -539,6 +491,8 @@ export function World() {
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, task) => {
         await doJob(state, id, task);
+        const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+        generateActions(state, known, id, t, setPopupEntity);
         renderUI();
       },
       end_turn: async () => {
@@ -555,11 +509,6 @@ export function World() {
             .start();
         }
         renderUI();
-      },
-      click: () => {
-        // NOTE: For now we don't need clicking on entities - we show everything in the popup
-        //state.ui.show.info = id;
-        //renderUI();
       },
       change_visibility: action => {
         state.ui.show = { ...state.ui.show, ...action };
@@ -596,7 +545,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state, popupOver, setPopupEntity, t);
+        await renderMap(app, state, popupOver, setPopupEntity, renderUI, t);
 
         renderUI();
       },

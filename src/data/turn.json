@@ -174,12 +174,12 @@
   {
     "hidden": true,
     "conditions": {
-      "target.attributes.moved": { "greater": 0 }
+      "target.attributes.moves": "exists"
     },
     "event": {
       "rules": {
         "target": [
-          { "event": { "attributes": { "set": {"moved": 0 } } } }
+          { "event": { "attributes": { "set": {"moves": 4 } } } }
         ]
       }
     }

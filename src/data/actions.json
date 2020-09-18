@@ -218,15 +218,45 @@
     "hidden": true,
     "conditions": {
       "target.mappable": "exists",
+      "target.mappable.terrain": {
+        "not": {
+          "or": [
+            { "is": "mountain" },
+            { "is": "deep water" },
+            { "is": "forest" },
+            { "is": "shallow water" }
+          ]
+        }
+      },
       "distance": { "is": 1 },
-      "me.attributes.moved": { "less": "$me.attributes.moves" }
+      "me.attributes.moves": { "greaterEq": 1 }
     },
     "event": {
       "key": "move",
       "rules": {
         "me": [
           { "event": { "spatial": { "move": "target" } } },
-          { "event": { "attributes": { "gain": {"moved": 1 } } } }
+          { "event": { "personable": { "explore": { "radius": 1 } } } },
+          { "event": { "attributes": { "lose": {"moves": 1 } } } }
+        ]
+      }
+    }
+  },
+  {
+    "hidden": true,
+    "conditions": {
+      "target.mappable": "exists",
+      "target.mappable.terrain": { "is": "forest" },
+      "distance": { "is": 1 },
+      "me.attributes.moves": { "greaterEq": 2 }
+    },
+    "event": {
+      "key": "move",
+      "rules": {
+        "me": [
+          { "event": { "spatial": { "move": "target" } } },
+          { "event": { "personable": { "explore": { "radius": 1 } } } },
+          { "event": { "attributes": { "lose": {"moves": 2 } } } }
         ]
       }
     }

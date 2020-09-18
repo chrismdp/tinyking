@@ -41,7 +41,7 @@ function generateFamily(size, x, y, generator, homeId) {
       traits: { values: {} },
       supplies: { },
       homeable: { home: homeId },
-      attributes: { moves: 4, moved: 0 },
+      attributes: { moves: 4 },
       tickable: {},
       workable: {},
       assignable: {},

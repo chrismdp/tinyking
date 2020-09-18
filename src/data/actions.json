@@ -202,6 +202,7 @@
     },
     "event": {
       "key": "sleep",
+      "max": 5,
       "turns": 1,
       "rules": {}
     }

@@ -17,7 +17,7 @@ const tutorial = [
   {
     show: { next_action: true },
     task: "plough",
-    count: 2,
+    count: 4,
     continueOnClock: 1
   },
   { description: "afternoon" },

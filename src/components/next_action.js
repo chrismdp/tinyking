@@ -9,7 +9,7 @@ export function NextAction() {
   const haveMovesOrActions = [
     state.ui.playerId,
     ...directlyControlledBy(state.ecs, state.ui.playerId).map(p => p.id)
-  ].filter(id => state.ecs.attributes[id].moves > 0 || !state.ecs.assignable.task)
+  ].filter(id => !state.ecs.assignable[id].task)
     .length;
 
   const t = useTranslate();

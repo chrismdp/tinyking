@@ -69,6 +69,7 @@
     "colder": "%{target} will get colder."
   },
   "action": {
+    "cancel": "Cancel",
     "gather_grain": {
       "name": "Gather Grain",
       "summary": "Comb the fields for enough kernels of wild wheat to be able to sow a field."
@@ -130,7 +131,7 @@
     "skip": "Skip tutorial",
     "descriptions": {
       "start": "You are a Tiny King, destined for greatness! Your little lands may only consist of a small wooden shack, and a field, but in them there is the potential for a bustling economy.",
-      "time": "It's the beginning of spring - plenty of time until winter. There's one day in each season, and you can take four actions a day: one each for morning, afternoon, evening and night.",
+      "time": "It's the beginning of spring. There are four turns each season: one for morning, afternoon, evening and night. You can move each turn, and also choose actions to perform. Some actions take more than one turn to complete.",
       "supplies": "You have some food stored, but you'll need to grow some grain to stop your supplies dwindling too much. You must eat each day, or you'll get hungry.",
       "afternoon": "The day has brightened up, but you have a hard decision to make. You have only one portion of grain. Do you keep it to make a simple meal this evening, or do you sow it into your field?",
       "eat": "Your stomach made the decision for you! If you tap or hover on your character, you'll see that they've now eaten, and this effect will last until this time tomorrow. There's lots of detail about what will happen in grey text in case you need it.",
@@ -143,8 +144,10 @@
     "tasks": {
       "plough": {
         "main": "Survive the Winter",
-        "steps.0": "Move your character to the nearest field to plough it",
-        "steps.1": "Press 'End turn' at the bottom of the screen"
+        "steps.0": "Select your character by clicking or tapping on them",
+        "steps.1": "Click or tap to move your character to the nearest field",
+        "steps.2": "Choose the Plough Field action",
+        "steps.3": "Press 'End turn' at the bottom of the screen"
       },
       "eat_grain": {
         "main": "Survive the Winter",

@@ -178,6 +178,10 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
 
   const knownTiles = Object.keys(tiles);
   for (const coord in tiles) {
+    const assignables = tiles[coord]
+      .filter(e => e.assignable && e.assignable.task)
+      .map(e => e.assignable);
+    possibleActions[coord] = [];
     for (const target of tiles[coord]) {
       if (target.workable) {
         const other = tiles[coord].filter(e => e.id != target.id);
@@ -198,9 +202,13 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
         };
 
         const events = await engine.run(payload);
+        const free = events.filter(action =>
+          assignables
+            .filter(a => a.id != actor.id && a.task.action.key == action.key)
+            .length < (action.max || 1));
         possibleActions[coord] = [
-          ...(possibleActions[coord] || []),
-          ...events.map(action => ({ id: target.id, action, hex }))
+          ...possibleActions[coord],
+          ...free.map(action => ({ id: target.id, action, hex }))
         ];
       }
     }
@@ -216,28 +224,57 @@ const generateActions = async (state, known, actorId, t, setPopupEntity) => {
       const point = r.hex.toPoint();
       const graphics = new PIXI.Graphics();
       graphics.position.set(point.x - Math.sin(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1), point.y + Math.cos(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1));
-      graphics.lineStyle({color: 0xffffff, width: 8, alpha: 0.5});
-      graphics.drawCircle(0, 0, 15);
-      graphics.endFill();
-      var text = new PIXI.Text(t("action." + r.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
-      text.position.set(0, 30);
-      text.anchor = { x: 0.5, y: 0.5 };
-      graphics.addChild(text);
-      const action = {
-        x: graphics.position.x,
-        y: graphics.position.y,
-        id: r.id,
-        action: r.action,
-        hex: { x: r.hex.x, y: r.hex.y },
-      };
+
+      var text;
       graphics.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
       graphics.interactive = true;
-      graphics.on("mouseover", () => setPopupEntity({
-        possibleAction: { actorId, action: r.action, targetId: r.id }
-      }));
 
-      graphics.on("click", () => { state.ui.actions.drop(actorId, action); });
-      graphics.on("tap", () => { state.ui.actions.drop(actorId, action); });
+      if (actor.assignable.task && actor.assignable.task.action.key == r.action.key) {
+        graphics.beginFill(0xDEF0A5, 0.5);
+        graphics.drawCircle(0, 0, 15);
+        graphics.endFill();
+        text = new PIXI.Text(t("action.cancel"), {fontFamily: "Alegreya", fontSize: 12, fill: 0xDEF0A5});
+        text.position.set(0, 30);
+        text.anchor = { x: 0.5, y: 0.5 };
+
+        graphics.addChild(text);
+        graphics.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
+
+        graphics.on("click", () => { state.ui.actions.cancel_action(actorId); });
+        graphics.on("tap", () => { state.ui.actions.cancel_action(actorId); });
+      } else {
+        graphics.beginFill(0xffffff, r.action.turns > 0 ? 0.5 : 0.75);
+        graphics.drawCircle(0, 0, 15);
+        graphics.endFill();
+
+        if (r.action.turns > 0) {
+          var turns = new PIXI.Text(r.action.turns, {fontFamily: "Alegreya", fontSize: 18, fill: "black", fontWeight: "bold"});
+          turns.position.set(0, 0);
+          turns.anchor = { x: 0.5, y: 0.5 };
+          graphics.addChild(turns);
+        }
+
+        text = new PIXI.Text(t("action." + r.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
+        text.position.set(0, 30);
+        text.anchor = { x: 0.5, y: 0.5 };
+        graphics.addChild(text);
+
+        const action = {
+          x: graphics.position.x,
+          y: graphics.position.y,
+          id: r.id,
+          action: r.action,
+          hex: { x: r.hex.x, y: r.hex.y },
+        };
+
+        graphics.on("mouseover", () => setPopupEntity({
+          possibleAction: { actorId, action: r.action, targetId: r.id }
+        }));
+
+        graphics.on("click", () => { state.ui.actions.drop(actorId, action); });
+        graphics.on("tap", () => { state.ui.actions.drop(actorId, action); });
+      }
+
       state.pixi.highlight.addChild(graphics);
     });
   }
@@ -494,6 +531,13 @@ export function World() {
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, task) => {
         await startJob(state, id, task);
+        const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+        generateActions(state, known, id, t, setPopupEntity);
+        renderUI();
+      },
+      cancel_action: (id) => {
+        delete state.ecs.assignable[id].task;
+        state.redraws.push(id);
         const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
         generateActions(state, known, id, t, setPopupEntity);
         renderUI();

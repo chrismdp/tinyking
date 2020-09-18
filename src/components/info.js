@@ -117,6 +117,7 @@ export function Info({ entityId }) {
             summary={event.summary && t(event.summary, { target: name(entity.nameable) })}
             conditions={event.conditions}/>
         </div>)) }
+      { entity.spatial && (<span className="knockedback">{ JSON.stringify(entity.spatial) }</span>) }
     </div>
   );
 }

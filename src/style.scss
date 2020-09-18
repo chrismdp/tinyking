@@ -3,7 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;1,400&family=Raleway:wght@500&display=swap');
 
 /* Fix mobile Safari weirdness: https://chanind.github.io/javascript/2019/09/28/avoid-100vh-on-mobile-web.html#comment-4634290908 */
-html, body { height: 100%; }
+html, body, #root { height: 100%; }
 
 @mixin menu-link {
   display: inline-block;
@@ -88,25 +88,32 @@ canvas {
 #game {
   color: white;
   width: 100%;
+  height: 100%;
   display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: 100%;
+  grid-template-areas: "Main";
 
   .hiding {
     animation: fade-out 0.5s forwards !important;
   }
 
   #ui {
+    height: 100%;
     display: grid;
-    grid-template-columns: 5px 25px 1fr 1fr 25px 5px;
-    grid-template-rows: 5px 25px auto 35px 5px;
+    grid-template-columns: 5px 25px 1fr 0.5fr 0.5fr 25px 5px;
+    grid-template-rows: 5px 25px auto 70px 35px 5px;
     grid-template-areas:
-      ". . . . . ."
-      ". Supplies Supplies Clock Clock ."
-      ". Main Main Main Main ."
-      ". SelectedPerson SelectedPerson NextAction NextAction ."
-      ". . . . . ."
+      ". . . . . . ."
+      ". Supplies Supplies Clock Clock Clock ."
+      ". Main Main Main Main Main ."
+      ". SelectedPerson SelectedPerson SelectedPerson . . ."
+      ". . . . NextAction NextAction ."
+      ". . . . . . ."
   }
 
   #ui, #world, #main-menu, #game-over, .desktop {
+    height: 100%;
     grid-area: Main;
   }
 
@@ -123,6 +130,9 @@ canvas {
     animation: fade-in 1.5s forwards;
     opacity: 0;
     text-align: right;
+    button {
+      font-size: 1.5vh;
+    }
   }
 
   #selected-person {

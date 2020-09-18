@@ -44,7 +44,7 @@
   },
 
   "next_action": {
-    "left": "End turn (%{to_assign} to assign)",
+    "left": "End turn (%{to_assign})",
     "end_turn": "End turn"
   },
 

@@ -62,6 +62,7 @@
       "controller.supplies.grain": { "greaterEq": 1 }
     },
     "event": {
+      "summary": "turn.eat",
       "rules": {
         "target": [
           { "event": { "traits.values": { "add": { "eaten": 4 } } } },
@@ -179,7 +180,7 @@
     "event": {
       "rules": {
         "target": [
-          { "event": { "attributes": { "set": {"moves": 4 } } } }
+          { "event": { "attributes": { "set": {"moves": 2 } } } }
         ]
       }
     }

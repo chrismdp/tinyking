@@ -38,9 +38,9 @@
     "end_turn_conditions": "At the end of this turn",
     "unless_actions": "(unless actions change things)",
     "because": "Because:",
-    "you_control": "You control this character. Click and drag to assign to a job.",
+    "you_control": "You control this character. Click to move or assign to a job.",
     "chosen_action": "Chosen action:",
-    "until": "(%{smart_count} turn left - until %{time}) |||| (%{smart_count} turns left - until %{time})"
+    "until": "(%{smart_count} turn left) |||| (%{smart_count} turns left)"
   },
 
   "next_action": {
@@ -63,7 +63,7 @@
   },
   "turn": {
     "hunger": "%{target} will get hungry.",
-    "eaten": "%{target} will think about where tomorrow's meal will come from...",
+    "eat": "%{target} will eat, if there's enough food.",
     "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!",
     "die": "%{target} will die!",
     "colder": "%{target} will get colder."
@@ -143,7 +143,7 @@
     "tasks": {
       "plough": {
         "main": "Survive the Winter",
-        "steps.0": "Drag your character to the nearest field to plough it",
+        "steps.0": "Move your character to the nearest field to plough it",
         "steps.1": "Press 'End turn' at the bottom of the screen"
       },
       "eat_grain": {
@@ -158,7 +158,7 @@
       },
       "gather": {
         "main": "Survive the Winter",
-        "steps.0": "Drag your character to 'Gather grain' on nearby grasslands",
+        "steps.0": "Move your character to 'Gather grain' on nearby grasslands",
         "steps.1": "Press 'End turn'",
         "steps.2": "Repeat so you have 2 portions of grain in your supplies"
       },

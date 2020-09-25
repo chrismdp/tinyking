@@ -250,6 +250,8 @@ export const lerp = (a, b, alpha) => ({
   y: a.y * (1 - alpha) + alpha * b.y
 });
 
+export const ALL_SIX = Array.from({length: 6}, (x, i) => i);
+
 export async function generateMap(ecs, seed, progressUpdate) {
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
   var landscape = await generateTerrain(grid, seed, progressUpdate);
@@ -274,7 +276,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: {
-      exits: walkable[tile.terrain] ? Array.from({length: 6}, (x, i) => i) : []
+      exits: walkable[tile.terrain] ? ALL_SIX : []
     }
   }));
 
@@ -307,7 +309,6 @@ export async function generateMap(ecs, seed, progressUpdate) {
       }
     });
   });
-
 
   const playerStartTile = { x: start.x, y: start.y };
   const map = {

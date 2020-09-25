@@ -16,6 +16,8 @@ import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
 import { startJob, endTurn } from "game/turn";
 import * as time from "game/time";
+import * as math from "game/math";
+import { path } from "game/pathfinding";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -26,29 +28,23 @@ import actions from "data/actions.json";
 const engine = new Engine(actions);
 
 const HIT_RADIUS = 22.5;
-
-const selectEntity = (state, id, renderUI, t) => () => {
-  if (!state.ecs.personable[id]) {
+const moveToTile = (state, mover, id) => () => {
+  if (!state.ecs.walkable[id]) {
     return;
   }
-
-  if (state.ui.show.main_menu) {
-    state.ui.actions.start_game();
+  if (Object.keys(state.ecs.walkable[id].neighbours).length == 0) {
+    return;
   }
-  if (state.ui.show.selected_person) {
-    state.redraws.push(state.ui.show.selected_person); // NOTE: Remove the selection indicators
+  const start = state.space[Hex().fromPoint(state.ecs.spatial[mover])].filter(e => state.ecs.mappable[e])[0];
+  const route = path(state.ecs, start, id);
+  if (route) {
+    route.shift();
+    state.ecs.moveable[mover].route = route;
+    if (state.pixi[mover].tween) {
+      state.pixi[mover].tween.stop();
+    }
+    console.log("MOVE", mover, "TO", id, route);
   }
-  state.ui.show.selected_person = id;
-  renderUI();
-
-  const entity = fullEntity(state.ecs, id);
-  state.pixi.uiOverlay.removeChildren();
-
-  var person = renderPerson(entity, null, t);
-  person.scale.set(2.5, 2.5);
-  person.position.set(30, state.pixi.viewport.screenHeight - 20);
-  state.pixi.uiOverlay.addChild(person);
-  state.redraws.push(id);
 };
 
 const terrainColours = {
@@ -96,14 +92,15 @@ const renderTile = (ecs, id) => {
     graphics.endFill();
   }
   graphics.endFill();
-  if (ecs.walkable[id]) {
-    graphics.beginFill(0xFF0000);
-    Object.keys(ecs.walkable[id].neighbours).forEach(side => graphics.drawCircle(
-      Math.sin(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
-      -Math.cos(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
-      5)
-    );
-  }
+  // NOTE: Debug for showing paths between hexes
+  // if (ecs.walkable[id]) {
+  //   graphics.beginFill(0xFF0000);
+  //   Object.keys(ecs.walkable[id].neighbours).forEach(side => graphics.drawCircle(
+  //     Math.sin(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
+  //     -Math.cos(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
+  //     5)
+  //   );
+  // }
   return graphics;
 };
 
@@ -367,6 +364,32 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
   });
 
   app.ticker.add(() => {
+    for (const id in state.ecs.moveable) {
+      const m = state.ecs.moveable[id];
+      if (!m.route || m.route.length == 0) {
+        continue;
+      }
+      const s = state.ecs.spatial[id];
+      let next = m.route[0];
+      let target = state.ecs.spatial[next];
+
+      const SPEED = HEX_SIZE * 2.5; // 2.5 Hex sides per second
+      if (!state.pixi[id].tween) {
+        state.pixi[id].tween = new TWEEN.Tween(s)
+          .to(target, Math.sqrt(math.squaredDistance(s, target)) / (SPEED * 0.001))
+          .onUpdate(() => state.pixi[id].position.set(s.x, s.y))
+          .onStop(() => delete state.pixi[id].tween)
+          .onComplete(() => delete state.pixi[id].tween)
+          .start();
+      }
+
+      if (math.squaredDistance(s, target) < 10) {
+        m.route.shift();
+      }
+    }
+  });
+
+  app.ticker.add(() => {
     if (state.redraws.length > 0) {
       const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
       for (const id of state.redraws) {
@@ -380,6 +403,9 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         if (ecs.mappable[id]) {
           pixi[id] = renderTile(ecs, id);
           layer.tiles.addChild(pixi[id]);
+          pixi[id].interactive = true;
+          pixi[id].on("click", moveToTile(state, state.ui.playerId, id));
+          pixi[id].on("tap", moveToTile(state, state.ui.playerId, id));
         } else if (ecs.workable[id] && ecs.workable[id].yield == "wood") {
           pixi[id] = renderTree(ecs, id);
           layer.buildings.addChild(pixi[id]);
@@ -388,7 +414,6 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
           layer.buildings.addChild(pixi[id]);
         } else if (ecs.personable[id]) {
           const entity = fullEntity(ecs, id);
-          const controlled = entity.personable.controller == state.ui.playerId;
           pixi[id] = renderPerson(entity, (person) => {
             if (state.ui.show.selected_person == id) {
               person.lineStyle({color: 0xff0000, width: 2, alpha: 1});
@@ -408,15 +433,12 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
               person.lineTo(-25, 20);
               person.lineTo(-25, 15);
             }
-            if (controlled && entity.assignable) {
-              person.interactive = true;
-              person.on("click", selectEntity(state, id, renderUI, t));
-              person.on("tap", selectEntity(state, id, renderUI, t));
-              if (!entity.assignable.task) {
-                person.beginFill(0x990000, 0.75);
-                person.drawCircle(15, -20, 4);
-                person.endFill();
-              }
+
+            if (entity.assignable && !entity.assignable.task) {
+              const text = new PIXI.Text("Zz", {fontFamily: "Alegreya", fontSize: 14, fill: "red"});
+              text.position.set(18, -20);
+              text.anchor = { x: 0.5, y: 0.5 };
+              person.addChild(text);
             }
           }, t);
           layer.people.addChild(pixi[id]);

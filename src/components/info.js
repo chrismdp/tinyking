@@ -44,7 +44,7 @@ export function Info({ entityId }) {
       </>)}
       { entity.assignable && <AssignedTask assignable={entity.assignable}/>}
       <EndTurnEvents entity={entity} detail={true}/>
-      { entity.spatial && (<span className="knockedback">{ JSON.stringify(entity.spatial) }</span>) }
+      <span className="knockedback">{ JSON.stringify(entity) }</span>
     </div>
   );
 }

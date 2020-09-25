@@ -7,8 +7,9 @@ import ReactGA from "react-ga";
 
 import { newEntities } from "game/entities";
 import { discoverTiles } from "game/playable";
+import { entitiesAtLocations } from "game/spatial";
 
-export const HEX_SIZE = 80;
+export const HEX_SIZE = 60;
 const MAP_RADIUS = 10;
 const HEX_HEIGHT = HEX_SIZE * Math.sqrt(3);
 
@@ -37,20 +38,20 @@ export const Hex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
-function generateFamily(size, x, y, generator, homeId) {
+function generateFamily(size, spatial, front, generator, homeId) {
   var result = [];
-  const point = Hex(x, y).toPoint();
+  const grid = Grid.hexagon({ center: spatial, radius: 1 });
+  const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
+  const starts = grid.neighborsOf(spatial, sides);
   for (var p = 0; p < size; p++) {
+    const { x, y } = starts[p].toPoint();
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
-      spatial: {
-        x: point.x - Math.cos(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7,
-        y: point.y + Math.sin(p / (size * 1.5) * Math.PI * 2) * HEX_SIZE * 0.7
-      },
+      spatial: { x, y },
       traits: { values: {} },
       supplies: { },
       homeable: { home: homeId },
-      attributes: { moves: 2 },
+      attributes: {},
       tickable: {},
       workable: {},
       assignable: {},
@@ -75,13 +76,13 @@ export function generateFamilies({ ecs, seed, playerStartTile }) {
     var people = [];
     var spatial = Hex().fromPoint(ecs.spatial[habitableId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial.x, spatial.y, generator, habitableId)[0],
+      const player = { ...generateFamily(1, spatial, ecs.habitable[habitableId].side, generator, habitableId)[0],
         playable: { known: [] },
       };
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = generateFamily(familySize, spatial.x, spatial.y, generator, habitableId);
+      people = generateFamily(familySize, spatial, ecs.habitable[habitableId].side, generator, habitableId);
     }
     const ids = newEntities(ecs, people);
     giveStartingGrain(ecs.supplies, ids[0], people.length);
@@ -202,11 +203,17 @@ async function generateEconomicValue(grid, landscape, progressUpdate) {
   }
 }
 
-function makeHouseAndField(settlements, grid, target) {
+function makeHouse(settlements, grid, target, landscape) {
+  Grid.spiral({ center: target, radius: 1}).forEach(hex => {
+    landscape[hex].terrain = "grassland";
+    if (settlements[hex]) {
+      delete settlements[hex];
+    }
+  });
   settlements[target] = {
     x: target.x,
     y: target.y,
-    type: "house"
+    frontDoorSide: Math.floor(Math.random() * 6) % 6,
   };
 }
 
@@ -219,7 +226,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
       const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
         if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
-          makeHouseAndField(settlements, grid, target);
+          makeHouse(settlements, grid, target, landscape);
         }
       }
     }
@@ -228,7 +235,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
     }
   }
 
-  makeHouseAndField(settlements, grid, start, landscape, generator);
+  makeHouse(settlements, grid, start, landscape, generator);
   return settlements;
 }
 
@@ -250,12 +257,14 @@ export async function generateMap(ecs, seed, progressUpdate) {
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
 
-  const houses = Object.values(settlements).map(s => Hex(s.x, s.y).toPoint()).map(p => ({
-    spatial: { x: p.x, y: p.y },
-    nameable: { nickname: "Log cabin" },
-    habitable: { owners: [] },
-    workable: {},
-  }));
+  const houses = Object.values(settlements).map(s => {
+    const { x, y } = Hex(s.x, s.y).toPoint();
+    return {
+      spatial: { x, y },
+      nameable: { nickname: "Log cabin" },
+      habitable: { owners: [], side: s.frontDoorSide },
+    };
+  });
 
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
@@ -264,7 +273,9 @@ export async function generateMap(ecs, seed, progressUpdate) {
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
-    workable: {},
+    walkable: {
+      exits: walkable[tile.terrain] ? Array.from({length: 6}, (x, i) => i) : []
+    }
   }));
 
   const TREES_PER_TILE = 5;
@@ -287,6 +298,17 @@ export async function generateMap(ecs, seed, progressUpdate) {
     }).flat();
 
   newEntities(ecs, [ ...tiles, ...houses, ...trees ]);
+
+  Object.values(settlements).forEach(s => {
+    entitiesAtLocations(ecs, [s]).forEach(id => {
+      const w = ecs.walkable[id];
+      if (w) {
+        w.exits = [ s.frontDoorSide ];
+      }
+    });
+  });
+
+
   const playerStartTile = { x: start.x, y: start.y };
   const map = {
     seed,

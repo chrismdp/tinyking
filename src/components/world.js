@@ -97,9 +97,18 @@ const renderTile = (ecs, id) => {
     graphics.endFill();
   }
   graphics.endFill();
-  //graphics.addChild(new PIXI.Text(ecs.spatial[id].x + "," + ecs.spatial[id].y, 0, 0));
+  if (ecs.walkable[id]) {
+    graphics.beginFill(0xFF0000);
+    ecs.walkable[id].exits.forEach(exit => graphics.drawCircle(
+      Math.sin(2 * Math.PI * ((exit + 2) % 6) / 6) * HEX_SIZE * 0.7,
+      -Math.cos(2 * Math.PI * ((exit + 2) % 6) / 6) * HEX_SIZE * 0.7,
+      5)
+    );
+  }
   return graphics;
 };
+
+const GOLDEN_RATIO = 1.618034;
 
 const renderBuilding = (ecs, id) => {
   const graphics = new PIXI.Graphics();
@@ -107,8 +116,12 @@ const renderBuilding = (ecs, id) => {
 
   graphics.beginFill(0x6C4332);
   graphics.lineStyle({color: "black", width: 2, alpha: 1});
-  graphics.drawRect(-25, -30, 50, 35);
-  graphics.endFill();
+  const w = HEX_SIZE * 1.35;
+  const h = w / GOLDEN_RATIO;
+  graphics.drawRect(-w * 0.5, -h * 0.5, w, h);
+  graphics.beginFill(0x000000);
+  graphics.drawRect(-w * 0.15, h * 0.5 - 2, w * 0.3, 5);
+  graphics.rotation = 2 * Math.PI * (ecs.habitable[id].side - 1) / 6;
 
   return graphics;
 };

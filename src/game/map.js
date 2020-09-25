@@ -10,10 +10,11 @@ import { discoverTiles } from "game/playable";
 
 export const HEX_SIZE = 80;
 const MAP_RADIUS = 10;
+const HEX_HEIGHT = HEX_SIZE * Math.sqrt(3);
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
-const STARTING_KNOWN_DISTANCE = 2;
+const STARTING_KNOWN_DISTANCE = 5;
 
 const UPDATE_PROGRESS_EVERY = 500;
 
@@ -31,7 +32,7 @@ const BODY_FEMALE = 0x3B6071;
 export const Hex = Honeycomb.extendHex({
   size: HEX_SIZE,
   orientation: "flat",
-  origin: [ HEX_SIZE, HEX_SIZE * Math.sqrt(3) * 0.5 ]
+  origin: [ HEX_SIZE, HEX_HEIGHT * 0.5 ]
 });
 
 export const Grid = Honeycomb.defineGrid(Hex);
@@ -119,7 +120,9 @@ async function generateTerrain(grid, seed, progressUpdate) {
     } else if (hex.customHeight < 0) {
       terrain = "shallow water";
     } else {
-      if (simplex.noise2D(hex.x * 0.2, hex.y * 0.2) > 0.45) {
+      if (simplex.noise2D(hex.x * 0.2, hex.y * 0.2) +
+        simplex.noise2D(hex.x * 2, hex.y * 2) * 0.25
+        > 0.45) {
         terrain = "forest";
       } else if (simplex.noise2D(hex.x * 0.5, hex.y * 0.5) > 0.85) {
         terrain = "stone";
@@ -235,41 +238,56 @@ function discoverStartingTiles(ecs, id, center) {
   discoverTiles(ecs, { id, tiles });
 }
 
+export const lerp = (a, b, alpha) => ({
+  x: a.x * (1 - alpha) + alpha * b.x,
+  y: a.y * (1 - alpha) + alpha * b.y
+});
+
 export async function generateMap(ecs, seed, progressUpdate) {
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
   var landscape = await generateTerrain(grid, seed, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
-  const entities = [
-    ...Object.values(landscape).map((tile) => ({
-      nameable: { nickname: "Map tile" },
-      spatial: { x: tile.x, y: tile.y },
-      mappable: { terrain: tile.terrain, walkable: walkable[tile.terrain] },
-      tickable: {},
-      traits: { values: {} },
-      valuable: { value: tile.economic_value },
-      workable: {},
-    })),
-    ...Object.values(settlements).map((s) => {
-      const point = Hex(s.x, s.y).toPoint();
-      var entity = {
-        spatial: {
-          x: point.x,
-          y: point.y
-        },
-      };
-      if (s.type == "house") {
-        entity.nameable = { nickname: "Log cabin" };
-        entity.habitable = { owners: [] };
-        entity.workable = {};
-      }
-      return entity;
-    })
-  ];
 
+  const houses = Object.values(settlements).map(s => Hex(s.x, s.y).toPoint()).map(p => ({
+    spatial: { x: p.x, y: p.y },
+    nameable: { nickname: "Log cabin" },
+    habitable: { owners: [] },
+    workable: {},
+  }));
+
+  const tiles = Object.values(landscape).map((tile) => ({
+    nameable: { nickname: "Map tile" },
+    spatial: { x: tile.x, y: tile.y },
+    mappable: { terrain: tile.terrain, walkable: walkable[tile.terrain] },
+    tickable: {},
+    traits: { values: {} },
+    valuable: { value: tile.economic_value },
+    workable: {},
+  }));
+
+  const TREES_PER_TILE = 5;
+  const trees = Object.values(landscape)
+    .filter(t => t.terrain == "forest")
+    .map(tile => {
+      return [...Array(TREES_PER_TILE).keys()].map(i => {
+        return {
+          spatial: {
+            x: tile.x + Math.sin(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
+            y: tile.y - Math.cos(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
+          },
+          workable: {
+            action: "cut",
+            yield: "wood",
+            amount: Math.ceil(Math.random(1) * 3)
+          }
+        };
+      });
+    }).flat();
+
+  newEntities(ecs, [ ...tiles, ...houses, ...trees ]);
   const playerStartTile = { x: start.x, y: start.y };
-  newEntities(ecs, entities);
   const map = {
     seed,
     playerStartTile,

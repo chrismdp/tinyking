@@ -28,7 +28,7 @@ const engine = new Engine(actions);
 
 const HIT_RADIUS = 22.5;
 
-const selectEntity = (state, id, renderUI, t, setPopupEntity) => () => {
+const selectEntity = (state, id, renderUI, t) => () => {
   if (!state.ecs.personable[id]) {
     return;
   }
@@ -50,10 +50,6 @@ const selectEntity = (state, id, renderUI, t, setPopupEntity) => () => {
   person.position.set(30, state.pixi.viewport.screenHeight - 20);
   state.pixi.uiOverlay.addChild(person);
   state.redraws.push(id);
-
-  // TODO: Assumes a hardcoded player
-  const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
-  generateActions(state, known, id, t, setPopupEntity);
 };
 
 const terrainColours = {
@@ -66,18 +62,26 @@ const terrainColours = {
   "growing": 0x6C4332,
   "harvestable": 0xE2C879,
   "dirt": 0x6C4332,
-  "forest": 0x30512F,
+  "forest": 0x80C05D,
   "stone": 0x5D7084,
+};
+
+const renderTree = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.beginFill(0x30512F);
+  graphics.drawCircle(0, 0, HEX_SIZE * (0.1 + ecs.workable[id].amount * 0.1));
+  graphics.endFill();
+  return graphics;
 };
 
 const renderTile = (ecs, id) => {
   const graphics = new PIXI.Graphics();
-  const hex = Hex().fromPoint(ecs.spatial[id]);
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
 
   graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-  graphics.drawPolygon(...hex.corners());
+  graphics.drawPolygon(...Hex().corners());
   graphics.endFill();
   graphics.beginFill(0xE2C879);
   if (ecs.mappable[id].terrain == "sown" || ecs.mappable[id].terrain == "growing") {
@@ -314,8 +318,8 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
 
   var layer = {
     tiles: new PIXI.Container(),
-    buildings: new PIXI.Container(),
     people: new PIXI.Container(),
+    buildings: new PIXI.Container(),
   };
 
   const known = entitiesAtLocations(ecs, ecs.playable[ui.playerId].known);
@@ -364,6 +368,9 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         if (ecs.mappable[id]) {
           pixi[id] = renderTile(ecs, id);
           layer.tiles.addChild(pixi[id]);
+        } else if (ecs.workable[id] && ecs.workable[id].yield == "wood") {
+          pixi[id] = renderTree(ecs, id);
+          layer.buildings.addChild(pixi[id]);
         } else if (ecs.habitable[id]) {
           pixi[id] = renderBuilding(ecs, id);
           layer.buildings.addChild(pixi[id]);
@@ -391,8 +398,8 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
             }
             if (controlled && entity.assignable) {
               person.interactive = true;
-              person.on("click", selectEntity(state, id, renderUI, t, setPopupEntity));
-              person.on("tap", selectEntity(state, id, renderUI, t, setPopupEntity));
+              person.on("click", selectEntity(state, id, renderUI, t));
+              person.on("tap", selectEntity(state, id, renderUI, t));
               if (!entity.assignable.task) {
                 person.beginFill(0x990000, 0.75);
                 person.drawCircle(15, -20, 4);
@@ -401,6 +408,9 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
             }
           }, t);
           layer.people.addChild(pixi[id]);
+        } else {
+          const entity = fullEntity(ecs, id);
+          throw "Cannot render entity " + JSON.stringify(entity);
         }
         pixi[id].entityId = id;
         pixi[id].interactive = true;

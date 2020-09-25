@@ -1,7 +1,6 @@
 import selectn from "selectn";
 
 import { Grid, Hex } from "game/map";
-import { entitiesAtLocations } from "game/spatial";
 import { topController, directlyControlledBy } from "game/playable";
 
 function mergeSupplies(target, incoming) {
@@ -64,7 +63,7 @@ const handlers = {
     const playable = state.ecs.playable[topController(state.ecs, payload.id)];
     const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
     playable.known = [ ...playable.known, ...newTiles ];
-    return [ payload.id, ...entitiesAtLocations(state.ecs, newTiles) ];
+    return [ payload.id ];
   },
   recruited: (key, param, payload, context, state) => {
     const thing = selectn(key, payload);

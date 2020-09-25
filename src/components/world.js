@@ -16,7 +16,6 @@ import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
 import { startJob, endTurn } from "game/turn";
 import * as time from "game/time";
-import { entitiesAtLocations } from "game/spatial";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -99,9 +98,9 @@ const renderTile = (ecs, id) => {
   graphics.endFill();
   if (ecs.walkable[id]) {
     graphics.beginFill(0xFF0000);
-    ecs.walkable[id].exits.forEach(exit => graphics.drawCircle(
-      Math.sin(2 * Math.PI * ((exit + 2) % 6) / 6) * HEX_SIZE * 0.7,
-      -Math.cos(2 * Math.PI * ((exit + 2) % 6) / 6) * HEX_SIZE * 0.7,
+    Object.keys(ecs.walkable[id].neighbours).forEach(side => graphics.drawCircle(
+      Math.sin(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
+      -Math.cos(2 * Math.PI * ((+side + 2) % 6) / 6) * HEX_SIZE * 0.8,
       5)
     );
   }
@@ -335,7 +334,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
     buildings: new PIXI.Container(),
   };
 
-  const known = entitiesAtLocations(ecs, ecs.playable[ui.playerId].known);
+  const known = ecs.playable[ui.playerId].known.map(k => state.space[Hex(k)]).flat();
   state.redraws = [ ...known ];
 
   pixi.base = new PIXI.Container();
@@ -369,7 +368,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
 
   app.ticker.add(() => {
     if (state.redraws.length > 0) {
-      const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+      const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
       for (const id of state.redraws) {
         if (!known.includes(id)) {
           continue;
@@ -547,14 +546,14 @@ export function World() {
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       drop: async (id, task) => {
         await startJob(state, id, task);
-        const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+        const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
         generateActions(state, known, id, t, setPopupEntity);
         renderUI();
       },
       cancel_action: (id) => {
         delete state.ecs.assignable[id].task;
         state.redraws.push(id);
-        const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+        const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
         generateActions(state, known, id, t, setPopupEntity);
         renderUI();
       },
@@ -563,7 +562,7 @@ export function World() {
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
           startTimeFilter(state.pixi, time.time(state.clock));
           if (state.ui.show.selected_person) {
-            const known = entitiesAtLocations(state.ecs, state.ecs.playable[state.ui.playerId].known);
+            const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
             generateActions(state, known, state.ui.show.selected_person, t, setPopupEntity);
           }
         } else {
@@ -604,7 +603,7 @@ export function World() {
         state.pixi = {};
         state.ui.progress = { count: 0 };
 
-        const results = await generateMap(state.ecs, seed, state.ui.actions.progress_update);
+        const results = await generateMap(state, seed, state.ui.actions.progress_update);
         state.map = results.map;
         state.ui.playerId = results.playerId;
 

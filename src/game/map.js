@@ -7,7 +7,7 @@ import ReactGA from "react-ga";
 
 import { newEntities } from "game/entities";
 import { discoverTiles } from "game/playable";
-import { entitiesAtLocations } from "game/spatial";
+import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
 export const HEX_SIZE = 60;
 const MAP_RADIUS = 10;
@@ -70,26 +70,26 @@ function giveStartingGrain(supplies, id, amount) {
   supplies[id].grain = amount;
 }
 
-export function generateFamilies({ ecs, seed, playerStartTile }) {
+export function generateFamilies({ state, seed, playerStartTile }) {
   var generator = new MersenneTwister(seed);
-  for (const habitableId in ecs.habitable) {
+  for (const habitableId in state.ecs.habitable) {
     var people = [];
-    var spatial = Hex().fromPoint(ecs.spatial[habitableId]);
+    var spatial = Hex().fromPoint(state.ecs.spatial[habitableId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial, ecs.habitable[habitableId].side, generator, habitableId)[0],
+      const player = { ...generateFamily(1, spatial, state.ecs.habitable[habitableId].side, generator, habitableId)[0],
         playable: { known: [] },
       };
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = generateFamily(familySize, spatial, ecs.habitable[habitableId].side, generator, habitableId);
+      people = generateFamily(familySize, spatial, state.ecs.habitable[habitableId].side, generator, habitableId);
     }
-    const ids = newEntities(ecs, people);
-    giveStartingGrain(ecs.supplies, ids[0], people.length);
+    const ids = newEntities(state, people);
+    giveStartingGrain(state.ecs.supplies, ids[0], people.length);
     for (const id of ids) {
-      ecs.personable[id].controller = ids[0];
+      state.ecs.personable[id].controller = ids[0];
     }
-    ecs.habitable[habitableId].owners = ids;
+    state.ecs.habitable[habitableId].owners = ids;
   }
 }
 
@@ -250,9 +250,9 @@ export const lerp = (a, b, alpha) => ({
   y: a.y * (1 - alpha) + alpha * b.y
 });
 
-export const ALL_SIX = Array.from({length: 6}, (x, i) => i);
+export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);
 
-export async function generateMap(ecs, seed, progressUpdate) {
+export async function generateMap(state, seed, progressUpdate) {
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
   var landscape = await generateTerrain(grid, seed, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
@@ -275,9 +275,7 @@ export async function generateMap(ecs, seed, progressUpdate) {
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
-    walkable: {
-      exits: walkable[tile.terrain] ? ALL_SIX : []
-    }
+    walkable: { neighbours: {} }
   }));
 
   const TREES_PER_TILE = 5;
@@ -299,16 +297,33 @@ export async function generateMap(ecs, seed, progressUpdate) {
       });
     }).flat();
 
-  newEntities(ecs, [ ...tiles, ...houses, ...trees ]);
+  newEntities(state, [ ...tiles, ...houses, ...trees ]);
 
-  Object.values(settlements).forEach(s => {
-    entitiesAtLocations(ecs, [s]).forEach(id => {
-      const w = ecs.walkable[id];
-      if (w) {
-        w.exits = [ s.frontDoorSide ];
+  for (const id in state.ecs.walkable) {
+    if (walkable[state.ecs.mappable[id].terrain]) {
+      const hex = Hex().fromPoint(state.ecs.spatial[id]);
+      const grid = Grid.hexagon({ center: hex, radius: 1 });
+      grid.neighborsOf(hex, ALL_SIDES).forEach((nHex, side) => {
+        if (!(nHex in state.space)) {
+          return;
+        }
+        const mId = state.space[nHex].filter(e => state.ecs.mappable[e])[0];
+        if (mId && walkable[state.ecs.mappable[mId].terrain]) {
+          addBidirectionalLink(state.ecs, id, side, mId);
+        }
+      });
+    }
+  }
+
+  for (const id in state.ecs.habitable) {
+    const entities = state.space[Hex().fromPoint(state.ecs.spatial[id])];
+    const mappables = entities.filter(e => state.ecs.mappable[e]);
+    ALL_SIDES.forEach(side => {
+      if (side != state.ecs.habitable[id].side) {
+        removeBidirectionalLink(state.ecs, mappables[0], side);
       }
     });
-  });
+  }
 
   const playerStartTile = { x: start.x, y: start.y };
   const map = {
@@ -318,10 +333,10 @@ export async function generateMap(ecs, seed, progressUpdate) {
     height: grid.pointHeight()
   };
 
-  generateFamilies({ ecs, seed, playerStartTile });
-  const playerId = Object.values(ecs.playable)[0].id;
-  ecs.personable[playerId].controller = playerId;
-  discoverStartingTiles(ecs, playerId, playerStartTile);
+  generateFamilies({ state, seed, playerStartTile });
+  const playerId = Object.values(state.ecs.playable)[0].id;
+  state.ecs.personable[playerId].controller = playerId;
+  discoverStartingTiles(state.ecs, playerId, playerStartTile);
 
   await progressUpdate("complete");
 

@@ -52,6 +52,7 @@ function generateFamily(size, spatial, front, generator, homeId) {
       supplies: { },
       homeable: { home: homeId },
       attributes: {},
+      moveable: {},
       tickable: {},
       workable: {},
       assignable: {},

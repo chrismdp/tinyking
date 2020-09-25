@@ -1,4 +1,5 @@
 import { HEX_SIZE } from "game/map";
+import * as math from "game/math";
 
 function opposite(side) {
   return (side + 3) % 6;
@@ -25,9 +26,7 @@ export function removeBidirectionalLink(ecs, source, side) {
 }
 
 function h(ecs, a, b) {
-  const w = ecs.spatial[a].x - ecs.spatial[b].x;
-  const h = ecs.spatial[a].y - ecs.spatial[b].y;
-  return w * w + h * h;
+  return math.squaredDistance(ecs.spatial[a], ecs.spatial[b]);
 }
 
 function reconstructPath(cameFrom, current) {

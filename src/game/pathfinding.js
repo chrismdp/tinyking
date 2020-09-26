@@ -26,7 +26,7 @@ export function removeBidirectionalLink(ecs, source, side) {
 }
 
 function h(ecs, a, b) {
-  return math.squaredDistance(ecs.spatial[a], ecs.spatial[b]);
+  return Math.sqrt(math.squaredDistance(ecs.spatial[a], ecs.spatial[b]));
 }
 
 function reconstructPath(cameFrom, id) {
@@ -63,7 +63,7 @@ export function path(ecs, start, goal) {
     openSet.shift();
     for (const side in ecs.walkable[current].neighbours) {
       const n = ecs.walkable[current].neighbours[side];
-      const tentativeScore = gScore[current] + HEX_SIZE;
+      const tentativeScore = gScore[current] + (HEX_SIZE / (ecs.walkable[n].speed || 1));
       if (debug) { console.log("P n", n, "TS", tentativeScore, "GSN", gScore[n]); }
       if (!(n in gScore) || tentativeScore < gScore[n]) {
         if (debug) { console.log("P cameFrom", n, current); }

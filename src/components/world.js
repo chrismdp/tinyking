@@ -376,10 +376,11 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         target = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
       }
 
-      const SPEED = HEX_SIZE * 2.5; // 2.5 Hex sides per second
+      // 2.5 Hex sides per second, modified by the terrain cost
+      const speed = HEX_SIZE * 2.5 * (ecs.walkable[next.id].speed || 1);
       if (!state.pixi[id].tween) {
         state.pixi[id].tween = new TWEEN.Tween(s)
-          .to(target, Math.sqrt(math.squaredDistance(s, target)) / (SPEED * 0.001))
+          .to(target, Math.sqrt(math.squaredDistance(s, target)) / (speed * 0.001))
           .onUpdate(() => state.pixi[id].position.set(s.x, s.y))
           .onStop(() => delete state.pixi[id].tween)
           .onComplete(() => delete state.pixi[id].tween)

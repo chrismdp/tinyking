@@ -155,12 +155,12 @@ const terrainValueFn = {
 };
 
 const walkable = {
-  "mountain": false,
-  "shallow water": false,
-  "deep water": false,
-  "forest": true,
-  "stone": true,
-  "grassland": true
+  "mountain": 0,
+  "shallow water": 0,
+  "deep water": 0,
+  "forest": 0.3,
+  "stone": 0.5,
+  "grassland": 1.0
 };
 
 async function findPlayerStart(grid, landscape, progressUpdate) {
@@ -267,11 +267,11 @@ export async function generateMap(state, seed, progressUpdate) {
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y },
-    mappable: { terrain: tile.terrain, walkable: walkable[tile.terrain] },
+    mappable: { terrain: tile.terrain },
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
-    walkable: { neighbours: {} }
+    walkable: { speed: walkable[tile.terrain], neighbours: {} }
   }));
 
   const TREES_PER_TILE = 5;

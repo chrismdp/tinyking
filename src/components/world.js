@@ -38,12 +38,10 @@ const moveToTile = (state, mover, id) => () => {
   const start = state.space[Hex().fromPoint(state.ecs.spatial[mover])].filter(e => state.ecs.mappable[e])[0];
   const route = path(state.ecs, start, id);
   if (route) {
-    route.shift();
     state.ecs.moveable[mover].route = route;
     if (state.pixi[mover].tween) {
       state.pixi[mover].tween.stop();
     }
-    console.log("MOVE", mover, "TO", id, route);
   }
 };
 
@@ -371,7 +369,12 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
       }
       const s = state.ecs.spatial[id];
       let next = m.route[0];
-      let target = state.ecs.spatial[next];
+      let target = state.ecs.spatial[next.id];
+      if ("exit" in next) {
+        const hex = Hex().fromPoint(target);
+        const corners = hex.corners().map(c => c.add(state.ecs.spatial[next.id]));
+        target = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
+      }
 
       const SPEED = HEX_SIZE * 2.5; // 2.5 Hex sides per second
       if (!state.pixi[id].tween) {

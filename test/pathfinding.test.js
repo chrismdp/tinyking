@@ -26,7 +26,12 @@ describe("pathfinding", () => {
         }
       }
     };
-    expect(sut.path(state.ecs, 1, 5)).toEqual([1, 3, 4, 5]);
+    expect(sut.path(state.ecs, 1, 5)).toEqual([
+      { id: 1, exit: 5 },
+      { id: 3, exit: 1 },
+      { id: 4, exit: 2 },
+      { id: 5 }
+    ]);
   });
 });
 

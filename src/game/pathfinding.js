@@ -29,10 +29,11 @@ function h(ecs, a, b) {
   return math.squaredDistance(ecs.spatial[a], ecs.spatial[b]);
 }
 
-function reconstructPath(cameFrom, current) {
+function reconstructPath(cameFrom, id) {
+  var current = { id };
   const result = [current];
-  while(cameFrom[current]) {
-    current = cameFrom[current];
+  while(cameFrom[current.id]) {
+    current = cameFrom[current.id];
     result.push(current);
   }
   return result.reverse();
@@ -60,12 +61,13 @@ export function path(ecs, start, goal) {
       return reconstructPath(cameFrom, current);
     }
     openSet.shift();
-    for (const n of Object.values(ecs.walkable[current].neighbours)) {
+    for (const side in ecs.walkable[current].neighbours) {
+      const n = ecs.walkable[current].neighbours[side];
       const tentativeScore = gScore[current] + HEX_SIZE;
       if (debug) { console.log("P n", n, "TS", tentativeScore, "GSN", gScore[n]); }
       if (!(n in gScore) || tentativeScore < gScore[n]) {
         if (debug) { console.log("P cameFrom", n, current); }
-        cameFrom[n] = current;
+        cameFrom[n] = { id: current, exit: +side };
         gScore[n] = tentativeScore;
         fScore[n] = gScore[n] + h(ecs, n, goal);
         if (!openSet.includes(n)) {

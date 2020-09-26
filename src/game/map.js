@@ -246,11 +246,6 @@ function discoverStartingTiles(ecs, id, center) {
   discoverTiles(ecs, { id, tiles });
 }
 
-export const lerp = (a, b, alpha) => ({
-  x: a.x * (1 - alpha) + alpha * b.x,
-  y: a.y * (1 - alpha) + alpha * b.y
-});
-
 export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);
 
 export async function generateMap(state, seed, progressUpdate) {

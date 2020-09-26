@@ -36,7 +36,13 @@ function reconstructPath(cameFrom, id) {
     current = cameFrom[current.id];
     result.push(current);
   }
-  return result.reverse();
+  result.reverse();
+  result.forEach((step, i) => {
+    if (i > 0 && i < result.length) {
+      result[i].entrance = opposite(result[i - 1].exit);
+    }
+  });
+  return result;
 }
 
 const debug = false;

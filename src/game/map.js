@@ -267,7 +267,7 @@ export async function generateMap(state, seed, progressUpdate) {
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y },
-    mappable: { terrain: tile.terrain },
+    mappable: { worn: {}, terrain: tile.terrain },
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },

@@ -26,9 +26,9 @@ describe("pathfinding", () => {
     };
     expect(sut.path(ecs, 1, 5)).toEqual([
       { id: 1, exit: 5 },
-      { id: 3, exit: 1 },
-      { id: 4, exit: 2 },
-      { id: 5 }
+      { id: 3, exit: 1, entrance: 2 },
+      { id: 4, exit: 2, entrance: 4 },
+      { id: 5, entrance: 5 }
     ]);
   });
 
@@ -50,8 +50,8 @@ describe("pathfinding", () => {
     };
     expect(sut.path(ecs, 2, 4)).toEqual([
       { id: 2, exit: 1 },
-      { id: 1, exit: 0 },
-      { id: 4 },
+      { id: 1, exit: 0, entrance: 4 },
+      { id: 4, entrance: 3 },
     ]);
   });
 });

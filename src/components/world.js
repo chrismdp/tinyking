@@ -27,6 +27,8 @@ import actions from "data/actions.json";
 
 const engine = new Engine(actions);
 
+const ROUTES_TO_FULL_PATH = 100;
+
 const HIT_RADIUS = 22.5;
 const moveToTile = (state, mover, id) => () => {
   if (!state.ecs.walkable[id]) {
@@ -74,7 +76,8 @@ const renderTile = (ecs, id) => {
 
   graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
-  graphics.drawPolygon(...Hex().corners());
+  const corners = Hex().corners();
+  graphics.drawPolygon(...corners);
   graphics.endFill();
   graphics.beginFill(0xE2C879);
   if (ecs.mappable[id].terrain == "sown" || ecs.mappable[id].terrain == "growing") {
@@ -90,6 +93,17 @@ const renderTile = (ecs, id) => {
     graphics.endFill();
   }
   graphics.endFill();
+  graphics.lineStyle();
+  for (const key in ecs.mappable[id].worn) {
+    const [ entrance, exit ] = key.split(",").map(i => +i);
+    graphics.beginFill(terrainColours.dirt, Math.min(1.0, ecs.mappable[id].worn[key] / ROUTES_TO_FULL_PATH));
+    graphics.drawPolygon([
+      math.lerp(corners[entrance], corners[(entrance + 1) % 6], 0.25),
+      math.lerp(corners[entrance], corners[(entrance + 1) % 6], 0.75),
+      math.lerp(corners[exit], corners[(exit + 1) % 6], 0.25),
+      math.lerp(corners[exit], corners[(exit + 1) % 6], 0.75)
+    ]);
+  }
   // NOTE: Debug for showing paths between hexes
   // if (ecs.walkable[id]) {
   //   graphics.beginFill(0xFF0000);
@@ -376,9 +390,18 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         target = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
       }
 
-      // 2.5 Hex sides per second, modified by the terrain cost
+      // NOTE: 2.5 Hex sides per second, modified by the terrain cost
       const speed = HEX_SIZE * 2.5 * (ecs.walkable[next.id].speed || 1);
       if (!state.pixi[id].tween) {
+        // TODO: Move this to onComplete so it's the end of the line
+        if (next.entrance != null && next.exit != null) {
+          const key = [next.entrance, next.exit].sort().join();
+          if (!(key in ecs.mappable[next.id].worn)) {
+            ecs.mappable[next.id].worn[key] = 0;
+          }
+          ecs.mappable[next.id].worn[key] += 1;
+          state.redraws.push(next.id);
+        }
         state.pixi[id].tween = new TWEEN.Tween(s)
           .to(target, Math.sqrt(math.squaredDistance(s, target)) / (speed * 0.001))
           .onUpdate(() => state.pixi[id].position.set(s.x, s.y))

@@ -11,11 +11,12 @@ import { useTranslate } from "react-polyglot";
 
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
-import { anyControlledAlive } from "game/playable";
+import { topController, anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
 import * as math from "game/math";
-import { path } from "game/pathfinding";
+import * as htn from "game/htn";
+import * as tasks from "game/tasks";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -23,22 +24,6 @@ import { Info } from "components/info";
 const ROUTES_TO_FULL_PATH = 100;
 
 const HIT_RADIUS = 22.5;
-const moveToTile = (state, mover, id) => {
-  if (!state.ecs.walkable[id]) {
-    return;
-  }
-  if (Object.keys(state.ecs.walkable[id].neighbours).length == 0) {
-    return;
-  }
-  const start = state.space[Hex().fromPoint(state.ecs.spatial[mover])].filter(e => state.ecs.mappable[e])[0];
-  const route = path(state.ecs, start, id);
-  if (route) {
-    state.ecs.moveable[mover].route = route;
-    if (state.pixi[mover].tween) {
-      state.pixi[mover].tween.stop();
-    }
-  }
-};
 
 const terrainColours = {
   "mountain": 0x3C3A44,
@@ -52,6 +37,15 @@ const terrainColours = {
   "dirt": 0x6C4332,
   "forest": 0x80C05D,
   "stone": 0x5D7084,
+};
+
+const renderLog = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.beginFill(0x6C4332);
+  graphics.drawCircle(0, 0, 10);
+  graphics.endFill();
+  return graphics;
 };
 
 const renderTree = (ecs, id) => {
@@ -206,6 +200,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   var layer = {
     tiles: new PIXI.Container(),
+    stockpiles: new PIXI.Container(),
     people: new PIXI.Container(),
     buildings: new PIXI.Container(),
   };
@@ -243,42 +238,44 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   });
 
   app.ticker.add(() => {
-    for (const id in state.ecs.moveable) {
-      const m = state.ecs.moveable[id];
-      if (!m.route || m.route.length == 0) {
-        continue;
-      }
-      const s = state.ecs.spatial[id];
-      let next = m.route[0];
-      let target = state.ecs.spatial[next.id];
-      if ("exit" in next) {
-        const hex = Hex().fromPoint(target);
-        const corners = hex.corners().map(c => c.add(state.ecs.spatial[next.id]));
-        target = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
-      }
+    for (const id in state.ecs.planner) {
+      const planner = state.ecs.planner[id];
 
-      // NOTE: 2.5 Hex sides per second, modified by the terrain cost
-      const speed = HEX_SIZE * 2.5 * (ecs.walkable[next.id].speed || 1);
-      if (!state.pixi[id].tween) {
-        // TODO: Move this to onComplete so it's the end of the line
-        if (next.entrance != null && next.exit != null) {
-          const key = [next.entrance, next.exit].sort().join();
-          if (!(key in ecs.mappable[next.id].worn)) {
-            ecs.mappable[next.id].worn[key] = 0;
-          }
-          ecs.mappable[next.id].worn[key] += 1;
-          state.redraws.push(next.id);
+      // TODO: *Very* basic sensor for new jobs
+      const topId = topController(state.ecs, id);
+      if (planner.world.jobs.length != state.ecs.manager[topId].jobs) {
+        planner.plan = null;
+        // TODO: filter this job list by labours?
+        planner.world.jobs = [...state.ecs.manager[topId].jobs];
+      }
+      // Re-plan
+      if (!planner.plan) {
+        planner.task = null;
+        planner.plan = htn.solve(planner.world, [ [ "person" ] ]);
+      }
+      // Process tasks
+      if (planner.task) {
+        const [name, ...args] = planner.task;
+        if (!tasks[name](state, id, ...args)) {
+          planner.task = null;
         }
-        state.pixi[id].tween = new TWEEN.Tween(s)
-          .to(target, Math.sqrt(math.squaredDistance(s, target)) / (speed * 0.001))
-          .onUpdate(() => state.pixi[id].position.set(s.x, s.y))
-          .onStop(() => delete state.pixi[id].tween)
-          .onComplete(() => delete state.pixi[id].tween)
-          .start();
       }
-
-      if (math.squaredDistance(s, target) < 10) {
-        m.route.shift();
+      while (!planner.task && planner.plan) {
+        if (planner.plan.length > 0) {
+          const task = planner.plan.shift();
+          if (htn.execute(planner.world, task)) {
+            planner.task = task;
+            const [name, ...args] = task;
+            if (!tasks[name]) {
+              throw "Cannot find task to run " + name;
+            }
+            if (!tasks[name](state, id, ...args)) {
+              planner.task = null;
+            }
+          }
+        } else {
+          planner.plan = null;
+        }
       }
     }
   });
@@ -300,6 +297,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         } else if (ecs.workable[id] && ecs.workable[id].jobs && ecs.workable[id].jobs.some(a => a.yield == "wood")) {
           pixi[id] = renderTree(ecs, id);
           layer.buildings.addChild(pixi[id]);
+        } else if (ecs.haulable && ecs.haulable[id]) {
+          pixi[id] = renderLog(ecs, id);
+          layer.stockpiles.addChild(pixi[id]);
         } else if (ecs.habitable[id]) {
           pixi[id] = renderBuilding(ecs, id);
           layer.buildings.addChild(pixi[id]);
@@ -478,12 +478,9 @@ export function World() {
         state.clock = 0;
         renderUI();
       },
-      choose_job: (actorId, job, targetId) => {
-        console.log("CHOOSE JOB", actorId, job.key, targetId);
+      choose_job: (playerId, job, targetId) => {
+        state.ecs.manager[playerId].jobs.push({ job, targetId });
         setPopupInfo({});
-        if (job.key == "move_to_here") {
-          moveToTile(state, actorId, targetId);
-        }
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };

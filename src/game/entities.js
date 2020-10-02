@@ -25,6 +25,16 @@ export function newEntities(state, entities) {
   });
 }
 
+export function deleteEntity(state, id) {
+  if (state.pixi[id]) {
+    state.pixi[id].parent.removeChild(state.pixi[id]);
+    delete state.pixi[id];
+  }
+  Object.keys(state.ecs).forEach(c => {
+    delete state.ecs[c][id];
+  });
+}
+
 export const fullEntity = (ecs, id) => (
   Object.keys(ecs).reduce((result, name) => (
     { ...result, [name]: ecs[name][id] }), {id: id}));

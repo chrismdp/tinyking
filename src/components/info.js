@@ -7,8 +7,8 @@ import { fullEntity } from "game/entities";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
-import { EndTurnEvents } from "components/end_turn_events";
 import { AssignedTask } from "components/assigned_task";
+import { JobList } from "components/job_list";
 import { TraitList } from "components/trait_list";
 
 export function Info({ entityId }) {
@@ -42,8 +42,8 @@ export function Info({ entityId }) {
           <Name nameable={state.ecs.nameable[o]}/>&nbsp;
         </span>))}
       </>)}
+      { entity.workable && <JobList workable={entity.workable}/>}
       { entity.assignable && <AssignedTask assignable={entity.assignable}/>}
-      <EndTurnEvents entity={entity} detail={true}/>
       <div><h2>Debug info:</h2>{
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
           <strong>{c}</strong>: {JSON.stringify(entity[c])}

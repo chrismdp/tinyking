@@ -21,6 +21,7 @@ body {
   /*background: #2f4999; ocean */
   background: #000000;
   overflow: hidden;
+  touch-action: none;
 }
 
 .knockedback {
@@ -305,6 +306,7 @@ button {
 }
 
 .panel {
+  touch-action: none;
   .debug { display: none; }
   .close {
     float: right;
@@ -384,7 +386,15 @@ button {
   }
 }
 
+.job-list {
+  margin: 5px 0;
+  button: {
+    margin-right: 5px;
+  }
+}
+
 .popper {
+  touch-action: pan-y;
 
   /* NOTE: Need to set this otherwise the popper div skews mobile browser
    * windows and wraps the positioning of the tooltip */
@@ -397,6 +407,20 @@ button {
 
   padding: 8px 15px;
   border-radius: 4px;
+
+  @media (max-width: 499px) {
+    transform: translate(0px, 0px) !important;
+    top: 25px !important;
+    left: 5px !important;
+    right: 5px !important;
+    max-width: 90% !important;
+    max-height: 100px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    .arrow {
+      display: none;
+    }
+  }
 
   .arrow, .arrow::before {
     position: absolute;
@@ -450,6 +474,7 @@ button {
       width: 60px;
     }
   }
+
 }
 
 .popper[data-popper-placement^='top'] > .arrow {

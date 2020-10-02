@@ -7,30 +7,23 @@ import TWEEN from "@tweenjs/tween.js";
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 
-import Engine from "json-rules-engine-simplified";
-
 import { useTranslate } from "react-polyglot";
 
-import { Grid, Hex, HEX_SIZE, generateMap } from "game/map";
+import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
-import { topController, anyControlledAlive } from "game/playable";
-import { startJob, endTurn } from "game/turn";
+import { anyControlledAlive } from "game/playable";
+import { endTurn } from "game/turn";
 import * as time from "game/time";
 import * as math from "game/math";
 import { path } from "game/pathfinding";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
-import { PossibleAction } from "components/possible_action";
-
-import actions from "data/actions.json";
-
-const engine = new Engine(actions);
 
 const ROUTES_TO_FULL_PATH = 100;
 
 const HIT_RADIUS = 22.5;
-const moveToTile = (state, mover, id) => () => {
+const moveToTile = (state, mover, id) => {
   if (!state.ecs.walkable[id]) {
     return;
   }
@@ -65,7 +58,10 @@ const renderTree = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
   graphics.beginFill(0x30512F);
-  graphics.drawCircle(0, 0, HEX_SIZE * (0.1 + ecs.workable[id].amount * 0.1));
+  const amount = ecs.workable[id].jobs
+    .filter(a => a.yield == "wood")
+    .reduce((total, a) => total + a.amount, 0);
+  graphics.drawCircle(0, 0, HEX_SIZE * (0.1 + amount * 0.1));
   graphics.endFill();
   return graphics;
 };
@@ -173,136 +169,7 @@ const renderPerson = (entity, fn, t) => {
   return graphics;
 };
 
-const generateActions = async (state, known, actorId, t, setPopupEntity) => {
-  if (state.pixi.highlight) {
-    state.pixi.highlight.destroy({children: true});
-  }
-
-  const possibleActions = {};
-  const tiles = known.reduce((o, id) => {
-    if (state.ecs.spatial[id]) {
-      const hex = Hex().fromPoint(state.ecs.spatial[id]);
-      const key = hex.x + "," + hex.y;
-      if (!(key in o)) {
-        o[key] = [];
-      }
-      o[key].push(fullEntity(state.ecs, id));
-    }
-    return o;
-  }, {});
-
-  const actor = fullEntity(state.ecs, actorId);
-  const actorHex = Hex().fromPoint(actor.spatial);
-  const topId = topController(state.ecs, actor.id);
-  const controller = topId && fullEntity(state.ecs, topId);
-
-  const knownTiles = Object.keys(tiles);
-  for (const coord in tiles) {
-    const assignables = tiles[coord]
-      .filter(e => e.assignable && e.assignable.task)
-      .map(e => e.assignable);
-    possibleActions[coord] = [];
-    for (const target of tiles[coord]) {
-      if (target.workable) {
-        const other = tiles[coord].filter(e => e.id != target.id);
-        const hex = Hex().fromPoint(target.spatial);
-
-        const neighbours = Grid.hexagon({ radius: 1, center: hex })
-          .map(n => n.x + "," + n.y);
-
-        const payload = {
-          season: time.season(state.clock),
-          time_of_day: time.time(state.clock),
-          distance: hex.distance(actorHex),
-          neighbour_count: neighbours.filter(t => knownTiles.includes(t)).length - 1,
-          me: actor,
-          target,
-          other,
-          controller
-        };
-
-        const events = await engine.run(payload);
-        const free = events.filter(action =>
-          assignables
-            .filter(a => a.id != actor.id && a.task.action.key == action.key)
-            .length < (action.max || 1));
-        possibleActions[coord] = [
-          ...possibleActions[coord],
-          ...free.map(action => ({ id: target.id, action, hex }))
-        ];
-      }
-    }
-  }
-
-  state.pixi.highlight = new PIXI.Container();
-
-  const keys = Object.keys(possibleActions);
-  for (var i = 0; i < keys.length; i++) {
-    const record = possibleActions[keys[i]];
-    record.forEach((r, index) => {
-      const angle = (index / record.length) * Math.PI * 2 - (Math.PI * 0.25);
-      const point = r.hex.toPoint();
-      const graphics = new PIXI.Graphics();
-      graphics.position.set(point.x - Math.sin(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1), point.y + Math.cos(angle) * HEX_SIZE * 0.4 * Math.sign(record.length - 1));
-
-      var text;
-      graphics.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
-      graphics.interactive = true;
-
-      if (actor.assignable.task && actor.assignable.task.action.key == r.action.key) {
-        graphics.beginFill(0xDEF0A5, 0.5);
-        graphics.drawCircle(0, 0, 15);
-        graphics.endFill();
-        text = new PIXI.Text(t("action.cancel"), {fontFamily: "Alegreya", fontSize: 12, fill: 0xDEF0A5});
-        text.position.set(0, 30);
-        text.anchor = { x: 0.5, y: 0.5 };
-
-        graphics.addChild(text);
-        graphics.hitArea = new PIXI.Circle(0, 0, HIT_RADIUS);
-
-        graphics.on("click", () => { state.ui.actions.cancel_action(actorId); });
-        graphics.on("tap", () => { state.ui.actions.cancel_action(actorId); });
-      } else {
-        graphics.beginFill(0xffffff, r.action.turns > 0 ? 0.5 : 0.75);
-        graphics.drawCircle(0, 0, 15);
-        graphics.endFill();
-
-        if (r.action.turns > 0) {
-          var turns = new PIXI.Text(r.action.turns, {fontFamily: "Alegreya", fontSize: 18, fill: "black", fontWeight: "bold"});
-          turns.position.set(0, 0);
-          turns.anchor = { x: 0.5, y: 0.5 };
-          graphics.addChild(turns);
-        }
-
-        text = new PIXI.Text(t("action." + r.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 12, fill: "white"});
-        text.position.set(0, 30);
-        text.anchor = { x: 0.5, y: 0.5 };
-        graphics.addChild(text);
-
-        const action = {
-          x: graphics.position.x,
-          y: graphics.position.y,
-          id: r.id,
-          action: r.action,
-          hex: { x: r.hex.x, y: r.hex.y },
-        };
-
-        graphics.on("mouseover", () => setPopupEntity({
-          possibleAction: { actorId, action: r.action, targetId: r.id }
-        }));
-
-        graphics.on("click", () => { state.ui.actions.drop(actorId, action); });
-        graphics.on("tap", () => { state.ui.actions.drop(actorId, action); });
-      }
-
-      state.pixi.highlight.addChild(graphics);
-    });
-  }
-
-  state.pixi.viewport.addChild(state.pixi.highlight);
-};
-
-const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => {
+const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
@@ -430,10 +297,7 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         if (ecs.mappable[id]) {
           pixi[id] = renderTile(ecs, id);
           layer.tiles.addChild(pixi[id]);
-          pixi[id].interactive = true;
-          pixi[id].on("click", moveToTile(state, state.ui.playerId, id));
-          pixi[id].on("tap", moveToTile(state, state.ui.playerId, id));
-        } else if (ecs.workable[id] && ecs.workable[id].yield == "wood") {
+        } else if (ecs.workable[id] && ecs.workable[id].jobs && ecs.workable[id].jobs.some(a => a.yield == "wood")) {
           pixi[id] = renderTree(ecs, id);
           layer.buildings.addChild(pixi[id]);
         } else if (ecs.habitable[id]) {
@@ -475,8 +339,8 @@ const renderMap = async (app, state, popupOver, setPopupEntity, renderUI, t) => 
         }
         pixi[id].entityId = id;
         pixi[id].interactive = true;
-        pixi[id].on("mouseover", popupOver);
-        pixi[id].on("touchstart", popupOver);
+        pixi[id].on("click", popupOver);
+        pixi[id].on("tap", popupOver);
       }
       state.redraws = [];
     }
@@ -531,7 +395,7 @@ export function World() {
 
   const containingDiv = React.useRef(null);
 
-  const [popupEntity, setPopupEntity] = React.useState(null);
+  const [popupInfo, setPopupInfo] = React.useState({});
   const virtualReference = React.useRef(virtualPosition);
   const popperElement = React.useRef(null);
   const arrowElement = React.useRef(null);
@@ -539,13 +403,19 @@ export function World() {
   const t = useTranslate();
 
   const popupOver = React.useCallback(event => {
-    if (event.currentTarget.entityId) {
-      setPopupEntity({info: event.currentTarget.entityId});
+    setPopupInfo(s => {
+      if (s.id != event.currentTarget.entityId) {
+        return { id: event.currentTarget.entityId, touch: event.data.pointerType == "touch" };
+      } else {
+        return {};
+      }
+    });
+  }, [setPopupInfo]);
 
-      const point = event.data.global;
-
+  React.useEffect(() => {
+    if (popupInfo.id) {
       popper.current = createPopper(virtualReference.current, popperElement.current, {
-        placement: (event.data.pointerType == "touch" ? "top" : "bottom-start"),
+        placement: (popupInfo.touch ? "top" : "bottom-start"),
         modifiers: [
           { name: "arrow", options: { element: arrowElement.current } },
           { name: "offset", options: { offset: [-15, 20] } },
@@ -553,34 +423,12 @@ export function World() {
         ]
       });
 
+      const point = state.pixi[popupInfo.id].getGlobalPosition();
       virtualReference.current.set(point.x, point.y);
-      event.currentTarget.on("mousemove", popupMove);
-      event.currentTarget.on("touchmove", popupMove);
-      event.currentTarget.on("mouseout", popupOut);
-      event.currentTarget.on("touchend", popupOut);
-      event.currentTarget.on("touchendoutside", popupOut);
-    }
-  }, [popupMove, popupOut]);
-
-  const popupMove = React.useCallback(event => {
-    if (popper.current) {
-      const point = event.data.global;
-      virtualReference.current.set(point.x, point.y);
-      popper.current.update();
-    }
-  }, []);
-
-  const popupOut = React.useCallback(event => {
-    if (event.currentTarget.entityId) {
-      setPopupEntity(null);
-      event.currentTarget.off("mousemove", popupMove);
-      event.currentTarget.off("touchmove", popupMove);
-      event.currentTarget.off("mouseout", popupOut);
-      event.currentTarget.off("touchend", popupOut);
-      event.currentTarget.off("touchendoutside", popupOut);
+    } else {
       popper.current = null;
     }
-  }, [popupMove]);
+  }, [state.pixi, popupInfo]);
 
   React.useEffect(() => {
     let app = new PIXI.Application({
@@ -593,27 +441,10 @@ export function World() {
     });
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
-      drop: async (id, task) => {
-        await startJob(state, id, task);
-        const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
-        generateActions(state, known, id, t, setPopupEntity);
-        renderUI();
-      },
-      cancel_action: (id) => {
-        delete state.ecs.assignable[id].task;
-        state.redraws.push(id);
-        const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
-        generateActions(state, known, id, t, setPopupEntity);
-        renderUI();
-      },
       end_turn: async () => {
         await endTurn(state);
         if (anyControlledAlive(state.ecs, state.ui.playerId)) {
           startTimeFilter(state.pixi, time.time(state.clock));
-          if (state.ui.show.selected_person) {
-            const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
-            generateActions(state, known, state.ui.show.selected_person, t, setPopupEntity);
-          }
         } else {
           state.ui.show.game_over = true;
           delete state.ui.show.next_action;
@@ -647,6 +478,13 @@ export function World() {
         state.clock = 0;
         renderUI();
       },
+      choose_job: (actorId, job, targetId) => {
+        console.log("CHOOSE JOB", actorId, job.key, targetId);
+        setPopupInfo({});
+        if (job.key == "move_to_here") {
+          moveToTile(state, actorId, targetId);
+        }
+      },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
         state.pixi = {};
@@ -660,7 +498,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state, popupOver, setPopupEntity, renderUI, t);
+        await renderMap(app, state, popupOver, setPopupInfo, renderUI, t);
 
         renderUI();
       },
@@ -689,11 +527,8 @@ export function World() {
       <div id="world" ref={containingDiv}></div>
       <GameState.Provider value={state}>
         <UserInterface/>
-        <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupEntity ? "visible" : "hidden" }} {...popper.attributes}>
-          {popupEntity && popupEntity.info &&
-            (<Info entityId={popupEntity.info}/>)}
-          {popupEntity && popupEntity.possibleAction &&
-            (<PossibleAction actorId={popupEntity.possibleAction.actorId} targetId={popupEntity.possibleAction.targetId} action={popupEntity.possibleAction.action}/>) }
+        <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupInfo.id ? "visible" : "hidden" }} {...popper.attributes}>
+          {popupInfo.id && (<Info entityId={popupInfo.id}/>)}
           <div className="arrow" ref={arrowElement}/>
         </div>
       </GameState.Provider>

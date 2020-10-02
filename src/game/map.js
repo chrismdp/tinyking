@@ -271,7 +271,8 @@ export async function generateMap(state, seed, progressUpdate) {
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
-    walkable: { speed: walkable[tile.terrain], neighbours: {} }
+    walkable: { speed: walkable[tile.terrain], neighbours: {} },
+    workable: { jobs: walkable[tile.terrain] > 0 ? [ { key: "move_to_here" } ] : [] }
   }));
 
   const TREES_PER_TILE = 5;
@@ -280,14 +281,19 @@ export async function generateMap(state, seed, progressUpdate) {
     .map(tile => {
       return [...Array(TREES_PER_TILE).keys()].map(i => {
         return {
+          nameable: { nickname: "Tree" },
           spatial: {
             x: tile.x + Math.sin(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
             y: tile.y - Math.cos(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
           },
           workable: {
-            action: "cut",
-            yield: "wood",
-            amount: Math.ceil(Math.random(1) * 3)
+            jobs: [
+              {
+                key: "cut_tree_down",
+                yield: "wood",
+                amount: Math.ceil(Math.random(1) * 3)
+              }
+            ]
           }
         };
       });

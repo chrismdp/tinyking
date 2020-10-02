@@ -5,7 +5,6 @@ import { useTranslate } from "react-polyglot";
 
 import { Name } from "components/name";
 import { TraitList } from "components/trait_list";
-import { EndTurnEvents } from "components/end_turn_events";
 import { Until } from "components/until";
 
 import { fullEntity } from "game/entities";
@@ -33,7 +32,6 @@ export function SelectedPerson({ entityId }) {
       <div className="traits">
         <TraitList traits={entity.traits}/>
       </div>
-      <EndTurnEvents entity={entity} detail={false}/>
     </div>);
   } else { return (<></>); }
 }

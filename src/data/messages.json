@@ -126,6 +126,10 @@
       "summary": "Move to this location"
     }
   },
+  "jobs": {
+    "cut_tree_down": "Cut down",
+    "move_to_here": "Move here"
+  },
   "tutorial": {
     "continue": "Continue",
     "skip": "Skip tutorial",

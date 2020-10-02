@@ -44,7 +44,11 @@ export function Info({ entityId }) {
       </>)}
       { entity.assignable && <AssignedTask assignable={entity.assignable}/>}
       <EndTurnEvents entity={entity} detail={true}/>
-      <span className="knockedback">{ JSON.stringify(entity) }</span>
+      <div><h2>Debug info:</h2>{
+        Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
+          <strong>{c}</strong>: {JSON.stringify(entity[c])}
+        </li>)
+      }</div>
     </div>
   );
 }

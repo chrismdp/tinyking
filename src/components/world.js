@@ -11,7 +11,7 @@ import { useTranslate } from "react-polyglot";
 
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
-import { topController, anyControlledAlive } from "game/playable";
+import { anyControlledAlive } from "game/playable";
 import { endTurn } from "game/turn";
 import * as time from "game/time";
 import * as math from "game/math";
@@ -241,13 +241,6 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     for (const id in state.ecs.planner) {
       const planner = state.ecs.planner[id];
 
-      // TODO: *Very* basic sensor for new jobs
-      const topId = topController(state.ecs, id);
-      if (planner.world.jobs.length != state.ecs.manager[topId].jobs) {
-        planner.plan = null;
-        // TODO: filter this job list by labours?
-        planner.world.jobs = [...state.ecs.manager[topId].jobs];
-      }
       // Re-plan
       if (!planner.plan) {
         planner.task = null;
@@ -479,7 +472,9 @@ export function World() {
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        state.ecs.manager[playerId].jobs.push({ job, targetId });
+        state.ecs.planner[playerId].world.jobs.push({ job, targetId });
+        // NOTE: Force re-plan
+        state.ecs.planner[playerId].plan = null;
         setPopupInfo({});
       },
       generate_map: async (seed) => {

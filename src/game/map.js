@@ -62,7 +62,6 @@ function generateFamily(size, spatial, front, generator, homeId) {
         hair: hair[generator.random_int() % hair.length],
         body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE
       },
-      manager: { jobs: [] },
       planner: { world: { jobs: [], loc: {} } },
     });
   }

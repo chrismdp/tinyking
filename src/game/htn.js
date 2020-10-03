@@ -13,7 +13,7 @@ const library = {
     walk_to: (rep, targetId) => {
       rep.loc[rep.id] = { ...rep.loc[targetId] };
     },
-    take_job: (rep, jobKey) => {
+    complete_job: (rep, jobKey) => {
       const idx = rep.jobs.findIndex(j => j.job.key == jobKey);
       rep.jobs.splice(idx, 1);
     },
@@ -26,16 +26,16 @@ const library = {
       const move = rep.jobs && rep.jobs.find(j => j.job.key == "move_to_here");
       if (move) {
         return [
-          ["take_job", move.job.key],
-          ["walk_to", move.targetId]
+          ["walk_to", move.targetId],
+          ["complete_job", move.job.key]
         ];
       }
       const cut = rep.jobs && rep.jobs.find(j => j.job.key == "cut_tree_down");
       if (cut) {
         return [
-          ["take_job", cut.job.key],
           ["walk_to", cut.targetId],
-          ["chop_tree", cut.targetId]
+          ["chop_tree", cut.targetId],
+          ["complete_job", cut.job.key]
         ];
       }
       return [ ["idle"] ];

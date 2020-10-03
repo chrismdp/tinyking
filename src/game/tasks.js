@@ -1,7 +1,6 @@
 import { Hex, HEX_SIZE } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
-import { topController } from "game/playable";
 import { newEntities, deleteEntity } from "game/entities";
 
 import TWEEN from "@tweenjs/tween.js";
@@ -70,12 +69,8 @@ export function idle() {
   return 1; // NOTE: This prevents us instantly moving on
 }
 
-// NOTE: This *should* happen automatically in the same frame after a plan,
-// before others are able to take it.
-export function take_job(state, id, key) {
-  const topId = topController(state.ecs, id);
-  const idx = state.ecs.manager[topId].jobs.findIndex(j => j.job.key == key);
-  state.ecs.manager[topId].jobs.splice(idx, 1);
+export function complete_job() {
+  // NOTE: no in-game action, as jobs are currently only in the world rep.
 }
 
 export function chop_tree(state, actorId, targetId) {

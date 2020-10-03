@@ -1,7 +1,8 @@
-import { Hex, HEX_SIZE } from "game/map";
+import { Hex, Grid, HEX_SIZE } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
 import { newEntities, deleteEntity } from "game/entities";
+import { topController } from "game/playable";
 
 import TWEEN from "@tweenjs/tween.js";
 
@@ -55,6 +56,16 @@ export function walk_to(state, actorId, targetId) {
       .onStop(() => delete state.pixi[actorId].tween)
       .onComplete(() => delete state.pixi[actorId].tween)
       .start();
+
+    // NOTE: Discover adjacent tiles
+    const neighbours = Grid.hexagon({
+      radius: 1,
+      center: Hex().fromPoint(state.ecs.spatial[next.id])
+    });
+    const playable = state.ecs.playable[topController(state.ecs, actorId)];
+    const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
+    playable.known = [ ...playable.known, ...newTiles ];
+    newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => state.redraws.push(e));
   }
 
   if (math.squaredDistance(s, target) < 10) {

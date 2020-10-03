@@ -21,8 +21,6 @@ const library = {
   },
   compound: {
     person: (rep) => {
-      // NOTE: This *should* happen automatically in the same frame after a plan,
-      // before others are able to take it.
       const move = rep.jobs && rep.jobs.find(j => j.job.key == "move_to_here");
       if (move) {
         return [

@@ -8,7 +8,6 @@ import { GameOver } from "components/game_over";
 import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
 import { Supplies } from "components/supplies";
-import { NextAction } from "components/next_action";
 import { GameState } from "components/contexts";
 import { SelectedPerson } from "components/selected_person";
 
@@ -19,7 +18,6 @@ export function UserInterface() {
     <div id="ui">
       {show.clock && <Clock/>}
       {show.supplies && <Supplies/>}
-      {show.next_action && <NextAction/>}
       {("main_menu" in show) && <MainMenu show={show.main_menu}/>}
       {show.game_over && <GameOver/>}
       {show.tutorial && <Tutorial/>}

@@ -7,7 +7,6 @@ import { fullEntity } from "game/entities";
 
 import { GameState } from "components/contexts";
 import { Name } from "components/name";
-import { AssignedTask } from "components/assigned_task";
 import { JobList } from "components/job_list";
 import { TraitList } from "components/trait_list";
 
@@ -43,7 +42,6 @@ export function Info({ entityId }) {
         </span>))}
       </>)}
       { entity.workable && <JobList workable={entity.workable}/>}
-      { entity.assignable && <AssignedTask assignable={entity.assignable}/>}
       <div><h2>Debug info:</h2>{
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
           <strong>{c}</strong>: {JSON.stringify(entity[c])}

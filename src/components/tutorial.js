@@ -15,7 +15,6 @@ const tutorial = [
     description: "supplies"
   },
   {
-    show: { next_action: true },
     task: "plough",
     count: 4,
     continueOnClock: 1
@@ -91,10 +90,10 @@ export function Tutorial() {
   });
 
   React.useEffect(() => {
-    if (step && state.clock >= step.continueOnClock) {
+    if (step && state.days >= step.continueOnClock) {
       nextStep();
     }
-  }, [state.clock, stepCount, nextStep, step]);
+  }, [state.days, stepCount, nextStep, step]);
 
   return (<>
     { step &&

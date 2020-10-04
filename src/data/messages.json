@@ -43,11 +43,6 @@
     "until": "(%{smart_count} turn left) |||| (%{smart_count} turns left)"
   },
 
-  "next_action": {
-    "left": "End turn (%{to_assign})",
-    "end_turn": "End turn"
-  },
-
   "terrain": {
     "mountain": "Mountains",
     "deep water": "Ocean",

@@ -11,7 +11,7 @@ export function Until({ time }) {
   const t = useTranslate();
 
   return (<>
-    {t("info.until", { time: timeDisplay.full(time), smart_count: time - state.clock })}
+    {t("info.until", { time: timeDisplay.full(time), smart_count: time - state.days })}
   </>);
 }
 

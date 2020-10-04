@@ -12,7 +12,6 @@ import { useTranslate } from "react-polyglot";
 import { Hex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { anyControlledAlive } from "game/playable";
-import { endTurn } from "game/turn";
 import * as time from "game/time";
 import * as math from "game/math";
 import * as htn from "game/htn";
@@ -231,8 +230,6 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   pixi.filters.sunset.matrix[12] = b / 255;
   pixi.filters.night.night(0.75);
 
-  startTimeFilter(state.pixi, time.time(state.clock));
-
   app.ticker.add(() => {
     TWEEN.update();
   });
@@ -270,6 +267,25 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
           planner.plan = null;
         }
       }
+    }
+  });
+
+  const SECONDS_PER_FRAME = 1 / 60;
+  const DAYS = 86400;
+  const FRAC_HOUR = 1 / 24;
+
+  let hour = 0;
+  app.ticker.add((frameMod) => {
+    if (state.game_speed) {
+      const toAdd = (frameMod * SECONDS_PER_FRAME * (state.game_speed || 0) / DAYS);
+      state.days += toAdd;
+      hour += toAdd;
+      if (hour > FRAC_HOUR) {
+        hour -= FRAC_HOUR;
+        renderUI();
+      }
+
+      timeFilter(state.pixi, state.days);
     }
   });
 
@@ -352,28 +368,32 @@ const virtualPosition = {
   }
 };
 
-function startTimeFilter(pixi, time_of_day) {
-  const effect = {
-    "morning": ({ sunset, night }, t) => {
-      night.alpha = 0.5 - 0.5 * t;
-      sunset.alpha = t * 0.5;
-    },
-    "afternoon": ({ sunset }, t) => {
-      sunset.alpha = 0.5 - 0.5 * t;
-    },
-    "evening": ({ sunset }, t) => {
-      sunset.alpha = t;
-    },
-    "night": ({ sunset, night }, t) => {
-      sunset.alpha = 1 - t;
-      night.alpha = 0.5 * t;
-    }
-  };
-  const tweenValue = { time: 0 };
-  new TWEEN.Tween(tweenValue)
-    .to({ time: 1 }, 1500)
-    .onUpdate(() => effect[time_of_day](pixi.filters, tweenValue.time))
-    .start();
+const MAX_NIGHT = 0.5;
+function timeFilter(pixi, days) {
+  const hour = time.hour_of_day(days);
+  if (hour > 22 || hour <= 5) {
+    pixi.filters.night.alpha = MAX_NIGHT;
+    pixi.filters.sunset.alpha = 0;
+  } else if (hour <= 7) {
+    const t = (hour - 5) / 2;
+    pixi.filters.night.alpha = MAX_NIGHT - MAX_NIGHT * t;
+    pixi.filters.sunset.alpha = t * 0.5;
+  } else if (hour <= 10) {
+    const t = (hour - 7) / 3;
+    pixi.filters.night.alpha = 0;
+    pixi.filters.sunset.alpha = 0.5 - 0.5 * t;
+  } else if (hour <= 18) {
+    pixi.filters.night.alpha = 0;
+    pixi.filters.sunset.alpha = 0;
+  } else if (hour <= 20) {
+    const t = (hour - 18) / 2;
+    pixi.filters.night.alpha = 0;
+    pixi.filters.sunset.alpha = t;
+  } else if (hour <= 22) {
+    const t = (hour - 20) / 2;
+    pixi.filters.sunset.alpha = 1 - t;
+    pixi.filters.night.alpha = MAX_NIGHT * t;
+  }
 }
 
 export function World() {
@@ -435,12 +455,9 @@ export function World() {
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       end_turn: async () => {
-        await endTurn(state);
-        if (anyControlledAlive(state.ecs, state.ui.playerId)) {
-          startTimeFilter(state.pixi, time.time(state.clock));
-        } else {
+        // TODO: move to realtime check
+        if (!anyControlledAlive(state.ecs, state.ui.playerId)) {
           state.ui.show.game_over = true;
-          delete state.ui.show.next_action;
           const value = { s: 0 };
           new TWEEN.Tween(value)
             .to({ s: -1 }, 2500)
@@ -468,7 +485,8 @@ export function World() {
       start_game: () => {
         state.ui.show.main_menu = false;
         state.ui.show.tutorial = true;
-        state.clock = 0;
+        state.days = 0.375;
+        state.game_speed = 720;
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {

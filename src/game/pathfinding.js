@@ -30,7 +30,7 @@ function h(ecs, a, b) {
 }
 
 function reconstructPath(cameFrom, id) {
-  var current = { id };
+  let current = { id };
   const result = [current];
   while(cameFrom[current.id]) {
     current = cameFrom[current.id];

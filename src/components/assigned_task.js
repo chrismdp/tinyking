@@ -19,7 +19,7 @@ export function AssignedTask({ assignable }) {
   const iControl = personable && personable.controller == state.ui.playerId;
 
   React.useEffect(() => {
-    var isCancelled = false;
+    let isCancelled = false;
     (async () => {
       if (assignable && assignable.task) {
         const target = fullEntity(state.ecs, assignable.task.id);

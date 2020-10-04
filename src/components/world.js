@@ -71,13 +71,13 @@ const renderTile = (ecs, id) => {
   graphics.endFill();
   graphics.beginFill(0xE2C879);
   if (ecs.mappable[id].terrain == "sown" || ecs.mappable[id].terrain == "growing") {
-    for(var i = 0; i < (ecs.mappable[id].terrain == "sown" ? 20 : 80); i++) {
+    for(let i = 0; i < (ecs.mappable[id].terrain == "sown" ? 20 : 80); i++) {
       graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, 3);
     }
   }
   if (ecs.mappable[id].terrain == "dirt") {
     graphics.beginFill(0x000000);
-    for(i = 0; i < 20; i++) {
+    for(let i = 0; i < 20; i++) {
       graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, Math.random() * 7);
     }
     graphics.endFill();
@@ -151,7 +151,7 @@ const renderPerson = (entity, fn, t) => {
     person.beginFill(0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
-    var text = new PIXI.Text(t("action." + entity.assignable.task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    let text = new PIXI.Text(t("action." + entity.assignable.task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
@@ -198,7 +198,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     zoomPercent(-0.5).
     moveCenter(point.x, point.y);
 
-  var layer = {
+  let layer = {
     tiles: new PIXI.Container(),
     stockpiles: new PIXI.Container(),
     people: new PIXI.Container(),

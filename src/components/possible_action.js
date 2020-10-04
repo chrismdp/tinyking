@@ -34,7 +34,7 @@ export function PossibleAction({ actorId, targetId, action }) {
   const t = useTranslate();
 
   React.useEffect(() => {
-    var isCancelled = false;
+    let isCancelled = false;
     (async () => {
       const events = {
         ...await describeValidEvents(action.rules.me, fullEntity(state.ecs, actorId), t),

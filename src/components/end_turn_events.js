@@ -18,7 +18,7 @@ export function EndTurnEvents({ entity, detail }) {
   const t = useTranslate();
 
   React.useEffect(() => {
-    var isCancelled = false;
+    let isCancelled = false;
     (async () => {
       const payload = endTurnPayload(state.ecs, entity, state.clock);
       const events = await validEventsFor(turnRules.filter(r => !r.hidden), payload);

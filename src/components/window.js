@@ -13,7 +13,7 @@ export function Window({ windowId, x, y, children }) {
 
   const fixed = window.innerWidth < 500;
 
-  var attrs = { disabled: !!fixed };
+  let attrs = { disabled: !!fixed };
   if (!fixed) {
     attrs.defaultPosition = { x, y };
   }

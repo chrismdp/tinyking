@@ -12,7 +12,7 @@ export const name = nameable => {
   }
 
   if (nameable.type == "person") {
-    var generator = new MersenneTwister(nameable.seed);
+    const generator = new MersenneTwister(nameable.seed);
     const middle = generator.random_int() % 2;
     return SYLLABLES[0][generator.random_int() % SYLLABLES[0].length] +
       [...Array(middle)].map(() => SYLLABLES[1][generator.random_int() % SYLLABLES[1].length]) +

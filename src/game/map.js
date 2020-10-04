@@ -39,11 +39,11 @@ export const Hex = Honeycomb.extendHex({
 export const Grid = Honeycomb.defineGrid(Hex);
 
 function generateFamily(size, spatial, front, generator, homeId) {
-  var result = [];
+  let result = [];
   const grid = Grid.hexagon({ center: spatial, radius: 1 });
   const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
   const starts = grid.neighborsOf(spatial, sides);
-  for (var p = 0; p < size; p++) {
+  for (let p = 0; p < size; p++) {
     const { x, y } = starts[p].toPoint();
     result.push({
       nameable: { type: "person", seed: generator.random_int() },
@@ -73,10 +73,10 @@ function giveStartingGrain(supplies, id, amount) {
 }
 
 export function generateFamilies({ state, seed, playerStartTile }) {
-  var generator = new MersenneTwister(seed);
+  let generator = new MersenneTwister(seed);
   for (const habitableId in state.ecs.habitable) {
-    var people = [];
-    var spatial = Hex().fromPoint(state.ecs.spatial[habitableId]);
+    let people = [];
+    let spatial = Hex().fromPoint(state.ecs.spatial[habitableId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
       const player = { ...generateFamily(1, spatial, state.ecs.habitable[habitableId].side, generator, habitableId)[0],
         playable: { known: [] },
@@ -100,7 +100,7 @@ async function generateTerrain(grid, seed, progressUpdate) {
 
   const simplex = new SimplexNoise(seed);
   const centre = { x: grid.width * 0.5, y: grid.height * 0.5 };
-  var result = {};
+  let result = {};
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
     const hex = grid[grid_index];
 
@@ -115,7 +115,7 @@ async function generateTerrain(grid, seed, progressUpdate) {
     if (hex.x == 0 || hex.y == 0 || hex.x == grid.width-1 || hex.y == grid.height-1) {
       hex.customHeight = -1;
     }
-    var terrain = "";
+    let terrain = "";
     if (hex.customHeight > 1.4) {
       terrain = "mountain";
     } else if (hex.customHeight <= -0.2) {
@@ -185,7 +185,7 @@ async function generateEconomicValue(grid, landscape, progressUpdate) {
   const spiral = Grid.spiral({ radius: 5 });
   spiral.shift(); // Ignore centre
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
-    var found = {};
+    let found = {};
     const target = grid[grid_index];
     if (landscape[target].terrain == "grassland") {
       for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
@@ -220,8 +220,8 @@ function makeHouse(settlements, grid, target, landscape) {
 }
 
 async function generateSettlements(seed, grid, landscape, start, progressUpdate) {
-  var settlements = {};
-  var generator = new MersenneTwister(seed);
+  let settlements = {};
+  let generator = new MersenneTwister(seed);
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
     const target = grid[grid_index];
     if (!settlements[target] && landscape[target].terrain == "grassland") {
@@ -251,7 +251,7 @@ export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);
 
 export async function generateMap(state, seed, progressUpdate) {
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
-  var landscape = await generateTerrain(grid, seed, progressUpdate);
+  let landscape = await generateTerrain(grid, seed, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);

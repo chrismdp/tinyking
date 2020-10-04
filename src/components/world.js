@@ -234,9 +234,21 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     TWEEN.update();
   });
 
-  app.ticker.add(() => {
+  app.ticker.add(frameMod => {
     for (const id in state.ecs.planner) {
       const planner = state.ecs.planner[id];
+
+      // Update sensors
+      if (state.ecs.personable[id]) {
+        const person = state.ecs.personable[id];
+        if (!planner.world.feeling.tired && person.tiredness > 0.9) {
+          planner.world.feeling.tired = true;
+          planner.plan = null;
+        } else if (planner.world.feeling.tired && person.tiredness < 0.3) {
+          planner.world.feeling.tired = false;
+          planner.plan = null;
+        }
+      }
 
       // Re-plan
       if (!planner.plan) {
@@ -244,9 +256,10 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         planner.plan = htn.solve(planner.world, [ [ "person" ] ]);
       }
       // Process tasks
+      const dt = deltaTime(frameMod, state.game_speed);
       if (planner.task) {
         const [name, ...args] = planner.task;
-        if (!tasks[name](state, id, ...args)) {
+        if (!tasks[name](state, id, planner.world, dt, ...args)) {
           planner.task = null;
         }
       }
@@ -259,7 +272,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
             if (!tasks[name]) {
               throw "Cannot find task to run " + name;
             }
-            if (!tasks[name](state, id, ...args)) {
+            if (!tasks[name](state, id, planner.world, dt, ...args)) {
               planner.task = null;
             }
           }
@@ -274,14 +287,20 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   const DAYS = 86400;
   const FRAC_HOUR = 1 / 24;
 
+  const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
+
   let hour = 0;
   app.ticker.add((frameMod) => {
     if (state.game_speed) {
-      const toAdd = (frameMod * SECONDS_PER_FRAME * (state.game_speed || 0) / DAYS);
+      const toAdd = deltaTime(frameMod, state.game_speed);
       state.days += toAdd;
       hour += toAdd;
       if (hour > FRAC_HOUR) {
         hour -= FRAC_HOUR;
+        for (const id in state.ecs.personable) {
+          const person = state.ecs.personable[id];
+          person.tiredness += FRAC_HOUR;
+        }
         renderUI();
       }
 

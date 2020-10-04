@@ -4,6 +4,7 @@ describe("HTN planning", () => {
   it("allows primitive tasks", () => {
     const rep = {
       id: 1,
+      feeling: {},
       loc: {
         1: { x: 2, y: 3 },
         2: { x: 2, y: 3 },
@@ -17,6 +18,7 @@ describe("HTN planning", () => {
   it("allows compound tasks", () => {
     const rep = {
       id: 1,
+      feeling: {},
       loc: {
         1: { x: 2, y: 3 },
         2: { x: 40, y: 60 },

@@ -11,16 +11,31 @@ const library = {
   primitive: {
     chop_tree: () => {},
     walk_to: (world, targetId) => {
+      if (!targetId) {
+        return nothing;
+      }
       world.loc[world.id] = { ...world.loc[targetId] };
     },
     complete_job: (world, jobKey) => {
       const idx = world.jobs.findIndex(j => j.job.key == jobKey);
       world.jobs.splice(idx, 1);
     },
-    idle: () => {}
+    find_place: () => {},
+    idle: () => {},
+    sleep: (world) => {
+      world.feeling.tired = false;
+      world.asleep = true;
+    }
   },
   compound: {
     person: (world) => {
+      if (world.asleep) {
+        return [ [ "sleep" ] ];
+      }
+      if (world.feeling.tired) {
+        return [ ["go_to_bed"] ];
+      }
+
       const move = world.jobs && world.jobs.find(j => j.job.key == "move_to_here");
       if (move) {
         return [
@@ -44,6 +59,15 @@ const library = {
         ["walk_to", targetId],
         ["chop_tree", targetId]
       ];
+    },
+    go_to_bed: (world) => {
+      if (world.places.sleep) {
+        return [
+          ["walk_to", world.places.sleep],
+          ["sleep"]
+        ];
+      }
+      return [ ["find_place", "allows_sleep", "sleep"] ];
     }
   }
 };

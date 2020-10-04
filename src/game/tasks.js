@@ -3,6 +3,7 @@ import { path } from "game/pathfinding";
 import * as math from "game/math";
 import { newEntities, deleteEntity } from "game/entities";
 import { topController } from "game/playable";
+import { nothing } from "immer";
 
 import TWEEN from "@tweenjs/tween.js";
 
@@ -10,10 +11,19 @@ function closestNavPointTo(state, id) {
   return state.space[Hex().fromPoint(state.ecs.spatial[id])].filter(e => state.ecs.walkable[e])[0];
 }
 
-export function walk_to(state, actorId, targetId) {
+export function walk_to(state, actorId, world, dt, targetId) {
   const m = state.ecs.moveable[actorId];
   const s = state.ecs.spatial[actorId];
-  if (m.targetId != targetId ) {
+
+  if (!(actorId in state.pixi)) {
+    // NOTE: we aren't on the map -- just teleport
+    const t = state.ecs.spatial[targetId];
+    s.x = t.x;
+    s.y = t.y;
+    return;
+  }
+
+  if (m.targetId != targetId) {
     m.targetId = targetId;
     if (!s) {
       throw "walk to: Actor " + actorId + " has no spatial";
@@ -29,6 +39,10 @@ export function walk_to(state, actorId, targetId) {
   }
 
   let next = m.route[0];
+  if (!next) {
+    return;
+  }
+
   let target;
   if ("exit" in next) {
     const hex = Hex().fromPoint(target);
@@ -63,9 +77,11 @@ export function walk_to(state, actorId, targetId) {
       center: Hex().fromPoint(state.ecs.spatial[next.id])
     });
     const playable = state.ecs.playable[topController(state.ecs, actorId)];
-    const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
-    playable.known = [ ...playable.known, ...newTiles ];
-    newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => state.redraws.push(e));
+    if (playable) { // NOTE: only explore if we're controlled by the player
+      const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
+      playable.known = [ ...playable.known, ...newTiles ];
+      newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => state.redraws.push(e));
+    }
   }
 
   if (math.squaredDistance(s, target) < 10) {
@@ -84,11 +100,43 @@ export function complete_job() {
   // NOTE: no in-game action, as jobs are currently only in the world rep.
 }
 
-export function chop_tree(state, actorId, targetId) {
+export function chop_tree(state, actorId, world, dt, targetId) {
   newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
     spatial: state.ecs.spatial[targetId], // TODO: pick the nearby triangular intra-hex locations
     nameable: { nickname: "Log" },
     haulable: { speedModifier: 0.5 }
   }))).forEach(id => state.redraws.push(id));
   deleteEntity(state, targetId);
+}
+
+export function find_place(state, actorId, world, dt, filter, type ) {
+  let found_place;
+
+  if (filter == "allows_sleep") {
+    found_place = state.ecs.homeable[actorId].home;
+  } else {
+    throw "Don't know how to find a place for '" + filter + "'";
+  }
+
+  if (!found_place) {
+    return nothing;
+  }
+
+  world.places[type] = found_place;
+}
+
+// NOTE: compensate for getting tireder through sleep
+const SLEEP_REPLENISH = 3 * 1.3333;
+
+export function sleep(state, actorId, world, dt) {
+  const person = state.ecs.personable[actorId];
+  if (!world.asleep) {
+    world.asleep = true;
+  }
+  person.tiredness -= dt * SLEEP_REPLENISH;
+  if (person.tiredness < 0.1) {
+    world.asleep = false;
+    return;
+  }
+  return 1;
 }

@@ -10,25 +10,25 @@ const debug = false;
 const library = {
   primitive: {
     chop_tree: () => {},
-    walk_to: (rep, targetId) => {
-      rep.loc[rep.id] = { ...rep.loc[targetId] };
+    walk_to: (world, targetId) => {
+      world.loc[world.id] = { ...world.loc[targetId] };
     },
-    complete_job: (rep, jobKey) => {
-      const idx = rep.jobs.findIndex(j => j.job.key == jobKey);
-      rep.jobs.splice(idx, 1);
+    complete_job: (world, jobKey) => {
+      const idx = world.jobs.findIndex(j => j.job.key == jobKey);
+      world.jobs.splice(idx, 1);
     },
     idle: () => {}
   },
   compound: {
-    person: (rep) => {
-      const move = rep.jobs && rep.jobs.find(j => j.job.key == "move_to_here");
+    person: (world) => {
+      const move = world.jobs && world.jobs.find(j => j.job.key == "move_to_here");
       if (move) {
         return [
           ["walk_to", move.targetId],
           ["complete_job", move.job.key]
         ];
       }
-      const cut = rep.jobs && rep.jobs.find(j => j.job.key == "cut_tree_down");
+      const cut = world.jobs && world.jobs.find(j => j.job.key == "cut_tree_down");
       if (cut) {
         return [
           ["walk_to", cut.targetId],
@@ -38,7 +38,7 @@ const library = {
       }
       return [ ["idle"] ];
     },
-    cut_tree_down: (rep, targetId) => {
+    cut_tree_down: (world, targetId) => {
       // Method 1 (only method!)
       return [
         ["walk_to", targetId],
@@ -48,15 +48,15 @@ const library = {
   }
 };
 
-export function execute(rep, task) {
+export function execute(world, task) {
   const [name, ...args] = task;
-  return library.primitive[name](rep, args) != nothing;
+  return library.primitive[name](world, args) != nothing;
 }
 
 const isPrimitive = task => library.primitive[task];
 
-export function solve(rep, tasks, plan = []) {
-  if (debug) { console.log("SOLVE", rep, "TASKS", tasks, "PLAN", plan); }
+export function solve(world, tasks, plan = []) {
+  if (debug) { console.log("SOLVE", world, "TASKS", tasks, "PLAN", plan); }
   if (tasks.length == 0) {
     if (debug) { console.log("RETURNING PLAN", plan); }
     return plan;
@@ -71,9 +71,9 @@ export function solve(rep, tasks, plan = []) {
   }
 
   if (isPrimitive(name)) {
-    const newRep = produce(library.primitive[name])(rep, ...args);
-    if (newRep) {
-      const solution = solve(newRep, rest, [ ...plan, task ]);
+    const newWorld = produce(library.primitive[name])(world, ...args);
+    if (newWorld) {
+      const solution = solve(newWorld, rest, [ ...plan, task ]);
       if (solution) {
         return solution;
       }
@@ -81,10 +81,10 @@ export function solve(rep, tasks, plan = []) {
     }
     if (debug) { console.log("PRECOND FAILED FOR ", name); }
   } else {
-    const subTasks = library.compound[name](rep, ...args);
+    const subTasks = library.compound[name](world, ...args);
     if (debug) { console.log("ST", subTasks); }
     if (subTasks) {
-      const solution = solve(rep, subTasks, plan);
+      const solution = solve(world, subTasks, plan);
       if (solution) {
         return solution;
       }

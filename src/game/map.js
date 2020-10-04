@@ -60,9 +60,11 @@ function generateFamily(size, spatial, front, generator, homeId) {
         type: "person",
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
-        body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE
+        body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE,
+        tiredness: 0,
+        asleep: false
       },
-      planner: { world: { jobs: [], loc: {} } },
+      planner: { world: { jobs: [], loc: {}, feeling: {} } },
     });
   }
   return result;

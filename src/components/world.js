@@ -118,7 +118,7 @@ const renderBuilding = (ecs, id) => {
   graphics.drawRect(-w * 0.5, -h * 0.5, w, h);
   graphics.beginFill(0x000000);
   graphics.drawRect(-w * 0.15, h * 0.5 - 2, w * 0.3, 5);
-  graphics.rotation = 2 * Math.PI * (ecs.habitable[id].side - 1) / 6;
+  graphics.rotation = 2 * Math.PI * (ecs.building[id].entrance - 1) / 6;
 
   return graphics;
 };
@@ -328,7 +328,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         } else if (ecs.haulable && ecs.haulable[id]) {
           pixi[id] = renderLog(ecs, id);
           layer.stockpiles.addChild(pixi[id]);
-        } else if (ecs.habitable[id]) {
+        } else if (ecs.building[id]) {
           pixi[id] = renderBuilding(ecs, id);
           layer.buildings.addChild(pixi[id]);
         } else if (ecs.personable[id]) {

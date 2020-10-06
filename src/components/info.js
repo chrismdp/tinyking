@@ -35,9 +35,9 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
-      { entity.habitable && (<>
+      { entity.ownable && (<>
         <span>Owners: </span>
-        {entity.habitable.owners.map(o => (<span key={o}>
+        {entity.ownable.owners.map(o => (<span key={o}>
           <Name nameable={state.ecs.nameable[o]}/>&nbsp;
         </span>))}
       </>)}

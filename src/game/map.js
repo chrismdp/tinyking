@@ -75,24 +75,24 @@ function giveStartingGrain(supplies, id, amount) {
 
 export function generateFamilies({ state, seed, playerStartTile }) {
   let generator = new MersenneTwister(seed);
-  for (const habitableId in state.ecs.habitable) {
+  for (const buildingId in state.ecs.building) {
     let people = [];
-    let spatial = Hex().fromPoint(state.ecs.spatial[habitableId]);
+    let spatial = Hex().fromPoint(state.ecs.spatial[buildingId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial, state.ecs.habitable[habitableId].side, generator, habitableId)[0],
+      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator, buildingId)[0],
         playable: { known: [] },
       };
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 5);
-      people = generateFamily(familySize, spatial, state.ecs.habitable[habitableId].side, generator, habitableId);
+      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator, buildingId);
     }
     const ids = newEntities(state, people);
     giveStartingGrain(state.ecs.supplies, ids[0], people.length);
     for (const id of ids) {
       state.ecs.personable[id].controller = ids[0];
     }
-    state.ecs.habitable[habitableId].owners = ids;
+    state.ecs.ownable[buildingId].owners = ids;
   }
 }
 
@@ -262,7 +262,8 @@ export async function generateMap(state, seed, progressUpdate) {
     return {
       spatial: { x, y },
       nameable: { nickname: "Log cabin" },
-      habitable: { owners: [], side: s.frontDoorSide },
+      ownable: { owners: [] },
+      building: { entrance: s.frontDoorSide }
     };
   });
 
@@ -319,11 +320,11 @@ export async function generateMap(state, seed, progressUpdate) {
     }
   }
 
-  for (const id in state.ecs.habitable) {
+  for (const id in state.ecs.building) {
     const entities = state.space[Hex().fromPoint(state.ecs.spatial[id])];
     const mappables = entities.filter(e => state.ecs.mappable[e]);
     ALL_SIDES.forEach(side => {
-      if (side != state.ecs.habitable[id].side) {
+      if (side != state.ecs.building[id].entrance) {
         removeBidirectionalLink(state.ecs, mappables[0], side);
       }
     });

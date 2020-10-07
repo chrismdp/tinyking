@@ -17,6 +17,9 @@ export function Info({ entityId }) {
   const state = React.useContext(GameState);
   const t = useTranslate();
 
+  const [showDebug, setShowDebug] = React.useState(false);
+  const toggleDebug = React.useCallback(() => setShowDebug(sd => !sd), [setShowDebug]);
+
   const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
   const title = entity.mappable ? t("terrain." + entity.mappable.terrain) : (entity.nameable ? (<Name nameable={entity.nameable} clickable={false}/>) : "Information");
 
@@ -51,7 +54,7 @@ export function Info({ entityId }) {
         <NameList ids={[entity.controllable.controllerId]}/>
       </>)}
       { entity.workable && <JobList workable={entity.workable}/>}
-      <div><h2>Debug info:</h2>{
+      <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
           <strong>{c}</strong>: {JSON.stringify(entity[c])}
         </li>)

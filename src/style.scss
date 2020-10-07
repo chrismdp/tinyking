@@ -124,7 +124,6 @@ canvas {
     text-transform: capitalize;
   }
 
-  #supplies { grid-area: Supplies; }
   #next-action { grid-area: NextAction; }
 
   #next-action {
@@ -399,6 +398,8 @@ button {
   /* NOTE: Need to set this otherwise the popper div skews mobile browser
    * windows and wraps the positioning of the tooltip */
   position: absolute;
+
+  a { text-decoration: underline; }
 
   font-size: 0.75em;
   color: white;

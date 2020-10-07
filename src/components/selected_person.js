@@ -17,7 +17,7 @@ export function SelectedPerson({ entityId }) {
   if (entityId) {
     return (<div id="selected-person">
       <h1 className="capitalise handle">
-        <Name nameable={entity.nameable}/>
+        <Name nameable={entity.nameable} clickable={true}/>
         &nbsp;<span className="knockedback">
           { entity.personable.dead ?
             "Dead" :

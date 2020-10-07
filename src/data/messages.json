@@ -8,10 +8,6 @@
   "traits.values.add.deforested": "becomes deforested",
   "traits.values.add.decimated": "loses almost all its trees",
   "traits.values.remove": "loses '%{value}'",
-  "supplies.gain.wood": "gains %{value} wood",
-  "supplies.lose.wood": "loses %{value} wood",
-  "supplies.gain.grain": "gains %{value} grain",
-  "supplies.lose.grain": "loses %{value} grain",
   "mappable.set.terrain": "changes to %{value}",
   "personable.explore.radius": "reveals %{smart_count} tile in each direction |||| reveals %{smart_count} tiles in each direction",
   "personable.die.exhaustion": "dies of exhaustion!",
@@ -25,7 +21,6 @@
 
   "target.traits.values.not.has": "%{target} is not marked %{value}",
   "target.traits.values.has": "%{target} is marked %{value}",
-  "controller.supplies.grain.greaterEq": "%{target} has access to at least %{value} grain",
 
   "target.personable": "%{target} is a person",
 
@@ -125,13 +120,18 @@
     "cut_tree_down": "Cut down",
     "move_to_here": "Move here"
   },
+  "rooms": {
+    "sleeping_quarters": {
+      "level1": "a rough floor space for just %{smart_count} adult |||| a rough floor space for up to %{smart_count} adults"
+    },
+    "stockpile": "a small storage space for just %{smart_count} item. Contents: |||| a storage space for up to %{smart_count} items. Contents:"
+  },
   "tutorial": {
     "continue": "Continue",
     "skip": "Skip tutorial",
     "descriptions": {
       "start": "You are a Tiny King, destined for greatness! Your little lands may only consist of a small wooden shack, and a field, but in them there is the potential for a bustling economy.",
       "time": "It's the beginning of spring. There are four turns each season: one for morning, afternoon, evening and night. You can move each turn, and also choose actions to perform. Some actions take more than one turn to complete.",
-      "supplies": "You have some food stored, but you'll need to grow some grain to stop your supplies dwindling too much. You must eat each day, or you'll get hungry.",
       "afternoon": "The day has brightened up, but you have a hard decision to make. You have only one portion of grain. Do you keep it to make a simple meal this evening, or do you sow it into your field?",
       "eat": "Your stomach made the decision for you! If you tap or hover on your character, you'll see that they've now eaten, and this effect will last until this time tomorrow. There's lots of detail about what will happen in grey text in case you need it.",
       "skipping_turns": "Luckily there are other ways to pick up grain, but you'll need to wait for the summer. Night has drawn in, and certain actions will be unavailable until tomorrow. Time to barricade the doors, and get a good night's sleep.",

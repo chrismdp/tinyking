@@ -7,7 +7,6 @@ import { MainMenu } from "components/main_menu";
 import { GameOver } from "components/game_over";
 import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
-import { Supplies } from "components/supplies";
 import { GameState } from "components/contexts";
 import { SelectedPerson } from "components/selected_person";
 
@@ -17,7 +16,6 @@ export function UserInterface() {
   return (
     <div id="ui">
       {show.clock && <Clock/>}
-      {show.supplies && <Supplies/>}
       {("main_menu" in show) && <MainMenu show={show.main_menu}/>}
       {show.game_over && <GameOver/>}
       {show.tutorial && <Tutorial/>}

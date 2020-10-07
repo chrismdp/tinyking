@@ -1,5 +1,4 @@
 import * as React from "react";
-import PropTypes from "prop-types";
 
 import { createPopper } from "@popperjs/core";
 import TWEEN from "@tweenjs/tween.js";
@@ -361,14 +360,18 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
             }
           }, t);
           layer.people.addChild(pixi[id]);
+        } else if (ecs.interior[id]) {
+          // NOTE: Do nothing - we don't render these yet.
         } else {
           const entity = fullEntity(ecs, id);
           throw "Cannot render entity " + JSON.stringify(entity);
         }
-        pixi[id].entityId = id;
-        pixi[id].interactive = true;
-        pixi[id].on("click", popupOver);
-        pixi[id].on("tap", popupOver);
+        if (pixi[id]) {
+          pixi[id].entityId = id;
+          pixi[id].interactive = true;
+          pixi[id].on("click", popupOver);
+          pixi[id].on("tap", popupOver);
+        }
       }
       state.redraws = [];
     }
@@ -434,15 +437,13 @@ export function World() {
   const popper = React.useRef(null);
   const t = useTranslate();
 
-  const popupOver = React.useCallback(event => {
-    setPopupInfo(s => {
-      if (s.id != event.currentTarget.entityId) {
-        return { id: event.currentTarget.entityId, touch: event.data.pointerType == "touch" };
-      } else {
-        return {};
-      }
-    });
+  const selectEntity = React.useCallback((id, touch) => {
+    setPopupInfo(s => (s.id != id) ? { id, touch } : {});
   }, [setPopupInfo]);
+
+  const popupOver = React.useCallback(event => {
+    selectEntity(event.currentTarget.entityId, event.data.pointerType == "touch");
+  }, [selectEntity]);
 
   React.useEffect(() => {
     if (popupInfo.id) {
@@ -514,6 +515,9 @@ export function World() {
         state.ecs.planner[playerId].plan = null;
         setPopupInfo({});
       },
+      select_entity: (id, touch) => {
+        selectEntity(id, touch);
+      },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
         state.pixi = {};
@@ -549,7 +553,7 @@ export function World() {
       const seed =  Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
     })();
-  }, [renderUI, state, popupOver, t]);
+  }, [renderUI, state, selectEntity, popupOver, t]);
 
   return (
     <div id="game">
@@ -564,7 +568,3 @@ export function World() {
     </div>
   );
 }
-
-World.propTypes = {
-  playerId: PropTypes.number
-};

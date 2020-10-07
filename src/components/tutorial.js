@@ -11,10 +11,6 @@ const tutorial = [
     description: "time",
   },
   {
-    show: { supplies: true },
-    description: "supplies"
-  },
-  {
     task: "plough",
     count: 4,
     continueOnClock: 1

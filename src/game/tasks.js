@@ -112,8 +112,15 @@ export function chop_tree(state, actorId, world, dt, targetId) {
 export function find_place(state, actorId, world, dt, filter, type ) {
   let found_place;
 
+  const realm = topController(state.ecs, actorId);
   if (filter == "allows_sleep") {
-    found_place = state.ecs.homeable[actorId].home;
+    const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
+      realm == topController(state.ecs, id) &&
+      state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
+    available_in_realm.sort((a, b) =>
+      math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[actorId]) -
+      math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[actorId]));
+    found_place = available_in_realm[0];
   } else {
     throw "Don't know how to find a place for '" + filter + "'";
   }

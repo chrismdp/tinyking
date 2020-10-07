@@ -3,8 +3,8 @@ export function discoverTiles(ecs, action) {
   ecs.playable[id].known.push(...tiles);
 }
 
-export function directlyControlledBy(ecs, playableId) {
-  return Object.values(ecs.personable).filter(p => p.controller == playableId && p.id != p.controller);
+export function directlyControlledBy(ecs, id) {
+  return Object.values(ecs.controllable).filter(p => p.controller == id && p.id != p.controllerId);
 }
 
 export function anyControlledAlive(ecs, playableId) {
@@ -13,14 +13,14 @@ export function anyControlledAlive(ecs, playableId) {
 }
 
 export function topController(ecs, id) {
-  if (!ecs.personable[id]) {
-    return null;
+  if (!ecs.controllable[id]) {
+    throw "Called topController on " + id + " which isn't a controllable entity";
   }
 
-  const controller = ecs.personable[id].controller;
-  if (controller == id) {
+  const controllerId = ecs.controllable[id].controllerId;
+  if (controllerId == id) {
     return id;
   } else {
-    return topController(ecs, controller);
+    return topController(ecs, controllerId);
   }
 }

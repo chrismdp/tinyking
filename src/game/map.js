@@ -6,7 +6,7 @@ import MersenneTwister from "mersenne-twister";
 import ReactGA from "react-ga";
 
 import { newEntities } from "game/entities";
-import { discoverTiles } from "game/playable";
+import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
 export const HEX_SIZE = 60;
@@ -38,7 +38,7 @@ export const Hex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
-function generateFamily(size, spatial, front, generator, homeId) {
+function generateFamily(size, spatial, front, generator) {
   let result = [];
   const grid = Grid.hexagon({ center: spatial, radius: 1 });
   const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
@@ -49,13 +49,12 @@ function generateFamily(size, spatial, front, generator, homeId) {
       nameable: { type: "person", seed: generator.random_int() },
       spatial: { x, y },
       traits: { values: {} },
-      supplies: { },
-      homeable: { home: homeId },
       attributes: {},
       moveable: {},
       tickable: {},
       workable: {},
       assignable: {},
+      controllable: {},
       personable: {
         type: "person",
         size: p > 1 ? 12 : 20,
@@ -69,30 +68,25 @@ function generateFamily(size, spatial, front, generator, homeId) {
   return result;
 }
 
-function giveStartingGrain(supplies, id, amount) {
-  supplies[id].grain = amount;
-}
-
 export function generateFamilies({ state, seed, playerStartTile }) {
   let generator = new MersenneTwister(seed);
   for (const buildingId in state.ecs.building) {
     let people = [];
     let spatial = Hex().fromPoint(state.ecs.spatial[buildingId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator, buildingId)[0],
+      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator)[0],
         playable: { known: [] },
       };
       people = [ player ];
     } else {
-      const familySize = 1 + (generator.random_int() % 5);
-      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator, buildingId);
+      const familySize = 1 + (generator.random_int() % 3);
+      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator);
     }
     const ids = newEntities(state, people);
-    giveStartingGrain(state.ecs.supplies, ids[0], people.length);
     for (const id of ids) {
-      state.ecs.personable[id].controller = ids[0];
+      state.ecs.controllable[id].controllerId = ids[0];
     }
-    state.ecs.ownable[buildingId].owners = ids;
+    state.ecs.controllable[buildingId].controllerId = ids[0];
   }
 }
 
@@ -262,8 +256,8 @@ export async function generateMap(state, seed, progressUpdate) {
     return {
       spatial: { x, y },
       nameable: { nickname: "Log cabin" },
-      ownable: { owners: [] },
-      building: { entrance: s.frontDoorSide }
+      controllable: {},
+      building: { entrance: s.frontDoorSide, rooms: [] }
     };
   });
 
@@ -320,16 +314,6 @@ export async function generateMap(state, seed, progressUpdate) {
     }
   }
 
-  for (const id in state.ecs.building) {
-    const entities = state.space[Hex().fromPoint(state.ecs.spatial[id])];
-    const mappables = entities.filter(e => state.ecs.mappable[e]);
-    ALL_SIDES.forEach(side => {
-      if (side != state.ecs.building[id].entrance) {
-        removeBidirectionalLink(state.ecs, mappables[0], side);
-      }
-    });
-  }
-
   const playerStartTile = { x: start.x, y: start.y };
   const map = {
     seed,
@@ -340,8 +324,36 @@ export async function generateMap(state, seed, progressUpdate) {
 
   generateFamilies({ state, seed, playerStartTile });
   const playerId = Object.values(state.ecs.playable)[0].id;
-  state.ecs.personable[playerId].controller = playerId;
+  state.ecs.controllable[playerId].controllerId = playerId;
   discoverStartingTiles(state.ecs, playerId, playerStartTile);
+
+  for (const id in state.ecs.building) {
+    const building = state.ecs.building[id];
+    const entities = state.space[Hex().fromPoint(state.ecs.spatial[id])];
+    const mappables = entities.filter(e => state.ecs.mappable[e]);
+    ALL_SIDES.forEach(side => {
+      if (side != building.entrance) {
+        removeBidirectionalLink(state.ecs, mappables[0], side);
+      }
+    });
+    const inhabitants = directlyControlledBy(state.ecs, state.ecs.controllable[id].controllerId).length + 1;
+
+    // NOTE: Create rooms (2 each at the moment in every building, one for stockpiles one for sleeping
+    building.rooms = newEntities(state, [
+      {
+        spatial: { ...state.ecs.spatial[id] },
+        controllable: { controllerId: building.id },
+        interior: { buildingId: building.id },
+        sleepable: { capacity: 3, level: 1, occupiers: [] },
+      },
+      {
+        spatial: { ...state.ecs.spatial[id] },
+        interior: { buildingId: building.id },
+        controllable: { controllerId: building.id },
+        stockpile: { capacity: 5, amounts: { grain: inhabitants } }
+      }
+    ]);
+  }
 
   await progressUpdate("complete");
 

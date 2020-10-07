@@ -1,55 +1,64 @@
 import { Hex, Grid, HEX_SIZE } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
-import { newEntities, deleteEntity } from "game/entities";
+import { moveSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
 
 import TWEEN from "@tweenjs/tween.js";
 
 function closestNavPointTo(state, id) {
-  return state.space[Hex().fromPoint(state.ecs.spatial[id])].filter(e => state.ecs.walkable[e])[0];
+  return entitiesInSameLocation(state, id).filter(e => state.ecs.walkable[e])[0];
 }
 
-export function walk_to(state, actorId, world, dt, targetId) {
-  const m = state.ecs.moveable[actorId];
+export function walk_to(state, actorId, world, dt, firstRun, target) {
   const s = state.ecs.spatial[actorId];
+
+  world.targetId = world.places[target] || target;
+
+  if (!world.targetId) {
+    // NOTE: Not passed a targetId and one isn't set for us, cannot continue
+    return nothing;
+  }
 
   if (!(actorId in state.pixi)) {
     // NOTE: we aren't on the map -- just teleport
-    const t = state.ecs.spatial[targetId];
+    const t = state.ecs.spatial[world.targetId];
     s.x = t.x;
     s.y = t.y;
     return;
   }
 
-  if (m.targetId != targetId) {
-    m.targetId = targetId;
+  if (firstRun) {
     if (!s) {
       throw "walk to: Actor " + actorId + " has no spatial";
     }
-    if (!state.ecs.spatial[targetId]) {
-      throw "walk to: Target " + targetId + " has no spatial";
+    if (!state.ecs.spatial[world.targetId]) {
+      throw "walk to: Target " + world.targetId + " has no spatial";
     }
-    const route = path(state.ecs, closestNavPointTo(state, actorId), closestNavPointTo(state, targetId));
-    state.ecs.moveable[actorId].route = route;
+    world.route = path(state.ecs, closestNavPointTo(state, actorId), closestNavPointTo(state, world.targetId));
     if (state.pixi[actorId].tween) {
       state.pixi[actorId].tween.stop();
     }
+    const { x, y } = Hex().fromPoint(state.ecs.spatial[actorId]);
+    world.previousHex = { x, y };
   }
 
-  let next = m.route[0];
+  let next = world.route[0];
   if (!next) {
     return;
   }
 
-  let target;
+  let targetPoint;
   if ("exit" in next) {
-    const hex = Hex().fromPoint(target);
+    const hex = Hex().fromPoint(targetPoint);
     const corners = hex.corners().map(c => c.add(state.ecs.spatial[next.id]));
-    target = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
+    targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
   } else {
-    target = state.ecs.spatial[targetId];
+    targetPoint = {
+      x: state.ecs.spatial[world.targetId].x,
+      y: state.ecs.spatial[world.targetId].y
+    };
   }
 
   // NOTE: 2.5 Hex sides per second, modified by the terrain cost
@@ -65,16 +74,19 @@ export function walk_to(state, actorId, world, dt, targetId) {
       state.redraws.push(next.id);
     }
     state.pixi[actorId].tween = new TWEEN.Tween(s)
-      .to(target, Math.sqrt(math.squaredDistance(s, target)) / (speed * 0.001))
+      .to(targetPoint, Math.sqrt(math.squaredDistance(s, targetPoint)) / (speed * 0.001))
       .onUpdate(() => state.pixi[actorId].position.set(s.x, s.y))
       .onStop(() => delete state.pixi[actorId].tween)
       .onComplete(() => delete state.pixi[actorId].tween)
       .start();
 
+    const newHex = Hex().fromPoint(state.ecs.spatial[next.id]);
+    moveSpace(state, actorId, Hex(world.previousHex), newHex);
+
     // NOTE: Discover adjacent tiles
     const neighbours = Grid.hexagon({
       radius: 1,
-      center: Hex().fromPoint(state.ecs.spatial[next.id])
+      center: newHex
     });
     const playable = state.ecs.playable[topController(state.ecs, actorId)];
     if (playable) { // NOTE: only explore if we're controlled by the player
@@ -84,11 +96,11 @@ export function walk_to(state, actorId, world, dt, targetId) {
     }
   }
 
-  if (math.squaredDistance(s, target) < 10) {
-    m.route.shift();
+  if (math.squaredDistance(s, targetPoint) < 10) {
+    world.route.shift();
   }
 
-  const dSq = math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[targetId]);
+  const dSq = math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[world.targetId]);
   return dSq > 10 * 10;
 }
 
@@ -100,7 +112,7 @@ export function complete_job() {
   // NOTE: no in-game action, as jobs are currently only in the world rep.
 }
 
-export function chop_tree(state, actorId, world, dt, targetId) {
+export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
     spatial: state.ecs.spatial[targetId], // TODO: pick the nearby triangular intra-hex locations
     nameable: { nickname: "Log" },
@@ -109,7 +121,7 @@ export function chop_tree(state, actorId, world, dt, targetId) {
   deleteEntity(state, targetId);
 }
 
-export function find_place(state, actorId, world, dt, filter, type ) {
+export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {
   let found_place;
 
   const realm = topController(state.ecs, actorId);
@@ -121,15 +133,53 @@ export function find_place(state, actorId, world, dt, filter, type ) {
       math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[actorId]) -
       math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[actorId]));
     found_place = available_in_realm[0];
+  } else if (filter == "has") {
+    if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
+    const available_in_realm = Object.keys(state.ecs.stockpile).filter(id =>
+      realm == topController(state.ecs, id) &&
+      state.ecs.stockpile[id].amounts[filterParam] > 0);
+    available_in_realm.sort((a, b) =>
+      math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[actorId]) -
+      math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[actorId]));
+    found_place = available_in_realm[0];
+  } else if (filter == "space") {
+    const spiral = Grid.spiral({
+      center: Hex().fromPoint(state.ecs.spatial[actorId]),
+      radius: 5
+    });
+    for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
+      const hex = spiral[spiral_index];
+      if (!state.space[hex].some(e => state.ecs.building[e])) {
+        found_place = state.space[hex].find(e =>
+          state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0);
+        break;
+      }
+    }
   } else {
     throw "Don't know how to find a place for '" + filter + "'";
   }
 
   if (!found_place) {
+    // NOTE: Prevent AI from looking again this hour
+    world.no_place_for = world.hour;
     return nothing;
   }
 
   world.places[type] = found_place;
+}
+
+export function wander(state, actorId, world) {
+  const neighbours = Grid.hexagon({
+    radius: 1,
+    center: Hex().fromPoint(state.ecs.spatial[actorId])
+  });
+
+  const tiles = neighbours
+    .map(hex => state.space[hex])
+    .flat()
+    .filter(e => state.ecs.walkable[e]);
+
+  world.targetId = tiles[Math.floor(Math.random() * tiles.length)];
 }
 
 // NOTE: compensate for getting tireder through sleep
@@ -137,13 +187,36 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 
 export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
-  if (!world.asleep) {
-    world.asleep = true;
-  }
   person.tiredness -= dt * SLEEP_REPLENISH;
-  if (person.tiredness < 0.1) {
-    world.asleep = false;
-    return;
+  return person.tiredness >= 0.1;
+}
+
+const FOOD_REPLENISH = {
+  grain: 24, // NOTE: this means we finish eating in about an hour
+};
+
+export function pick_up(state, actorId, world, dt, firstRun, thing, place) {
+  const stockpiles = entitiesInSameLocation(state, actorId).filter(id => state.ecs.stockpile[id] && state.ecs.stockpile[id].amounts[thing] > 0);
+  if (stockpiles.length == 0) {
+    // NOTE: This stockpile no longer trusted for this type of thing
+    world.places[place] = null;
+    return nothing;
   }
-  return 1;
+  state.ecs.stockpile[stockpiles[0]].amounts[thing] -= 1;
+  state.ecs.holder[actorId].holding[thing] = 1;
+}
+
+export function eat(state, actorId, world, dt, firstRun, thing) {
+  const holder = state.ecs.holder[actorId];
+  if (firstRun) {
+    if (holder.holding[thing] <= 0) {
+      console.log("EAT", actorId, "NO", thing, "to eat");
+      return nothing;
+    }
+    holder.holding[thing] -= 1;
+  }
+
+  const person = state.ecs.personable[actorId];
+  person.hunger -= dt * FOOD_REPLENISH[thing];
+  return person.hunger >= 0.1;
 }

@@ -17,7 +17,6 @@
   "attributes.lose.moves": "uses %{smart_count} movement point |||| uses %{smart_count} movement points",
 
   "target.mappable.terrain.is": "the terrain is %{value}",
-  "target.assignable.task.not": "There is no task assigned",
 
   "target.traits.values.not.has": "%{target} is not marked %{value}",
   "target.traits.values.has": "%{target} is marked %{value}",

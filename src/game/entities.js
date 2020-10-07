@@ -38,3 +38,12 @@ export function deleteEntity(state, id) {
 export const fullEntity = (ecs, id) => (
   Object.keys(ecs).reduce((result, name) => (
     { ...result, [name]: ecs[name][id] }), {id: id}));
+
+export function entitiesInSameLocation(state, id) {
+  return state.space[Hex().fromPoint(state.ecs.spatial[id])];
+}
+
+export function moveSpace(state, id, oldHex, newHex) {
+  state.space[oldHex].splice(id, 1);
+  state.space[newHex].push(id);
+}

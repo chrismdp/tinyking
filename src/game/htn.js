@@ -1,4 +1,7 @@
 import produce, { setAutoFreeze, nothing } from "immer";
+import * as tasks from "game/tasks";
+import * as primitive from "game/primitive";
+import * as compound from "game/compound";
 
 // NOTE: We do not want our source world rep to be frozen - we want to be able
 // to modify it outside of the solve call. Otherwise as soon as the world rep
@@ -6,78 +9,6 @@ import produce, { setAutoFreeze, nothing } from "immer";
 setAutoFreeze(false);
 
 const debug = false;
-
-const library = {
-  primitive: {
-    chop_tree: () => {},
-    walk_to: (world, targetId) => {
-      if (!targetId) {
-        return nothing;
-      }
-      world.loc[world.id] = { ...world.loc[targetId] };
-    },
-    complete_job: (world, jobKey) => {
-      const idx = world.jobs.findIndex(j => j.job.key == jobKey);
-      world.jobs.splice(idx, 1);
-    },
-    find_place: () => {},
-    idle: () => {},
-    sleep: (world) => {
-      world.feeling.tired = false;
-      world.asleep = true;
-    }
-  },
-  compound: {
-    person: (world) => {
-      if (world.asleep) {
-        return [ [ "sleep" ] ];
-      }
-      if (world.feeling.tired) {
-        return [ ["go_to_bed"] ];
-      }
-
-      const move = world.jobs && world.jobs.find(j => j.job.key == "move_to_here");
-      if (move) {
-        return [
-          ["walk_to", move.targetId],
-          ["complete_job", move.job.key]
-        ];
-      }
-      const cut = world.jobs && world.jobs.find(j => j.job.key == "cut_tree_down");
-      if (cut) {
-        return [
-          ["walk_to", cut.targetId],
-          ["chop_tree", cut.targetId],
-          ["complete_job", cut.job.key]
-        ];
-      }
-      return [ ["idle"] ];
-    },
-    cut_tree_down: (world, targetId) => {
-      // Method 1 (only method!)
-      return [
-        ["walk_to", targetId],
-        ["chop_tree", targetId]
-      ];
-    },
-    go_to_bed: (world) => {
-      if (world.places.sleep) {
-        return [
-          ["walk_to", world.places.sleep],
-          ["sleep"]
-        ];
-      }
-      return [ ["find_place", "allows_sleep", "sleep"] ];
-    }
-  }
-};
-
-export function execute(world, task) {
-  const [name, ...args] = task;
-  return library.primitive[name](world, args) != nothing;
-}
-
-const isPrimitive = task => library.primitive[task];
 
 export function solve(world, tasks, plan = []) {
   if (debug) { console.log("SOLVE", world, "TASKS", tasks, "PLAN", plan); }
@@ -89,12 +20,8 @@ export function solve(world, tasks, plan = []) {
   const [name, ...args] = task;
   if (debug) { console.log("HTN: CONSIDERING", task); }
 
-  if (!library.primitive[name] && !library.compound[name]) {
-    throw "Cannot find task " + name + "(plan: " + JSON.stringify(plan) + ")";
-  }
-
-  if (isPrimitive(name)) {
-    const newWorld = produce(library.primitive[name])(world, ...args);
+  if (primitive[name]) {
+    const newWorld = produce(primitive[name])(world, true, ...args);
     if (newWorld) {
       const solution = solve(newWorld, rest, [ ...plan, task ]);
       if (solution) {
@@ -103,8 +30,8 @@ export function solve(world, tasks, plan = []) {
       if (debug) { console.log("NO SOLN FOUND FOR REST OF TASKS", rest); }
     }
     if (debug) { console.log("PRECOND FAILED FOR ", name); }
-  } else {
-    const subTasks = library.compound[name](world, ...args);
+  } else if (compound[name]) {
+    const subTasks = compound[name](world, ...args);
     if (debug) { console.log("ST", subTasks); }
     if (subTasks) {
       const solution = solve(world, subTasks, plan);
@@ -113,5 +40,36 @@ export function solve(world, tasks, plan = []) {
       }
       if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
     }
+  } else {
+    throw "Cannot find task " + name + " (plan: " + JSON.stringify(plan) + ")";
   }
+}
+
+export function runTask(state, planner, dt, firstRun) {
+  const [name, ...args] = planner.task;
+  if (!tasks[name]) {
+    throw "Cannot find task to run " + name;
+  }
+
+  const newWorld = produce(primitive[name])(planner.world, false, ...args);
+  if (newWorld) {
+    const result = tasks[name](state, planner.id, planner.world, dt, firstRun, ...args);
+    if (result == nothing) {
+      replan(planner);
+    } else if (!result) {
+      const pResult = primitive[name](planner.world, false, args);
+      if (pResult == nothing) {
+        throw "primitive returned 'nothing', second time around after task!";
+      }
+      planner.task = null;
+    }
+  } else {
+    replan(planner);
+  }
+}
+
+export function replan(planner) {
+  planner.plan = null;
+  planner.task = null;
+  // console.trace("replan", planner);
 }

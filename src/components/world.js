@@ -14,7 +14,6 @@ import { anyControlledAlive } from "game/playable";
 import * as time from "game/time";
 import * as math from "game/math";
 import * as htn from "game/htn";
-import * as tasks from "game/tasks";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
@@ -122,7 +121,7 @@ const renderBuilding = (ecs, id) => {
   return graphics;
 };
 
-const renderPerson = (entity, fn, t) => {
+const renderPerson = (entity, fn) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(entity.spatial.x, entity.spatial.y);
 
@@ -145,11 +144,11 @@ const renderPerson = (entity, fn, t) => {
   person.drawCircle(0, -entity.personable.size * 0.48, entity.personable.size * 0.35);
   person.endFill();
 
-  if (entity.assignable && entity.assignable.task) {
+  if (entity.planner && entity.planner.task) {
     person.beginFill(0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
-    let text = new PIXI.Text(t("action." + entity.assignable.task.action.key + ".name"), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    let text = new PIXI.Text(entity.planner.task[0], {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
@@ -242,10 +241,11 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         const person = state.ecs.personable[id];
         if (!planner.world.feeling.tired && person.tiredness > 0.9) {
           planner.world.feeling.tired = true;
-          planner.plan = null;
-        } else if (planner.world.feeling.tired && person.tiredness < 0.3) {
-          planner.world.feeling.tired = false;
-          planner.plan = null;
+          htn.replan(planner);
+        }
+        if (!planner.world.feeling.hungry && person.hunger > 0.9) {
+          planner.world.feeling.hungry = true;
+          htn.replan(planner);
         }
       }
 
@@ -253,30 +253,25 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       if (!planner.plan) {
         planner.task = null;
         planner.plan = htn.solve(planner.world, [ [ "person" ] ]);
+        if (planner.id == state.ui.playerId) {
+          // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
+          if (!planner.plan) {
+            throw "no plan";
+          }
+        }
       }
       // Process tasks
       const dt = deltaTime(frameMod, state.game_speed);
       if (planner.task) {
-        const [name, ...args] = planner.task;
-        if (!tasks[name](state, id, planner.world, dt, ...args)) {
-          planner.task = null;
-        }
+        htn.runTask(state, planner, dt, false);
       }
       while (!planner.task && planner.plan) {
         if (planner.plan.length > 0) {
-          const task = planner.plan.shift();
-          if (htn.execute(planner.world, task)) {
-            planner.task = task;
-            const [name, ...args] = task;
-            if (!tasks[name]) {
-              throw "Cannot find task to run " + name;
-            }
-            if (!tasks[name](state, id, planner.world, dt, ...args)) {
-              planner.task = null;
-            }
-          }
+          planner.task = planner.plan.shift();
+          htn.runTask(state, planner, dt, true);
+          state.redraws.push(planner.id);
         } else {
-          planner.plan = null;
+          htn.replan(planner);
         }
       }
     }
@@ -296,9 +291,18 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       hour += toAdd;
       if (hour > FRAC_HOUR) {
         hour -= FRAC_HOUR;
+
+        // FIXME: This potentially leads to frame spikes each hour
+        for (const id in state.ecs.planner) {
+          const planner = state.ecs.planner[id];
+          planner.world.hour = time.hour_of_day(state.days);
+          planner.world.time_of_day = time.time(state.days);
+        }
+
         for (const id in state.ecs.personable) {
           const person = state.ecs.personable[id];
           person.tiredness += FRAC_HOUR;
+          person.hunger += FRAC_HOUR;
         }
         renderUI();
       }
@@ -350,13 +354,6 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
               person.moveTo(-20, 20);
               person.lineTo(-25, 20);
               person.lineTo(-25, 15);
-            }
-
-            if (entity.assignable && !entity.assignable.task) {
-              const text = new PIXI.Text("Zz", {fontFamily: "Alegreya", fontSize: 14, fill: "red"});
-              text.position.set(18, -20);
-              text.anchor = { x: 0.5, y: 0.5 };
-              person.addChild(text);
             }
           }, t);
           layer.people.addChild(pixi[id]);
@@ -511,8 +508,7 @@ export function World() {
       },
       choose_job: (playerId, job, targetId) => {
         state.ecs.planner[playerId].world.jobs.push({ job, targetId });
-        // NOTE: Force re-plan
-        state.ecs.planner[playerId].plan = null;
+        htn.replan(state.ecs.planner[playerId]);
         setPopupInfo({});
       },
       select_entity: (id, touch) => {

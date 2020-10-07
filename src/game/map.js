@@ -5,7 +5,7 @@ import MersenneTwister from "mersenne-twister";
 
 import ReactGA from "react-ga";
 
-import { newEntities } from "game/entities";
+import { newEntities, entitiesInSameLocation } from "game/entities";
 import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
@@ -50,19 +50,27 @@ function generateFamily(size, spatial, front, generator) {
       spatial: { x, y },
       traits: { values: {} },
       attributes: {},
-      moveable: {},
       tickable: {},
       workable: {},
-      assignable: {},
       controllable: {},
+      holder: { holding: {} },
       personable: {
         type: "person",
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
         body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE,
-        tiredness: 0.0
+        tiredness: 0.0,
+        hunger: 0.0
       },
-      planner: { world: { jobs: [], loc: {}, places: {}, feeling: {} } },
+      planner: {
+        world: {
+          jobs: [],
+          loc: {},
+          places: {},
+          feeling: {},
+          holding: {}
+        }
+      },
     });
   }
   return result;
@@ -329,7 +337,7 @@ export async function generateMap(state, seed, progressUpdate) {
 
   for (const id in state.ecs.building) {
     const building = state.ecs.building[id];
-    const entities = state.space[Hex().fromPoint(state.ecs.spatial[id])];
+    const entities = entitiesInSameLocation(state, id);
     const mappables = entities.filter(e => state.ecs.mappable[e]);
     ALL_SIDES.forEach(side => {
       if (side != building.entrance) {

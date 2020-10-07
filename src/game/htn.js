@@ -82,7 +82,6 @@ const isPrimitive = task => library.primitive[task];
 export function solve(world, tasks, plan = []) {
   if (debug) { console.log("SOLVE", world, "TASKS", tasks, "PLAN", plan); }
   if (tasks.length == 0) {
-    if (debug) { console.log("RETURNING PLAN", plan); }
     return plan;
   }
 
@@ -91,7 +90,7 @@ export function solve(world, tasks, plan = []) {
   if (debug) { console.log("HTN: CONSIDERING", task); }
 
   if (!library.primitive[name] && !library.compound[name]) {
-    throw "Cannot find task " + name;
+    throw "Cannot find task " + name + "(plan: " + JSON.stringify(plan) + ")";
   }
 
   if (isPrimitive(name)) {
@@ -110,7 +109,7 @@ export function solve(world, tasks, plan = []) {
     if (subTasks) {
       const solution = solve(world, subTasks, plan);
       if (solution) {
-        return solution;
+        return solve(world, rest, solution);
       }
       if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
     }

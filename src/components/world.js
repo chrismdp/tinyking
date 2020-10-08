@@ -18,6 +18,8 @@ import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
 
+import fogSprite from "assets/fogSprite.png";
+
 const ROUTES_TO_FULL_PATH = 100;
 
 const HIT_RADIUS = 22.5;
@@ -165,11 +167,13 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   app.stage = new PIXI.Container();
 
   state.pixi = {};
+  state.fog = {};
+  state.fogTexture = PIXI.Texture.from(fogSprite);
   state.redraws = [];
 
   const { width, height, playerStartTile } = state.map;
 
-  const { ui, ecs, pixi } = state;
+  const { ecs, pixi } = state;
 
   pixi.viewport = new Viewport({
     screenWidth: app.view.offsetWidth,
@@ -200,10 +204,10 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     stockpiles: new PIXI.Container(),
     people: new PIXI.Container(),
     buildings: new PIXI.Container(),
+    fog: new PIXI.Container(),
   };
 
-  const known = ecs.playable[ui.playerId].known.map(k => state.space[Hex(k)]).flat();
-  state.redraws = [ ...known ];
+  state.redraws = Array.from({length: state.ecs.nextId - 1}, (v, i) => "" + (i + 1));
 
   pixi.base = new PIXI.Container();
 
@@ -313,16 +317,24 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   app.ticker.add(() => {
     if (state.redraws.length > 0) {
-      const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat();
+      const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat().filter(e => state.ecs.mappable[e]);
       for (const id of state.redraws) {
-        if (!known.includes(id)) {
-          continue;
-        }
         if (id in pixi) {
           pixi[id].destroy();
           delete pixi[id];
         }
         if (ecs.mappable[id]) {
+          if (!known.includes(id)) {
+            if (!state.fog[id]) {
+              state.fog[id] = new PIXI.Sprite(state.fogTexture);
+              state.fog[id].position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+              state.fog[id].anchor.set(0.5, 0.5);
+              layer.fog.addChild(state.fog[id]);
+            }
+          } else if (state.fog[id]) {
+            layer.fog.removeChild(state.fog[id]);
+            delete state.fog[id];
+          }
           pixi[id] = renderTile(ecs, id);
           layer.tiles.addChild(pixi[id]);
         } else if (ecs.workable[id] && ecs.workable[id].jobs && ecs.workable[id].jobs.some(a => a.yield == "wood")) {

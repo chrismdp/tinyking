@@ -85,14 +85,14 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
 
     // NOTE: Discover adjacent tiles
     const neighbours = Grid.hexagon({
-      radius: 1,
+      radius: 2,
       center: newHex
     });
     const playable = state.ecs.playable[topController(state.ecs, actorId)];
     if (playable) { // NOTE: only explore if we're controlled by the player
       const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
       playable.known = [ ...playable.known, ...newTiles ];
-      newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => state.redraws.push(e));
+      newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => e && state.redraws.push(e));
     }
   }
 

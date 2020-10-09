@@ -31,14 +31,17 @@ export function solve(world, tasks, plan = []) {
     }
     if (debug) { console.log("PRECOND FAILED FOR ", name); }
   } else if (compound[name]) {
-    const subTasks = compound[name](world, ...args);
-    if (debug) { console.log("ST", subTasks); }
-    if (subTasks) {
-      const solution = solve(world, subTasks, plan);
-      if (solution) {
-        return solve(world, rest, solution);
+    const methods = compound[name](...args);
+    for (const method of methods) {
+      const condition = method[0](world);
+      if (debug) { console.log("COMPOUND: condition for ", name, " is ", condition); }
+      if (condition) {
+        const solution = solve(world, method[1](condition), plan);
+        if (solution) {
+          return solve(world, rest, solution);
+        }
+        if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
       }
-      if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
     }
   } else {
     throw "Cannot find task " + name + " (plan: " + JSON.stringify(plan) + ")";

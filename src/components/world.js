@@ -380,11 +380,13 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
           const entity = fullEntity(ecs, id);
           throw "Cannot render entity " + JSON.stringify(entity);
         }
-        if (pixi[id]) {
+        if (pixi[id] && !state.fog[id]) {
           pixi[id].entityId = id;
           pixi[id].interactive = true;
           pixi[id].on("click", popupOver);
-          pixi[id].on("tap", popupOver);
+          pixi[id].on("touchstart", () => pixi[id].maybeSelect = true);
+          pixi[id].on("touchmove", () => pixi[id].maybeSelect = false);
+          pixi[id].on("touchend", e => pixi[id].maybeSelect && popupOver(e));
         }
       }
       state.redraws = [];

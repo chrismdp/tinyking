@@ -42,7 +42,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     world.previousHex = { x, y };
   }
 
-  let next = world.route[0];
+  let next = world.route && world.route[0];
   if (!next) {
     return;
   }
@@ -69,8 +69,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
 
   if (length < 10) {
     // NOTE: Wear down the path
-    if (next.entrance != null && next.exit != null) {
-      const key = [next.entrance, next.exit].sort().join();
+    if (next.entrance != null || next.exit != null) {
+      const key = [next.entrance ?? "C", next.exit ?? "C"].sort().join();
       if (!(key in state.ecs.mappable[next.id].worn)) {
         state.ecs.mappable[next.id].worn[key] = 0;
       }
@@ -95,6 +95,10 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     }
 
     world.route.shift();
+
+    if (!("exit" in next)) {
+      return 0;
+    }
   } else {
     dx /= length;
     dy /= length;
@@ -102,9 +106,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     s.y += dy * speed;
     state.pixi[actorId].position.set(s.x, s.y);
   }
-
-  const dSq = math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[world.targetId]);
-  return dSq > 10 * 10;
+  return 1;
 }
 
 export function idle() {

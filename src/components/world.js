@@ -90,13 +90,24 @@ const renderTile = (ecs, id) => {
   graphics.endFill();
   graphics.lineStyle();
   for (const key in ecs.mappable[id].worn) {
-    const [ entrance, exit ] = key.split(",").map(i => +i);
+    const [ entrance, exit ] = key.split(",").map(i => i == "C" ? "C" : +i);
     graphics.beginFill(terrainColours.dirt, Math.min(1.0, ecs.mappable[id].worn[key] / ROUTES_TO_FULL_PATH));
+    const center = { x: 0, y: 0 };
+    const line = {
+      entrance: [
+        entrance != "C" ? corners[entrance] : center,
+        entrance != "C" ? corners[(entrance + 1) % 6] : center
+      ],
+      exit: [
+        exit != "C" ? corners[exit] : center,
+        exit != "C" ? corners[(exit + 1) % 6] : center
+      ]
+    };
     graphics.drawPolygon([
-      math.lerp(corners[entrance], corners[(entrance + 1) % 6], 0.25),
-      math.lerp(corners[entrance], corners[(entrance + 1) % 6], 0.75),
-      math.lerp(corners[exit], corners[(exit + 1) % 6], 0.25),
-      math.lerp(corners[exit], corners[(exit + 1) % 6], 0.75)
+      math.lerp(...line.entrance, 0.25),
+      math.lerp(...line.entrance, 0.75),
+      math.lerp(...line.exit, 0.25),
+      math.lerp(...line.exit, 0.75),
     ]);
   }
   // NOTE: Debug for showing paths between hexes

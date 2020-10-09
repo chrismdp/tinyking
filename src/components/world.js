@@ -523,7 +523,10 @@ export function World() {
       },
       start_game: () => {
         state.ui.show.main_menu = false;
-        state.ui.show.tutorial = true;
+        // TODO: Re-do the tutorial when there's more to show
+        state.ui.show.tutorial = false;
+        state.ui.show.clock = true;
+        state.ui.show.speed_controls = true;
         state.days = 0.375;
         state.game_speed = "normal";
         renderUI();

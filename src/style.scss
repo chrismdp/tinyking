@@ -115,7 +115,7 @@ canvas {
 
   #ui, #world, #main-menu, #game-over, .desktop {
     height: 100%;
-    grid-area: Main;
+    grid-area: Main / Main / SelectedPerson / Main;
   }
 
   #clock {
@@ -265,13 +265,13 @@ canvas {
 
     .social {
       font-size: 2em;
-      margin: 20px 0;
+      margin: 10px 0;
       a { padding: 0 5px; }
       img { height: 3vh; }
     }
 
     .disclaimer {
-      margin: 20px 0;
+      margin-bottom: 10px;
       font-size: 0.5em;
     }
   }
@@ -282,7 +282,8 @@ canvas {
       text-shadow: 1px 1px #000000;
       grid-area: Menu;
       padding: 0;
-      animation: fade-in 3s 3.5s forwards;
+      margin: 0;
+      animation: fade-in 3s 2.5s forwards;
       opacity: 0;
       text-align: center;
       li {

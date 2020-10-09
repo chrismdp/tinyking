@@ -11,7 +11,7 @@ export function newEntities(state, entities) {
         state.ecs[name][id] = { ...entity[name], id };
       }
     }
-    if (entity.spatial) {
+    if (entity.spatial && (entity.mappable || entity.building || entity.stockpile)) {
       const hex = Hex().fromPoint(entity.spatial);
       if (!state.space) {
         state.space = {};
@@ -41,9 +41,4 @@ export const fullEntity = (ecs, id) => (
 
 export function entitiesInSameLocation(state, id) {
   return state.space[Hex().fromPoint(state.ecs.spatial[id])];
-}
-
-export function moveSpace(state, id, oldHex, newHex) {
-  state.space[oldHex].splice(id, 1);
-  state.space[newHex].push(id);
 }

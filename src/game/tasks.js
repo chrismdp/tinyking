@@ -2,7 +2,7 @@ import { Hex, Grid, HEX_SIZE } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
 import * as time from "game/time";
-import { moveSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
+import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
 
@@ -39,8 +39,6 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     if (state.pixi[actorId].tween) {
       state.pixi[actorId].tween.stop();
     }
-    const { x, y } = Hex().fromPoint(state.ecs.spatial[actorId]);
-    world.previousHex = { x, y };
   }
 
   let next = world.route && world.route[0];
@@ -81,7 +79,6 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
 
     // NOTE: Move on the state.space map
     const newHex = Hex().fromPoint(state.ecs.spatial[next.id]);
-    moveSpace(state, actorId, Hex(world.previousHex), newHex);
 
     // NOTE: Discover adjacent tiles
     const neighbours = Grid.hexagon({

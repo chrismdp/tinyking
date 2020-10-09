@@ -5,8 +5,6 @@ import { moveSpace, newEntities, deleteEntity, entitiesInSameLocation } from "ga
 import { topController } from "game/playable";
 import { nothing } from "immer";
 
-import TWEEN from "@tweenjs/tween.js";
-
 function closestNavPointTo(state, id) {
   return entitiesInSameLocation(state, id).filter(e => state.ecs.walkable[e])[0];
 }
@@ -61,10 +59,21 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     };
   }
 
-  // NOTE: 2.5 Hex sides per second, modified by the terrain cost
-  const speed = HEX_SIZE * 2.5 * (state.ecs.walkable[next.id].speed || 1);
-  if (!state.pixi[actorId].tween) {
-    // TODO: Move this to onComplete so it's the end of the line
+  const terrainCost = state.ecs.walkable[next.id].speed || 1;
+  // NOTE: number of hex sides per hour
+  const baseHumanSpeed = 20;
+  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost;
+  let dx = targetPoint.x - s.x;
+  let dy = targetPoint.y - s.y;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  dx /= length;
+  dy /= length;
+  s.x += dx * speed;
+  s.y += dy * speed;
+  state.pixi[actorId].position.set(s.x, s.y);
+
+  if (math.squaredDistance(s, targetPoint) < 100) {
+    // NOTE: Wear down the path
     if (next.entrance != null && next.exit != null) {
       const key = [next.entrance, next.exit].sort().join();
       if (!(key in state.ecs.mappable[next.id].worn)) {
@@ -73,13 +82,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       state.ecs.mappable[next.id].worn[key] += 1;
       state.redraws.push(next.id);
     }
-    state.pixi[actorId].tween = new TWEEN.Tween(s)
-      .to(targetPoint, Math.sqrt(math.squaredDistance(s, targetPoint)) / (speed * 0.001))
-      .onUpdate(() => state.pixi[actorId].position.set(s.x, s.y))
-      .onStop(() => delete state.pixi[actorId].tween)
-      .onComplete(() => delete state.pixi[actorId].tween)
-      .start();
 
+    // NOTE: Move on the state.space map
     const newHex = Hex().fromPoint(state.ecs.spatial[next.id]);
     moveSpace(state, actorId, Hex(world.previousHex), newHex);
 
@@ -94,9 +98,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       playable.known = [ ...playable.known, ...newTiles ];
       newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => e && state.redraws.push(e));
     }
-  }
 
-  if (math.squaredDistance(s, targetPoint) < 10) {
     world.route.shift();
   }
 

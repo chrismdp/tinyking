@@ -9,6 +9,7 @@ import { Tutorial } from "components/tutorial";
 import { Clock } from "components/clock";
 import { GameState } from "components/contexts";
 import { SelectedPerson } from "components/selected_person";
+import { SpeedControls } from "components/speed_controls";
 
 export function UserInterface() {
   const state = React.useContext(GameState);
@@ -22,6 +23,7 @@ export function UserInterface() {
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
       {show.mapgen && <Window windowId="mapgen" x={60} y={70}><MapGenParams/></Window>}
       {show.selected_person && <SelectedPerson entityId={show.selected_person}/>}
+      {show.speed_controls && <SpeedControls/>}
     </div>
   );
 }

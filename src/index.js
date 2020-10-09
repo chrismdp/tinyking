@@ -14,8 +14,9 @@ import messages from "data/messages.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDice } from "@fortawesome/free-solid-svg-icons";
+import { faPlay, faPause, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faDice, faTimes);
+library.add(faDice, faTimes, faPlay, faPause, faFastForward);
 
 const locale = window.locale || "en";
 

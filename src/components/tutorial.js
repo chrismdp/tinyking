@@ -7,7 +7,7 @@ import { GameState } from "components/contexts";
 const tutorial = [
   { description: "start" },
   {
-    show: { clock: true },
+    show: { clock: true, speed_controls: true },
     description: "time",
   },
   {

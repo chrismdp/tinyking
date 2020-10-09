@@ -109,7 +109,7 @@ canvas {
       ". Supplies Supplies Clock Clock Clock ."
       ". Main Main Main Main Main ."
       ". SelectedPerson SelectedPerson SelectedPerson . . ."
-      ". . . . NextAction NextAction ."
+      ". . . SpeedControls SpeedControls SpeedControls ."
       ". . . . . . ."
   }
 
@@ -124,14 +124,19 @@ canvas {
     text-transform: capitalize;
   }
 
-  #next-action { grid-area: NextAction; }
+  #speed-controls { grid-area: SpeedControls; }
 
-  #next-action {
+  #speed-controls {
     animation: fade-in 1.5s forwards;
     opacity: 0;
     text-align: right;
     button {
-      font-size: 1.5vh;
+      font-size: 1.1vh;
+      margin-left: 5px;
+      background: black;
+      &:disabled {
+        background: #417154;
+      }
     }
   }
 

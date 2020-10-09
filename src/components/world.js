@@ -24,6 +24,12 @@ const ROUTES_TO_FULL_PATH = 100;
 
 const HIT_RADIUS = 22.5;
 
+const SPEED = {
+  paused: 0,
+  normal: 360,
+  fast: 3600
+};
+
 const terrainColours = {
   "mountain": 0x3C3A44,
   "deep water": 0x2F4999,
@@ -265,7 +271,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         }
       }
       // Process tasks
-      const dt = deltaTime(frameMod, state.game_speed);
+      const dt = deltaTime(frameMod, SPEED[state.game_speed]);
       if (planner.task) {
         htn.runTask(state, planner, dt, false);
       }
@@ -289,8 +295,8 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   let hour = 0;
   app.ticker.add((frameMod) => {
-    if (state.game_speed) {
-      const toAdd = deltaTime(frameMod, state.game_speed);
+    if (SPEED[state.game_speed]) {
+      const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
       state.days += toAdd;
       hour += toAdd;
       if (hour > FRAC_HOUR) {
@@ -310,9 +316,8 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         }
         renderUI();
       }
-
-      timeFilter(state.pixi, state.days);
     }
+    timeFilter(state.pixi, state.days);
   });
 
   app.ticker.add(() => {
@@ -499,6 +504,10 @@ export function World() {
         state.ui.show = { ...state.ui.show, ...action };
         renderUI();
       },
+      set_speed: (speedClass) => {
+        state.game_speed = speedClass;
+        renderUI();
+      },
       close_window: (id) => {
         if (id == "mapgen") {
           state.ui.actions.start_game();
@@ -515,7 +524,7 @@ export function World() {
         state.ui.show.main_menu = false;
         state.ui.show.tutorial = true;
         state.days = 0.375;
-        state.game_speed = 720;
+        state.game_speed = "normal";
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
@@ -530,6 +539,8 @@ export function World() {
         state.ecs = { nextId: 1 };
         state.pixi = {};
         state.ui.progress = { count: 0 };
+        state.game_speed = "paused";
+        state.days = 0.375;
 
         const results = await generateMap(state, seed, state.ui.actions.progress_update);
         state.map = results.map;

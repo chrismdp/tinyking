@@ -1,6 +1,7 @@
 import { Hex, Grid, HEX_SIZE } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
+import * as time from "game/time";
 import { moveSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
@@ -109,8 +110,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   return 1;
 }
 
-export function idle() {
-  return 1; // NOTE: This prevents us instantly moving on
+// NOTE: no in-game action, as this is _entirely in the mind_.
+export function set_label() {
 }
 
 // NOTE: no in-game action, as jobs are currently only in the world rep.
@@ -126,13 +127,38 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   return (state.days <= world.wait_until);
 }
 
+const TIME_TO_CREATE_STOCKPILE = time.HOUR / 3;
+export function create_stockpile(state, actorId, world, dt, firstRun, targetId) {
+  if (firstRun) {
+    world.wait_until = state.days + TIME_TO_CREATE_STOCKPILE;
+  }
+
+  if (state.days > world.wait_until) {
+    newEntities(state, [{
+      spatial: state.ecs.spatial[targetId],
+      stockpile: { capacity: 24, amounts: {} }
+    }]).forEach(id => state.redraws.push(id));
+    return 0;
+  }
+  return 1;
+}
+
+const TIME_TO_CHOP_WOOD = time.HOUR / 2;
 export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
-  newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
-    spatial: state.ecs.spatial[targetId], // TODO: pick the nearby triangular intra-hex locations
-    nameable: { nickname: "Log" },
-    haulable: { speedModifier: 0.5 }
-  }))).forEach(id => state.redraws.push(id));
-  deleteEntity(state, targetId);
+  if (firstRun) {
+    world.wait_until = state.days + TIME_TO_CHOP_WOOD;
+  }
+
+  if (state.days > world.wait_until) {
+    newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
+      spatial: state.ecs.spatial[targetId], // TODO: pick the nearby triangular intra-hex locations
+      nameable: { nickname: "Log" },
+      haulable: { speedModifier: 0.5 }
+    }))).forEach(id => state.redraws.push(id));
+    deleteEntity(state, targetId);
+    return 0;
+  }
+  return 1;
 }
 
 export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {

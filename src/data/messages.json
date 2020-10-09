@@ -117,7 +117,16 @@
   },
   "jobs": {
     "cut_tree_down": "Cut down",
-    "move_to_here": "Move here"
+    "move_to_here": "Move here",
+    "create_stockpile": "Create Stockpile"
+  },
+  "tasks": {
+    "wandering" : "Wandering",
+    "going_to_bed": "Going to bed",
+    "finding_food": "Finding food",
+    "create_stockpile": "Creating stockpile",
+    "cut_tree_down": "Felling trees",
+    "sleep": "Sleeping"
   },
   "rooms": {
     "sleeping_quarters": {

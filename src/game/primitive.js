@@ -2,9 +2,10 @@ import { nothing } from "immer";
 
 export function chop_tree() {}
 
+export function create_stockpile() {}
+
 export function walk_to(world, expected, targetId) {
   if (!targetId && !world.targetId) {
-    console.log("WT", targetId, world.targetId);
     return nothing;
   }
   world.loc.me = { ...world.loc[targetId] };
@@ -13,6 +14,10 @@ export function walk_to(world, expected, targetId) {
 export function complete_job(world, expected, jobKey) {
   const idx = world.jobs.findIndex(j => j.job.key == jobKey);
   world.jobs.splice(idx, 1);
+}
+
+export function set_label(world, expected, label) {
+  world.label = label;
 }
 
 export function find_place(world, expected, type) {

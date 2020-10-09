@@ -8,7 +8,7 @@ import { Viewport } from "pixi-viewport";
 
 import { useTranslate } from "react-polyglot";
 
-import { Hex, HEX_SIZE, generateMap } from "game/map";
+import { Hex, InnerHex, HEX_SIZE, generateMap } from "game/map";
 import { fullEntity } from "game/entities";
 import { anyControlledAlive } from "game/playable";
 import * as time from "game/time";
@@ -50,6 +50,18 @@ const renderLog = (ecs, id) => {
   graphics.beginFill(0x6C4332);
   graphics.drawCircle(0, 0, 10);
   graphics.endFill();
+  return graphics;
+};
+
+const renderStockpile = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.beginFill(terrainColours.stone, 0.25);
+  graphics.drawPolygon(InnerHex().corners());
+  graphics.endFill();
+  let text = new PIXI.Text(ecs.stockpile[id].capacity, {fontFamily: "Alegreya", fontSize: 20, fill: "white"});
+  text.anchor = { x: 0.5, y: 0.5 };
+  graphics.addChild(text);
   return graphics;
 };
 
@@ -140,7 +152,7 @@ const renderBuilding = (ecs, id) => {
   return graphics;
 };
 
-const renderPerson = (entity, fn) => {
+const renderPerson = (entity, fn, t) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(entity.spatial.x, entity.spatial.y);
 
@@ -163,11 +175,11 @@ const renderPerson = (entity, fn) => {
   person.drawCircle(0, -entity.personable.size * 0.48, entity.personable.size * 0.35);
   person.endFill();
 
-  if (entity.planner && entity.planner.task) {
+  if (entity.planner && entity.planner.world.label) {
     person.beginFill(0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
-    let text = new PIXI.Text(entity.planner.task[0], {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+    let text = new PIXI.Text(t("tasks." + entity.planner.world.label), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
     text.position.set(0, 27.5);
     text.anchor = { x: 0.5, y: 0.5 };
     person.addChild(text);
@@ -386,6 +398,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
           layer.people.addChild(pixi[id]);
         } else if (ecs.interior[id]) {
           // NOTE: Do nothing - we don't render these yet.
+        } else if (ecs.stockpile[id]) {
+          pixi[id] = renderStockpile(ecs, id);
+          layer.stockpiles.addChild(pixi[id]);
         } else {
           const entity = fullEntity(ecs, id);
           throw "Cannot render entity " + JSON.stringify(entity);

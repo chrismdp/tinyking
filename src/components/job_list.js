@@ -15,7 +15,7 @@ export function JobList({ workable }) {
 
   if (workable.jobs && workable.jobs.length > 0) {
     return <div className="job-list">
-      { workable.jobs.map(job => <button key={job} onClick={() => choose(job)}>{t("jobs." + job.key)}</button>) }
+      { workable.jobs.map(job => <button key={job.key} onClick={() => choose(job)}>{t("jobs." + job.key)}</button>) }
     </div>;
   } else {
     return "";

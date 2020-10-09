@@ -36,6 +36,12 @@ export const Hex = Honeycomb.extendHex({
   origin: [ HEX_SIZE, HEX_HEIGHT * 0.5 ]
 });
 
+export const InnerHex = Honeycomb.extendHex({
+  size: 0.5 * HEX_SIZE,
+  orientation: "flat",
+  origin: [ HEX_SIZE * 0.5, HEX_HEIGHT * 0.25 ]
+});
+
 export const Grid = Honeycomb.defineGrid(Hex);
 
 function generateFamily(size, spatial, front, generator) {
@@ -278,7 +284,12 @@ export async function generateMap(state, seed, progressUpdate) {
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { speed: walkable[tile.terrain], neighbours: {} },
-    workable: { jobs: walkable[tile.terrain] > 0 ? [ { key: "move_to_here" } ] : [] }
+    workable: {
+      jobs: [
+        ...walkable[tile.terrain] > 0 ? [ { key: "move_to_here" } ] : [],
+        ...tile.terrain == "grassland" ? [ { key: "create_stockpile" } ] : [],
+      ]
+    }
   }));
 
   const TREES_PER_TILE = 5;

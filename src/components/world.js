@@ -543,7 +543,7 @@ export function World() {
         state.ecs = { nextId: 1 };
         state.pixi = {};
         state.ui.progress = { count: 0 };
-        state.game_speed = "paused";
+        state.game_speed = "normal";
         state.days = 0.375;
 
         const results = await generateMap(state, seed, state.ui.actions.progress_update);

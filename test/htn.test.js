@@ -4,6 +4,8 @@ describe("HTN planning", () => {
   it("allows primitive tasks", () => {
     const rep = {
       id: 1,
+      places: {},
+      no_place_for: {},
       feeling: {},
       loc: {
         1: { x: 2, y: 3 },
@@ -18,6 +20,8 @@ describe("HTN planning", () => {
   it("allows compound tasks", () => {
     const rep = {
       id: 1,
+      places: {},
+      no_place_for: {},
       feeling: {},
       loc: {
         1: { x: 2, y: 3 },
@@ -30,13 +34,13 @@ describe("HTN planning", () => {
       ["walk_to", 2],
       ["chop_tree", 2]
     ]);
-
-    expect(sut.solve(rep, [ ["person" ] ])).toEqual([ [ "idle" ] ]);
   });
 
   it("allows multiple compounds", () => {
     const rep = {
       id: 1,
+      places: {},
+      no_place_for: {},
       feeling: {},
       loc: {
         1: { x: 2, y: 3 },

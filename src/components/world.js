@@ -289,7 +289,6 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   const SECONDS_PER_FRAME = 1 / 60;
   const DAYS = 86400;
-  const FRAC_HOUR = 1 / 24;
 
   const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
 
@@ -299,8 +298,8 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
       state.days += toAdd;
       hour += toAdd;
-      if (hour > FRAC_HOUR) {
-        hour -= FRAC_HOUR;
+      if (hour > time.HOUR) {
+        hour -= time.HOUR;
 
         // FIXME: This potentially leads to frame spikes each hour
         for (const id in state.ecs.planner) {
@@ -311,8 +310,8 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
         for (const id in state.ecs.personable) {
           const person = state.ecs.personable[id];
-          person.tiredness += FRAC_HOUR;
-          person.hunger += FRAC_HOUR;
+          person.tiredness += time.HOUR;
+          person.hunger += time.HOUR;
         }
         renderUI();
       }

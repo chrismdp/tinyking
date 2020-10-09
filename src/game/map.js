@@ -64,6 +64,7 @@ function generateFamily(size, spatial, front, generator) {
       },
       planner: {
         world: {
+          no_place_for: {},
           jobs: [],
           loc: {},
           places: {},

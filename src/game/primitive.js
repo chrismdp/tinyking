@@ -17,7 +17,7 @@ export function complete_job(world, expected, jobKey) {
 
 export function find_place(world, expected, type) {
   // NOTE: Prevent AI from looking again this hour
-  if (world.no_place_for == world.hour) {
+  if (world.no_place_for[type] && world.no_place_for[type] == world.hour) {
     return nothing;
   }
   if (expected) {
@@ -29,7 +29,11 @@ export function pick_up(world, expected, thing) {
   world.holding[thing] = true;
 }
 
-export function idle() {}
+export function forget_place(world, expected, type) {
+  delete world.places[type];
+}
+
+export function wait_for() {}
 
 export function sleep(world) {
   world.feeling.tired = false;

@@ -66,13 +66,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   let dx = targetPoint.x - s.x;
   let dy = targetPoint.y - s.y;
   const length = Math.sqrt(dx * dx + dy * dy);
-  dx /= length;
-  dy /= length;
-  s.x += dx * speed;
-  s.y += dy * speed;
-  state.pixi[actorId].position.set(s.x, s.y);
 
-  if (math.squaredDistance(s, targetPoint) < 100) {
+  if (length < 10) {
     // NOTE: Wear down the path
     if (next.entrance != null && next.exit != null) {
       const key = [next.entrance, next.exit].sort().join();
@@ -100,6 +95,12 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     }
 
     world.route.shift();
+  } else {
+    dx /= length;
+    dy /= length;
+    s.x += dx * speed;
+    s.y += dy * speed;
+    state.pixi[actorId].position.set(s.x, s.y);
   }
 
   const dSq = math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[world.targetId]);
@@ -110,8 +111,17 @@ export function idle() {
   return 1; // NOTE: This prevents us instantly moving on
 }
 
-export function complete_job() {
-  // NOTE: no in-game action, as jobs are currently only in the world rep.
+// NOTE: no in-game action, as jobs are currently only in the world rep.
+export function complete_job() {}
+
+// NOTE: no in-game action, as this is _entirely in the mind_.
+export function forget_place() {}
+
+export function wait_for(state, actorId, world, dt, firstRun, time) {
+  if (firstRun) {
+    world.wait_until = state.days + time;
+  }
+  return (state.days <= world.wait_until);
 }
 
 export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
@@ -147,15 +157,17 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
   } else if (filter == "space") {
     const spiral = Grid.spiral({
       center: Hex().fromPoint(state.ecs.spatial[actorId]),
-      radius: 5
+      radius: 3
     });
-    for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
-      const hex = spiral[spiral_index];
-      if (!state.space[hex].some(e => state.ecs.building[e])) {
-        found_place = state.space[hex].find(e =>
-          state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0);
-        break;
-      }
+    spiral.shift();
+    const options = spiral
+      .map(hex => state.space[hex] || [])
+      .filter(space => !space.some(e => state.ecs.building[e]))
+      .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0))
+      .filter(e => e);
+
+    if (options.length > 0) {
+      found_place = options[Math.floor(Math.random() * options.length)];
     }
   } else {
     throw "Don't know how to find a place for '" + filter + "'";
@@ -163,7 +175,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
 
   if (!found_place) {
     // NOTE: Prevent AI from looking again this hour
-    world.no_place_for = world.hour;
+    world.no_place_for[type] = world.hour;
     return nothing;
   }
 

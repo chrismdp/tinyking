@@ -1,6 +1,7 @@
 const SEASON = ["spring", "summer", "autumn", "winter"];
 
 const DAYS_IN_SEASON = 3;
+export const HOUR = 1 / 24;
 
 export const year = t => Math.floor(t / (DAYS_IN_SEASON * SEASON.length)) + 1;
 

@@ -1,3 +1,5 @@
+import * as time from "game/time";
+
 const always = () => true;
 
 export const person = () => [
@@ -23,7 +25,11 @@ export const person = () => [
   ],
   [
     always,
-    () => [ ["idle"] ]
+    () => [
+      [ "move_to_place", "meet", "space" ],
+      [ "forget_place", "meet" ], // TODO: Idle animations
+      [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
+    ]
   ]
 ];
 

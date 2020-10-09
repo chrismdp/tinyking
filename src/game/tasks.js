@@ -135,9 +135,13 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
 
   if (state.days > world.wait_until) {
     newEntities(state, [{
+      nameable: { nickname: "Stockpile" },
       spatial: state.ecs.spatial[targetId],
-      stockpile: { capacity: 24, amounts: {} }
+      stockpile: { capacity: 24, amounts: {} },
+      controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
+    state.ecs.workable[targetId].jobs =
+      state.ecs.workable[targetId].jobs.filter(j => j.key != "create_stockpile");
     return 0;
   }
   return 1;
@@ -190,7 +194,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     spiral.shift();
     const options = spiral
       .map(hex => state.space[hex] || [])
-      .filter(space => !space.some(e => state.ecs.building[e]))
+      .filter(space => !space.some(e => state.ecs.building[e] || state.ecs.stockpile[e]))
       .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0))
       .filter(e => e);
 

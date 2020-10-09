@@ -176,7 +176,7 @@ const renderPerson = (entity, fn, t) => {
   person.endFill();
 
   if (entity.planner && entity.planner.world.label) {
-    person.beginFill(0x333333);
+    person.beginFill(entity.playable ? 0x993333 : 0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
     let text = new PIXI.Text(t("tasks." + entity.planner.world.label), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});

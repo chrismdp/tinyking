@@ -39,6 +39,6 @@ export const fullEntity = (ecs, id) => (
   Object.keys(ecs).reduce((result, name) => (
     { ...result, [name]: ecs[name][id] }), {id: id}));
 
-export function entitiesInSameLocation(state, id) {
-  return state.space[Hex().fromPoint(state.ecs.spatial[id])];
+export function entitiesInSameLocation(state, point) {
+  return state.space[Hex().fromPoint(point)];
 }

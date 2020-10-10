@@ -60,7 +60,7 @@ export function runTask(state, planner, dt, firstRun) {
     if (result == nothing) {
       replan(planner);
     } else if (!result) {
-      const pResult = primitive[name](planner.world, false, args);
+      const pResult = primitive[name](planner.world, false, ...args);
       if (pResult == nothing) {
         throw "primitive returned 'nothing', second time around after task!";
       }

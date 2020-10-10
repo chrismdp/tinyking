@@ -5,10 +5,9 @@ export function chop_tree() {}
 export function create_stockpile() {}
 
 export function walk_to(world, expected, targetId) {
-  if (!targetId && !world.targetId) {
+  if (!targetId) {
     return nothing;
   }
-  world.loc.me = { ...world.loc[targetId] };
 }
 
 export function complete_job(world, expected, jobKey) {
@@ -22,7 +21,7 @@ export function set_label(world, expected, label) {
 
 export function find_place(world, expected, type) {
   // NOTE: Prevent AI from looking again this hour
-  if (world.no_place_for[type] && world.no_place_for[type] == world.hour) {
+  if (world.no_place_for[type] != null && world.no_place_for[type] == (world.hour || 0)) {
     return nothing;
   }
   if (expected) {
@@ -30,7 +29,15 @@ export function find_place(world, expected, type) {
   }
 }
 
-export function pick_up(world, expected, thing) {
+export function pick_up_entity_with_good(world, expected, thing) {
+  world.holding[thing] = true;
+}
+
+export function drop_entity_with_good(world, expected, thing) {
+  world.holding[thing] = false;
+}
+
+export function get_from_container(world, expected, thing) {
   world.holding[thing] = true;
 }
 

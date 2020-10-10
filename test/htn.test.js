@@ -29,10 +29,10 @@ describe("HTN planning", () => {
       },
     };
 
-    const solution = sut.solve(rep, [ ["cut_tree_down", 2 ] ]);
+    const solution = sut.solve(rep, [ ["move_to_place", "type", "filter", "param" ] ]);
     expect(solution).toEqual([
-      ["walk_to", 2],
-      ["chop_tree", 2]
+      ["find_place", "type", "filter", "param"],
+      ["walk_to", "type"]
     ]);
   });
 
@@ -49,15 +49,17 @@ describe("HTN planning", () => {
     };
 
     const solution = sut.solve(rep, [
-      ["cut_tree_down", 2 ],
-      ["cut_tree_down", 3 ]
+      ["move_to_place", "type", "filter", "param" ],
+      ["move_to_place", "type", "filter", "param" ]
     ]);
 
+    // TODO: Not sure this is right. Should the 'rep' not be set for the second
+    // one by expected effects?
     expect(solution).toEqual([
-      ["walk_to", 2],
-      ["chop_tree", 2],
-      ["walk_to", 3],
-      ["chop_tree", 3]
+      ["find_place", "type", "filter", "param"],
+      ["walk_to", "type" ],
+      ["find_place", "type", "filter", "param"],
+      ["walk_to", "type" ]
     ]);
   });
 });

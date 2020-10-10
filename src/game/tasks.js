@@ -1,44 +1,49 @@
-import { Hex, Grid, HEX_SIZE } from "game/map";
+import { Hex, Grid, HEX_SIZE, triangleCenters } from "game/map";
 import { path } from "game/pathfinding";
 import * as math from "game/math";
 import * as time from "game/time";
 import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
+import { withinBounds } from "game/spatial";
 import { nothing } from "immer";
 
-function closestNavPointTo(state, id) {
-  return entitiesInSameLocation(state, id).filter(e => state.ecs.walkable[e])[0];
+const closestSpatialTo = (state, id) => (a, b) =>
+  math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[id]) -
+    math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[id]);
+
+function closestNavPointTo(state, point) {
+  const entities = entitiesInSameLocation(state, point).filter(e => state.ecs.walkable[e]);
+  if (entities.length == 0) {
+    throw "closestNavPointTo: cannot find walkable from point: " + JSON.stringify(point) + " - " + Hex().fromPoint(point) + " - " + JSON.stringify(entitiesInSameLocation(state, point));
+  }
+  return entities[0];
 }
 
 export function walk_to(state, actorId, world, dt, firstRun, target) {
   const s = state.ecs.spatial[actorId];
 
-  world.targetId = world.places[target] || target;
+  world.target = world.places[target] || target;
 
-  if (!world.targetId) {
+  if (!world.target) {
     // NOTE: Not passed a targetId and one isn't set for us, cannot continue
     return nothing;
   }
 
-  if (!(actorId in state.pixi)) {
-    // NOTE: we aren't on the map -- just teleport
-    const t = state.ecs.spatial[world.targetId];
-    s.x = t.x;
-    s.y = t.y;
-    return;
+  let targetPoint;
+  if (typeof world.target === "object" && world.target.x && world.target.y) {
+    targetPoint = world.target;
+  } else {
+    targetPoint = state.ecs.spatial[world.target];
+  }
+  if (targetPoint == null) {
+    throw "Cannot find targetPoint from " + JSON.stringify(world.target);
   }
 
   if (firstRun) {
     if (!s) {
       throw "walk to: Actor " + actorId + " has no spatial";
     }
-    if (!state.ecs.spatial[world.targetId]) {
-      throw "walk to: Target " + world.targetId + " has no spatial";
-    }
-    world.route = path(state.ecs, closestNavPointTo(state, actorId), closestNavPointTo(state, world.targetId));
-    if (state.pixi[actorId].tween) {
-      state.pixi[actorId].tween.stop();
-    }
+    world.route = path(state.ecs, closestNavPointTo(state, state.ecs.spatial[actorId]), closestNavPointTo(state, targetPoint));
   }
 
   let next = world.route && world.route[0];
@@ -46,16 +51,9 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     return;
   }
 
-  let targetPoint;
   if ("exit" in next) {
-    const hex = Hex().fromPoint(targetPoint);
-    const corners = hex.corners().map(c => c.add(state.ecs.spatial[next.id]));
+    const corners = Hex().corners().map(c => c.add(state.ecs.spatial[next.id]));
     targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
-  } else {
-    targetPoint = {
-      x: state.ecs.spatial[world.targetId].x,
-      y: state.ecs.spatial[world.targetId].y
-    };
   }
 
   const terrainCost = state.ecs.walkable[next.id].speed || 1;
@@ -77,7 +75,6 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       state.redraws.push(next.id);
     }
 
-    // NOTE: Move on the state.space map
     const newHex = Hex().fromPoint(state.ecs.spatial[next.id]);
 
     // NOTE: Discover adjacent tiles
@@ -135,6 +132,7 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
       nameable: { nickname: "Stockpile" },
       spatial: state.ecs.spatial[targetId],
       stockpile: { capacity: 24, amounts: {} },
+      holder: { held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
     state.ecs.workable[targetId].jobs =
@@ -152,14 +150,53 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
 
   if (state.days > world.wait_until) {
     newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
-      spatial: state.ecs.spatial[targetId], // TODO: pick the nearby triangular intra-hex locations
+      spatial: { ...state.ecs.spatial[targetId] },
       nameable: { nickname: "Log" },
-      haulable: { speedModifier: 0.5 }
+      good: { type: "wood", amount: 1 },
+      haulable: { speedModifier: 0.5 },
+      controllable: { controllerId: topController(state.ecs, actorId) }
     }))).forEach(id => state.redraws.push(id));
     deleteEntity(state, targetId);
     return 0;
   }
   return 1;
+}
+
+export function drop_entity_with_good(state, actorId, world, dt, firstRun, type) {
+  const idx = state.ecs.holder[actorId].held
+    .findIndex(e => state.ecs.good[e] && state.ecs.good[e].type == type);
+  const [ droppedId ] = state.ecs.holder[actorId].held.splice(idx, 1);
+  state.ecs.haulable[droppedId].heldBy = null;
+  state.ecs.spatial[droppedId].x = state.ecs.spatial[actorId].x;
+  state.ecs.spatial[droppedId].y = state.ecs.spatial[actorId].y;
+  state.space[Hex().fromPoint(state.ecs.spatial[droppedId])].push(droppedId);
+
+  state.redraws.push(actorId);
+  state.redraws.push(droppedId);
+}
+
+export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, type) {
+  const targetId = world.places[type];
+  if (!targetId) {
+    return nothing;
+  }
+
+  if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[targetId]) > 10 * 10) {
+    throw actorId + " pick_up_entity: not close enough to " + targetId;
+  }
+
+  state.ecs.holder[actorId].held.push(targetId);
+  state.ecs.haulable[targetId].heldBy = actorId;
+  const s = state.space[Hex().fromPoint(state.ecs.spatial[targetId])];
+  console.log("pick up space: ", s);
+  const idx = s.findIndex(id => id == targetId);
+  if (idx != -1) {
+    s.splice(idx, 1);
+  }
+  console.log("Removed", targetId, "from", s, Hex().fromPoint(state.ecs.spatial[targetId]));
+
+  state.redraws.push(actorId);
+  state.redraws.push(targetId);
 }
 
 export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {
@@ -170,19 +207,48 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
       realm == topController(state.ecs, id) &&
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
-    available_in_realm.sort((a, b) =>
-      math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[actorId]) -
-      math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[actorId]));
+    available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
   } else if (filter == "has") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.stockpile).filter(id =>
       realm == topController(state.ecs, id) &&
       state.ecs.stockpile[id].amounts[filterParam] > 0);
-    available_in_realm.sort((a, b) =>
-      math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[actorId]) -
-      math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[actorId]));
+    available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
+  } else if (filter == "stockpile_open_slot") {
+    const available_in_realm = Object.keys(state.ecs.stockpile).filter(id =>
+      realm == topController(state.ecs, id));
+    const points = available_in_realm.map(id => {
+      if (state.ecs.interior[id]) {
+        // TODO: awaiting holder/stockpile merger
+        return (state.ecs.holder[id].held.length < state.ecs.stockpile[id].capacity) ?
+          state.ecs.spatial[id] : null;
+      }
+      const space = state.space[Hex().fromPoint(state.ecs.spatial[id])];
+      return triangleCenters(state.ecs.spatial[id]).filter(point =>
+        // TODO: check the space and check positioning of all objects in the space
+        // find the first free slot on the closest stockpile.
+        !space.some(e => withinBounds(point, state.ecs.spatial[e])));
+    }).flat();
+    points.sort((a, b) =>
+      math.squaredDistance(a, state.ecs.spatial[actorId]) -
+      math.squaredDistance(b, state.ecs.spatial[actorId]));
+    // NOTE: Set the X/Y to the found_place (as move_to can now handle coords).
+    found_place = points[0];
+  } else if (filter == "haulable_with_good") {
+    if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
+    let available = [];
+    if (state.ecs.haulable) {
+      available = Object.keys(state.ecs.haulable).filter(id =>
+        realm == topController(state.ecs, id) &&
+        state.ecs.good[id] &&
+        state.ecs.good[id].type == filterParam &&
+        !state.space[Hex().fromPoint(state.ecs.spatial[id])].some(e =>
+          state.ecs.stockpile[e]));
+    }
+    available.sort(closestSpatialTo(state, actorId));
+    found_place = available[0];
   } else if (filter == "space") {
     const spiral = Grid.spiral({
       center: Hex().fromPoint(state.ecs.spatial[actorId]),
@@ -204,25 +270,11 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
 
   if (!found_place) {
     // NOTE: Prevent AI from looking again this hour
-    world.no_place_for[type] = world.hour;
+    world.no_place_for[type] = world.hour || 0;
     return nothing;
   }
 
   world.places[type] = found_place;
-}
-
-export function wander(state, actorId, world) {
-  const neighbours = Grid.hexagon({
-    radius: 1,
-    center: Hex().fromPoint(state.ecs.spatial[actorId])
-  });
-
-  const tiles = neighbours
-    .map(hex => state.space[hex])
-    .flat()
-    .filter(e => state.ecs.walkable[e]);
-
-  world.targetId = tiles[Math.floor(Math.random() * tiles.length)];
 }
 
 // NOTE: compensate for getting tireder through sleep
@@ -238,25 +290,36 @@ const FOOD_REPLENISH = {
   grain: 24, // NOTE: this means we finish eating in about an hour
 };
 
-export function pick_up(state, actorId, world, dt, firstRun, thing, place) {
-  const stockpiles = entitiesInSameLocation(state, actorId).filter(id => state.ecs.stockpile[id] && state.ecs.stockpile[id].amounts[thing] > 0);
+export function get_from_container(state, actorId, world, dt, firstRun, thing, place) {
+  const s = state.ecs.spatial[actorId];
+  const stockpiles = entitiesInSameLocation(state, s).filter(id =>
+    state.ecs.stockpile[id] && state.ecs.stockpile[id].amounts[thing] > 0);
   if (stockpiles.length == 0) {
     // NOTE: This stockpile no longer trusted for this type of thing
     world.places[place] = null;
     return nothing;
   }
   state.ecs.stockpile[stockpiles[0]].amounts[thing] -= 1;
-  state.ecs.holder[actorId].holding[thing] = 1;
+  const [ grain ] = newEntities(state, [{
+    good: { type: thing, amount: 1 },
+    haulable: { heldBy: actorId },
+    spatial: { x: s.x, y: s.y },
+    controllable: { controllerId: topController(state.ecs, actorId) },
+  }]);
+  state.ecs.holder[actorId].held.push(grain);
 }
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
   const holder = state.ecs.holder[actorId];
   if (firstRun) {
-    if (holder.holding[thing] <= 0) {
+    const idx = holder.held.findIndex(e =>
+      state.ecs.good[e] && state.ecs.good[e].type == "grain");
+    if (idx == -1) {
       console.log("EAT", actorId, "NO", thing, "to eat");
       return nothing;
     }
-    holder.holding[thing] -= 1;
+    const eatenId = holder.held.splice(idx, 1);
+    deleteEntity(state, eatenId);
   }
 
   const person = state.ecs.personable[actorId];

@@ -42,6 +42,10 @@ export const person = () => [
   ],
   [
     always,
+    () => [ [ "haul_to_stockpile", "wood" ] ]
+  ],
+  [
+    always,
     () => [
       [ "set_label", "wandering"],
       [ "move_to_place", "meet", "space" ],
@@ -51,10 +55,16 @@ export const person = () => [
   ]
 ];
 
-export const cut_tree_down = (targetId) => [
+export const haul_to_stockpile = (thing) => [
   [
     always,
-    () => [ ["walk_to", targetId], ["chop_tree", targetId] ]
+    () => [
+      [ "move_to_place", thing, "haulable_with_good", thing ],
+      [ "pick_up_entity_with_good", thing ],
+      [ "forget_place", thing ],
+      [ "move_to_place", "slot", "stockpile_open_slot", thing ],
+      [ "drop_entity_with_good", thing ]
+    ]
   ]
 ];
 
@@ -62,7 +72,7 @@ export const go_to_sleep = () => [
   [
     always,
     () => [
-      ["set_label", "sleep"],
+      ["set_label", "sleeping"],
       ["sleep"]
     ]
   ]
@@ -75,7 +85,8 @@ export const move_to_place = (type, filter, param) => [
       ["walk_to", place]
     ]
   ],
-  [ always,
+  [
+    always,
     () => [
       [ "find_place", type, filter, param ],
       [ "move_to_place", type, filter, param ]
@@ -88,13 +99,15 @@ export const find_food = () => [
     world => !world.holding.grain,
     () => [
       [ "move_to_place", "food", "has", "grain" ],
-      [ "pick_up", "grain", "food" ]
+      [ "get_from_container", "grain", "food" ],
+      [ "find_food" ]
     ]
   ],
   [
     always,
     () => [
       [ "move_to_place", "meet", "space" ],
+      [ "set_label", "eating"],
       [ "eat", "grain" ]
     ]
   ]

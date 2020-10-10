@@ -44,10 +44,15 @@ const terrainColours = {
   "stone": 0x5D7084,
 };
 
-const renderLog = (ecs, id) => {
+const itemColours = {
+  "wood": terrainColours.dirt,
+  "grain": terrainColours.harvestable
+};
+
+const renderItem = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
-  graphics.beginFill(0x6C4332);
+  graphics.beginFill(itemColours[ecs.good[id].type]);
   graphics.drawCircle(0, 0, 10);
   graphics.endFill();
   return graphics;
@@ -152,7 +157,7 @@ const renderBuilding = (ecs, id) => {
   return graphics;
 };
 
-const renderPerson = (entity, fn, t) => {
+const renderPerson = (state, entity, fn, t) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(entity.spatial.x, entity.spatial.y);
 
@@ -187,8 +192,74 @@ const renderPerson = (entity, fn, t) => {
 
   if (fn) { fn(person, graphics); }
 
+  if (entity.holder) {
+    entity.holder.held.forEach((id, idx) => {
+      const [, item] = renderEntity(state, id, t, true);
+      item.position.set(-5 + idx * 10, 0);
+      person.addChild(item);
+    });
+  }
+
   graphics.addChild(person);
   return graphics;
+};
+
+const renderEntity = (state, id, t, heldObjects) => {
+  // NOTE: Do nothing - we don't render these yet.
+  if (state.ecs.interior[id]) {
+    return [];
+  }
+
+  if (state.ecs.mappable[id]) {
+    return ["tiles", renderTile(state.ecs, id)];
+  }
+
+  if (state.ecs.workable[id] && state.ecs.workable[id].jobs && state.ecs.workable[id].jobs.some(a => a.yield == "wood")) {
+    return ["buildings", renderTree(state.ecs, id)];
+  }
+
+  if (state.ecs.haulable && state.ecs.haulable[id]) {
+    if (heldObjects || !state.ecs.haulable[id].heldBy) {
+      return ["stockpiles", renderItem(state.ecs, id)];
+    } else {
+      return [];
+    }
+  }
+
+  if (state.ecs.building[id]) {
+    return ["buildings", renderBuilding(state.ecs, id)];
+  }
+
+  if (state.ecs.personable[id]) {
+    const entity = fullEntity(state.ecs, id);
+    return ["people", renderPerson(state, entity, (person) => {
+      if (state.ui.show.selected_person == id) {
+        person.lineStyle({color: 0xff0000, width: 2, alpha: 1});
+        person.moveTo(-25, -25);
+        person.lineTo(-25, -30);
+        person.lineTo(-20, -30);
+
+        person.moveTo(20, -30);
+        person.lineTo(25, -30);
+        person.lineTo(25, -25);
+
+        person.moveTo(25, 15);
+        person.lineTo(25, 20);
+        person.lineTo(20, 20);
+
+        person.moveTo(-20, 20);
+        person.lineTo(-25, 20);
+        person.lineTo(-25, 15);
+      }
+    }, t)];
+  }
+
+  if (state.ecs.stockpile[id]) {
+    return ["stockpiles", renderStockpile(state.ecs, id)];
+  }
+
+  const entity = fullEntity(state.ecs, id);
+  throw "Cannot render entity heldObjects is " + heldObjects + ":" + JSON.stringify(entity);
 };
 
 const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
@@ -202,7 +273,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   const { width, height, playerStartTile } = state.map;
 
-  const { ecs, pixi } = state;
+  const { pixi } = state;
 
   pixi.viewport = new Viewport({
     screenWidth: app.view.offsetWidth,
@@ -287,7 +358,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         planner.task = null;
         planner.plan = htn.solve(planner.world, [ [ "person" ] ]);
         if (planner.id == state.ui.playerId) {
-          // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
+          console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
           if (!planner.plan) {
             throw "no plan";
           }
@@ -301,6 +372,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       while (!planner.task && planner.plan) {
         if (planner.plan.length > 0) {
           planner.task = planner.plan.shift();
+          if (planner.id == state.ui.playerId) {
+            console.log("NEW TASK", planner.id, planner.task);
+          }
           htn.runTask(state, planner, dt, true);
           state.redraws.push(planner.id);
         } else {
@@ -350,11 +424,15 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
           pixi[id].destroy();
           delete pixi[id];
         }
-        if (ecs.mappable[id]) {
-          if (!known.includes(id)) {
+        const [chosenLayer, displayObject] = renderEntity(state, id, t, false);
+        if (chosenLayer && displayObject) {
+          pixi[id] = displayObject;
+          layer[chosenLayer].addChild(displayObject);
+
+          if (state.ecs.mappable[id] && !known.includes(id)) {
             if (!state.fog[id]) {
               state.fog[id] = new PIXI.Sprite(state.fogTexture);
-              state.fog[id].position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+              state.fog[id].position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
               state.fog[id].anchor.set(0.5, 0.5);
               layer.fog.addChild(state.fog[id]);
             }
@@ -362,49 +440,8 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
             layer.fog.removeChild(state.fog[id]);
             delete state.fog[id];
           }
-          pixi[id] = renderTile(ecs, id);
-          layer.tiles.addChild(pixi[id]);
-        } else if (ecs.workable[id] && ecs.workable[id].jobs && ecs.workable[id].jobs.some(a => a.yield == "wood")) {
-          pixi[id] = renderTree(ecs, id);
-          layer.buildings.addChild(pixi[id]);
-        } else if (ecs.haulable && ecs.haulable[id]) {
-          pixi[id] = renderLog(ecs, id);
-          layer.stockpiles.addChild(pixi[id]);
-        } else if (ecs.building[id]) {
-          pixi[id] = renderBuilding(ecs, id);
-          layer.buildings.addChild(pixi[id]);
-        } else if (ecs.personable[id]) {
-          const entity = fullEntity(ecs, id);
-          pixi[id] = renderPerson(entity, (person) => {
-            if (state.ui.show.selected_person == id) {
-              person.lineStyle({color: 0xff0000, width: 2, alpha: 1});
-              person.moveTo(-25, -25);
-              person.lineTo(-25, -30);
-              person.lineTo(-20, -30);
-
-              person.moveTo(20, -30);
-              person.lineTo(25, -30);
-              person.lineTo(25, -25);
-
-              person.moveTo(25, 15);
-              person.lineTo(25, 20);
-              person.lineTo(20, 20);
-
-              person.moveTo(-20, 20);
-              person.lineTo(-25, 20);
-              person.lineTo(-25, 15);
-            }
-          }, t);
-          layer.people.addChild(pixi[id]);
-        } else if (ecs.interior[id]) {
-          // NOTE: Do nothing - we don't render these yet.
-        } else if (ecs.stockpile[id]) {
-          pixi[id] = renderStockpile(ecs, id);
-          layer.stockpiles.addChild(pixi[id]);
-        } else {
-          const entity = fullEntity(ecs, id);
-          throw "Cannot render entity " + JSON.stringify(entity);
         }
+
         if (pixi[id] && !state.fog[id]) {
           pixi[id].entityId = id;
           pixi[id].interactive = true;

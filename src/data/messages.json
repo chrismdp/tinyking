@@ -121,7 +121,7 @@
     "create_stockpile": "Create Stockpile"
   },
   "tasks": {
-    "wandering" : "Wandering",
+    "wandering" : "Idle",
     "going_to_bed": "Going to bed",
     "finding_food": "Finding food",
     "create_stockpile": "Clearing",
@@ -133,7 +133,7 @@
     "sleeping_quarters": {
       "level1": "a rough floor space for just %{smart_count} adult |||| a rough floor space for up to %{smart_count} adults"
     },
-    "stockpile": "a small storage space for just %{smart_count} item. Contents: |||| a storage space for up to %{smart_count} items. Contents:"
+    "container": "a small storage container for just %{smart_count} item. Contents: |||| a storage container for up to %{smart_count} items. Contents:"
   },
   "tutorial": {
     "continue": "Continue",

@@ -4,18 +4,18 @@ import { useTranslate } from "react-polyglot";
 
 import { GameState } from "components/contexts";
 
-export function Stockpile({ entityId }) {
+export function EntityContainer({ entityId }) {
   const state = React.useContext(GameState);
-  const stockpile = state.ecs.stockpile[entityId];
+  const container = state.ecs.container[entityId];
   const t = useTranslate();
 
-  return (<span>{t("rooms.stockpile", { smart_count: stockpile.capacity })} {
-    Object.keys(stockpile.amounts)
+  return (<span>{t("rooms.container", { smart_count: container.capacity })} {
+    Object.keys(container.amounts)
       .filter(k => k != "id")
-      .map(k => k + ": " + stockpile.amounts[k]).join(", ")
+      .map(k => k + ": " + container.amounts[k]).join(", ")
   }</span>);
 }
 
-Stockpile.propTypes = {
+EntityContainer.propTypes = {
   entityId: PropTypes.string.isRequired
 };

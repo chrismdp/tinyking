@@ -60,7 +60,7 @@ function generateFamily(size, spatial, front, generator) {
       tickable: {},
       workable: {},
       controllable: {},
-      holder: { held: [] },
+      holder: { held: [], capacity: 2 },
       personable: {
         type: "person",
         size: p > 1 ? 12 : 20,
@@ -370,9 +370,7 @@ export async function generateMap(state, seed, progressUpdate) {
         spatial: { ...state.ecs.spatial[id] },
         interior: { buildingId: building.id },
         controllable: { controllerId: building.id },
-        // TODO: awaiting holder/stockpile merger
-        holder: { held: [] },
-        stockpile: { capacity: 5, amounts: { grain: inhabitants } }
+        container: { capacity: 5, amounts: { grain: inhabitants } }
       }
     ]);
   }
@@ -386,52 +384,20 @@ function mid(a, b) {
   return math.lerp(a, b, 0.5);
 }
 
-function tCenter(...tri) {
-  return math.lerp(tri[0], mid(tri[1], tri[2]), 2 / 3);
-}
-
 const generateTriangle = () => {
   const ctr = Hex().center();
   const c = Hex().corners();
-  const v = [
+  return [
     c[4], mid(c[4], c[5]), c[5],
     mid(c[3], c[4]), mid(ctr, c[4]), mid(ctr, c[5]), mid(c[5], c[0]),
     c[3], mid(ctr, c[3]), ctr, mid(ctr, c[0]), c[0],
     mid(c[2], c[3]), mid(ctr, c[2]), mid(ctr, c[1]), mid(c[1], c[0]),
     c[2], mid(c[1], c[2]), c[1]
-  ];
-  return [
-    tCenter(v[0], v[3], v[4]),
-    tCenter(v[0], v[1], v[4]),
-    tCenter(v[5], v[1], v[4]),
-    tCenter(v[5], v[1], v[2]),
-    tCenter(v[5], v[6], v[2]),
-
-    tCenter(v[7], v[3], v[8]),
-    tCenter(v[4], v[3], v[8]),
-    tCenter(v[4], v[9], v[8]),
-    tCenter(v[4], v[9], v[5]),
-    tCenter(v[10], v[9], v[5]),
-    tCenter(v[10], v[6], v[5]),
-    tCenter(v[10], v[6], v[11]),
-
-    tCenter(v[7], v[8], v[12]),
-    tCenter(v[13], v[8], v[12]),
-    tCenter(v[13], v[8], v[9]),
-    tCenter(v[13], v[14], v[9]),
-    tCenter(v[10], v[14], v[9]),
-    tCenter(v[10], v[14], v[15]),
-    tCenter(v[10], v[11], v[15]),
-
-    tCenter(v[12], v[13], v[16]),
-    tCenter(v[17], v[13], v[16]),
-    tCenter(v[17], v[13], v[14]),
-    tCenter(v[17], v[18], v[14]),
-    tCenter(v[15], v[18], v[14])
-  ];
+  ].map(v => math.lerp(v, ctr, 0.25));
 };
 
 const TRIANGLES = generateTriangle();
+export const TRIANGLE_INTERIOR_RADIUS = HEX_SIZE / 6;
 
 export function triangleCenters({x, y}) {
   return TRIANGLES.map(p => ({ x: p.x + x, y: p.y + y }));

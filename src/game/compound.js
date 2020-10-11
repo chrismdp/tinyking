@@ -48,6 +48,7 @@ export const person = () => [
     always,
     () => [
       [ "set_label", "wandering"],
+      [ "wait_for", Math.random() * time.HOUR ],
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
       [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
@@ -59,11 +60,13 @@ export const haul_to_stockpile = (thing) => [
   [
     always,
     () => [
+      [ "find_place", "slot", "stockpile_open_slot", thing ],
       [ "move_to_place", thing, "haulable_with_good", thing ],
       [ "pick_up_entity_with_good", thing ],
       [ "forget_place", thing ],
-      [ "move_to_place", "slot", "stockpile_open_slot", thing ],
-      [ "drop_entity_with_good", thing ]
+      [ "walk_to", "slot" ],
+      [ "drop_entity_into_stockpile_slot", thing ],
+      [ "forget_place", "slot" ]
     ]
   ]
 ];

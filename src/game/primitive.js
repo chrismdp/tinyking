@@ -33,7 +33,7 @@ export function pick_up_entity_with_good(world, expected, thing) {
   world.holding[thing] = true;
 }
 
-export function drop_entity_with_good(world, expected, thing) {
+export function drop_entity_into_stockpile_slot(world, expected, thing) {
   world.holding[thing] = false;
 }
 

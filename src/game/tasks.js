@@ -1,10 +1,10 @@
-import { Hex, Grid, HEX_SIZE, triangleCenters } from "game/map";
+import { Hex, Grid, HEX_SIZE, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
+import { give, take } from "game/holder";
 import * as math from "game/math";
 import * as time from "game/time";
 import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
-import { withinBounds } from "game/spatial";
 import { nothing } from "immer";
 
 const closestSpatialTo = (state, id) => (a, b) =>
@@ -131,8 +131,8 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
     newEntities(state, [{
       nameable: { nickname: "Stockpile" },
       spatial: state.ecs.spatial[targetId],
-      stockpile: { capacity: 24, amounts: {} },
-      holder: { held: [] },
+      stockpile: {},
+      holder: { capacity: 19, held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
     state.ecs.workable[targetId].jobs =
@@ -162,17 +162,19 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   return 1;
 }
 
-export function drop_entity_with_good(state, actorId, world, dt, firstRun, type) {
-  const idx = state.ecs.holder[actorId].held
-    .findIndex(e => state.ecs.good[e] && state.ecs.good[e].type == type);
-  const [ droppedId ] = state.ecs.holder[actorId].held.splice(idx, 1);
-  state.ecs.haulable[droppedId].heldBy = null;
-  state.ecs.spatial[droppedId].x = state.ecs.spatial[actorId].x;
-  state.ecs.spatial[droppedId].y = state.ecs.spatial[actorId].y;
+export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, type) {
+  const stockpileId = world.places.slot.id;
+  const droppedId = state.ecs.holder[actorId].held
+    .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
+
+  give(state.ecs, droppedId, stockpileId);
+
+  state.ecs.spatial[droppedId].x = world.places.slot.x;
+  state.ecs.spatial[droppedId].y = world.places.slot.y;
   state.space[Hex().fromPoint(state.ecs.spatial[droppedId])].push(droppedId);
 
   state.redraws.push(actorId);
-  state.redraws.push(droppedId);
+  state.redraws.push(stockpileId);
 }
 
 export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, type) {
@@ -185,10 +187,9 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, ty
     throw actorId + " pick_up_entity: not close enough to " + targetId;
   }
 
-  state.ecs.holder[actorId].held.push(targetId);
-  state.ecs.haulable[targetId].heldBy = actorId;
+  give(state.ecs, targetId, actorId);
+
   const s = state.space[Hex().fromPoint(state.ecs.spatial[targetId])];
-  console.log("pick up space: ", s);
   const idx = s.findIndex(id => id == targetId);
   if (idx != -1) {
     s.splice(idx, 1);
@@ -211,26 +212,26 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     found_place = available_in_realm[0];
   } else if (filter == "has") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
-    const available_in_realm = Object.keys(state.ecs.stockpile).filter(id =>
+    const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
       realm == topController(state.ecs, id) &&
-      state.ecs.stockpile[id].amounts[filterParam] > 0);
+      state.ecs.container[id].amounts[filterParam] > 0);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
   } else if (filter == "stockpile_open_slot") {
-    const available_in_realm = Object.keys(state.ecs.stockpile).filter(id =>
+    const available_in_realm = Object.keys(state.ecs.stockpile || {}).filter(id =>
       realm == topController(state.ecs, id));
     const points = available_in_realm.map(id => {
       if (state.ecs.interior[id]) {
-        // TODO: awaiting holder/stockpile merger
-        return (state.ecs.holder[id].held.length < state.ecs.stockpile[id].capacity) ?
+        return (state.ecs.holder[id].held.length < state.ecs.holder[id].capacity) ?
           state.ecs.spatial[id] : null;
       }
       const space = state.space[Hex().fromPoint(state.ecs.spatial[id])];
-      return triangleCenters(state.ecs.spatial[id]).filter(point =>
-        // TODO: check the space and check positioning of all objects in the space
-        // find the first free slot on the closest stockpile.
-        !space.some(e => withinBounds(point, state.ecs.spatial[e])));
-    }).flat();
+      return triangleCenters(state.ecs.spatial[id])
+        .filter(point => !space.some(e =>
+          math.squaredDistance(point, state.ecs.spatial[e]) <
+          TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS))
+        .map(p => ({ ...p, id }));
+    }).flat().filter(p => p);
     points.sort((a, b) =>
       math.squaredDistance(a, state.ecs.spatial[actorId]) -
       math.squaredDistance(b, state.ecs.spatial[actorId]));
@@ -244,8 +245,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
         realm == topController(state.ecs, id) &&
         state.ecs.good[id] &&
         state.ecs.good[id].type == filterParam &&
-        !state.space[Hex().fromPoint(state.ecs.spatial[id])].some(e =>
-          state.ecs.stockpile[e]));
+        !state.ecs.haulable[id].heldBy);
     }
     available.sort(closestSpatialTo(state, actorId));
     found_place = available[0];
@@ -257,7 +257,9 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     spiral.shift();
     const options = spiral
       .map(hex => state.space[hex] || [])
-      .filter(space => !space.some(e => state.ecs.building[e] || state.ecs.stockpile[e]))
+      // TODO: perhaps another component that blocks spaces?
+      .filter(space => !space.some(e =>
+        state.ecs.building[e] || (state.ecs.stockpile && state.ecs.stockpile[e])))
       .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0))
       .filter(e => e);
 
@@ -292,34 +294,33 @@ const FOOD_REPLENISH = {
 
 export function get_from_container(state, actorId, world, dt, firstRun, thing, place) {
   const s = state.ecs.spatial[actorId];
-  const stockpiles = entitiesInSameLocation(state, s).filter(id =>
-    state.ecs.stockpile[id] && state.ecs.stockpile[id].amounts[thing] > 0);
-  if (stockpiles.length == 0) {
-    // NOTE: This stockpile no longer trusted for this type of thing
+  const containers = entitiesInSameLocation(state, s).filter(id =>
+    state.ecs.containers [id] && state.ecs.containers[id].amounts[thing] > 0);
+  if (containers.length == 0) {
+    // NOTE: This container no longer trusted for this type of thing
     world.places[place] = null;
     return nothing;
   }
-  state.ecs.stockpile[stockpiles[0]].amounts[thing] -= 1;
+  state.ecs.container[containers[0]].amounts[thing] -= 1;
   const [ grain ] = newEntities(state, [{
     good: { type: thing, amount: 1 },
-    haulable: { heldBy: actorId },
+    haulable: { heldBy: null },
     spatial: { x: s.x, y: s.y },
     controllable: { controllerId: topController(state.ecs, actorId) },
   }]);
-  state.ecs.holder[actorId].held.push(grain);
+  give(state.ecs, grain, actorId);
 }
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
   const holder = state.ecs.holder[actorId];
   if (firstRun) {
-    const idx = holder.held.findIndex(e =>
-      state.ecs.good[e] && state.ecs.good[e].type == "grain");
-    if (idx == -1) {
+    const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == "grain");
+    if (!id) {
       console.log("EAT", actorId, "NO", thing, "to eat");
       return nothing;
     }
-    const eatenId = holder.held.splice(idx, 1);
-    deleteEntity(state, eatenId);
+    take(state.ecs, id, null);
+    deleteEntity(state, id);
   }
 
   const person = state.ecs.personable[actorId];

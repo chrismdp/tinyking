@@ -11,7 +11,7 @@ import { TraitList } from "components/trait_list";
 import { NameList } from "components/name_list";
 import { Name } from "components/name";
 import { SleepingQuarters } from "components/sleeping_quarters";
-import { Stockpile } from "components/stockpile";
+import { EntityContainer } from "components/entity_container";
 
 export function Info({ entityId }) {
   const state = React.useContext(GameState);
@@ -44,7 +44,7 @@ export function Info({ entityId }) {
       { entity.building && (<><span>Rooms: </span>
         <ul>{
           entity.building.rooms.map(r => (<li key={r}>
-            {state.ecs.stockpile[r] && <Stockpile entityId={r}/>}
+            {state.ecs.container[r] && <EntityContainer entityId={r}/>}
             {state.ecs.sleepable[r] && <SleepingQuarters entityId={r}/>}
           </li>))}
         </ul>

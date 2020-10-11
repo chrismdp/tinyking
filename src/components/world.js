@@ -8,7 +8,7 @@ import { Viewport } from "pixi-viewport";
 
 import { useTranslate } from "react-polyglot";
 
-import { Hex, InnerHex, HEX_SIZE, generateMap } from "game/map";
+import { Hex, InnerHex, HEX_SIZE, generateMap, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { fullEntity } from "game/entities";
 import { anyControlledAlive } from "game/playable";
 import * as time from "game/time";
@@ -58,15 +58,41 @@ const renderItem = (ecs, id) => {
   return graphics;
 };
 
-const renderStockpile = (ecs, id) => {
+const renderStockpile = (state, id, t) => {
   const graphics = new PIXI.Graphics();
-  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
   graphics.beginFill(terrainColours.stone, 0.25);
   graphics.drawPolygon(InnerHex().corners());
   graphics.endFill();
-  let text = new PIXI.Text(ecs.stockpile[id].capacity, {fontFamily: "Alegreya", fontSize: 20, fill: "white"});
+  let text = new PIXI.Text(state.ecs.holder[id].capacity, {fontFamily: "Alegreya", fontSize: 20, fill: "white"});
   text.anchor = { x: 0.5, y: 0.5 };
   graphics.addChild(text);
+
+  const space = state.space[Hex().fromPoint(state.ecs.spatial[id])];
+  const drawDebug = false;
+  if (drawDebug) {
+    triangleCenters({x: 0, y: 0}).forEach(p => {
+      const occupied = space.some(e =>
+        state.ecs.haulable && state.ecs.haulable[e] &&
+        e != id &&
+        math.squaredDistance({x: p.x + state.ecs.spatial[id].x, y: p.y + state.ecs.spatial[id].y}, state.ecs.spatial[e]) <
+        TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS);
+      graphics.beginFill(occupied ? 0xff0000 : 0x00ff00);
+      graphics.drawCircle(p.x, p.y, TRIANGLE_INTERIOR_RADIUS * 1.25);
+    });
+  }
+
+  if (state.ecs.holder[id]) {
+    state.ecs.holder[id].held.forEach(itemId => {
+      const [, item] = renderEntity(state, itemId, t, true);
+      item.position.set(
+        item.position.x - state.ecs.spatial[id].x,
+        item.position.y - state.ecs.spatial[id].y
+      );
+      graphics.addChild(item);
+    });
+  }
+
   return graphics;
 };
 
@@ -255,7 +281,7 @@ const renderEntity = (state, id, t, heldObjects) => {
   }
 
   if (state.ecs.stockpile[id]) {
-    return ["stockpiles", renderStockpile(state.ecs, id)];
+    return ["stockpiles", renderStockpile(state, id, t)];
   }
 
   const entity = fullEntity(state.ecs, id);

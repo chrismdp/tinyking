@@ -294,10 +294,15 @@ const FOOD_REPLENISH = {
 
 export function get_from_container(state, actorId, world, dt, firstRun, thing, place) {
   const s = state.ecs.spatial[actorId];
-  const containers = entitiesInSameLocation(state, s).filter(id =>
+  const entities = entitiesInSameLocation(state, s);
+  // TODO: the rooms in buildings are the containers. Need to move this to
+  // things in the stockpile ideally.
+  const rooms = entities.map(e => state.ecs.building[e] ? state.ecs.building[e].rooms : []).flat();
+  const containers = [...entities, ...rooms].filter(id =>
     state.ecs.container[id] && state.ecs.container[id].amounts[thing] > 0);
   if (containers.length == 0) {
     // NOTE: This container no longer trusted for this type of thing
+    console.log("Oh dear. No container with", thing, "here");
     world.places[place] = null;
     return nothing;
   }

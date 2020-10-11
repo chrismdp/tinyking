@@ -66,8 +66,8 @@ function generateFamily(size, spatial, front, generator) {
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
         body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE,
-        tiredness: 0.0,
-        hunger: 0.5
+        tiredness: 0.4,
+        hunger: 0.6
       },
       planner: {
         world: {

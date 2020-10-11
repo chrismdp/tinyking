@@ -121,10 +121,7 @@
     "create_stockpile": "Create Stockpile"
   },
   "tasks": {
-    "wandering" : "Idle",
-    "going_to_bed": "Going to bed",
-    "finding_food": "Finding food",
-    "create_stockpile": "Clearing",
+    "create_stockpile": "Clearing space",
     "cut_tree_down": "Felling trees",
     "eating": "Eating",
     "sleeping": "Sleeping"

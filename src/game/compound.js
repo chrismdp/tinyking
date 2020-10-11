@@ -6,7 +6,7 @@ export const person = () => [
   [
     world => world.feeling.tired && world.time_of_day == "evening" || world.time_of_day == "night",
     () => [
-      [ "set_label", "going_to_bed" ],
+      [ "set_label" ],
       [ "move_to_place", "sleep", "allows_sleep" ],
       [ "go_to_sleep"]
     ],
@@ -14,7 +14,7 @@ export const person = () => [
   [
     world => world.feeling.hungry && world.time_of_day != "night",
     () => [
-      [ "set_label", "finding_food"],
+      [ "set_label" ],
       [ "find_food" ]
     ]
   ],
@@ -47,7 +47,7 @@ export const person = () => [
   [
     always,
     () => [
-      [ "set_label", "wandering"],
+      [ "set_label" ],
       [ "wait_for", Math.random() * time.HOUR ],
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
@@ -109,6 +109,7 @@ export const find_food = () => [
   [
     always,
     () => [
+      [ "set_label" ],
       [ "move_to_place", "meet", "space" ],
       [ "set_label", "eating"],
       [ "eat", "grain" ]

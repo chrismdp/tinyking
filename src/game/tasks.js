@@ -295,7 +295,7 @@ const FOOD_REPLENISH = {
 export function get_from_container(state, actorId, world, dt, firstRun, thing, place) {
   const s = state.ecs.spatial[actorId];
   const containers = entitiesInSameLocation(state, s).filter(id =>
-    state.ecs.containers [id] && state.ecs.containers[id].amounts[thing] > 0);
+    state.ecs.container[id] && state.ecs.container[id].amounts[thing] > 0);
   if (containers.length == 0) {
     // NOTE: This container no longer trusted for this type of thing
     world.places[place] = null;

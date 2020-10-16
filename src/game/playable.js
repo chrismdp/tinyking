@@ -4,11 +4,12 @@ export function discoverTiles(ecs, action) {
 }
 
 export function directlyControlledBy(ecs, id) {
-  return Object.values(ecs.controllable).filter(p => p.controller == id && p.id != p.controllerId);
+  return Object.values(ecs.controllable).filter(c => c.controllerId == id && c.id != c.controllerId);
 }
 
 export function anyControlledAlive(ecs, playableId) {
-  return [ecs.personable[playableId], ...directlyControlledBy(ecs, playableId)]
+  return [playableId, ...directlyControlledBy(ecs, playableId).map(c => c.id)]
+    .map(id => ecs.personable[id])
     .some(p => !p.dead);
 }
 

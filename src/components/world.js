@@ -10,7 +10,7 @@ import { useTranslate } from "react-polyglot";
 
 import { Hex, InnerHex, HEX_SIZE, generateMap, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { fullEntity } from "game/entities";
-import { anyControlledAlive } from "game/playable";
+import { topController, anyControlledAlive } from "game/playable";
 import * as time from "game/time";
 import * as math from "game/math";
 import * as htn from "game/htn";
@@ -207,7 +207,7 @@ const renderPerson = (state, entity, fn, t) => {
   person.endFill();
 
   if (entity.planner && entity.planner.world.label) {
-    person.beginFill(entity.playable ? 0x993333 : 0x333333);
+    person.beginFill(topController(state.ecs, entity.id) == state.ui.playerId ? 0x993333 : 0x333333);
     person.drawRoundedRect(-30, 20, 60, 15, 5);
     person.endFill();
     let text = new PIXI.Text(t("tasks." + entity.planner.world.label), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
@@ -616,8 +616,6 @@ export function World() {
         state.ui.show.tutorial = false;
         state.ui.show.clock = true;
         state.ui.show.speed_controls = true;
-        state.days = 0.375;
-        state.game_speed = "normal";
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {

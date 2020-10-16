@@ -1,8 +1,11 @@
 import { nothing } from "immer";
 
 export function chop_tree() {}
-
+export function wait_for() {}
+export function get_attention() {}
+export function set_controller_to_me() {}
 export function create_stockpile() {}
+export function release_attention() {}
 
 export function walk_to(world, expected, targetId) {
   if (!targetId) {
@@ -44,8 +47,6 @@ export function get_from_container(world, expected, thing) {
 export function forget_place(world, expected, type) {
   delete world.places[type];
 }
-
-export function wait_for() {}
 
 export function sleep(world) {
   world.feeling.tired = false;

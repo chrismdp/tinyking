@@ -58,7 +58,6 @@ function generateFamily(size, spatial, front, generator) {
       traits: { values: {} },
       attributes: {},
       tickable: {},
-      workable: {},
       controllable: {},
       holder: { held: [], capacity: 2 },
       personable: {
@@ -95,7 +94,7 @@ export function generateFamilies({ state, seed, playerStartTile }) {
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 3);
-      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator);
+      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator).map(p => ({...p, workable: { jobs: [ { key: "recruit" } ] } }));
     }
     const ids = newEntities(state, people);
     for (const id of ids) {

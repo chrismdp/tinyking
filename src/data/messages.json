@@ -118,12 +118,15 @@
   "jobs": {
     "cut_tree_down": "Cut down",
     "move_to_here": "Move here",
-    "create_stockpile": "Create Stockpile"
+    "create_stockpile": "Create Stockpile",
+    "recruit": "Recruit"
   },
   "tasks": {
     "create_stockpile": "Clearing space",
     "cut_tree_down": "Felling trees",
     "eating": "Eating",
+    "recruiting": "Recruiting",
+    "waiting_for": "Waiting",
     "sleeping": "Sleeping"
   },
   "rooms": {

@@ -3,6 +3,7 @@ import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
 import * as math from "game/math";
 import * as time from "game/time";
+import { replan } from "game/htn";
 import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
@@ -335,4 +336,37 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
   const person = state.ecs.personable[actorId];
   person.hunger -= dt * FOOD_REPLENISH[thing];
   return person.hunger >= 0.1;
+}
+
+export function get_attention(state, actorId, world, dt, firstRun, targetId) {
+  const target = state.ecs.planner[targetId];
+  if (!target) {
+    throw "Cannot get_attention for non-planner " + targetId;
+  }
+  replan(target);
+  target.world.capturedBy = actorId;
+}
+
+export function release_attention(state, actorId, world, dt, firstRun, targetId) {
+  const target = state.ecs.planner[targetId];
+  if (!target) {
+    throw "Cannot release_attention for non-planner " + targetId;
+  }
+  replan(target);
+  target.world.capturedBy = null;
+}
+
+export function set_controller_to_me(state, actorId, world, dt, firstRun, targetId) {
+  const target = state.ecs.controllable[targetId];
+  if (!target) {
+    throw "Cannot set_controller_to_me for non-controllable " + targetId;
+  }
+  target.controllerId = actorId;
+
+  const workable = state.ecs.workable[targetId];
+  if (!workable) {
+    throw "Cannot set_controller_to_me for non-workable " + targetId;
+  }
+  state.ecs.workable[targetId].jobs =
+    state.ecs.workable[targetId].jobs.filter(j => j.key != "recruit");
 }

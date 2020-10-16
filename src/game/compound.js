@@ -4,6 +4,13 @@ const always = () => true;
 
 export const person = () => [
   [
+    world => world.capturedBy,
+    () => [
+      [ "set_label", "waiting_for" ],
+      [ "wait_for", time.HOUR * 0.5 ]
+    ]
+  ],
+  [
     always,
     () => [ [ "store_held" ] ]
   ],
@@ -25,6 +32,10 @@ export const person = () => [
   [
     world => world.jobs && world.jobs.find(j => j.job.key == "move_to_here"),
     move => [ ["walk_to", move.targetId], ["complete_job", move.job.key] ]
+  ],
+  [
+    world => world.jobs && world.jobs.find(j => j.job.key == "recruit"),
+    action => [ ["recruit", action.targetId], ["complete_job", action.job.key] ]
   ],
   [
     world => world.jobs && world.jobs.find(j => j.job.key == "create_stockpile"),
@@ -56,6 +67,20 @@ export const person = () => [
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
       [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
+    ]
+  ]
+];
+
+export const recruit = (targetId) => [
+  [
+    always,
+    () => [
+      ["set_label", "recruiting"],
+      ["get_attention", targetId],
+      ["walk_to", targetId],
+      ["wait_for", time.HOUR * 0.5 + time.HOUR * Math.random()],
+      ["set_controller_to_me", targetId],
+      ["release_attention", targetId]
     ]
   ]
 ];

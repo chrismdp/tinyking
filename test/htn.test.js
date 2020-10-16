@@ -62,4 +62,20 @@ describe("HTN planning", () => {
       ["walk_to", "type" ]
     ]);
   });
+
+  it("run sub tasks more than once for method conditions that return arrays", () => {
+    const rep = {
+      places: {},
+      no_place_for: {},
+      holding: { "wood": false, "grain": true }
+    };
+
+    const solution = sut.solve(rep, [["store_held"]]);
+    expect(solution).toEqual([
+      ["find_place", "slot", "stockpile_open_slot", "grain"],
+      ["walk_to", "slot"],
+      ["drop_entity_into_stockpile_slot", "grain"],
+      ["forget_place", "slot"]
+    ]);
+  });
 });

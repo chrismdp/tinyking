@@ -4,6 +4,10 @@ const always = () => true;
 
 export const person = () => [
   [
+    always,
+    () => [ [ "store_held" ] ]
+  ],
+  [
     world => world.feeling.tired && world.time_of_day == "evening" || world.time_of_day == "night",
     () => [
       [ "set_label" ],
@@ -52,6 +56,17 @@ export const person = () => [
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
       [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
+    ]
+  ]
+];
+
+export const store_held = () => [
+  [
+    world => Object.keys(world.holding).filter(h => world.holding[h]),
+    held => [
+      [ "move_to_place", "slot", "stockpile_open_slot", held ],
+      [ "drop_entity_into_stockpile_slot", held ],
+      [ "forget_place", "slot" ]
     ]
   ]
 ];

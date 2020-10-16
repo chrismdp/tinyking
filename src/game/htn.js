@@ -33,9 +33,12 @@ export function solve(world, tasks, plan = []) {
   } else if (compound[name]) {
     const methods = compound[name](...args);
     for (const method of methods) {
-      const condition = method[0](world);
-      if (debug) { console.log("COMPOUND: condition for ", name, " is ", condition); }
-      if (condition) {
+      let conditions = method[0](world);
+      if (!Array.isArray(conditions)) {
+        conditions = [ conditions ];
+      }
+      for (const condition of conditions.filter(c => c)) {
+        if (debug) { console.log("COMPOUND: condition for ", name, " : ", condition); }
         const solution = solve(world, method[1](condition), plan);
         if (solution) {
           return solve(world, rest, solution);

@@ -325,6 +325,10 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
       return nothing;
     }
     take(state.ecs, id, null);
+
+    // NOTE: Do this now _and_ in the primitive, because it's important this
+    // still happens if the task gets interrupted
+    world.holding[thing] = false;
     deleteEntity(state, id);
   }
 

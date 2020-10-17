@@ -193,6 +193,14 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
 
 export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, type) {
   const stockpileId = world.places.slot.id;
+  const space = state.space[Hex().fromPoint(state.ecs.spatial[stockpileId])];
+  if (space.some(e => math.squaredDistance(world.places.slot, state.ecs.spatial[e]) <
+    TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS)) {
+    // NOTE: Someone has already taken this slot - replan
+    world.places.slot = null;
+    return nothing;
+  }
+
   const droppedId = state.ecs.holder[actorId].held
     .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
 
@@ -200,7 +208,7 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
 
   state.ecs.spatial[droppedId].x = world.places.slot.x;
   state.ecs.spatial[droppedId].y = world.places.slot.y;
-  state.space[Hex().fromPoint(state.ecs.spatial[droppedId])].push(droppedId);
+  space.push(droppedId);
 
   state.redraws.push(actorId);
   state.redraws.push(stockpileId);
@@ -209,6 +217,12 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
 export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, type) {
   const targetId = world.places[type];
   if (!targetId) {
+    return nothing;
+  }
+
+  if (state.ecs.haulable[targetId].heldBy) {
+    // NOTE: someone else has already picked this up!
+    world.places[type] = null;
     return nothing;
   }
 

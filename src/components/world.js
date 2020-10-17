@@ -390,7 +390,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
       // Re-plan
       if (!planner.plan) {
-        planner.task = null;
+        if (planner.task) {
+          htn.finishTask(planner, planner.task);
+        }
         const jobs = jobQueueFor(state.ecs, planner.id);
         planner.plan = htn.solve(planner.world, jobs, [ [ "person" ] ]);
         if (topController(state.ecs, planner.id) == state.ui.playerId) {

@@ -51,23 +51,25 @@ export function solve(world, jobs, tasks, plan = []) {
   }
 }
 
+export function finishTask(planner, task) {
+  const [name, ...args] = task;
+  // NOTE: Ensure we apply any effects of the plan when the task is done
+  primitive[name](planner.world, false, ...args);
+  planner.task = null;
+}
+
 export function runTask(state, planner, dt, firstRun) {
   const [name, ...args] = planner.task;
   if (!tasks[name]) {
     throw "Cannot find task to run " + name;
   }
 
-  const newWorld = produce(primitive[name])(planner.world, false, ...args);
-  if (newWorld) {
+  if (!firstRun || produce(primitive[name])(planner.world, false, ...args)) {
     const result = tasks[name](state, planner.id, planner.world, dt, firstRun, ...args);
     if (result == nothing) {
       replan(planner);
     } else if (!result) {
-      const pResult = primitive[name](planner.world, false, ...args);
-      if (pResult == nothing) {
-        throw "primitive returned 'nothing', second time around after task!";
-      }
-      planner.task = null;
+      finishTask(planner, planner.task);
     }
   } else {
     replan(planner);
@@ -76,6 +78,5 @@ export function runTask(state, planner, dt, firstRun) {
 
 export function replan(planner) {
   planner.plan = null;
-  planner.task = null;
   // console.trace("replan", planner);
 }

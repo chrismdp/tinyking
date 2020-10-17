@@ -360,18 +360,14 @@ export function get_from_container(state, actorId, world, dt, firstRun, thing, p
 }
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
-  const holder = state.ecs.holder[actorId];
   if (firstRun) {
+    const holder = state.ecs.holder[actorId];
     const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == "grain");
     if (!id) {
       console.log("EAT", actorId, "NO", thing, "to eat");
       return nothing;
     }
     take(state.ecs, id, null);
-
-    // NOTE: Do this now _and_ in the primitive, because it's important this
-    // still happens if the task gets interrupted
-    world.holding[thing] = false;
     deleteEntity(state, id);
   }
 

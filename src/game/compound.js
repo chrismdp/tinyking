@@ -1,8 +1,23 @@
 import * as time from "game/time";
+import { firstFreeJob } from "game/manager";
 
 const always = () => true;
 
 export const person = () => [
+  [
+    world => world.capturedAttentionOf,
+    targetId => [
+      [ "release_attention", targetId ],
+      [ "person" ]
+    ]
+  ],
+  [
+    world => world.currentJob,
+    job => [
+      [ "release_job", job ],
+      [ "person" ]
+    ]
+  ],
   [
     world => world.capturedBy,
     () => [
@@ -13,6 +28,10 @@ export const person = () => [
   [
     always,
     () => [ [ "store_held" ] ]
+  ],
+  [
+    always,
+    () => [ [ "check_jobs" ] ]
   ],
   [
     world => world.feeling.tired && world.time_of_day == "evening" || world.time_of_day == "night",
@@ -30,32 +49,6 @@ export const person = () => [
     ]
   ],
   [
-    world => world.jobs && world.jobs.find(j => j.job.key == "move_to_here"),
-    move => [ ["walk_to", move.targetId], ["complete_job", move.job.key] ]
-  ],
-  [
-    world => world.jobs && world.jobs.find(j => j.job.key == "recruit"),
-    action => [ ["recruit", action.targetId], ["complete_job", action.job.key] ]
-  ],
-  [
-    world => world.jobs && world.jobs.find(j => j.job.key == "create_stockpile"),
-    action => [
-      ["set_label", "create_stockpile"],
-      ["walk_to", action.targetId],
-      ["create_stockpile", action.targetId],
-      ["complete_job", action.job.key]
-    ]
-  ],
-  [
-    world => world.jobs && world.jobs.find(j => j.job.key == "cut_tree_down"),
-    cut => [
-      ["set_label", "cut_tree_down"],
-      ["walk_to", cut.targetId],
-      ["chop_tree", cut.targetId],
-      ["complete_job", cut.job.key]
-    ]
-  ],
-  [
     always,
     () => [ [ "haul_to_stockpile", "wood" ] ]
   ],
@@ -67,6 +60,45 @@ export const person = () => [
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
       [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
+    ]
+  ]
+];
+
+export const check_jobs = () => [
+  [
+    (_, jobs) => firstFreeJob(jobs, "move_to_here"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["walk_to", entry.targetId],
+      ["complete_job", entry.job.key]
+    ]
+  ],
+  [
+    (_, jobs) => firstFreeJob(jobs, "recruit"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["recruit", entry.targetId],
+      ["complete_job", entry.job.key]
+    ]
+  ],
+  [
+    (_, jobs) => firstFreeJob(jobs, "create_stockpile"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["set_label", "create_stockpile"],
+      ["walk_to", entry.targetId],
+      ["create_stockpile", entry.targetId],
+      ["complete_job", entry.job.key]
+    ]
+  ],
+  [
+    (_, jobs) => firstFreeJob(jobs, "cut_tree_down"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["set_label", "cut_tree_down"],
+      ["walk_to", entry.targetId],
+      ["chop_tree", entry.targetId],
+      ["complete_job", entry.job.key]
     ]
   ]
 ];

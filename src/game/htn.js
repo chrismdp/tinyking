@@ -10,8 +10,8 @@ setAutoFreeze(false);
 
 const debug = false;
 
-export function solve(world, tasks, plan = []) {
-  if (debug) { console.log("SOLVE", world, "TASKS", tasks, "PLAN", plan); }
+export function solve(world, jobs, tasks, plan = []) {
+  if (debug) { console.log("SOLVE", world, "JOBS", jobs, "TASKS", tasks, "PLAN", plan); }
   if (tasks.length == 0) {
     return plan;
   }
@@ -23,7 +23,7 @@ export function solve(world, tasks, plan = []) {
   if (primitive[name]) {
     const newWorld = produce(primitive[name])(world, true, ...args);
     if (newWorld) {
-      const solution = solve(newWorld, rest, [ ...plan, task ]);
+      const solution = solve(newWorld, jobs, rest, [ ...plan, task ]);
       if (solution) {
         return solution;
       }
@@ -33,15 +33,15 @@ export function solve(world, tasks, plan = []) {
   } else if (compound[name]) {
     const methods = compound[name](...args);
     for (const method of methods) {
-      let conditions = method[0](world);
+      let conditions = method[0](world, jobs);
       if (!Array.isArray(conditions)) {
         conditions = [ conditions ];
       }
       for (const condition of conditions.filter(c => c)) {
         if (debug) { console.log("COMPOUND: condition for ", name, " : ", condition); }
-        const solution = solve(world, method[1](condition), plan);
+        const solution = solve(world, jobs, method[1](condition), plan);
         if (solution) {
-          return solve(world, rest, solution);
+          return solve(world, jobs, rest, solution);
         }
         if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
       }

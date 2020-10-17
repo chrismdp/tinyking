@@ -2,20 +2,33 @@ import { nothing } from "immer";
 
 export function chop_tree() {}
 export function wait_for() {}
-export function get_attention() {}
 export function set_controller_to_me() {}
 export function create_stockpile() {}
-export function release_attention() {}
+
+export function get_attention(world, expected, targetId) {
+  world.capturedAttentionOf = targetId;
+}
+
+export function release_attention(world) {
+  world.capturedAttentionOf = null;
+}
+
+export function take_job(world, expected, key) {
+  world.currentJob = key;
+}
+
+export function complete_job(world) {
+  world.currentJob = null;
+}
+
+export function release_job(world) {
+  world.currentJob = null;
+}
 
 export function walk_to(world, expected, targetId) {
   if (!targetId) {
     return nothing;
   }
-}
-
-export function complete_job(world, expected, jobKey) {
-  const idx = world.jobs.findIndex(j => j.job.key == jobKey);
-  world.jobs.splice(idx, 1);
 }
 
 export function set_label(world, expected, label) {

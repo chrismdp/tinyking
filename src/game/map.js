@@ -68,6 +68,7 @@ function generateFamily(size, spatial, front, generator) {
         tiredness: 0.4,
         hunger: 0.6
       },
+      manager: { jobs: [] },
       planner: {
         world: {
           no_place_for: {},

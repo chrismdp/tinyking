@@ -17,6 +17,7 @@ import * as htn from "game/htn";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
+import { jobQueueFor } from "game/manager";
 
 import fogSprite from "assets/fogSprite.png";
 
@@ -206,14 +207,22 @@ const renderPerson = (state, entity, fn, t) => {
   person.drawCircle(0, -entity.personable.size * 0.48, entity.personable.size * 0.35);
   person.endFill();
 
-  if (entity.planner && entity.planner.world.label) {
-    person.beginFill(topController(state.ecs, entity.id) == state.ui.playerId ? 0x993333 : 0x333333);
-    person.drawRoundedRect(-30, 20, 60, 15, 5);
-    person.endFill();
-    let text = new PIXI.Text(t("tasks." + entity.planner.world.label), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
-    text.position.set(0, 27.5);
-    text.anchor = { x: 0.5, y: 0.5 };
-    person.addChild(text);
+  if (entity.planner) {
+    if (topController(state.ecs, entity.id) == state.ui.playerId) {
+      person.beginFill(0x993333);
+      person.drawCircle(18, -20, 5);
+    } else {
+      person.beginFill(0x333333);
+    }
+
+    if (entity.planner.world.label) {
+      person.drawRoundedRect(-30, 20, 60, 15, 5);
+      person.endFill();
+      let text = new PIXI.Text(t("tasks." + entity.planner.world.label), {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+      text.position.set(0, 27.5);
+      text.anchor = { x: 0.5, y: 0.5 };
+      person.addChild(text);
+    }
   }
 
   if (fn) { fn(person, graphics); }
@@ -382,8 +391,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       // Re-plan
       if (!planner.plan) {
         planner.task = null;
-        planner.plan = htn.solve(planner.world, [ [ "person" ] ]);
-        if (planner.id == state.ui.playerId) {
+        const jobs = jobQueueFor(state.ecs, planner.id);
+        planner.plan = htn.solve(planner.world, jobs, [ [ "person" ] ]);
+        if (topController(state.ecs, planner.id) == state.ui.playerId) {
           console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
           if (!planner.plan) {
             throw "no plan";
@@ -398,7 +408,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
       while (!planner.task && planner.plan) {
         if (planner.plan.length > 0) {
           planner.task = planner.plan.shift();
-          if (planner.id == state.ui.playerId) {
+          if (topController(state.ecs, planner.id) == state.ui.playerId) {
             console.log("NEW TASK", planner.id, planner.task);
           }
           htn.runTask(state, planner, dt, true);
@@ -619,8 +629,15 @@ export function World() {
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        state.ecs.planner[playerId].world.jobs.push({ job, targetId });
-        htn.replan(state.ecs.planner[playerId]);
+        const jobs = jobQueueFor(state.ecs, playerId);
+        jobs.push({ job, targetId });
+        // NOTE: For now, we replan anyone in our team who is not in a job
+        for (const id in state.ecs.planner) {
+          const planner = state.ecs.planner[id];
+          if (!planner.world.currentJob && topController(state.ecs, id) == playerId) {
+            htn.replan(planner);
+          }
+        }
         setPopupInfo({});
       },
       select_entity: (id, touch) => {

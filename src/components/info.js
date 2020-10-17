@@ -53,6 +53,14 @@ export function Info({ entityId }) {
         <span>{ entity.personable ? "Liege:" : "Controlled by:"} </span>
         <NameList ids={[entity.controllable.controllerId]}/>
       </>)}
+      { entity.manager && (<div>
+        {entity.manager.jobs.map((j, idx) => (<li key={idx}>
+          { JSON.stringify(j.job) } : {j.targetId}
+          { j.assignedId && (<span>Assigned to:
+            <Name nameable={state.ecs.nameable[j.assignedId]}/>
+          </span>)}
+        </li>))}
+      </div>)}
       { entity.workable && <JobList workable={entity.workable}/>}
       <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">

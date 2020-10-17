@@ -7,6 +7,11 @@ import { replan } from "game/htn";
 import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
+import { jobQueueFor, firstFreeJob } from "game/manager";
+
+// NOTE: no in-game action, as these are _entirely in the mind_.
+export function set_label() {}
+export function forget_place() {}
 
 const closestSpatialTo = (state, id) => (a, b) =>
   math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[id]) -
@@ -37,7 +42,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     targetPoint = state.ecs.spatial[world.target];
   }
   if (targetPoint == null) {
-    throw "Cannot find targetPoint from " + JSON.stringify(world.target);
+    console.log("Cannot find targetPoint from " + JSON.stringify(world.target));
+    return nothing;
   }
 
   if (firstRun) {
@@ -105,15 +111,37 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   return 1;
 }
 
-// NOTE: no in-game action, as this is _entirely in the mind_.
-export function set_label() {
+export function take_job(state, actorId, world, dt, firstRun, key) {
+  const jobs = jobQueueFor(state.ecs, actorId);
+  const job = firstFreeJob(jobs, key);
+  job.assignedId = actorId;
 }
 
-// NOTE: no in-game action, as jobs are currently only in the world rep.
-export function complete_job() {}
+export function release_job(state, actorId, world, dt, firstRun, key) {
+  const jobs = jobQueueFor(state.ecs, actorId);
+  const idx = jobs.findIndex(j => j.job.key == key && j.assignedId == actorId);
+  if (idx == -1) {
+    console.log("Hang on, we are releasing a job", key,
+      "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
+    return nothing;
+  }
+  jobs[idx].assignedId = null;
+}
 
-// NOTE: no in-game action, as this is _entirely in the mind_.
-export function forget_place() {}
+
+// NOTE: Not sure about using just the key - we'll have to assume we're talking
+// about the first job. take_job will happen in the same frame as the plan
+// though, so we're good I think.
+export function complete_job(state, actorId, world, dt, firstRun, key) {
+  const jobs = jobQueueFor(state.ecs, actorId);
+  const idx = jobs.findIndex(j => j.job.key == key && j.assignedId == actorId);
+  if (idx == -1) {
+    console.log("Hang on, we are completing a job", key,
+      "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
+    return nothing;
+  }
+  jobs.splice(idx, 1);
+}
 
 export function wait_for(state, actorId, world, dt, firstRun, time) {
   if (firstRun) {
@@ -353,6 +381,11 @@ export function release_attention(state, actorId, world, dt, firstRun, targetId)
     throw "Cannot release_attention for non-planner " + targetId;
   }
   replan(target);
+
+  if (target.world.capturedBy) {
+    replan(state.ecs.planner[targetId]);
+  }
+
   target.world.capturedBy = null;
 }
 

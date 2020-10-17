@@ -419,6 +419,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
             console.log("NEW TASK", planner.id, planner.task);
           }
           htn.runTask(state, planner, dt, true);
+          // TODO: Make sure this happens only once
           state.redraws.push(planner.id);
         } else {
           htn.replan(planner);

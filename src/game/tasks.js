@@ -50,7 +50,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     if (!s) {
       throw "walk to: Actor " + actorId + " has no spatial";
     }
-    world.route = path(state.ecs, closestNavPointTo(state, state.ecs.spatial[actorId]), closestNavPointTo(state, targetPoint));
+    world.route = path(state.ecs, closestNavPointTo(state, s), closestNavPointTo(state, targetPoint));
   }
 
   let next = world.route && world.route[0];
@@ -63,10 +63,15 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
   }
 
-  const terrainCost = state.ecs.walkable[next.id].speed || 1;
+  // NOTE: only for forest now, and only want to have speed affect
+  // pathfinding right now
+  const terrainCost = 1; //state.ecs.walkable[next.id].speed || 1;
   // NOTE: number of hex sides per hour
   const baseHumanSpeed = 20;
-  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost;
+  const weightCost = state.ecs.holder[actorId].held
+    .map(id => state.ecs.haulable[id].speedModifier || 1)
+    .reduce((result, x) => result * x, 1);
+  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost * weightCost;
   let dx = targetPoint.x - s.x;
   let dy = targetPoint.y - s.y;
   const length = Math.sqrt(dx * dx + dy * dy);
@@ -159,7 +164,7 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
   if (state.days > world.wait_until) {
     newEntities(state, [{
       nameable: { nickname: "Stockpile" },
-      spatial: state.ecs.spatial[targetId],
+      spatial: { ...state.ecs.spatial[targetId] },
       stockpile: {},
       holder: { capacity: 19, held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },

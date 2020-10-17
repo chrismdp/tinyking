@@ -67,6 +67,8 @@ export function runTask(state, planner, dt, firstRun) {
   if (!firstRun || produce(primitive[name])(planner.world, false, ...args)) {
     const result = tasks[name](state, planner.id, planner.world, dt, firstRun, ...args);
     if (result == nothing) {
+      // NOTE: This is an abort situation: we _don't_ finish the task
+      planner.task = null;
       replan(planner);
     } else if (!result) {
       finishTask(planner, planner.task);

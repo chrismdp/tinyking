@@ -132,6 +132,7 @@ export const haul_to_stockpile = (thing) => [
   [
     always,
     () => [
+      [ "set_label" ],
       [ "find_place", "slot", "stockpile_open_slot", thing ],
       [ "move_to_place", thing, "haulable_with_good", thing ],
       [ "pick_up_entity_with_good", thing ],

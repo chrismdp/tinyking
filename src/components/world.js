@@ -168,9 +168,9 @@ const renderTile = (ecs, id) => {
 
 const GOLDEN_RATIO = 1.618034;
 
-const renderBuilding = (ecs, id) => {
+const renderBuilding = (state, id) => {
   const graphics = new PIXI.Graphics();
-  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
 
   graphics.beginFill(0x6C4332);
   graphics.lineStyle({color: "black", width: 2, alpha: 1});
@@ -179,7 +179,12 @@ const renderBuilding = (ecs, id) => {
   graphics.drawRect(-w * 0.5, -h * 0.5, w, h);
   graphics.beginFill(0x000000);
   graphics.drawRect(-w * 0.15, h * 0.5 - 2, w * 0.3, 5);
-  graphics.rotation = 2 * Math.PI * (ecs.building[id].entrance - 1) / 6;
+  graphics.rotation = 2 * Math.PI * (state.ecs.building[id].entrance - 1) / 6;
+
+  if (topController(state.ecs, id) == state.ui.playerId) {
+    graphics.beginFill(0x993333);
+    graphics.drawCircle(0, 0, 8);
+  }
 
   return graphics;
 };
@@ -262,7 +267,7 @@ const renderEntity = (state, id, t, heldObjects) => {
   }
 
   if (state.ecs.building[id]) {
-    return ["buildings", renderBuilding(state.ecs, id)];
+    return ["buildings", renderBuilding(state, id)];
   }
 
   if (state.ecs.personable[id]) {

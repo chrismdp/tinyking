@@ -404,7 +404,13 @@ export function set_controller_to_me(state, actorId, world, dt, firstRun, target
   if (!target) {
     throw "Cannot set_controller_to_me for non-controllable " + targetId;
   }
-  target.controllerId = actorId;
+  target.controllerId = topController(state.ecs, actorId);
+
+  for (const id in state.ecs.controllable) {
+    if (topController(state.ecs, id) == actorId) {
+      state.redraws.push(id);
+    }
+  }
 
   const workable = state.ecs.workable[targetId];
   if (!workable) {

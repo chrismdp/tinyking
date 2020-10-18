@@ -17,7 +17,7 @@ import * as htn from "game/htn";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
-import { jobQueueFor } from "game/manager";
+import { pushJob, jobQueueFor } from "game/manager";
 
 import fogSprite from "assets/fogSprite.png";
 
@@ -637,8 +637,7 @@ export function World() {
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        const jobs = jobQueueFor(state.ecs, playerId);
-        jobs.push({ job, targetId });
+        pushJob(state.ecs, playerId, { job, targetId });
         // NOTE: For now, we replan anyone in our team who is not in a job
         for (const id in state.ecs.planner) {
           const planner = state.ecs.planner[id];

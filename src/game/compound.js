@@ -175,7 +175,7 @@ export const find_food = () => [
   [
     world => !world.holding.grain,
     () => [
-      [ "move_to_place", "food", "has", "grain" ],
+      [ "move_to_place", "food", "container_with", "grain" ],
       [ "get_from_container", "grain", "food" ],
       [ "find_food" ]
     ]

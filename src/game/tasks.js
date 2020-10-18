@@ -258,7 +258,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
-  } else if (filter == "has") {
+  } else if (filter == "container_with") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
       realm == topController(state.ecs, id) &&

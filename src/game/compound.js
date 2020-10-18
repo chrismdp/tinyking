@@ -30,10 +30,6 @@ export const person = () => [
     () => [ [ "store_held" ] ]
   ],
   [
-    always,
-    () => [ [ "check_jobs" ] ]
-  ],
-  [
     world => world.feeling.tired && world.time_of_day == "evening" || world.time_of_day == "night",
     () => [
       [ "set_label" ],
@@ -47,6 +43,10 @@ export const person = () => [
       [ "set_label" ],
       [ "find_food" ]
     ]
+  ],
+  [
+    always,
+    () => [ [ "check_jobs" ] ]
   ],
   [
     always,

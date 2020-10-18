@@ -4,7 +4,7 @@ import { give, take } from "game/holder";
 import * as math from "game/math";
 import * as time from "game/time";
 import { replan } from "game/htn";
-import { newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
+import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
 import { nothing } from "immer";
 import { jobQueueFor, firstFreeJob } from "game/manager";
@@ -16,6 +16,10 @@ export function forget_place() {}
 const closestSpatialTo = (state, id) => (a, b) =>
   math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[id]) -
     math.squaredDistance(state.ecs.spatial[b], state.ecs.spatial[id]);
+
+const closestPointTo = (state, id) => (a, b) =>
+  math.squaredDistance(a, state.ecs.spatial[id]) -
+    math.squaredDistance(b, state.ecs.spatial[id]);
 
 function closestNavPointTo(state, point) {
   const entities = entitiesInSameLocation(state, point).filter(e => state.ecs.walkable[e]);
@@ -237,15 +241,37 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, ty
 
   give(state.ecs, targetId, actorId);
 
-  const s = state.space[Hex().fromPoint(state.ecs.spatial[targetId])];
-  const idx = s.findIndex(id => id == targetId);
-  if (idx != -1) {
-    s.splice(idx, 1);
-  }
-  console.log("Removed", targetId, "from", s, Hex().fromPoint(state.ecs.spatial[targetId]));
+  removeFromSpace(state, targetId);
 
   state.redraws.push(actorId);
   state.redraws.push(targetId);
+}
+
+export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, type, place) {
+  const slot = world.places[place];
+  if (!slot) {
+    return nothing;
+  }
+
+  if (topController(state.ecs, actorId) == state.ui.playerId) {
+    console.log(actorId, "PUFS", slot, type, place, world.places);
+  }
+
+  if (state.ecs.haulable[slot.id].heldBy != slot.stockpileId) {
+    // NOTE: someone else has already picked this up!
+    return nothing;
+  }
+
+  if (math.squaredDistance(state.ecs.spatial[actorId], slot) > 10 * 10) {
+    throw actorId + " pick_up_entity: not close enough to " + JSON.stringify(slot);
+  }
+
+  give(state.ecs, slot.id, actorId);
+
+  removeFromSpace(state, slot.id);
+
+  state.redraws.push(actorId);
+  state.redraws.push(slot.stockpileId);
 }
 
 export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {
@@ -265,6 +291,26 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       state.ecs.container[id].amounts[filterParam] > 0);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
+  } else if (filter == "stockpile_slot_with") {
+    if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
+    const available = Object.keys(state.ecs.stockpile || {})
+      .filter(id => realm == topController(state.ecs, id))
+      .map(id => !state.ecs.holder[id] ? [] :
+        (state.ecs.holder[id].held
+          .filter(h =>
+            state.ecs.good[h] &&
+            state.ecs.good[h].type == filterParam)
+          .map(h => ({
+            x: state.ecs.spatial[h].x,
+            y: state.ecs.spatial[h].y,
+            id: h,
+            stockpileId: id
+          })))).flat();
+    available.sort(closestPointTo(state, actorId));
+    found_place = available[0];
+    if (topController(state.ecs, actorId) == state.ui.playerId) {
+      console.log(actorId, "SSW FP", found_place);
+    }
   } else if (filter == "stockpile_open_slot") {
     const available_in_realm = Object.keys(state.ecs.stockpile || {}).filter(id =>
       realm == topController(state.ecs, id));
@@ -280,9 +326,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
           TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS))
         .map(p => ({ ...p, id }));
     }).flat().filter(p => p);
-    points.sort((a, b) =>
-      math.squaredDistance(a, state.ecs.spatial[actorId]) -
-      math.squaredDistance(b, state.ecs.spatial[actorId]));
+    points.sort(closestPointTo(state, actorId));
     // NOTE: Set the X/Y to the found_place (as move_to can now handle coords).
     found_place = points[0];
   } else if (filter == "haulable_with_good") {

@@ -175,9 +175,7 @@ export const find_food = () => [
   [
     world => !world.holding.grain,
     () => [
-      [ "move_to_place", "food", "container_with", "grain" ],
-      [ "get_from_container", "grain", "food" ],
-      [ "find_food" ]
+      [ "pick_up", "grain" ]
     ]
   ],
   [
@@ -187,6 +185,27 @@ export const find_food = () => [
       [ "move_to_place", "meet", "space" ],
       [ "set_label", "eating"],
       [ "eat", "grain" ]
+    ]
+  ]
+];
+
+export const pick_up = () => [
+  [
+    always,
+    () => [
+      [ "move_to_place", "stockpile_with_food", "stockpile_slot_with", "grain" ],
+      [ "pick_up_from_stockpile", "grain", "stockpile_with_food" ],
+      [ "forget_place", "stockpile_with_food" ],
+      [ "find_food" ]
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "move_to_place", "container_with_food", "container_with", "grain" ],
+      [ "get_from_container", "grain", "container_with_food" ],
+      [ "forget_place", "container_with_food" ],
+      [ "find_food" ]
     ]
   ]
 ];

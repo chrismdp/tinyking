@@ -95,7 +95,7 @@ export function generateFamilies({ state, seed, playerStartTile }) {
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 3);
-      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator).map(p => ({...p, workable: { jobs: [ { key: "recruit" } ] } }));
+      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator).map(p => ({ ...p }));
     }
     const ids = newEntities(state, people);
     for (const id of ids) {
@@ -306,25 +306,14 @@ export async function generateMap(state, seed, progressUpdate) {
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { speed: walkable[tile.terrain], neighbours: {} },
-    workable: {
-      jobs: [
-        ...walkable[tile.terrain] > 0 ? [ { key: "move_to_here" } ] : [],
-        ...tile.terrain == "grassland" ? [ { key: "create_stockpile" } ] : [],
-      ]
-    }
   }));
 
   const treeEntities = trees.map(tree => ({
     nameable: { nickname: "Tree" },
     spatial: { x: tree.x, y: tree.y },
-    workable: {
-      jobs: [
-        {
-          key: "cut_tree_down",
-          yield: "wood",
-          amount: Math.ceil(Math.random(1) * 3)
-        }
-      ]
+    good: {
+      type: "wood",
+      amount: Math.ceil(Math.random(1) * 3)
     }
   }));
 

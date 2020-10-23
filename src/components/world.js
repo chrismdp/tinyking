@@ -101,9 +101,7 @@ const renderTree = (ecs, id) => {
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
   graphics.beginFill(0x30512F);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.1});
-  const amount = ecs.workable[id].jobs
-    .filter(a => a.yield == "wood")
-    .reduce((total, a) => total + a.amount, 0);
+  const amount = ecs.good[id].amount;
   graphics.drawCircle(0, 0, HEX_SIZE * (0.1 + amount * 0.1));
   graphics.endFill();
   return graphics;
@@ -254,16 +252,17 @@ const renderEntity = (state, id, t, heldObjects) => {
     return ["tiles", renderTile(state.ecs, id)];
   }
 
-  if (state.ecs.workable[id] && state.ecs.workable[id].jobs && state.ecs.workable[id].jobs.some(a => a.yield == "wood")) {
-    return ["buildings", renderTree(state.ecs, id)];
-  }
-
   if (state.ecs.haulable && state.ecs.haulable[id]) {
     if (heldObjects || !state.ecs.haulable[id].heldBy) {
       return ["stockpiles", renderItem(state.ecs, id)];
     } else {
       return [];
     }
+  }
+
+  // NOTE: Must come _after_ haulable as otherwise logs would be rendered as trees!
+  if (state.ecs.good[id] && state.ecs.good[id].type == "wood") {
+    return ["buildings", renderTree(state.ecs, id)];
   }
 
   if (state.ecs.building[id]) {

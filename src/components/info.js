@@ -13,6 +13,9 @@ import { Name } from "components/name";
 import { SleepingQuarters } from "components/sleeping_quarters";
 import { EntityContainer } from "components/entity_container";
 
+import Engine from "json-rules-engine-simplified";
+import rules from "data/jobs.json";
+
 export function Info({ entityId }) {
   const state = React.useContext(GameState);
   const t = useTranslate();
@@ -22,6 +25,26 @@ export function Info({ entityId }) {
 
   const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
   const title = entity.mappable ? t("terrain." + entity.mappable.terrain) : (entity.nameable ? (<Name nameable={entity.nameable} clickable={false}/>) : "Information");
+
+  const [jobs, setJobs] = React.useState([]);
+
+  React.useEffect(() => {
+    let isCancelled = false;
+
+    (async () => {
+      const result = await new Engine(rules).run({
+        target: entity,
+        actor: fullEntity(state.ecs, state.ui.playerId)
+      });
+      if (!isCancelled) {
+        setJobs(result.map(r => r.jobs).flat());
+      }
+    })();
+
+    return function cleanup() {
+      isCancelled = true;
+    };
+  }, [setJobs, entity, state.ecs, state.ui.playerId]);
 
   return (
     <div>
@@ -61,7 +84,7 @@ export function Info({ entityId }) {
           </span>)}
         </li>))}
       </div>)}
-      { entity.workable && <JobList workable={entity.workable}/>}
+      { <JobList jobs={jobs} targetId={entity.id}/>}
       <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
           <strong>{c}</strong>: {JSON.stringify(entity[c])}

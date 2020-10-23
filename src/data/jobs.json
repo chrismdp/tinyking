@@ -1,0 +1,48 @@
+[
+  {
+    "conditions": {
+      "target.walkable.speed": { "greater": 0 }
+    },
+    "event": {
+      "jobs": [
+        { "key": "move_to_here" }
+      ]
+    }
+  },
+  {
+    "conditions": {
+      "target.mappable.terrain": { "is": "grassland" }
+    },
+    "event": {
+      "jobs": [
+        { "key": "create_stockpile" }
+      ]
+    }
+  },
+  {
+    "conditions": {
+      "target.haulable": { "not": "exists" },
+      "target.good.type": { "is": "wood" }
+    },
+    "event": {
+      "jobs": [
+        { "key": "cut_tree_down" }
+      ]
+    }
+  },
+  {
+    "conditions": {
+      "target.personable": "exists",
+      "target.controllable.controllerId": {
+        "not": {
+          "is": "$actor.controllable.controllerId"
+        }
+      }
+    },
+    "event": {
+      "jobs": [
+        { "key": "recruit" }
+      ]
+    }
+  }
+]

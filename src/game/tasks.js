@@ -171,8 +171,6 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
       holder: { capacity: 19, held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
-    state.ecs.workable[targetId].jobs =
-      state.ecs.workable[targetId].jobs.filter(j => j.key != "create_stockpile");
     return 0;
   }
   return 1;
@@ -185,7 +183,7 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   }
 
   if (state.days > world.wait_until) {
-    newEntities(state, Array.from({length: state.ecs.workable[targetId].jobs[0].amount}, () => ({
+    newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
       spatial: { ...state.ecs.spatial[targetId] },
       nameable: { nickname: "Log" },
       good: { type: "wood", amount: 1 },
@@ -459,11 +457,4 @@ export function set_controller_to_me(state, actorId, world, dt, firstRun, target
       state.redraws.push(id);
     }
   }
-
-  const workable = state.ecs.workable[targetId];
-  if (!workable) {
-    throw "Cannot set_controller_to_me for non-workable " + targetId;
-  }
-  state.ecs.workable[targetId].jobs =
-    state.ecs.workable[targetId].jobs.filter(j => j.key != "recruit");
 }

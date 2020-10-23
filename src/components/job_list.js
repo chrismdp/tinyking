@@ -5,17 +5,17 @@ import { useTranslate } from "react-polyglot";
 
 import { GameState } from "components/contexts";
 
-export function JobList({ workable }) {
+export function JobList({ jobs, targetId }) {
   const state = React.useContext(GameState);
   const t = useTranslate();
 
   const choose = React.useCallback((job) => {
-    state.ui.actions.choose_job(state.ui.playerId, job, workable.id);
-  }, [state.ui.playerId, state.ui.actions, workable]);
+    state.ui.actions.choose_job(state.ui.playerId, job, targetId);
+  }, [state.ui.playerId, state.ui.actions, targetId]);
 
-  if (workable.jobs && workable.jobs.length > 0) {
+  if (jobs && jobs.length > 0) {
     return <div className="job-list">
-      { workable.jobs.map(job => <button key={job.key} onClick={() => choose(job)}>{t("jobs." + job.key)}</button>) }
+      { jobs.map(job => <button key={job.key} onClick={() => choose(job)}>{t("jobs." + job.key)}</button>) }
     </div>;
   } else {
     return "";
@@ -23,6 +23,7 @@ export function JobList({ workable }) {
 }
 
 JobList.propTypes = {
-  workable: PropTypes.object
+  jobs: PropTypes.array,
+  targetId: PropTypes.string.isRequired
 };
 

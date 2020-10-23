@@ -29,7 +29,9 @@ export function deleteEntity(state, id) {
   removeFromSpace(state, id);
 
   if (state.pixi[id]) {
-    state.pixi[id].parent.removeChild(state.pixi[id]);
+    for (const displayObject of state.pixi[id]) {
+      displayObject.parent.removeChild(displayObject);
+    }
     delete state.pixi[id];
   }
   Object.keys(state.ecs).forEach(c => {

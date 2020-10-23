@@ -463,38 +463,49 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     if (state.redraws.length > 0) {
       const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat().filter(e => state.ecs.mappable[e]);
       for (const id of state.redraws) {
-        if (id in pixi) {
-          pixi[id].destroy();
-          delete pixi[id];
-        }
-        const [chosenLayer, displayObject] = renderEntity(state, id, t, false);
-        if (chosenLayer && displayObject) {
-          pixi[id] = displayObject;
-          layer[chosenLayer].addChild(displayObject);
-
-          if (state.ecs.mappable[id] && !known.includes(id)) {
-            if (!state.fog[id]) {
-              state.fog[id] = new PIXI.Sprite(state.fogTexture);
-              state.fog[id].position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
-              state.fog[id].anchor.set(0.5, 0.5);
-              layer.fog.addChild(state.fog[id]);
-            }
-          } else if (state.fog[id]) {
-            layer.fog.removeChild(state.fog[id]);
-            delete state.fog[id];
+        if (pixi[id]) {
+          for (const displayObject of pixi[id]) {
+            displayObject.destroy();
           }
+          pixi[id] = [];
         }
+        let result = renderEntity(state, id, t, false);
+        if (!Array.isArray(result[0])) {
+          result = [ result ];
+        }
+        result.forEach(([chosenLayer, displayObject]) => {
+          if (chosenLayer && displayObject) {
+            if (!pixi[id]) {
+              pixi[id] = [];
+            }
 
-        if (pixi[id] && !state.fog[id]) {
-          pixi[id].entityId = id;
-          pixi[id].interactive = true;
-          pixi[id].on("click", popupOver);
-          pixi[id].on("touchstart", () => pixi[id].maybeSelect = true);
-          pixi[id].on("touchmove", () => pixi[id].maybeSelect = false);
-          pixi[id].on("touchend", e => pixi[id].maybeSelect && popupOver(e));
-        }
+            pixi[id].push(displayObject);
+            layer[chosenLayer].addChild(displayObject);
+
+            if (state.ecs.mappable[id] && !known.includes(id)) {
+              if (!state.fog[id]) {
+                state.fog[id] = new PIXI.Sprite(state.fogTexture);
+                state.fog[id].position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
+                state.fog[id].anchor.set(0.5, 0.5);
+                layer.fog.addChild(state.fog[id]);
+              }
+            } else if (state.fog[id]) {
+              layer.fog.removeChild(state.fog[id]);
+              delete state.fog[id];
+            }
+          }
+
+          if (displayObject && !state.fog[id]) {
+            displayObject.entityId = id;
+            displayObject.interactive = true;
+            displayObject.on("click", popupOver);
+            displayObject.on("touchstart", () => displayObject.maybeSelect = true);
+            displayObject.on("touchmove", () => displayObject.maybeSelect = false);
+            displayObject.on("touchend", e => displayObject.maybeSelect && popupOver(e));
+          }
+        });
+        state.redraws = [];
       }
-      state.redraws = [];
     }
   });
 };
@@ -577,7 +588,8 @@ export function World() {
         ]
       });
 
-      const point = state.pixi[popupInfo.id].getGlobalPosition();
+      // NOTE: we use the first display object associated with this entity
+      const point = state.pixi[popupInfo.id][0].getGlobalPosition();
       virtualReference.current.set(point.x, point.y);
     } else {
       popper.current = null;

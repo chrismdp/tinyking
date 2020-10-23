@@ -373,7 +373,7 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
   person.tiredness -= dt * SLEEP_REPLENISH;
-  return person.tiredness >= 0.1;
+  return person.tiredness >= 0.1 || world.time_of_day == "night";
 }
 
 const FOOD_REPLENISH = {

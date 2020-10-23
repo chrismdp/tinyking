@@ -67,9 +67,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
   }
 
-  // NOTE: only for forest now, and only want to have speed affect
-  // pathfinding right now
-  const terrainCost = 1; //state.ecs.walkable[next.id].speed || 1;
+  const terrainCost = state.ecs.walkable[next.id].speed || 1;
   // NOTE: number of hex sides per hour
   const baseHumanSpeed = 20;
   const weightCost = state.ecs.holder[actorId].held
@@ -236,7 +234,8 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, ty
   }
 
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[targetId]) > 10 * 10) {
-    throw actorId + " pick_up_entity: not close enough to " + targetId;
+    console.error("Error", actorId, " pick_up_entity: not close enough to " + targetId);
+    return nothing;
   }
 
   give(state.ecs, targetId, actorId);

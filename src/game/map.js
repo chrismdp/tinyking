@@ -133,11 +133,7 @@ async function generateTerrain(grid, seed, progressUpdate) {
     } else if (hex.customHeight < 0) {
       terrain = "shallow water";
     } else {
-      if (simplex.noise2D(hex.x * 0.2, hex.y * 0.2) +
-        simplex.noise2D(hex.x * 2, hex.y * 2) * 0.25
-        > 0.45) {
-        terrain = "forest";
-      } else if (simplex.noise2D(hex.x * 0.5, hex.y * 0.5) > 0.85) {
+      if (simplex.noise2D(hex.x * 0.5, hex.y * 0.5) > 0.85) {
         terrain = "stone";
       } else {
         terrain = "grassland";
@@ -156,11 +152,37 @@ async function generateTerrain(grid, seed, progressUpdate) {
   return result;
 }
 
+const GRID_STEP = 30;
+function generateTrees(seed, landscape, settlements, world_x, world_y) {
+  const result = [];
+  const simplex = new SimplexNoise(seed);
+  let generator = new MersenneTwister(seed);
+
+  for (let sx = 0; sx < world_x / GRID_STEP; sx++) {
+    const x = sx * GRID_STEP;
+    for (let sy = 0; sy < world_y / GRID_STEP; sy++) {
+      const y = sy * GRID_STEP;
+
+      const hex = Hex().fromPoint(x, y);
+      if (hex && landscape[hex] && landscape[hex].terrain == "grassland" && !settlements[hex]) {
+        if (Math.min(simplex.noise2D(x * 0.001, y * 0.001), 0.6) +
+          (simplex.noise2D(x * 0.01, y * 0.01) * 0.3) +
+          (simplex.noise2D(x * 0.02, y * 0.02) * 0.0) > 0.6) {
+          result.push({
+            x: x + generator.random_int() % (GRID_STEP * 0.5) - GRID_STEP * 0.5,
+            y: y + generator.random_int() % (GRID_STEP * 0.5) - GRID_STEP * 0.5
+          });
+        }
+      }
+    }
+  }
+  return result;
+}
+
 const terrainValueFn = {
   "mountain": (distance) => distance <= 2 ? 2 : (15 - distance * 3),
   "shallow water": (distance) => (10 - distance * 2),
   "deep water": () => 0,
-  "forest": (distance) => distance <= 2 ? 2 : (10 - distance * 2),
   "stone": (distance) => distance <= 2 ? 3 : (15 - distance * 3),
   "grassland": (distance) => (10 - distance * 2),
 };
@@ -169,7 +191,6 @@ const walkable = {
   "mountain": 0,
   "shallow water": 0,
   "deep water": 0,
-  "forest": 0.3,
   "stone": 0.5,
   "grassland": 1.0
 };
@@ -265,6 +286,7 @@ export async function generateMap(state, seed, progressUpdate) {
   await generateEconomicValue(grid, landscape, progressUpdate);
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
+  const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight());
 
   const houses = Object.values(settlements).map(s => {
     const { x, y } = Hex(s.x, s.y).toPoint();
@@ -292,31 +314,21 @@ export async function generateMap(state, seed, progressUpdate) {
     }
   }));
 
-  const TREES_PER_TILE = 5;
-  const trees = Object.values(landscape)
-    .filter(t => t.terrain == "forest")
-    .map(tile => {
-      return [...Array(TREES_PER_TILE).keys()].map(i => {
-        return {
-          nameable: { nickname: "Tree" },
-          spatial: {
-            x: tile.x + Math.sin(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
-            y: tile.y - Math.cos(i * 2 * Math.PI / TREES_PER_TILE) * 0.9 * Math.random() * HEX_SIZE,
-          },
-          workable: {
-            jobs: [
-              {
-                key: "cut_tree_down",
-                yield: "wood",
-                amount: Math.ceil(Math.random(1) * 3)
-              }
-            ]
-          }
-        };
-      });
-    }).flat();
+  const treeEntities = trees.map(tree => ({
+    nameable: { nickname: "Tree" },
+    spatial: { x: tree.x, y: tree.y },
+    workable: {
+      jobs: [
+        {
+          key: "cut_tree_down",
+          yield: "wood",
+          amount: Math.ceil(Math.random(1) * 3)
+        }
+      ]
+    }
+  }));
 
-  newEntities(state, [ ...tiles, ...houses, ...trees ]);
+  newEntities(state, [ ...tiles, ...houses, ...treeEntities ]);
 
   for (const id in state.ecs.walkable) {
     if (walkable[state.ecs.mappable[id].terrain]) {

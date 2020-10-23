@@ -41,7 +41,6 @@ const terrainColours = {
   "growing": 0x6C4332,
   "harvestable": 0xE2C879,
   "dirt": 0x6C4332,
-  "forest": 0x80C05D,
   "stone": 0x5D7084,
 };
 
@@ -101,6 +100,7 @@ const renderTree = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
   graphics.beginFill(0x30512F);
+  graphics.lineStyle({color: "black", width: 2, alpha: 0.1});
   const amount = ecs.workable[id].jobs
     .filter(a => a.yield == "wood")
     .reduce((total, a) => total + a.amount, 0);

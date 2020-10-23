@@ -11,7 +11,8 @@
   },
   {
     "conditions": {
-      "target.mappable.terrain": { "is": "grassland" }
+      "target.mappable.terrain": { "is": "grassland" },
+      "other.length": { "is": 0 }
     },
     "event": {
       "jobs": [

@@ -291,7 +291,7 @@ export async function generateMap(state, seed, progressUpdate) {
   const houses = Object.values(settlements).map(s => {
     const { x, y } = Hex(s.x, s.y).toPoint();
     return {
-      spatial: { x, y },
+      spatial: { x, y, immovable: true },
       nameable: { nickname: "Log cabin" },
       controllable: {},
       building: { entrance: s.frontDoorSide, rooms: [] }
@@ -300,7 +300,7 @@ export async function generateMap(state, seed, progressUpdate) {
 
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
-    spatial: { x: tile.x, y: tile.y },
+    spatial: { x: tile.x, y: tile.y, immovable: true },
     mappable: { worn: {}, terrain: tile.terrain },
     tickable: {},
     traits: { values: {} },
@@ -310,7 +310,7 @@ export async function generateMap(state, seed, progressUpdate) {
 
   const treeEntities = trees.map(tree => ({
     nameable: { nickname: "Tree" },
-    spatial: { x: tree.x, y: tree.y },
+    spatial: { x: tree.x, y: tree.y, immovable: true },
     good: {
       type: "wood",
       amount: Math.ceil(Math.random(1) * 3)

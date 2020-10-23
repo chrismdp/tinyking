@@ -11,7 +11,7 @@ export function newEntities(state, entities) {
         state.ecs[name][id] = { ...entity[name], id };
       }
     }
-    if (entity.spatial && (entity.mappable || entity.building || entity.stockpile)) {
+    if (entity.spatial && entity.spatial.immovable) {
       const hex = Hex().fromPoint(entity.spatial);
       if (!state.space) {
         state.space = {};
@@ -26,6 +26,8 @@ export function newEntities(state, entities) {
 }
 
 export function deleteEntity(state, id) {
+  removeFromSpace(state, id);
+
   if (state.pixi[id]) {
     state.pixi[id].parent.removeChild(state.pixi[id]);
     delete state.pixi[id];

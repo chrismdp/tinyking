@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { useTranslate } from "react-polyglot";
 
 import { fullEntity } from "game/entities";
+import { Hex } from "game/map";
 
 import { GameState } from "components/contexts";
 import { JobList } from "components/job_list";
@@ -32,10 +33,13 @@ export function Info({ entityId }) {
     let isCancelled = false;
 
     (async () => {
-      const result = await new Engine(rules).run({
+      const payload = {
         target: entity,
-        actor: fullEntity(state.ecs, state.ui.playerId)
-      });
+        actor: fullEntity(state.ecs, state.ui.playerId),
+        other: state.space[Hex().fromPoint(entity.spatial)]
+          .filter(id => id != entityId)
+      };
+      const result = await new Engine(rules).run(payload);
       if (!isCancelled) {
         setJobs(result.map(r => r.jobs).flat());
       }
@@ -44,7 +48,7 @@ export function Info({ entityId }) {
     return function cleanup() {
       isCancelled = true;
     };
-  }, [setJobs, entity, state.ecs, state.ui.playerId]);
+  }, [setJobs, entity, state.ecs, state.ui.playerId, entityId, state.space]);
 
   return (
     <div>

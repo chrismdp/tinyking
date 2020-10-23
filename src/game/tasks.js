@@ -184,13 +184,14 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
 
   if (state.days > world.wait_until) {
     newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
-      spatial: { ...state.ecs.spatial[targetId] },
+      spatial: { ...state.ecs.spatial[targetId], immovable: false },
       nameable: { nickname: "Log" },
       good: { type: "wood", amount: 1 },
       haulable: { speedModifier: 0.5 },
       controllable: { controllerId: topController(state.ecs, actorId) }
     }))).forEach(id => state.redraws.push(id));
     deleteEntity(state, targetId);
+
     return 0;
   }
   return 1;
@@ -237,8 +238,6 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, ty
   }
 
   give(state.ecs, targetId, actorId);
-
-  removeFromSpace(state, targetId);
 
   state.redraws.push(actorId);
   state.redraws.push(targetId);

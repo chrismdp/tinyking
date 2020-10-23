@@ -22,6 +22,17 @@
   },
   {
     "conditions": {
+      "target.mappable.terrain": { "is": "grassland" },
+      "other.length": { "is": 0 }
+    },
+    "event": {
+      "jobs": [
+        { "key": "plough_field" }
+      ]
+    }
+  },
+  {
+    "conditions": {
       "target.haulable": { "not": "exists" },
       "target.good.type": { "is": "wood" }
     },

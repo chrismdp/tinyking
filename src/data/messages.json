@@ -118,7 +118,8 @@
     "cut_tree_down": "Cut down",
     "move_to_here": "Move here",
     "create_stockpile": "Create Stockpile",
-    "recruit": "Recruit"
+    "recruit": "Recruit",
+    "plough_field": "Plough field"
   },
   "tasks": {
     "create_stockpile": "Clearing space",
@@ -126,7 +127,8 @@
     "eating": "Eating",
     "recruiting": "Recruiting",
     "waiting_for": "Waiting",
-    "sleeping": "Sleeping"
+    "sleeping": "Sleeping",
+    "plough_field": "Ploughing"
   },
   "rooms": {
     "sleeping_quarters": {

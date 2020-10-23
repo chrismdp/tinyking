@@ -12,6 +12,9 @@ import { jobQueueFor, firstFreeJob } from "game/manager";
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
 export function forget_place() {}
+export function find_next_subtask() {}
+export function complete_subtask() {}
+export function clear_subtasks() {}
 
 const closestSpatialTo = (state, id) => (a, b) =>
   math.squaredDistance(state.ecs.spatial[a], state.ecs.spatial[id]) -
@@ -199,6 +202,37 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   return 1;
 }
 
+export function create_ploughing_subtasks(state, actorId, world, dt, firstRun, targetId) {
+  if (!state.ecs.farmable) {
+    state.ecs.farmable = {};
+  }
+  if (!state.ecs.farmable[targetId]) {
+    state.ecs.farmable[targetId] = { slots: {}, id: targetId };
+  }
+  const slots = state.ecs.farmable[targetId].slots;
+  world.subtasks = triangleCenters(state.ecs.spatial[targetId])
+    .filter(slot => slots[[slot.x, slot.y].join()] != "ploughed");
+}
+
+const TIME_TO_PLOUGH_SLOT = time.HOUR / 8;
+const PLOUGHED_SPEED = 0.25;
+
+export function plough_slot(state, actorId, world, dt, firstRun, targetId, place) {
+  if (firstRun) {
+    world.wait_until = state.days + TIME_TO_PLOUGH_SLOT;
+  }
+
+  if (state.days > world.wait_until) {
+    const slot = world.places[place];
+    state.ecs.farmable[targetId].slots[[slot.x, slot.y].join()] = "ploughed";
+    state.ecs.walkable[targetId].speed = PLOUGHED_SPEED;
+    state.redraws.push(targetId);
+    return 0;
+  }
+
+  return 1;
+}
+
 export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, type) {
   const stockpileId = world.places.slot.id;
   const space = state.space[Hex().fromPoint(state.ecs.spatial[stockpileId])];
@@ -347,10 +381,10 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     spiral.shift();
     const options = spiral
       .map(hex => state.space[hex] || [])
-      // TODO: perhaps another component that blocks spaces?
       .filter(space => !space.some(e =>
-        state.ecs.building[e] || (state.ecs.stockpile && state.ecs.stockpile[e])))
-      .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed > 0))
+        (state.ecs.spatial[e].immovable && !state.ecs.mappable[e]) ||
+        (state.ecs.farmable && state.ecs.farmable[e])))
+      .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed >= 0.5))
       .filter(e => e);
 
     if (options.length > 0) {

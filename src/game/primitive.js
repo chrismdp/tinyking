@@ -4,6 +4,11 @@ export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}
 export function create_stockpile() {}
+export function plough_slot() {}
+
+export function clear_subtasks(world) {
+  world.subtasks = null;
+}
 
 export function get_attention(world, expected, targetId) {
   world.capturedAttentionOf = targetId;
@@ -75,4 +80,25 @@ export function eat(world, expected, thing) {
   }
   world.holding[thing] = false;
   world.feeling.hungry = false;
+}
+
+export function create_ploughing_subtasks(world, expected) {
+  if (expected) {
+    world.subtasks = Array.from({length: 19}, i => ({x: i, y: i}));
+  }
+}
+
+export function find_next_subtask(world, expected, place) {
+  if (!world.subtasks || world.subtasks.length == 0) {
+    return nothing;
+  }
+  world.places[place] = world.subtasks[0];
+}
+
+export function complete_subtask(world, expected, place) {
+  const slot = world.places[place];
+  const idx = world.subtasks.findIndex(st => st.x == slot.x && st.y == slot.y);
+  if (idx != -1) {
+    world.subtasks.splice(idx, 1);
+  }
 }

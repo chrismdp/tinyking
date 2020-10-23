@@ -47,7 +47,7 @@ export function solve(world, jobs, tasks, plan = []) {
       }
     }
   } else {
-    throw "Cannot find task " + name + " (plan: " + JSON.stringify(plan) + ")";
+    throw "Cannot find either primitive or compound task " + name + " (plan: " + JSON.stringify(plan) + ")";
   }
 }
 

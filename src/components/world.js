@@ -36,7 +36,6 @@ const terrainColours = {
   "deep water": 0x2F4999,
   "shallow water": 0x3F6FAE,
   "grassland": 0x80C05D,
-  "ploughed": 0x6C4332,
   "sown": 0x6C4332,
   "growing": 0x6C4332,
   "harvestable": 0xE2C879,
@@ -164,6 +163,22 @@ const renderTile = (ecs, id) => {
   return graphics;
 };
 
+const renderPlot = (ecs, id) => {
+  const graphics = new PIXI.Graphics();
+  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+
+  graphics.beginFill(0x6C4332);
+  graphics.lineStyle();
+  for (const slot in ecs.farmable[id].slots) {
+    const [ x, y ] = slot.split(",");
+    graphics.drawRoundedRect(x - ecs.spatial[id].x - 15, y - ecs.spatial[id].y - 6, 30, 12, 3);
+  }
+  graphics.scale.set(0.9, 0.9);
+  graphics.anchor = { x: 0.5, y: 0.5 };
+
+  return graphics;
+};
+
 const GOLDEN_RATIO = 1.618034;
 
 const renderBuilding = (state, id) => {
@@ -249,8 +264,14 @@ const renderEntity = (state, id, t, heldObjects) => {
   }
 
   if (state.ecs.mappable[id]) {
-    return ["tiles", renderTile(state.ecs, id)];
+    const result = ["tiles", renderTile(state.ecs, id)];
+    if (state.ecs.farmable && state.ecs.farmable[id]) {
+      return [ result, ["stockpiles", renderPlot(state.ecs, id)] ];
+    }
+    return result;
+
   }
+
 
   if (state.ecs.haulable && state.ecs.haulable[id]) {
     if (heldObjects || !state.ecs.haulable[id].heldBy) {

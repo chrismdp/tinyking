@@ -82,6 +82,14 @@ export const check_jobs = () => [
     ]
   ],
   [
+    (_, jobs) => firstFreeJob(jobs, "plough_field"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["set_label", "plough_field"],
+      ["plough_field", entry.targetId],
+    ]
+  ],
+  [
     (_, jobs) => firstFreeJob(jobs, "create_stockpile"),
     entry => [
       ["take_job", entry.job.key],
@@ -206,6 +214,33 @@ export const pick_up = () => [
       [ "get_from_container", "grain", "container_with_food" ],
       [ "forget_place", "container_with_food" ],
       [ "find_food" ]
+    ]
+  ]
+];
+
+export const plough_field = (targetId) => [
+  [
+    world => !world.subtasks,
+    () => [
+      [ "create_ploughing_subtasks", targetId ],
+      [ "plough_field", targetId ]
+    ]
+  ],
+  [
+    world => world.subtasks && world.subtasks.length == 0,
+    () => [
+      [ "clear_subtasks" ],
+      [ "complete_job", "plough_field" ]
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_next_subtask", "ploughable_slot" ],
+      [ "walk_to", "ploughable_slot" ],
+      [ "plough_slot", targetId, "ploughable_slot" ],
+      [ "complete_subtask", "ploughable_slot" ],
+      [ "plough_field", targetId ]
     ]
   ]
 ];

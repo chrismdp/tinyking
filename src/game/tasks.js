@@ -212,7 +212,7 @@ export function create_ploughing_subtasks(state, actorId, world, dt, firstRun, t
   const slots = state.ecs.farmable[targetId].slots;
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, id: targetId, idx }))
-    .filter(({ idx }) => slots[idx] != "ploughed");
+    .filter(({ idx }) => !slots[idx] || slots[idx].state != "ploughed");
 }
 
 const TIME_TO_PLOUGH_SLOT = time.HOUR / 8;
@@ -228,7 +228,11 @@ export function plough_slot(state, actorId, world, dt, firstRun, targetId, place
     if (!state.ecs.farmable[targetId]) {
       throw "Cannot find farmable for " + targetId;
     }
-    state.ecs.farmable[targetId].slots[slot.idx] = "ploughed";
+    const slots = state.ecs.farmable[targetId].slots;
+    if (!slots[slot.idx]) {
+      slots[slot.idx] = {};
+    }
+    slots[slot.idx].state = "ploughed";
     state.ecs.walkable[targetId].speed = PLOUGHED_SPEED;
     state.redraws.push(targetId);
     return 0;

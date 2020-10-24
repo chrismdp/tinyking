@@ -397,7 +397,7 @@ const generateTriangle = () => {
   ].map(v => math.lerp(v, ctr, 0.25));
 };
 
-const TRIANGLES = generateTriangle();
+export const TRIANGLES = generateTriangle();
 export const TRIANGLE_INTERIOR_RADIUS = HEX_SIZE / 6;
 
 export function triangleCenters({x, y}) {

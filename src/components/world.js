@@ -8,7 +8,7 @@ import { Viewport } from "pixi-viewport";
 
 import { useTranslate } from "react-polyglot";
 
-import { Hex, InnerHex, HEX_SIZE, generateMap, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
+import { Hex, InnerHex, HEX_SIZE, generateMap, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { fullEntity } from "game/entities";
 import { topController, anyControlledAlive } from "game/playable";
 import * as time from "game/time";
@@ -169,9 +169,8 @@ const renderPlot = (ecs, id) => {
 
   graphics.beginFill(0x6C4332);
   graphics.lineStyle();
-  for (const slot in ecs.farmable[id].slots) {
-    const [ x, y ] = slot.split(",");
-    graphics.drawRoundedRect(x - ecs.spatial[id].x - 15, y - ecs.spatial[id].y - 6, 30, 12, 3);
+  for (const idx in ecs.farmable[id].slots) {
+    graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
   }
   graphics.scale.set(0.9, 0.9);
   graphics.anchor = { x: 0.5, y: 0.5 };

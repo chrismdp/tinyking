@@ -82,9 +82,9 @@ export function eat(world, expected, thing) {
   world.feeling.hungry = false;
 }
 
-export function create_ploughing_subtasks(world, expected) {
+export function create_ploughing_subtasks(world, expected, targetId) {
   if (expected) {
-    world.subtasks = Array.from({length: 19}, i => ({x: i, y: i}));
+    world.subtasks = Array.from({length: 19}, i => ({ x: i, y: i, id: targetId }));
   }
 }
 

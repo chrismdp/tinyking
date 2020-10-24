@@ -220,7 +220,7 @@ export const pick_up = () => [
 
 export const plough_field = (targetId) => [
   [
-    world => !world.subtasks,
+    world => !world.subtasks || world.subtasks.some(t => t.id != targetId),
     () => [
       [ "create_ploughing_subtasks", targetId ],
       [ "plough_field", targetId ]

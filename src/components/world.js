@@ -169,11 +169,11 @@ const renderPlot = (ecs, id) => {
 
   graphics.beginFill(0x6C4332);
   graphics.lineStyle();
-  for (const idx in ecs.farmable[id].slots) {
-    if (ecs.farmable[id].slots[idx].state == "ploughed") {
+  ecs.farmable[id].slots.forEach((slot, idx) => {
+    if (slot.state == "ploughed") {
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
     }
-  }
+  });
   graphics.scale.set(0.9, 0.9);
   graphics.anchor = { x: 0.5, y: 0.5 };
 

@@ -1,4 +1,4 @@
-import { Hex, Grid, HEX_SIZE, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
+import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
 import * as math from "game/math";
@@ -207,12 +207,15 @@ export function create_ploughing_subtasks(state, actorId, world, dt, firstRun, t
     state.ecs.farmable = {};
   }
   if (!state.ecs.farmable[targetId]) {
-    state.ecs.farmable[targetId] = { slots: {}, id: targetId };
+    state.ecs.farmable[targetId] = {
+      slots: Array.from({ length: TRIANGLES.length }, () => ({ state: "empty" })),
+      id: targetId
+    };
   }
   const slots = state.ecs.farmable[targetId].slots;
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, id: targetId, idx }))
-    .filter(({ idx }) => !slots[idx] || slots[idx].state != "ploughed");
+    .filter(({ idx }) => slots[idx].state != "ploughed");
 }
 
 const TIME_TO_PLOUGH_SLOT = time.HOUR / 8;
@@ -229,9 +232,6 @@ export function plough_slot(state, actorId, world, dt, firstRun, targetId, place
       throw "Cannot find farmable for " + targetId;
     }
     const slots = state.ecs.farmable[targetId].slots;
-    if (!slots[slot.idx]) {
-      slots[slot.idx] = {};
-    }
     slots[slot.idx].state = "ploughed";
     state.ecs.walkable[targetId].speed = PLOUGHED_SPEED;
     state.redraws.push(targetId);

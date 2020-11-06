@@ -23,6 +23,11 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "grassland" },
+      "not": {
+        "target.farmable.slots": {
+          "state": { "is": "ploughed" }
+        }
+      },
       "other.length": { "is": 0 }
     },
     "event": {

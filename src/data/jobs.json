@@ -38,6 +38,18 @@
   },
   {
     "conditions": {
+      "target.farmable.slots": {
+        "state": { "is": "ploughed" }
+      }
+    },
+    "event": {
+      "jobs": [
+        { "key": "sow_field" }
+      ]
+    }
+  },
+  {
+    "conditions": {
       "target.haulable": { "not": "exists" },
       "target.good.type": { "is": "wood" }
     },

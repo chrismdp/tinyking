@@ -202,28 +202,44 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   return 1;
 }
 
-export function create_ploughing_subtasks(state, actorId, world, dt, firstRun, targetId) {
+export function create_subtasks(state, actorId, world, dt, firstRun, targetId, result, lose) {
   if (!state.ecs.farmable) {
     state.ecs.farmable = {};
   }
   if (!state.ecs.farmable[targetId]) {
     state.ecs.farmable[targetId] = {
-      slots: Array.from({ length: TRIANGLES.length }, () => ({ state: "empty" })),
+      slots: Array.from({ length: TRIANGLES.length }, () => ({ updated: 0, state: "empty" })),
       id: targetId
     };
   }
   const slots = state.ecs.farmable[targetId].slots;
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
-    .map((slot, idx) => ({ ...slot, id: targetId, idx }))
-    .filter(({ idx }) => slots[idx].state != "ploughed");
+    .map((slot, idx) => ({ ...slot, result, lose, id: targetId, idx }))
+    .filter(({ idx }) => slots[idx].state != result);
 }
 
-const TIME_TO_PLOUGH_SLOT = time.HOUR / 8;
-const PLOUGHED_SPEED = 0.25;
+const SUBTASK_TIMES = {
+  "ploughed": time.HOUR / 8,
+  "sown": time.HOUR / 24
+};
 
-export function plough_slot(state, actorId, world, dt, firstRun, targetId, place) {
+const FARMED_SPEED = 0.25;
+
+export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, targetId, place) {
   if (firstRun) {
-    world.wait_until = state.days + TIME_TO_PLOUGH_SLOT;
+    const slot = world.places[place];
+    if (slot.lose) {
+      const holder = state.ecs.holder[actorId];
+      const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == slot.lose);
+      if (!id) {
+        console.log("PERFORM", actorId, "NO", slot.lose, "to lose");
+        return nothing;
+      }
+      take(state.ecs, id, null);
+      deleteEntity(state, id);
+    }
+
+    world.wait_until = state.days + SUBTASK_TIMES[slot.result];
   }
 
   if (state.days > world.wait_until) {
@@ -232,8 +248,9 @@ export function plough_slot(state, actorId, world, dt, firstRun, targetId, place
       throw "Cannot find farmable for " + targetId;
     }
     const slots = state.ecs.farmable[targetId].slots;
-    slots[slot.idx].state = "ploughed";
-    state.ecs.walkable[targetId].speed = PLOUGHED_SPEED;
+    slots[slot.idx].state = slot.result;
+    slots[slot.idx].updated = state.days;
+    state.ecs.walkable[targetId].speed = FARMED_SPEED;
     state.redraws.push(targetId);
     return 0;
   }

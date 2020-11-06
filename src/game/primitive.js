@@ -4,7 +4,7 @@ export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}
 export function create_stockpile() {}
-export function plough_slot() {}
+export function perform_subtask_in_slot() {}
 
 export function clear_subtasks(world) {
   world.subtasks = null;
@@ -82,9 +82,9 @@ export function eat(world, expected, thing) {
   world.feeling.hungry = false;
 }
 
-export function create_ploughing_subtasks(world, expected, targetId) {
+export function create_subtasks(world, expected, targetId, result) {
   if (expected) {
-    world.subtasks = Array.from({length: 19}, i => ({ x: i, y: i, id: targetId }));
+    world.subtasks = Array.from({length: 19}, i => ({ x: i, y: i, result, id: targetId }));
   }
 }
 

@@ -119,7 +119,8 @@
     "move_to_here": "Move here",
     "create_stockpile": "Create Stockpile",
     "recruit": "Recruit",
-    "plough_field": "Plough field"
+    "plough_field": "Plough field",
+    "sow_field": "Sow field"
   },
   "tasks": {
     "create_stockpile": "Clearing space",
@@ -128,7 +129,8 @@
     "recruiting": "Recruiting",
     "waiting_for": "Waiting",
     "sleeping": "Sleeping",
-    "plough_field": "Ploughing"
+    "plough_field": "Ploughing",
+    "sow_field": "Sowing"
   },
   "rooms": {
     "sleeping_quarters": {

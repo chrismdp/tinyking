@@ -371,7 +371,7 @@ export async function generateMap(state, seed, progressUpdate) {
         spatial: { ...state.ecs.spatial[id] },
         interior: { buildingId: building.id },
         controllable: { controllerId: building.id },
-        container: { capacity: 5, amounts: { grain: inhabitants } }
+        container: { capacity: 5, amounts: { grain: inhabitants * TRIANGLES.length } }
       }
     ]);
   }

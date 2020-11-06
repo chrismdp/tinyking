@@ -167,11 +167,15 @@ const renderPlot = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
 
-  graphics.beginFill(0x6C4332);
   graphics.lineStyle();
   ecs.farmable[id].slots.forEach((slot, idx) => {
-    if (slot.state == "ploughed") {
+    if (["ploughed", "sown"].includes(slot.state)) {
+      graphics.beginFill(0x6C4332);
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
+    }
+    if (slot.state == "sown") {
+      graphics.beginFill(terrainColours.harvestable);
+      graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, 3);
     }
   });
   graphics.scale.set(0.9, 0.9);

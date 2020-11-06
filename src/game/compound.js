@@ -86,7 +86,15 @@ export const check_jobs = () => [
     entry => [
       ["take_job", entry.job.key],
       ["set_label", "plough_field"],
-      ["plough_field", entry.targetId],
+      ["plough_field", entry.targetId ]
+    ]
+  ],
+  [
+    (_, jobs) => firstFreeJob(jobs, "sow_field"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["set_label", "sow_field"],
+      ["sow_field", entry.targetId ]
     ]
   ],
   [
@@ -183,7 +191,7 @@ export const find_food = () => [
   [
     world => !world.holding.grain,
     () => [
-      [ "pick_up", "grain" ]
+      [ "pick_up", "grain", [ "find_food" ] ],
     ]
   ],
   [
@@ -197,32 +205,32 @@ export const find_food = () => [
   ]
 ];
 
-export const pick_up = () => [
+export const pick_up = (good, recursiveTask) => [
   [
     always,
     () => [
-      [ "move_to_place", "stockpile_with_food", "stockpile_slot_with", "grain" ],
-      [ "pick_up_from_stockpile", "grain", "stockpile_with_food" ],
-      [ "forget_place", "stockpile_with_food" ],
-      [ "find_food" ]
+      [ "move_to_place", "stockpile_with", "stockpile_slot_with", good ],
+      [ "pick_up_from_stockpile", "grain", "stockpile_with" ],
+      [ "forget_place", "stockpile_with" ],
+      recursiveTask
     ]
   ],
   [
     always,
     () => [
-      [ "move_to_place", "container_with_food", "container_with", "grain" ],
-      [ "get_from_container", "grain", "container_with_food" ],
-      [ "forget_place", "container_with_food" ],
-      [ "find_food" ]
+      [ "move_to_place", "container_with", "container_with", good ],
+      [ "get_from_container", good, "container_with" ],
+      [ "forget_place", "container_with" ],
+      recursiveTask
     ]
   ]
 ];
 
 export const plough_field = (targetId) => [
   [
-    world => !world.subtasks || world.subtasks.some(t => t.id != targetId),
+    world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "ploughed"),
     () => [
-      [ "create_ploughing_subtasks", targetId ],
+      [ "create_subtasks", targetId, "ploughed" ],
       [ "plough_field", targetId ]
     ]
   ],
@@ -236,11 +244,44 @@ export const plough_field = (targetId) => [
   [
     always,
     () => [
-      [ "find_next_subtask", "ploughable_slot" ],
-      [ "walk_to", "ploughable_slot" ],
-      [ "plough_slot", targetId, "ploughable_slot" ],
-      [ "complete_subtask", "ploughable_slot" ],
+      [ "find_next_subtask", "subtask_slot" ],
+      [ "walk_to", "subtask_slot" ],
+      [ "perform_subtask_in_slot", targetId, "subtask_slot" ],
+      [ "complete_subtask", "subtask_slot" ],
       [ "plough_field", targetId ]
+    ]
+  ]
+];
+
+export const sow_field = (targetId) => [
+  [
+    world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "sown"),
+    () => [
+      [ "create_subtasks", targetId, "sown", "grain" ],
+      [ "sow_field", targetId ]
+    ]
+  ],
+  [
+    world => world.subtasks && world.subtasks.length == 0,
+    () => [
+      [ "clear_subtasks" ],
+      [ "complete_job", "sow_field" ]
+    ]
+  ],
+  [
+    world => !world.holding.grain,
+    () => [
+      [ "pick_up", "grain", [ "sow_field", targetId ] ]
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_next_subtask", "subtask_slot" ],
+      [ "walk_to", "subtask_slot" ],
+      [ "perform_subtask_in_slot", targetId, "subtask_slot" ],
+      [ "complete_subtask", "subtask_slot" ],
+      [ "sow_field", targetId ]
     ]
   ]
 ];

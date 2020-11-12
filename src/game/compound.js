@@ -189,28 +189,63 @@ export const move_to_place = (type, filter, param) => [
 
 export const find_food = () => [
   [
+    world => !world.holding.gruel,
+    () => [
+      [ "pick_up", "gruel", [ "find_food" ] ],
+    ]
+  ],
+  [
+    world => world.holding.gruel,
+    () => [
+      [ "set_label" ],
+      [ "move_to_place", "meet", "space" ],
+      [ "set_label", "eating"],
+      [ "eat", "gruel" ]
+    ]
+  ]
+];
+
+// TODO: Not yet complete. A number of these tasks don't yet exist: not quite
+// ready to do crafting.
+export const make_gruel = () => [
+  [
+    world => world.places.workshop && world.places.workshop.amounts.grain >= 5,
+    () => [
+      [ "move_to_place", "workshop", "workshop_with", "stove", { grain: 5 } ],
+      [ "craft", "gruel" ],
+    ]
+  ],
+  [
     world => !world.holding.grain,
     () => [
-      [ "pick_up", "grain", [ "find_food" ] ],
+      [ "pick_up", "grain", [ "make_gruel" ] ],
     ]
   ],
   [
     always,
     () => [
-      [ "set_label" ],
-      [ "move_to_place", "meet", "space" ],
-      [ "set_label", "eating"],
-      [ "eat", "grain" ]
+      [ "move_to_place", "workshop", "workshop_with", "stove" ],
+      [ "drop_entity_into_workshop", "workshop", "grain" ],
+      [ "make_gruel" ]
     ]
-  ]
+  ],
 ];
 
 export const pick_up = (good, recursiveTask) => [
   [
     always,
     () => [
+      [ "move_to_place", good, "haulable_with_good", good ],
+      [ "pick_up_entity_with_good", good ],
+      [ "forget_place", good ],
+      recursiveTask
+    ]
+  ],
+  [
+    always,
+    () => [
       [ "move_to_place", "stockpile_with", "stockpile_slot_with", good ],
-      [ "pick_up_from_stockpile", "grain", "stockpile_with" ],
+      [ "pick_up_from_stockpile", good, "stockpile_with" ],
       [ "forget_place", "stockpile_with" ],
       recursiveTask
     ]
@@ -219,8 +254,8 @@ export const pick_up = (good, recursiveTask) => [
     always,
     () => [
       [ "move_to_place", "container_with", "container_with", good ],
-      [ "get_from_container", good, "container_with" ],
       [ "forget_place", "container_with" ],
+      [ "get_from_container", good ],
       recursiveTask
     ]
   ]

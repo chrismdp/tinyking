@@ -438,10 +438,10 @@ export function sleep(state, actorId, world, dt) {
 }
 
 const FOOD_REPLENISH = {
-  grain: 24, // NOTE: this means we finish eating in about an hour
+  gruel: 24, // NOTE: this means we finish eating in about an hour
 };
 
-export function get_from_container(state, actorId, world, dt, firstRun, thing, place) {
+export function get_from_container(state, actorId, world, dt, firstRun, thing) {
   const s = state.ecs.spatial[actorId];
   const entities = entitiesInSameLocation(state, s);
   // TODO: the rooms in buildings are the containers. Need to move this to
@@ -452,23 +452,22 @@ export function get_from_container(state, actorId, world, dt, firstRun, thing, p
   if (containers.length == 0) {
     // NOTE: This container no longer trusted for this type of thing
     console.log("Oh dear. No container with", thing, "here");
-    world.places[place] = null;
     return nothing;
   }
   state.ecs.container[containers[0]].amounts[thing] -= 1;
-  const [ grain ] = newEntities(state, [{
+  const [ good ] = newEntities(state, [{
     good: { type: thing, amount: 1 },
     haulable: { heldBy: null },
     spatial: { x: s.x, y: s.y },
     controllable: { controllerId: topController(state.ecs, actorId) },
   }]);
-  give(state.ecs, grain, actorId);
+  give(state.ecs, good, actorId);
 }
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
   if (firstRun) {
     const holder = state.ecs.holder[actorId];
-    const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == "grain");
+    const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == thing);
     if (!id) {
       console.log("EAT", actorId, "NO", thing, "to eat");
       return nothing;

@@ -45,7 +45,8 @@ const terrainColours = {
 
 const itemColours = {
   "wood": terrainColours.dirt,
-  "grain": terrainColours.harvestable
+  "grain": terrainColours.harvestable,
+  "gruel": 0x7A845C
 };
 
 const renderItem = (ecs, id) => {

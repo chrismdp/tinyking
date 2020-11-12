@@ -191,7 +191,8 @@ export const find_food = () => [
   [
     world => !world.holding.gruel,
     () => [
-      [ "pick_up", "gruel", [ "find_food" ] ],
+      [ "pick_up", "gruel" ],
+      [ "find_food" ]
     ]
   ],
   [
@@ -218,7 +219,8 @@ export const make_gruel = () => [
   [
     world => !world.holding.grain,
     () => [
-      [ "pick_up", "grain", [ "make_gruel" ] ],
+      [ "pick_up", "grain" ],
+      [ "make_gruel" ],
     ]
   ],
   [
@@ -231,14 +233,13 @@ export const make_gruel = () => [
   ],
 ];
 
-export const pick_up = (good, recursiveTask) => [
+export const pick_up = (good) => [
   [
     always,
     () => [
       [ "move_to_place", good, "haulable_with_good", good ],
       [ "pick_up_entity_with_good", good ],
       [ "forget_place", good ],
-      recursiveTask
     ]
   ],
   [
@@ -247,7 +248,6 @@ export const pick_up = (good, recursiveTask) => [
       [ "move_to_place", "stockpile_with", "stockpile_slot_with", good ],
       [ "pick_up_from_stockpile", good, "stockpile_with" ],
       [ "forget_place", "stockpile_with" ],
-      recursiveTask
     ]
   ],
   [
@@ -256,7 +256,6 @@ export const pick_up = (good, recursiveTask) => [
       [ "move_to_place", "container_with", "container_with", good ],
       [ "forget_place", "container_with" ],
       [ "get_from_container", good ],
-      recursiveTask
     ]
   ]
 ];
@@ -306,7 +305,8 @@ export const sow_field = (targetId) => [
   [
     world => !world.holding.grain,
     () => [
-      [ "pick_up", "grain", [ "sow_field", targetId ] ]
+      [ "pick_up", "grain" ],
+      [ "sow_field", targetId ]
     ]
   ],
   [

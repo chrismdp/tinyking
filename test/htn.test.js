@@ -13,8 +13,8 @@ describe("HTN planning", () => {
       },
     };
 
-    const solution = sut.solve(rep, [], [ ["chop_tree", 2] ]);
-    expect(solution).toEqual([ [ "chop_tree", 2] ]);
+    const [plan, world] = sut.solve(rep, [], [ ["chop_tree", 2] ]);
+    expect(plan).toEqual([ [ "chop_tree", 2] ]);
   });
 
   it("allows compound tasks", () => {
@@ -29,8 +29,8 @@ describe("HTN planning", () => {
       },
     };
 
-    const solution = sut.solve(rep, [], [ ["move_to_place", "type", "filter", "param" ] ]);
-    expect(solution).toEqual([
+    const [plan, world] = sut.solve(rep, [], [ ["move_to_place", "type", "filter", "param" ] ]);
+    expect(plan).toEqual([
       ["find_place", "type", "filter", "param"],
       ["walk_to", "type"]
     ]);
@@ -48,17 +48,14 @@ describe("HTN planning", () => {
       },
     };
 
-    const solution = sut.solve(rep, [], [
+    const [plan, world] = sut.solve(rep, [], [
       ["move_to_place", "type", "filter", "param" ],
       ["move_to_place", "type", "filter", "param" ]
     ]);
 
-    // TODO: Not sure this is right. Should the 'rep' not be set for the second
-    // one by expected effects?
-    expect(solution).toEqual([
+    expect(plan).toEqual([
       ["find_place", "type", "filter", "param"],
       ["walk_to", "type" ],
-      ["find_place", "type", "filter", "param"],
       ["walk_to", "type" ]
     ]);
   });
@@ -70,8 +67,8 @@ describe("HTN planning", () => {
       holding: { "wood": false, "grain": true }
     };
 
-    const solution = sut.solve(rep, [], [["store_held"]]);
-    expect(solution).toEqual([
+    const [plan, world] = sut.solve(rep, [], [["store_held"]]);
+    expect(plan).toEqual([
       ["find_place", "slot", "stockpile_open_slot", "grain"],
       ["walk_to", "slot"],
       ["drop_entity_into_stockpile_slot", "grain"],
@@ -86,11 +83,22 @@ describe("HTN planning", () => {
       no_place_for: {},
       holding: {}
     };
-    const solution = sut.solve(rep, jobs, [["check_jobs"]]);
-    expect(solution).toEqual([
+    const [plan, world] = sut.solve(rep, jobs, [["check_jobs"]]);
+    expect(plan).toEqual([
       ["take_job", "move_to_here"],
       ["walk_to", "2"],
       ["complete_job", "move_to_here"],
     ]);
+  });
+
+  it("allows planned world to persist after descent into compound task", () => {
+    const rep = {
+      places: { grain: 1 },
+      no_place_for: {},
+      feeling: {},
+      holding: {}
+    };
+
+    const [plan, world] = sut.solve(rep, [], [["find_food"]]);
   });
 });

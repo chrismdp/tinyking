@@ -13,7 +13,7 @@ const debug = false;
 export function solve(world, jobs, tasks, plan = []) {
   if (debug) { console.log("SOLVE", world, "JOBS", jobs, "TASKS", tasks, "PLAN", plan); }
   if (tasks.length == 0) {
-    return plan;
+    return [ plan, world ];
   }
 
   const [task, ...rest] = tasks;
@@ -23,9 +23,9 @@ export function solve(world, jobs, tasks, plan = []) {
   if (primitive[name]) {
     const newWorld = produce(primitive[name])(world, true, ...args);
     if (newWorld) {
-      const solution = solve(newWorld, jobs, rest, [ ...plan, task ]);
-      if (solution) {
-        return solution;
+      const [ endPlan, endWorld ] = solve(newWorld, jobs, rest, [ ...plan, task ]);
+      if (endPlan) {
+        return [ endPlan, endWorld ];
       }
       if (debug) { console.log("NO SOLN FOUND FOR REST OF TASKS", rest); }
     }
@@ -39,9 +39,9 @@ export function solve(world, jobs, tasks, plan = []) {
       }
       for (const condition of conditions.filter(c => c)) {
         if (debug) { console.log("COMPOUND: condition for ", name, " : ", condition); }
-        const solution = solve(world, jobs, method[1](condition), plan);
-        if (solution) {
-          return solve(world, jobs, rest, solution);
+        const [ endPlan, endWorld ] = solve(world, jobs, method[1](condition), plan);
+        if (endPlan) {
+          return solve(endWorld, jobs, rest, endPlan);
         }
         if (debug) { console.log("NO SOLN FOUND FOR COMPOUND TASK", name); }
       }
@@ -49,6 +49,7 @@ export function solve(world, jobs, tasks, plan = []) {
   } else {
     throw "Cannot find either primitive or compound task " + name + " (plan: " + JSON.stringify(plan) + ")";
   }
+  return [];
 }
 
 export function finishTask(planner, task) {

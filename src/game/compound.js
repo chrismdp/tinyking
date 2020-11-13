@@ -49,12 +49,8 @@ export const person = () => [
     () => [ [ "check_jobs" ] ]
   ],
   [
-    always,
-    () => [ [ "plough_any_field" ] ]
-  ],
-  [
-    always,
-    () => [ [ "sow_any_field" ] ]
+    world => world.hour <= 20,
+    () => [ [ "farm" ] ]
   ],
   [
     always,
@@ -119,6 +115,17 @@ export const check_jobs = () => [
       ["complete_job", entry.job.key]
     ]
   ]
+];
+
+export const farm = () => [
+  [
+    always,
+    () => [ [ "plough_any_field" ] ]
+  ],
+  [
+    always,
+    () => [ [ "sow_any_field" ] ]
+  ],
 ];
 
 export const recruit = (targetId) => [

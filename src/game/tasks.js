@@ -135,7 +135,7 @@ export function release_job(state, actorId, world, dt, firstRun, key) {
   if (idx == -1) {
     console.log("Hang on, we are releasing a job", key,
       "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
-    return nothing;
+    return;
   }
   jobs[idx].assignedId = null;
 }

@@ -17,7 +17,7 @@ import * as htn from "game/htn";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { Info } from "components/info";
-import { pushJob, jobQueueFor } from "game/manager";
+import { pushJob, removeJob, jobQueueFor } from "game/manager";
 
 import fogSprite from "assets/fogSprite.png";
 
@@ -687,6 +687,15 @@ export function World() {
           if (!planner.world.currentJob && topController(state.ecs, id) == playerId) {
             htn.replan(planner);
           }
+        }
+        setPopupInfo({});
+      },
+      cancel_job: (managerId, key, targetId) => {
+        const assignedId = removeJob(state.ecs, managerId, key, targetId);
+        const planner = state.ecs.planner[assignedId];
+        if (planner) {
+          planner.world.currentJob = null;
+          htn.replan(planner);
         }
         setPopupInfo({});
       },

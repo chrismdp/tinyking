@@ -10,3 +10,14 @@ export const pushJob = (ecs, actorId, entry) => {
     jobs.push(entry);
   }
 };
+
+export const removeJob = (ecs, managerId, key, targetId) => {
+  const jobs = ecs.manager[managerId].jobs;
+  const idx = jobs.findIndex(j => j.job.key == key && j.targetId == targetId);
+  if (idx != -1) {
+    const assignedId = jobs[idx].assignedId;
+    jobs.splice(idx, 1);
+    return assignedId;
+  }
+  return null;
+};

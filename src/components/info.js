@@ -18,6 +18,32 @@ import { EntityContainer } from "components/entity_container";
 import Engine from "json-rules-engine-simplified";
 import rules from "data/jobs.json";
 
+function Job({ job, managerId, linkToTarget }) {
+  const state = React.useContext(GameState);
+  const t = useTranslate();
+
+  const cancelJob = React.useCallback((managerId, key, targetId) => {
+    state.ui.actions.cancel_job(managerId, key, targetId);
+  }, [state.ui.actions]);
+
+  const click = React.useCallback(() => state.ui.actions.select_entity(job.targetId, false),
+    [job, state.ui.actions]);
+
+  return (<li>
+    { linkToTarget ? (<a onClick={click}>{t("jobs." + job.job.key)}</a>) : t("jobs." + job.job.key) }
+    { job.assignedId && (<span> - assigned to:&nbsp;
+      <Name nameable={state.ecs.nameable[job.assignedId]}/>
+    </span>)}
+    &nbsp;(<a onClick={() => cancelJob(managerId, job.job.key, job.targetId)}>{t("jobs.cancel_job")}</a>)
+  </li>);
+}
+
+Job.propTypes = {
+  job: PropTypes.object.isRequired,
+  managerId: PropTypes.string.isRequired,
+  linkToTarget: PropTypes.bool.isRequired
+};
+
 export function Info({ entityId }) {
   const state = React.useContext(GameState);
   const t = useTranslate();
@@ -52,6 +78,16 @@ export function Info({ entityId }) {
     };
   }, [setJobs, entity, state.ecs, state.ui.playerId, entityId, state.space]);
 
+  const [targetOfJobs, setTargetOfJobs] = React.useState([]);
+  React.useEffect(() => {
+    for (const id in state.ecs.manager) {
+      const manager = state.ecs.manager[id];
+      setTargetOfJobs(manager.jobs
+        .filter(j => j.targetId == entityId)
+        .map(j => ({...j, managerId: id})));
+    }
+  }, [state.ecs.manager, entityId]);
+
   return (
     <div>
       {title && (<h1 className="capitalise handle">{title}
@@ -82,13 +118,11 @@ export function Info({ entityId }) {
         <span>{ entity.personable ? "Liege:" : "Controlled by:"} </span>
         <NameList ids={[entity.controllable.controllerId]}/>
       </>)}
+      <div>
+        { targetOfJobs.map((j, idx) => (<Job linkToTarget={false} key={idx} job={j} managerId={j.managerId}/>)) }
+      </div>
       { entity.manager && (<div>
-        {entity.manager.jobs.map((j, idx) => (<li key={idx}>
-          { JSON.stringify(j.job) } : {j.targetId}
-          { j.assignedId && (<span>Assigned to:
-            <Name nameable={state.ecs.nameable[j.assignedId]}/>
-          </span>)}
-        </li>))}
+        {entity.manager.jobs.map((j, idx) => (<Job linkToTarget={true} key={idx} job={j} managerId={entityId}/>)) }
       </div>)}
       { <JobList jobs={jobs} targetId={entity.id}/>}
       <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&

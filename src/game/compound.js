@@ -46,11 +46,17 @@ export const person = () => [
   ],
   [
     always,
-    () => [ [ "check_jobs" ] ]
+    () => [
+      [ "set_label" ],
+      [ "check_jobs" ]
+    ]
   ],
   [
     world => world.hour <= 20,
-    () => [ [ "farm" ] ]
+    () => [
+      [ "set_label" ],
+      [ "farm" ]
+    ]
   ],
   [
     always,
@@ -60,7 +66,6 @@ export const person = () => [
     always,
     () => [
       [ "set_label" ],
-      [ "wait_for", Math.random() * time.HOUR ],
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
       [ "wait_for", time.HOUR + Math.random() * time.HOUR ]

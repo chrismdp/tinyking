@@ -119,7 +119,8 @@
     "move_to_here": "Move here",
     "create_stockpile": "Create Stockpile",
     "create_field": "Create Field",
-    "recruit": "Recruit"
+    "recruit": "Recruit",
+    "cancel_job": "Cancel"
   },
   "tasks": {
     "create_stockpile": "Clearing space",

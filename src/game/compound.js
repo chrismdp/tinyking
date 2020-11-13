@@ -86,12 +86,12 @@ export const check_jobs = () => [
     ]
   ],
   [
-    (_, jobs) => firstFreeJob(jobs, "create_farmable"),
+    (_, jobs) => firstFreeJob(jobs, "create_field"),
     entry => [
       ["take_job", entry.job.key],
-      ["set_label", "create_farmable"],
+      ["set_label", "create_field"],
       ["walk_to", entry.targetId],
-      ["create_farmable", entry.targetId ],
+      ["create_field", entry.targetId ],
       ["complete_job", entry.job.key]
     ]
   ],

@@ -40,6 +40,7 @@ const terrainColours = {
   "growing": 0x6C4332,
   "harvestable": 0xE2C879,
   "dirt": 0x6C4332,
+  "field": 0x5A5C46,
   "stone": 0x5D7084,
 };
 
@@ -164,14 +165,16 @@ const renderTile = (ecs, id) => {
   return graphics;
 };
 
-const renderPlot = (ecs, id) => {
+const renderField = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.beginFill(terrainColours.field, 0.25);
+  graphics.drawPolygon(Hex().corners());
 
   graphics.lineStyle();
   ecs.farmable[id].slots.forEach((slot, idx) => {
     if (["ploughed", "sown"].includes(slot.state)) {
-      graphics.beginFill(0x6C4332);
+      graphics.beginFill(terrainColours.dirt);
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
     }
     if (slot.state == "sown") {
@@ -271,9 +274,6 @@ const renderEntity = (state, id, t, heldObjects) => {
 
   if (state.ecs.mappable[id]) {
     const result = ["tiles", renderTile(state.ecs, id)];
-    if (state.ecs.farmable && state.ecs.farmable[id]) {
-      return [ result, ["stockpiles", renderPlot(state.ecs, id)] ];
-    }
     return result;
 
   }
@@ -318,6 +318,10 @@ const renderEntity = (state, id, t, heldObjects) => {
         person.lineTo(-25, 15);
       }
     }, t)];
+  }
+
+  if (state.ecs.farmable && state.ecs.farmable[id]) {
+    return ["stockpiles", renderField(state.ecs, id)];
   }
 
   if (state.ecs.stockpile[id]) {

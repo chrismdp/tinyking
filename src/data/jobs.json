@@ -28,7 +28,7 @@
     },
     "event": {
       "jobs": [
-        { "key": "create_farmable" }
+        { "key": "create_field" }
       ]
     }
   },

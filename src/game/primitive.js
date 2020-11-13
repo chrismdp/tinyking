@@ -11,7 +11,7 @@ export function create_stockpile(world) {
   world.no_place_for.slot = null;
 }
 
-export function create_farmable(world) {
+export function create_field(world) {
   world.no_place_for.ploughable_field = null;
 }
 

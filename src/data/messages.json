@@ -118,7 +118,7 @@
     "cut_tree_down": "Cut down",
     "move_to_here": "Move here",
     "create_stockpile": "Create Stockpile",
-    "create_farmable": "Create Field",
+    "create_field": "Create Field",
     "recruit": "Recruit"
   },
   "tasks": {
@@ -129,7 +129,7 @@
     "waiting_for": "Waiting",
     "sleeping": "Sleeping",
     "plough_field": "Ploughing",
-    "create_farmable": "Creating Field",
+    "create_field": "Creating Field",
     "sow_field": "Sowing"
   },
   "rooms": {

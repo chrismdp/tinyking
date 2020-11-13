@@ -181,25 +181,22 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
   return 1;
 }
 
-export function create_farmable(state, actorId, world, dt, firstRun, targetId) {
+export function create_field(state, actorId, world, dt, firstRun, targetId) {
   if (firstRun) {
     world.wait_until = state.days + TIME_TO_DESIGNATE;
   }
 
   if (state.days > world.wait_until) {
-    if (!state.ecs.farmable) {
-      state.ecs.farmable = {};
-    }
-    if (!state.ecs.farmable[targetId]) {
-      state.ecs.farmable[targetId] = {
+    newEntities(state, [{
+      nameable: { nickname: "Field" },
+      spatial: { ...state.ecs.spatial[targetId] },
+      farmable: {
         slots: Array.from({ length: TRIANGLES.length }, () => ({ updated: 0, state: "empty" })),
         id: targetId,
         claimerId: null
-      };
-      state.ecs.controllable[targetId] = {
-        controllerId: topController(state.ecs, actorId)
-      };
-    }
+      },
+      controllable: { controllerId: topController(state.ecs, actorId) },
+    }]).forEach(id => state.redraws.push(id));
     return 0;
   }
   return 1;
@@ -243,8 +240,6 @@ const SUBTASK_TIMES = {
   "ploughed": time.HOUR / 8,
   "sown": time.HOUR / 24
 };
-
-const FARMED_SPEED = 0.25;
 
 export function claim_farmable(state, actorId, world, dt, firstRun, target) {
   const targetId = world.places[target] || target;
@@ -310,7 +305,6 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     const slots = state.ecs.farmable[targetId].slots;
     slots[slot.idx].state = slot.result;
     slots[slot.idx].updated = state.days;
-    state.ecs.walkable[targetId].speed = FARMED_SPEED;
     state.redraws.push(targetId);
     return 0;
   }

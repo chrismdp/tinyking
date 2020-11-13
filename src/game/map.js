@@ -45,7 +45,7 @@ export const InnerHex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
-function generateFamily(size, spatial, front, generator) {
+function generateFamily(size, spatial, front, generator, days) {
   let result = [];
   const grid = Grid.hexagon({ center: spatial, radius: 1 });
   const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
@@ -75,7 +75,8 @@ function generateFamily(size, spatial, front, generator) {
           jobs: [],
           places: {},
           feeling: {},
-          holding: {}
+          holding: {},
+          hour: days,
         }
       },
     });
@@ -89,13 +90,13 @@ export function generateFamilies({ state, seed, playerStartTile }) {
     let people = [];
     let spatial = Hex().fromPoint(state.ecs.spatial[buildingId]);
     if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator)[0],
+      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator, state.days)[0],
         playable: { known: [] },
       };
       people = [ player ];
     } else {
       const familySize = 1 + (generator.random_int() % 3);
-      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator).map(p => ({ ...p }));
+      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator, state.days).map(p => ({ ...p }));
     }
     const ids = newEntities(state, people);
     for (const id of ids) {

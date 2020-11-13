@@ -1,7 +1,8 @@
 [
   {
     "conditions": {
-      "target.walkable.speed": { "greater": 0 }
+      "target.walkable.speed": { "greater": 0 },
+      "not": { "job_targets" : { "includes": "$target.id" } }
     },
     "event": {
       "jobs": [
@@ -12,22 +13,12 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "grassland" },
-      "other.length": { "is": 0 }
+      "other.length": { "is": 0 },
+      "not": { "job_targets" : { "includes": "$target.id" } }
     },
     "event": {
       "jobs": [
-        { "key": "create_stockpile" }
-      ]
-    }
-  },
-  {
-    "conditions": {
-      "target.mappable.terrain": { "is": "grassland" },
-      "target": { "not": { "has": "farmable" } },
-      "other.length": { "is": 0 }
-    },
-    "event": {
-      "jobs": [
+        { "key": "create_stockpile" },
         { "key": "create_field" }
       ]
     }

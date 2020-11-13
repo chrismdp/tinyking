@@ -5,6 +5,7 @@ import { useTranslate } from "react-polyglot";
 
 import { fullEntity } from "game/entities";
 import { Hex } from "game/map";
+import { topController } from "game/playable";
 
 import { GameState } from "components/contexts";
 import { JobList } from "components/job_list";
@@ -36,6 +37,7 @@ export function Info({ entityId }) {
       const payload = {
         target: entity,
         actor: fullEntity(state.ecs, state.ui.playerId),
+        job_targets: state.ecs.manager[topController(state.ecs, state.ui.playerId)].jobs.map(j => j.targetId),
         other: state.space[Hex().fromPoint(entity.spatial)]
           .filter(id => id != entityId)
       };

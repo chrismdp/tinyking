@@ -50,6 +50,14 @@ export const person = () => [
   ],
   [
     always,
+    () => [ [ "plough_any_field" ] ]
+  ],
+  [
+    always,
+    () => [ [ "sow_any_field" ] ]
+  ],
+  [
+    always,
     () => [ [ "haul_to_stockpile", "wood" ] ]
   ],
   [
@@ -82,19 +90,13 @@ export const check_jobs = () => [
     ]
   ],
   [
-    (_, jobs) => firstFreeJob(jobs, "plough_field"),
+    (_, jobs) => firstFreeJob(jobs, "create_farmable"),
     entry => [
       ["take_job", entry.job.key],
-      ["set_label", "plough_field"],
-      ["plough_field", entry.targetId ]
-    ]
-  ],
-  [
-    (_, jobs) => firstFreeJob(jobs, "sow_field"),
-    entry => [
-      ["take_job", entry.job.key],
-      ["set_label", "sow_field"],
-      ["sow_field", entry.targetId ]
+      ["set_label", "create_farmable"],
+      ["walk_to", entry.targetId],
+      ["create_farmable", entry.targetId ],
+      ["complete_job", entry.job.key]
     ]
   ],
   [
@@ -140,6 +142,46 @@ export const store_held = () => [
       [ "move_to_place", "slot", "stockpile_open_slot", held ],
       [ "drop_entity_into_stockpile_slot", held ],
       [ "forget_place", "slot" ]
+    ]
+  ]
+];
+
+export const plough_any_field = () => [
+  [
+    world => world.places.ploughable_field,
+    field => [
+      [ "claim_farmable", field ],
+      [ "walk_to", field ],
+      [ "set_label", "plough_field" ],
+      [ "plough_field", field ],
+      [ "release_farmable", field ],
+      [ "forget_place", "ploughable_field" ]
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_place", "ploughable_field", "farmable_slot_with", ["empty", "harvested", "rotten"] ],
+    ]
+  ]
+];
+
+export const sow_any_field = () => [
+  [
+    world => world.places.sowable_field,
+    field => [
+      [ "claim_farmable", field ],
+      [ "walk_to", field ],
+      [ "set_label", "sow_field" ],
+      [ "sow_field", field ],
+      [ "release_farmable", field ],
+      [ "forget_place", "sowable_field" ]
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_place", "sowable_field", "farmable_slot_with", ["ploughed"] ],
     ]
   ]
 ];
@@ -272,7 +314,6 @@ export const plough_field = (targetId) => [
     world => world.subtasks && world.subtasks.length == 0,
     () => [
       [ "clear_subtasks" ],
-      [ "complete_job", "plough_field" ]
     ]
   ],
   [
@@ -299,7 +340,6 @@ export const sow_field = (targetId) => [
     world => world.subtasks && world.subtasks.length == 0,
     () => [
       [ "clear_subtasks" ],
-      [ "complete_job", "sow_field" ]
     ]
   ],
   [
@@ -314,7 +354,7 @@ export const sow_field = (targetId) => [
     () => [
       [ "find_next_subtask", "subtask_slot" ],
       [ "walk_to", "subtask_slot" ],
-      [ "perform_subtask_in_slot", targetId, "subtask_slot" ],
+      [ "perform_subtask_in_slot", targetId, "subtask_slot", "grain" ],
       [ "complete_subtask", "subtask_slot" ],
       [ "sow_field", targetId ]
     ]

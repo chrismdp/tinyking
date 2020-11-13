@@ -23,28 +23,12 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "grassland" },
-      "not": {
-        "target.farmable.slots": {
-          "state": { "is": "ploughed" }
-        }
-      },
+      "target": { "not": { "has": "farmable" } },
       "other.length": { "is": 0 }
     },
     "event": {
       "jobs": [
-        { "key": "plough_field" }
-      ]
-    }
-  },
-  {
-    "conditions": {
-      "target.farmable.slots": {
-        "state": { "is": "ploughed" }
-      }
-    },
-    "event": {
-      "jobs": [
-        { "key": "sow_field" }
+        { "key": "create_farmable" }
       ]
     }
   },

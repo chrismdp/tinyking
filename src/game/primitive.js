@@ -3,8 +3,17 @@ import { nothing } from "immer";
 export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}
-export function create_stockpile() {}
-export function perform_subtask_in_slot() {}
+
+export function claim_farmable() {}
+export function release_farmable() {}
+
+export function create_stockpile(world) {
+  world.no_place_for.slot = null;
+}
+
+export function create_farmable(world) {
+  world.no_place_for.ploughable_field = null;
+}
 
 export function clear_subtasks(world) {
   world.subtasks = null;
@@ -86,6 +95,10 @@ export function create_subtasks(world, expected, targetId, result) {
   if (expected) {
     world.subtasks = Array.from({length: 19}, i => ({ x: i, y: i, result, id: targetId }));
   }
+}
+
+export function perform_subtask_in_slot(world, expeced, targetId, place, lose) {
+  world.holding[lose] = false;
 }
 
 export function find_next_subtask(world, expected, place) {

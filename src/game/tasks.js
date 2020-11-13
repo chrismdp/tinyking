@@ -162,10 +162,10 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   return (state.days <= world.wait_until);
 }
 
-const TIME_TO_CREATE_STOCKPILE = time.HOUR / 3;
+const TIME_TO_DESIGNATE = time.HOUR / 3;
 export function create_stockpile(state, actorId, world, dt, firstRun, targetId) {
   if (firstRun) {
-    world.wait_until = state.days + TIME_TO_CREATE_STOCKPILE;
+    world.wait_until = state.days + TIME_TO_DESIGNATE;
   }
 
   if (state.days > world.wait_until) {
@@ -176,6 +176,30 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
       holder: { capacity: 19, held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
+    return 0;
+  }
+  return 1;
+}
+
+export function create_farmable(state, actorId, world, dt, firstRun, targetId) {
+  if (firstRun) {
+    world.wait_until = state.days + TIME_TO_DESIGNATE;
+  }
+
+  if (state.days > world.wait_until) {
+    if (!state.ecs.farmable) {
+      state.ecs.farmable = {};
+    }
+    if (!state.ecs.farmable[targetId]) {
+      state.ecs.farmable[targetId] = {
+        slots: Array.from({ length: TRIANGLES.length }, () => ({ updated: 0, state: "empty" })),
+        id: targetId,
+        claimerId: null
+      };
+      state.ecs.controllable[targetId] = {
+        controllerId: topController(state.ecs, actorId)
+      };
+    }
     return 0;
   }
   return 1;
@@ -202,16 +226,13 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   return 1;
 }
 
-export function create_subtasks(state, actorId, world, dt, firstRun, targetId, result, lose) {
-  if (!state.ecs.farmable) {
-    state.ecs.farmable = {};
+export function create_subtasks(state, actorId, world, dt, firstRun, target, result, lose) {
+  const targetId = world.places[target] || target;
+  if (!targetId) {
+    // NOTE: Not passed a target and one isn't set for us, cannot continue
+    return nothing;
   }
-  if (!state.ecs.farmable[targetId]) {
-    state.ecs.farmable[targetId] = {
-      slots: Array.from({ length: TRIANGLES.length }, () => ({ updated: 0, state: "empty" })),
-      id: targetId
-    };
-  }
+
   const slots = state.ecs.farmable[targetId].slots;
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, result, lose, id: targetId, idx }))
@@ -225,7 +246,46 @@ const SUBTASK_TIMES = {
 
 const FARMED_SPEED = 0.25;
 
-export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, targetId, place) {
+export function claim_farmable(state, actorId, world, dt, firstRun, target) {
+  const targetId = world.places[target] || target;
+  if (!targetId) {
+    // NOTE: Not passed a target and one isn't set for us, cannot continue
+    return nothing;
+  }
+
+  if (!state.ecs.farmable[targetId]) {
+    return nothing;
+  }
+
+  if (state.ecs.farmable[targetId].claimerId &&
+    state.ecs.farmable[targetId].claimerId != actorId) {
+    return nothing;
+  }
+
+  state.ecs.farmable[targetId].claimerId = actorId;
+}
+
+export function release_farmable(state, actorId, world, dt, firstRun, target) {
+  const targetId = world.places[target] || target;
+  if (!targetId) {
+    // NOTE: Not passed a target and one isn't set for us, cannot continue
+    return nothing;
+  }
+
+  if (!state.ecs.farmable[targetId]) {
+    return nothing;
+  }
+
+  state.ecs.farmable[targetId].claimerId = null;
+}
+
+export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, target, place) {
+  const targetId = world.places[target] || target;
+  if (!targetId) {
+    // NOTE: Not passed a target and one isn't set for us, cannot continue
+    return nothing;
+  }
+
   if (firstRun) {
     const slot = world.places[place];
     if (slot.lose) {
@@ -395,6 +455,15 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
         state.ecs.good[id] &&
         state.ecs.good[id].type == filterParam &&
         !state.ecs.haulable[id].heldBy);
+    }
+    available.sort(closestSpatialTo(state, actorId));
+    found_place = available[0];
+  } else if (filter == "farmable_slot_with") {
+    let available = [];
+    if (state.ecs.farmable) {
+      available = Object.keys(state.ecs.farmable).filter(id =>
+        realm == topController(state.ecs, id) &&
+        state.ecs.farmable[id].slots.some(s => filterParam.includes(s.state)));
     }
     available.sort(closestSpatialTo(state, actorId));
     found_place = available[0];

@@ -373,7 +373,7 @@ export async function generateMap(state, seed, progressUpdate) {
         interior: { buildingId: building.id },
         controllable: { controllerId: building.id },
         container: {
-          capacity: 5,
+          capacity: (inhabitants + 1) * TRIANGLES.length,
           amounts: {
             gruel: inhabitants,
             grain: inhabitants * TRIANGLES.length

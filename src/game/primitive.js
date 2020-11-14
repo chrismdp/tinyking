@@ -4,8 +4,13 @@ export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}
 
-export function claim_farmable() {}
-export function release_farmable() {}
+export function claim_farmable(world, expected, farmableId) {
+  world.claimedFarmable = farmableId;
+}
+
+export function release_farmable(world) {
+  world.claimedFarmable = null;
+}
 
 export function create_stockpile(world) {
   world.no_place_for.slot = null;
@@ -67,7 +72,11 @@ export function pick_up_from_stockpile(world, expected, thing) {
   world.holding[thing] = true;
 }
 
-export function drop_entity_into_stockpile_slot(world, expected, thing) {
+export function drop_entity_into_stockpile_slot(world, expected, place, thing) {
+  world.holding[thing] = false;
+}
+
+export function drop_entity_into_container(world, expected, place, thing) {
   world.holding[thing] = false;
 }
 

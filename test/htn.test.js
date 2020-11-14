@@ -60,22 +60,6 @@ describe("HTN planning", () => {
     ]);
   });
 
-  it("run sub tasks more than once for method conditions that return arrays", () => {
-    const rep = {
-      places: {},
-      no_place_for: {},
-      holding: { "wood": false, "grain": true }
-    };
-
-    const [plan, world] = sut.solve(rep, [], [["store_held"]]);
-    expect(plan).toEqual([
-      ["find_place", "slot", "stockpile_open_slot", "grain"],
-      ["walk_to", "slot"],
-      ["drop_entity_into_stockpile_slot", "grain"],
-      ["forget_place", "slot"]
-    ]);
-  });
-
   it("accepts a job queue", () => {
     const jobs = [ { job: { key: "move_to_here" }, targetId: "2" } ];
     const rep = {

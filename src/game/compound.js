@@ -19,6 +19,13 @@ export const person = () => [
     ]
   ],
   [
+    world => world.claimedFarmable,
+    farmableId => [
+      [ "release_farmable", farmableId ],
+      [ "person" ]
+    ]
+  ],
+  [
     world => world.capturedBy,
     () => [
       [ "set_label", "waiting_for" ],
@@ -151,8 +158,16 @@ export const store_held = () => [
   [
     world => Object.keys(world.holding).filter(h => world.holding[h]),
     held => [
+      [ "move_to_place", "container_with_space", "container_with_space", held ],
+      [ "drop_entity_into_container", "container_with_space", held ],
+      [ "forget_place", "container_with_space" ]
+    ]
+  ],
+  [
+    world => Object.keys(world.holding).filter(h => world.holding[h]),
+    held => [
       [ "move_to_place", "slot", "stockpile_open_slot", held ],
-      [ "drop_entity_into_stockpile_slot", held ],
+      [ "drop_entity_into_stockpile_slot", "slot", held ],
       [ "forget_place", "slot" ]
     ]
   ]
@@ -209,7 +224,7 @@ export const haul_to_stockpile = (thing) => [
       [ "pick_up_entity_with_good", thing ],
       [ "forget_place", thing ],
       [ "walk_to", "slot" ],
-      [ "drop_entity_into_stockpile_slot", thing ],
+      [ "drop_entity_into_stockpile_slot", "slot", thing ],
       [ "forget_place", "slot" ]
     ]
   ]

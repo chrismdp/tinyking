@@ -8,6 +8,7 @@ import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } fr
 import { topController } from "game/playable";
 import { nothing } from "immer";
 import { jobQueueFor, firstFreeJob } from "game/manager";
+import { containerHasSpace } from "game/container";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
@@ -304,6 +305,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     }
     const slots = state.ecs.farmable[targetId].slots;
     slots[slot.idx].state = slot.result;
+    slots[slot.idx].content = slot.lose;
     slots[slot.idx].updated = state.days;
     state.redraws.push(targetId);
     return 0;
@@ -312,13 +314,13 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
   return 1;
 }
 
-export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, type) {
-  const stockpileId = world.places.slot.id;
+export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, place, type) {
+  const stockpileId = world.places[place].id;
   const space = state.space[Hex().fromPoint(state.ecs.spatial[stockpileId])];
-  if (space.some(e => math.squaredDistance(world.places.slot, state.ecs.spatial[e]) <
+  if (space.some(e => math.squaredDistance(world.places[place], state.ecs.spatial[e]) <
     TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS)) {
     // NOTE: Someone has already taken this slot - replan
-    world.places.slot = null;
+    world.places[place] = null;
     return nothing;
   }
 
@@ -327,12 +329,31 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
 
   give(state.ecs, droppedId, stockpileId);
 
-  state.ecs.spatial[droppedId].x = world.places.slot.x;
-  state.ecs.spatial[droppedId].y = world.places.slot.y;
+  state.ecs.spatial[droppedId].x = world.places[place].x;
+  state.ecs.spatial[droppedId].y = world.places[place].y;
   space.push(droppedId);
 
   state.redraws.push(actorId);
   state.redraws.push(stockpileId);
+}
+
+export function drop_entity_into_container(state, actorId, world, dt, firstRun, place, type) {
+  const containerId = world.places[place];
+  if (!containerHasSpace(state.ecs.container[containerId])) {
+    // NOTE: Someone has already taken this slot - replan
+    world.places[place] = null;
+    return nothing;
+  }
+
+  const droppedId = state.ecs.holder[actorId].held
+    .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
+
+  take(state.ecs, droppedId);
+  deleteEntity(state, droppedId);
+  state.ecs.container[containerId].amounts[type] += 1;
+
+  state.redraws.push(actorId);
+  state.redraws.push(containerId);
 }
 
 export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, type) {
@@ -400,6 +421,13 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
       realm == topController(state.ecs, id) &&
       state.ecs.container[id].amounts[filterParam] > 0);
+    available_in_realm.sort(closestSpatialTo(state, actorId));
+    found_place = available_in_realm[0];
+  } else if (filter == "container_with_space") {
+    if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
+    const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
+      realm == topController(state.ecs, id) &&
+      containerHasSpace(state.ecs.container[id]));
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
   } else if (filter == "stockpile_slot_with") {

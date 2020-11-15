@@ -177,12 +177,12 @@ export const plough_any_field = () => [
   [
     world => world.places.ploughable_field,
     field => [
+      [ "forget_place", "ploughable_field" ],
       [ "claim_farmable", field ],
       [ "walk_to", field ],
       [ "set_label", "plough_field" ],
       [ "plough_field", field ],
       [ "release_farmable", field ],
-      [ "forget_place", "ploughable_field" ]
     ]
   ],
   [
@@ -197,12 +197,12 @@ export const sow_any_field = () => [
   [
     world => world.places.sowable_field,
     field => [
+      [ "forget_place", "sowable_field" ],
       [ "claim_farmable", field ],
       [ "walk_to", field ],
       [ "set_label", "sow_field" ],
       [ "sow_field", field ],
       [ "release_farmable", field ],
-      [ "forget_place", "sowable_field" ]
     ]
   ],
   [

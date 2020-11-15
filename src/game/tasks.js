@@ -484,6 +484,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     let available = [];
     if (state.ecs.farmable) {
       available = Object.keys(state.ecs.farmable).filter(id =>
+        (!state.ecs.farmable[id].claimerId || state.ecs.farmable[id].claimerId == actorId) &&
         realm == topController(state.ecs, id) &&
         state.ecs.farmable[id].slots.some(s => filterParam.includes(s.state)));
     }

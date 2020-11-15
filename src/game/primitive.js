@@ -10,6 +10,7 @@ export function claim_farmable(world, expected, farmableId) {
 
 export function release_farmable(world) {
   world.claimedFarmable = null;
+  world.subtasks = null;
 }
 
 export function create_stockpile(world) {

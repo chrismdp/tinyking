@@ -1,4 +1,4 @@
-import { HEX_SIZE } from "game/map";
+import { Hex, HEX_SIZE } from "game/map";
 import * as math from "game/math";
 
 function opposite(side) {
@@ -47,7 +47,7 @@ function reconstructPath(cameFrom, id) {
 
 const debug = false;
 
-export function path(ecs, start, goal) {
+export function path(state, start, goal) {
   const openSet = [start];
   const cameFrom = {};
 
@@ -55,7 +55,7 @@ export function path(ecs, start, goal) {
   const fScore = {};
   gScore[start] = 0;
 
-  fScore[start] = h(ecs, start, goal);
+  fScore[start] = h(state.ecs, start, goal);
 
   while (openSet.length > 0) {
     openSet.sort((a, b) => (fScore[a] || Infinity) - (fScore[b] || Infinity));
@@ -67,15 +67,18 @@ export function path(ecs, start, goal) {
       return reconstructPath(cameFrom, current);
     }
     openSet.shift();
-    for (const side in ecs.walkable[current].neighbours) {
-      const n = ecs.walkable[current].neighbours[side];
-      const tentativeScore = gScore[current] + (HEX_SIZE / (ecs.walkable[n].speed || 1));
+    for (const side in state.ecs.walkable[current].neighbours) {
+      const n = state.ecs.walkable[current].neighbours[side];
+      const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
+        0.2 : 1;
+      const tentativeScore = gScore[current] +
+        (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty));
       if (debug) { console.log("P n", n, "TS", tentativeScore, "GSN", gScore[n]); }
       if (!(n in gScore) || tentativeScore < gScore[n]) {
         if (debug) { console.log("P cameFrom", n, current); }
         cameFrom[n] = { id: current, exit: +side };
         gScore[n] = tentativeScore;
-        fScore[n] = gScore[n] + h(ecs, n, goal);
+        fScore[n] = gScore[n] + h(state.ecs, n, goal);
         if (!openSet.includes(n)) {
           openSet.push(n);
         }

@@ -58,7 +58,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     if (!s) {
       throw "walk to: Actor " + actorId + " has no spatial";
     }
-    world.route = path(state.ecs, closestNavPointTo(state, s), closestNavPointTo(state, targetPoint));
+    world.route = path(state, closestNavPointTo(state, s), closestNavPointTo(state, targetPoint));
   }
 
   let next = world.route && world.route[0];

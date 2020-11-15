@@ -31,6 +31,13 @@ const SPEED = {
   fast: 3600
 };
 
+const CROP = {
+  grain: {
+    colour: 0xE2C879,
+    growingTime: time.DAYS_IN_SEASON * 1.5
+  }
+};
+
 const terrainColours = {
   "mountain": 0x3C3A44,
   "deep water": 0x2F4999,
@@ -165,21 +172,23 @@ const renderTile = (ecs, id) => {
   return graphics;
 };
 
-const renderField = (ecs, id) => {
+const renderField = (state, id) => {
   const graphics = new PIXI.Graphics();
-  graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
+  graphics.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
   graphics.beginFill(terrainColours.field, 0.25);
   graphics.drawPolygon(Hex().corners());
 
   graphics.lineStyle();
-  ecs.farmable[id].slots.forEach((slot, idx) => {
-    if (["ploughed", "sown"].includes(slot.state)) {
+  state.ecs.farmable[id].slots.forEach((slot, idx) => {
+    if (["harvestable", "ploughed", "sown"].includes(slot.state)) {
       graphics.beginFill(terrainColours.dirt);
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
     }
-    if (slot.state == "sown") {
-      graphics.beginFill(terrainColours.harvestable);
-      graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, 3);
+    if (["harvestable", "sown"].includes(slot.state)) {
+      graphics.beginFill(CROP[slot.content].colour);
+      const radius = Math.max(2,
+        (state.days - slot.updated) * 10 / CROP[slot.content].growingTime);
+      graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, radius);
     }
   });
   graphics.scale.set(0.9, 0.9);
@@ -321,7 +330,7 @@ const renderEntity = (state, id, t, heldObjects) => {
   }
 
   if (state.ecs.farmable && state.ecs.farmable[id]) {
-    return ["stockpiles", renderField(state.ecs, id)];
+    return ["stockpiles", renderField(state, id)];
   }
 
   if (state.ecs.stockpile[id]) {
@@ -484,6 +493,21 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
           const person = state.ecs.personable[id];
           person.tiredness += time.HOUR;
           person.hunger += time.HOUR;
+        }
+
+        if (state.ecs.farmable) {
+          for (const id in state.ecs.farmable) {
+            for (const slot of state.ecs.farmable[id].slots) {
+              if (slot.content) {
+                state.redraws.push(id);
+
+                const age = state.days - slot.updated;
+                if (age > CROP[slot.content].growingTime) {
+                  slot.status = "harvestable";
+                }
+              }
+            }
+          }
         }
         renderUI();
       }

@@ -416,6 +416,10 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   });
 
   app.ticker.add(frameMod => {
+    if (SPEED[state.game_speed] == 0) {
+      return;
+    }
+
     for (const id in state.ecs.planner) {
       const planner = state.ecs.planner[id];
 

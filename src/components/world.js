@@ -34,7 +34,8 @@ const SPEED = {
 const CROP = {
   grain: {
     colour: 0xE2C879,
-    growingTime: time.DAYS_IN_SEASON * 1.5
+    growingTime: time.DAYS_IN_SEASON * 1.5,
+    harvestableAmount: 6
   }
 };
 
@@ -180,14 +181,18 @@ const renderField = (state, id) => {
 
   graphics.lineStyle();
   state.ecs.farmable[id].slots.forEach((slot, idx) => {
-    if (["harvestable", "ploughed", "sown"].includes(slot.state)) {
+    if (["harvested", "harvestable", "ploughed", "sown"].includes(slot.state)) {
       graphics.beginFill(terrainColours.dirt);
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
     }
-    if (["harvestable", "sown"].includes(slot.state)) {
+    if (["harvested"].includes(slot.state)) {
+      graphics.beginFill(0x000000, 0.5);
+      graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, 5);
+    } else if (["harvestable", "sown"].includes(slot.state)) {
       graphics.beginFill(CROP[slot.content].colour);
-      const radius = Math.max(2,
-        (state.days - slot.updated) * 10 / CROP[slot.content].growingTime);
+      const radius = Math.min(6,
+        Math.max(2,
+          (state.days - slot.updated) * 6 / CROP[slot.content].growingTime));
       graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, radius);
     }
   });
@@ -290,7 +295,7 @@ const renderEntity = (state, id, t, heldObjects) => {
 
   if (state.ecs.haulable && state.ecs.haulable[id]) {
     if (heldObjects || !state.ecs.haulable[id].heldBy) {
-      return ["stockpiles", renderItem(state.ecs, id)];
+      return ["haulable", renderItem(state.ecs, id)];
     } else {
       return [];
     }
@@ -333,12 +338,12 @@ const renderEntity = (state, id, t, heldObjects) => {
     return ["stockpiles", renderField(state, id)];
   }
 
-  if (state.ecs.stockpile[id]) {
+  if (state.ecs.stockpile && state.ecs.stockpile[id]) {
     return ["stockpiles", renderStockpile(state, id, t)];
   }
 
   const entity = fullEntity(state.ecs, id);
-  throw "Cannot render entity heldObjects is " + heldObjects + ":" + JSON.stringify(entity);
+  throw "Cannot render entity " + id + " heldObjects is " + heldObjects + ":" + JSON.stringify(entity);
 };
 
 const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
@@ -381,6 +386,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   let layer = {
     tiles: new PIXI.Container(),
     stockpiles: new PIXI.Container(),
+    haulable: new PIXI.Container(),
     people: new PIXI.Container(),
     buildings: new PIXI.Container(),
     fog: new PIXI.Container(),
@@ -506,8 +512,10 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
                 state.redraws.push(id);
 
                 const age = state.days - slot.updated;
+                console.log("FARM", age, CROP[slot.content]);
                 if (age > CROP[slot.content].growingTime) {
-                  slot.status = "harvestable";
+                  slot.state = "harvestable";
+                  slot.amount = CROP[slot.content].harvestableAmount;
                 }
               }
             }

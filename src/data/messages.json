@@ -130,8 +130,9 @@
     "waiting_for": "Waiting",
     "sleeping": "Sleeping",
     "plough_field": "Ploughing",
-    "create_field": "Creating Field",
-    "sow_field": "Sowing"
+    "create_field": "Clearing space",
+    "sow_field": "Sowing",
+    "harvest_field": "Harvesting"
   },
   "rooms": {
     "sleeping_quarters": {

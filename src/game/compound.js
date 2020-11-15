@@ -67,7 +67,7 @@ export const person = () => [
   ],
   [
     always,
-    () => [ [ "haul_to_stockpile", "wood" ] ]
+    () => [ [ "haul", "wood" ] ]
   ],
   [
     always,
@@ -132,11 +132,19 @@ export const check_jobs = () => [
 export const farm = () => [
   [
     always,
-    () => [ [ "plough_any_field" ] ]
+    () => [ [ "haul", "grain" ] ]
+  ],
+  [
+    always,
+    () => [ [ "harvest_any_field" ] ]
   ],
   [
     always,
     () => [ [ "sow_any_field" ] ]
+  ],
+  [
+    always,
+    () => [ [ "plough_any_field" ] ]
   ],
 ];
 
@@ -166,9 +174,9 @@ export const store_held = () => [
   [
     world => Object.keys(world.holding).filter(h => world.holding[h]),
     held => [
-      [ "move_to_place", "slot", "stockpile_open_slot", held ],
-      [ "drop_entity_into_stockpile_slot", "slot", held ],
-      [ "forget_place", "slot" ]
+      [ "move_to_place", "stockpile_open_slot", "stockpile_open_slot", held ],
+      [ "drop_entity_into_stockpile_slot", "stockpile_open_slot", held ],
+      [ "forget_place", "stockpile_open_slot" ]
     ]
   ]
 ];
@@ -193,6 +201,26 @@ export const plough_any_field = () => [
   ]
 ];
 
+export const harvest_any_field = () => [
+  [
+    world => world.places.harvestable_field,
+    field => [
+      [ "forget_place", "harvestable_field" ],
+      [ "claim_farmable", field ],
+      [ "walk_to", field ],
+      [ "set_label", "harvest_field" ],
+      [ "harvest_field", field ],
+      [ "release_farmable", field ],
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_place", "harvestable_field", "farmable_slot_with", ["harvestable"] ],
+    ]
+  ]
+];
+
 export const sow_any_field = () => [
   [
     world => world.places.sowable_field,
@@ -213,19 +241,29 @@ export const sow_any_field = () => [
   ]
 ];
 
-export const haul_to_stockpile = (thing) => [
+export const haul = (thing) => [
   [
     always,
     () => [
-      [ "find_place", "slot", "stockpile_open_slot", thing ],
+      [ "find_place", "container_with_space", "container_with_space", thing ],
       [ "find_place", thing, "haulable_with_good", thing ],
       [ "set_label" ],
       [ "walk_to", thing ],
       [ "pick_up_entity_with_good", thing ],
       [ "forget_place", thing ],
-      [ "walk_to", "slot" ],
-      [ "drop_entity_into_stockpile_slot", "slot", thing ],
-      [ "forget_place", "slot" ]
+      [ "store_held" ],
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_place", "stockpile_open_slot", "stockpile_open_slot", thing ],
+      [ "find_place", thing, "haulable_with_good", thing ],
+      [ "set_label" ],
+      [ "walk_to", thing ],
+      [ "pick_up_entity_with_good", thing ],
+      [ "forget_place", thing ],
+      [ "store_held" ],
     ]
   ]
 ];
@@ -333,7 +371,7 @@ export const plough_field = (targetId) => [
   [
     world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "ploughed"),
     () => [
-      [ "create_subtasks", targetId, "ploughed" ],
+      [ "create_subtasks", targetId, "ploughed", ["empty", "harvested"] ],
       [ "plough_field", targetId ]
     ]
   ],
@@ -355,11 +393,37 @@ export const plough_field = (targetId) => [
   ]
 ];
 
+export const harvest_field = (targetId) => [
+  [
+    world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "harvested"),
+    () => [
+      [ "create_subtasks", targetId, "harvested", ["harvestable"] ],
+      [ "harvest_field", targetId ]
+    ]
+  ],
+  [
+    world => world.subtasks && world.subtasks.length == 0,
+    () => [
+      [ "clear_subtasks" ],
+    ]
+  ],
+  [
+    always,
+    () => [
+      [ "find_next_subtask", "subtask_slot" ],
+      [ "walk_to", "subtask_slot" ],
+      [ "perform_subtask_in_slot", targetId, "subtask_slot" ],
+      [ "complete_subtask", "subtask_slot" ],
+      [ "harvest_field", targetId ]
+    ]
+  ]
+];
+
 export const sow_field = (targetId) => [
   [
     world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "sown"),
     () => [
-      [ "create_subtasks", targetId, "sown", "grain" ],
+      [ "create_subtasks", targetId, "sown", ["ploughed"], "grain" ],
       [ "sow_field", targetId ]
     ]
   ],

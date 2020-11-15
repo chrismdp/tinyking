@@ -229,7 +229,7 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   return 1;
 }
 
-export function create_subtasks(state, actorId, world, dt, firstRun, target, result, lose) {
+export function create_subtasks(state, actorId, world, dt, firstRun, target, result, candidates, lose) {
   const targetId = world.places[target] || target;
   if (!targetId) {
     // NOTE: Not passed a target and one isn't set for us, cannot continue
@@ -237,14 +237,16 @@ export function create_subtasks(state, actorId, world, dt, firstRun, target, res
   }
 
   const slots = state.ecs.farmable[targetId].slots;
+  // FIXME: This doesn't work... don't sow over a sown area!
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, result, lose, id: targetId, idx }))
-    .filter(({ idx }) => slots[idx].state != result);
+    .filter(({ idx }) => candidates.includes(slots[idx].state));
 }
 
 const SUBTASK_TIMES = {
   "ploughed": time.HOUR / 8,
-  "sown": time.HOUR / 24
+  "sown": time.HOUR / 24,
+  "harvested": time.HOUR / 8
 };
 
 export function claim_farmable(state, actorId, world, dt, firstRun, target) {
@@ -288,30 +290,40 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
   }
 
   if (firstRun) {
-    const slot = world.places[place];
-    if (slot.lose) {
+    const subtask = world.places[place];
+    if (subtask.lose) {
       const holder = state.ecs.holder[actorId];
-      const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == slot.lose);
+      const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == subtask.lose);
       if (!id) {
-        console.log("PERFORM", actorId, "NO", slot.lose, "to lose");
+        console.log("PERFORM", actorId, "NO", subtask.lose, "to lose");
         return nothing;
       }
       take(state.ecs, id, null);
       deleteEntity(state, id);
     }
 
-    world.wait_until = state.days + SUBTASK_TIMES[slot.result];
+    world.wait_until = state.days + SUBTASK_TIMES[subtask.result];
   }
 
   if (state.days > world.wait_until) {
-    const slot = world.places[place];
+    const subtask = world.places[place];
     if (!state.ecs.farmable[targetId]) {
       throw "Cannot find farmable for " + targetId;
     }
-    const slots = state.ecs.farmable[targetId].slots;
-    slots[slot.idx].state = slot.result;
-    slots[slot.idx].content = slot.lose;
-    slots[slot.idx].updated = state.days;
+    const slot = state.ecs.farmable[targetId].slots[subtask.idx];
+    slot.state = subtask.result;
+    if (subtask.result == "harvested") {
+      console.log("HARVEST", state.ecs.spatial[targetId], slot, subtask);
+      newEntities(state, Array.from({ length: slot.amount }, () => ({
+        spatial: { x: subtask.x, y: subtask.y, immovable: false },
+        good: { type: slot.content, amount: 1 },
+        haulable: { heldBy: null },
+        controllable: { controllerId: topController(state.ecs, actorId) }
+      }))).forEach(id => state.redraws.push(id));
+    } else if (subtask.lose) {
+      slot.content = subtask.lose;
+    }
+    slot.updated = state.days;
     state.redraws.push(targetId);
     return 0;
   }
@@ -502,11 +514,8 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     });
     spiral.shift();
     const options = spiral
-      .map(hex => state.space[hex] || [])
-      .filter(space => !space.some(e =>
-        (state.ecs.spatial[e].immovable && !state.ecs.mappable[e]) ||
-        (state.ecs.farmable && state.ecs.farmable[e])))
-      .map(space => space.find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed >= 0.5))
+      .filter(hex => state.space[hex] && state.space[hex].length == 1)
+      .map(hex => state.space[hex].find(e => state.ecs.walkable[e] && state.ecs.walkable[e].speed >= 0.5))
       .filter(e => e);
 
     if (options.length > 0) {

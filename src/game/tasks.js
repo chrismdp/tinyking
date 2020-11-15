@@ -520,6 +520,8 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
 
     if (options.length > 0) {
       found_place = options[Math.floor(Math.random() * options.length)];
+    } else {
+      found_place = state.space[Hex().fromPoint(state.ecs.spatial[actorId])].find(e => state.ecs.walkable[e]);
     }
   } else {
     throw "Don't know how to find a place for '" + filter + "'";

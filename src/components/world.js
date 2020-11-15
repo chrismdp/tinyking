@@ -20,6 +20,7 @@ import { Info } from "components/info";
 import { pushJob, removeJob, jobQueueFor } from "game/manager";
 
 import fogSprite from "assets/fogSprite.png";
+import crops from "data/crops.json";
 
 const ROUTES_TO_FULL_PATH = 100;
 
@@ -29,14 +30,6 @@ const SPEED = {
   paused: 0,
   normal: 360,
   fast: 3600
-};
-
-const CROP = {
-  grain: {
-    colour: 0xE2C879,
-    growingTime: time.DAYS_IN_SEASON * 1.5,
-    harvestableAmount: 6
-  }
 };
 
 const terrainColours = {
@@ -189,10 +182,10 @@ const renderField = (state, id) => {
       graphics.beginFill(0x000000, 0.5);
       graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, 5);
     } else if (["harvestable", "sown"].includes(slot.state)) {
-      graphics.beginFill(CROP[slot.content].colour);
+      graphics.beginFill(parseInt(crops[slot.content].colour, 16));
       const radius = Math.min(6,
         Math.max(2,
-          (state.days - slot.updated) * 6 / CROP[slot.content].growingTime));
+          (state.days - slot.updated) * 6 / crops[slot.content].growingTime));
       graphics.drawCircle(TRIANGLES[idx].x, TRIANGLES[idx].y, radius);
     }
   });
@@ -512,10 +505,9 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
                 state.redraws.push(id);
 
                 const age = state.days - slot.updated;
-                console.log("FARM", age, CROP[slot.content]);
-                if (age > CROP[slot.content].growingTime) {
+                if (age > crops[slot.content].growingTime) {
                   slot.state = "harvestable";
-                  slot.amount = CROP[slot.content].harvestableAmount;
+                  slot.amount = crops[slot.content].harvestableAmount;
                 }
               }
             }

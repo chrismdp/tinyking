@@ -34,7 +34,7 @@
     "because": "Because:",
     "you_control": "You control this character. Click to move or assign to a job.",
     "chosen_action": "Chosen action:",
-    "until": "(%{smart_count} turn left) |||| (%{smart_count} turns left)"
+    "until": "(%{time})"
   },
 
   "terrain": {

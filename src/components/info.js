@@ -12,6 +12,7 @@ import { JobList } from "components/job_list";
 import { TraitList } from "components/trait_list";
 import { NameList } from "components/name_list";
 import { Name } from "components/name";
+import { FarmProgress } from "components/farm_progress";
 import { SleepingQuarters } from "components/sleeping_quarters";
 import { EntityContainer } from "components/entity_container";
 
@@ -106,6 +107,7 @@ export function Info({ entityId }) {
           })
         }
       </div>)}
+      { entity.farmable && entity.farmable.slots.some(s => s.state == "sown") && <FarmProgress farmable={entity.farmable}/> }
       { entity.building && (<><span>Rooms: </span>
         <ul>{
           entity.building.rooms.map(r => (<li key={r}>

@@ -113,10 +113,15 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       return 0;
     }
   } else {
-    dx /= length;
-    dy /= length;
-    s.x += dx * speed;
-    s.y += dy * speed;
+    if (speed > length) {
+      s.x = targetPoint.x;
+      s.y = targetPoint.y;
+    } else {
+      dx /= length;
+      dy /= length;
+      s.x += dx * speed;
+      s.y += dy * speed;
+    }
     for (const displayObject of state.pixi[actorId]) {
       displayObject.position.set(s.x, s.y);
     }

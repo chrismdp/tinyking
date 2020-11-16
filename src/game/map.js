@@ -304,11 +304,11 @@ export async function generateMap(state, seed, progressUpdate) {
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
-    mappable: { worn: {}, terrain: tile.terrain },
+    mappable: { terrain: tile.terrain },
     tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
-    walkable: { speed: walkable[tile.terrain], neighbours: {} },
+    walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },
   }));
 
   const treeEntities = trees.map(tree => ({

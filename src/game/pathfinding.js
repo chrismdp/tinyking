@@ -71,8 +71,9 @@ export function path(state, start, goal) {
       const n = state.ecs.walkable[current].neighbours[side];
       const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
         0.2 : 1;
+      const wornIncentive = Math.max(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
       const tentativeScore = gScore[current] +
-        (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty));
+        (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty)) - wornIncentive;
       if (debug) { console.log("P n", n, "TS", tentativeScore, "GSN", gScore[n]); }
       if (!(n in gScore) || tentativeScore < gScore[n]) {
         if (debug) { console.log("P cameFrom", n, current); }

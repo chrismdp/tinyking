@@ -25,13 +25,13 @@ describe("pathfinding", () => {
           7: tiles[6]
         },
         walkable: {
-          1: { neighbours: { 5: 3 } },
-          2: { neighbours: { 0: 3, 1: 1, 2: 7 } },
-          3: { neighbours: { 3: 2, 2: 1, 1: 4 } },
-          4: { neighbours: { 4: 3, 3: 1, 2: 5 } },
-          5: { neighbours: { 5: 4, 4: 1, 3: 6 } },
-          6: { neighbours: { 0: 5, 5: 1, 4: 7 } },
-          7: { neighbours: { 1: 6, 0: 1, 5: 2 } },
+          1: { worn: {}, neighbours: { 5: 3 } },
+          2: { worn: {}, neighbours: { 0: 3, 1: 1, 2: 7 } },
+          3: { worn: {}, neighbours: { 3: 2, 2: 1, 1: 4 } },
+          4: { worn: {}, neighbours: { 4: 3, 3: 1, 2: 5 } },
+          5: { worn: {}, neighbours: { 5: 4, 4: 1, 3: 6 } },
+          6: { worn: {}, neighbours: { 0: 5, 5: 1, 4: 7 } },
+          7: { worn: {}, neighbours: { 1: 6, 0: 1, 5: 2 } },
         }
       }
     };
@@ -60,10 +60,10 @@ describe("pathfinding", () => {
           4: tiles[3]
         },
         walkable: {
-          1: { neighbours: { 4: 2, 5: 3, 0: 4 } },
-          2: { neighbours: { 0: 3, 1: 1 } },
-          3: { speed: 0.5, neighbours: { 3: 2, 2: 1, 1: 4 } },
-          4: { neighbours: { 4: 3, 3: 1 } },
+          1: { worn: {}, neighbours: { 4: 2, 5: 3, 0: 4 } },
+          2: { worn: {}, neighbours: { 0: 3, 1: 1 } },
+          3: { worn: {}, speed: 0.5, neighbours: { 3: 2, 2: 1, 1: 4 } },
+          4: { worn: {}, neighbours: { 4: 3, 3: 1 } },
         }
       }
     };

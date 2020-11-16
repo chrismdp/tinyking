@@ -133,9 +133,9 @@ const renderTile = (ecs, id) => {
   }
   graphics.endFill();
   graphics.lineStyle();
-  for (const key in ecs.mappable[id].worn) {
+  for (const key in ecs.walkable[id].worn) {
     const [ entrance, exit ] = key.split(",").map(i => i == "C" ? "C" : +i);
-    graphics.beginFill(terrainColours.dirt, Math.min(1.0, ecs.mappable[id].worn[key] / ROUTES_TO_FULL_PATH));
+    graphics.beginFill(terrainColours.dirt, Math.min(1.0, ecs.walkable[id].worn[key] / ROUTES_TO_FULL_PATH));
     const center = { x: 0, y: 0 };
     const line = {
       entrance: [

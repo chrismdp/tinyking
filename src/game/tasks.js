@@ -86,10 +86,10 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     // NOTE: Wear down the path
     if (next.entrance != null || next.exit != null) {
       const key = [next.entrance ?? "C", next.exit ?? "C"].sort().join();
-      if (!(key in state.ecs.mappable[next.id].worn)) {
-        state.ecs.mappable[next.id].worn[key] = 0;
+      if (!(key in state.ecs.walkable[next.id].worn)) {
+        state.ecs.walkable[next.id].worn[key] = 0;
       }
-      state.ecs.mappable[next.id].worn[key] += 1;
+      state.ecs.walkable[next.id].worn[key] += 1;
       state.redraws.push(next.id);
     }
 

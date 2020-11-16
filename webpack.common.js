@@ -66,6 +66,10 @@ module.exports = {
         use: [ "file-loader" ],
       },
       {
+        test: /\.csv$/,
+        use: [ "csv-loader" ],
+      },
+      {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         use: [ "file-loader" ],
       },

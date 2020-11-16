@@ -50,10 +50,12 @@ function generateFamily(size, spatial, front, generator, days) {
   const grid = Grid.hexagon({ center: spatial, radius: 1 });
   const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
   const starts = grid.neighborsOf(spatial, sides);
+  const familySeed = generator.random_int();
   for (let p = 0; p < size; p++) {
     const { x, y } = starts[p].toPoint();
+    const male = generator.random_int() % 2 == 0;
     result.push({
-      nameable: { type: "person", seed: generator.random_int() },
+      nameable: { type: "person", familySeed, male, seed: generator.random_int() },
       spatial: { x, y },
       traits: { values: {} },
       attributes: {},
@@ -64,7 +66,7 @@ function generateFamily(size, spatial, front, generator, days) {
         type: "person",
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
-        body: generator.random_int() % 2 == 0 ? BODY_MALE : BODY_FEMALE,
+        body: male ? BODY_MALE : BODY_FEMALE,
         tiredness: 0.2 + Math.random() * 0.4,
         hunger: 0.4 + Math.random() * 0.4
       },

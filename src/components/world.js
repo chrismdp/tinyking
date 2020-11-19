@@ -488,8 +488,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
         // FIXME: This potentially leads to frame spikes each hour
         for (const id in state.ecs.planner) {
           const planner = state.ecs.planner[id];
-          planner.world.hour = time.hour_of_day(state.days);
-          planner.world.time_of_day = time.time(state.days);
+          planner.world.days = state.days;
         }
 
         for (const id in state.ecs.personable) {

@@ -423,6 +423,8 @@ export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, type
   state.redraws.push(slot.stockpileId);
 }
 
+const FIND_PLACE_DELAY = time.HOUR * 4;
+
 export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {
   let found_place;
 
@@ -529,11 +531,12 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
 
   if (!found_place) {
     // NOTE: Prevent AI from looking again this hour
-    world.no_place_for[type] = world.hour || 0;
+    world.no_place_for[type] = (world.days || 0) + FIND_PLACE_DELAY;
     return nothing;
   }
 
   world.places[type] = found_place;
+  world.no_place_for[type] = null;
 }
 
 // NOTE: compensate for getting tireder through sleep
@@ -542,7 +545,7 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
   person.tiredness -= dt * SLEEP_REPLENISH;
-  return person.tiredness >= 0.1 || world.time_of_day == "night";
+  return person.tiredness >= 0.1 || time.time(world.days) == "night";
 }
 
 const FOOD_REPLENISH = {

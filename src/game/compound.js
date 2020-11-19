@@ -37,7 +37,7 @@ export const person = () => [
     () => [ [ "store_held" ] ]
   ],
   [
-    world => world.feeling.tired && world.time_of_day == "evening" || world.time_of_day == "night",
+    world => world.feeling.tired && (time.hour_of_day(world.days) >= 21 || time.hour_of_day(world.days) < 9),
     () => [
       [ "set_label" ],
       [ "move_to_place", "sleep", "allows_sleep" ],
@@ -45,7 +45,7 @@ export const person = () => [
     ],
   ],
   [
-    world => world.feeling.hungry && world.time_of_day != "night",
+    world => world.feeling.hungry && time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 21,
     () => [
       [ "set_label" ],
       [ "find_food" ]
@@ -59,7 +59,7 @@ export const person = () => [
     ]
   ],
   [
-    world => world.hour <= 20,
+    world => time.hour_of_day(world.hour) < 18,
     () => [
       [ "set_label" ],
       [ "farm" ]

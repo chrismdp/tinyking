@@ -367,10 +367,9 @@ button {
 
   @media (max-width: 499px) {
     position: absolute;
-    bottom: 10px;
+    top: 10px;
     left: 10px;
     right: 10px;
-    height: 120px;
   }
 
   @media (min-width: 500px) {
@@ -502,4 +501,8 @@ button {
 
 .capitalise {
   text-transform: capitalize;
+}
+
+.character {
+  float: left;
 }

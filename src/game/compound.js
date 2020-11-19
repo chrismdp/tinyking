@@ -248,9 +248,9 @@ export const haul = (thing) => [
       [ "find_place", "container_with_space", "container_with_space", thing ],
       [ "find_place", "haulable_with " + thing, "haulable_with_good", thing ],
       [ "set_label" ],
-      [ "walk_to", thing ],
-      [ "pick_up_entity_with_good", thing ],
-      [ "forget_place", thing ],
+      [ "walk_to", "haulable_with " + thing ],
+      [ "pick_up_entity_with_good", "haulable_with " + thing ],
+      [ "forget_place", "haulable_with " + thing ],
       [ "store_held" ],
     ]
   ],
@@ -260,9 +260,9 @@ export const haul = (thing) => [
       [ "find_place", "stockpile_open_slot", "stockpile_open_slot", thing ],
       [ "find_place", "haulable_with " + thing, "haulable_with_good", thing ],
       [ "set_label" ],
-      [ "walk_to", thing ],
-      [ "pick_up_entity_with_good", thing ],
-      [ "forget_place", thing ],
+      [ "walk_to", "haulable_with " + thing ],
+      [ "pick_up_entity_with_good", "haulable_with " + thing ],
+      [ "forget_place", "haulable_with " + thing ],
       [ "store_held" ],
     ]
   ]

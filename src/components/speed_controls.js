@@ -25,7 +25,7 @@ export function SpeedControls() {
     state.ui.actions.set_speed(speedClass), [state.ui.actions]);
 
   return (<div id='speed-controls'>
-    <SpeedButton icon="pause" game_speed="pause" click={set_speed}/>
+    <SpeedButton icon="pause" game_speed="paused" click={set_speed}/>
     <SpeedButton icon="play" game_speed="normal" click={set_speed}/>
     <SpeedButton icon="fast-forward" game_speed="fast" click={set_speed}/>
   </div>);

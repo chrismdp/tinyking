@@ -281,8 +281,8 @@ export const go_to_sleep = () => [
 export const move_to_place = (type, filter, param) => [
   [
     world => world.places[type],
-    place => [
-      ["walk_to", place]
+    () => [
+      ["walk_to", type]
     ]
   ],
   [

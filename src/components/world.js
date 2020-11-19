@@ -339,11 +339,10 @@ const renderEntity = (state, id, t, heldObjects) => {
   throw "Cannot render entity " + id + " heldObjects is " + heldObjects + ":" + JSON.stringify(entity);
 };
 
-const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
+const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
   app.stage.destroy({children: true});
   app.stage = new PIXI.Container();
 
-  state.pixi = {};
   state.fog = {};
   state.fogTexture = PIXI.Texture.from(fogSprite);
   state.redraws = [];
@@ -410,11 +409,11 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   pixi.filters.sunset.matrix[12] = b / 255;
   pixi.filters.night.night(0.75);
 
-  app.ticker.add(() => {
+  state.pixi.ticker.add(() => {
     TWEEN.update();
   });
 
-  app.ticker.add(frameMod => {
+  state.pixi.ticker.add(frameMod => {
     if (SPEED[state.game_speed] == 0) {
       return;
     }
@@ -477,7 +476,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
   const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
 
   let hour = 0;
-  app.ticker.add((frameMod) => {
+  state.pixi.ticker.add((frameMod) => {
     if (SPEED[state.game_speed]) {
       const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
       state.days += toAdd;
@@ -518,7 +517,7 @@ const renderMap = async (app, state, popupOver, setPopupInfo, renderUI, t) => {
     timeFilter(state.pixi, state.days);
   });
 
-  app.ticker.add(() => {
+  state.pixi.ticker.add(() => {
     if (state.redraws.length > 0) {
       const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat().filter(e => state.ecs.mappable[e]);
       for (const id of state.redraws) {
@@ -731,7 +730,14 @@ export function World() {
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
+        if (state.pixi && state.pixi.ticker) {
+          state.pixi.ticker.stop();
+          state.pixi.ticker.destroy();
+        }
         state.pixi = {};
+        state.pixi.ticker = new PIXI.Ticker();
+        state.pixi.ticker.start();
+
         state.ui.progress = { count: 0 };
         state.game_speed = "normal";
         state.days = 0.375;
@@ -744,7 +750,7 @@ export function World() {
           app.stage.removeChildren();
         }
 
-        await renderMap(app, state, popupOver, setPopupInfo, renderUI, t);
+        renderMap(app, state, popupOver, setPopupInfo, renderUI, t);
 
         renderUI();
       },

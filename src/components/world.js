@@ -118,20 +118,6 @@ const renderTile = (ecs, id) => {
   const corners = Hex().corners();
   graphics.drawPolygon(...corners);
   graphics.endFill();
-  graphics.beginFill(0xE2C879);
-  if (ecs.mappable[id].terrain == "sown" || ecs.mappable[id].terrain == "growing") {
-    for(let i = 0; i < (ecs.mappable[id].terrain == "sown" ? 20 : 80); i++) {
-      graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, 3);
-    }
-  }
-  if (ecs.mappable[id].terrain == "dirt") {
-    graphics.beginFill(0x000000);
-    for(let i = 0; i < 20; i++) {
-      graphics.drawCircle(-HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, -HEX_SIZE * 0.5 + Math.random() * HEX_SIZE, Math.random() * 7);
-    }
-    graphics.endFill();
-  }
-  graphics.endFill();
   graphics.lineStyle();
   for (const key in ecs.walkable[id].worn) {
     const [ entrance, exit ] = key.split(",").map(i => i == "C" ? "C" : +i);

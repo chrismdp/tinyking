@@ -67,8 +67,8 @@ function generateFamily(size, spatial, front, generator, days) {
         size: p > 1 ? 12 : 20,
         hair: hair[generator.random_int() % hair.length],
         body: male ? BODY_MALE : BODY_FEMALE,
-        tiredness: 0.2 + Math.random() * 0.4,
-        hunger: 0.4 + Math.random() * 0.4
+        tiredness: 0.2 + generator.random_incl() * 0.4,
+        hunger: 0.4 + generator.random_incl() * 0.4
       },
       manager: { jobs: [] },
       planner: {
@@ -239,7 +239,7 @@ async function generateEconomicValue(grid, landscape, progressUpdate) {
   }
 }
 
-function makeHouse(settlements, grid, target, landscape) {
+function makeHouse(generator, settlements, grid, target, landscape) {
   Grid.spiral({ center: target, radius: 1}).forEach(hex => {
     landscape[hex].terrain = "grassland";
     if (settlements[hex]) {
@@ -249,7 +249,7 @@ function makeHouse(settlements, grid, target, landscape) {
   settlements[target] = {
     x: target.x,
     y: target.y,
-    frontDoorSide: Math.floor(Math.random() * 6) % 6,
+    frontDoorSide: generator.random_int() % 6,
   };
 }
 
@@ -262,7 +262,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
       const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
         if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
-          makeHouse(settlements, grid, target, landscape);
+          makeHouse(generator, settlements, grid, target, landscape);
         }
       }
     }
@@ -271,7 +271,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
     }
   }
 
-  makeHouse(settlements, grid, start, landscape, generator);
+  makeHouse(generator, settlements, grid, start, landscape, generator);
   return settlements;
 }
 
@@ -290,6 +290,7 @@ export async function generateMap(state, seed, progressUpdate) {
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
   const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight());
+  const generator = new MersenneTwister(seed);
 
   const houses = Object.values(settlements).map(s => {
     const { x, y } = Hex(s.x, s.y).toPoint();
@@ -316,7 +317,7 @@ export async function generateMap(state, seed, progressUpdate) {
     spatial: { x: tree.x, y: tree.y, immovable: true },
     good: {
       type: "wood",
-      amount: Math.ceil(Math.random(1) * 3)
+      amount: (generator.random_int() % 3) + 1
     }
   }));
 

@@ -194,7 +194,7 @@ export const plough_any_field = () => [
     ]
   ],
   [
-    always,
+    world => !world.places.ploughable_field,
     () => [
       [ "find_place", "ploughable_field", "farmable_slot_with", ["empty", "harvested", "rotten"] ],
     ]
@@ -214,7 +214,7 @@ export const harvest_any_field = () => [
     ]
   ],
   [
-    always,
+    world => !world.places.harvestable_field,
     () => [
       [ "find_place", "harvestable_field", "farmable_slot_with", ["harvestable"] ],
     ]
@@ -234,7 +234,7 @@ export const sow_any_field = () => [
     ]
   ],
   [
-    always,
+    world => !world.places.sowable_field,
     () => [
       [ "find_place", "sowable_field", "farmable_slot_with", ["ploughed"] ],
     ]

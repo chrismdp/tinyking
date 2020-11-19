@@ -246,7 +246,7 @@ export const haul = (thing) => [
     always,
     () => [
       [ "find_place", "container_with_space", "container_with_space", thing ],
-      [ "find_place", thing, "haulable_with_good", thing ],
+      [ "find_place", "haulable_with " + thing, "haulable_with_good", thing ],
       [ "set_label" ],
       [ "walk_to", thing ],
       [ "pick_up_entity_with_good", thing ],
@@ -258,7 +258,7 @@ export const haul = (thing) => [
     always,
     () => [
       [ "find_place", "stockpile_open_slot", "stockpile_open_slot", thing ],
-      [ "find_place", thing, "haulable_with_good", thing ],
+      [ "find_place", "haulable_with " + thing, "haulable_with_good", thing ],
       [ "set_label" ],
       [ "walk_to", thing ],
       [ "pick_up_entity_with_good", thing ],
@@ -344,7 +344,7 @@ export const pick_up = (good) => [
   [
     always,
     () => [
-      [ "move_to_place", good, "haulable_with_good", good ],
+      [ "move_to_place", "haulable_with " + good, "haulable_with_good", good ],
       [ "pick_up_entity_with_good", good ],
       [ "forget_place", good ],
     ]
@@ -352,16 +352,16 @@ export const pick_up = (good) => [
   [
     always,
     () => [
-      [ "move_to_place", "stockpile_with", "stockpile_slot_with", good ],
-      [ "pick_up_from_stockpile", good, "stockpile_with" ],
-      [ "forget_place", "stockpile_with" ],
+      [ "move_to_place", "stockpile_with " + good, "stockpile_slot_with", good ],
+      [ "pick_up_from_stockpile", good, "stockpile_with " + good ],
+      [ "forget_place", "stockpile_with " + good ],
     ]
   ],
   [
     always,
     () => [
-      [ "move_to_place", "container_with", "container_with", good ],
-      [ "forget_place", "container_with" ],
+      [ "move_to_place", "container_with " + good, "container_with", good ],
+      [ "forget_place", "container_with " + good ],
       [ "get_from_container", good ],
     ]
   ]

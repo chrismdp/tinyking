@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MapGenParams } from "components/mapgen";
+import { CustomGame } from "components/custom_game";
 import { Info } from "components/info";
 import { Window } from "components/window";
 import { MainMenu } from "components/main_menu";
@@ -21,7 +21,7 @@ export function UserInterface() {
       {show.game_over && <GameOver/>}
       {show.tutorial && <Tutorial/>}
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
-      {show.mapgen && <Window windowId="mapgen" x={60} y={70}><MapGenParams/></Window>}
+      {show.mapgen && <Window windowId="mapgen" x={60} y={70}><CustomGame/></Window>}
       {show.selected_person && <SelectedPerson entityId={show.selected_person}/>}
       {show.speed_controls && <SpeedControls/>}
     </div>

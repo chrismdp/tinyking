@@ -3,7 +3,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
 
-export function MapGenParams() {
+export function CustomGame() {
   const input = React.useRef();
   const state = React.useContext(GameState);
 
@@ -14,7 +14,9 @@ export function MapGenParams() {
 
   return (
     <div>
-      <h1 className="handle">Custom game</h1>
+      <h1 className="handle">Start new game</h1>
+      <div className='row'>
+      </div>
       <div className='row'>
         <label htmlFor='seed'>Random seed:</label>
         <input id='seed' type='text' ref={input} defaultValue={seed}/>

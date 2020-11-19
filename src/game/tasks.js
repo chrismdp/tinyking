@@ -367,7 +367,11 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
 
   take(state.ecs, droppedId);
   deleteEntity(state, droppedId);
-  state.ecs.container[containerId].amounts[type] += 1;
+  if (state.ecs.container[containerId].amounts[type]) {
+    state.ecs.container[containerId].amounts[type] += 1;
+  } else {
+    state.ecs.container[containerId].amounts[type] = 1;
+  }
 
   state.redraws.push(actorId);
   state.redraws.push(containerId);

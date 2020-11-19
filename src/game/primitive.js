@@ -107,8 +107,10 @@ export function create_subtasks(world, expected, targetId, result) {
   }
 }
 
-export function perform_subtask_in_slot(world, expeced, targetId, place, lose) {
-  world.holding[lose] = false;
+export function perform_subtask_in_slot(world, expected, targetId, place, lose) {
+  if (lose) {
+    world.holding[lose] = false;
+  }
 }
 
 export function find_next_subtask(world, expected, place) {

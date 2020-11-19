@@ -331,7 +331,7 @@ export const make_gruel = () => [
     ]
   ],
   [
-    always,
+    world => world.holding.grain,
     () => [
       [ "move_to_place", "workshop", "workshop_with", "stove" ],
       [ "drop_entity_into_workshop", "workshop", "grain" ],
@@ -441,7 +441,7 @@ export const sow_field = (targetId) => [
     ]
   ],
   [
-    always,
+    world => world.holding.grain,
     () => [
       [ "find_next_subtask", "subtask_slot" ],
       [ "walk_to", "subtask_slot" ],

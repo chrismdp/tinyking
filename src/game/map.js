@@ -78,7 +78,7 @@ function generateFamily(size, spatial, front, generator, days) {
           places: {},
           feeling: {},
           holding: {},
-          hour: days,
+          days,
         }
       },
     });

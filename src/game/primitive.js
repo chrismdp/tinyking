@@ -57,7 +57,7 @@ export function set_label(world, expected, label) {
 
 export function find_place(world, expected, type) {
   // NOTE: Prevent AI from looking again this hour
-  if (world.hour && world.no_place_for[type] != null && world.no_place_for[type] > world.days) {
+  if (world.days && world.no_place_for[type] != null && world.no_place_for[type] > world.days) {
     return nothing;
   }
   if (expected) {

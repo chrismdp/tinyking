@@ -313,14 +313,6 @@ button {
 .panel {
   touch-action: none;
   .debug { display: none; }
-  .close {
-    float: right;
-    margin: -10px -13px -5px -10px;
-    padding: 5px 10px 5px 10px;
-    color: white;
-    &:hover { transform: scale(1.25); color: #666; transition: transform 0.2s, color 0.5s; }
-  }
-
   .row {
     display: flex;
     align-items: center;
@@ -393,7 +385,7 @@ button {
 .job-list {
   margin: 5px 0;
   button {
-    margin-right: 5px;
+    margin: 0px 5px 5px 0px;
   }
 }
 
@@ -505,4 +497,12 @@ button {
 
 .character {
   float: left;
+}
+
+.close {
+  float: right;
+  margin: -10px -13px -5px -10px;
+  padding: 5px 10px 5px 10px;
+  color: white;
+  &:hover { transform: scale(1.25); color: #666; transition: transform 0.2s, color 0.5s; }
 }

@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { createPopper } from "@popperjs/core";
 import TWEEN from "@tweenjs/tween.js";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
@@ -317,8 +318,10 @@ export function World() {
   const t = useTranslate();
 
   const selectEntity = React.useCallback((id, touch) => {
-    setPopupInfo(s => (s.id != id) ? { id, touch } : {});
-  }, [setPopupInfo]);
+    if (!state.ui.show.main_menu) {
+      setPopupInfo(s => (s.id != id) ? { id, touch } : {});
+    }
+  }, [state, setPopupInfo]);
 
   const popupOver = React.useCallback(event => {
     selectEntity(event.currentTarget.entityId, event.data.pointerType == "touch");
@@ -376,6 +379,7 @@ export function World() {
       },
       close_window: (id) => {
         if (id == "mapgen") {
+          state.game_speed = "normal";
           state.ui.actions.start_game();
         }
         delete state.ui.show[id];
@@ -470,6 +474,7 @@ export function World() {
       <GameState.Provider value={state}>
         <UserInterface/>
         <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupInfo.id ? "visible" : "hidden" }} {...popper.attributes}>
+          <div onClick={() => setPopupInfo({})} className='close'><FontAwesomeIcon icon="times"/></div>
           {popupInfo.id && (<Info entityId={popupInfo.id}/>)}
           <div className="arrow" ref={arrowElement}/>
         </div>

@@ -72,11 +72,13 @@ export function CustomGame() {
     let displayObject;
     if (state.ui.playerId) {
       const entity = fullEntity(state.ecs, state.ui.playerId);
-      displayObject = render.person(state, entity, null, t);
-      displayObject.position.set(35, 50);
-      displayObject.scale.set(2, 2);
-      displayObject.anchor = { x: 0.5, y: 0.5 };
-      stage.addChild(displayObject);
+      if (entity.spatial) {
+        displayObject = render.person(state, entity, null, t);
+        displayObject.position.set(35, 50);
+        displayObject.scale.set(2, 2);
+        displayObject.anchor = { x: 0.5, y: 0.5 };
+        stage.addChild(displayObject);
+      }
     }
 
     if (state.ecs.nameable && state.ecs.nameable[state.ui.playerId]) {

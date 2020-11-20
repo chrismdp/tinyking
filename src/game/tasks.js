@@ -9,6 +9,7 @@ import { topController } from "game/playable";
 import { nothing } from "immer";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
+import { MAX_SUBTASKS } from "game/primitive";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
@@ -237,10 +238,10 @@ export function create_subtasks(state, actorId, world, dt, firstRun, target, res
   }
 
   const slots = state.ecs.farmable[targetId].slots;
-  // FIXME: This doesn't work... don't sow over a sown area!
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, result, lose, id: targetId, idx }))
-    .filter(({ idx }) => candidates.includes(slots[idx].state));
+    .filter(({ idx }) => candidates.includes(slots[idx].state))
+    .slice(0, MAX_SUBTASKS);
 }
 
 const SUBTASK_TIMES = {

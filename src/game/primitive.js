@@ -1,5 +1,7 @@
 import { nothing } from "immer";
 
+export const MAX_SUBTASKS = 3;
+
 export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}
@@ -103,7 +105,7 @@ export function eat(world, expected, thing) {
 
 export function create_subtasks(world, expected, targetId, result) {
   if (expected) {
-    world.subtasks = Array.from({length: 19}, i => ({ x: i, y: i, result, id: targetId }));
+    world.subtasks = Array.from({length: MAX_SUBTASKS}, i => ({ x: i, y: i, result, id: targetId }));
   }
 }
 

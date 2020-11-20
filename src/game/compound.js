@@ -75,7 +75,7 @@ export const person = () => [
       [ "set_label" ],
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
-      [ "wait_for", time.HOUR + Math.random() * time.HOUR ]
+      [ "wait_for", time.HOUR * 0.5 + Math.random() * time.HOUR * 0.5 ] // 30-60m
     ]
   ]
 ];

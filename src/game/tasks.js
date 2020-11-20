@@ -377,15 +377,15 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
   state.redraws.push(containerId);
 }
 
-export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, type) {
-  const targetId = world.places[type];
+export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, place) {
+  const targetId = world.places[place];
   if (!targetId) {
     return nothing;
   }
 
   if (state.ecs.haulable[targetId].heldBy) {
     // NOTE: someone else has already picked this up!
-    world.places[type] = null;
+    world.places[place] = null;
     return nothing;
   }
 
@@ -400,7 +400,7 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, ty
   state.redraws.push(targetId);
 }
 
-export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, type, place) {
+export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, place, type) {
   const slot = world.places[place];
   if (!slot) {
     return nothing;
@@ -556,20 +556,15 @@ const FOOD_REPLENISH = {
   gruel: 24, // NOTE: this means we finish eating in about an hour
 };
 
-export function get_from_container(state, actorId, world, dt, firstRun, thing) {
-  const s = state.ecs.spatial[actorId];
-  const entities = entitiesInSameLocation(state, s);
-  // TODO: the rooms in buildings are the containers. Need to move this to
-  // things in the stockpile ideally.
-  const rooms = entities.map(e => state.ecs.building[e] ? state.ecs.building[e].rooms : []).flat();
-  const containers = [...entities, ...rooms].filter(id =>
-    state.ecs.container[id] && state.ecs.container[id].amounts[thing] > 0);
-  if (containers.length == 0) {
-    // NOTE: This container no longer trusted for this type of thing
-    console.log("Oh dear. No container with", thing, "here");
+export function pick_up_from_container(state, actorId, world, dt, firstRun, place, thing) {
+  const containerId = world.places[place];
+  if (!containerId) {
     return nothing;
   }
-  state.ecs.container[containers[0]].amounts[thing] -= 1;
+
+  state.ecs.container[containerId].amounts[thing] -= 1;
+
+  const s = state.ecs.spatial[actorId];
   const [ good ] = newEntities(state, [{
     good: { type: thing, amount: 1 },
     haulable: { heldBy: null },

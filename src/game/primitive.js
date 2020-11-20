@@ -65,11 +65,11 @@ export function find_place(world, expected, type) {
   }
 }
 
-export function pick_up_entity_with_good(world, expected, thing) {
-  world.holding[thing] = true;
+export function pick_up_entity_with_good(world, expected, place, good) {
+  world.holding[good] = true;
 }
 
-export function pick_up_from_stockpile(world, expected, thing) {
+export function pick_up_from_stockpile(world, expected, place, thing) {
   world.holding[thing] = true;
 }
 
@@ -81,7 +81,7 @@ export function drop_entity_into_container(world, expected, place, thing) {
   world.holding[thing] = false;
 }
 
-export function get_from_container(world, expected, thing) {
+export function pick_up_from_container(world, expected, place, thing) {
   world.holding[thing] = true;
 }
 

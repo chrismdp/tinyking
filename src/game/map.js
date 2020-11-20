@@ -59,7 +59,6 @@ function generateFamily(size, spatial, front, generator, days) {
       spatial: { x, y },
       traits: { values: {} },
       attributes: {},
-      tickable: {},
       controllable: {},
       holder: { held: [], capacity: 2 },
       personable: {
@@ -306,7 +305,6 @@ export async function generateMap(state, seed, progressUpdate) {
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
     mappable: { terrain: tile.terrain },
-    tickable: {},
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },

@@ -8,39 +8,47 @@ import { fullEntity } from "game/entities";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
-import { name } from "game/name";
+import { firstName, familyName } from "game/name";
 
 function newSeed() {
   return Math.round(Math.random() * 10000000);
 }
 
 export function CustomGame() {
-  const input = React.useRef();
+  const seedField = React.useRef();
   const nameField = React.useRef();
+  const familyNameField = React.useRef();
   const characterView = React.useRef();
 
   const [ currentName, setCurrentName ] = React.useState("");
+  const [ currentFamilyName, setCurrentFamilyName ] = React.useState("");
 
   const state = React.useContext(GameState);
 
   const t = useTranslate();
 
-  const seed = state.map.seed;
   const progress = state.ui.progress || {};
 
-  const randomiseSeed = React.useCallback(() => input.current.value = newSeed(), []);
+  const randomiseSeed = React.useCallback(() => seedField.current.value = newSeed(), []);
   const randomiseNameSeed = React.useCallback(() => {
     state.ecs.nameable[state.ui.playerId].seed = newSeed();
-    state.ecs.nameable[state.ui.playerId].familySeed = newSeed();
-    nameField.current.value = name(state.ecs.nameable[state.ui.playerId]);
+    nameField.current.value = firstName(state.ecs.nameable[state.ui.playerId]);
   }, [state.ecs.nameable, state.ui.playerId]);
 
-  const [ gender, setGender ] = React.useState(1);
+  const randomiseFamilyNameSeed = React.useCallback(() => {
+    state.ecs.nameable[state.ui.playerId].familySeed = newSeed();
+    familyNameField.current.value = familyName(state.ecs.nameable[state.ui.playerId]);
+  }, [state.ecs.nameable, state.ui.playerId]);
+
+  const [ gender, setGender ] = React.useState();
 
   const update = React.useCallback(() => {
     state.ecs.personable[state.ui.playerId].body = gender ? 0xff0000 : 0x00ff00;
     state.redraws.push(state.ui.playerId);
   }, [state, gender]);
+
+  const reset = React.useCallback(() =>
+    state.ui.actions.generate_map(seedField.current.value), [state]);
 
   const [ stage, setStage ] = React.useState(null);
 
@@ -56,13 +64,17 @@ export function CustomGame() {
     setStage(app.stage);
 
     const ref = characterView.current;
-    ref.appendChild(app.view);
+    if (ref) {
+      ref.appendChild(app.view);
+    }
 
     return function cleanup() {
-      ref.removeChild(app.view);
+      if (ref) {
+        ref.removeChild(app.view);
+      }
       app.destroy();
     };
-  }, [state]);
+  }, [state, state.map]);
 
   React.useEffect(() => {
     if (!stage) {
@@ -82,9 +94,13 @@ export function CustomGame() {
     }
 
     if (state.ecs.nameable && state.ecs.nameable[state.ui.playerId]) {
-      const n = name(state.ecs.nameable[state.ui.playerId]);
-      setCurrentName(n);
-      nameField.current.value = n;
+      const n = state.ecs.nameable[state.ui.playerId];
+
+      setCurrentName(firstName(n));
+      nameField.current.value = firstName(n);
+
+      setCurrentFamilyName(familyName(n));
+      familyNameField.current.value = familyName(n);
     }
 
     return function cleanup() {
@@ -97,25 +113,34 @@ export function CustomGame() {
   return (
     <div>
       <h1 className="handle">Start new game</h1>
-      <div className="row">
-        <div className="character" ref={characterView}></div>
-        <button onClick={() => { setGender(0); update(); }} selected={gender == 0}>Male</button>
-        <button onClick={() => { setGender(1); update(); }} selected={gender == 1}>Female</button>
+      { state.map &&
+      <div>
+        <div className="row">
+          <div className="character" ref={characterView}></div>
+          <button onClick={() => { setGender(0); update(); }} selected={gender == 0}>Male</button>
+          <button onClick={() => { setGender(1); update(); }} selected={gender == 1}>Female</button>
+        </div>
+        <div className="row">
+          <label htmlFor="name">First name:</label>
+          <input type="text" ref={nameField} defaultValue={currentName}/>
+          <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
+        </div>
+        <div className="row">
+          <label htmlFor="name">Family name:</label>
+          <input type="text" ref={familyNameField} defaultValue={currentFamilyName}/>
+          <button onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
+        </div>
+        <div className="row">
+          <label htmlFor="seed">Map seed:</label>
+          <input id="seed" type="text" ref={seedField} defaultValue={state.map.seed}/>
+          <button onClick={randomiseSeed}><FontAwesomeIcon icon="dice"/></button>
+        </div>
+        <div className="row">
+          <button onClick={reset}>Reset to seed</button>
+          { progress.label && <div className="progress">{progress.label}</div> }
+        </div>
       </div>
-      <div className="row">
-        <label htmlFor="name">Your name:</label>
-        <input id="name" type="text" ref={nameField} defaultValue={currentName}/>
-        <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
-      </div>
-      <div className="row">
-        <label htmlFor="seed">Map seed:</label>
-        <input id="seed" type="text" ref={input} defaultValue={seed}/>
-        <button onClick={randomiseSeed}><FontAwesomeIcon icon="dice"/></button>
-      </div>
-      <div className="row">
-        <button onClick={() => state.ui.actions.generate_map(input.current.value)}>Reset to seed</button>
-        { progress.label && <div className="progress">{progress.label}</div> }
-      </div>
+      }
     </div>
   );
 }

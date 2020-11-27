@@ -64,7 +64,7 @@ export const person = (state, e, fn, t) => {
   return graphics;
 };
 
-const terrainColours = {
+export const COLOURS = {
   "mountain": 0x3C3A44,
   "deep water": 0x2F4999,
   "shallow water": 0x3F6FAE,
@@ -78,8 +78,8 @@ const terrainColours = {
 };
 
 const itemColours = {
-  "wood": terrainColours.dirt,
-  "grain": terrainColours.harvestable,
+  "wood": COLOURS.dirt,
+  "grain": COLOURS.harvestable,
   "gruel": 0x7A845C
 };
 
@@ -95,7 +95,7 @@ const item = (ecs, id) => {
 const stockpile = (state, id, t) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
-  graphics.beginFill(terrainColours.stone, 0.25);
+  graphics.beginFill(COLOURS.stone, 0.25);
   graphics.drawPolygon(InnerHex().corners());
   graphics.endFill();
   let text = new PIXI.Text(state.ecs.holder[id].capacity, {fontFamily: "Alegreya", fontSize: 20, fill: "white"});
@@ -145,7 +145,7 @@ const tile = (ecs, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(ecs.spatial[id].x, ecs.spatial[id].y);
 
-  graphics.beginFill(terrainColours[ecs.mappable[id].terrain]);
+  graphics.beginFill(COLOURS[ecs.mappable[id].terrain]);
   graphics.lineStyle({color: "black", width: 2, alpha: 0.04});
   const corners = Hex().corners();
   graphics.drawPolygon(...corners);
@@ -153,7 +153,7 @@ const tile = (ecs, id) => {
   graphics.lineStyle();
   for (const key in ecs.walkable[id].worn) {
     const [ entrance, exit ] = key.split(",").map(i => i == "C" ? "C" : +i);
-    graphics.beginFill(terrainColours.dirt, Math.min(1.0, ecs.walkable[id].worn[key] / ROUTES_TO_FULL_PATH));
+    graphics.beginFill(COLOURS.dirt, Math.min(1.0, ecs.walkable[id].worn[key] / ROUTES_TO_FULL_PATH));
     const center = { x: 0, y: 0 };
     const line = {
       entrance: [
@@ -187,13 +187,13 @@ const tile = (ecs, id) => {
 const field = (state, id) => {
   const graphics = new PIXI.Graphics();
   graphics.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
-  graphics.beginFill(terrainColours.field, 0.25);
+  graphics.beginFill(COLOURS.field, 0.25);
   graphics.drawPolygon(Hex().corners());
 
   graphics.lineStyle();
   state.ecs.farmable[id].slots.forEach((slot, idx) => {
     if (["harvested", "harvestable", "ploughed", "sown"].includes(slot.state)) {
-      graphics.beginFill(terrainColours.dirt);
+      graphics.beginFill(COLOURS.dirt);
       graphics.drawRoundedRect(TRIANGLES[idx].x - 15, TRIANGLES[idx].y - 6, 30, 12, 3);
     }
     if (["harvested"].includes(slot.state)) {

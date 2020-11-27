@@ -16,6 +16,13 @@ function newSeed() {
   return Math.round(Math.random() * 10000000);
 }
 
+const TABS = {
+  PERSON: 0,
+  HOUSE: 1,
+  NEIGHBOUR: 2,
+  SEED: 3
+};
+
 export function CustomGame() {
   const characterView = React.useRef();
 
@@ -54,6 +61,9 @@ export function CustomGame() {
 
   const [ stage, setStage ] = React.useState(null);
 
+  const [ tab, setTab ] = React.useState(TABS.PERSON);
+  const [ selectedNeighbour, setSelectedNeighbour ] = React.useState(0);
+
   React.useEffect(() => {
     const ref = characterView.current;
     let app;
@@ -86,10 +96,13 @@ export function CustomGame() {
       return;
     }
 
+    stage.removeChildren();
+
     let displayObject;
     if (state.ui.playerId) {
       const spiral = Grid.spiral({ center: { x: 0, y: 0 }, radius: 1 });
       const map = new PIXI.Container();
+      map.interactive = true;
       for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
         const hex = spiral[spiral_index];
 
@@ -99,17 +112,30 @@ export function CustomGame() {
         neighbour.lineStyle({color: "black", width: 2, alpha: 0.04});
         neighbour.drawPolygon(...Hex().corners());
         neighbour.endFill();
-        neighbour.interactive = true;
-        map.addChild(neighbour);
-
         if (spiral_index > 0) {
           const town = new PIXI.Graphics();
-          const point = Hex(hex).toPoint();
-          town.position.set(point.x * 1.0, point.y * 1.0);
+
           town.beginFill(render.COLOURS.stone, 0.5);
-          town.drawCircle(0, 0, 20);
-          map.addChild(town);
+          town.drawCircle(0, 0, 16);
+
+          town.beginFill(0x993333, 0.5);
+          town.drawRoundedRect(-30, 20, 60, 15, 5);
+          town.endFill();
+          let text = new PIXI.Text("Town", {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+          text.position.set(0, 27.5);
+          text.anchor = { x: 0.5, y: 0.5 };
+          town.addChild(text);
+
+          if (tab == TABS.NEIGHBOUR && selectedNeighbour + 1 == spiral_index) {
+            town.addChild(render.selection(75, 0xff0000));
+          }
+
+          neighbour.addChild(town);
         }
+        neighbour.interactive = true;
+        neighbour.on("click", () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); });
+        neighbour.on("tap", () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); });
+        map.addChild(neighbour);
       }
       map.position.set(135, 125);
       map.scale.set(0.75, 0.75);
@@ -133,8 +159,13 @@ export function CustomGame() {
     if (state.ecs.nameable && state.ecs.nameable[state.ui.playerId]) {
       const n = state.ecs.nameable[state.ui.playerId];
 
-      nameField.current.value = firstName(n);
-      familyNameField.current.value = familyName(n);
+      if (nameField.current) {
+        nameField.current.value = firstName(n);
+      }
+
+      if (familyNameField.current) {
+        familyNameField.current.value = familyName(n);
+      }
     }
 
     return function cleanup() {
@@ -142,31 +173,41 @@ export function CustomGame() {
         stage.removeChild(displayObject);
       }
     };
-  }, [stage, state, t, state.ecs.nameable, state.ui.playerId, gender]);
+  }, [stage, state, t, state.ecs.nameable,
+    state.ui.playerId, gender, tab, selectedNeighbour]);
 
   return (
     <div>
       <h1 className="handle">Start new game</h1>
       { state.map && <>
         <div icon="person">
+          <div className="row overlay">
+            <button onClick={() => setTab(TABS.PERSON)} className={`${tab == TABS.PERSON ? "" : "unselected"}`}><FontAwesomeIcon icon="user"/></button>
+            <button onClick={() => setTab(TABS.HOUSE)} className={`${tab == TABS.HOUSE ? "" : "unselected"}`}><FontAwesomeIcon icon="shield-alt"/></button>
+            <button onClick={() => setTab(TABS.SEED)} className={`${tab == TABS.SEED ? "" : "unselected"}`}><FontAwesomeIcon icon="random"/></button>
+            <button onClick={() => setTab(TABS.NEIGHBOUR)} className={`${tab == TABS.NEIGHBOUR ? "" : "unselected"}`}><FontAwesomeIcon icon="mountain"/></button>
+          </div>
           <div className="character" ref={characterView}></div>
+        </div>
+        { tab == TABS.PERSON && <>
           <div className="row" style={{clear: "both"}}>
             <label htmlFor="name">First name:</label>
             <input type="text" ref={nameField}/>
             <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
           </div>
           <div className="row">
-            <button onClick={() => { setGender(0); update(); }} selected={gender == 0}>Male</button>
-            <button onClick={() => { setGender(1); update(); }} selected={gender == 1}>Female</button>
+            <label>Gender:</label>
+            <button onClick={() => { setGender(0); update(); }} disabled={gender == 0}>Male</button>
+            <button onClick={() => { setGender(1); update(); }} disabled={gender == 1}>Female</button>
           </div>
-          <div className="row" style={{display: "none"}}>
+        </>}
+        { tab == TABS.HOUSE &&
+          <div className="row">
             <label htmlFor="name">House:</label>
             <input type="text" ref={familyNameField}/>
             <button onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div>
-        </div>
-        <hr/>
-        <div icon="dice">
+          </div> }
+        { tab == TABS.SEED && <>
           <div className="row">
             <label htmlFor="seed">Map seed:</label>
             <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>
@@ -176,7 +217,7 @@ export function CustomGame() {
             <button onClick={reset}>Reset to seed</button>
             { progress.label && <div className="progress">{progress.label}</div> }
           </div>
-        </div>
+        </>}
       </> }
     </div>
   );

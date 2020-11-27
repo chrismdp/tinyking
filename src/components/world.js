@@ -133,7 +133,7 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
         const [ plan ] = htn.solve(planner.world, jobs, [ [ "person" ] ]);
         planner.plan = plan;
         if (topController(state.ecs, planner.id) == state.ui.playerId) {
-          console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
+          // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
           if (!planner.plan) {
             throw "no plan";
           }
@@ -148,7 +148,7 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
         if (planner.plan.length > 0) {
           planner.task = planner.plan.shift();
           if (topController(state.ecs, planner.id) == state.ui.playerId) {
-            console.log("NEW TASK", planner.id, planner.task);
+            // console.log("NEW TASK", planner.id, planner.task);
           }
           htn.runTask(state, planner, dt, true);
           // TODO: Make sure this happens only once

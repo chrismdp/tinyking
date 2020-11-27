@@ -305,7 +305,7 @@ button {
   background: #417154;
   color: white;
   -webkit-appearance: none;
-  &:disabled {
+  &.unselected, &:disabled {
     background: #aaa;
   }
 }
@@ -314,9 +314,9 @@ button {
   .debug { display: none; }
   .row {
     display: flex;
-    align-items: center;
-    justify-items: space-between;
+    align-items: flex-start;
     margin: 5px 0;
+    width: 100%;
 
     label {
       display: block;
@@ -339,6 +339,11 @@ button {
 
     .progress {
       padding: 0 5px;
+    }
+
+    &.overlay {
+      position: absolute;
+      left: 10px;
     }
   }
 

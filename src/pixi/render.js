@@ -303,3 +303,25 @@ export const entity = (state, id, t, heldObjects) => {
   throw "Cannot render entity " + id + " heldObjects is " + heldObjects + ":" + JSON.stringify(e);
 };
 
+export const selection = (width, color) => {
+  const graphics = new PIXI.Graphics();
+  graphics.lineStyle({color, width: 2, alpha: 1});
+  const half = width * 0.5;
+  graphics.moveTo(-half + 5, -half + 5);
+  graphics.lineTo(-half + 5, -half);
+  graphics.lineTo(-half + 10, -half);
+
+  graphics.moveTo(half - 10, -half);
+  graphics.lineTo(half - 5, -half);
+  graphics.lineTo(half - 5, -half + 5);
+
+  graphics.moveTo(half - 5, half - 15);
+  graphics.lineTo(half - 5, half - 10);
+  graphics.lineTo(half - 10, half - 10);
+
+  graphics.moveTo(-half + 10, half - 10);
+  graphics.lineTo(-half + 5, half - 10);
+  graphics.lineTo(-half + 5, half - 15);
+  return graphics;
+};
+

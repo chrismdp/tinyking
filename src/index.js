@@ -13,10 +13,10 @@ import { World } from "components/world";
 import messages from "data/messages.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faDice } from "@fortawesome/free-solid-svg-icons";
+import { faDice, faUser, faShieldAlt, faRandom, faMountain } from "@fortawesome/free-solid-svg-icons";
 import { faPlay, faPause, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faDice, faTimes, faPlay, faPause, faFastForward);
+library.add(faDice, faTimes, faPlay, faPause, faFastForward, faShieldAlt, faUser, faRandom, faMountain);
 
 const locale = window.locale || "en";
 

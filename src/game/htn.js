@@ -1,4 +1,4 @@
-import produce, { setAutoFreeze, nothing } from "immer";
+import produce, { setAutoFreeze } from "immer";
 import * as tasks from "game/tasks";
 import * as primitive from "game/primitive";
 import * as compound from "game/compound";
@@ -9,6 +9,12 @@ import * as compound from "game/compound";
 setAutoFreeze(false);
 
 const debug = false;
+
+export const Task = {
+  FINISH: 1,
+  CONTINUE: 2,
+  ABORT: 3,
+};
 
 export function solve(world, jobs, tasks, plan = []) {
   if (debug) { console.log("SOLVE", world, "JOBS", jobs, "TASKS", tasks, "PLAN", plan); }
@@ -67,11 +73,10 @@ export function runTask(state, planner, dt, firstRun) {
 
   if (!firstRun || produce(primitive[name])(planner.world, false, ...args)) {
     const result = tasks[name](state, planner.id, planner.world, dt, firstRun, ...args);
-    if (result == nothing) {
-      // NOTE: This is an abort situation: we _don't_ finish the task
+    if (result == Task.ABORT) {
       planner.task = null;
       replan(planner);
-    } else if (!result) {
+    } else if (result != Task.CONTINUE) {
       finishTask(planner, planner.task);
     }
   } else {

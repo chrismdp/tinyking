@@ -3,10 +3,9 @@ import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
 import * as math from "game/math";
 import * as time from "game/time";
-import { replan } from "game/htn";
+import { replan, Task } from "game/htn";
 import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController } from "game/playable";
-import { nothing } from "immer";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { MAX_SUBTASKS } from "game/primitive";
@@ -41,7 +40,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
 
   if (!world.target) {
     // NOTE: Not passed a targetId and one isn't set for us, cannot continue
-    return nothing;
+    return Task.ABORT;
   }
 
   let targetPoint;
@@ -52,7 +51,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   }
   if (targetPoint == null) {
     console.log("Cannot find targetPoint from " + JSON.stringify(world.target));
-    return nothing;
+    return Task.ABORT;
   }
 
   if (firstRun) {
@@ -64,7 +63,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
 
   let next = world.route && world.route[0];
   if (!next) {
-    return;
+    return Task.FINISH;
   }
 
   if ("exit" in next) {
@@ -111,7 +110,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     world.route.shift();
 
     if (!("exit" in next)) {
-      return 0;
+      return Task.FINISH;
     }
   } else {
     if (speed > length) {
@@ -127,7 +126,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       displayObject.position.set(s.x, s.y);
     }
   }
-  return 1;
+  return Task.CONTINUE;
 }
 
 export function take_job(state, actorId, world, dt, firstRun, key) {
@@ -142,7 +141,7 @@ export function release_job(state, actorId, world, dt, firstRun, key) {
   if (idx == -1) {
     console.log("Hang on, we are releasing a job", key,
       "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
-    return;
+    return Task.FINISH;
   }
   jobs[idx].assignedId = null;
 }
@@ -157,7 +156,7 @@ export function complete_job(state, actorId, world, dt, firstRun, key) {
   if (idx == -1) {
     console.log("Hang on, we are completing a job", key,
       "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
-    return nothing;
+    return Task.ABORT;
   }
   jobs.splice(idx, 1);
 }
@@ -166,7 +165,7 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   if (firstRun) {
     world.wait_until = state.days + time;
   }
-  return (state.days <= world.wait_until);
+  return (state.days <= world.wait_until) ? Task.CONTINUE : Task.FINISH;
 }
 
 const TIME_TO_DESIGNATE = time.HOUR / 3;
@@ -183,9 +182,9 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
       holder: { capacity: 19, held: [] },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
-    return 0;
+    return Task.FINISH;
   }
-  return 1;
+  return Task.CONTINUE;
 }
 
 export function create_field(state, actorId, world, dt, firstRun, targetId) {
@@ -204,9 +203,9 @@ export function create_field(state, actorId, world, dt, firstRun, targetId) {
       },
       controllable: { controllerId: topController(state.ecs, actorId) },
     }]).forEach(id => state.redraws.push(id));
-    return 0;
+    return Task.FINISH;
   }
-  return 1;
+  return Task.CONTINUE;
 }
 
 const TIME_TO_CHOP_WOOD = time.HOUR / 2;
@@ -225,16 +224,16 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
     }))).forEach(id => state.redraws.push(id));
     deleteEntity(state, targetId);
 
-    return 0;
+    return Task.FINISH;
   }
-  return 1;
+  return Task.CONTINUE;
 }
 
 export function create_subtasks(state, actorId, world, dt, firstRun, target, result, candidates, lose) {
   const targetId = world.places[target] || target;
   if (!targetId) {
     // NOTE: Not passed a target and one isn't set for us, cannot continue
-    return nothing;
+    return Task.ABORT;
   }
 
   const slots = state.ecs.farmable[targetId].slots;
@@ -254,16 +253,16 @@ export function claim_farmable(state, actorId, world, dt, firstRun, target) {
   const targetId = world.places[target] || target;
   if (!targetId) {
     // NOTE: Not passed a target and one isn't set for us, cannot continue
-    return nothing;
+    return Task.ABORT;
   }
 
   if (!state.ecs.farmable[targetId]) {
-    return nothing;
+    return Task.ABORT;
   }
 
   if (state.ecs.farmable[targetId].claimerId &&
     state.ecs.farmable[targetId].claimerId != actorId) {
-    return nothing;
+    return Task.ABORT;
   }
 
   state.ecs.farmable[targetId].claimerId = actorId;
@@ -273,11 +272,11 @@ export function release_farmable(state, actorId, world, dt, firstRun, target) {
   const targetId = world.places[target] || target;
   if (!targetId) {
     // NOTE: Not passed a target and one isn't set for us, cannot continue
-    return nothing;
+    return Task.ABORT;
   }
 
   if (!state.ecs.farmable[targetId]) {
-    return nothing;
+    return Task.ABORT;
   }
 
   state.ecs.farmable[targetId].claimerId = null;
@@ -287,7 +286,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
   const targetId = world.places[target] || target;
   if (!targetId) {
     // NOTE: Not passed a target and one isn't set for us, cannot continue
-    return nothing;
+    return Task.ABORT;
   }
 
   if (firstRun) {
@@ -297,7 +296,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
       const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == subtask.lose);
       if (!id) {
         console.log("PERFORM", actorId, "NO", subtask.lose, "to lose");
-        return nothing;
+        return Task.ABORT;
       }
       take(state.ecs, id, null);
       deleteEntity(state, id);
@@ -326,10 +325,10 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     }
     slot.updated = state.days;
     state.redraws.push(targetId);
-    return 0;
+    return Task.FINISH;
   }
 
-  return 1;
+  return Task.CONTINUE;
 }
 
 export function drop_entity_into_stockpile_slot(state, actorId, world, dt, firstRun, place, type) {
@@ -339,7 +338,7 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
     TRIANGLE_INTERIOR_RADIUS * TRIANGLE_INTERIOR_RADIUS)) {
     // NOTE: Someone has already taken this slot - replan
     world.places[place] = null;
-    return nothing;
+    return Task.ABORT;
   }
 
   const droppedId = state.ecs.holder[actorId].held
@@ -360,7 +359,7 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
   if (!containerHasSpace(state.ecs.container[containerId])) {
     // NOTE: Someone has already taken this slot - replan
     world.places[place] = null;
-    return nothing;
+    return Task.ABORT;
   }
 
   const droppedId = state.ecs.holder[actorId].held
@@ -381,18 +380,18 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
 export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, place) {
   const targetId = world.places[place];
   if (!targetId) {
-    return nothing;
+    return Task.ABORT;
   }
 
   if (state.ecs.haulable[targetId].heldBy) {
     // NOTE: someone else has already picked this up!
     world.places[place] = null;
-    return nothing;
+    return Task.ABORT;
   }
 
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[targetId]) > 10 * 10) {
     console.error("Error", actorId, " pick_up_entity: not close enough to " + targetId);
-    return nothing;
+    return Task.ABORT;
   }
 
   give(state.ecs, targetId, actorId);
@@ -404,7 +403,7 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, pl
 export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, place, type) {
   const slot = world.places[place];
   if (!slot) {
-    return nothing;
+    return Task.ABORT;
   }
 
   if (topController(state.ecs, actorId) == state.ui.playerId) {
@@ -413,7 +412,7 @@ export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, plac
 
   if (state.ecs.haulable[slot.id].heldBy != slot.stockpileId) {
     // NOTE: someone else has already picked this up!
-    return nothing;
+    return Task.ABORT;
   }
 
   if (math.squaredDistance(state.ecs.spatial[actorId], slot) > 10 * 10) {
@@ -537,7 +536,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
   if (!found_place) {
     // NOTE: Prevent AI from looking again this hour
     world.no_place_for[type] = (world.days || 0) + FIND_PLACE_DELAY;
-    return nothing;
+    return Task.ABORT;
   }
 
   world.places[type] = found_place;
@@ -550,7 +549,7 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
   person.tiredness -= dt * SLEEP_REPLENISH;
-  return person.tiredness >= 0.1 || time.time(world.days) == "night";
+  return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
 
 const FOOD_REPLENISH = {
@@ -560,7 +559,7 @@ const FOOD_REPLENISH = {
 export function pick_up_from_container(state, actorId, world, dt, firstRun, place, thing) {
   const containerId = world.places[place];
   if (!containerId) {
-    return nothing;
+    return Task.ABORT;
   }
 
   state.ecs.container[containerId].amounts[thing] -= 1;
@@ -581,7 +580,7 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
     const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == thing);
     if (!id) {
       console.log("EAT", actorId, "NO", thing, "to eat");
-      return nothing;
+      return Task.ABORT;
     }
     take(state.ecs, id, null);
     deleteEntity(state, id);
@@ -589,7 +588,7 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
 
   const person = state.ecs.personable[actorId];
   person.hunger -= dt * FOOD_REPLENISH[thing];
-  return person.hunger >= 0.1;
+  return (person.hunger >= 0.1) ? Task.CONTINUE : Task.FINISH;
 }
 
 export function get_attention(state, actorId, world, dt, firstRun, targetId) {

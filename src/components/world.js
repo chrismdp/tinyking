@@ -351,7 +351,7 @@ export function World() {
       width: window.innerWidth,
       height: window.innerHeight,
       antialias: true,
-      transparent: true,
+      backgroundAlpha: 0,
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
       autoResize: true

@@ -72,7 +72,7 @@ export function CustomGame() {
         width: 300,
         height: 250,
         antialias: true,
-        transparent: true,
+        backgroundAlpha: 0,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
         autoResize: true

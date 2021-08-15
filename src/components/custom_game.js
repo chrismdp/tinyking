@@ -191,6 +191,7 @@ export function CustomGame() {
           <div className="character" ref={characterView}></div>
         </div>
         { tab == TABS.PERSON && <>
+          <h1>Customise your character</h1>
           <div className="row" style={{clear: "both"}}>
             <label htmlFor="name">First name:</label>
             <input type="text" ref={nameField}/>
@@ -202,13 +203,16 @@ export function CustomGame() {
             <button onClick={() => { setGender(1); update(); }} disabled={gender == 1}>Female</button>
           </div>
         </>}
-        { tab == TABS.HOUSE &&
+        { tab == TABS.HOUSE && <>
+          <h1>Customise your house</h1>
           <div className="row">
             <label htmlFor="name">House:</label>
             <input type="text" ref={familyNameField}/>
             <button onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div> }
+          </div>
+        </>}
         { tab == TABS.SEED && <>
+          <h1>Game settings</h1>
           <div className="row">
             <label htmlFor="seed">Map seed:</label>
             <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>

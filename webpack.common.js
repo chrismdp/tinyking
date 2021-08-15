@@ -3,7 +3,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackRootPlugin = require("html-webpack-root-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const GitRevisionPlugin = require("git-revision-webpack-plugin");
+const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
 const webpack =  require("webpack");
 
 var gitRevisionPlugin = new GitRevisionPlugin();
@@ -38,7 +38,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
   },
   optimization: {
-    moduleIds: "hashed",
+    moduleIds: "deterministic",
     runtimeChunk: "single",
     splitChunks: {
       cacheGroups: {

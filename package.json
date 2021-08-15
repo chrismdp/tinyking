@@ -92,6 +92,7 @@
     "react-draggable": "^4.4.3",
     "react-ga": "^3.3.0",
     "react-polyglot": "^0.7.2",
+    "react-router-dom": "^5.2.0",
     "selectn": "^1.1.2",
     "simplex-noise": "^2.4.0"
   }

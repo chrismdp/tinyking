@@ -8,6 +8,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import ReactGA from "react-ga";
 import { I18n } from "react-polyglot";
+import { BrowserRouter as Router } from "react-router-dom";
 
 import { World } from "components/world";
 import messages from "data/messages.json";
@@ -21,7 +22,11 @@ library.add(faDice, faTimes, faPlay, faPause, faFastForward, faShieldAlt, faUser
 const locale = window.locale || "en";
 
 ReactDOM.render(
-  (<I18n locale={locale} messages={messages}><World/></I18n>),
+  (<Router>
+    <I18n locale={locale} messages={messages}>
+      <World/>
+    </I18n>
+  </Router>),
   document.getElementById("root"));
 
 if (process.env.NODE_ENV !== "production") {

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Switch, Route, Redirect } from "react-router-dom";
 
 import { createPopper } from "@popperjs/core";
 import TWEEN from "@tweenjs/tween.js";
@@ -15,6 +16,7 @@ import * as time from "game/time";
 import * as htn from "game/htn";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
+import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
 import { pushJob, removeJob, jobQueueFor } from "game/manager";
 
@@ -473,7 +475,17 @@ export function World() {
     <div id="game">
       <div id="world" ref={containingDiv}></div>
       <GameState.Provider value={state}>
-        <UserInterface/>
+        <Switch>
+          <Route exact strict path="/debug-worldgen">
+            <DebugWorldgen/>
+        </Route>
+          <Route path="/">
+            <UserInterface/>
+          </Route>
+          <Route>
+            <Redirect to="/"/>
+        </Route>
+        </Switch>
         <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupInfo.id ? "visible" : "hidden" }} {...popper.attributes}>
           <div onClick={() => setPopupInfo({})} className='close'><FontAwesomeIcon icon="times"/></div>
           {popupInfo.id && (<Info entityId={popupInfo.id}/>)}

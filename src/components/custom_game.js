@@ -74,6 +74,7 @@ export function CustomGame() {
         antialias: true,
         transparent: true,
         resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
         autoResize: true
       });
       setStage(app.stage);

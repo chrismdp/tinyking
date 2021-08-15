@@ -352,6 +352,8 @@ export function World() {
       height: window.innerHeight,
       antialias: true,
       transparent: true,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
       autoResize: true
     });
 

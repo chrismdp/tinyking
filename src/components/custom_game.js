@@ -114,18 +114,7 @@ export function CustomGame() {
         neighbour.drawPolygon(...Hex().corners());
         neighbour.endFill();
         if (spiral_index > 0) {
-          const town = new PIXI.Graphics();
-
-          town.beginFill(render.COLOURS.stone, 0.5);
-          town.drawCircle(0, 0, 16);
-
-          town.beginFill(0x993333, 0.5);
-          town.drawRoundedRect(-30, 20, 60, 15, 5);
-          town.endFill();
-          let text = new PIXI.Text("Town", {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
-          text.position.set(0, 27.5);
-          text.anchor = { x: 0.5, y: 0.5 };
-          town.addChild(text);
+          const town = render.town("Town", 0x996666, render.COLOURS.stone);
 
           if (tab == TABS.NEIGHBOUR && selectedNeighbour + 1 == spiral_index) {
             town.addChild(render.selection(75, 0xff0000));
@@ -134,8 +123,9 @@ export function CustomGame() {
           neighbour.addChild(town);
         }
         neighbour.interactive = true;
-        neighbour.on("click", () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); });
-        neighbour.on("tap", () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); });
+        const selectNeighbour = () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); };
+        neighbour.on("click", selectNeighbour);
+        neighbour.on("tap", selectNeighbour);
         map.addChild(neighbour);
       }
       map.position.set(135, 125);
@@ -149,6 +139,13 @@ export function CustomGame() {
         displayObject.position.set(135, 125);
         displayObject.scale.set(1, 1);
         displayObject.anchor = { x: 0.5, y: 0.5 };
+        const select = () => { setTab(TABS.PERSON); };
+        displayObject.interactive = true;
+        displayObject.on("click", select);
+        displayObject.on("tap", select);
+        if (tab == TABS.PERSON) {
+          displayObject.addChild(render.selection(50, 0xff0000));
+        }
         stage.addChild(displayObject);
       }
     }
@@ -191,7 +188,7 @@ export function CustomGame() {
           <div className="character" ref={characterView}></div>
         </div>
         { tab == TABS.PERSON && <>
-          <h1>Customise your character</h1>
+          <h2>Customise your character</h2>
           <div className="row" style={{clear: "both"}}>
             <label htmlFor="name">First name:</label>
             <input type="text" ref={nameField}/>
@@ -204,15 +201,18 @@ export function CustomGame() {
           </div>
         </>}
         { tab == TABS.HOUSE && <>
-          <h1>Customise your house</h1>
+          <h2>Customise your house</h2>
           <div className="row">
             <label htmlFor="name">House:</label>
             <input type="text" ref={familyNameField}/>
             <button onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
           </div>
         </>}
+        { tab == TABS.NEIGHBOUR && <>
+          <h2>Customise neighbouring tile</h2>
+        </>}
         { tab == TABS.SEED && <>
-          <h1>Game settings</h1>
+          <h2>Game settings</h2>
           <div className="row">
             <label htmlFor="seed">Map seed:</label>
             <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>

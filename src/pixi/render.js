@@ -325,3 +325,18 @@ export const selection = (width, color) => {
   return graphics;
 };
 
+export const town = (label, fillColour, rectColour) => {
+  const town = new PIXI.Graphics();
+
+  town.beginFill(fillColour, 0.5);
+  town.drawCircle(0, 0, 16);
+
+  town.beginFill(rectColour, 0.5);
+  town.drawRoundedRect(-30, 20, 60, 15, 5);
+  town.endFill();
+  let text = new PIXI.Text(label, {fontFamily: "Alegreya", fontSize: 10, fill: "white"});
+  text.position.set(0, 27.5);
+  text.anchor = { x: 0.5, y: 0.5 };
+  town.addChild(text);
+  return town;
+};

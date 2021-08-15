@@ -229,7 +229,7 @@ export const sow_any_field = () => [
       [ "claim_farmable", field ],
       [ "walk_to", field ],
       [ "set_label", "sow_field" ],
-      [ "sow_field", field ],
+      [ "sow_field", field, "grain" ],
       [ "release_farmable", field ],
     ]
   ],
@@ -419,12 +419,12 @@ export const harvest_field = (targetId) => [
   ]
 ];
 
-export const sow_field = (targetId) => [
+export const sow_field = (targetId, seed) => [
   [
     world => !world.subtasks || world.subtasks.some(t => t.id != targetId || t.result != "sown"),
     () => [
-      [ "create_subtasks", targetId, "sown", ["ploughed"], "grain" ],
-      [ "sow_field", targetId ]
+      [ "create_subtasks", targetId, "sown", ["ploughed"], seed ],
+      [ "sow_field", targetId, seed ]
     ]
   ],
   [
@@ -434,20 +434,20 @@ export const sow_field = (targetId) => [
     ]
   ],
   [
-    world => !world.holding.grain,
+    world => !world.holding[seed],
     () => [
-      [ "pick_up", "grain" ],
-      [ "sow_field", targetId ]
+      [ "pick_up", seed ],
+      [ "sow_field", targetId, seed ]
     ]
   ],
   [
-    world => world.holding.grain,
+    world => world.holding[seed],
     () => [
       [ "find_next_subtask", "subtask_slot" ],
       [ "walk_to", "subtask_slot" ],
-      [ "perform_subtask_in_slot", targetId, "subtask_slot", "grain" ],
+      [ "perform_subtask_in_slot", targetId, "subtask_slot", seed ],
       [ "complete_subtask", "subtask_slot" ],
-      [ "sow_field", targetId ]
+      [ "sow_field", targetId, seed ]
     ]
   ]
 ];

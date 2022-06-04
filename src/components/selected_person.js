@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { GameState } from "components/contexts";
 
 import { Name } from "components/name";
@@ -25,3 +26,7 @@ export function SelectedPerson({ entityId }) {
     </div>);
   } else { return (<></>); }
 }
+
+SelectedPerson.propTypes = {
+  entityId: PropTypes.string.isRequired
+};

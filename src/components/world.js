@@ -62,7 +62,7 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
     drag().
     wheel().
     pinch().
-    clampZoom({minScale: 0.1, maxScale: 10}).
+    clampZoom({minScale: 0.01, maxScale: 10}).
     clamp({direction: "all"}).
     zoomPercent(-0.5).
     moveCenter(point.x, point.y);
@@ -75,6 +75,7 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
     buildings: new PIXI.Container(),
     fog: new PIXI.Container(),
   };
+  layer.fog.name = "fog";
 
   state.redraws = Array.from({length: state.ecs.nextId - 1}, (v, i) => "" + (i + 1));
 

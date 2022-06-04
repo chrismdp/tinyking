@@ -14,14 +14,14 @@ I plan to distribute a paid standalone copy on Steam and Itch.io, but the web ve
 
 [![Discord](https://img.shields.io/discord/731912590489288795?color=blue&label=discord)](https://discord.gg/ZgXcVyn)
 
-## Development
-
-Check out [the project pages](https://github.com/chrismdp/tinyking/projects/) for progress. For high level design ideas, look at [Enhancement Issues](https://github.com/chrismdp/tinyking/labels/enhancement).
-
 ## Technical details
 
 The game is built using Javascript, with Webpack for linting, transpiling and distribution. The tiny API it needs will be hosted via AWS Amplify.
 
 I use React for UI and PixiJS for rendering. Persistance will be via browser local storage in the web version.
+
+## Development
+
+Check out [the project pages](https://github.com/chrismdp/tinyking/projects/) for progress. For high level design ideas, look at [Enhancement Issues](https://github.com/chrismdp/tinyking/labels/enhancement).
 
 To get started, download the code, ensure you have `npm` installed, then run `npm install && npm start`. This should load a new browser window with the game running.

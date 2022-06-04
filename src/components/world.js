@@ -476,7 +476,7 @@ export function World() {
       <div id="world" ref={containingDiv}></div>
       <GameState.Provider value={state}>
         <Switch>
-          <Route exact strict path="/debug-worldgen">
+          <Route exact strict path="/debug/worldgen">
             <DebugWorldgen/>
         </Route>
           <Route path="/">

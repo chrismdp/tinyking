@@ -25,7 +25,8 @@ module.exports = {
       meta: {
         "viewport":"user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width",
         "apple-mobile-web-app-capable": "yes"
-      }
+      },
+      base: "/"
     }),
     new HtmlWebpackRootPlugin(),
     gitRevisionPlugin,

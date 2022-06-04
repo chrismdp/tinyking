@@ -1,6 +1,5 @@
 import React from "react";
 import { GameState } from "components/contexts";
-import { SpeedControls } from "components/speed_controls";
 
 export function DebugWorldgen() {
   const state = React.useContext(GameState);

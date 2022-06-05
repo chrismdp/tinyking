@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import * as math from "game/math";
+import { HAIR } from "game/map";
 import { topController } from "game/playable";
 import { fullEntity } from "game/entities";
 import { Hex, InnerHex, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
@@ -23,7 +24,7 @@ export const person = (state, e, fn, t) => {
   person.beginFill(e.personable.body);
   person.drawEllipse(0, 0, e.personable.size * 0.55, e.personable.size * 0.65);
   person.endFill();
-  person.beginFill(e.personable.hair);
+  person.beginFill(HAIR[e.personable.hair]);
   person.drawCircle(0, -e.personable.size * 0.6, e.personable.size * 0.5);
   person.endFill();
 

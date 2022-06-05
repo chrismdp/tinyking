@@ -20,13 +20,19 @@ const STARTING_KNOWN_DISTANCE = 5;
 
 const UPDATE_PROGRESS_EVERY = 500;
 
-const HAIR = {
-  red: 0x8D3633,
-  brown: 0x292021,
-  black: 0x20232A,
-  blonde: 0x957E3C
-};
-const hair = Object.values(HAIR);
+export const HAIR = [
+  0x8D3633, // red
+  0x292021, // brown
+  0x20232A, // black
+  0x957E3C, // blonde
+  // TODO: Should only be for old peopl
+  // 0xd6cabf, // blonde grey
+  0x997f76, // strawberry blonde
+  0xe27bc8, // pink
+  0x7a95e2, // blue
+  // TODO: Should only be for old peopl
+  // 0xbfcbd6, // grey
+];
 
 export const BODY_MALE = 0x4E3F30;
 export const BODY_FEMALE = 0x3B6071;
@@ -65,7 +71,7 @@ function generateFamily(size, spatial, front, generator, days) {
         type: "person",
         size: p > 1 ? 12 : 20,
         male: male,
-        hair: hair[generator.random_int() % hair.length],
+        hair: generator.random_int() % HAIR.length,
         body: male ? BODY_MALE : BODY_FEMALE,
         tiredness: 0.2 + generator.random_incl() * 0.4,
         hunger: 0.4 + generator.random_incl() * 0.4

@@ -6,7 +6,7 @@ import * as render from "pixi/render";
 import { useTranslate } from "react-polyglot";
 import { fullEntity } from "game/entities";
 
-import { Grid, Hex, BODY_MALE, BODY_FEMALE } from "game/map";
+import { Grid, Hex, BODY_MALE, BODY_FEMALE, HAIR } from "game/map";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
@@ -63,6 +63,17 @@ export function CustomGame() {
     state.ecs.personable[state.ui.playerId].body = male ? BODY_MALE : BODY_FEMALE;
     state.redraws.push(state.ui.playerId);
   }, [state, male]);
+
+  const [ hair, setHair ] = React.useState();
+  React.useEffect(() => {
+    if (state.ecs.personable && state.ecs.personable[state.ui.playerId]) {
+      setHair(state.ecs.personable[state.ui.playerId].hair);
+    }
+  }, [state, state.ecs.personable]);
+  React.useEffect(() => {
+    state.ecs.personable[state.ui.playerId].hair = hair;
+    state.redraws.push(state.ui.playerId);
+  }, [state, hair]);
 
   const reset = React.useCallback(() =>
     state.ui.actions.generate_map(seedField.current.value), [state]);
@@ -180,7 +191,7 @@ export function CustomGame() {
       }
     };
   }, [stage, state, t, state.ecs.nameable,
-    state.ui.playerId, male, tab, selectedNeighbour]);
+    state.ui.playerId, male, hair, tab, selectedNeighbour]);
 
   return (
     <div>
@@ -206,6 +217,12 @@ export function CustomGame() {
             <label htmlFor="name">First name:</label>
             <input type="text" ref={nameField}/>
             <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
+          </div>
+          <div className="row">
+            <label>Hair colour:</label>
+            <button onClick={() => { setHair((hair - 1 + HAIR.length) % HAIR.length); }}><FontAwesomeIcon icon="caret-left"/></button>
+            <div className="selection">{hair + 1}</div>
+            <button onClick={() => { setHair((hair + 1) % HAIR.length); }}><FontAwesomeIcon icon="caret-right"/></button>
           </div>
         </>}
         { tab == TABS.HOUSE && <>

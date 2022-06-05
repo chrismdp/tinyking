@@ -256,18 +256,18 @@ canvas {
       .small, .strapline {
         padding-top: 10px;
         font-size: 0.6em;
-        opacity: 0;
+        // opacity: 0;
       }
 
       .main {
         font-size: 1.75em;
-        opacity: 0;
+        // opacity: 0;
         line-height: 1.0em;
       }
 
-      .small { animation: slide-and-fade-in 1.5s 0.25s forwards; }
-      .main { animation: slide-and-fade-in 2.15s 1.0s forwards; }
-      .strapline { animation: slide-and-fade-in 3s 2.5s forwards; }
+      // .small { animation: slide-and-fade-in 1.5s 0.25s forwards; }
+      // .main { animation: slide-and-fade-in 2.15s 1.0s forwards; }
+      // .strapline { animation: slide-and-fade-in 3s 2.5s forwards; }
     }
 
     .social {
@@ -290,8 +290,8 @@ canvas {
       grid-area: Menu;
       padding: 0;
       margin: 0;
-      animation: fade-in 3s 2.5s forwards;
-      opacity: 0;
+      // animation: fade-in 3s 2.5s forwards;
+      // opacity: 0;
       text-align: center;
       li {
         list-style: none;

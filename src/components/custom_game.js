@@ -11,6 +11,7 @@ import { Grid, Hex, BODY_MALE, BODY_FEMALE, HAIR } from "game/map";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
 import { firstName, familyName } from "game/name";
+import { CharacterSelection } from "components/character_selection";
 
 function newSeed() {
   return Math.round(Math.random() * 10000000);
@@ -64,17 +65,6 @@ export function CustomGame() {
     state.redraws.push(state.ui.playerId);
   }, [state, male]);
 
-  const [ hair, setHair ] = React.useState();
-  React.useEffect(() => {
-    if (state.ecs.personable && state.ecs.personable[state.ui.playerId]) {
-      setHair(state.ecs.personable[state.ui.playerId].hair);
-    }
-  }, [state, state.ecs.personable]);
-  React.useEffect(() => {
-    state.ecs.personable[state.ui.playerId].hair = hair;
-    state.redraws.push(state.ui.playerId);
-  }, [state, hair]);
-
   const reset = React.useCallback(() =>
     state.ui.actions.generate_map(seedField.current.value), [state]);
 
@@ -110,6 +100,11 @@ export function CustomGame() {
       }
     };
   }, [state, state.map]);
+
+  // NOTE: Again this is a way to imperatively tell the PIXI stage for this
+  // component to re-render - there's probably a better way.
+  const [ needsUpdate, setNeedsUpdate ] = React.useState();
+  const timeToUpdate = React.useCallback(() => setNeedsUpdate({}), [setNeedsUpdate]);
 
   React.useEffect(() => {
     if (!stage) {
@@ -191,7 +186,7 @@ export function CustomGame() {
       }
     };
   }, [stage, state, t, state.ecs.nameable,
-    state.ui.playerId, male, hair, tab, selectedNeighbour]);
+    state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
 
   return (
     <div>
@@ -218,12 +213,7 @@ export function CustomGame() {
             <input type="text" ref={nameField}/>
             <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
           </div>
-          <div className="row">
-            <label>Hair colour:</label>
-            <button onClick={() => { setHair((hair - 1 + HAIR.length) % HAIR.length); }}><FontAwesomeIcon icon="caret-left"/></button>
-            <div className="selection">{hair + 1}</div>
-            <button onClick={() => { setHair((hair + 1) % HAIR.length); }}><FontAwesomeIcon icon="caret-right"/></button>
-          </div>
+          <CharacterSelection label="Hair colour:" id={state.ui.playerId} attribute="hair" selections={HAIR} onChange={timeToUpdate}/>
         </>}
         { tab == TABS.HOUSE && <>
           <h2>Customise your house</h2>

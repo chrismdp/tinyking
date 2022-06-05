@@ -28,8 +28,8 @@ const HAIR = {
 };
 const hair = Object.values(HAIR);
 
-const BODY_MALE = 0x4E3F30;
-const BODY_FEMALE = 0x3B6071;
+export const BODY_MALE = 0x4E3F30;
+export const BODY_FEMALE = 0x3B6071;
 
 export const Hex = Honeycomb.extendHex({
   size: HEX_SIZE,
@@ -64,6 +64,7 @@ function generateFamily(size, spatial, front, generator, days) {
       personable: {
         type: "person",
         size: p > 1 ? 12 : 20,
+        male: male,
         hair: hair[generator.random_int() % hair.length],
         body: male ? BODY_MALE : BODY_FEMALE,
         tiredness: 0.2 + generator.random_incl() * 0.4,

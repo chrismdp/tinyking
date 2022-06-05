@@ -6,7 +6,7 @@ import * as render from "pixi/render";
 import { useTranslate } from "react-polyglot";
 import { fullEntity } from "game/entities";
 
-import { Grid, Hex } from "game/map";
+import { Grid, Hex, BODY_MALE, BODY_FEMALE } from "game/map";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
@@ -50,11 +50,19 @@ export function CustomGame() {
     familyNameField.current.value = familyName(state.ecs.nameable[state.ui.playerId]);
   }, [state.ecs.nameable, state.ui.playerId]);
 
-  const [ gender, setGender ] = React.useState();
-  const update = React.useCallback(() => {
-    state.ecs.personable[state.ui.playerId].body = gender ? 0xff0000 : 0x00ff00;
+  const [ male, setMale ] = React.useState();
+  React.useEffect(() => {
+    if (state.ecs.personable && state.ecs.personable[state.ui.playerId]) {
+      setMale(state.ecs.personable[state.ui.playerId].male);
+    }
+  }, [state, state.ecs.personable]);
+
+  React.useEffect(() => {
+    state.ecs.nameable[state.ui.playerId].male = male;
+    state.ecs.personable[state.ui.playerId].male = male;
+    state.ecs.personable[state.ui.playerId].body = male ? BODY_MALE : BODY_FEMALE;
     state.redraws.push(state.ui.playerId);
-  }, [state, gender]);
+  }, [state, male]);
 
   const reset = React.useCallback(() =>
     state.ui.actions.generate_map(seedField.current.value), [state]);
@@ -172,7 +180,7 @@ export function CustomGame() {
       }
     };
   }, [stage, state, t, state.ecs.nameable,
-    state.ui.playerId, gender, tab, selectedNeighbour]);
+    state.ui.playerId, male, tab, selectedNeighbour]);
 
   return (
     <div>
@@ -189,15 +197,15 @@ export function CustomGame() {
         </div>
         { tab == TABS.PERSON && <>
           <h2>Customise your character</h2>
+          <div className="row">
+            <label>Gender:</label>
+            <button onClick={() => { setMale(true); }} disabled={male == true}>Male</button>
+            <button onClick={() => { setMale(false); }} disabled={male == false}>Female</button>
+          </div>
           <div className="row" style={{clear: "both"}}>
             <label htmlFor="name">First name:</label>
             <input type="text" ref={nameField}/>
             <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div>
-          <div className="row">
-            <label>Gender:</label>
-            <button onClick={() => { setGender(0); update(); }} disabled={gender == 0}>Male</button>
-            <button onClick={() => { setGender(1); update(); }} disabled={gender == 1}>Female</button>
           </div>
         </>}
         { tab == TABS.HOUSE && <>

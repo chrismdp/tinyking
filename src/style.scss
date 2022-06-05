@@ -5,6 +5,10 @@
 /* Fix mobile Safari weirdness: https://chanind.github.io/javascript/2019/09/28/avoid-100vh-on-mobile-web.html#comment-4634290908 */
 html, body, #root { height: 100%; }
 
+$brown-200: #453a3d;
+$brown-300: #5c4b46;
+$brown-400: #745354;
+
 @mixin menu-link {
   display: inline-block;
   &::after {
@@ -360,7 +364,7 @@ button {
 
   font-size: 0.75em;
   color: white;
-  background: #3C4542;
+  background: $brown-200;
 
   padding: 10px;
   border-radius: 4px;
@@ -389,7 +393,7 @@ button {
 
     h1:hover {
       transition: background 0.2s;
-      background-color: #555;
+      background-color: $brown-200;
     }
   }
 }
@@ -412,7 +416,7 @@ button {
 
   font-size: 0.75em;
   color: white;
-  background: #3C4542;
+  background: $brown-200;
   max-width: 60%;
 
   padding: 8px 15px;
@@ -442,7 +446,7 @@ button {
   .arrow::before {
     content: "";
     transform: rotate(45deg);
-    background: #3C4542;
+    background: $brown-200;
   }
 
   h1, h2 {

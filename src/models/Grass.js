@@ -7,13 +7,14 @@ import { useGLTF } from '@react-three/drei'
 
 export default function Model({ ...props }) {
   const group = useRef()
-  const { nodes, materials } = useGLTF('/grass.glb')
+  const { nodes, materials } = useGLTF('/models/grass.glb')
   return (
     <group ref={group} {...props} dispose={null}>
       <mesh geometry={nodes.Mesh_grass.geometry} material={materials.dirt} />
-      <mesh geometry={nodes.Mesh_grass_1.geometry} material={materials.grass} />
+      <mesh receiveShadow geometry={nodes.Mesh_grass_1.geometry} material={materials.grass}>
+      </mesh>
     </group>
   )
 }
 
-useGLTF.preload('/grass.glb')
+useGLTF.preload('/models/grass.glb')

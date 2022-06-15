@@ -48,4 +48,4 @@ export default function Model({ ...props }) {
   )
 }
 
-useGLTF.preload('/grass_forest.glb')
+useGLTF.preload('/models/grass_forest.glb')

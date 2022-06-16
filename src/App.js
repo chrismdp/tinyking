@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { Counter } from './features/counter/Counter';
@@ -65,12 +65,6 @@ function App() {
 
   const selectableTiles = useSelector(selectable);
 
-  useEffect(() => {
-    dispatch(addTile({x: 0, y: 0, type: "grass"}));
-    dispatch(addTile({x: 0, y: -1, type: "coast"}));
-    dispatch(addTile({x: 1, y: -1, type: "coast"}));
-  }, [dispatch]);
-
   return (
     <>
       <Canvas shadows camera={{ position: [0, 2.5, -3.5] }}>
@@ -86,7 +80,10 @@ function App() {
           Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
         }
         {
-          Object.keys(selectableTiles).map(key => ( <Tile key={"ts" + key} {...selectableTiles[key]} type="select"/> ))
+          Object.keys(selectableTiles).map(key => (
+            <Tile key={"ts" + key} {...selectableTiles[key]} type="select"
+              onClick={() => dispatch(addTile({...selectableTiles[key], type: "grass"}))}/>
+          ))
         }
       </Suspense>
       <EffectComposer>

@@ -3,7 +3,11 @@ import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { Hex, Grid } from "../../hex.js";
 
 const initialState = {
-  tiles: {},
+  tiles: {
+    "0,0": { x: 0, y: 0, type: "grass" },
+    "0,-1": { x: 0, y: -1, type: "coast" },
+    "1,-1": { x: 1, y: -1, type: "coast" },
+  },
 };
 
 const FILLED = "filled";

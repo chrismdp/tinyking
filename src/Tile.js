@@ -13,12 +13,12 @@ const COMPONENTS = {
   "select": SelectTile
 }
 
-export default function Tile({x, y, type}) {
+export default function Tile({x, y, type, ...props}) {
   const point = Hex(x, y).toPoint();
   const Component = COMPONENTS[type];
   if (Component) {
     return (
-      <Component x={point.x} y={point.y}/>
+      <Component x={point.x} y={point.y} {...props}/>
     )
   }
 }

@@ -1,8 +1,10 @@
-import { useState, Suspense } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect, Suspense } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { Counter } from './features/counter/Counter';
 import './App.css';
+
+import { selectable, addTile } from './features/map/mapSlice';
 
 import { Canvas, useLoader } from "@react-three/fiber";
 import { MapControls } from "@react-three/drei";
@@ -57,7 +59,18 @@ function Grading({ lut }) {
 function App() {
   const tiles = useSelector(state => state.map.tiles);
 
+  const dispatch = useDispatch();
+
   const [ lut , setLut ] = useState("Bourbon 64");
+
+  const selectableTiles = useSelector(selectable);
+
+  useEffect(() => {
+    dispatch(addTile({x: 0, y: 0, type: "grass"}));
+    dispatch(addTile({x: 0, y: -1, type: "coast"}));
+    dispatch(addTile({x: 1, y: -1, type: "coast"}));
+  }, [dispatch]);
+
   return (
     <>
       <Canvas shadows camera={{ position: [0, 2.5, -3.5] }}>
@@ -70,7 +83,10 @@ function App() {
       <MapControls/>
       <Suspense fallback={null}>
         {
-          Object.keys(tiles).map((key) => ( <Tile key={key} {...tiles[key]}/> ))
+          Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
+        }
+        {
+          Object.keys(selectableTiles).map(key => ( <Tile key={"ts" + key} {...selectableTiles[key]} type="select"/> ))
         }
       </Suspense>
       <EffectComposer>

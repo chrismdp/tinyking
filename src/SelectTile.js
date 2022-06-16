@@ -9,7 +9,7 @@ export default function SelectTile({ x, y, ...props }) {
   const group = useRef()
   const { nodes } = useGLTF('/models/grass.glb')
   return (
-    <group ref={group} position={[x, 0, y]} dispose={null} {...props}>
+    <group ref={group} dispose={null} {...props}>
       <mesh geometry={nodes.Mesh_grass_1.geometry}>
         <meshPhongMaterial transparent opacity={0.1} color="gray"/>
       </mesh>

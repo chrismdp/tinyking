@@ -7,7 +7,7 @@ import { useGLTF } from '@react-three/drei'
 
 export default function Model({ ...props }) {
   const group = useRef()
-  const { nodes, materials } = useGLTF('/unit_house.glb')
+  const { nodes, materials } = useGLTF('/models/unit_house.glb')
   return (
     <group ref={group} {...props} dispose={null}>
       <mesh geometry={nodes.Mesh_unit_house.geometry} material={materials.roof} />
@@ -17,4 +17,4 @@ export default function Model({ ...props }) {
   )
 }
 
-useGLTF.preload('/unit_house.glb')
+useGLTF.preload('/models/unit_house.glb')

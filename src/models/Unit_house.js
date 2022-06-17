@@ -9,10 +9,10 @@ export default function Model({ ...props }) {
   const group = useRef()
   const { nodes, materials } = useGLTF('/models/unit_house.glb')
   return (
-    <group ref={group} {...props} dispose={null}>
-      <mesh geometry={nodes.Mesh_unit_house.geometry} material={materials.roof} />
-      <mesh geometry={nodes.Mesh_unit_house_1.geometry} material={materials.dirt} />
-      <mesh geometry={nodes.Mesh_unit_house_2.geometry} material={materials.wood} />
+    <group scale={0.5} rotation={[0, 0.4, 0]} ref={group} {...props} dispose={null}>
+      <mesh castShadow receiveShadow geometry={nodes.Mesh_unit_house.geometry} material={materials.roof} />
+      <mesh castShadow receiveShadow geometry={nodes.Mesh_unit_house_1.geometry} material={materials.dirt} />
+      <mesh castShadow receiveShadow geometry={nodes.Mesh_unit_house_2.geometry} material={materials.wood} />
     </group>
   )
 }

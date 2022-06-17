@@ -12,6 +12,7 @@ import { LUT, SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/pos
 import { LUTCubeLoader } from "three/examples/jsm/loaders/LUTCubeLoader";
 
 import Tile from "./Tile.js"
+import Building from "./Building.js"
 
 const LUTS = [
   "Arabica 12",
@@ -58,6 +59,7 @@ function Grading({ lut }) {
 
 function App() {
   const tiles = useSelector(state => state.map.tiles);
+  const buildings = useSelector(state => state.map.buildings);
 
   const dispatch = useDispatch();
 
@@ -69,7 +71,7 @@ function App() {
     <>
       <Canvas shadows camera={{ position: [0, 2.5, -3.5] }}>
       <color attach="background" args={[0x222244]}/>
-      <directionalLight castShadow intensity={0.8} position={[0, 2, 3]} />
+      <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
       <directionalLight intensity={0.2} position={[0, 2, 3]} />
       <directionalLight intensity={0.2} position={[0, 2, -3]} />
       <directionalLight intensity={0.2} position={[-3, 2, -3]} />
@@ -84,6 +86,9 @@ function App() {
             <Tile key={"ts" + key} {...selectableTiles[key]} type="select"
               onClick={() => dispatch(addTile({...selectableTiles[key], type: "grass"}))}/>
           ))
+        }
+        {
+          Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
         }
       </Suspense>
       <EffectComposer>

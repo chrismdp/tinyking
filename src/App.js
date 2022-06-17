@@ -6,13 +6,15 @@ import './App.css';
 
 import { selectable, addTile } from './features/map/mapSlice';
 
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { MapControls } from "@react-three/drei";
-import { LUT, SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
-import { LUTCubeLoader } from "three/examples/jsm/loaders/LUTCubeLoader";
+import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
+import Grading from "./Grading.js"
+
+import TileSelectionPanel from "./TileSelectionPanel.js"
 
 const LUTS = [
   "Arabica 12",
@@ -51,11 +53,6 @@ const LUTS = [
   "Zed 32",
   "Zeke 39",
 ]
-
-function Grading({ lut }) {
-  const texture3D = useLoader(LUTCubeLoader, `/luts/${lut}.CUBE`); // Bright / sharp
-  return (<LUT lut={texture3D.texture}/>);
-}
 
 function App() {
   const tiles = useSelector(state => state.map.tiles);
@@ -108,6 +105,10 @@ function App() {
           <option/>
           { LUTS.map(option => (<option key={option}>{option}</option>)) }
       </select>
+      </div>
+
+      <div className="modal">
+        <TileSelectionPanel lut={lut} type="grass"/>
       </div>
     </>
   );

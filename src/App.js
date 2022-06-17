@@ -70,46 +70,46 @@ function App() {
   return (
     <>
       <Canvas shadows camera={{ position: [0, 2.5, -3.5] }}>
-      <color attach="background" args={[0x222244]}/>
-      <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
-      <directionalLight intensity={0.2} position={[0, 2, 3]} />
-      <directionalLight intensity={0.2} position={[0, 2, -3]} />
-      <directionalLight intensity={0.2} position={[-3, 2, -3]} />
-      <directionalLight intensity={0.2} position={[3, 2, -3]} />
-      <MapControls/>
-      <Suspense fallback={null}>
-        {
-          Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
-        }
-        {
-          Object.keys(selectableTiles).map(key => (
-            <Tile key={"ts" + key} {...selectableTiles[key]} type="select"
+        <color attach="background" args={[0x222244]}/>
+        <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
+        <directionalLight intensity={0.2} position={[0, 2, 3]} />
+        <directionalLight intensity={0.2} position={[0, 2, -3]} />
+        <directionalLight intensity={0.2} position={[-3, 2, -3]} />
+        <directionalLight intensity={0.2} position={[3, 2, -3]} />
+        <MapControls/>
+        <Suspense fallback={null}>
+          {
+            Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
+          }
+          {
+            Object.keys(selectableTiles).map(key => (
+              <Tile key={"ts" + key} {...selectableTiles[key]} type="select"
               onClick={() => dispatch(addTile({...selectableTiles[key], type: "grass"}))}/>
-          ))
-        }
-        {
-          Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
-        }
-      </Suspense>
-      <EffectComposer>
-        <SMAA/>
-        { lut && (<Grading lut={lut}/>)}
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.8} height={300}/>
-        <DepthOfField focusDistance={0} focalLength={0.1} bokehScale={2} height={480} />
-      </EffectComposer>
-    
-    </Canvas>
-    <div className="App">
-      Temp UI
-      <header className="App-header">
-        <Counter />
-      </header>
-      <select onChange={e => setLut(e.target.value)} value={lut}>
-        <option/>
-        { LUTS.map(option => (<option key={option}>{option}</option>)) }
-    </select>
-    </div>
-  </>
+            ))
+          }
+          {
+            Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
+          }
+        </Suspense>
+        <EffectComposer>
+          <SMAA/>
+          { lut && (<Grading lut={lut}/>)}
+          <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.8} height={300}/>
+          <DepthOfField focusDistance={0} focalLength={0.1} bokehScale={2} height={480} />
+        </EffectComposer>
+          
+      </Canvas>
+      <div className="App">
+        Temp UI
+        <header className="App-header">
+          <Counter />
+        </header>
+        <select onChange={e => setLut(e.target.value)} value={lut}>
+          <option/>
+          { LUTS.map(option => (<option key={option}>{option}</option>)) }
+      </select>
+      </div>
+    </>
   );
 }
 

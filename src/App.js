@@ -64,6 +64,8 @@ function App() {
 
   const selectableTiles = useSelector(selectable);
 
+  const [ tileChoices, setTileChoices ] = useState([]);
+
   return (
     <>
       <Canvas shadows camera={{ position: [0, 2.5, -3.5] }}>
@@ -80,8 +82,7 @@ function App() {
           }
           {
             Object.keys(selectableTiles).map(key => (
-              <Tile key={"ts" + key} {...selectableTiles[key]} type="select"
-              onClick={() => dispatch(addTile({...selectableTiles[key], type: "grass"}))}/>
+              <Tile key={"ts" + key} {...selectableTiles[key]} type="select" onClick={() => setTileChoices(["grass"])}/>
             ))
           }
           {
@@ -107,9 +108,17 @@ function App() {
       </select>
       </div>
 
-      <div className="modal">
-        <TileSelectionPanel lut={lut} type="grass"/>
-      </div>
+      {
+        (tileChoices.length > 0) && (
+          <div className="modal">
+            <TileSelectionPanel lut={lut} type="grass"/>
+          {
+            // TODO: use this when clicking on a tile
+            // onClick={() => dispatch(addTile({...selectableTiles[key], type: "grass"}))}/>
+          }
+          </div>
+        )
+      }
     </>
   );
 }

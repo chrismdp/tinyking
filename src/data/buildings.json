@@ -1,0 +1,7 @@
+{
+  "house": {
+    "component": "House",
+    "name": "House",
+    "description": "A basic building for people to live in."
+  }
+}

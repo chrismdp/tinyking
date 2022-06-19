@@ -3,21 +3,12 @@ import { Hex } from "./hex.js";
 import { useRef, useCallback } from 'react';
 import { useFrame } from "@react-three/fiber";
 
-import { SelectTile } from "./SelectTile.js"
-import { Water } from "../../models/Water.js"
-import { Grass } from "../../models/Grass.js"
-import { GrassForest } from "../../models/Grass_forest.js"
-
-const COMPONENTS = {
-  "forest": GrassForest,
-  "coast": Water,
-  "grass": Grass,
-  "select": SelectTile,
-}
+import * as Tiles from "../../models/Tiles.js"
+import tiles from "../../data/tiles.json"
 
 export default function Tile({x, y, type, rotating, ...props}) {
   const point = Hex(x, y).toPoint();
-  const Component = COMPONENTS[type];
+  const Component = Tiles[tiles[type].component];
 
   const ref = useRef();
   const rotate = useCallback(delta => {

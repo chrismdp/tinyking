@@ -1,0 +1,20 @@
+{
+  "forest": {
+    "component": "GrassForest",
+    "name": "Forest",
+    "description": "A source of wood, but increases wildness and cannot be used for farming."
+  },
+  "coast": {
+    "component": "Water",
+    "name": "Coastline",
+    "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats."
+  },
+  "grass": {
+    "component": "Grass",
+    "name": "Grassland",
+    "description": "Can be used for farming"
+  },
+  "select": {
+    "component": "SelectTile"
+  }
+}

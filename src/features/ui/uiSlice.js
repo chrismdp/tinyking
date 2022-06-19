@@ -10,8 +10,12 @@ export const uiSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    showExplore: (state, action) => {
-      state.visiblePanel = "explore"
+    toggleExplore: (state, action) => {
+      if (state.visiblePanel !== "explore") {
+        state.visiblePanel = "explore";
+      } else {
+        state.visiblePanel = null;
+      }
     },
     hide: (state, action) => {
       state.visiblePanel = null;
@@ -21,6 +25,6 @@ export const uiSlice = createSlice({
 
 export const explorePanelVisible = (state) => state.ui.visiblePanel === "explore";
 
-export const { showExplore, hideExplore } = uiSlice.actions;
+export const { toggleExplore, hideExplore } = uiSlice.actions;
 
 export default uiSlice.reducer;

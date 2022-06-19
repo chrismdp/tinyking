@@ -1,5 +1,3 @@
-import { Counter } from './features/counter/Counter';
-
 const LUTS = [
   "Arabica 12",
   "Ava 614",
@@ -41,12 +39,9 @@ const LUTS = [
 
 export default function DebugGraphicsInterface({ lut, setLut }) {
   return (
-    <div className="absolute top-5">
-      Temp UI
-      <header className="App-header">
-        <Counter />
-      </header>
-      <select onChange={e => setLut(e.target.value)} value={lut}>
+    <div className="absolute top-5 left-5">
+      <h1 className="font-title text-2xl">Graphics Debug</h1>
+      <select className="text-black" onChange={e => setLut(e.target.value)} value={lut}>
         <option/>
         { LUTS.map(option => (<option key={option}>{option}</option>)) }
       </select>

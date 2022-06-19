@@ -16,7 +16,7 @@ function App() {
   const explore = useSelector(explorePanelVisible);
 
   return (
-    <div className="h-screen">
+    <div className="h-screen text-white">
       <Map lut={lut} />
       { (explore && (<ExplorePanel/>)) }
     </div>

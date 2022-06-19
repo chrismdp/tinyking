@@ -1,29 +1,33 @@
 import { Hex } from "./hex.js";
 
-import SelectTile from "./SelectTile.js"
-import Water from "../../models/Water.js"
-import Grass from "../../models/Grass.js"
-import Grass_forest from "../../models/Grass_forest.js"
-import Building_cabin from "../../models/Building_cabin.js"
-import Unit_house from "../../models/Unit_house.js"
-// import Building_house from "./models/Building_house.js"
+import { useRef, useCallback } from 'react';
+import { useFrame } from "@react-three/fiber";
 
-// TODO: Really necessary to have this layer of indirection here?
+import { SelectTile } from "./SelectTile.js"
+import { Water } from "../../models/Water.js"
+import { Grass } from "../../models/Grass.js"
+import { GrassForest } from "../../models/Grass_forest.js"
+
 const COMPONENTS = {
-  "forest": Grass_forest,
+  "forest": GrassForest,
   "coast": Water,
   "grass": Grass,
   "select": SelectTile,
-  "cabin": Building_cabin,
-  "house": Unit_house,
 }
 
-export default function Tile({x, y, type, ...props}) {
+export default function Tile({x, y, type, rotating, ...props}) {
   const point = Hex(x, y).toPoint();
   const Component = COMPONENTS[type];
+
+  const ref = useRef();
+  const rotate = useCallback(delta => {
+    if (ref.current) ref.current.rotation.y += delta * 0.5;
+  }, []);
+  useFrame((state, delta) => rotating && rotate(delta));
+
   if (Component) {
     return (
-      <Component position={[point.x, 0,  point.y]} {...props}/>
+      <Component ref={ref} position={[point.x, 0,  point.y]} {...props}/>
     )
   }
 }

@@ -6,7 +6,7 @@ import { MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
 import { selectable } from './mapSlice';
-import { showExplore } from '../ui/uiSlice';
+import { toggleExplore } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
@@ -34,7 +34,7 @@ export default function Map({ lut }) {
         }
         {
           Object.keys(selectableTiles).map(key => (
-            <Tile key={"ts" + key} {...selectableTiles[key]} type="select" onClick={() => dispatch(showExplore())}/>
+            <Tile key={"ts" + key} {...selectableTiles[key]} type="select" onClick={() => dispatch(toggleExplore())}/>
           ))
         }
         {

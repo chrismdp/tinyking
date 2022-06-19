@@ -13,18 +13,22 @@ export const uiSlice = createSlice({
     toggleExplore: (state, action) => {
       if (state.visiblePanel !== "explore") {
         state.visiblePanel = "explore";
+        state.explore.selection = null;
       } else {
         state.visiblePanel = null;
       }
     },
     hide: (state, action) => {
       state.visiblePanel = null;
+    },
+    setExploreSelection: (state, action) => {
+      state.explore.selection = action.payload;
     }
   }
 });
 
 export const explorePanelVisible = (state) => state.ui.visiblePanel === "explore";
 
-export const { toggleExplore, hideExplore } = uiSlice.actions;
+export const { toggleExplore, hide, setExploreSelection } = uiSlice.actions;
 
 export default uiSlice.reducer;

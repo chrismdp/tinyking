@@ -18,7 +18,7 @@ function App() {
   return (
     <div className="h-screen text-white">
       <Map lut={lut} />
-      { (explore && (<ExplorePanel/>)) }
+      <ExplorePanel visible={!!explore}/>
     </div>
   );
 }

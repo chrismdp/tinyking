@@ -8,11 +8,3 @@ html, body, #root {
   margin: 0;
   padding: 0;
 }
-
-.modal {
-  position: absolute;
-  top: 40px;
-  bottom: 40px;
-  left: 40px;
-  right: 40px;
-}

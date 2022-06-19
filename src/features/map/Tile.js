@@ -1,11 +1,11 @@
 import { Hex } from "./hex.js";
 
 import SelectTile from "./SelectTile.js"
-import Water from "./models/Water.js"
-import Grass from "./models/Grass.js"
-import Grass_forest from "./models/Grass_forest.js"
-import Building_cabin from "./models/Building_cabin.js"
-import Unit_house from "./models/Unit_house.js"
+import Water from "../../models/Water.js"
+import Grass from "../../models/Grass.js"
+import Grass_forest from "../../models/Grass_forest.js"
+import Building_cabin from "../../models/Building_cabin.js"
+import Unit_house from "../../models/Unit_house.js"
 // import Building_house from "./models/Building_house.js"
 
 // TODO: Really necessary to have this layer of indirection here?

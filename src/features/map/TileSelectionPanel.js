@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import { Canvas } from "@react-three/fiber";
 
-import Grading from "./Grading.js"
+import Grading from "../../Grading.js"
 
-import Tile from "./Tile.js"
+import Tile from "../map/Tile.js"
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
 export default function TileSelectionPanel({ type, lut, callback }) {

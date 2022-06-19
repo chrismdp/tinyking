@@ -1,6 +1,6 @@
 import { Hex } from "./hex.js";
 
-import Unit_house from "./models/Unit_house.js"
+import Unit_house from "../../models/Unit_house.js"
 
 // TODO: Really necessary to have this layer of indirection here?
 const COMPONENTS = {

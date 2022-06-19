@@ -1,6 +1,6 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
 
-import { Hex, Grid } from "../../hex.js";
+import { Hex, Grid } from "./hex.js";
 
 const initialState = {
   tiles: {

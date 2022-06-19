@@ -4,6 +4,9 @@ module.exports = {
     "./src/**/*.js"
   ],
   theme: {
+    fontFamily: {
+      title: ['Catamaran', 'serif']
+    },
     extend: {},
   },
   plugins: [],

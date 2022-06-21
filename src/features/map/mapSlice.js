@@ -2,6 +2,8 @@ import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 import { Hex, Grid } from "./hex.js";
 
+import TILE_INFO from "../../data/tiles.json"
+
 const initialState = {
   tiles: {
     "0,0": { x: 0, y: 0, type: "grass" },
@@ -38,11 +40,15 @@ export const selectable = createSelector(
       const key = keys[tile_index];
       const center = Hex(tiles[key])
       selectable[key] = { status: FILLED };
-      const spiral = Grid.spiral({center, radius: 1});
-      for (let index = 1; index < spiral.length; index++) {
-        const coord = spiral[index].toString();
-        if (selectable[coord] == null || selectable[coord].status !== FILLED) {
-          selectable[coord] = { hex: spiral[index], status: SELECTABLE };
+
+      const info = TILE_INFO[tiles[key].type];
+      if (info.land) {
+        const spiral = Grid.spiral({center, radius: 1});
+        for (let index = 1; index < spiral.length; index++) {
+          const coord = spiral[index].toString();
+          if (selectable[coord] == null || selectable[coord].status !== FILLED) {
+            selectable[coord] = { hex: spiral[index], status: SELECTABLE };
+          }
         }
       }
     }

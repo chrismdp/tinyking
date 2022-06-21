@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { Canvas } from "@react-three/fiber";
 
 import Grading from "../../Grading.js"
@@ -15,9 +14,7 @@ export default function TileSelectionPanel({ type, lut, callback, selected }) {
         <directionalLight intensity={0.2} position={[0, 2, -3]} />
         <directionalLight intensity={0.2} position={[-3, 2, -3]} />
         <directionalLight intensity={0.2} position={[3, 2, -3]} />
-        <Suspense fallback={null}>
-          <Tile x={0} y={0} type={type} rotating={selected} onClick={() => callback(type)}/>
-        </Suspense>
+        <Tile x={0} y={0} type={type} rotating={selected} onClick={() => callback(type)}/>
         <EffectComposer>
           <SMAA/>
           { lut && (<Grading lut={lut}/>)}

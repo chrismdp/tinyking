@@ -1,7 +1,7 @@
-import { Hex } from "./hex.js";
-
-import { useRef, useCallback } from 'react';
+import { Suspense, useRef, useCallback } from 'react';
 import { useFrame } from "@react-three/fiber";
+
+import { Hex } from "./hex.js";
 
 import * as Tiles from "../../models/Tiles.js"
 import tiles from "../../data/tiles.json"
@@ -18,7 +18,9 @@ export default function Tile({x, y, type, rotating, ...props}) {
 
   if (Component) {
     return (
-      <Component ref={ref} position={[point.x, 0,  point.y]} {...props}/>
+      <Suspense>
+        <Component ref={ref} position={[point.x, 0,  point.y]} {...props}/>
+      </Suspense>
     )
   }
 }

@@ -37,7 +37,7 @@ export default function ExplorePanel({ visible }) {
         <TileSelectionPanel lut={lut} type="forest" selected={selection === "forest"} callback={() => dispatch(setExploreSelection("forest"))}/>
         <TileSelectionPanel lut={lut} type="coast" selected={selection === "coast"} callback={() => dispatch(setExploreSelection("coast"))}/>
       </div>
-      <div className="absolute top-2 right-2"><XIcon class="h-5 w-5" onClick={() => dispatch(hide())}/></div>
+      <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>
     </div>
   );
 }

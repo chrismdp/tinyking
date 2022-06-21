@@ -2,7 +2,9 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   visiblePanel: null,
-  explore: {}
+  explore: {
+    hex: {}
+  }
 };
 
 export const uiSlice = createSlice({
@@ -10,16 +12,15 @@ export const uiSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    toggleExplore: (state, action) => {
-      if (state.visiblePanel !== "explore") {
-        state.visiblePanel = "explore";
-        state.explore.selection = null;
-      } else {
-        state.visiblePanel = null;
-      }
+    explore: (state, action) => {
+      const { x, y } = action.payload
+      state.visiblePanel = "explore";
+      state.explore.selection = null;
+      state.explore.hex = { x, y };
     },
     hide: (state, action) => {
       state.visiblePanel = null;
+      state.explore.hex = {};
     },
     setExploreSelection: (state, action) => {
       state.explore.selection = action.payload;
@@ -29,6 +30,6 @@ export const uiSlice = createSlice({
 
 export const explorePanelVisible = (state) => state.ui.visiblePanel === "explore";
 
-export const { toggleExplore, hide, setExploreSelection } = uiSlice.actions;
+export const { explore, hide, setExploreSelection } = uiSlice.actions;
 
 export default uiSlice.reducer;

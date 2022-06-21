@@ -1,6 +1,8 @@
 import React from 'react'
 import { useGLTF } from '@react-three/drei'
 
+import { animated, useSpring } from '@react-spring/three';
+
 import { WaterMaterial } from '../materials';
 
 export const Water = React.forwardRef((props, ref) => {
@@ -70,11 +72,12 @@ export const GrassForest = React.forwardRef((props, ref) => {
 export const SelectTile = React.forwardRef(({ x, y, highlighted, ...props }, ref) => {
   const { nodes } = useGLTF('/models/grass.glb')
 
+  const { opacity } = useSpring({ opacity: highlighted ? 0.3 : 0.1 });
   return (
     <group ref={ref} dispose={null} {...props}>
-      <mesh geometry={nodes.Mesh_grass_1.geometry}>
-        <meshPhongMaterial transparent opacity={highlighted ? 1.0 : 0.1} color="gray"/>
-      </mesh>
+      <animated.mesh geometry={nodes.Mesh_grass_1.geometry} material-opacity={opacity}>
+        <meshPhongMaterial transparent color="gray"/>
+      </animated.mesh>
     </group>
   )
 });

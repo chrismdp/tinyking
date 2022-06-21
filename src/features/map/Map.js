@@ -1,5 +1,7 @@
-import { useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useRef } from 'react';
+
+import { animated, useSpring } from '@react-spring/three';
 
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
@@ -18,23 +20,8 @@ function selected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
 }
 
-const useInterval = (callback, delay) => {
-  const savedCallback = useRef();
-
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
-
-  useEffect(() => {
-    const tick = () => {
-      savedCallback.current();
-    }
-    if (delay !== null) {
-      let id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-  }, [delay]);
-};
+const AnimatedMapControls = animated(MapControls);
+const AnimatedPerspectiveCamera = animated(PerspectiveCamera);
 
 export default function Map({ lut }) {
   const tiles = useSelector(state => state.map.tiles);
@@ -44,28 +31,28 @@ export default function Map({ lut }) {
 
   const dispatch = useDispatch();
 
+  const point = Hex(selectedTile.x ?? 0, selectedTile.y ?? 0).toPoint();
 
+  const camera = useRef();
   const controls = useRef();
-  useEffect(() => {
-    if (controls && controls.current) {
-      console.log(controls.current.target);
-      const point = Hex(selectedTile.x ?? 0, selectedTile.y ?? 0).toPoint();
-      controls.current.target.set(point.x, 0, point.y);
-      console.log(controls.current.target);
+  const { target, position } = useSpring({
+    reset: true,
+    from: {
+      position: camera.current && camera.current.position.toArray(),
+      target: controls.current && controls.current.target.toArray()
+    },
+    to: {
+      position: [point.x, 4.5, point.y - 5.5],
+      target: [point.x, 0, point.y]
     }
-  }, [controls, selectedTile]);
-
-  useInterval(() => {
-    if (controls && controls.current) {
-      console.log(controls.current.target);
-    }
-  }, 1000);
+  });
 
   return (
     <Canvas className="absolute top-0 bottom-0" shadows>
-      <PerspectiveCamera
+      <AnimatedPerspectiveCamera
         makeDefault
-        position={[0, 4.5, -5.5]}
+        ref={camera}
+        position={position}
       />
       <color attach="background" args={[0x222244]}/>
       <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
@@ -73,7 +60,7 @@ export default function Map({ lut }) {
       <directionalLight intensity={0.2} position={[0, 2, -3]} />
       <directionalLight intensity={0.2} position={[-3, 2, -3]} />
       <directionalLight intensity={0.2} position={[3, 2, -3]} />
-      <MapControls ref={controls}/>
+      <AnimatedMapControls ref={controls} target={target}/>
       {
         Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
       }

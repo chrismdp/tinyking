@@ -18,7 +18,7 @@ function App() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="h-screen text-white">
+    <div className="h-screen text-neutral-100">
       <Map lut={lut} />
       <div className="absolute top-0 left-0 p-5">
         <h1 className="font-title text-3xl">Tiny King</h1>

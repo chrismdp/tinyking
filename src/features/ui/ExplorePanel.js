@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 
 import { hide, setExploreSelection } from "./uiSlice.js";
+import { addTile } from "../map/mapSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
 
@@ -13,6 +14,7 @@ export default function ExplorePanel({ visible }) {
 
   const lut = "Neon 770";
   const selection = useSelector(state => state.ui.explore.selection)
+  const selectedTile = useSelector(state => state.ui.explore.hex);
 
   let classes = "absolute bottom-0 bg-neutral-800 p-4 inset-x-0 md:bottom-10 md:inset-x-10";
   if (!visible) {
@@ -38,6 +40,11 @@ export default function ExplorePanel({ visible }) {
         <TileSelectionPanel lut={lut} type="coast" selected={selection === "coast"} callback={() => dispatch(setExploreSelection("coast"))}/>
       </div>
       <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>
+      { selection &&
+        <div className="absolute bottom-2 right-2">
+          <button onClick={() => dispatch(addTile({ ...selectedTile, type: selection }))} className="m-2 px-8 py-2 bg-lime-900 text-neutral-100 font-title text-xl">Confirm</button>
+        </div>
+      }
     </div>
   );
 }

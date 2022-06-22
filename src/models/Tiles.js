@@ -71,8 +71,8 @@ export const GrassForest = React.forwardRef((props, ref) => {
 
 export const SelectTile = React.forwardRef(({ x, y, highlighted, ...props }, ref) => {
   const { nodes } = useGLTF('/models/grass.glb')
-
   const { opacity } = useSpring({ opacity: highlighted ? 0.3 : 0.1 });
+
   return (
     <group ref={ref} dispose={null} {...props}>
       <animated.mesh geometry={nodes.Mesh_grass_1.geometry} material-opacity={opacity}>

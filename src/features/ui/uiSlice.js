@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { addTile } from "../map/mapSlice.js";
 
 const initialState = {
   visiblePanel: null,
@@ -25,6 +26,11 @@ export const uiSlice = createSlice({
     setExploreSelection: (state, action) => {
       state.explore.selection = action.payload;
     }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(addTile, (state, action) => {
+      state.visiblePanel = null;
+    })
   }
 });
 

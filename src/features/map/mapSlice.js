@@ -52,12 +52,13 @@ export const selectable = createSelector(
         }
       }
     }
-    return Object.keys(selectable).map(key => {
+    const result = Object.keys(selectable).map(key => {
       if (selectable[key].status === SELECTABLE) {
-        return selectable[key].hex.coordinates();
+        return {key: key, ...selectable[key].hex.coordinates()};
       }
       return null;
     }).filter(x => x);
+    return result;
   }
 );
 

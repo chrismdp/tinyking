@@ -65,13 +65,12 @@ export default function Map({ lut }) {
         Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
       }
       {
-        Object.keys(selectableTiles).map(key => (
+        selectableTiles.map(tile => (
           <Tile
-            key={"ts" + key}
-            {...selectableTiles[key]}
-            highlighted={selected(selectableTiles[key], selectedTile)}
+            {...tile}
+            highlighted={selected(tile, selectedTile)}
             type="select"
-            onClick={() => dispatch(explore({ ...selectableTiles[key] }))}
+            onClick={() => dispatch(explore({ ...tile}))}
           />
         ))
       }

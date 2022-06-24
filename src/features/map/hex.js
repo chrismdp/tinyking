@@ -7,3 +7,6 @@ export const Hex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
+export function neighbours(center) {
+  return Grid.spiral({center, radius: 1});
+}

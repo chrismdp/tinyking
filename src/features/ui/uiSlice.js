@@ -4,7 +4,8 @@ import { addTile } from "../map/mapSlice.js";
 const initialState = {
   visiblePanel: null,
   explore: {
-    hex: {}
+    hex: {},
+    availableTiles: []
   }
 };
 
@@ -14,10 +15,11 @@ export const uiSlice = createSlice({
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     explore: (state, action) => {
-      const { x, y } = action.payload
+      const { x, y, availableTiles } = action.payload;
       state.visiblePanel = "explore";
       state.explore.selection = null;
       state.explore.hex = { x, y };
+      state.explore.availableTiles = availableTiles;
     },
     hide: (state, action) => {
       state.visiblePanel = null;

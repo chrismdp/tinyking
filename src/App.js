@@ -20,9 +20,17 @@ function App() {
   return (
     <div className="h-screen text-neutral-100">
       <Map lut={lut} />
-      <div className="absolute top-0 left-0 p-5">
+      <div className="absolute top-0 p-5">
         <h1 className="font-title text-3xl">Tiny King</h1>
         <p className="text-xs opacity-50 w-60">Relaxed map drawing, kingdom building and defence</p>
+      </div>
+      <div className="absolute top-0 right-0 p-5">
+    {
+        // <ul>
+        //   <li className="font-title text-xl">Wood: ?</li>
+        //   <li className="font-title text-xl">Wildness: ?</li>
+        // </ul>
+     }
       </div>
       <div className="absolute bottom-10 sm:bottom-0 p-5">
         <p className="text-xs opacity-50">

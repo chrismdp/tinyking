@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { animated, useSpring } from '@react-spring/three';
 
@@ -26,8 +26,14 @@ const AnimatedPerspectiveCamera = animated(PerspectiveCamera);
 export default function Map({ lut }) {
   const tiles = useSelector(state => state.map.tiles);
   const buildings = useSelector(state => state.map.buildings);
-  const selectableTiles = useSelector(selectable);
   const selectedTile = useSelector(state => state.ui.explore.hex);
+
+  const [ selectableTiles, setSelectableTiles ] = useState([]);
+  useEffect(() => {
+    (async () => {
+      setSelectableTiles(await selectable(tiles));
+    })().catch(console.error);
+  }, [tiles]);
 
   const dispatch = useDispatch();
 

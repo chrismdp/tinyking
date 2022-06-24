@@ -1,4 +1,4 @@
-import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 import { Hex, Grid } from "./hex.js";
 
@@ -32,36 +32,33 @@ export const mapSlice = createSlice({
   }
 });
 
-export const selectable = createSelector(
-  state => state.map.tiles,
-  tiles => {
-    const selectable = {};
-    const keys = Object.keys(tiles);
-    for (let tile_index = 0; tile_index < keys.length; tile_index++) {
-      const key = keys[tile_index];
-      const center = Hex(tiles[key])
-      selectable[key] = { status: FILLED };
+export const selectable = async (tiles) => {
+  const selectable = {};
+  const keys = Object.keys(tiles);
+  for (let tile_index = 0; tile_index < keys.length; tile_index++) {
+    const key = keys[tile_index];
+    const center = Hex(tiles[key])
+    selectable[key] = { status: FILLED };
 
-      const info = TERRAIN_INFO[TILE_INFO[tiles[key].type].terrain];
-      if (info.land) {
-        const spiral = Grid.spiral({center, radius: 1});
-        for (let index = 1; index < spiral.length; index++) {
-          const coord = spiral[index].toString();
-          if (selectable[coord] == null || selectable[coord].status !== FILLED) {
-            selectable[coord] = { hex: spiral[index], status: SELECTABLE };
-          }
+    const info = TERRAIN_INFO[TILE_INFO[tiles[key].type].terrain];
+    if (info.land) {
+      const spiral = Grid.spiral({center, radius: 1});
+      for (let index = 1; index < spiral.length; index++) {
+        const coord = spiral[index].toString();
+        if (selectable[coord] == null || selectable[coord].status !== FILLED) {
+          selectable[coord] = { hex: spiral[index], status: SELECTABLE };
         }
       }
     }
-    const result = Object.keys(selectable).map(key => {
-      if (selectable[key].status === SELECTABLE) {
-        return {key: key, ...selectable[key].hex.coordinates()};
-      }
-      return null;
-    }).filter(x => x);
-    return result;
   }
-);
+  const result = Object.keys(selectable).map(key => {
+    if (selectable[key].status === SELECTABLE) {
+      return {key: key, ...selectable[key].hex.coordinates()};
+    }
+    return null;
+  }).filter(x => x);
+  return result;
+}
 
 export const { addTile } = mapSlice.actions;
 

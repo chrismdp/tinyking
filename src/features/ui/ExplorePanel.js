@@ -14,6 +14,7 @@ export default function ExplorePanel({ visible }) {
 
   const lut = "Neon 770";
   const { hex, availableTiles, selection } = useSelector(state => state.ui.explore);
+  const paddedTiles = Array.from({ ...availableTiles, length: 4 });
 
   let classes = "absolute bottom-0 bg-neutral-800 p-4 inset-x-0 md:bottom-10 md:inset-x-10";
   if (!visible) {
@@ -36,7 +37,7 @@ export default function ExplorePanel({ visible }) {
       ) }
       <div className="flex overflow-auto max-w-full pt-4">
         {
-          availableTiles.map((type) => <TileSelectionPanel key={type} lut={lut} type={type} selected={selection === type} callback={() => dispatch(setExploreSelection(type))}/>)
+          paddedTiles.map((type, index) => <TileSelectionPanel key={index} lut={lut} type={type} selected={selection === type} callback={() => dispatch(setExploreSelection(type))}/>)
         }
       </div>
       <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>

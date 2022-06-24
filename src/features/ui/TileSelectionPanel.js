@@ -14,7 +14,7 @@ export default function TileSelectionPanel({ type, lut, callback, selected }) {
         <directionalLight intensity={0.2} position={[0, 2, -3]} />
         <directionalLight intensity={0.2} position={[-3, 2, -3]} />
         <directionalLight intensity={0.2} position={[3, 2, -3]} />
-        <Tile x={0} y={0} type={type} rotating={selected} onClick={() => callback(type)}/>
+        { type && <Tile x={0} y={0} type={type} rotating={selected} onClick={() => callback(type)}/> }
         <EffectComposer>
           <SMAA/>
           { lut && (<Grading lut={lut}/>)}

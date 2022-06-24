@@ -37,7 +37,7 @@ export default function ExplorePanel({ visible }) {
       ) }
       <div className="flex overflow-auto max-w-full pt-4">
         {
-          ["forest", "coast", "grass"].map((type) => <TileSelectionPanel lut={lut} type={type} selected={selection === type} callback={() => dispatch(setExploreSelection(type))}/>)
+          ["quiet-woodland", "coast", "grass"].map((type) => <TileSelectionPanel key={type} lut={lut} type={type} selected={selection === type} callback={() => dispatch(setExploreSelection(type))}/>)
         }
       </div>
       <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>

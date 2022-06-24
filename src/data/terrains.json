@@ -1,0 +1,30 @@
+{
+  "forest": {
+    "conditions": {
+      "nextTo": {
+        "or": [
+          { "grass": { "greater": 0 } },
+          { "coast": { "greater": 0 } },
+          { "deepForest": { "greater": 0 } }
+        ]
+      }
+    },
+    "land": true
+  },
+  "grass": {
+    "conditions": {
+    },
+    "land": true
+  },
+  "coast": {
+    "conditions": {
+      "nextTo": {
+        "or": [
+          { "grass": { "greater": 0 } },
+          { "forest": { "greater": 0 } }
+        ]
+      }
+    },
+    "land": false
+  }
+}

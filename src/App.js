@@ -22,7 +22,7 @@ function App() {
       <Map lut={lut} />
       <div className="absolute top-0 p-5">
         <h1 className="font-title text-3xl">Tiny King</h1>
-        <p className="text-xs opacity-50 w-60">Relaxed map drawing, kingdom building and defence</p>
+        <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
       </div>
       <div className="absolute top-0 right-0 p-5">
     {

@@ -14,7 +14,7 @@
   "grass": {
     "component": "Grass",
     "name": "Grassland",
-    "description": "Can be used for farming",
+    "description": "Can be used for farming, building and grazing livestock.",
     "land": true
   },
   "select": {

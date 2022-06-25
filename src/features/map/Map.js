@@ -9,14 +9,14 @@ import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postproc
 
 import { Hex } from "./hex.js";
 
-import { selectable } from './mapSlice';
+import { selectable, areaEffects, availableTiles, heightLimits } from './mapSlice';
 import { explore } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
 import Grading from "../../Grading.js"
 
-function selected(tile, selectedTile) {
+function isSelected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
 }
 
@@ -31,7 +31,15 @@ export default function Map({ lut }) {
   const [ selectableTiles, setSelectableTiles ] = useState([]);
   useEffect(() => {
     (async () => {
-      setSelectableTiles(await selectable(tiles));
+      const sel = selectable(tiles);
+      for (let idx = 0; idx < sel.length; idx++) {
+        const hex = sel[idx];
+        hex.effects = areaEffects(tiles, hex);
+        hex.height = heightLimits(tiles, hex);
+        const payload = { ...hex.effects, height: hex.height };
+        hex.availableTiles = await availableTiles(payload);
+      }
+      setSelectableTiles(sel);
     })().catch(console.error);
   }, [tiles]);
 
@@ -75,8 +83,9 @@ export default function Map({ lut }) {
           selectableTiles.map(tile => (
             <Tile
               {...tile}
-              highlighted={selected(tile, selectedTile)}
+              highlighted={isSelected(tile, selectedTile)}
               type="select"
+              label={JSON.stringify(tile.effects)}
               onClick={() => dispatch(explore({ ...tile}))}
             />
           ))

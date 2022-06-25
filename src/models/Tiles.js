@@ -9,6 +9,7 @@ export const Water = React.forwardRef((props, ref) => {
     <group ref={ref} {...props} dispose={null}>
       <mesh receiveShadow geometry={nodes.water.geometry}>
         <meshStandardMaterial color={[0, 0.7, 1]}/>
+        { props.children }
       </mesh>
     </group>
   )
@@ -20,6 +21,7 @@ export const Sea = React.forwardRef((props, ref) => {
     <group ref={ref} {...props} dispose={null}>
       <mesh receiveShadow geometry={nodes.water.geometry}>
         <meshStandardMaterial color={[0, 123/255, 175/255]} opacity={0.7}/>
+        { props.children }
       </mesh>
     </group>
   )
@@ -31,6 +33,7 @@ export const Grass = React.forwardRef((props, ref) => {
     <group ref={ref} {...props} dispose={null}>
       <mesh geometry={nodes.Mesh_grass.geometry} material={materials.dirt} />
       <mesh receiveShadow geometry={nodes.Mesh_grass_1.geometry} material={materials.grass}>
+        { props.children }
       </mesh>
     </group>
   )
@@ -40,6 +43,7 @@ export const GrassForest = React.forwardRef((props, ref) => {
   const { nodes, materials } = useGLTF('/models/grass_forest.glb')
   return (
     <group ref={ref} {...props} dispose={null}>
+      { props.children }
       <mesh geometry={nodes.Mesh_grass_forest.geometry} material={materials.dirt} />
       <mesh receiveShadow geometry={nodes.Mesh_grass_forest_1.geometry} material={materials.grass} />
       <group position={[0.32, 0.2, -0.08]} rotation={[0, -0.26, 0]}>
@@ -86,6 +90,7 @@ export const SelectTile = React.forwardRef(({ x, y, highlighted, ...props }, ref
     <group ref={ref} dispose={null} {...props}>
       <animated.mesh geometry={nodes.Mesh_grass_1.geometry} material-opacity={opacity}>
         <meshPhongMaterial transparent color="gray"/>
+        { props.children }
       </animated.mesh>
     </group>
   )

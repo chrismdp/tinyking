@@ -1,9 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import { Hex, neighbours } from "./hex.js";
+import { Hex, ring } from "./hex.js";
 
 import TILES from "../../data/tiles.json"
-import TERRAINS from "../../data/terrains.json"
 
 import Engine from "json-rules-engine-simplified"
 
@@ -34,54 +33,89 @@ export const mapSlice = createSlice({
   }
 });
 
-export const selectable = async (tiles) => {
-  const selectable = {};
-
-  const rules = Object.keys(TILES)
-    .map(type => ({ type, terrain: TERRAINS[TILES[type].terrain] }))
-    .filter(({ terrain }) => terrain)
-    .map(({ type, terrain }) => ({
-      conditions: terrain.conditions,
-      event: type
-    }));
-  let engine = new Engine(rules);
-
+export const selectable = (tiles) => {
   const keys = Object.keys(tiles);
-  for (let tile_index = 0; tile_index < keys.length; tile_index++) {
-    const key = keys[tile_index];
-    const center = Hex(tiles[key])
-    selectable[key] = { status: FILLED };
-
-    await neighbours(center).forEach(async (hex) => {
+  const filled = keys.reduce((acc, key) => ({...acc, [key]: { status: FILLED } }), {});
+  const selectable = keys.map(key => Hex(tiles[key])).reduce((acc, center) =>
+    ring(center).reduce((acc, hex) => {
       const coord = hex.toString();
-      if (selectable[coord] == null || selectable[coord].status !== FILLED) {
-        const terrains = neighbours(hex)
-            .map(nextToHex => tiles[nextToHex.toString()])
-            .filter(x => x)
-            .map(tile => TILES[tile.type].terrain)
-            .map(terrain => TERRAINS[terrain]);
-        const payload = {
-          nextTo: terrains.map(t => t.tags).flat(),
-          onlyNextTo: terrains.map(t => t.tags).reduce((acc, t) => acc ? acc.filter(x => !t.includes(x)) : t)
-        };
-        const availableTiles = await engine.run(payload);
-        // TODO: Need to figure out how to use excludes to prevent new tiles being placed next to older tiles that explicitly prevent them being placed. The tile could be filtered after the rules are run
-        console.log({ rules, payload, availableTiles });
-        if (availableTiles.length > 0) {
-          selectable[coord] = { ...hex.coordinates(), availableTiles, status: SELECTABLE };
+      return { ...acc,
+        [coord]: {
+          status: SELECTABLE,
+          ...hex.coordinates(),
+          ...acc[coord]
         }
       }
-    });
-  }
-  const result = Object.keys(selectable).map(key => {
-    if (selectable[key].status === SELECTABLE) {
+    }, acc), filled);
+  const result = Object.keys(selectable)
+    .filter(key => selectable[key].status === SELECTABLE)
+    .map(key => {
       const { status, ...rest } = selectable[key];
       return { key, ...rest };
-    }
-    return null;
-  }).filter(x => x);
+    });
+  // console.log({ filled, selectable, result });
   return result;
 }
+
+const sumValues = objectArray => objectArray.reduce((acc, object) =>
+  Object.keys(object).reduce((memo, k) => ({ ...memo, [k]: (memo[k] || 0) + object[k] }), acc),
+  {});
+
+const removeZeroValues = object => Object.keys(object)
+  .filter(k => (object[k] > 0))
+  .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
+
+const allAreaEffectsAtZero = () => Object.values(TILES).flatMap(t => Object.keys(t.conditions || {})).reduce((memo, k) => ({...memo, [k]: 0}), {})
+
+export const areaEffects = (tiles, tile) => {
+  const effects = sumValues([1, 2, 3].map(radius => sumValues(
+    ring(tile, radius)
+      .filter(hex => tiles[hex.toString()])
+      .map(hex => TILES[tiles[hex.toString()].type])
+      .map(type => (type.effect || {}).area)
+      .map(area =>
+        Object.keys(area).reduce((memo, k) => ({...memo, [k]: Math.trunc(area[k] / (radius + 1))}), allAreaEffectsAtZero()))
+    )));
+  return effects;
+}
+
+const minMax = (array) => array.reduce((memo, h) => ({
+  max: Math.max(h, memo.max),
+  min: Math.min(h, memo.min)
+}), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
+
+const heightRange = () => {
+  const { min, max } = minMax(Object.values(TILES).map(t => t.height || 0));
+  return max - min;
+};
+
+export const heightLimits = (tiles, tile) => {
+  const heights = [...Array(heightRange()).keys()].flatMap(radius =>
+    minMax(ring(tile, radius + 1)
+      .filter(hex => tiles[hex.toString()])
+      .map(hex => (TILES[tiles[hex.toString()].type].height))
+    ))
+  const result = heights.reduce((memo, { min, max }, i) => ({
+    max: Math.max(memo.max, max - i),
+    min: Math.min(memo.min, min + i)
+  }), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
+  return { max: result.min + 1, min: result.max - 1 };
+}
+
+const rules = Object.keys(TILES)
+  .filter(tile => TILES[tile].conditions)
+  .map(tile => ({
+    conditions: {
+      ...TILES[tile].conditions,
+      "height.max": { greaterEq: TILES[tile].height },
+      "height.min": { lessEq: TILES[tile].height }
+    },
+    event: tile
+  }));
+
+const engine = new Engine(rules);
+
+export const availableTiles = async payload => await engine.run(payload)
 
 export const { addTile } = mapSlice.actions;
 

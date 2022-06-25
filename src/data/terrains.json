@@ -1,6 +1,11 @@
+// TODO: Don't think I need this at all
+// Just do everything in the tile type.
+// Use gradients for all the tracking (wildness, land height)
+// Rules calculate gradients per tile gap (can go out to 3 beyond)
+// And then use that to decide what can be placed
 {
   "forest": {
-    "conditions": {
+    "if": {
       "or": [
         { "nextTo.forest": { "greater": 0 } },
         { "nextTo.deepForest": { "greater": 0 } }
@@ -9,27 +14,20 @@
     "tags": ["land"]
   },
   "grass": {
-    "conditions": {
-    },
     "tags": ["land"]
   },
   "coast": {
-    "conditions": {
-    },
     "tags": ["water"]
   },
   "sea": {
-    "conditions": {
-      "onlyNextTo": { "includes": "water" }
-    },
     "tags": ["water", "deepWater"],
     "excludes": ["land"]
   },
   "deepOcean": {
-    "conditions": {
+    "if": {
       "onlyNextTo": { "includes": "deepWater" }
     },
     "tags": ["water", "deepWater", "veryDeepWater"],
-    "excludes": ["land"]
+    "excludes": ["land", "coast"]
   }
 }

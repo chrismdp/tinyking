@@ -7,7 +7,11 @@ module.exports = {
     fontFamily: {
       title: ['Catamaran', 'serif']
     },
-    extend: {},
+    extend: {
+      zIndex: {
+        top: 20000000
+      }
+    },
   },
   plugins: [],
 }

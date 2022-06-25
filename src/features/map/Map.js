@@ -55,14 +55,13 @@ export default function Map({ lut }) {
   const camera = useRef();
   const controls = useRef();
   const { target, position } = useSpring({
-    reset: true,
     from: {
       position: camera.current && camera.current.position.toArray(),
       target: controls.current && controls.current.target.toArray()
     },
     to: {
-      position: [point.x, 4.5, point.y - 5.5],
-      target: [point.x, 0, point.y]
+      position: [0, 4.5, - 5.5],
+      target: [0, 0, 0]
     }
   });
 

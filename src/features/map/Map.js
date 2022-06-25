@@ -79,7 +79,7 @@ export default function Map({ lut }) {
         <directionalLight intensity={0.2} position={[0, 2, -3]} />
         <directionalLight intensity={0.2} position={[-3, 2, -3]} />
         <directionalLight intensity={0.2} position={[3, 2, -3]} />
-        <AnimatedMapControls ref={controls} target={target}/>
+        <AnimatedMapControls ref={controls} target={target} maxPolarAngle={0.45 * Math.PI}/>
         {
           Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
         }

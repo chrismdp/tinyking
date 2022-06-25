@@ -1,4 +1,4 @@
-import { Suspense, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { useFrame } from "@react-three/fiber";
 
 import { Hex } from "./hex.js";
@@ -17,10 +17,6 @@ export default function Tile({x, y, type, rotating, ...props}) {
   useFrame((state, delta) => rotating && rotate(delta));
 
   if (Component) {
-    return (
-      <Suspense>
-        <Component ref={ref} position={[point.x, 0,  point.y]} {...props}/>
-      </Suspense>
-    )
+    return (<Component ref={ref} position={[point.x, 0,  point.y]} {...props}/>)
   }
 }

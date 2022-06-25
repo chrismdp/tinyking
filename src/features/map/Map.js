@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 
 import { animated, useSpring } from '@react-spring/three';
 
@@ -55,40 +55,42 @@ export default function Map({ lut }) {
 
   return (
     <Canvas className="absolute top-0 bottom-0" shadows>
-      <AnimatedPerspectiveCamera
-        makeDefault
-        ref={camera}
-        position={position}
-      />
-      <color attach="background" args={[0x222244]}/>
-      <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
-      <directionalLight intensity={0.2} position={[0, 2, 3]} />
-      <directionalLight intensity={0.2} position={[0, 2, -3]} />
-      <directionalLight intensity={0.2} position={[-3, 2, -3]} />
-      <directionalLight intensity={0.2} position={[3, 2, -3]} />
-      <AnimatedMapControls ref={controls} target={target}/>
-      {
-        Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
-      }
-      {
-        selectableTiles.map(tile => (
-          <Tile
-            {...tile}
-            highlighted={selected(tile, selectedTile)}
-            type="select"
-            onClick={() => dispatch(explore({ ...tile}))}
-          />
-        ))
-      }
-      {
-        Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
-      }
-      <EffectComposer>
-        <SMAA/>
-        { lut && (<Grading lut={lut}/>)}
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.8} height={300}/>
-        <DepthOfField focusDistance={0} focalLength={0.1} bokehScale={2} height={480} />
-      </EffectComposer>
+      <Suspense>
+        <AnimatedPerspectiveCamera
+          makeDefault
+          ref={camera}
+          position={position}
+        />
+        <color attach="background" args={[0x222244]}/>
+        <directionalLight castShadow intensity={0.8} position={[1, 2.5, 3]} />
+        <directionalLight intensity={0.2} position={[0, 2, 3]} />
+        <directionalLight intensity={0.2} position={[0, 2, -3]} />
+        <directionalLight intensity={0.2} position={[-3, 2, -3]} />
+        <directionalLight intensity={0.2} position={[3, 2, -3]} />
+        <AnimatedMapControls ref={controls} target={target}/>
+        {
+          Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
+        }
+        {
+          selectableTiles.map(tile => (
+            <Tile
+              {...tile}
+              highlighted={selected(tile, selectedTile)}
+              type="select"
+              onClick={() => dispatch(explore({ ...tile}))}
+            />
+          ))
+        }
+        {
+          Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
+        }
+        <EffectComposer>
+          <SMAA/>
+          { lut && (<Grading lut={lut}/>)}
+          <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.8} height={300}/>
+          <DepthOfField focusDistance={0} focalLength={0.1} bokehScale={2} height={480} />
+        </EffectComposer>
+      </Suspense>
     </Canvas>
   );
 }

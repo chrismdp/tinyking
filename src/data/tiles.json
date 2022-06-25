@@ -11,6 +11,12 @@
     "name": "Coastline",
     "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats."
   },
+  "sea": {
+    "terrain": "sea",
+    "component": "Sea",
+    "name": "Open sea",
+    "description": "Teeming with fish of all types, waiting for you to catch."
+  },
   "grass": {
     "terrain": "grass",
     "component": "Grass",

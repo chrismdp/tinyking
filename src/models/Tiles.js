@@ -3,14 +3,23 @@ import { useGLTF } from '@react-three/drei'
 
 import { animated, useSpring } from '@react-spring/three';
 
-import { WaterMaterial } from '../materials';
-
 export const Water = React.forwardRef((props, ref) => {
   const { nodes } = useGLTF('/models/water.glb')
   return (
     <group ref={ref} {...props} dispose={null}>
       <mesh receiveShadow geometry={nodes.water.geometry}>
-        <WaterMaterial/>
+        <meshStandardMaterial color={[0, 0.7, 1]}/>
+      </mesh>
+    </group>
+  )
+});
+
+export const Sea = React.forwardRef((props, ref) => {
+  const { nodes } = useGLTF('/models/water.glb')
+  return (
+    <group ref={ref} {...props} dispose={null}>
+      <mesh receiveShadow geometry={nodes.water.geometry}>
+        <meshStandardMaterial color={[0, 123/255, 175/255]} opacity={0.7}/>
       </mesh>
     </group>
   )

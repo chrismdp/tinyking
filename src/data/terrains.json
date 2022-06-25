@@ -2,23 +2,34 @@
   "forest": {
     "conditions": {
       "or": [
-        { "nextTo.grass": { "greater": 0 } },
         { "nextTo.forest": { "greater": 0 } },
-        { "nextTo.coast": { "greater": 0 } },
         { "nextTo.deepForest": { "greater": 0 } }
       ]
-    }
+    },
+    "tags": ["land"]
   },
   "grass": {
     "conditions": {
-    }
+    },
+    "tags": ["land"]
   },
   "coast": {
     "conditions": {
-      "or": [
-        { "nextTo.grass": { "greater": 0 } },
-        { "nextTo.forest": { "greater": 0 } }
-      ]
-    }
+    },
+    "tags": ["water"]
+  },
+  "sea": {
+    "conditions": {
+      "onlyNextTo": { "includes": "water" }
+    },
+    "tags": ["water", "deepWater"],
+    "excludes": ["land"]
+  },
+  "deepOcean": {
+    "conditions": {
+      "onlyNextTo": { "includes": "deepWater" }
+    },
+    "tags": ["water", "deepWater", "veryDeepWater"],
+    "excludes": ["land"]
   }
 }

@@ -55,14 +55,18 @@ export const selectable = async (tiles) => {
     await neighbours(center).forEach(async (hex) => {
       const coord = hex.toString();
       if (selectable[coord] == null || selectable[coord].status !== FILLED) {
-        const payload = {
-          nextTo: neighbours(hex)
+        const terrains = neighbours(hex)
             .map(nextToHex => tiles[nextToHex.toString()])
             .filter(x => x)
             .map(tile => TILES[tile.type].terrain)
-            .reduce((acc, terrain) => ({ ...acc, [terrain]: (acc[terrain] || 0) + 1}), {})
+            .map(terrain => TERRAINS[terrain]);
+        const payload = {
+          nextTo: terrains.map(t => t.tags).flat(),
+          onlyNextTo: terrains.map(t => t.tags).reduce((acc, t) => acc ? acc.filter(x => !t.includes(x)) : t)
         };
         const availableTiles = await engine.run(payload);
+        // TODO: Need to figure out how to use excludes to prevent new tiles being placed next to older tiles that explicitly prevent them being placed. The tile could be filtered after the rules are run
+        console.log({ rules, payload, availableTiles });
         if (availableTiles.length > 0) {
           selectable[coord] = { ...hex.coordinates(), availableTiles, status: SELECTABLE };
         }

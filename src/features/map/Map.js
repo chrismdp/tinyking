@@ -20,6 +20,10 @@ function isSelected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
 }
 
+const removeZeroValues = object => Object.keys(object)
+  .filter(k => (object[k] > 0))
+  .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
+
 const AnimatedMapControls = animated(MapControls);
 const AnimatedPerspectiveCamera = animated(PerspectiveCamera);
 
@@ -38,6 +42,7 @@ export default function Map({ lut }) {
         hex.height = heightLimits(tiles, hex);
         const payload = { ...hex.effects, height: hex.height };
         hex.availableTiles = await availableTiles(payload);
+        hex.label = removeZeroValues(hex.effects);
       }
       setSelectableTiles(sel);
     })().catch(console.error);
@@ -85,7 +90,7 @@ export default function Map({ lut }) {
               {...tile}
               highlighted={isSelected(tile, selectedTile)}
               type="select"
-              label={JSON.stringify(tile.effects)}
+              label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
               onClick={() => dispatch(explore({ ...tile}))}
             />
           ))

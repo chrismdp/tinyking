@@ -61,10 +61,6 @@ const sumValues = objectArray => objectArray.reduce((acc, object) =>
   Object.keys(object).reduce((memo, k) => ({ ...memo, [k]: (memo[k] || 0) + object[k] }), acc),
   {});
 
-const removeZeroValues = object => Object.keys(object)
-  .filter(k => (object[k] > 0))
-  .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
-
 const allAreaEffectsAtZero = () => Object.values(TILES).flatMap(t => Object.keys(t.conditions || {})).reduce((memo, k) => ({...memo, [k]: 0}), {})
 
 export const areaEffects = (tiles, tile) => {

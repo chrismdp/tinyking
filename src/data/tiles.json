@@ -6,7 +6,7 @@
     "effect": {
       "area": {
         "forested": 2,
-        "wildness": 1
+        "wildness": 2
       },
       "resources": {
         "wood": 1

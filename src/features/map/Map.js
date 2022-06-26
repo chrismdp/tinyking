@@ -7,8 +7,6 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { Hex } from "./hex.js";
-
 import { selectable, areaEffects, availableTiles, heightLimits } from './mapSlice';
 import { explore } from '../ui/uiSlice';
 
@@ -49,8 +47,6 @@ export default function Map({ lut }) {
   }, [tiles]);
 
   const dispatch = useDispatch();
-
-  const point = Hex(selectedTile.x ?? 0, selectedTile.y ?? 0).toPoint();
 
   const camera = useRef();
   const controls = useRef();

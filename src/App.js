@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="h-screen text-neutral-100">
       <Map lut={lut} />
-      <div className="absolute top-0 p-5">
+      <div className="absolute top-0 p-5 pointer-events-none">
         <h1 className="font-title text-3xl">Tiny King</h1>
         <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
       </div>
@@ -39,7 +39,7 @@ function App() {
           Copyright &copy; {year} Think Code Learn Ltd t/a Revelation Games
         </p>
       </div>
-      <div className="absolute bottom-0 sm:right-0 p-5">
+      <div className="absolute bottom-0 sm:right-0 p-5 select-none">
         <div className="flex opacity-50">
           <a href="https://discord.gg/ZgXcVyn" target="_blank" rel="noreferrer"><img src="https://img.shields.io/discord/731912590489288795?color=417154&label=discord" alt="Discord link"/></a>
           <a className="pl-2" href="https://github.com/chrismdp/tinyking/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/stars/chrismdp/tinyking?color=417154&label=github&logo=github1" alt="Github link"/></a>

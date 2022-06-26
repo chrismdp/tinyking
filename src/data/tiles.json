@@ -12,7 +12,9 @@
         "wood": 1
       }
     },
-    "height": 0,
+    "limits": {
+      "height": 0
+    },
     "component": "GrassForest",
     "name": "Quiet woodland",
     "description": "A source of wood, but increases wildness and cannot be used for farming."
@@ -24,7 +26,9 @@
       "area": {
       }
     },
-    "height": -1,
+    "limits": {
+      "height": -1
+    },
     "component": "Water",
     "name": "Coastline",
     "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats."
@@ -40,7 +44,9 @@
         "fish": 1
       }
     },
-    "height": -2,
+    "limits": {
+      "height": -2
+    },
     "component": "Sea",
     "name": "Open sea",
     "description": "Teeming with fish of all types, waiting for you to catch."
@@ -52,7 +58,9 @@
       "area": {
       }
     },
-    "height": 0,
+    "limits": {
+      "height": 0
+    },
     "component": "Grass",
     "name": "Grassland",
     "description": "Can be used for farming, building and grazing livestock."

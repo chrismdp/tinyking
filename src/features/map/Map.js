@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { selectable, areaEffects, availableTiles, heightLimits } from './mapSlice';
+import { selectable, areaEffects, availableTiles, limits } from './mapSlice';
 import { explore } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
@@ -37,8 +37,8 @@ export default function Map({ lut }) {
       for (let idx = 0; idx < sel.length; idx++) {
         const hex = sel[idx];
         hex.effects = areaEffects(tiles, hex);
-        hex.height = heightLimits(tiles, hex);
-        const payload = { ...hex.effects, height: hex.height };
+        hex.limits = limits(tiles, hex);
+        const payload = { ...hex.effects, limits: hex.limits };
         hex.availableTiles = await availableTiles(payload);
         hex.label = removeZeroValues(hex.effects);
       }

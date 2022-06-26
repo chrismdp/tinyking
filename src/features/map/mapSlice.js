@@ -80,31 +80,44 @@ const minMax = (array) => array.reduce((memo, h) => ({
   min: Math.min(h, memo.min)
 }), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
 
-const heightRange = () => {
-  const { min, max } = minMax(Object.values(TILES).map(t => t.height || 0));
+const limitRange = (key) => {
+  const { min, max } = minMax(Object.values(TILES).map(t => ((t.limits || {})[key] || 0)));
   return max - min;
 };
 
-export const heightLimits = (tiles, tile) => {
-  const heights = [...Array(heightRange()).keys()].flatMap(radius =>
+const allLimitValues = Object.keys(Object.values(TILES).reduce((memo, t) => ({...memo, ...t.limits}), {}));
+console.log(allLimitValues);
+
+export const limits = (tiles, tile) => allLimitValues.reduce((memo, key) => ({
+  ...memo,
+  [key]: limitsForKey(tiles, tile, key)
+}), {});
+
+export const limitsForKey = (tiles, tile, key) => {
+  const values = [...Array(limitRange(key)).keys()].flatMap(radius =>
     minMax(ring(tile, radius + 1)
       .filter(hex => tiles[hex.toString()])
-      .map(hex => (TILES[tiles[hex.toString()].type].height))
+      .map(hex => (TILES[tiles[hex.toString()].type].limits[key]))
     ))
-  const result = heights.reduce((memo, { min, max }, i) => ({
+  const result = values.reduce((memo, { min, max }, i) => ({
     max: Math.max(memo.max, max - i),
     min: Math.min(memo.min, min + i)
   }), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
   return { max: result.min + 1, min: result.max - 1 };
 }
 
+const limitRules = (tile) => allLimitValues.reduce((memo, key) => ({
+  ...memo,
+  [`limits.${key}.max`]: { greaterEq: TILES[tile].limits[key] },
+  [`limits.${key}.min`]: { lessEq: TILES[tile].limits[key] },
+}), {});
+
 const rules = Object.keys(TILES)
   .filter(tile => TILES[tile].conditions)
   .map(tile => ({
     conditions: {
       ...TILES[tile].conditions,
-      "height.max": { greaterEq: TILES[tile].height },
-      "height.min": { lessEq: TILES[tile].height }
+      ...limitRules(tile)
     },
     event: tile
   }));

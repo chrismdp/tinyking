@@ -8,6 +8,7 @@ import ExplorePanel from "./features/ui/ExplorePanel.js"
 import './App.css';
 
 import Map from "./features/map/Map.js"
+import { tileResources } from "./features/map/mapSlice.js"
 
 function App() {
   // const dispatch = useDispatch();
@@ -15,6 +16,7 @@ function App() {
   const [ lut ] = useState("Bourbon 64");
 
   const explore = useSelector(explorePanelVisible);
+  const resources = useSelector(tileResources);
 
   const year = new Date().getFullYear();
 
@@ -28,14 +30,13 @@ function App() {
         <h1 className="font-title text-3xl">Tiny King</h1>
         <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
       </div>
-      <div className="absolute top-0 right-0 p-5">
-    {
-        // <ul>
-        //   <li className="font-title text-xl">Wood: ?</li>
-        //   <li className="font-title text-xl">Wildness: ?</li>
-        // </ul>
-     }
-      </div>
+      { Object.keys(resources).length > 0 &&
+        <div className="absolute top-0 right-0 p-5">
+          <ul>
+            { Object.keys(resources).map(k => <li key={k} className="font-title text-lg">{k.charAt(0).toUpperCase() + k.slice(1)}: {resources[k]}</li>) }
+          </ul>
+        </div>
+      }
       <div className="absolute bottom-10 sm:bottom-0 p-5">
         <p className="text-xs opacity-50">
           Gameplay prototype {process.env.REACT_APP_GIT_SHA}i

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 import { Hex, ring } from "./hex.js";
 
@@ -34,6 +34,10 @@ export const mapSlice = createSlice({
     }
   }
 });
+
+export const tileResources = createSelector(state => state.map.tiles,
+  tiles => sumValues(Object.values(tiles).map(t => (TILES[t.type].effect || {}).resources || {}))
+);
 
 export const selectable = (tiles) => {
   const keys = Object.keys(tiles);

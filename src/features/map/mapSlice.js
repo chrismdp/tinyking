@@ -6,6 +6,8 @@ import TILES from "../../data/tiles.json"
 
 import Engine from "json-rules-engine-simplified"
 
+import { limitRules } from "./limits"
+
 const initialState = {
   tiles: {
     "0,0": { x: 0, y: 0, type: "grass" },
@@ -75,49 +77,12 @@ export const areaEffects = (tiles, tile) => {
   return effects;
 }
 
-const minMax = (array) => array.reduce((memo, h) => ({
-  max: Math.max(h, memo.max),
-  min: Math.min(h, memo.min)
-}), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
-
-const limitRange = (key) => {
-  const { min, max } = minMax(Object.values(TILES).map(t => ((t.limits || {})[key] || 0)));
-  return max - min;
-};
-
-const allLimitValues = Object.keys(Object.values(TILES).reduce((memo, t) => ({...memo, ...t.limits}), {}));
-console.log(allLimitValues);
-
-export const limits = (tiles, tile) => allLimitValues.reduce((memo, key) => ({
-  ...memo,
-  [key]: limitsForKey(tiles, tile, key)
-}), {});
-
-export const limitsForKey = (tiles, tile, key) => {
-  const values = [...Array(limitRange(key)).keys()].flatMap(radius =>
-    minMax(ring(tile, radius + 1)
-      .filter(hex => tiles[hex.toString()])
-      .map(hex => (TILES[tiles[hex.toString()].type].limits[key] || 0))
-    ))
-  const result = values.reduce((memo, { min, max }, i) => ({
-    max: Math.max(memo.max, max - i),
-    min: Math.min(memo.min, min + i)
-  }), { max: Number.MIN_SAFE_INTEGER, min: Number.MAX_SAFE_INTEGER});
-  return { max: result.min + 1, min: result.max - 1 };
-}
-
-const limitRules = (tile) => allLimitValues.reduce((memo, key) => ({
-  ...memo,
-  [`limits.${key}.max`]: { greaterEq: TILES[tile].limits[key] || 0 },
-  [`limits.${key}.min`]: { lessEq: TILES[tile].limits[key] || 0 },
-}), {});
-
 const rules = Object.keys(TILES)
   .filter(tile => TILES[tile].conditions)
   .map(tile => ({
     conditions: {
       ...TILES[tile].conditions,
-      ...limitRules(tile)
+      ...limitRules(TILES, tile)
     },
     event: tile
   }));

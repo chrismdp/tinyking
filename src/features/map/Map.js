@@ -7,18 +7,21 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { selectable, areaEffects, availableTiles, limits } from './mapSlice';
+import { selectable, areaEffects, availableTiles } from './mapSlice';
+import { limits } from "./limits";
 import { explore } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
 import Grading from "../../Grading.js"
 
+import TILES from "../../data/tiles.json"
+
 function isSelected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
 }
 
-const removeZeroValues = object => Object.keys(object)
+export const removeZeroValues = object => Object.keys(object)
   .filter(k => (object[k] > 0))
   .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
 
@@ -37,7 +40,7 @@ export default function Map({ lut }) {
       for (let idx = 0; idx < sel.length; idx++) {
         const hex = sel[idx];
         hex.effects = areaEffects(tiles, hex);
-        hex.limits = limits(tiles, hex);
+        hex.limits = limits(TILES, tiles, hex);
         const payload = { ...hex.effects, limits: hex.limits };
         hex.availableTiles = await availableTiles(payload);
         // hex.label = removeZeroValues(hex.effects);

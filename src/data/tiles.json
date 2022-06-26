@@ -5,14 +5,12 @@
     },
     "effect": {
       "area": {
-        "wildness": 2
+        "wildness": 2,
+        "forested": 2
       },
       "resources": {
         "wood": 1
       }
-    },
-    "limits": {
-      "forested": 1
     },
     "component": "GrassForest",
     "name": "Quiet woodland",
@@ -20,17 +18,16 @@
   },
   "deep-forest": {
     "conditions": {
+      "forested": { "greaterEq": 6 }
     },
     "effect": {
       "area": {
-        "wildness": 2
+        "wildness": 3,
+        "forested": 2
       },
       "resources": {
         "wood": 1
       }
-    },
-    "limits": {
-      "forested": 2
     },
     "component": "GrassForest",
     "name": "Deep forest",
@@ -74,8 +71,6 @@
     "effect": {
       "area": {
       }
-    },
-    "limits": {
     },
     "component": "Grass",
     "name": "Grassland",

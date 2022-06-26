@@ -8,7 +8,7 @@ import ExplorePanel from "./features/ui/ExplorePanel.js"
 import './App.css';
 
 import Map from "./features/map/Map.js"
-import { tileResources } from "./features/map/mapSlice.js"
+import { removeZeroValues, tileResources } from "./features/map/mapSlice.js"
 
 function App() {
   // const dispatch = useDispatch();
@@ -33,7 +33,7 @@ function App() {
       { Object.keys(resources).length > 0 &&
         <div className="absolute top-0 right-0 p-5">
           <ul>
-            { Object.keys(resources).map(k => <li key={k} className="font-title text-lg">{k.charAt(0).toUpperCase() + k.slice(1)}: {resources[k]}</li>) }
+            { Object.keys(removeZeroValues(resources)).map(k => <li key={k} className="font-title text-lg">{k.charAt(0).toUpperCase() + k.slice(1)}: {resources[k]}</li>) }
           </ul>
         </div>
       }

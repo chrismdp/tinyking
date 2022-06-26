@@ -11,8 +11,8 @@ import { limitRules } from "./limits"
 const initialState = {
   tiles: {
     "0,0": { x: 0, y: 0, type: "grass" },
-    "0,-1": { x: 0, y: -1, type: "coast" },
-    "1,-1": { x: 1, y: -1, type: "coast" },
+    "0,-1": { x: 0, y: -1, type: "rocks" },
+    "1,-1": { x: 1, y: -1, type: "sea" },
   },
   buildings: {
     "0,0": { x: 0, y: 0, type: "house" },
@@ -69,6 +69,10 @@ const sumValues = objectArray => objectArray.reduce((acc, object) =>
 
 const allAreaEffectsAtZero = () => Object.values(TILES).flatMap(t => Object.keys(t.conditions || {})).reduce((memo, k) => ({...memo, [k]: 0}), {})
 
+export const removeZeroValues = object => Object.keys(object)
+  .filter(k => (object[k] !== 0))
+  .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
+
 export const areaEffects = (tiles, tile) => {
   const effects = sumValues([1, 2, 3].map(radius => sumValues(
     ring(tile, radius)
@@ -76,7 +80,10 @@ export const areaEffects = (tiles, tile) => {
       .map(hex => TILES[tiles[hex.toString()].type])
       .map(type => (type.effect || {}).area)
       .map(area =>
-        Object.keys(area).reduce((memo, k) => ({...memo, [k]: Math.trunc(area[k] / (radius + 1))}), allAreaEffectsAtZero()))
+        Object.keys(area).reduce((memo, k) => ({
+          ...memo,
+          [k]: Math.sign(area[k]) * Math.trunc(Math.max(0, Math.abs(area[k]) - radius))
+        }), allAreaEffectsAtZero()))
     )));
   return effects;
 }

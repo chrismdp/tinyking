@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { selectable, areaEffects, availableTiles } from './mapSlice';
+import { removeZeroValues, selectable, areaEffects, availableTiles } from './mapSlice';
 import { limits } from "./limits";
 import { explore, hide } from '../ui/uiSlice';
 
@@ -20,10 +20,6 @@ import TILES from "../../data/tiles.json"
 function isSelected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
 }
-
-export const removeZeroValues = object => Object.keys(object)
-  .filter(k => (object[k] > 0))
-  .reduce((memo, k) => ({ ...memo, [k]: object[k] }), {})
 
 const AnimatedMapControls = animated(MapControls);
 const AnimatedPerspectiveCamera = animated(PerspectiveCamera);

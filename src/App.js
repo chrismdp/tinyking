@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Stats } from "@react-three/drei";
 
 import { explorePanelVisible } from "./features/ui/uiSlice.js"
 import ExplorePanel from "./features/ui/ExplorePanel.js"
@@ -17,8 +18,11 @@ function App() {
 
   const year = new Date().getFullYear();
 
+  const [ stats, setStats ] = useState(false);
+
   return (
     <div className="h-screen text-neutral-100">
+      { stats && <Stats/> }
       <Map lut={lut} />
       <div className="absolute top-0 p-5 pointer-events-none">
         <h1 className="font-title text-3xl">Tiny King</h1>
@@ -34,7 +38,8 @@ function App() {
       </div>
       <div className="absolute bottom-10 sm:bottom-0 p-5">
         <p className="text-xs opacity-50">
-          Gameplay prototype {process.env.REACT_APP_GIT_SHA}
+          Gameplay prototype {process.env.REACT_APP_GIT_SHA}i
+          &nbsp;(<button onClick={() => setStats(!stats)}>debug stats</button>)
           <br/>
           Copyright &copy; {year} Think Code Learn Ltd t/a Revelation Games
         </p>

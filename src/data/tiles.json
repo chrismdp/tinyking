@@ -5,7 +5,6 @@
     },
     "effect": {
       "area": {
-        "forested": 2,
         "wildness": 2
       },
       "resources": {
@@ -13,11 +12,29 @@
       }
     },
     "limits": {
-      "height": 0
+      "forested": 1
     },
     "component": "GrassForest",
     "name": "Quiet woodland",
     "description": "A source of wood, but increases wildness and cannot be used for farming."
+  },
+  "deep-forest": {
+    "conditions": {
+    },
+    "effect": {
+      "area": {
+        "wildness": 2
+      },
+      "resources": {
+        "wood": 1
+      }
+    },
+    "limits": {
+      "forested": 2
+    },
+    "component": "GrassForest",
+    "name": "Deep forest",
+    "description": "Great surprises and adventures await those who dare to venture this far into the woods."
   },
   "coast": {
     "conditions": {
@@ -59,7 +76,6 @@
       }
     },
     "limits": {
-      "height": 0
     },
     "component": "Grass",
     "name": "Grassland",

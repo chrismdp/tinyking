@@ -97,7 +97,7 @@ export const limitsForKey = (tiles, tile, key) => {
   const values = [...Array(limitRange(key)).keys()].flatMap(radius =>
     minMax(ring(tile, radius + 1)
       .filter(hex => tiles[hex.toString()])
-      .map(hex => (TILES[tiles[hex.toString()].type].limits[key]))
+      .map(hex => (TILES[tiles[hex.toString()].type].limits[key] || 0))
     ))
   const result = values.reduce((memo, { min, max }, i) => ({
     max: Math.max(memo.max, max - i),
@@ -108,8 +108,8 @@ export const limitsForKey = (tiles, tile, key) => {
 
 const limitRules = (tile) => allLimitValues.reduce((memo, key) => ({
   ...memo,
-  [`limits.${key}.max`]: { greaterEq: TILES[tile].limits[key] },
-  [`limits.${key}.min`]: { lessEq: TILES[tile].limits[key] },
+  [`limits.${key}.max`]: { greaterEq: TILES[tile].limits[key] || 0 },
+  [`limits.${key}.min`]: { lessEq: TILES[tile].limits[key] || 0 },
 }), {});
 
 const rules = Object.keys(TILES)

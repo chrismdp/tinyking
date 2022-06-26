@@ -9,7 +9,7 @@ import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postproc
 
 import { selectable, areaEffects, availableTiles } from './mapSlice';
 import { limits } from "./limits";
-import { explore } from '../ui/uiSlice';
+import { explore, hide } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
@@ -43,8 +43,7 @@ export default function Map({ lut }) {
         hex.limits = limits(TILES, tiles, hex);
         const payload = { ...hex.effects, limits: hex.limits };
         hex.availableTiles = await availableTiles(payload);
-        // hex.label = removeZeroValues(hex.effects);
-        hex.label = hex.limits
+        hex.label = removeZeroValues(hex.effects);
       }
       setSelectableTiles(sel);
     })().catch(console.error);
@@ -90,7 +89,7 @@ export default function Map({ lut }) {
               highlighted={isSelected(tile, selectedTile)}
               type="select"
               label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
-              onClick={() => dispatch(explore({ ...tile}))}
+              onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : explore({ ...tile}))}
             />
           ))
         }

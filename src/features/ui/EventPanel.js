@@ -9,7 +9,7 @@ export default function EventPanel({ visible }) {
   const dispatch = useDispatch();
 
   const { event, hex, terrain } = useSelector(state => state.ui.panel);
-  const { heading, text, choices } = event || {};
+  const { heading, text, prompts } = event || {};
 
   const image = terrain && TERRAINS[terrain].image;
 
@@ -26,10 +26,10 @@ export default function EventPanel({ visible }) {
         { image && <img className="absolute pointer-events-none object-bottom shadow-lg object-cover -right-24 bottom-16 w-80" src={`/images/${image}.png`} alt={terrain}/> }
         <h1 className="font-title text-2xl">{heading}</h1>
         <p className="pt-2 mr-20">{text}</p>
-        { choices && 
+        { prompts &&
           <div className="py-4">
-            { choices.map(choice => 
-              <button className="px-4 py-2 hover:bg-blue-800 bg-blue-900 mr-2 rounded-lg" key={choice.tile} onClick={() => dispatch(addTile({ ...hex, type: choice.tile }))}>{choice.label}</button>)
+            { prompts.map(prompt =>
+              <button className="px-4 py-2 hover:bg-blue-800 bg-blue-900 mr-2 rounded-lg" key={prompt.tile} onClick={() => dispatch(addTile({ ...hex, type: prompt.tile }))}>{prompt.label}</button>)
             }
           </div>
         }

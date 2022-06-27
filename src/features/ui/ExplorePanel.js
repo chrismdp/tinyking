@@ -1,19 +1,19 @@
 import { useSelector, useDispatch } from 'react-redux';
 
 import { animated, useSpring, config } from '@react-spring/web';
-import { hide, setExploreSelection } from "./uiSlice.js";
-import { triggerTerrainEvent } from "../ui/uiSlice.js";
+import { chooseTerrain, hide } from "./uiSlice.js";
+import { removeZeroValues, areaEffects } from "../map/mapSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
-
-import TERRAINS from "../../data/terrains.json"
 
 import { XIcon } from "@heroicons/react/outline";
 
 export default function ExplorePanel({ visible }) {
   const dispatch = useDispatch();
 
-  const { hex, availableTerrains, selection } = useSelector(state => state.ui.panel);
+  const { hex, availableTerrains } = useSelector(state => state.ui.panel);
+  const tiles = useSelector(state => state.map.tiles);
+  const effects = areaEffects(tiles, hex);
 
   const styles = useSpring({
     to: { transform: `translateY(${visible ? 0 : 300 }px)` },
@@ -24,25 +24,17 @@ export default function ExplorePanel({ visible }) {
 
   return (
     <animated.div style={styles} className={classes}>
-      { selection && (
-        <>
-          <h1 className="font-title text-2xl">{TERRAINS[selection].name}</h1>
-          <p>{TERRAINS[selection].description}</p>
-        </>
-      ) }
-      { !selection && (
-        <>
-          <h1 className="font-title text-2xl">What will you discover?</h1>
-          <p>Choose what you find as you explore...</p>
-        </>
-      ) }
+      <>
+        <h1 className="font-title text-2xl">What will you discover?</h1>
+        <p>{JSON.stringify(removeZeroValues(effects))}</p>
+      </>
       <div className="flex overflow-auto max-w-full pt-4">
         { availableTerrains &&
-          availableTerrains.map((terrain, index) => <TileSelectionPanel key={index} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
-            selection === terrain ?
-              triggerTerrainEvent({ ...hex, terrain: selection }) :
-              setExploreSelection(terrain)
-          )}/>)
+          availableTerrains.map((terrain, index) => 
+            <TileSelectionPanel
+              key={index}
+              terrain={terrain}
+              callback={() => dispatch(chooseTerrain({ ...hex, terrain })) }/>)
         }
       </div>
       <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>

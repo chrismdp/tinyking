@@ -23,16 +23,10 @@ export const uiSlice = createSlice({
       state.visiblePanel = null;
       state.panel = {}
     },
-    setExploreSelection: (state, action) => {
-      state.panel.selection = action.payload;
-    },
-    triggerTerrainEvent: (state, action) => {
+    showEvent: (state, action) => {
       state.visiblePanel = "event";
-      const { terrain, x, y } = action.payload;
-      const generator = new MersenneTwister(); // TODO: Seeding
-      const events = EVENTS.filter(e => e.terrain === terrain);
-      const event = events[generator.random_int() % events.length];
-      state.panel = { hex: { x, y }, terrain, event };
+      const { x, y, ...rest } = action.payload;
+      state.panel = { hex: { x, y }, ...rest };
     }
   },
   extraReducers: (builder) => {
@@ -45,6 +39,17 @@ export const uiSlice = createSlice({
 export const explorePanelVisible = (state) => state.ui.visiblePanel === "explore";
 export const eventPanelVisible = (state) => state.ui.visiblePanel === "event";
 
-export const { explore, hide, setExploreSelection, triggerTerrainEvent } = uiSlice.actions;
+export const { explore, hide, showEvent } = uiSlice.actions;
+
+export const chooseTerrain = ({ terrain, x, y }) => dispatch => {
+  const generator = new MersenneTwister(); // TODO: Seeding
+  const events = EVENTS.filter(e => e.terrain === terrain);
+  const event = events[generator.random_int() % events.length];
+  if (event.prompts) {
+    dispatch(showEvent({ terrain, x, y, event }));
+  } else {
+    dispatch(addTile({ x, y, type: event.tile }));
+  }
+};
 
 export default uiSlice.reducer;

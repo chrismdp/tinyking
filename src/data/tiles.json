@@ -31,7 +31,7 @@
         "wood": 1
       }
     },
-    "component": "GrassForest",
+    "component": "DeepGrassForest",
     "name": "Deep forest",
     "description": "Great surprises and adventures await those who dare to venture this far into the woods."
   },

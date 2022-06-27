@@ -103,6 +103,49 @@ export const GrassForest = React.forwardRef((props, ref) => {
   )
 });
 
+export const DeepGrassForest = React.forwardRef((props, ref) => {
+  const { nodes, materials } = useGLTF('/models/grass_forest.glb')
+  return (
+    <group ref={ref} {...props} dispose={null} rotation={[0, 1 * Math.PI / 3, 0]}>
+      { props.children }
+      <mesh geometry={nodes.Mesh_grass_forest.geometry} material={materials.dirt} />
+      <mesh receiveShadow geometry={nodes.Mesh_grass_forest_1.geometry} material={materials.grass} />
+      <group position={[0.32, 0.2, -0.08]} rotation={[0, -0.26, 0]}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[0.29, 0.2, 0.21]} rotation={[0, -Math.PI / 6, 0]} scale={0.97}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[0.01, 0.2, 0.3]}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[0.17, 0.2, -0.32]} rotation={[0, Math.PI / 6, 0]} scale={0.72}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[-0.29, 0.2, -0.16]} rotation={[0, -0.66, 0]}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[-0.3, 0.2, 0.19]} rotation={[0, -0.05, 0]} scale={0.92}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[-0.04, 0.2, 0.01]} rotation={[0, 0.26, 0]} scale={1.17}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+      <group position={[-0.08, 0.2, -0.35]} rotation={[0, 0.15, 0]} scale={1.27}>
+        <mesh castShadow receiveShadow geometry={nodes.Mesh_tree.geometry} material={materials.foliage} />
+        <mesh castShadow geometry={nodes.Mesh_tree_1.geometry} material={materials.wood} />
+      </group>
+    </group>
+  )
+});
+
 export const SelectTile = React.forwardRef(({ x, y, highlighted, ...props }, ref) => {
   const { nodes } = useGLTF('/models/grass.glb')
   const { opacity } = useSpring({ opacity: highlighted ? 0.3 : 0.1 });

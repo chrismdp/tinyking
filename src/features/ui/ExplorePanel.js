@@ -15,7 +15,6 @@ export default function ExplorePanel({ visible }) {
 
   const lut = "Neon 770";
   const { hex, availableTerrains, selection } = useSelector(state => state.ui.explore);
-  const paddedTiles = Array.from({ ...availableTerrains, length: 3 });
 
   const styles = useSpring({
     to: { transform: `translateY(${visible ? 0 : 300 }px)` },
@@ -40,7 +39,7 @@ export default function ExplorePanel({ visible }) {
       ) }
       <div className="flex overflow-auto max-w-full pt-4">
         {
-          paddedTiles.map((terrain, index) => <TileSelectionPanel key={index} lut={lut} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
+          availableTerrains.map((terrain, index) => <TileSelectionPanel key={index} lut={lut} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
             selection === terrain ?
               chooseTerrain({ ...hex, terrain: selection }) :
               setExploreSelection(terrain)

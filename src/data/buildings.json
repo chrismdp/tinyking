@@ -3,5 +3,10 @@
     "component": "House",
     "name": "House",
     "description": "A basic building for people to live in."
+  },
+  "campfire": {
+    "component": "Campfire",
+    "name": "Campfire",
+    "description": "The starting point of every settlement."
   }
 }

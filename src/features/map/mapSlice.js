@@ -16,7 +16,7 @@ const initialState = {
     "1,-1": { x: 1, y: -1, type: "open-sea" },
   },
   buildings: {
-    "0,0": { x: 0, y: 0, type: "house" },
+    "0,0": { x: 0, y: 0, type: "campfire" },
   }
 };
 

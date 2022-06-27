@@ -9,7 +9,7 @@ export default function Building({x, y, type, ...props}) {
   const Component = Buildings[buildings[type].component];
   if (Component) {
     return (
-      <Component position={[point.x, 0.2,  point.y]} {...props}/>
+      <Component position={[point.x, 0, point.y]} {...props}/>
     )
   }
 }

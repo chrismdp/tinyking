@@ -1,5 +1,5 @@
 import React from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, Sparkles } from '@react-three/drei'
 
 import { animated, useSpring } from '@react-spring/three';
 
@@ -108,6 +108,7 @@ export const DeepGrassForest = React.forwardRef((props, ref) => {
   return (
     <group ref={ref} {...props} dispose={null} rotation={[0, 1 * Math.PI / 3, 0]}>
       { props.children }
+      <Sparkles count={5} speed={0.2} color="cyan" size={2} position={[0, 0.5, 0]} scale={[0.5, 0.05, 0.5]}/>
       <mesh geometry={nodes.Mesh_grass_forest.geometry} material={materials.dirt} />
       <mesh receiveShadow geometry={nodes.Mesh_grass_forest_1.geometry} material={materials.grass} />
       <group position={[0.32, 0.2, -0.08]} rotation={[0, -0.26, 0]}>

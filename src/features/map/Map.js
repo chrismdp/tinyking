@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { removeZeroValues, selectable, areaEffects, availableTerrains } from './mapSlice';
+import { selectable, areaEffects, availableTerrains } from './mapSlice';
 import { limits } from "./limits";
 import { explore, hide } from '../ui/uiSlice';
 

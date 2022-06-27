@@ -23,7 +23,7 @@ function App() {
   const [ stats, setStats ] = useState(false);
 
   return (
-    <div className="h-screen text-neutral-100">
+    <div className="select-none h-screen text-neutral-100">
       { stats && <Stats/> }
       <Map lut={lut} />
       <div className="absolute top-0 p-5 pointer-events-none">

@@ -6,9 +6,11 @@ import Grading from "../../Grading.js"
 import Tile from "../map/Tile.js"
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-export default function TileSelectionPanel({ type, lut, callback, selected }) {
+import TERRAINS from "../../data/terrains.json"
+
+export default function TileSelectionPanel({ terrain, lut, callback, selected }) {
   return (
-    <div className="relative" onClick={() => callback(type)}>
+    <div className="relative" onClick={() => callback(terrain)}>
       <div className="w-28 h-28">
         <Canvas shadows camera={{ fov: 25, position: [2, 2, 2] }}>
           <Suspense>
@@ -17,7 +19,7 @@ export default function TileSelectionPanel({ type, lut, callback, selected }) {
             <directionalLight intensity={0.2} position={[0, 2, -3]} />
             <directionalLight intensity={0.2} position={[-3, 2, -3]} />
             <directionalLight intensity={0.2} position={[3, 2, -3]} />
-            { type && <Tile x={0} y={0} type={type} rotating={selected}/> }
+            { terrain && <Tile x={0} y={0} component={TERRAINS[terrain].component} rotating={selected}/> }
             <EffectComposer>
               <SMAA/>
               { lut && (<Grading lut={lut}/>)}
@@ -27,7 +29,7 @@ export default function TileSelectionPanel({ type, lut, callback, selected }) {
           </Suspense>
         </Canvas>
       </div>
-      { selected && <div className="absolute left-0 right-0 text-center bottom-1 opacity-75 text-sm">Place this tile?</div> }
+      { selected && <div className="absolute left-0 right-0 text-center bottom-1 opacity-75 text-sm">Choose this?</div> }
     </div>
   )
 }

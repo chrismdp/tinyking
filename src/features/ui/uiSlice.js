@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { addTile } from "../map/mapSlice.js";
+import { chooseTerrain } from "../map/mapSlice.js";
 
 const initialState = {
   visiblePanel: null,
   explore: {
     hex: {},
-    availableTiles: []
+    availableTerrains: []
   }
 };
 
@@ -15,11 +15,9 @@ export const uiSlice = createSlice({
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     explore: (state, action) => {
-      const { x, y, availableTiles } = action.payload;
+      const { x, y, availableTerrains } = action.payload;
       state.visiblePanel = "explore";
-      state.explore.selection = null;
-      state.explore.hex = { x, y };
-      state.explore.availableTiles = availableTiles;
+      state.explore = { hex: { x, y }, availableTerrains };
     },
     hide: (state, action) => {
       state.visiblePanel = null;
@@ -30,7 +28,7 @@ export const uiSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(addTile, (state, action) => {
+    builder.addCase(chooseTerrain, (state, action) => {
       state.visiblePanel = null;
     })
   }

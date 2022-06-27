@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { removeZeroValues, selectable, areaEffects, availableTiles } from './mapSlice';
+import { removeZeroValues, selectable, areaEffects, availableTerrains } from './mapSlice';
 import { limits } from "./limits";
 import { explore, hide } from '../ui/uiSlice';
 
@@ -16,6 +16,7 @@ import Building from "./Building.js"
 import Grading from "../../Grading.js"
 
 import TILES from "../../data/tiles.json"
+import TERRAINS from "../../data/terrains.json"
 
 function isSelected(tile, selectedTile) {
   return tile.x === selectedTile.x && tile.y === selectedTile.y;
@@ -36,9 +37,9 @@ export default function Map({ lut }) {
       for (let idx = 0; idx < sel.length; idx++) {
         const hex = sel[idx];
         hex.effects = areaEffects(tiles, hex);
-        hex.limits = limits(TILES, tiles, hex);
+        hex.limits = limits(TERRAINS, TILES, tiles, hex);
         const payload = { ...hex.effects, limits: hex.limits };
-        hex.availableTiles = await availableTiles(payload);
+        hex.availableTerrains = await availableTerrains(payload);
         hex.label = removeZeroValues(hex.effects);
       }
       setSelectableTiles(sel);
@@ -76,14 +77,14 @@ export default function Map({ lut }) {
         <directionalLight intensity={0.2} position={[3, 2, -3]} />
         <AnimatedMapControls ref={controls} target={target} maxPolarAngle={0.45 * Math.PI}/>
         {
-          Object.keys(tiles).map(key => ( <Tile key={key} {...tiles[key]}/> ))
+          Object.keys(tiles).map(key => ( <Tile key={key} component={TILES[tiles[key].type].component} {...tiles[key]}/> ))
         }
         {
           selectableTiles.map(tile => (
             <Tile
               {...tile}
               highlighted={isSelected(tile, selectedTile)}
-              type="select"
+              component="SelectTile"
               label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
               onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : explore({ ...tile}))}
             />

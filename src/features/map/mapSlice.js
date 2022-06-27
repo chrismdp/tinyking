@@ -3,6 +3,7 @@ import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { Hex, ring } from "./hex.js";
 
 import TILES from "../../data/tiles.json"
+import TERRAINS from "../../data/terrains.json"
 
 import Engine from "json-rules-engine-simplified"
 
@@ -10,9 +11,9 @@ import { limitRules } from "./limits"
 
 const initialState = {
   tiles: {
-    "0,0": { x: 0, y: 0, type: "grass" },
+    "0,0": { x: 0, y: 0, type: "meadows" },
     "0,-1": { x: 0, y: -1, type: "rocks" },
-    "1,-1": { x: 1, y: -1, type: "sea" },
+    "1,-1": { x: 1, y: -1, type: "open-sea" },
   },
   buildings: {
     "0,0": { x: 0, y: 0, type: "house" },
@@ -31,6 +32,9 @@ export const mapSlice = createSlice({
       const { x, y, type } = action.payload;
       const hex = Hex(x, y);
       state.tiles[hex.toString()] = { type, ...hex.coordinates() };
+    },
+    chooseTerrain: (state, action) => {
+      console.log("TODO: choose an event / tile to actually place here, rather than just the terrain. The idea is that giving the player some agency to choose the terrain means they get to shape the land they want, BUT they don't get to choose the event, which will come from the various conditions on the tiles themselves.", { action });
     }
   }
 });
@@ -88,20 +92,19 @@ export const areaEffects = (tiles, tile) => {
   return effects;
 }
 
-const rules = Object.keys(TILES)
-  .filter(tile => TILES[tile].conditions)
-  .map(tile => ({
+const rules = Object.keys(TERRAINS)
+  .map(terrain => ({
     conditions: {
-      ...TILES[tile].conditions,
-      ...limitRules(TILES, tile)
+      ...TERRAINS[terrain].conditions,
+      ...limitRules(TERRAINS, terrain)
     },
-    event: tile
+    event: terrain
   }));
 
 const engine = new Engine(rules);
 
-export const availableTiles = async payload => await engine.run(payload)
+export const availableTerrains = async payload => await engine.run(payload)
 
-export const { addTile } = mapSlice.actions;
+export const { addTile, chooseTerrain } = mapSlice.actions;
 
 export default mapSlice.reducer;

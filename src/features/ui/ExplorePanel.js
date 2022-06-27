@@ -2,11 +2,11 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { animated, useSpring, config } from '@react-spring/web';
 import { hide, setExploreSelection } from "./uiSlice.js";
-import { addTile } from "../map/mapSlice.js";
+import { chooseTerrain } from "../map/mapSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
 
-import tiles from "../../data/tiles.json"
+import TERRAINS from "../../data/terrains.json"
 
 import { XIcon } from "@heroicons/react/outline";
 
@@ -14,8 +14,8 @@ export default function ExplorePanel({ visible }) {
   const dispatch = useDispatch();
 
   const lut = "Neon 770";
-  const { hex, availableTiles, selection } = useSelector(state => state.ui.explore);
-  const paddedTiles = Array.from({ ...availableTiles, length: 3 });
+  const { hex, availableTerrains, selection } = useSelector(state => state.ui.explore);
+  const paddedTiles = Array.from({ ...availableTerrains, length: 3 });
 
   const styles = useSpring({
     to: { transform: `translateY(${visible ? 0 : 300 }px)` },
@@ -28,8 +28,8 @@ export default function ExplorePanel({ visible }) {
     <animated.div style={styles} className={classes}>
       { selection && (
         <>
-          <h1 className="font-title text-2xl">{tiles[selection].name}</h1>
-          <p>{tiles[selection].description}</p>
+          <h1 className="font-title text-2xl">{TERRAINS[selection].name}</h1>
+          <p>{TERRAINS[selection].description}</p>
         </>
       ) }
       { !selection && (
@@ -40,10 +40,10 @@ export default function ExplorePanel({ visible }) {
       ) }
       <div className="flex overflow-auto max-w-full pt-4">
         {
-          paddedTiles.map((type, index) => <TileSelectionPanel key={index} lut={lut} type={type} selected={selection === type} callback={() => dispatch(
-            selection === type ?
-              addTile({ ...hex, type: selection }) :
-              setExploreSelection(type)
+          paddedTiles.map((terrain, index) => <TileSelectionPanel key={index} lut={lut} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
+            selection === terrain ?
+              chooseTerrain({ ...hex, terrain: selection }) :
+              setExploreSelection(terrain)
           )}/>)
         }
       </div>

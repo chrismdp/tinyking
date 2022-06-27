@@ -5,11 +5,10 @@ import { Html } from '@react-three/drei';
 import { Hex } from "./hex.js";
 
 import * as Tiles from "../../models/Tiles.js"
-import tiles from "../../data/tiles.json"
 
-export default function Tile({x, y, type, rotating, label, ...props}) {
+export default function Tile({x, y, component, rotating, label, ...props}) {
   const point = Hex(x, y).toPoint();
-  const Component = Tiles[tiles[type].component];
+  const Component = Tiles[component];
 
   const ref = useRef();
   const rotate = useCallback(delta => {

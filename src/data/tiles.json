@@ -1,5 +1,6 @@
 {
   "quiet-woodland": {
+    "terrain": "forest",
     "conditions": {
       "good": { "greater": 0 }
     },
@@ -17,6 +18,7 @@
     "description": "A source of wood, but increases wildness and cannot be used for farming."
   },
   "thick-forest": {
+    "terrain": "forest",
     "conditions": {
       "forested": { "greaterEq": 2 }
     },
@@ -34,6 +36,7 @@
     "description": "Great surprises and adventures await those who dare to venture this far into the woods."
   },
   "shallow-harbour": {
+    "terrain": "coast",
     "conditions": {
       "good": { "greater": 0 }
     },
@@ -41,14 +44,12 @@
       "area": {
       }
     },
-    "limits": {
-      "height": -1
-    },
     "component": "Water",
     "name": "Shallow habour",
     "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats."
   },
-  "sea": {
+  "open-sea": {
+    "terrain": "sea",
     "conditions": {
     },
     "effect": {
@@ -58,14 +59,12 @@
       "resources": {
       }
     },
-    "limits": {
-      "height": -2
-    },
     "component": "Sea",
     "name": "Open sea",
     "description": "Teeming with fish of all types, waiting for you to catch."
   },
   "rocks": {
+    "terrain": "coast",
     "conditions": {
       "good": { "less": 0 }
     },
@@ -75,14 +74,12 @@
         "good": -2
       }
     },
-    "limits": {
-      "height": -1
-    },
     "component": "WaterRocks",
     "name": "Treacherous Rocks",
     "description": "Woe betide the sailor who attemps to pass."
   },
-  "grass": {
+  "meadows": {
+    "terrain": "grassland",
     "conditions": {
     },
     "effect": {
@@ -90,10 +87,7 @@
       }
     },
     "component": "Grass",
-    "name": "Grassland",
+    "name": "Rolling meadows",
     "description": "Can be used for farming, building and grazing livestock."
-  },
-  "select": {
-    "component": "SelectTile"
   }
 }

@@ -13,18 +13,18 @@ const minMax = (array) => array.reduce((memo, h) => ({
 
 const allLimitValues = (tileInfo) => Object.keys(Object.values(tileInfo).reduce((memo, t) => ({...memo, ...t.limits}), {}));
 
-export const limits = (tileInfo, tiles, tile) => allLimitValues(tileInfo).reduce((memo, key) => ({
+export const limits = (terrainInfo, tileInfo, tiles, tile) => allLimitValues(terrainInfo).reduce((memo, key) => ({
   ...memo,
-  [key]: limitsForKey({ tileInfo, tiles, tile, key })
+  [key]: limitsForKey({ terrainInfo, tileInfo, tiles, tile, key })
 }), {});
 
 const readLimit = (tile, key) => (tile.limits || {})[key] || 0;
 
-const limitsForKey = ({ tileInfo, tiles, tile, key }) => {
-  const values = [...Array(limitRange(tileInfo, key)).keys()].flatMap(radius =>
+const limitsForKey = ({ terrainInfo, tileInfo, tiles, tile, key }) => {
+  const values = [...Array(limitRange(terrainInfo, key)).keys()].flatMap(radius =>
     minMax(ring(tile, radius + 1)
       .filter(hex => tiles[hex.toString()])
-      .map(hex => readLimit(tileInfo[tiles[hex.toString()].type], key))
+      .map(hex => readLimit(terrainInfo[tileInfo[tiles[hex.toString()].type].terrain], key))
     ))
   const result = values.reduce((memo, { min, max }, i) => ({
     max: Math.max(memo.max, max - i),

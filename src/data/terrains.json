@@ -1,0 +1,31 @@
+{
+  "grassland": {
+    "component": "Grass",
+    "name": "Grassland",
+    "description": "Can be used for farming, building and grazing livestock."
+  },
+  "forest": {
+    "component": "GrassForest",
+    "name": "Forest",
+    "description": "A source of wood, but increases wildness and cannot be used for farming."
+  },
+  "coast": {
+    "component": "Water",
+    "name": "Coast",
+    "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats.",
+    "limits": {
+      "height": -1
+    }
+  },
+  "sea": {
+    "component": "Sea",
+    "name": "Open sea",
+    "description": "Teeming with fish of all types, waiting for brave fishing boats to catch.",
+    "limits": {
+      "height": -2
+    }
+  },
+  "select": {
+    "component": "SelectTile"
+  }
+}

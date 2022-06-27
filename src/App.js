@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Stats } from "@react-three/drei";
 
-import { explorePanelVisible } from "./features/ui/uiSlice.js"
+import { eventPanelVisible, explorePanelVisible } from "./features/ui/uiSlice.js"
 import ExplorePanel from "./features/ui/ExplorePanel.js"
+import EventPanel from "./features/ui/EventPanel.js"
 
 import './App.css';
 
@@ -16,6 +17,8 @@ function App() {
   const [ lut ] = useState("Bourbon 64");
 
   const explore = useSelector(explorePanelVisible);
+  const event = useSelector(eventPanelVisible);
+
   const resources = useSelector(tileResources);
 
   const year = new Date().getFullYear();
@@ -52,6 +55,7 @@ function App() {
         </div>
       </div>
       <ExplorePanel visible={!!explore}/>
+      <EventPanel visible={!!event}/>
     </div>
   );
 }

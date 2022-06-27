@@ -32,9 +32,6 @@ export const mapSlice = createSlice({
       const { x, y, type } = action.payload;
       const hex = Hex(x, y);
       state.tiles[hex.toString()] = { type, ...hex.coordinates() };
-    },
-    chooseTerrain: (state, action) => {
-      console.log("TODO: choose an event / tile to actually place here, rather than just the terrain. The idea is that giving the player some agency to choose the terrain means they get to shape the land they want, BUT they don't get to choose the event, which will come from the various conditions on the tiles themselves.", { action });
     }
   }
 });
@@ -105,6 +102,6 @@ const engine = new Engine(rules);
 
 export const availableTerrains = async payload => await engine.run(payload)
 
-export const { addTile, chooseTerrain } = mapSlice.actions;
+export const { addTile } = mapSlice.actions;
 
 export default mapSlice.reducer;

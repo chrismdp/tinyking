@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { animated, useSpring, config } from '@react-spring/web';
 import { hide, setExploreSelection } from "./uiSlice.js";
-import { chooseTerrain } from "../map/mapSlice.js";
+import { triggerTerrainEvent } from "../ui/uiSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
 
@@ -13,8 +13,7 @@ import { XIcon } from "@heroicons/react/outline";
 export default function ExplorePanel({ visible }) {
   const dispatch = useDispatch();
 
-  const lut = "Neon 770";
-  const { hex, availableTerrains, selection } = useSelector(state => state.ui.explore);
+  const { hex, availableTerrains, selection } = useSelector(state => state.ui.panel);
 
   const styles = useSpring({
     to: { transform: `translateY(${visible ? 0 : 300 }px)` },
@@ -38,10 +37,10 @@ export default function ExplorePanel({ visible }) {
         </>
       ) }
       <div className="flex overflow-auto max-w-full pt-4">
-        {
-          availableTerrains.map((terrain, index) => <TileSelectionPanel key={index} lut={lut} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
+        { availableTerrains &&
+          availableTerrains.map((terrain, index) => <TileSelectionPanel key={index} terrain={terrain} selected={selection === terrain} callback={() => dispatch(
             selection === terrain ?
-              chooseTerrain({ ...hex, terrain: selection }) :
+              triggerTerrainEvent({ ...hex, terrain: selection }) :
               setExploreSelection(terrain)
           )}/>)
         }

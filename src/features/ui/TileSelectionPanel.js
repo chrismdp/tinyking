@@ -2,7 +2,7 @@ import TERRAINS from "../../data/terrains.json"
 
 import { animated, useSpring } from '@react-spring/web';
 
-export default function TileSelectionPanel({ terrain, lut, callback, selected }) {
+export default function TileSelectionPanel({ terrain, callback, selected }) {
   const info = TERRAINS[terrain];
 
   const imageStyles = useSpring({ to: { transform: `scale(${selected ? 1.5 : 1.25 })` } });

@@ -28,7 +28,7 @@ const AnimatedPerspectiveCamera = animated(PerspectiveCamera);
 export default function Map({ lut }) {
   const tiles = useSelector(state => state.map.tiles);
   const buildings = useSelector(state => state.map.buildings);
-  const selectedTile = useSelector(state => state.ui.explore.hex);
+  const selectedTile = useSelector(state => state.ui.panel.hex) || {};
 
   const [ selectableTiles, setSelectableTiles ] = useState([]);
   useEffect(() => {

@@ -1,0 +1,50 @@
+[
+  {
+    "terrain": "forest",
+    "heading": "Lights in the trees",
+    "text": "As night falls, you spot some distant lights in the gathering gloom. Should you follow and investigate, or leave well alone?",
+    "choices": [
+      {
+        "label": "I must see what they are...",
+        "tile": "thick-forest"
+      },
+      {
+        "label": "No good comes from being too curious...",
+        "tile": "quiet-woodland"
+      }
+    ]
+  },
+  {
+    "terrain": "grassland",
+    "heading": "Rolling meadows",
+    "text": "You have discovered a series of lush green fields, ready for you to explore and settle.",
+    "choices": [
+      {
+        "label": "Excellent.",
+        "tile": "meadows"
+      }
+    ]
+  },
+  {
+    "terrain": "coast",
+    "heading": "Sandy coastline",
+    "text": "You have discovered a sandy stretch of coast, too shallow for fishing.",
+    "choices": [
+      {
+        "label": "Onwards!",
+        "tile": "shallow-coast"
+      }
+    ]
+  },
+  {
+    "terrain": "sea",
+    "heading": "Sailing into the blue",
+    "text": "Now you're in open water, the fish are more numerous.",
+    "choices": [
+      {
+        "label": "Full speed ahead!",
+        "tile": "open-sea"
+      }
+    ]
+  }
+]

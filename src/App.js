@@ -42,7 +42,7 @@ function App() {
       }
       <div className="absolute bottom-10 sm:bottom-0 p-5">
         <p className="text-xs opacity-50">
-          Gameplay prototype {process.env.REACT_APP_GIT_SHA}i
+          Gameplay prototype {process.env.REACT_APP_GIT_SHA}
           &nbsp;(<button onClick={() => setStats(!stats)}>debug stats</button>)
           <br/>
           Copyright &copy; {year} Think Code Learn Ltd t/a Revelation Games

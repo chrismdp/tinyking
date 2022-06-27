@@ -43,12 +43,12 @@ export const { explore, hide, showEvent } = uiSlice.actions;
 
 export const chooseTerrain = ({ terrain, x, y }) => dispatch => {
   const generator = new MersenneTwister(); // TODO: Seeding
-  const events = EVENTS.filter(e => e.terrain === terrain);
+  const events = Object.keys(EVENTS).filter(e => EVENTS[e].terrain === terrain);
   const event = events[generator.random_int() % events.length];
-  if (event.prompts) {
+  if (EVENTS[event].prompts) {
     dispatch(showEvent({ terrain, x, y, event }));
   } else {
-    dispatch(addTile({ x, y, type: event.tile }));
+    dispatch(addTile({ x, y, type: EVENTS[event].tile }));
   }
 };
 

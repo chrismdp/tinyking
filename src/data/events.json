@@ -1,12 +1,12 @@
-[
-  {
+{
+  "lights-in-the-trees": {
     "terrain": "forest",
     "heading": "Lights in the trees",
     "text": "As night falls, you spot some distant lights in the gathering gloom. Should you follow and investigate, or leave well alone?",
     "prompts": [
       {
         "label": "I must see what they are...",
-        "tile": "thick-forest"
+        "event": "wisps"
       },
       {
         "label": "No good comes from being too curious...",
@@ -14,16 +14,26 @@
       }
     ]
   },
-  {
+  "wisps": {
+    "heading": "They might be alive...",
+    "text": "You get close to some of the lights, but they always seem to be ahead of you, leading you further into the gloom. Only then do you realise just how deep the forest is here.",
+    "prompts": [
+      {
+        "label": "Time to turn back.",
+        "tile": "thick-forest"
+      }
+    ]
+  },
+  "grassland": {
     "terrain": "grassland",
     "tile": "meadows"
   },
-  {
+  "coast": {
     "terrain": "coast",
     "tile": "shallow-coast"
   },
-  {
+  "sea": {
     "terrain": "sea",
     "tile": "open-sea"
   }
-]
+}

@@ -40,7 +40,7 @@ export default function Map({ lut }) {
         hex.limits = limits(TERRAINS, TILES, tiles, hex);
         const payload = { ...hex.effects, limits: hex.limits };
         hex.availableTerrains = await availableTerrains(payload);
-        hex.label = removeZeroValues(hex.effects);
+        hex.label = {}
       }
       setSelectableTiles(sel);
     })().catch(console.error);

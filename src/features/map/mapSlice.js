@@ -100,7 +100,11 @@ const rules = Object.keys(TERRAINS)
 
 const engine = new Engine(rules);
 
-export const availableTerrains = async payload => await engine.run(payload)
+export const availableTerrains = limits => Object.keys(limits).reduce((memo, k) =>
+  memo.filter(terrain => {
+    const limit = (TERRAINS[terrain].limits || {})[k] || 0;
+    return limit <= limits[k].max && limit >= limits[k].min;
+  }), Object.keys(TERRAINS));
 
 export const { addTile } = mapSlice.actions;
 

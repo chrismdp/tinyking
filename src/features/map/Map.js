@@ -36,10 +36,8 @@ export default function Map({ lut }) {
       const sel = selectable(tiles);
       for (let idx = 0; idx < sel.length; idx++) {
         const hex = sel[idx];
-        hex.effects = areaEffects(tiles, hex);
         hex.limits = limits(TERRAINS, TILES, tiles, hex);
-        const payload = { ...hex.effects, limits: hex.limits };
-        hex.availableTerrains = await availableTerrains(payload);
+        hex.availableTerrains = availableTerrains(hex.limits);
         hex.label = {}
       }
       setSelectableTiles(sel);

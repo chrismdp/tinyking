@@ -34,7 +34,7 @@ export default function ExplorePanel({ visible }) {
             <TileSelectionPanel
               key={index}
               terrain={terrain}
-              callback={() => dispatch(chooseTerrain({ ...hex, terrain })) }/>)
+              callback={() => dispatch(chooseTerrain({ ...hex, effects, terrain })) }/>)
         }
       </div>
       <div className="absolute top-2 right-2"><XIcon className="h-5 w-5" onClick={() => dispatch(hide())}/></div>

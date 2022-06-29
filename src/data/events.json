@@ -2,6 +2,9 @@
   "lights-in-the-trees": {
     "terrain": "forest",
     "heading": "Lights in the trees",
+    "conditions": {
+      "forested": { "greaterEq": 2 }
+    },
     "text": "As night falls, you spot some distant lights in the gathering gloom. Should you follow and investigate, or leave well alone?",
     "prompts": [
       {
@@ -24,6 +27,24 @@
       }
     ]
   },
+  "forest-deer": {
+    "terrain": "forest",
+    "conditions": {
+      "good": { "greater": 0 }
+    },
+    "heading": "A herd of deer",
+    "text": "You've spotted some tell tale tracks of deer amongst the trees, giving you a valuable source of food.",
+    "prompts": [
+      {
+        "label": "Time to get hunting!",
+        "tile": "deer"
+      }
+    ]
+  },
+  "forest": {
+    "terrain": "forest",
+    "tile": "quiet-woodland"
+  },
   "grassland": {
     "terrain": "grassland",
     "tile": "meadows"
@@ -31,6 +52,11 @@
   "coast": {
     "terrain": "coast",
     "tile": "shallow-coast"
+  },
+  "rocks": {
+    "conditions": {
+      "good": { "less": 0 }
+    }
   },
   "sea": {
     "terrain": "sea",

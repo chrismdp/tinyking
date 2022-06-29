@@ -1,9 +1,6 @@
 {
   "quiet-woodland": {
     "terrain": "forest",
-    "conditions": {
-      "good": { "greater": 0 }
-    },
     "effect": {
       "area": {
         "wildness": 2,
@@ -17,11 +14,22 @@
     "name": "Quiet woodland",
     "description": "A source of wood, but increases wildness and cannot be used for farming."
   },
+  "deer": {
+    "terrain": "forest",
+    "effect": {
+      "area": {
+        "forested": 1
+      },
+      "resources": {
+        "food": 1
+      }
+    },
+    "component": "GrassForest",
+    "name": "Forest with deer",
+    "description": "Great surprises and adventures await those who dare to venture this far into the woods."
+  },
   "thick-forest": {
     "terrain": "forest",
-    "conditions": {
-      "forested": { "greaterEq": 2 }
-    },
     "effect": {
       "area": {
         "wildness": 3,
@@ -37,9 +45,6 @@
   },
   "shallow-coast": {
     "terrain": "coast",
-    "conditions": {
-      "good": { "greater": 0 }
-    },
     "effect": {
       "area": {
       }
@@ -50,8 +55,6 @@
   },
   "open-sea": {
     "terrain": "sea",
-    "conditions": {
-    },
     "effect": {
       "area": {
         "wildness": 1
@@ -65,9 +68,6 @@
   },
   "rocks": {
     "terrain": "coast",
-    "conditions": {
-      "good": { "less": 0 }
-    },
     "effect": {
       "area": {
         "wildness": 1,
@@ -80,8 +80,6 @@
   },
   "meadows": {
     "terrain": "grassland",
-    "conditions": {
-    },
     "effect": {
       "area": {
       }

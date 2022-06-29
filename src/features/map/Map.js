@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera, MapControls } from "@react-three/drei";
 import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postprocessing";
 
-import { selectable, areaEffects, availableTerrains } from './mapSlice';
+import { selectable, availableTerrains } from './mapSlice';
 import { limits } from "./limits";
 import { explore, hide } from '../ui/uiSlice';
 
@@ -32,16 +32,14 @@ export default function Map({ lut }) {
 
   const [ selectableTiles, setSelectableTiles ] = useState([]);
   useEffect(() => {
-    (async () => {
-      const sel = selectable(tiles);
-      for (let idx = 0; idx < sel.length; idx++) {
-        const hex = sel[idx];
-        hex.limits = limits(TERRAINS, TILES, tiles, hex);
-        hex.availableTerrains = availableTerrains(hex.limits);
-        hex.label = {}
-      }
-      setSelectableTiles(sel);
-    })().catch(console.error);
+    const sel = selectable(tiles);
+    for (let idx = 0; idx < sel.length; idx++) {
+      const hex = sel[idx];
+      hex.limits = limits(TERRAINS, TILES, tiles, hex);
+      hex.availableTerrains = availableTerrains(hex.limits);
+      hex.label = {}
+    }
+    setSelectableTiles(sel);
   }, [tiles]);
 
   const dispatch = useDispatch();

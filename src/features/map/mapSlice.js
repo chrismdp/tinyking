@@ -5,10 +5,6 @@ import { Hex, ring } from "./hex.js";
 import TILES from "../../data/tiles.json"
 import TERRAINS from "../../data/terrains.json"
 
-import Engine from "json-rules-engine-simplified"
-
-import { limitRules } from "./limits"
-
 const initialState = {
   tiles: {
     "0,0": { x: 0, y: 0, type: "meadows" },
@@ -88,17 +84,6 @@ export const areaEffects = (tiles, tile) => {
     )));
   return effects;
 }
-
-const rules = Object.keys(TERRAINS)
-  .map(terrain => ({
-    conditions: {
-      ...TERRAINS[terrain].conditions,
-      ...limitRules(TERRAINS, terrain)
-    },
-    event: terrain
-  }));
-
-const engine = new Engine(rules);
 
 export const availableTerrains = limits => Object.keys(limits).reduce((memo, k) =>
   memo.filter(terrain => {

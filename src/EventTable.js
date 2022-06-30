@@ -30,11 +30,14 @@ function EventStat({ e1, o1, e2, o2 }) {
       Object.keys(TERRAINS).map(terrain => {
         const options = (events[terrain] || []);
         const COLOUR = { "0": "red-400", "1": "orange-400" };
-        return (
+        return (options.length !== 1 &&
           <div key={terrain} className={`flex justify-center items-center rounded mx-1 w-8 h-8 text-white text-sm font-bold bg-${TERRAINS[terrain].colour}`}>
-            <div title={options.join(", ")} className={`w-4 h-4 text-xs rounded bg-${COLOUR[options.length] || "auto"}`}>
-              { options.length }
-            </div>
+            {
+              (options.length === 0 || options.length > 1) &&
+                <div title={options.join(", ")} className={`w-4 h-4 text-xs rounded bg-${COLOUR[options.length] || "auto"}`}>
+                  { options.length }
+                </div>
+            }
           </div>
         );
       })
@@ -50,6 +53,10 @@ export default function EventTable() {
   return (
     <div className="p-4">
       <h1 className="font-title text-4xl pb-4">Effect combinations in events</h1>
+      <div className="flex pb-4 items-center">
+        <div className="pr-2">Key:</div>
+        { Object.values(TERRAINS).map(({ name, colour }) => <div key={name} className={`m-1 py-1 px-4 text-white rounded bg-${colour}`}>{name}</div>) }
+      </div>
       <table className="text-left border-separate">
         <thead>
           <tr>

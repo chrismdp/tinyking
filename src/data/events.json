@@ -3,7 +3,8 @@
     "terrain": "forest",
     "heading": "Lights in the trees",
     "conditions": {
-      "forested": { "greaterEq": 2 }
+      "forested": { "greaterEq": 2 },
+      "good": { "greaterEq": 0 }
     },
     "text": "As night falls, you spot some distant lights in the gathering gloom. Should you follow and investigate, or leave well alone?",
     "prompts": [

@@ -1,0 +1,20 @@
+{
+  "forested": {
+    "wooded": { "min": 2 },
+    "thickly forested": { "min": 4 }
+  },
+  "good": {
+    "very evil": { "min": -5 },
+    "evil": { "min": -2 },
+    "neutral": { "min": -1, "display": false },
+    "good": { "min": 2 },
+    "very good": { "min": 5 } 
+  },
+  "wildness": {
+    "very orderly": { "min": -5 },
+    "orderly": { "min": -2 },
+    "neutral": { "min": -1 },
+    "wild": { "min": 2 },
+    "very wild": { "min": 5 } 
+  }
+}

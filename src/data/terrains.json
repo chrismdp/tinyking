@@ -3,13 +3,15 @@
     "component": "Grass",
     "name": "Grassland",
     "image": "grass_NE",
-    "description": "Can be used for farming, building and grazing livestock."
+    "description": "Can be used for farming, building and grazing livestock.",
+    "colour": "lime-500"
   },
   "forest": {
     "component": "GrassForest",
     "name": "Forest",
     "image": "grass_forest_NE",
-    "description": "A source of wood, but increases wildness and cannot be used for farming."
+    "description": "A source of wood, but increases wildness and cannot be used for farming.",
+    "colour": "lime-700"
   },
   "coast": {
     "component": "Water",
@@ -18,7 +20,8 @@
     "image": "water_NE",
     "limits": {
       "height": -1
-    }
+    },
+    "colour": "cyan-300"
   },
   "sea": {
     "component": "Sea",
@@ -27,6 +30,7 @@
     "description": "Teeming with fish of all types, waiting for brave fishing boats to catch.",
     "limits": {
       "height": -2
-    }
+    },
+    "colour": "cyan-500"
   }
 }

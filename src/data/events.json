@@ -56,7 +56,9 @@
   "rocks": {
     "conditions": {
       "good": { "less": 0 }
-    }
+    },
+    "terrain": "coast",
+    "tile": "rocks"
   },
   "sea": {
     "terrain": "sea",

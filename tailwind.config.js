@@ -3,6 +3,11 @@ module.exports = {
   content: [
     "./src/**/*.js"
   ],
+  safelist: [
+    {
+      pattern: /bg-.+/
+    }
+  ],
   theme: {
     fontFamily: {
       title: ['Catamaran', 'serif']

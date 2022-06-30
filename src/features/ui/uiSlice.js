@@ -52,7 +52,7 @@ const rules = Object.keys(EVENTS)
     },
   }));
 
-const engine = new Engine(rules);
+export const engine = new Engine(rules);
 
 export const chooseTerrain = ({ terrain, effects, x, y }) => async dispatch => {
   const events = await engine.run({ terrain, ...effects })

@@ -38,8 +38,9 @@ export const tileResources = createSelector(state => state.map.tiles,
 
 export const selectable = (tiles) => {
   const keys = Object.keys(tiles);
+  const accessible = keys.filter(t => !TERRAINS[TILES[tiles[t].type].terrain].boatNeeded);
   const filled = keys.reduce((acc, key) => ({...acc, [key]: { status: FILLED } }), {});
-  const selectable = keys.map(key => Hex(tiles[key])).reduce((acc, center) =>
+  const selectable = accessible.map(key => Hex(tiles[key])).reduce((acc, center) =>
     ring(center).reduce((acc, hex) => {
       const coord = hex.toString();
       return { ...acc,

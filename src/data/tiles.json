@@ -14,6 +14,34 @@
     "name": "Quiet woodland",
     "description": "A source of wood, but increases wildness and cannot be used for farming."
   },
+  "orchard": {
+    "terrain": "forest",
+    "effect": {
+      "area": {
+        "wildness": -1
+      },
+      "resources": {
+        "food": 1
+      }
+    },
+    "component": "GrassForest",
+    "name": "Orchard",
+    "description": "An abundant grove of fruit trees."
+  },
+  "boar": {
+    "terrain": "forest",
+    "effect": {
+      "area": {
+        "wildness": 2
+      },
+      "resources": {
+        "food": 2
+      }
+    },
+    "component": "GrassForest",
+    "name": "Forest with boar",
+    "description": "They're easy to track and provide a good amount of food."
+  },
   "deer": {
     "terrain": "forest",
     "effect": {
@@ -26,7 +54,7 @@
     },
     "component": "GrassForest",
     "name": "Forest with deer",
-    "description": "Great surprises and adventures await those who dare to venture this far into the woods."
+    "description": "A source of food, deep in the forest."
   },
   "thick-forest": {
     "terrain": "forest",
@@ -43,15 +71,29 @@
     "name": "Deep forest",
     "description": "Great surprises and adventures await those who dare to venture this far into the woods."
   },
-  "shallow-coast": {
+  "driftwood": {
     "terrain": "coast",
     "effect": {
-      "area": {
+      "resources": {
+        "wood": 1
       }
     },
     "component": "Water",
-    "name": "Coastline",
-    "description": "To catch fish you'll need to venture a little further out. A jetty can be built here to land boats."
+    "name": "Driftwood",
+    "description": "There's so much fallen wood here. You'll be able to use a lot of it in future."
+  },
+  "shallow-coast": {
+    "terrain": "coast",
+    "component": "Water",
+    "name": "Gentle coastline",
+    "description": "To catch fish you'll need to venture a little further out, but a jetty can be built here to land boats.",
+    "landBuildingsAllowed": true
+  },
+  "cliffs": {
+    "terrain": "coast",
+    "component": "Water",
+    "name": "Rugged coastline",
+    "description": "The cliffs are too steep here for a harbour, but the views are magnificent."
   },
   "open-sea": {
     "terrain": "sea",
@@ -78,14 +120,38 @@
     "name": "Treacherous Rocks",
     "description": "Woe betide the sailor who attemps to pass."
   },
+  "clearing": {
+    "terrain": "grassland",
+    "component": "Grass",
+    "name": "Clearing",
+    "description": "Thank goodness - a break from the trees."
+  },
   "meadows": {
     "terrain": "grassland",
-    "effect": {
-      "area": {
-      }
-    },
     "component": "Grass",
     "name": "Rolling meadows",
     "description": "Can be used for farming, building and grazing livestock."
+  },
+  "ruined-village": {
+    "terrain": "grassland",
+    "effect": {
+      "area": {
+        "good": -2
+      }
+    },
+    "component": "Grass",
+    "name": "Ruined village",
+    "description": "Something terrible happened here... not too long ago."
+  },
+  "tribal-village": {
+    "terrain": "grassland",
+    "effect": {
+      "area": {
+        "wildness": 2
+      }
+    },
+    "component": "Grass",
+    "name": "Tribal village",
+    "description": "A local village of savages."
   }
 }

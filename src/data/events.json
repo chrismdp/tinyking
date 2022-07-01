@@ -28,6 +28,36 @@
       }
     ]
   },
+  "forest-orchard": {
+    "terrain": "forest",
+    "conditions": {
+      "forested": { "greaterEq": 2 },
+      "wildness": { "lessEq": -2 }
+    },
+    "heading": "Fruit orchard",
+    "text": "Apples, pears, cherries and plums: someone has taken the time to plant and tend to a number of fruit trees here.",
+    "prompts": [
+      {
+        "label": "Plenty for all!",
+        "tile": "orchard"
+      }
+    ]
+  },
+  "forest-boar": {
+    "terrain": "forest",
+    "conditions": {
+      "forested": { "greaterEq": 2 },
+      "wildness": { "greaterEq": 2 }
+    },
+    "heading": "Boar sightings",
+    "text": "You've spotted enough broken branches, flattened grass and droppings to know that there are boar in these woods.",
+    "prompts": [
+      {
+        "label": "Wild boar is my favourite!",
+        "tile": "boar"
+      }
+    ]
+  },
   "forest-deer": {
     "terrain": "forest",
     "conditions": {
@@ -42,17 +72,110 @@
       }
     ]
   },
-  "forest": {
+  "wild-tribe": {
+    "terrain": "grassland",
+    "conditions": {
+      "wildness": { "greaterEq": 2 },
+      "good": { "greaterEq": -1, "lessEq": 1 }
+    },
+    "heading": "Wild tribe",
+    "text": "You've come across a small village of wild tribes people. They don't speak your language, but by their gestures it seems that your presence is... unwelcome.",
+    "prompts": [
+      {
+        "label": "They'll make good target practice.",
+        "event": "wild-tribe-attack"
+      },
+      {
+        "label": "Lets leave them alone.",
+        "event": "wild-tribe-peace"
+      }
+    ]
+  },
+  "wild-tribe-peace": {
+    "heading": "Back away slowly.",
+    "text": "You take the hint, and leave the villagers to it. You know they'll cause trouble in the surrounding area.",
+    "prompts": [
+      {
+        "label": "I'd better not regret this.",
+        "tile": "tribal-village"
+      }
+    ]
+  },
+  "wild-tribe-attack": {
+    "heading": "To battle!",
+    "text": "The tribe is no match for your organised force as you sack the village. A few get away into the trees.",
+    "prompts": [
+      {
+        "label": "I hope they don't find me later...",
+        "tile": "ruined-village"
+      }
+    ]
+  },
+  "wild-tribe-attack (TODO when we do delay!)": {
+    "heading": "To battle!",
+    "text": "The tribe is no match for your organised force. You hack your way through them, leaving a sacked village. A few get away into the trees.",
+    "prompts": [
+      {
+        "label": "I hope they don't find me later...",
+        "event": "wild-tribe-return",
+        "delay": "2d6+15"
+      }
+    ]
+  },
+  "clearing": {
+    "terrain": "grassland",
+    "conditions": {
+      "forested": { "greaterEq": 2 }
+    },
+    "heading": "Clearing",
+    "text": "A rare clearing in the deep woods gives you a chance to set up camp and take stock.",
+    "prompts": [
+      {
+        "label": "Time for a rest.",
+        "tile": "driftwood"
+      }
+    ]
+  },
+  "safe-harbour": {
+    "terrain": "coast",
+    "conditions": {
+      "wildness": { "lessEq": -2 }
+    },
+    "heading": "Natural Harbour",
+    "text": "You discover a fantastic natural rocky outcrop right next to deep water: a perfect place to launch larger boats.",
+    "prompts": [
+      {
+        "label": "Fantastic news!",
+        "tile": "shallow-coast"
+      }
+    ]
+  },
+  "driftwood": {
+    "terrain": "coast",
+    "conditions": {
+      "forested": { "greaterEq": 2 },
+      "wildness": { "greaterEq": 1 }
+    },
+    "heading": "Floating driftwood",
+    "text": "As you walk the narrow beach between the trees and the shore, you step over a number of heavy fallen branches.",
+    "prompts": [
+      {
+        "label": "They'll be useful later.",
+        "tile": "driftwood"
+      }
+    ]
+  },
+  "fallback-forest": {
     "terrain": "forest",
     "tile": "quiet-woodland"
   },
-  "grassland": {
+  "fallback-grassland": {
     "terrain": "grassland",
     "tile": "meadows"
   },
-  "coast": {
+  "fallback-coast": {
     "terrain": "coast",
-    "tile": "shallow-coast"
+    "tile": "cliffs"
   },
   "rocks": {
     "conditions": {
@@ -61,7 +184,7 @@
     "terrain": "coast",
     "tile": "rocks"
   },
-  "sea": {
+  "fallback-sea": {
     "terrain": "sea",
     "tile": "open-sea"
   }

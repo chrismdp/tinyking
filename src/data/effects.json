@@ -1,7 +1,7 @@
 {
   "forested": {
     "wooded": { "min": 2 },
-    "thickly forested": { "min": 4 }
+    "thickly forested": { "min": 5 }
   },
   "good": {
     "very evil": { "min": -5 },

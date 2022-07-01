@@ -46,7 +46,7 @@ function EventStat({ e1, o1, e2, o2 }) {
 }
 
 export default function EventTable() {
-  const effectOptions = Object.keys(EFFECTS).reduce((memo, e) => ({ ...memo, [e]: [ "", ...Object.keys(EFFECTS[e])]}), {});
+  const effectOptions = Object.keys(EFFECTS).reduce((memo, e) => ({ ...memo, [e]: Object.keys(EFFECTS[e])}), {});
 
   const sortedEffectKeys = Object.keys(effectOptions).sort();
 

@@ -76,7 +76,7 @@ export const areaEffects = (tiles, tile) => {
     ring(tile, radius)
       .filter(hex => tiles[hex.toString()])
       .map(hex => TILES[tiles[hex.toString()].type])
-      .map(type => (type.effect || {}).area)
+      .map(type => (type.effect || {}).area || {})
       .map(area =>
         Object.keys(area).reduce((memo, k) => ({
           ...memo,

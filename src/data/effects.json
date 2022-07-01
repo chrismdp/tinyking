@@ -13,7 +13,7 @@
   "wildness": {
     "very orderly": { "min": -5 },
     "orderly": { "min": -2 },
-    "neutral": { "min": -1 },
+    "neutral": { "min": -1, "display": false },
     "wild": { "min": 2 },
     "very wild": { "min": 5 } 
   }

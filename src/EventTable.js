@@ -31,10 +31,10 @@ function EventStat({ e1, o1, e2, o2 }) {
         const options = (events[terrain] || []);
         const COLOUR = { "0": "red-400", "1": "orange-400" };
         return (options.length !== 1 &&
-          <div key={terrain} className={`flex justify-center items-center rounded mx-1 w-8 h-8 text-white text-sm font-bold bg-${TERRAINS[terrain].colour}`}>
+          <div title={options.join(", ")} key={terrain} className={`flex justify-center items-center rounded mx-1 w-8 h-8 text-white text-sm font-bold bg-${TERRAINS[terrain].colour}`}>
             {
               (options.length === 0 || options.length > 1) &&
-                <div title={options.join(", ")} className={`w-4 h-4 text-xs rounded bg-${COLOUR[options.length] || "auto"}`}>
+                <div className={`w-4 h-4 text-xs rounded bg-${COLOUR[options.length] || "auto"}`}>
                   { options.length }
                 </div>
             }

@@ -132,7 +132,7 @@
     "prompts": [
       {
         "label": "Time for a rest.",
-        "tile": "driftwood"
+        "tile": "clearing"
       }
     ]
   },
@@ -167,22 +167,50 @@
   },
   "fallback-forest": {
     "terrain": "forest",
-    "tile": "quiet-woodland"
+    "heading": "Deserted forest",
+    "text": "You have found a stretch of empty woodland. A good source of fuel in future.",
+    "prompts": [
+      {
+        "label": "Great.",
+        "tile": "quiet-woodland"
+      }
+    ]
   },
   "fallback-grassland": {
     "terrain": "grassland",
-    "tile": "meadows"
+    "heading": "Deserted forest",
+    "text": "You have discovered rolling grasslands: perfect for building, farming or grazing.",
+    "prompts": [
+      {
+        "label": "Ok.",
+        "tile": "meadows"
+      }
+    ]
   },
   "fallback-coast": {
     "terrain": "coast",
-    "tile": "cliffs"
+    "heading": "Towering cliffs",
+    "text": "The land ends abruptly here: best not get too close.",
+    "prompts": [
+      {
+        "label": "Time to turn back.",
+        "tile": "cliffs"
+      }
+    ]
   },
   "rocks": {
     "conditions": {
       "good": { "less": 0 }
     },
     "terrain": "coast",
-    "tile": "rocks"
+    "heading": "Dangerous rocks",
+    "text": "Watch out - those could easily punch a hole in the bottom of a ship.",
+    "prompts": [
+      {
+        "label": "Best keep our boats away.",
+        "tile": "rocks"
+      }
+    ]
   },
   "fallback-sea": {
     "terrain": "sea",

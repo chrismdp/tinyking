@@ -20,9 +20,10 @@
   "additionalProperties": {
     "type": "object",
     "properties": {
-      "terrain": { "type": "string" },
+      "terrain": { "enum": ["grassland", "forest", "coast", "sea"] },
       "heading": { "type": "string" },
       "text": { "type": "string" },
+      "tile": { "type": "string" },
       "conditions": {
         "type": "object",
         "properties": {
@@ -49,8 +50,9 @@
       }
     },
     "oneOf": [
-      { "required": [ "terrain", "tile" ] },
-      { "required": [ "heading", "text", "prompts" ] }
-    ]
+      { "required": [ "tile" ] },
+      { "required": [ "prompts" ] }
+    ],
+    "additionalProperties": false
   }
 }

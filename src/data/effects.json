@@ -1,20 +1,20 @@
 {
   "forested": {
-    "wooded": { "min": 2 },
-    "thickly forested": { "min": 5 }
+    "wooded": { "min": 2, "label": "wooded" },
+    "thickly forested": { "min": 5, "label": "thickly forested" }
   },
   "good": {
-    "very evil": { "min": -5 },
-    "evil": { "min": -2 },
-    "neutral": { "min": -1, "display": false },
-    "good": { "min": 2 },
-    "very good": { "min": 5 } 
+    "very evil": { "min": -5, "label": "very evil" },
+    "evil": { "min": -2, "label": "evil" },
+    "neutral": { "min": -1 },
+    "good": { "min": 2, "label": "good" },
+    "very good": { "min": 5, "label": "very good" }
   },
   "wildness": {
-    "very orderly": { "min": -5 },
-    "orderly": { "min": -2 },
-    "neutral": { "min": -1, "display": false },
-    "wild": { "min": 2 },
-    "very wild": { "min": 5 } 
+    "very orderly": { "min": -5, "label": "very orderly" },
+    "orderly": { "min": -2, "label": "orderly" },
+    "neutral": { "min": -1 },
+    "wild": { "min": 2, "label": "wild" },
+    "very wild": { "min": 5, "label": "very wild" }
   }
 }

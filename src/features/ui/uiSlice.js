@@ -56,7 +56,6 @@ export const engine = new Engine(rules);
 
 export const chooseTerrain = ({ terrain, effects, x, y }) => async dispatch => {
   const events = await engine.run({ terrain, ...effects })
-  console.log({ terrain, effects, events })
 
   const generator = new MersenneTwister(); // TODO: Seeding
   const event = events[generator.random_int() % events.length];

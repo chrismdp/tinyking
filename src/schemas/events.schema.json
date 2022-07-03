@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events.schema.json",
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "properties": {
+        "less": { "type": "integer" },
+        "lessEq": { "type": "integer" },
+        "greater": { "type": "integer" },
+        "greaterEq": { "type": "integer" },
+        "is": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "title": "Events Schema",
+  "description": "A map of event objects",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "properties": {
+      "terrain": { "type": "string" },
+      "heading": { "type": "string" },
+      "text": { "type": "string" },
+      "conditions": {
+        "type": "object",
+        "properties": {
+          "wildness": { "$ref": "#/$defs/condition" },
+          "good": { "$ref": "#/$defs/condition" },
+          "forested": { "$ref": "#/$defs/condition" }
+        },
+        "additionalProperties": false
+      },
+      "prompts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": { "type": "string" },
+            "tile": { "type": "string" },
+            "event": { "type": "string" }
+          },
+          "oneOf": [
+            { "required": [ "label", "event" ] },
+            { "required": [ "label", "tile" ] }
+          ]
+        }
+      }
+    },
+    "oneOf": [
+      { "required": [ "terrain", "tile" ] },
+      { "required": [ "heading", "text", "prompts" ] }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "conditions": {
+    "forested.greaterEq": "Forest at least %{value}",
+    "good.lessEq": "At most %{value} goodness",
+    "good.less": "Less than %{value} goodness",
+    "good.greaterEq": "At least %{value} goodness",
+    "wildness.lessEq": "Wildness at most %{value}",
+    "wildness.greaterEq": "Wildness at least %{value}"
+  }
+}

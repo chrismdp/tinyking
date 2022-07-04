@@ -79,7 +79,7 @@
       "good": { "greaterEq": -1, "lessEq": 1 }
     },
     "heading": "Wild tribe",
-    "text": "You've come across a small village of wild tribes people. They don't speak your language, but by their gestures it seems that your presence is... unwelcome.",
+    "text": "You've come across a small village of wild tribespeople. They don't speak your language, but by their gestures it seems that your presence is... unwelcome.",
     "prompts": [
       {
         "label": "They'll make good target practice.",

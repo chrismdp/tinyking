@@ -16,10 +16,10 @@ export const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    explore: (state, action) => {
-      const { x, y, availableTerrains } = action.payload;
-      state.visiblePanel = "explore";
-      state.panel = { hex: { x, y }, availableTerrains };
+    info: (state, action) => {
+      const { x, y, availableTerrains, display, type } = action.payload;
+      state.visiblePanel = "info";
+      state.panel = { hex: { x, y }, display, type, availableTerrains };
     },
     hide: (state, action) => {
       state.visiblePanel = null;
@@ -38,10 +38,10 @@ export const uiSlice = createSlice({
   }
 });
 
-export const explorePanelVisible = (state) => state.ui.visiblePanel === "explore";
+export const infoPanelVisible = (state) => state.ui.visiblePanel === "info";
 export const eventPanelVisible = (state) => state.ui.visiblePanel === "event";
 
-export const { explore, hide, showEvent } = uiSlice.actions;
+export const { info, hide, showEvent } = uiSlice.actions;
 
 const rules = Object.keys(EVENTS)
   .map(event => ({

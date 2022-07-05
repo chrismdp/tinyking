@@ -12,6 +12,8 @@ import { XIcon } from "@heroicons/react/outline";
 import Engine from "json-rules-engine-simplified"
 
 import EFFECTS from "../../data/effects.json";
+import BUILDINGS from "../../data/buildings.json";
+import TILES from "../../data/tiles.json";
 
 const rules = Object.keys(EFFECTS).flatMap(effect =>
   Object.keys(EFFECTS[effect]).map(option => ({
@@ -24,10 +26,10 @@ const rules = Object.keys(EFFECTS).flatMap(effect =>
 
 const engine = new Engine(rules);
 
-export default function ExplorePanel({ visible }) {
+export default function InfoPanel({ visible }) {
   const dispatch = useDispatch();
 
-  const { hex, availableTerrains } = useSelector(state => state.ui.panel);
+  const { hex, availableTerrains, display, type } = useSelector(state => state.ui.panel);
   const tiles = useSelector(state => state.map.tiles);
   const effects = areaEffects(tiles, hex);
 
@@ -54,7 +56,12 @@ export default function ExplorePanel({ visible }) {
   return (
     <animated.div style={styles} className={classes}>
       <>
-        <h1 className="font-title text-2xl">What will you discover?</h1>
+        { display === "selection" && <h1 className="font-title text-2xl">What will you discover?</h1> }
+        { display === "building" && <h1 className="font-title text-2xl">Building: {BUILDINGS[type].name}</h1> }
+        { display === "tile" && <h1 className="font-title text-2xl">Tile: {TILES[type].name}</h1> }
+    {
+      // TODO: add description
+    }
         <p>{effectText && `This area: ${effectText}`}</p>
       </>
       <div className="flex overflow-auto max-w-full pt-4">

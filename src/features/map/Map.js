@@ -9,7 +9,7 @@ import { SMAA, EffectComposer, DepthOfField, Bloom } from "@react-three/postproc
 
 import { selectable, availableTerrains } from './mapSlice';
 import { limits } from "./limits";
-import { explore, hide } from '../ui/uiSlice';
+import { info, hide } from '../ui/uiSlice';
 
 import Tile from "./Tile.js"
 import Building from "./Building.js"
@@ -73,7 +73,7 @@ export default function Map({ lut }) {
         <directionalLight intensity={0.2} position={[3, 2, -3]} />
         <AnimatedMapControls ref={controls} target={target} maxPolarAngle={0.45 * Math.PI}/>
         {
-          Object.keys(tiles).map(key => ( <Tile key={key} component={TILES[tiles[key].type].component} {...tiles[key]}/> ))
+          Object.keys(tiles).map(key => ( <Tile key={key} component={TILES[tiles[key].type].component} {...tiles[key]} onClick={() => dispatch(info({ display: "tile", ...tiles[key] }))} /> ))
         }
         {
           selectableTiles.map(tile => (
@@ -82,12 +82,14 @@ export default function Map({ lut }) {
               highlighted={isSelected(tile, selectedTile)}
               component="SelectTile"
               label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
-              onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : explore({ ...tile}))}
+              onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : info({ display: 'selection', ...tile}))}
             />
           ))
         }
         {
-          Object.keys(buildings).map(key => ( <Building key={key} {...buildings[key]}/> ))
+          Object.keys(buildings).map(key => (
+            <Building key={key} {...buildings[key]} onClick={e => { e.stopPropagation(); dispatch(info({ display: 'building', ...buildings[key] }))}}/>
+          ))
         }
         <EffectComposer>
           <SMAA/>

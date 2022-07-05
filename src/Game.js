@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Stats } from "@react-three/drei";
 
-import { eventPanelVisible, explorePanelVisible } from "./features/ui/uiSlice.js"
-import ExplorePanel from "./features/ui/ExplorePanel.js"
+import { eventPanelVisible, infoPanelVisible } from "./features/ui/uiSlice.js"
+import InfoPanel from "./features/ui/InfoPanel.js"
 import EventPanel from "./features/ui/EventPanel.js"
 
 import Map from "./features/map/Map.js"
@@ -12,7 +12,7 @@ import { removeZeroValues, tileResources } from "./features/map/mapSlice.js"
 export default function Game() {
   const [ lut ] = useState("Bourbon 64");
 
-  const explore = useSelector(explorePanelVisible);
+  const info = useSelector(infoPanelVisible);
   const event = useSelector(eventPanelVisible);
 
   const resources = useSelector(tileResources);
@@ -50,7 +50,7 @@ export default function Game() {
           <a className="pl-2" href="https://github.com/chrismdp/tinyking/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/stars/chrismdp/tinyking?color=417154&label=github&logo=github1" alt="Github link"/></a>
         </div>
       </div>
-      <ExplorePanel visible={!!explore}/>
+      <InfoPanel visible={!!info}/>
       <EventPanel visible={!!event}/>
     </div>
   );

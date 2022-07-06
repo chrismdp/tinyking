@@ -178,7 +178,7 @@
   },
   "fallback-grassland": {
     "terrain": "grassland",
-    "heading": "Deserted forest",
+    "heading": "Empty grasslands",
     "text": "You have discovered rolling grasslands: perfect for building, farming or grazing.",
     "prompts": [
       {

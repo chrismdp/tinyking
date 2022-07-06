@@ -6,6 +6,7 @@ import { chooseTerrain, hide } from "./uiSlice.js";
 import { areaEffects } from "../map/mapSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
+import Tags from "./Tags.js"
 
 import { XIcon } from "@heroicons/react/outline";
 
@@ -31,18 +32,23 @@ export default function InfoPanel({ visible }) {
 
   const { hex, availableTerrains, display, type } = useSelector(state => state.ui.panel);
   const tiles = useSelector(state => state.map.tiles);
-  const effects = areaEffects(tiles, hex);
 
-  const [ effectText, setEffectText ] = useState();
+  const [ effects, setEffects ] = useState({});
+  const [ effectTags, setEffectTags ] = useState([]);
+
+  useEffect(() => {
+    setEffects(areaEffects(tiles, hex));
+  }, [tiles, hex]);
+
   useEffect(() => {
     (async () => {
       const events = await engine.run(effects);
       const last = events.reduce((memo, event) => (
         { ...memo, [event.effect]: event.option }
       ), {})
-      const text = Object.keys(last).map(effect =>
-        EFFECTS[effect][last[effect]].label || "").filter(x => x).join(", ");
-      setEffectText(text);
+      const tags = Object.keys(last).map(effect =>
+        EFFECTS[effect][last[effect]].label || "").filter(x => x).map(t => t + " area");
+      setEffectTags(tags);
     })();
   }, [effects]);
 
@@ -55,15 +61,21 @@ export default function InfoPanel({ visible }) {
 
   return (
     <animated.div style={styles} className={classes}>
-      <>
-        { display === "selection" && <h1 className="font-title text-2xl">What will you discover?</h1> }
-        { display === "building" && <h1 className="font-title text-2xl">Building: {BUILDINGS[type].name}</h1> }
-        { display === "tile" && <h1 className="font-title text-2xl">Tile: {TILES[type].name}</h1> }
-    {
-      // TODO: add description
-    }
-        <p>{effectText && `This area: ${effectText}`}</p>
-      </>
+      { display === "selection" && <h1 className="font-title text-2xl">What will you discover?</h1> }
+      { display === "building" && <>
+          <h1 className="font-title text-2xl">{BUILDINGS[type].name}</h1>
+          <p>{BUILDINGS[type].description}</p>
+        </>
+      }
+      { display === "tile" && <>
+          <h1 className="font-title text-2xl">{TILES[type].name}</h1>
+          <p>{TILES[type].description}</p>
+        </>
+      }
+
+      {effectTags && <div className="mt-2">
+        <Tags tags={effectTags}/>
+      </div>}
       <div className="flex overflow-auto max-w-full pt-4">
         { availableTerrains &&
           availableTerrains.map((terrain, index) =>

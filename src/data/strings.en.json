@@ -6,5 +6,21 @@
     "good.greaterEq": "At least %{value} goodness",
     "wildness.lessEq": "Wildness at most %{value}",
     "wildness.greaterEq": "Wildness at least %{value}"
+  },
+  "season": {
+    "spring": "Spring",
+    "summer": "Summer",
+    "autumn": "Autumn",
+    "winter": "Winter"
+  },
+  "phase": {
+    "explore": {
+      "name": "Explore phase",
+      "description": "Choose an area to place a new tile"
+    },
+    "build": {
+      "name": "Build phase",
+      "description": "Choose a tile to place a new building"
+    }
   }
 }

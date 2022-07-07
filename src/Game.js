@@ -8,6 +8,7 @@ import InfoPanel from "./features/ui/InfoPanel.js"
 import EventPanel from "./features/ui/EventPanel.js"
 
 import Map from "./features/map/Map.js"
+import Button from "./features/ui/Button.js"
 import { removeZeroValues, tileResources } from "./features/map/mapSlice.js"
 import { turnData, PHASES } from "./features/time/timeSlice.js"
 
@@ -35,8 +36,8 @@ export default function Game() {
         <h1 className="font-title text-3xl">Tiny King</h1>
         <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
         <h2 className="text-xl font-title mt-5">{t(`season.${turn.season}`)} year {turn.year} - {t(`phase.${turn.phase}.name`)}</h2>
-        <p className="text-xs">{t(`phase.${turn.phase}.description`)}</p>
-        {skippable && <div>skip button here TODO</div>}
+        <p className="text-xs pb-4">{t(`phase.${turn.phase}.description`)}</p>
+        {skippable && <Button>Skip</Button>}
       </div>
       { Object.keys(resources).length > 0 &&
         <div className="absolute top-0 right-0 p-5">

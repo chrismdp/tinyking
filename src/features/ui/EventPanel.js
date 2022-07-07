@@ -7,6 +7,7 @@ import { addTile } from "../map/mapSlice.js";
 import { showEvent } from "./uiSlice.js";
 
 import Tags from "./Tags.js"
+import Button from "./Button.js"
 
 import TERRAINS from "../../data/terrains.json"
 import EVENTS from "../../data/events.json"
@@ -51,7 +52,7 @@ export default function EventPanel({ visible }) {
         { prompts &&
           <div className="py-2">
             { prompts.map((prompt, idx) =>
-              <button className="px-4 py-2 hover:bg-blue-800 bg-blue-900 mr-2 rounded-lg" key={idx} onClick={() => dispatch(actionFor(terrain, hex, prompt))}>{prompt.label}</button>)
+              <Button key={idx} onClick={() => dispatch(actionFor(terrain, hex, prompt))}>{prompt.label}</Button>)
             }
           </div>
         }

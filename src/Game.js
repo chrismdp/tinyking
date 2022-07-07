@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useTranslate } from 'react-polyglot';
 import { Stats } from "@react-three/drei";
 
@@ -10,7 +10,7 @@ import EventPanel from "./features/ui/EventPanel.js"
 import Map from "./features/map/Map.js"
 import Button from "./features/ui/Button.js"
 import { removeZeroValues, tileResources } from "./features/map/mapSlice.js"
-import { turnData, PHASES } from "./features/time/timeSlice.js"
+import { skip, turnData, PHASES } from "./features/time/timeSlice.js"
 
 export default function Game() {
   const [ lut ] = useState("Bourbon 64");
@@ -19,6 +19,8 @@ export default function Game() {
   const event = useSelector(eventPanelVisible);
 
   const resources = useSelector(tileResources);
+
+  const dispatch = useDispatch();
 
   const year = new Date().getFullYear();
 
@@ -32,12 +34,14 @@ export default function Game() {
     <div className="select-none h-screen text-neutral-100">
       { stats && <Stats/> }
       <Map lut={lut} />
-      <div className="absolute top-0 p-5 pointer-events-none">
-        <h1 className="font-title text-3xl">Tiny King</h1>
-        <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
-        <h2 className="text-xl font-title mt-5">{t(`season.${turn.season}`)} year {turn.year} - {t(`phase.${turn.phase}.name`)}</h2>
-        <p className="text-xs pb-4">{t(`phase.${turn.phase}.description`)}</p>
-        {skippable && <Button>Skip</Button>}
+      <div className="absolute top-0 p-5">
+        <div className="pointer-events-none">
+          <h1 className="font-title text-3xl">Tiny King</h1>
+          <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
+          <h2 className="text-xl font-title mt-5">{t(`season.${turn.season}`)} year {turn.year} - {t(`phase.${turn.phase}.name`)}</h2>
+          <p className="text-xs pb-4">{t(`phase.${turn.phase}.description`)}</p>
+      </div>
+        {skippable && <Button onClick={() => dispatch(skip())}>Skip</Button>}
       </div>
       { Object.keys(resources).length > 0 &&
         <div className="absolute top-0 right-0 p-5">

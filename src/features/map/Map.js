@@ -30,6 +30,8 @@ export default function Map({ lut }) {
   const buildings = useSelector(state => state.map.buildings);
   const selectedTile = useSelector(state => state.ui.panel.hex) || {};
 
+  const explorePhase = useSelector(state => state.time.phase === "explore");
+
   const [ selectableTiles, setSelectableTiles ] = useState([]);
   useEffect(() => {
     const sel = selectable(tiles);
@@ -76,15 +78,16 @@ export default function Map({ lut }) {
           Object.keys(tiles).map(key => ( <Tile key={key} component={TILES[tiles[key].type].component} {...tiles[key]} onClick={() => dispatch(info({ display: "tile", ...tiles[key] }))} /> ))
         }
         {
-          selectableTiles.map(tile => (
-            <Tile
-              {...tile}
-              highlighted={isSelected(tile, selectedTile)}
-              component="SelectTile"
-              label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
-              onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : info({ display: 'selection', ...tile}))}
-            />
-          ))
+          explorePhase &&
+            selectableTiles.map(tile => (
+              <Tile
+                {...tile}
+                highlighted={isSelected(tile, selectedTile)}
+                component="SelectTile"
+                label={Object.keys(tile.label).length > 0 && JSON.stringify(tile.label)}
+                onClick={() => dispatch(isSelected(tile, selectedTile) ? hide() : info({ display: 'selection', ...tile}))}
+              />
+            ))
         }
         {
           Object.keys(buildings).map(key => (

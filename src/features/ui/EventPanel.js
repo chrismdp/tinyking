@@ -8,8 +8,8 @@ import { showEvent } from "./uiSlice.js";
 
 import Tags from "./Tags.js"
 import Button from "./Button.js"
+import TerrainPanelImage from "./TerrainPanelImage.js";
 
-import TERRAINS from "../../data/terrains.json"
 import EVENTS from "../../data/events.json"
 
 const actionFor = (terrain, hex, prompt) => prompt.event ?
@@ -21,8 +21,6 @@ export default function EventPanel({ visible }) {
 
   const { event, hex, terrain } = useSelector(state => state.ui.panel);
   const { heading, text, prompts, conditions } = EVENTS[event] || {};
-
-  const image = terrain && TERRAINS[terrain].image;
 
   const styles = useSpring({
     to: { transform: `translateY(${visible ? 0 : 300 }px)` },
@@ -42,7 +40,7 @@ export default function EventPanel({ visible }) {
   return (
     <animated.div style={styles} className={classes}>
       <div className="relative">
-        { image && <img className="absolute pointer-events-none object-bottom object-cover -right-24 hidden sm:block -top-56 w-80" src={`/images/${image}.png`} alt={terrain}/> }
+        <TerrainPanelImage terrain={terrain}/>
         <h1 className="font-title text-2xl">{heading}</h1>
         <p className="pt-2 mr-20">{text}</p>
 

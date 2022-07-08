@@ -28,6 +28,11 @@ export const mapSlice = createSlice({
       const { x, y, type } = action.payload;
       const hex = Hex(x, y);
       state.tiles[hex.toString()] = { type, ...hex.coordinates() };
+    },
+    addBuilding: (state, action) => {
+      const { x, y, type } = action.payload;
+      const hex = Hex(x, y);
+      state.buildings[hex.toString()] = { type, ...hex.coordinates() };
     }
   }
 });
@@ -92,6 +97,6 @@ export const availableTerrains = limits => Object.keys(limits).reduce((memo, k) 
     return limit <= limits[k].max && limit >= limits[k].min;
   }), Object.keys(TERRAINS));
 
-export const { addTile } = mapSlice.actions;
+export const { addTile, addBuilding } = mapSlice.actions;
 
 export default mapSlice.reducer;

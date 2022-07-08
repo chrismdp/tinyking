@@ -1,32 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { addTile } from "../map/mapSlice.js";
-
-const initialState = {
-  turn: 0,
-  phase: 'explore'
-};
-
-export const timeSlice = createSlice({
-  name: 'time',
-  initialState,
-  reducers: {
-    skip: (state) => {
-      console.log("skip");
-      const phaseNames = Object.keys(PHASES);
-      const index = phaseNames.indexOf(state.phase)
-      const newIndex = (index + 1) % phaseNames.length;
-      if (newIndex < index) {
-        state.turn++;
-      }
-      state.phase = phaseNames[newIndex];
-    }
-  },
-  extraReducers: (builder) => {
-    builder.addCase(addTile, (state, action) => {
-      state.phase = 'build';
-    })
-  }
-});
+import { addTile, addBuilding } from "../map/mapSlice.js";
 
 const SEASONS = ["spring", "summer", "autumn", "winter"]
 
@@ -38,6 +11,34 @@ export const PHASES = {
     skippable: true
   }
 }
+
+const initialState = {
+  turn: 0,
+  phase: 'explore'
+};
+
+const phaseNames = Object.keys(PHASES);
+
+function nextPhase(state) {
+  const index = phaseNames.indexOf(state.phase)
+  const newIndex = (index + 1) % phaseNames.length;
+  if (newIndex < index) {
+    state.turn++;
+  }
+  state.phase = phaseNames[newIndex];
+}
+
+export const timeSlice = createSlice({
+  name: 'time',
+  initialState,
+  reducers: {
+    skip: nextPhase,
+  },
+  extraReducers: (builder) => {
+    builder.addCase(addTile, (state, action) => { state.phase = 'build'; });
+    builder.addCase(addBuilding, nextPhase);
+  }
+});
 
 export const turnData = state => {
   const year = Math.floor(state.time.turn / 4) + 1;

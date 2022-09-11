@@ -4,6 +4,7 @@ import { Hex, ring } from "./hex.js";
 
 import TILES from "../../data/tiles.json"
 import TERRAINS from "../../data/terrains.json"
+import BUILDINGS from "../../data/buildings.json";
 
 const initialState = {
   tiles: {
@@ -96,6 +97,24 @@ export const availableTerrains = limits => Object.keys(limits).reduce((memo, k) 
     const limit = (TERRAINS[terrain].limits || {})[k] || 0;
     return limit <= limits[k].max && limit >= limits[k].min;
   }), Object.keys(TERRAINS));
+
+export const buildOptions = tile => Object.keys(BUILDINGS).map(key => {
+
+  const building = BUILDINGS[key];
+
+  let buildable = true;
+  let reason = "";
+  if(!building.supportedTerrains.includes(tile.terrain)) {
+    buildable = false;
+    reason = "Not allowed on this terrain."
+  }
+
+  return {
+    key,
+    buildable,
+    reason
+  };
+});
 
 export const { addTile, addBuilding } = mapSlice.actions;
 

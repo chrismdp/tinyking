@@ -2,11 +2,13 @@
   "house": {
     "component": "House",
     "name": "House",
-    "description": "A basic building for people to live in."
+    "description": "A basic building for people to live in.",
+    "supportedTerrains": ["grassland", "forest"]
   },
   "campfire": {
     "component": "Campfire",
     "name": "Campfire",
-    "description": "The starting point of every settlement."
+    "description": "The starting point of every settlement.",
+    "supportedTerrains": ["grassland", "forest"]
   }
 }

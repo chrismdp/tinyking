@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { animated, useSpring, config } from '@react-spring/web';
 import { chooseTerrain, hide } from "./uiSlice.js";
-import { addBuilding, areaEffects } from "../map/mapSlice.js";
+import { addBuilding, buildOptions, areaEffects } from "../map/mapSlice.js";
 
 import TileSelectionPanel from "./TileSelectionPanel.js"
 import TerrainPanelImage from "./TerrainPanelImage.js";
@@ -38,12 +38,13 @@ export default function InfoPanel({ visible }) {
   const { hex, availableTerrains, display, type } = useSelector(state => state.ui.panel);
   const tiles = useSelector(state => state.map.tiles);
   const existingBuilding = useSelector(state => state.map.buildings[Hex(hex).toString()]);
-  const availableBuildings = ["house"];
 
   const buildPhase = useSelector(state => state.time.phase === "build");
 
   const [ effects, setEffects ] = useState({});
   const [ effectTags, setEffectTags ] = useState([]);
+
+  const [ reasonText, setReasonText ] = useState(null);
 
   useEffect(() => {
     setEffects(areaEffects(tiles, hex));
@@ -98,12 +99,18 @@ export default function InfoPanel({ visible }) {
             { buildPhase ?
               (existingBuilding ?
                 <p className='text-sm opacity-50 pb-4'>There is already a building on this tile.</p> :
-                (availableBuildings ?
-                  availableBuildings.map((building, index) => <Button key={index} onClick={() => dispatch(addBuilding({ ...hex, type: building }))}>
-                    {building}
-                  </Button>) :
-                  <p className='text-sm opacity-50 pb-4'>No buildings available to build here.</p>
-                )
+                <>
+                  {(buildOptions(TILES[type]) || []).map((option, index) =>
+                      (option.buildable ?
+                      <Button key={index} onClick={() => dispatch(addBuilding({ ...hex, type: option.key }))}>
+                        {option.key}
+                      </Button> :
+                      <Button key={index} secondary={true} onClick={() => setReasonText(option.reason)}>
+                        {option.key}
+                      </Button>)
+                    )}
+                  { reasonText && <p className='text-sm opacity-50 pb-4'>{reasonText}</p> }
+                </>
               ) :
               <p className='text-sm opacity-50 pb-4'>Explore a tile to build here.</p>
             }

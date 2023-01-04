@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useFrame } from "@react-three/fiber";
 import { Html } from '@react-three/drei';
 
@@ -20,7 +20,7 @@ export default function Tile({x, y, component, rotating, label, ...props}) {
     return (<Component ref={ref} position={[point.x, 0,  point.y]} {...props}>
       { label &&
         <Html position={[0, 0.4, 0]}>
-          <div className='bg-neutral-800 opacity-70 whitespace-nowrap select-none rounded px-3 py-1'>{label}</div>
+          <div className='bg-neutral-800/70 whitespace-nowrap select-none rounded px-3 py-1'>{label}</div>
         </Html> }
     </Component>)
   }

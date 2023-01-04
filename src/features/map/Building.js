@@ -1,3 +1,4 @@
+import React from "react"
 import { Hex } from "./hex.js";
 
 import * as Buildings from "../../models/Buildings.js"

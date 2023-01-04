@@ -1,3 +1,4 @@
+import React from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import EventTable from "./EventTable.js";
 import Game from "./Game.js";

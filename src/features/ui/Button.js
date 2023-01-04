@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function Button({ children, secondary, ...props }) {
   const colours = secondary ?
     "hover:bg-grey-800 bg-grey-900" :

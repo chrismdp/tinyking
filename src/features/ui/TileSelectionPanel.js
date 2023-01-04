@@ -1,3 +1,4 @@
+import React from "react"
 import TERRAINS from "../../data/terrains.json"
 
 import { animated, useSpring } from '@react-spring/web';

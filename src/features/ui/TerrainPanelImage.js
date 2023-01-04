@@ -1,3 +1,4 @@
+import React from "react";
 import TERRAINS from "../../data/terrains.json"
 
 export default function TerrainPanelImage({ terrain }) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { animated, useSpring, config } from '@react-spring/web';
@@ -98,7 +98,7 @@ export default function InfoPanel({ visible }) {
           <div>
             { buildPhase ?
               (existingBuilding ?
-                <p className='text-sm opacity-50 pb-4'>There is already a building on this tile.</p> :
+              <p className='text-sm text-white/50 pb-4'>There is already a building on this tile.</p> :
                 <>
                   {(buildOptions(TILES[type]) || []).map((option, index) =>
                       (option.buildable ?
@@ -109,10 +109,10 @@ export default function InfoPanel({ visible }) {
                         {option.key}
                       </Button>)
                     )}
-                  { reasonText && <p className='text-sm opacity-50 pb-4'>{reasonText}</p> }
+                  { reasonText && <p className='text-sm text-white/50 pb-4'>{reasonText}</p> }
                 </>
               ) :
-              <p className='text-sm opacity-50 pb-4'>Explore a tile to build here.</p>
+              <p className='text-sm text-white/50 pb-4'>Explore a tile to build here.</p>
             }
           </div>
         </>

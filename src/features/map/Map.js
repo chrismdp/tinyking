@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { Suspense, useEffect, useState, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 
 import { animated, useSpring } from '@react-spring/three';
 
@@ -60,7 +60,7 @@ export default function Map({ lut }) {
   });
 
   return (
-    <Canvas className="absolute top-0 bottom-0" shadows>
+    <Canvas className="absolute inset-0" shadows>
       <Suspense>
         <AnimatedPerspectiveCamera
           makeDefault

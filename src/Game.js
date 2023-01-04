@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslate } from 'react-polyglot';
 import { Stats } from "@react-three/drei";
@@ -31,13 +31,13 @@ export default function Game() {
   const skippable = PHASES[turn.phase].skippable;
 
   return (
-    <div className="select-none h-screen text-neutral-100">
+    <div className="relative select-none h-screen text-neutral-100">
       { stats && <Stats/> }
       <Map lut={lut} />
       <div className="absolute top-0 p-5">
         <div className="pointer-events-none">
           <h1 className="font-title text-3xl">Tiny King</h1>
-          <p className="text-xs opacity-50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
+          <p className="text-xs text-white/50 w-60">Relaxed storytelling, map making, kingdom building and defence</p>
           <h2 className="text-xl font-title mt-5">{t(`season.${turn.season}`)} year {turn.year} - {t(`phase.${turn.phase}.name`)}</h2>
           <p className="text-xs pb-4">{t(`phase.${turn.phase}.description`)}</p>
       </div>
@@ -51,7 +51,7 @@ export default function Game() {
         </div>
       }
       <div className="absolute bottom-10 sm:bottom-0 p-5">
-        <p className="text-xs opacity-50">
+        <p className="text-xs text-white/50">
           Gameplay prototype {process.env.REACT_APP_GIT_SHA}
           &nbsp;(<button onClick={() => setStats(!stats)}>debug stats</button>)
           <br/>
@@ -59,9 +59,9 @@ export default function Game() {
         </p>
       </div>
       <div className="absolute bottom-0 sm:right-0 p-5 select-none">
-        <div className="flex opacity-50">
-          <a href="https://discord.gg/ZgXcVyn" target="_blank" rel="noreferrer"><img src="https://img.shields.io/discord/731912590489288795?color=417154&label=discord" alt="Discord link"/></a>
-          <a className="pl-2" href="https://github.com/chrismdp/tinyking/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/stars/chrismdp/tinyking?color=417154&label=github&logo=github1" alt="Github link"/></a>
+        <div className="flex text-white/50">
+          <a href="https://discord.gg/ZgXcVyn" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/discord/731912590489288795?color=417154&label=discord" alt="Discord link"/></a>
+          <a className="pl-2" href="https://github.com/chrismdp/tinyking/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/chrismdp/tinyking?color=417154&label=github&logo=github1" alt="Github link"/></a>
         </div>
       </div>
       <InfoPanel visible={!!info}/>

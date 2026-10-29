@@ -282,6 +282,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 
 - **No winning.** The game is open-ended.
 - **Start alone.**
+- **You gather, tasks don't.** A task that needs materials you don't have waits, and your character moves on to the next task. It resumes by itself once you've brought the materials home. Nothing fetches on your behalf, because choosing how to spend your time is the game.
 - **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
 - **Sworn followers share your job queue.** No detailed feudal duties.
 - **Children grow up after a couple of game years.**

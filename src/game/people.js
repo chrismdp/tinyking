@@ -87,7 +87,8 @@ export function meet(state, a, b) {
   const list = state.ecs.relationships[a].known;
   if (list[b]) return;
   const rank = disposition(state, a, b) == "love" ? 1 : 0;
-  list[b] = { ring: "public", goodwill: rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0 };
+  const goodwill = rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0;
+  list[b] = { ring: "public", goodwill, base: goodwill };
   moveTo(list, b, rank);
 }
 
@@ -107,8 +108,11 @@ export function drift(state, hours) {
   for (const { known: list } of Object.values(state.ecs.relationships || {})) {
     for (const id in list) {
       const bond = list[id];
-      const remaining = Math.max(0, Math.abs(bond.goodwill) - hours * DRIFT_PER_HOUR);
-      bond.goodwill = remaining ? Math.sign(bond.goodwill) * remaining : 0;
+      // NOTE: a bond settles back to where it started, so family stays close
+      // and only goodwill earned or lost since then fades
+      const base = bond.base || 0;
+      const remaining = Math.max(0, Math.abs(bond.goodwill - base) - hours * DRIFT_PER_HOUR);
+      bond.goodwill = base + (remaining ? Math.sign(bond.goodwill - base) * remaining : 0);
       // Decay never promotes someone displaced from a full ring.
       const rank = Math.min(RINGS.indexOf(bond.ring), goodwillRank(bond.goodwill));
       if (rank < RINGS.indexOf(bond.ring)) moveTo(list, id, rank);
@@ -144,7 +148,8 @@ export function initializeRelationships(state, seed) {
         const feeling = disposition(state, id, other);
         const preferred = intimate.has(other) ? 3 : personal.has(other) ? 2 : feeling == "love" ? 1 : 0;
         const rank = Math.min(preferred, DISPOSITION_CAP[feeling]);
-        list[other] = { ring: "public", goodwill: rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0 };
+        const goodwill = rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0;
+        list[other] = { ring: "public", goodwill, base: goodwill };
         moveTo(list, other, rank);
       }
     }

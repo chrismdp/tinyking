@@ -1,6 +1,6 @@
 import { generateFamilies, Hex } from "game/map";
 import { newEntities } from "game/entities";
-import { disposition } from "game/people";
+import { disposition, drift } from "game/people";
 
 const PAIRS = [
   ["hard-working", "lazy"], ["generous", "greedy"], ["proud", "humble"],
@@ -30,6 +30,21 @@ const familyWorld = (seed = 71, count = 6) => {
 
 
 describe("generated people", () => {
+  it("keeps family and neighbour bonds at their starting level however long time runs on", () => {
+    const state = familyWorld();
+    const before = {};
+    for (const id in state.ecs.relationships) {
+      before[id] = JSON.parse(JSON.stringify(state.ecs.relationships[id].known));
+    }
+    drift(state, 24 * 365);
+    for (const id in state.ecs.relationships) {
+      for (const other in before[id]) {
+        expect(state.ecs.relationships[id].known[other].ring).toBe(before[id][other].ring);
+        expect(state.ecs.relationships[id].known[other].goodwill).toBe(before[id][other].goodwill);
+      }
+    }
+  });
+
   it("records reciprocal kinship and plausible ages, with size following age", () => {
     const state = familyWorld();
     let children = 0;

@@ -66,9 +66,9 @@ Meeting again preserves the existing bond. Meeting oneself does nothing.
 Positive help selects the ring allowed by goodwill and disposition. Harm never promotes a displaced bond.
 Negative goodwill puts the bond at public.
 
-`drift(state, hours)` subtracts 0.125 goodwill per hour from positive bonds and adds the same amount to negative bonds, stopping at zero.
+`drift(state, hours)` moves each bond's goodwill 0.125 per hour back towards `base`, the goodwill it started with, and stops there. Family and neighbour bonds therefore hold their starting ring, and only goodwill earned or lost since then fades. Bonds made by meeting someone start at `base` 0, or at Social for someone who loves you at first sight.
 A bond moves out when its goodwill falls below its ring's requirement.
-The initial six-point buffer lasts two days. Drift never promotes someone displaced from a full ring.
+Drift never promotes someone displaced from a full ring.
 The simulation calls drift once for every crossed game hour, including long steps. Paused time does not decay relationships.
 
 ## Knowledge functions

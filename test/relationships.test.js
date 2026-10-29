@@ -103,7 +103,7 @@ describe("goodwill and ring slots", () => {
     }
   });
 
-  it("decays goodwill towards zero and moves neglected bonds out over days, without promoting displaced people", () => {
+  it("decays earned goodwill back to where the bond started and moves neglected bonds out over days, without promoting displaced people", () => {
     const state = socialWorld();
     addGoodwill(state, "4", "1", 60);
     known(state)[5] = { ring: "public", goodwill: 100 };
@@ -115,7 +115,8 @@ describe("goodwill and ring slots", () => {
     expect(known(state)[5].ring).toBe("public");
     expect(known(state)[6].goodwill).toBe(0);
     drift(state, 24 * 30);
-    expect(known(state)[4]).toEqual({ ring: "public", goodwill: 0 });
+    // NOTE: 4 loves 1 at first sight, so the bond started at social and settles back there
+    expect(known(state)[4]).toEqual({ ring: "social", goodwill: known(state)[4].base, base: known(state)[4].base });
   });
 });
 
@@ -201,9 +202,9 @@ it("crosses the goodwill boundaries at 10, 30 and 60", () => {
   expect(known(state)[3].ring).toBe("personal");
   meet(state, "1", "4");
   addGoodwill(state, "4", "1", 14);
-  expect(known(state)[4]).toEqual({ ring: "personal", goodwill: 30 });
+  expect(known(state)[4]).toMatchObject({ ring: "personal", goodwill: 30 });
   addGoodwill(state, "4", "1", 30);
-  expect(known(state)[4]).toEqual({ ring: "intimate", goodwill: 60 });
+  expect(known(state)[4]).toMatchObject({ ring: "intimate", goodwill: 60 });
 });
 
 it("keeps unknown relatives connected so the visible tree can draw all its question boxes", () => {

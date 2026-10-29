@@ -10,7 +10,6 @@ const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 };
 
 const CLICK_SLOP = 6;
 const MIN_DISTANCE = 120;
-const MAX_DISTANCE = 3600;
 const MIN_PITCH = 0.3;
 const MAX_PITCH = 1.45;
 const CLEARANCE = 25;
@@ -28,7 +27,7 @@ const SIDE_NORMALS = [0, 1, 2].map(k => ({ x: Math.cos(k * Math.PI / 3), z: Math
 // NOTE: An orbiting camera over the map. Drag (or WASD / arrows) pans, the
 // wheel or a pinch zooms towards the pointer, right-drag or Q/E rotates and
 // right-drag up and down tilts. A press that does not move is a click.
-export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) {
+export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, maxDistance = () => 3600 }) {
   const rig = { x: bounds.centre.x, z: bounds.centre.y, y: 0, yaw: 0, pitch: 0.95, distance: 900 };
   const keys = new Set();
   const pointers = new Map();
@@ -51,7 +50,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
         rig.z -= over * n.z;
       }
     }
-    rig.distance = clamp(rig.distance, MIN_DISTANCE, MAX_DISTANCE);
+    rig.distance = clamp(rig.distance, MIN_DISTANCE, maxDistance());
     rig.pitch = clamp(rig.pitch, MIN_PITCH, MAX_PITCH);
   };
 
@@ -78,7 +77,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
   };
 
   const zoomTowards = (factor, clientX, clientY) => {
-    const next = clamp(rig.distance * factor, MIN_DISTANCE, MAX_DISTANCE);
+    const next = clamp(rig.distance * factor, MIN_DISTANCE, maxDistance());
     const point = clientX == null ? null : groundUnder(clientX, clientY);
     if (point) {
       const k = 1 - next / rig.distance;

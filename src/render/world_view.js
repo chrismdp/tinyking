@@ -9,6 +9,7 @@ import * as models from "render/models";
 import { realmColour } from "render/colours";
 import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
+import { createForest } from "render/forest";
 import { createCameraRig } from "render/camera";
 import { skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
@@ -47,6 +48,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const terrain = createTerrain(state, ground);
   scene.add(terrain.mesh);
+  const forest = createForest();
+  scene.add(forest.mesh);
 
   const objects = {};
   const people = new Set();
@@ -79,12 +82,14 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         objects[id].visible = revealAll || known.has(objects[id].userData.hexKey);
       }
     }
+    forest.invalidate();
   };
 
   const currentSelection = () => [state.ui.selected, state.ui.show && state.ui.show.selected_person]
     .filter(id => id);
 
   const remove = id => {
+    forest.remove(id);
     if (objects[id]) {
       scene.remove(objects[id]);
       models.disposeObject(objects[id]);
@@ -149,7 +154,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       object.visible = isKnown(state.ecs.spatial[id]);
     }
     objects[id] = object;
-    scene.add(object);
+    if (state.ecs.good[id] && state.ecs.good[id].type == "wood" && !(state.ecs.haulable && state.ecs.haulable[id])) {
+      forest.add(id, object);
+    } else {
+      scene.add(object);
+    }
   };
 
   const followPerson = id => {
@@ -184,7 +193,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     hemisphere.intensity = SKY * (1 - night * 0.9);
   };
 
-  const pickables = () => [terrain.mesh, ...Object.values(objects)];
+  const pickables = () => [terrain.mesh, forest.mesh, ...Object.entries(objects)
+    .filter(([id]) => !forest.has(id)).map(([, object]) => object)];
 
   const pick = (clientX, clientY) => {
     const rect = canvas.getBoundingClientRect();
@@ -196,6 +206,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     for (const hit of raycaster.intersectObjects(pickables(), true)) {
       if (hit.object == terrain.mesh) {
         return terrain.tileAtVertex(hit.face.a);
+      }
+      if (hit.object.isInstancedMesh && hit.object.visible) {
+        return hit.object.userData.entityIds[hit.instanceId];
       }
       let id = null;
       let visible = true;
@@ -215,9 +228,12 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const middle = Hex(state.map.centre.x, state.map.centre.y).toPoint();
   const apothem = state.map.radius * HEX_SIZE * 1.5;
   const circumradius = state.map.radius * HEX_SIZE * Math.sqrt(3);
+  const wholeMapDistance = () => (circumradius + HEX_SIZE * 4) /
+    (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect));
 
   const rig = createCameraRig(camera, canvas, {
     bounds: { centre: middle, apothem },
+    maxDistance: () => Math.max(3600, wholeMapDistance() * 1.5),
     groundHeight: (x, z) => ground.heightAt(x, z),
     onClick: e => {
       const id = pick(e.clientX, e.clientY);
@@ -232,6 +248,13 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   rig.lookAt(start.x, start.y, 1000);
 
   let lastFrame = performance.now();
+  let besidePanel = false;
+  const fitMap = () => {
+    camera.far = Math.max(12000, wholeMapDistance() * 2);
+    camera.updateProjectionMatrix();
+    rig.tilt(1.45);
+    rig.lookAt(middle.x - (besidePanel ? circumradius * 0.4 : 0), middle.y, wholeMapDistance());
+  };
 
   return {
     camera,
@@ -258,6 +281,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         }
       }
       terrain.update();
+      forest.update();
 
       for (const id of people) {
         followPerson(id);
@@ -279,6 +303,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       renderer.setSize(width, height);
       camera.aspect = width / Math.max(1, height);
       camera.updateProjectionMatrix();
+      if (revealAll) {
+        fitMap();
+      }
     },
     screenPosition(id) {
       const s = state.ecs.spatial[id];
@@ -297,15 +324,14 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       canvas.style.filter = amount > 0 ? "grayscale(" + amount + ")" : "";
     },
     // NOTE: besidePanel moves the map right, out from under a panel on the left
-    showWholeMap({ besidePanel } = {}) {
+    showWholeMap(options = {}) {
       if (!revealAll) {
         revealAll = true;
         showKnown();
         // NOTE: near enough straight down, and far enough back that the
         // hexagon's points (and a hex beyond) fit in the view
-        const fit = (circumradius + HEX_SIZE * 4) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-        rig.tilt(1.45);
-        rig.lookAt(middle.x - (besidePanel ? circumradius * 0.4 : 0), middle.y, fit);
+        besidePanel = options.besidePanel;
+        fitMap();
       }
     },
     pick,
@@ -317,6 +343,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         remove(id);
       }
       terrain.dispose();
+      forest.dispose();
       canvas.style.filter = "";
     }
   };

@@ -24,7 +24,7 @@ const MORALITY_MARK = { good: "#f2c14e", evil: "#7a3fa0" };
 // NOTE: The world of world hexes, seen from above: each coloured by its
 // biome, marked gold (good) or purple (evil), and with labels its three
 // axis values. The world hex being played is outlined.
-export function Overworld({ world, size, labels }) {
+export function Overworld({ world, size, labels, weather }) {
   const home = homeOf(world);
   const scale = size / HEX_SIZE;
   const corners = Hex().corners().map(c => (c.x * scale).toFixed(1) + "," + (c.y * scale).toFixed(1)).join(" ");
@@ -45,7 +45,7 @@ export function Overworld({ world, size, labels }) {
         stroke={isHome ? "#d93b30" : "rgba(0, 0, 0, 0.35)"} strokeWidth={isHome ? 3 : 1}/>
       { !isHome && !h.ocean && MORALITY_MARK[h.morality] &&
         <circle cx={0} cy={-size * 0.62} r={size * 0.1} fill={MORALITY_MARK[h.morality]} stroke="rgba(0, 0, 0, 0.4)"/> }
-      { !isHome && (labels || h.ocean) &&
+      { !isHome && !weather && (labels || h.ocean) &&
         <text textAnchor="middle" fontSize={line * 0.95} fill={ink(colourOf(h))}>
           { h.ocean ? <>
             <tspan x={0} y={labels ? -line * 0.6 : line * 0.3}>ocean</tspan>
@@ -59,6 +59,20 @@ export function Overworld({ world, size, labels }) {
             <tspan x={0} y={line * 1.5}>{h.moisture}</tspan>
           </> }
         </text> }
+      { !isHome && weather && weather[h.x + "," + h.y] && (() => {
+        const w = weather[h.x + "," + h.y];
+        const length = size * (0.22 + Math.min(1, w.wind.strength) * 0.23);
+        return <>
+          <text textAnchor="middle" y={-size * 0.05} fontSize={line * 1.05} fill={ink(colourOf(h))}>
+            {w.type[0].toUpperCase() + w.type.slice(1)}
+          </text>
+          <g transform={"translate(0," + size * 0.38 + ")"}>
+            <path className="wind-arrow" transform={"rotate(" + w.wind.direction * 180 / Math.PI + ")"}
+              d={"M " + -length + " 0 H " + length + " m -4 -3 l 4 3 -4 3"}
+              fill="none" stroke={ink(colourOf(h))} strokeWidth={1.4} opacity={w.wind.strength > 0.01 ? 1 : 0.25}/>
+          </g>
+        </>;
+      })() }
     </g>
   );
 
@@ -73,7 +87,8 @@ export function Overworld({ world, size, labels }) {
 Overworld.propTypes = {
   world: PropTypes.object.isRequired,
   size: PropTypes.number.isRequired,
-  labels: PropTypes.bool
+  labels: PropTypes.bool,
+  weather: PropTypes.object
 };
 
 export function BiomeKey() {
@@ -86,3 +101,14 @@ export function BiomeKey() {
     </ul>
   );
 }
+
+// NOTE: Shared by the debug world and the new-game seed preview.
+export function WeatherMap({ world, weather, size, labels }) {
+  const [showWeather, setShowWeather] = React.useState(false);
+  return <div>
+    <label><input type="checkbox" checked={showWeather} onChange={e => setShowWeather(e.target.checked)}/> Weather and wind</label>
+    <Overworld world={world} size={size} labels={labels} weather={showWeather ? weather : undefined}/>
+  </div>;
+}
+
+WeatherMap.propTypes = Overworld.propTypes;

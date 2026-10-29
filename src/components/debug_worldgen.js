@@ -1,6 +1,6 @@
 import React from "react";
 import { GameState } from "components/contexts";
-import { Overworld, BiomeKey } from "components/overworld";
+import { WeatherMap, BiomeKey } from "components/overworld";
 import { homeOf } from "game/overworld";
 
 export function DebugWorldgen() {
@@ -26,7 +26,7 @@ export function DebugWorldgen() {
         { home && <>
           <p>Seed {String(state.map.seed)}: playing a {home.biome} world hex
             ({home.morality}, {home.temperature}, {home.moisture}), outlined in red.</p>
-          <Overworld world={state.world} size={28} labels={true}/>
+          <WeatherMap weather={state.weather} world={state.world} size={28} labels={true}/>
           <BiomeKey/>
           <p className="knockedback">Gold dot: good. Purple dot: evil. Neighbouring world hexes
             differ by one step at most on each axis. North and south tend colder; the equator tends hotter.</p>

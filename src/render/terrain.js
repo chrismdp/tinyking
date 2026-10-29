@@ -22,6 +22,10 @@ export function createTerrain(state, ground) {
   const indexOf = {};
   const positions = new Float32Array(tiles.length * VERTICES_PER_HEX * 3);
   const colours = new Float32Array(tiles.length * VERTICES_PER_HEX * 3);
+  const baseColours = new Float32Array(colours.length);
+  const snowLevels = new Uint8Array(tiles.length);
+  let snowRevision = -1;
+  const snowWhite = new THREE.Color(0xE8EEF3);
   const offsets = Hex().corners();
   const groundColour = createGroundColours(state);
   const colour = new THREE.Color();
@@ -65,6 +69,8 @@ export function createTerrain(state, ground) {
     }
     skirtOf[id] = { first, count: skirtPositions.length / 3 - first };
   });
+
+  baseColours.set(colours);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -134,6 +140,27 @@ export function createTerrain(state, ground) {
       dirty = true;
     },
     update() {
+      if (snowRevision != state.snowRevision) {
+        let changed = false;
+        tiles.forEach((id, i) => {
+          const depth = state.ecs.mappable[id].terrain.includes("water") ? 0 : (state.snow && state.snow[id]) || 0;
+          // NOTE: 2% steps keep insignificant melting from uploading a buffer.
+          const step = Math.round(depth * 50);
+          if (step == snowLevels[i]) return;
+          snowLevels[i] = step;
+          const level = step / 50;
+          for (let v = 0; v < VERTICES_PER_HEX; v++) {
+            const index = (i * VERTICES_PER_HEX + v) * 3;
+            const shade = v % 3 == 0 ? 1 : CORNER_SHADE;
+            colours[index] = baseColours[index] * (1 - level) + snowWhite.r * shade * level;
+            colours[index + 1] = baseColours[index + 1] * (1 - level) + snowWhite.g * shade * level;
+            colours[index + 2] = baseColours[index + 2] * (1 - level) + snowWhite.b * shade * level;
+          }
+          changed = true;
+        });
+        if (changed) geometry.attributes.color.needsUpdate = true;
+        snowRevision = state.snowRevision;
+      }
       if (dirty) {
         applyIndex();
       }

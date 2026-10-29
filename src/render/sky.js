@@ -27,3 +27,11 @@ export function skyAt(days) {
 
 export const SUNSET_TINT = 0xFFBA86;
 export const NIGHT_TINT = 0x5A6AA0;
+
+// NOTE: Keep diffuse fill in a storm so characters and UI anchors stay readable.
+export function weatherLight(type) {
+  if (type == "storm") return { sun: 0.3, sky: 0.65, grey: 0.55 };
+  if (type == "rain" || type == "snow") return { sun: 0.5, sky: 0.85, grey: 0.4 };
+  if (type == "cloudy") return { sun: 0.68, sky: 0.92, grey: 0.25 };
+  return { sun: 1, sky: 1, grey: 0 };
+}

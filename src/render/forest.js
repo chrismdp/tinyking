@@ -38,6 +38,28 @@ export function createForest() {
   const mesh = new THREE.Group();
   const groups = new Map();
   const groupOf = new Map();
+  const materials = new Map();
+  const wind = { value: new THREE.Vector2() };
+  const weatherTime = { value: 0 };
+  const swayMaterial = original => {
+    if (!materials.has(original)) {
+      const material = original.clone();
+      material.onBeforeCompile = shader => {
+        shader.uniforms.wind = wind;
+        shader.uniforms.weatherTime = weatherTime;
+        shader.vertexShader = shader.vertexShader.replace("#include <common>",
+          "#include <common>\nuniform vec2 wind;\nuniform float weatherTime;")
+          .replace("#include <begin_vertex>", `#include <begin_vertex>
+            float phase = instanceMatrix[3].x * 0.019 + instanceMatrix[3].z * 0.023;
+            float bend = pow(max(0.0, position.y) / 55.0, 2.0);
+            transformed.xz += wind * bend * (3.5 + sin(weatherTime * 2.0 + phase) * 1.6);
+          `);
+      };
+      material.customProgramCacheKey = () => "tree-wind";
+      materials.set(original, material);
+    }
+    return materials.get(original);
+  };
   let dirty = false;
   let distant = false;
 
@@ -55,7 +77,7 @@ export function createForest() {
     add(id, object) {
       remove(id);
       if (!groups.has(object.geometry)) {
-        groups.set(object.geometry, { objects: new Map(), geometry: object.geometry, material: object.material });
+        groups.set(object.geometry, { objects: new Map(), geometry: object.geometry, material: swayMaterial(object.material) });
       }
       const group = groups.get(object.geometry);
       group.objects.set(id, object);
@@ -63,6 +85,10 @@ export function createForest() {
       dirty = true;
     },
     remove,
+    setWind(value, storm, seconds) {
+      weatherTime.value = seconds;
+      wind.value.set(value.x, value.y).multiplyScalar(Math.min(1.5, value.strength) * (storm ? 2.2 : 1));
+    },
     invalidate() { dirty = true; },
     setDistant(value) {
       if (distant != value) {
@@ -116,6 +142,8 @@ export function createForest() {
           group.canopy.dispose();
         }
       }
+      for (const material of materials.values()) material.dispose();
+      materials.clear();
       groups.clear();
       groupOf.clear();
     }

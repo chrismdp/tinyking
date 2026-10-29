@@ -65,3 +65,26 @@ it("uses at most eight triangles per distant tree and restores close-up geometry
   expect(batch.geometry).toBe(geometry);
   forest.dispose();
 });
+
+it("sways thousands of trees with shared wind uniforms and no matrix uploads", () => {
+  const forest = createForest();
+  const geometry = new THREE.BoxGeometry(2, 40, 2);
+  const material = new THREE.MeshLambertMaterial();
+  for (let i = 0; i < 6000; i++) forest.add(String(i), new THREE.Mesh(geometry, material));
+  forest.update();
+  const batch = forest.mesh.children[0];
+  const version = batch.instanceMatrix.version;
+  forest.setWind({ x: 1, y: 0, strength: 0.4 }, false, 1);
+  forest.update();
+  const shader = { uniforms: {}, vertexShader: "#include <common>\n#include <begin_vertex>" };
+  batch.material.onBeforeCompile(shader);
+  const calm = shader.uniforms.wind.value.length();
+  forest.setWind({ x: 1, y: 0, strength: 0.4 }, true, 2);
+  forest.update();
+  expect(shader.uniforms.wind.value.length()).toBeGreaterThan(calm);
+  expect(shader.uniforms.weatherTime.value).toBe(2);
+  expect(shader.vertexShader).toContain("sin(");
+  expect(batch.instanceMatrix.version).toBe(version);
+  expect(batch.count).toBe(6000);
+  forest.dispose();
+});

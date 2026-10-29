@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { Hex, HEX_SIZE } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
+import { localWeather, coldEnough } from "game/weather";
+import { homeOf } from "game/overworld";
 import { createHeightField } from "game/height";
 
 import * as models from "render/models";
@@ -11,7 +13,8 @@ import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
 import { createForest } from "render/forest";
 import { createCameraRig } from "render/camera";
-import { skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
+import { createWeatherView } from "render/weather";
+import { weatherLight, skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
 const hexKey = point => Hex().fromPoint(point).toString();
 
@@ -50,6 +53,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   scene.add(terrain.mesh);
   const forest = createForest();
   scene.add(forest.mesh);
+  const weatherView = createWeatherView(ground);
+  scene.add(weatherView.mesh);
 
   const objects = {};
   const people = new Set();
@@ -186,11 +191,13 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const light = () => {
     const { night, sunset } = skyAt(state.days);
+    const cloud = weatherLight((localWeather(state) || {}).type);
     const tint = WHITE.clone().lerp(SUNSET, sunset).lerp(NIGHT, night * 1.6);
+    tint.lerp(new THREE.Color(0xB7C2CE), cloud.grey);
     sun.color.copy(tint);
-    sun.intensity = SUN * (1 - night * 1.2);
+    sun.intensity = SUN * (1 - night * 1.2) * cloud.sun;
     hemisphere.color.copy(tint);
-    hemisphere.intensity = SKY * (1 - night * 0.9);
+    hemisphere.intensity = SKY * (1 - night * 0.9) * cloud.sky;
   };
 
   const pickables = () => [terrain.mesh, forest.mesh, ...Object.entries(objects)
@@ -283,6 +290,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       terrain.update();
       forest.setDistant(rig.distance > 3000);
       forest.update();
+      const weather = localWeather(state);
+      if (weather) forest.setWind(weather.wind, weather.type == "storm", now / 1000);
 
       for (const id of people) {
         followPerson(id);
@@ -298,6 +307,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
       light();
       rig.update(dt);
+      weatherView.update(weather, camera, now / 1000,
+        ["grassland", "steppe", "savanna"].includes(homeOf(state.world).biome),
+        coldEnough(homeOf(state.world), state.days));
       renderer.render(scene, camera);
     },
     resize(width, height) {
@@ -345,6 +357,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       terrain.dispose();
       forest.dispose();
+      weatherView.dispose();
       canvas.style.filter = "";
     }
   };

@@ -48,3 +48,19 @@ it("draws pointy-top polygons on a pointy-top grid in both world views", () => {
     expect(centres[2][0] - centres[0][0]).toBeCloseTo(26, 0);
   }
 });
+
+it("can show the weather and wind arrows on every world hex in both views", () => {
+  const world = { home: { x: 0, y: 0 }, hexes: [
+    { x: 0, y: 0, biome: "grassland" }, { x: 1, y: 0, biome: "grassland" }
+  ] };
+  const weather = { "0,0": { type: "snow", wind: { direction: 0, strength: 0.5 } },
+    "1,0": { type: "rain", wind: { direction: 1, strength: 0.3 } } };
+  for (const labels of [true, false]) {
+    const html = renderToStaticMarkup(<Overworld world={world} size={28} labels={labels} weather={weather}/>);
+    expect(html).toContain("Snow");
+    expect(html).toContain("Rain");
+    expect((html.match(/class="wind-arrow"/g) || []).length).toBe(2);
+    const hidden = renderToStaticMarkup(<Overworld world={world} size={28} labels={labels}/>);
+    expect(hidden).not.toContain("wind-arrow");
+  }
+});

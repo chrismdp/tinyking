@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
 import { firstName, familyName } from "game/name";
 import { CharacterSelection } from "components/character_selection";
-import { Overworld } from "components/overworld";
+import { WeatherMap } from "components/overworld";
 import { homeOf } from "game/overworld";
 
 function newSeed() {
@@ -177,7 +177,7 @@ export function CustomGame() {
             { progress.label && <div className="progress">{progress.label}</div> }
           </div>
           { state.world && <>
-            <Overworld world={state.world} size={18}/>
+            <WeatherMap weather={state.weather} world={state.world} size={18}/>
             <div className="world-hex">{t("world.world_hex", homeOf(state.world))}</div>
           </> }
         </>}

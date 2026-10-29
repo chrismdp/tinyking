@@ -20,6 +20,7 @@ import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
 import { pushJob, removeJob } from "game/manager";
 
+import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
 
 const renderMap = (webgl, state, selectEntity, renderUI, t) => {
@@ -189,6 +190,7 @@ export function World() {
         const results = await generateMap(state, seed, state.ui.actions.progress_update);
         state.map = results.map;
         state.ui.playerId = results.playerId;
+        if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
         renderMap(webgl, state, selectEntity, renderUI, t);
 

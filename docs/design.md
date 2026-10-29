@@ -22,7 +22,14 @@ What the player should enjoy:
 - temperature: hot, temperate or cold
 - moisture: wet, normal or dry
 
-**The world.** World hexes sit in a larger grid. Neighbouring world hexes differ by at most one step on each axis, so hot never borders cold and good never borders evil. You travel between world hexes by walking off the edge of the map.
+**The world.** World hexes sit in a larger grid. Neighbouring world hexes differ by at most one step on each axis, so hot never borders cold and good never borders evil.
+
+**Travelling between world hexes.**
+
+- **Leaving:** click a hex on the map's edge, and you're offered travel to the neighbouring world hex on that side. If that neighbour is ocean, you can't go.
+- **The journey takes one season.** Your character walks off the edge, a season passes, and you arrive at the facing edge of the new map and make camp there, as in the opening. What you built in the old world hex stays yours.
+- **History moves on while you travel:** one season is one step of history (see "History before you arrive"). The world hex you left goes on living in summary while you're away.
+- **A world hex you've never visited** gets its own generated people and history the first time you arrive. Generation is deterministic per seed and world hex.
 
 **How the world is made.**
 
@@ -252,7 +259,10 @@ Haters matter through the family tree too. If the father of the woman you want t
 
 ## History before you arrive
 
-Like Sol Trader, the world has a past. When a world is generated, two generations of village life are simulated quickly, using the same social rules that run during play: people court, marry, have children, quarrel, fall out, move to another village, and die. Each of these is recorded as an **event**, with the people involved, a date and a place.
+Like Sol Trader, the world has a past. History runs in steps of **one season**. Each step applies the same social rules that run during play, in summary, without walking or drawing: people court, marry, have children, quarrel, fall out, move to another village, and die. Each of these is recorded as an **event**, with the people involved, a date and a place.
+
+- **At world generation:** the history step runs for two generations' worth of seasons, so the world arrives with a past.
+- **While you travel:** a journey takes one season, so the history step runs once for every world hex you're not in. Places you left keep changing without you.
 
 - **People remember what they know.** Each person knows the events in their own life and their family's, and some of their neighbours'. What they know shapes their opinions of others, and you learn it by talking and asking about people. Gossip is passing events on.
 - **Things are handed down.** Possessions pass from the dead to their heirs, so objects carry their history: "the hammer her grandfather forged", "the ring from his mother's first marriage". A keepsake's story is part of what you learn about a family, and it's a reason for quests: a lost heirloom, a disputed inheritance.

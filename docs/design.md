@@ -86,7 +86,7 @@ Villagers keep running their own lives through the existing HTN planner: work, e
 
 ## Relationships: the four rings
 
-This is the proxemics model from Sol Trader (blog, April 2015). Each person has a limited number of slots at each level of closeness to other people, the player included:
+This is the proxemics model from Sol Trader (blog, April 2015). Each person has a limited number of slots at each level of closeness to other people, the player included. The rings are one-way: see the rule of five below.
 
 | Ring     | Slots | What it gives the player                                                              |
 |----------|-------|---------------------------------------------------------------------------------------|
@@ -156,7 +156,16 @@ Of every five people you meet, one will love you, three will like you, and one w
 - **The three who like you** start at Public. How close they get depends on what you do: help them, and they move in; neglect them, and they drift out. This middle group is where most of the game is played.
 - **The one who hates you** never gets past Public. They take your help without thanks, speak badly of you to the people close to them, and side against you.
 
-Who lands in which fifth isn't random. Each person has traits, and so does your character. Rank everyone you meet by how well their traits match yours: the best-matched fifth love you, and the worst-matched fifth hate you. So a different character would win over different people, and the split is always one, three, one, in every village.
+Who lands in which fifth isn't random, and it isn't mutual either. Every person has **traits** (what they are: hard-working, generous, proud, pious) and **tastes** (what they like and dislike in others). How much A likes B depends on B's traits measured against A's tastes, so A and B can feel quite differently about each other. Thresholds are set once, when the world is generated, so that across everyone, one in five opinions is love, three are liking, and one is hate. Your character has traits and tastes like everyone else, so a different character wins over different people.
+
+**Relationships are one-way.** Each person keeps their own list of the people they know, with a ring and goodwill for each. A can have B in their Personal ring while B has A only at Social. Unrequited love, a friend who's fonder of you than you are of them, and a rival who doesn't know they're a rival all come from this.
+
+What depends on which direction:
+
+- **Help** follows *their* ring for you: they help you if you're in their Personal ring.
+- **Marriage** needs both directions to reach Intimate.
+- **Gossip** carries the speaker's own view of the person they're talking about.
+- **Reading people.** You don't see exactly how someone feels about you. At Public you only see a hint (polite, warm, cool). As they trust you more, you see the truth. Gossip can let it slip, for example "she's sweet on you".
 
 Haters matter through the family tree too. If the father of the woman you want to marry is in your bottom fifth, he is a real obstacle.
 
@@ -192,7 +201,8 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 - **Start:** today the player starts in the middle with a house. In this design they start at a camp at the map edge.
 - **A task list for the player's character:** new. It can reuse the job queue, scoped to one person.
 - **Foraging, and building in stages from wood:** new. Felling trees, hauling, fields and stockpiles already exist.
-- **The rule of five:** ranking people by trait match with the player. New, built on the existing traits (`src/game/traits.js`).
+- **Personality traits and tastes:** new. The existing `traits` component holds temporary states (hungry, cold, planted), not personality, so personality is a separate addition.
+- **One-way relationship lists per person:** new, with the rule-of-five thresholds set at world generation.
 
 ## First prototype: the arrival
 

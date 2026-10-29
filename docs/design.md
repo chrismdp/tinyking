@@ -193,7 +193,7 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 
 **Marriage** needs a person in your Intimate ring, and the wedding joins two families. Marrying the heir of a village is the main way to come to own it. Marriage also brings the other family's goodwill: your in-laws start out closer to you.
 
-**Succession.** You play a character, not a dynasty. When your character dies, you continue as their heir, keeping what the family owns and the relationships the heir has made. What happens if you die with no heir is an open question (see below).
+**Succession.** You play a character, not a dynasty. When your character dies, you continue as their heir, keeping what the family owns and the relationships the heir has made. If you die with no heir, you start again as a new stranger arriving in the same world. Everything you built stays: the village, the people who knew you and the stories they tell.
 
 **Founding.** Alternatively, you can build your own house and gather a following (people in your Personal ring) into a new village that you own.
 
@@ -233,10 +233,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 - **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
 - **Sworn followers share your job queue.** No detailed feudal duties.
 - **Children grow up after a couple of game years.**
+- **Dying with no heir** means starting again as a new stranger in the same world.
 - **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
 - **The rule of five comes from traits and tastes, and relationships are one-way.**
 - **Morality changes spread.** When your behaviour moves a world hex's morality, any neighbour now more than one step away is pulled along to within one step. That can pull its own neighbours in turn, so the change ripples outwards until the one-step rule holds everywhere again. What you do in one place gradually shifts the world around it.
-
-## Open questions
-
-- **Dying with no heir.** The game is open-ended, so what happens then? Do you carry on as the person closest to you, or does that line end and you start again as a new stranger?

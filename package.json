@@ -11,7 +11,8 @@
   },
   "jest": {
     "moduleNameMapper": {
-      "game/(.*)": "<rootDir>/src/game/$1"
+      "game/(.*)": "<rootDir>/src/game/$1",
+      "^data/(.*)$": "<rootDir>/src/data/$1"
     }
   },
   "repository": {

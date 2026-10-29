@@ -28,16 +28,16 @@ export function newEntities(state, entities) {
 export function deleteEntity(state, id) {
   removeFromSpace(state, id);
 
-  if (state.pixi[id]) {
-    for (const displayObject of state.pixi[id]) {
-      displayObject.parent.removeChild(displayObject);
-    }
-    delete state.pixi[id];
-  }
   Object.keys(state.ecs).forEach(c => {
     delete state.ecs[c][id];
   });
+
+  // NOTE: Tell whatever is drawing the world that this entity has gone
+  state.redraws.push(id);
 }
+
+export const entityExists = (ecs, id) =>
+  Object.values(ecs).some(component => component && component[id]);
 
 export const fullEntity = (ecs, id) => (
   Object.keys(ecs).reduce((result, name) => (

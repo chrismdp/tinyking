@@ -14,22 +14,18 @@ import { Hex, generateMap } from "game/map";
 import { topController, anyControlledAlive } from "game/playable";
 import * as time from "game/time";
 import * as htn from "game/htn";
+import { entityExists } from "game/entities";
+import { createSimulation } from "game/simulation";
+import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
-import { pushJob, removeJob, jobQueueFor } from "game/manager";
+import { pushJob, removeJob } from "game/manager";
 
 import * as render from "pixi/render";
 
 import fogSprite from "assets/fogSprite.png";
-import crops from "data/crops.json";
-
-const SPEED = {
-  paused: 0,
-  normal: 360,
-  fast: 3600
-};
 
 const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
   app.stage.destroy({children: true});
@@ -102,123 +98,40 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
   pixi.filters.sunset.matrix[12] = b / 255;
   pixi.filters.night.night(0.75);
 
-  state.pixi.ticker.add(() => {
+  const simulation = createSimulation(state, { onHour: renderUI });
+
+  state.ticker.add(() => {
     TWEEN.update();
   });
 
-  state.pixi.ticker.add(frameMod => {
-    if (SPEED[state.game_speed] == 0) {
-      return;
-    }
+  state.ticker.add(frameMod => simulation.step(frameMod));
 
-    for (const id in state.ecs.planner) {
-      const planner = state.ecs.planner[id];
+  state.ticker.add(() => timeFilter(state.pixi, state.days));
 
-      // Update sensors
-      if (state.ecs.personable[id]) {
-        const person = state.ecs.personable[id];
-        if (!planner.world.feeling.tired && person.tiredness > 0.9) {
-          planner.world.feeling.tired = true;
-          htn.replan(planner);
-        }
-        if (!planner.world.feeling.hungry && person.hunger > 0.9) {
-          planner.world.feeling.hungry = true;
-          htn.replan(planner);
-        }
-      }
-
-      // Re-plan
-      if (!planner.plan) {
-        if (planner.task) {
-          htn.finishTask(planner, planner.task);
-        }
-        const jobs = jobQueueFor(state.ecs, planner.id);
-        const [ plan ] = htn.solve(planner.world, jobs, [ [ "person" ] ]);
-        planner.plan = plan;
-        if (topController(state.ecs, planner.id) == state.ui.playerId) {
-          // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
-          if (!planner.plan) {
-            throw "no plan";
-          }
-        }
-      }
-      // Process tasks
-      const dt = deltaTime(frameMod, SPEED[state.game_speed]);
-      if (planner.task) {
-        htn.runTask(state, planner, dt, false);
-      }
-      while (!planner.task && planner.plan) {
-        if (planner.plan.length > 0) {
-          planner.task = planner.plan.shift();
-          if (topController(state.ecs, planner.id) == state.ui.playerId) {
-            // console.log("NEW TASK", planner.id, planner.task);
-          }
-          htn.runTask(state, planner, dt, true);
-          // TODO: Make sure this happens only once
-          state.redraws.push(planner.id);
-        } else {
-          htn.replan(planner);
+  state.ticker.add(() => {
+    // NOTE: the simulation only moves spatials; follow them here
+    for (const id in state.ecs.personable) {
+      if (pixi[id]) {
+        for (const displayObject of pixi[id]) {
+          displayObject.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
         }
       }
     }
-  });
 
-  const SECONDS_PER_FRAME = 1 / 60;
-  const DAYS = 86400;
-
-  const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
-
-  let hour = 0;
-  state.pixi.ticker.add((frameMod) => {
-    if (SPEED[state.game_speed]) {
-      const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
-      state.days += toAdd;
-      hour += toAdd;
-      if (hour > time.HOUR) {
-        hour -= time.HOUR;
-
-        // FIXME: This potentially leads to frame spikes each hour
-        for (const id in state.ecs.planner) {
-          const planner = state.ecs.planner[id];
-          planner.world.days = state.days;
-        }
-
-        for (const id in state.ecs.personable) {
-          const person = state.ecs.personable[id];
-          person.tiredness += time.HOUR;
-          person.hunger += time.HOUR;
-        }
-
-        if (state.ecs.farmable) {
-          for (const id in state.ecs.farmable) {
-            for (const slot of state.ecs.farmable[id].slots) {
-              if (slot.content) {
-                state.redraws.push(id);
-
-                const age = state.days - slot.updated;
-                if (age > crops[slot.content].growingTime) {
-                  slot.state = "harvestable";
-                  slot.amount = crops[slot.content].harvestableAmount;
-                }
-              }
-            }
-          }
-        }
-        renderUI();
-      }
-    }
-    timeFilter(state.pixi, state.days);
-  });
-
-  state.pixi.ticker.add(() => {
     if (state.redraws.length > 0) {
+      const dirty = state.redraws;
+      state.redraws = [];
       const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat().filter(e => state.ecs.mappable[e]);
-      for (const id of state.redraws) {
+      for (const id of dirty) {
         if (pixi[id]) {
           for (const displayObject of pixi[id]) {
             displayObject.destroy();
           }
           pixi[id] = [];
+        }
+        if (!entityExists(state.ecs, id)) {
+          delete pixi[id];
+          continue;
         }
         let result = render.entity(state, id, t, false);
         if (!Array.isArray(result[0])) {
@@ -255,7 +168,6 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
             displayObject.on("touchend", e => displayObject.maybeSelect && popupOver(e));
           }
         });
-        state.redraws = [];
       }
     }
   });
@@ -428,13 +340,12 @@ export function World() {
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
-        if (state.pixi && state.pixi.ticker) {
-          state.pixi.ticker.stop();
-          state.pixi.ticker.destroy();
+        if (state.ticker) {
+          state.ticker.destroy();
         }
         state.pixi = {};
-        state.pixi.ticker = new PIXI.Ticker();
-        state.pixi.ticker.start();
+        state.ticker = createTicker();
+        state.ticker.start();
 
         state.ui.progress = { count: 0 };
         state.game_speed = "normal";

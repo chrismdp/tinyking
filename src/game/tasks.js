@@ -122,9 +122,6 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
       s.x += dx * speed;
       s.y += dy * speed;
     }
-    for (const displayObject of state.pixi[actorId]) {
-      displayObject.position.set(s.x, s.y);
-    }
   }
   return Task.CONTINUE;
 }

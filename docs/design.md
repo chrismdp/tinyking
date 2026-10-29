@@ -103,6 +103,8 @@ Weather comes from a simple pressure model run across the world hexes, so it's d
 
 **Wind** blows from high pressure to low, between neighbouring world hexes. Its strength is the pressure difference.
 
+**One weather per world hex.** At any moment a world hex has a single weather: clear, cloudy, rain, snow or storm. The pressure model decides it, and the whole map shows it. Low pressure is unsettled (cloud, rain, snow, storms); high pressure is settled and clear.
+
 **Rain and snow.** Moist air comes from oceans, and wet biomes, and travels on the wind. When it reaches low pressure or rises over high ground, it falls. On tiles cold enough (cold biome, high ground, or winter), it falls as snow.
 
 **Snow lies on the ground.** It builds up on each tile while it snows there, and turns the ground white. It melts when the tile warms up, so it lasts all year on cold high ground and comes and goes in temperate winters.

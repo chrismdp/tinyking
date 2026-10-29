@@ -98,3 +98,26 @@ describe("the continuous world terrain", () => {
     expect(inlandWater).toBeGreaterThan(0);
   });
 });
+
+it("has few isolated single land and water tiles along the coasts", () => {
+  let isolated = 0;
+  let coastal = 0;
+  const tiles = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
+  const offsets = Grid.hexagon({ radius: 1 }).neighborsOf(Hex(0, 0), ALL_SIDES)
+    .map(h => h.toPoint().subtract(Hex(0, 0).toPoint()));
+  for (const seed of [1, 13, 1234, 98765]) {
+    const field = createLandField(seed);
+    for (const h of WorldGrid.hexagon({ center: WorldHex(5, 5), radius: 2 })) {
+      for (const tile of tiles) {
+        const p = worldPoint(h, tile.toPoint());
+        if (Math.abs(field.landAt(p)) > 0.15) continue;
+        const water = field.terrainAt(p).includes("water");
+        const same = offsets.filter(o => field.terrainAt({ x: p.x + o.x, y: p.y + o.y }).includes("water") == water).length;
+        coastal++;
+        if (same == 0) isolated++;
+      }
+    }
+  }
+  expect(coastal).toBeGreaterThan(500);
+  expect(isolated / coastal).toBeLessThan(0.001);
+});

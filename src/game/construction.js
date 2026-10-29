@@ -1,12 +1,11 @@
 import { Hex } from "game/hex";
-import { newEntities, deleteEntity } from "game/entities";
+import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
 import { topController } from "game/playable";
 import { take, give } from "game/holder";
 import { HOUR } from "game/time";
 import { path } from "game/pathfinding";
 import { hungerSpeed } from "game/hunger";
 import { Task } from "game/htn";
-import { walk_to } from "game/tasks";
 
 export const STAGES = {
   "lean-to": { logs: 4, hours: 2, capacity: 8, next: "hut" },
@@ -46,58 +45,66 @@ export function placeShelter(state, targetId) {
   return id;
 }
 
-// One primitive keeps the shared site effort in ECS. Every worker contributes
-// dt, so extra hands naturally shorten construction without resetting effort.
+// Timber comes from the player's stores, never from standing trees.
+export function shelterLogSource(state, actorId, reachable = () => true) {
+  const ecs = state.ecs;
+  const owner = topController(ecs, actorId);
+  const owned = id => ecs.controllable[id] && topController(ecs, id) == owner;
+  const homes = [...Object.keys(ecs.camp || {}), ...Object.keys(ecs.shelter || {}).filter(id => ecs.shelter[id].stage)].filter(owned);
+  const log = Object.keys(ecs.haulable || {}).find(id => ecs.good[id]?.type == "wood" && owned(id) &&
+    (ecs.haulable[id].heldBy == actorId ||
+      (ecs.haulable[id].heldBy ? owned(ecs.haulable[id].heldBy) && ecs.stockpile?.[ecs.haulable[id].heldBy] :
+        homes.some(home => Hex().fromPoint(ecs.spatial[home]).distance(Hex().fromPoint(ecs.spatial[id])) == 0))) && reachable(id));
+  return log || Object.keys(ecs.container || {}).find(id => owned(id) && ecs.container[id].amounts.wood > 0 && reachable(id));
+}
+
+export function collectShelterLog(state, actorId, world, dt, firstRun, source) {
+  const ecs = state.ecs;
+  let log = source;
+  if (ecs.container[source]) {
+    if (!(ecs.container[source].amounts.wood > 0)) return Task.ABORT;
+    if (ecs.holder[actorId].held.length >= ecs.holder[actorId].capacity) return Task.ABORT;
+    ecs.container[source].amounts.wood--;
+    [log] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { type: "wood", amount: 1 },
+      haulable: {}, controllable: { controllerId: topController(ecs, actorId) } }]);
+  }
+  if (!ecs.haulable[log]) return Task.ABORT;
+  const previousHolder = ecs.haulable[log].heldBy;
+  if (!give(ecs, log, actorId)) return Task.ABORT;
+  removeFromSpace(state, log);
+  state.redraws.push(log, actorId, source);
+  if (previousHolder) state.redraws.push(previousHolder);
+  return Task.FINISH;
+}
+
+export function deliverShelterLog(state, actorId, world, dt, firstRun, targetId) {
+  const ecs = state.ecs;
+  const site = ecs.construction?.[targetId];
+  const log = ecs.holder[actorId].held.find(id => ecs.good[id]?.type == "wood");
+  if (!site || !log) return Task.ABORT;
+  take(ecs, log);
+  deleteEntity(state, log);
+  site.delivered++;
+  const job = ecs.manager[topController(ecs, actorId)].jobs.find(j => j.assignedId == actorId);
+  if (job) {
+    job.detail = `${site.delivered} of ${STAGES[site.stage].logs} logs`;
+    job.progress = site.delivered / STAGES[site.stage].logs / 2;
+  }
+  state.redraws.push(targetId, actorId);
+  return Task.FINISH;
+}
+
+// Workers share the site's effort total; helping leaves their own home intact.
 export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   const ecs = state.ecs;
   const site = ecs.construction?.[targetId];
-  if (!site) return Task.FINISH;
+  if (!site) return Task.ABORT;
   const stage = STAGES[site.stage];
+  if (site.delivered < stage.logs) return Task.ABORT;
   const job = ecs.manager[topController(ecs, actorId)].jobs.find(j => j.targetId == targetId);
-  const move = point => {
-    const key = typeof point == "string" ? point : point.x + ":" + point.y;
-    const fresh = world.deliveryTarget != key;
-    world.deliveryTarget = key;
-    const result = walk_to(state, actorId, world, dt, fresh, point);
-    if (result == Task.FINISH) world.deliveryTarget = null;
-    return result;
-  };
-  if (firstRun) world.deliveryTarget = null;
-  if (site.delivered < stage.logs) {
-    let log = ecs.holder[actorId].held.find(id => ecs.good[id]?.type == "wood");
-    if (log) {
-      if (move(targetId) != Task.FINISH) return Task.CONTINUE;
-      take(ecs, log);
-      deleteEntity(state, log);
-      world.holding.wood = ecs.holder[actorId].held.some(id => ecs.good[id]?.type == "wood");
-      site.delivered++;
-      state.redraws.push(targetId, actorId);
-    } else {
-      const owned = id => topController(ecs, id) == topController(ecs, actorId);
-      log = Object.keys(ecs.haulable || {}).find(id => ecs.good[id]?.type == "wood" && owned(id) &&
-        (!ecs.haulable[id].heldBy || ecs.stockpile?.[ecs.haulable[id].heldBy]));
-      const store = Object.keys(ecs.container || {}).find(id => owned(id) && ecs.container[id].amounts.wood > 0);
-      if (!log && !store) {
-        if (job) job.detail = "Waiting for logs";
-        return Task.CONTINUE;
-      }
-      if (move(log || store) != Task.FINISH) return Task.CONTINUE;
-      if (!log) {
-        ecs.container[store].amounts.wood--;
-        [log] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] },
-          good: { type: "wood", amount: 1 }, haulable: {}, controllable: { controllerId: topController(ecs, actorId) } }]);
-      }
-      const previousHolder = ecs.haulable[log].heldBy;
-      if (give(ecs, log, actorId)) world.holding.wood = true;
-      state.redraws.push(log, actorId);
-      if (store || previousHolder) state.redraws.push(store || previousHolder);
-    }
-  } else {
-    if (move(targetId) != Task.FINISH) return Task.CONTINUE;
-    site.work += dt / HOUR * hungerSpeed(ecs.personable[actorId]);
-  }
+  site.work += dt / HOUR * hungerSpeed(ecs.personable[actorId]);
   if (job) {
-    job.detail = site.delivered < stage.logs ? `${site.delivered} of ${stage.logs} logs` : "Building";
+    job.detail = "Building";
     job.progress = (site.delivered / stage.logs + Math.min(1, site.work / stage.hours)) / 2;
   }
   if (site.work + 1e-9 < stage.hours) return Task.CONTINUE;

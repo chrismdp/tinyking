@@ -4,7 +4,7 @@ import * as time from "game/time";
 import { updateWeather } from "game/weather";
 import { drift } from "game/people";
 import { topController } from "game/playable";
-import { jobQueueFor } from "game/manager";
+import { jobQueueFor, readyPlayerTasks, deferPlayerTask } from "game/manager";
 
 import { updateEcology } from "game/ecology";
 
@@ -46,25 +46,25 @@ function updatePlanners(state, frameMod) {
       }
     }
 
+    if (planner.world.ordered && planner.world.currentJob) {
+      const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
+      if (job && !job.gatheredDone && !state.ecs.spatial[job.targetId]) deferPlayerTask(state);
+    }
+    if (planner.world.ordered && !planner.world.currentJob && planner.plan &&
+      !planner.world.feeling.hungry && !planner.world.feeling.tired &&
+      !["eat", "sleep", "forage"].includes(planner.task?.[0]) && readyPlayerTasks(state).length) {
+      planner.task = null;
+      planner.plan = null;
+    }
+
     // Re-plan
     if (!planner.plan) {
       if (planner.task) {
         htn.finishTask(planner, planner.task);
       }
       const queue = jobQueueFor(state.ecs, planner.id);
-      if (planner.world.ordered) {
-        // Needs can consume a queued plant before its turn; felling can also
-        // remove a target. Finished gathering still has its delivery to do.
-        while (queue[0] && !queue[0].gatheredDone &&
-          (!state.ecs.spatial[queue[0].targetId] ||
-            (queue[0].job.key == "forage" && !state.ecs.forageable?.[queue[0].targetId]?.amount))) {
-          queue[0].progress = 1;
-          queue.shift();
-          planner.world.currentJob = null;
-        }
-      }
       const jobs = state.ecs.manager[state.ui.playerId]?.ordered ?
-        (id == state.ui.playerId ? queue.slice(0, 1) : (topController(state.ecs, id) == state.ui.playerId ? [] : queue)) : queue;
+        (id == state.ui.playerId ? readyPlayerTasks(state) : (topController(state.ecs, id) == state.ui.playerId ? [] : queue)) : queue;
       const [ plan ] = htn.solve(planner.world, jobs, [ [ "person" ] ]);
       planner.plan = plan;
       if (topController(state.ecs, planner.id) == state.ui.playerId) {

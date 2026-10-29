@@ -2,8 +2,9 @@ import React from "react";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
 import { hungerSpeed } from "game/hunger";
-import { HEX_SIZE, Hex } from "game/hex";
+import { HEX_SIZE } from "game/hex";
 import { STAGES } from "game/construction";
+import { taskPlace } from "game/task_places";
 
 export const TASK_TITLES = {
   cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
@@ -36,6 +37,7 @@ export function TaskPanel() {
   const jobs = ecs.manager[id].jobs;
   const person = ecs.personable[id];
   const planner = ecs.planner[id];
+  const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const stage = Object.values(ecs.shelter || {}).find(s => s.stage)?.stage;
   const hungry = person.hunger > 0.9;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
@@ -54,19 +56,19 @@ export function TaskPanel() {
       <ol className="queue">{jobs.map((job, index) => {
         const construction = ecs.construction?.[job.targetId];
         const title = job.job.key == "build_shelter" ? "Build the " + (construction?.stage || "lean-to") : TASK_TITLES[job.job.key];
-        const point = ecs.spatial[job.targetId];
-        const at = point ? Hex().fromPoint(point) : null;
+        const active = job == current;
         const minutes = estimatedMinutes(ecs, id, job);
         const progress = Math.round((job.progress || 0) * 100);
         const detail = job.detail || (construction ? `0 of ${STAGES[construction.stage].logs} logs` : job.job.key == "cut_tree_down" ? `0 of ${ecs.good?.[job.targetId]?.amount || 1} logs` : job.job.key == "forage" ? "0 of 1 meal" : "0 of 1 task");
-        return <li className={"task" + (index == 0 ? " current" : "")} key={job.id}
+        return <li className={"task" + (job.waiting ? " waiting" : active ? " current" : "")} key={job.id}
           draggable onDragStart={e => { setDragged(job.id); e.dataTransfer.setData("text/plain", job.id); }}
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
-          <span className={"grip" + (index == 0 ? " play" : "")} title="Drag to reorder">{index == 0 ? "▶" : "⠿"}</span>
+          <span className={"grip" + (active ? " play" : "")} title="Drag to reorder">{job.waiting ? "⌛" : active ? "▶" : "⠿"}</span>
           <div className="task-content"><div className="task-title">{title}</div>
-            <small>{job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {construction ? "Camp" : at ? `Tile ${at.x}, ${at.y}` : "Camp"}{index > 0 && ` · ~${minutes}m`}</small>
+            <small>{job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {taskPlace(state, job.targetId)}{!active && !job.waiting && ` · ~${minutes}m`}</small>
             {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {job.expectedGoodwill}</span>}
-            {index == 0 && <><div className="task-progress"><span>{detail}</span><span>{progress}% · ~{minutes}m left</span></div>
+            {job.waiting && <small className="task-waiting">{job.detail || job.waiting}</small>}
+            {active && <><div className="task-progress"><span>{detail}</span><span>{progress}% · ~{minutes}m left</span></div>
               <div className="meter" role="progressbar" aria-label={title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div></>}
           </div>
           <div className="task-tools">
@@ -80,6 +82,6 @@ export function TaskPanel() {
       <div className="queue-note">Drag ⠿ to reorder · × to cancel · You do each job.</div>
     </div>
     <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
-      <small className="compact-task">{status} · {jobs[0] ? TASK_TITLES[jobs[0].job.key] || "Build the " + (ecs.construction?.[jobs[0].targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
+      <small className="compact-task">{status} · {current ? TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
   </aside>;
 }

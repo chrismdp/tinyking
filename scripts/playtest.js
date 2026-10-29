@@ -54,6 +54,13 @@ const check = (name, ok, detail) => {
     await play(page);
   } catch (e) {
     console.error(e.stack);
+    const snapshot = await page.evaluate(() => {
+      const s = window.tinyking;
+      return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages,
+        ui: { playerId: s.ui.playerId }, game_speed: s.game_speed };
+    }).catch(() => null);
+    if (snapshot) fs.writeFileSync(path.join(SHOTS, "playtest-failure.json"), JSON.stringify(snapshot));
+    await page.screenshot({ path: path.join(SHOTS, "playtest-failure.png") }).catch(() => {});
     check("the playtest ran to the end", false, String(e.message || e).split("\n")[0]);
   }
   check("no console errors", report.errors.length == 0, report.errors);
@@ -288,6 +295,40 @@ async function play(page) {
     return camp && s.ecs.sleepable[camp].capacity == 1 && !s.ecs.container[camp] &&
       !Object.keys(s.ecs.building).some(id => s.ecs.controllable[id].controllerId == s.ui.playerId);
   }));
+
+  // Regression: a fresh camp has no timber. Build first, then explicitly gather.
+  const fresh = await targets();
+  const firstSite = await orderOn(fresh.build, "Build shelter");
+  if (!firstSite) throw new Error("No fresh lean-to site available");
+  await speed(FAST);
+  await page.waitForFunction(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0]?.waiting == "Waiting for logs");
+  await speed(PAUSE);
+  let firstTimber = 0;
+  for (const id of fresh.trees) {
+    if (firstTimber >= 4) break;
+    await panTo(id);
+    if (await orderOn([id], "Cut down")) firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id);
+  }
+  await closePopup();
+  await speed(FAST);
+  await page.waitForFunction(() => {
+    const s = window.tinyking;
+    return s.ecs.manager[s.ui.playerId].jobs[0]?.waiting == "Waiting for logs" && s.ecs.planner[s.ui.playerId].task?.[0] == "chop_tree";
+  }, null, { timeout: 30000 });
+  const waitingWhileChopping = await page.locator("#task-panel .task.waiting").innerText();
+  await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 120000 });
+  check("fresh build-first queue waits, chops explicitly ordered wood, and finishes the lean-to",
+    firstTimber >= 4 && waitingWhileChopping.includes("Waiting for logs") && await game(() =>
+      !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
+
+  // Start fresh again so the original interaction checks keep their empty camp.
+  await page.goto(URL + (URL.includes("?") ? "&" : "?") + "seed=13");
+  await page.waitForTimeout(8000);
+  await page.getByText("Start new game").first().click();
+  await page.waitForSelector(".character canvas");
+  await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
+  await page.locator(".panel .close").first().click();
+  await speed(PAUSE);
 
   // --- Select a villager by clicking it (paused, so they hold still) --------------
   const villagers = await game(() => {

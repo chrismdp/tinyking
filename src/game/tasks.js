@@ -10,7 +10,7 @@ import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { hungerSpeed } from "game/hunger";
-import { workOnShelter } from "game/construction";
+import { workOnShelter, collectShelterLog, deliverShelterLog } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
@@ -65,6 +65,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   }
 
   let next = world.route && world.route[0];
+  if (!world.route) return Task.ABORT;
   if (!next) {
     return Task.FINISH;
   }
@@ -166,13 +167,16 @@ export function complete_job(state, actorId, world, dt, firstRun, key) {
   }
   jobs[idx].progress = 1;
   jobs.splice(idx, 1);
+  if (world.ordered) for (const job of jobs) job.failed = false;
 }
 
 export function wait_for(state, actorId, world, dt, firstRun, time) {
   if (firstRun) {
     world.wait_until = state.days + time;
   }
-  return (state.days <= world.wait_until) ? Task.CONTINUE : Task.FINISH;
+  if (state.days <= world.wait_until) return Task.CONTINUE;
+  if (world.ordered && !world.currentJob) for (const job of jobQueueFor(state.ecs, actorId)) job.failed = false;
+  return Task.FINISH;
 }
 
 // Timed work consumes effort, so a hunger change takes effect mid-task too.
@@ -381,7 +385,11 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
   const droppedId = state.ecs.holder[actorId].held
     .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
 
-  give(state.ecs, droppedId, stockpileId);
+  if (!droppedId) { world.holding[type] = false; return Task.ABORT; }
+  if (!give(state.ecs, droppedId, stockpileId)) {
+    world.places[place] = null;
+    return Task.ABORT;
+  }
 
   state.ecs.spatial[droppedId].x = world.places[place].x;
   state.ecs.spatial[droppedId].y = world.places[place].y;
@@ -402,6 +410,7 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
   const droppedId = state.ecs.holder[actorId].held
     .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
 
+  if (!droppedId) { world.holding[type] = false; return Task.ABORT; }
   take(state.ecs, droppedId);
   deleteEntity(state, droppedId);
   if (state.ecs.container[containerId].amounts[type]) {
@@ -420,7 +429,7 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, pl
     return Task.ABORT;
   }
 
-  if (state.ecs.haulable[targetId].heldBy) {
+  if (!state.ecs.haulable[targetId] || state.ecs.haulable[targetId].heldBy) {
     // NOTE: someone else has already picked this up!
     world.places[place] = null;
     return Task.ABORT;
@@ -431,7 +440,7 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, pl
     return Task.ABORT;
   }
 
-  give(state.ecs, targetId, actorId);
+  if (!give(state.ecs, targetId, actorId)) return Task.ABORT;
 
   state.redraws.push(actorId);
   state.redraws.push(targetId);
@@ -453,7 +462,7 @@ export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, plac
     throw actorId + " pick_up_entity: not close enough to " + JSON.stringify(slot);
   }
 
-  give(state.ecs, slot.id, actorId);
+  if (!give(state.ecs, slot.id, actorId)) return Task.ABORT;
 
   removeFromSpace(state, slot.id);
 
@@ -606,6 +615,8 @@ export function pick_up_from_container(state, actorId, world, dt, firstRun, plac
     delete world.places[place];
     return Task.ABORT;
   }
+  const holder = state.ecs.holder[actorId];
+  if (holder.held.length >= holder.capacity) return Task.ABORT;
   state.ecs.container[containerId].amounts[thing] -= 1;
 
   const s = state.ecs.spatial[actorId];
@@ -675,7 +686,9 @@ export function set_controller_to_me(state, actorId, world, dt, firstRun, target
   }
 }
 
-export const build_shelter = workOnShelter;
+export const work_shelter = workOnShelter;
+export const collect_log = collectShelterLog;
+export const deliver_log = deliverShelterLog;
 
 export function carry_home(state, actorId, world, dt, firstRun) {
   if (!world.ordered) return Task.FINISH;
@@ -691,10 +704,11 @@ export function carry_home(state, actorId, world, dt, firstRun) {
   const target = held ? home : next;
   const result = walk_to(state, actorId, world, dt, world.carryTarget != target, target);
   world.carryTarget = target;
+  if (result == Task.ABORT) world.carryTarget = null;
   if (result != Task.FINISH) return result;
   world.carryTarget = null;
   if (!held) {
-    give(ecs, next, actorId);
+    if (!give(ecs, next, actorId)) return Task.ABORT;
     state.redraws.push(next, actorId);
   } else {
     const type = ecs.good[held].type;

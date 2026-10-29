@@ -84,7 +84,7 @@ export const person = () => [
 export const check_jobs = () => [
   [
     (_, jobs) => firstFreeJob(jobs, "build_shelter"),
-    entry => [["take_job", entry.job.key], ["build_shelter", entry.targetId], ["complete_job", entry.job.key]]
+    entry => [["take_job", entry.job.key], ["build_shelter", entry.targetId]]
   ],
   [
     (_, jobs) => firstFreeJob(jobs, "forage"),
@@ -143,6 +143,22 @@ export const check_jobs = () => [
       ["carry_home"],
       ["complete_job", entry.job.key]
     ]
+  ]
+];
+
+export const build_shelter = targetId => [
+  [
+    world => !world.shelter?.needsLogs,
+    () => [["walk_to", targetId], ["work_shelter", targetId], ["complete_job", "build_shelter"]]
+  ],
+  [
+    world => world.holding.wood,
+    () => [["walk_to", targetId], ["deliver_log", targetId], ["release_job", "build_shelter"]]
+  ],
+  [
+    world => world.shelter?.source,
+    source => [["walk_to", source], ["collect_log", source], ["walk_to", targetId],
+      ["deliver_log", targetId], ["release_job", "build_shelter"]]
   ]
 ];
 

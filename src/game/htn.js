@@ -2,6 +2,7 @@ import produce, { setAutoFreeze } from "immer";
 import * as tasks from "game/tasks";
 import * as primitive from "game/primitive";
 import * as compound from "game/compound";
+import { deferPlayerTask } from "game/manager";
 
 // NOTE: We do not want our source world rep to be frozen - we want to be able
 // to modify it outside of the solve call. Otherwise as soon as the world rep
@@ -74,6 +75,7 @@ export function runTask(state, planner, dt, firstRun) {
   if (!firstRun || produce(primitive[name])(planner.world, false, ...args)) {
     const result = tasks[name](state, planner.id, planner.world, dt, firstRun, ...args);
     if (result == Task.ABORT) {
+      if (planner.world.ordered) deferPlayerTask(state);
       planner.task = null;
       replan(planner);
     } else if (result != Task.CONTINUE) {

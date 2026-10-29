@@ -134,5 +134,7 @@ export function complete_subtask(world, expected, place) {
   }
 }
 
-export function build_shelter() {}
+export function work_shelter() {}
+export function collect_log(world) { world.holding.wood = true; }
+export function deliver_log(world) { world.holding.wood = false; }
 export function carry_home() {}

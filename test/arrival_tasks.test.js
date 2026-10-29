@@ -204,24 +204,25 @@ it("requires the full work time after delivery and combines effort from two work
   expect(state.ecs.planner[helper].world.places.sleep).toBe("own-bed");
 });
 
-it("allows repeated destinations as separate orders and skips a plant already eaten while hungry", () => {
+it("allows repeated destinations and keeps an eaten plant waiting while later orders finish", () => {
   const { state, player, tiles, step } = arrival();
   const [bush] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[0]], immovable: true },
     forageable: { kind: "roots", biome: "grassland", amount: 0, growth: 0 } }]);
-  enqueueTask(state, { key: "forage" }, bush);
+  const forage = enqueueTask(state, { key: "forage" }, bush);
   const a = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
   const b = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
   expect(a.id).not.toBe(b.id);
   expect(state.ecs.manager[player].jobs).toHaveLength(3);
   step(2);
-  expect(state.ecs.manager[player].jobs).toEqual([]);
+  expect(state.ecs.manager[player].jobs).toEqual([forage]);
+  expect(forage.waiting).toBe("Waiting for food to grow");
   expect(a.progress).toBe(1);
   expect(b.progress).toBe(1);
 });
 
 
 it("takes construction wood from a stockpile and redraws it after pickup", () => {
-  const { state, player, tiles } = arrival();
+  const { state, player, tiles, step } = arrival();
   const [store, log] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[0]], immovable: true },
     stockpile: {}, holder: { held: [], capacity: 19 }, controllable: { controllerId: player } },
   { spatial: { ...state.ecs.spatial[tiles[0]], immovable: true }, good: { type: "wood", amount: 1 },
@@ -231,9 +232,10 @@ it("takes construction wood from a stockpile and redraws it after pickup", () =>
   enqueueTask(state, { key: "build_shelter" }, site);
   state.redraws = [];
   state.ecs.playable[player].known = Grid.hexagon({ center: Hex(0, 0), radius: 6 }).map(h => ({ x: h.x, y: h.y }));
-  require("game/construction").workOnShelter(state, player, state.ecs.planner[player].world, 1 / 1440, true, site);
+  for (let n = 0; n < 60 && state.ecs.holder[store].held.length; n++) step(1 / 60);
   expect(state.ecs.holder[store].held).toEqual([]);
   expect(state.redraws).toContain(store);
+  expect(state.space[Hex().fromPoint(state.ecs.spatial[store])]).not.toContain(log);
 });
 
 it("cancels a running forage order from the existing popup without inventing held food", () => {
@@ -248,4 +250,205 @@ it("cancels a running forage order from the existing popup without inventing hel
   expect(state.ecs.manager[player].jobs).toEqual([]);
   expect(state.ecs.planner[player].world.holding.forage).toBeFalsy();
   expect(state.ecs.forageable[bush].amount).toBe(1);
+});
+
+it("waits for logs without chopping on its own and runs the next task", () => {
+  const { state, player, tiles, step } = arrival();
+  const [tree] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[3]], immovable: true }, good: { type: "wood", amount: 4 } }]);
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  const move = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
+  step(2);
+  expect(build.waiting).toBe("Waiting for logs");
+  expect(build.detail).toBe("Waiting for logs · 0 of 4");
+  expect(build.assignedId).toBeFalsy();
+  expect(state.ecs.good[tree].amount).toBe(4);
+  expect(move.progress).toBe(1);
+  expect(state.ecs.manager[player].jobs).toEqual([build]);
+});
+
+it("stores chopped logs at camp then resumes the waiting build before later work", () => {
+  const { state, player, camp, tiles, step } = arrival();
+  const [tree] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[3]], immovable: true }, good: { type: "wood", amount: 4 } }]);
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  const chop = enqueueTask(state, { key: "cut_tree_down" }, tree);
+  const later = enqueueTask(state, { key: "create_field" }, tiles[4]);
+  step(0.1);
+  expect(build.waiting).toBe("Waiting for logs");
+  expect(chop.assignedId).toBe(player);
+  for (let n = 0; n < 500 && state.ecs.manager[player].jobs.includes(chop); n++) step(1 / 60);
+  const logs = Object.keys(state.ecs.haulable).filter(id => state.ecs.good[id]?.type == "wood");
+  expect(logs).toHaveLength(4);
+  for (const id of logs) expect(Hex().fromPoint(state.ecs.spatial[id])).toEqual(Hex().fromPoint(state.ecs.spatial[camp]));
+  for (let n = 0; n < 500 && state.ecs.construction[site]; n++) step(1 / 60);
+  expect(state.ecs.shelter[site].stage).toBe("lean-to");
+  expect(build.progress).toBe(1);
+  expect(later.progress).toBe(0);
+});
+
+it("builds immediately from an owned store, without a gathering order", () => {
+  const { state, camp, tiles, step } = arrival();
+  state.ecs.container[camp] = { capacity: 8, amounts: { wood: 4 } };
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  step(4);
+  expect(build.progress).toBe(1);
+  expect(state.ecs.container[camp].amounts.wood).toBe(0);
+  expect(state.ecs.shelter[site].stage).toBe("lean-to");
+});
+
+it("cancels a waiting build without interrupting a later running task", () => {
+  const { state, player, tiles, step } = arrival();
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  const field = enqueueTask(state, { key: "create_field" }, tiles[3]);
+  step(0.1);
+  expect(build.waiting).toBe("Waiting for logs");
+  const running = state.ecs.planner[player].task;
+  cancelTask(state, build.id);
+  expect(state.ecs.planner[player].task).toEqual(running);
+  step(2);
+  expect(field.progress).toBe(1);
+  expect(state.ecs.manager[player].jobs).toEqual([]);
+  expect(state.ecs.construction[site].delivered).toBe(0);
+});
+
+it.each(["move_to_here", "cut_tree_down", "forage", "recruit", "create_field", "create_stockpile", "build_shelter"])("keeps a missing %s target with a reason and advances the queue", key => {
+  const { state, player, tiles, step } = arrival();
+  const gone = enqueueTask(state, { key }, "gone");
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
+  step(2);
+  expect(gone.waiting).toBe("Target gone");
+  expect(next.progress).toBe(1);
+  expect(state.ecs.manager[player].jobs).toEqual([gone]);
+});
+
+it("skips unreachable work then retries it when the route opens", () => {
+  const { state, tiles, step } = arrival();
+  const links = { ...state.ecs.walkable[tiles[1]].neighbours };
+  state.ecs.walkable[tiles[1]].neighbours = {};
+  const blocked = enqueueTask(state, { key: "create_field" }, tiles[4]);
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[0]);
+  step(1);
+  expect(blocked.waiting).toBe("No path there");
+  expect(next.progress).toBe(1);
+  state.ecs.walkable[tiles[1]].neighbours = links;
+  step(3);
+  expect(blocked.progress).toBe(1);
+});
+
+it("keeps a depleted plant waiting and retries when food grows back", () => {
+  const { state, tiles, step } = arrival();
+  const [bush] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 0, growth: 0 } }]);
+  const forage = enqueueTask(state, { key: "forage" }, bush);
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
+  step(1);
+  expect(forage.waiting).toBe("Waiting for food to grow");
+  expect(next.progress).toBe(1);
+  state.ecs.forageable[bush].amount = 1;
+  step(3);
+  expect(forage.progress).toBe(1);
+});
+
+it("delivers partial stores, waits with the delivered count, then wakes when more logs arrive", () => {
+  const { state, camp, tiles, step } = arrival();
+  state.ecs.container[camp] = { capacity: 8, amounts: { wood: 1 } };
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  step(1);
+  expect(build.detail).toBe("Waiting for logs · 1 of 4");
+  expect(state.ecs.construction[site].work).toBe(0);
+  state.ecs.container[camp].amounts.wood = 3;
+  step(4);
+  expect(state.ecs.shelter[site].stage).toBe("lean-to");
+});
+
+it("retains a target removed during a walk and completes the next task", () => {
+  const { state, player, tiles, step } = arrival();
+  const [tree] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[4]], immovable: true }, good: { type: "wood", amount: 4 } }]);
+  const chop = enqueueTask(state, { key: "cut_tree_down" }, tree);
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[0]);
+  step(1 / 60);
+  require("game/entities").deleteEntity(state, tree);
+  step(1);
+  expect(chop.waiting).toBe("Target gone");
+  expect(next.progress).toBe(1);
+  expect(state.ecs.manager[player].jobs).toEqual([chop]);
+});
+
+it("yields a runtime failure and retries after the character finishes another task", () => {
+  const { state, player, tiles, step } = arrival();
+  const [bush] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[0]], immovable: true },
+    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 } }]);
+  state.ecs.holder[player].capacity = 0;
+  const forage = enqueueTask(state, { key: "forage" }, bush);
+  const move = enqueueTask(state, { key: "move_to_here" }, tiles[1]);
+  step(1);
+  expect(forage.waiting).toBe("Can't do this yet");
+  expect(move.progress).toBe(1);
+  state.ecs.holder[player].capacity = 2;
+  step(3);
+  expect(forage.progress).toBe(1);
+});
+
+it("reorders the active task behind later work even with a waiting task first", () => {
+  const { state, player, tiles, step } = arrival();
+  const site = placeShelter(state, tiles[1]);
+  enqueueTask(state, { key: "build_shelter" }, site);
+  const active = enqueueTask(state, { key: "create_field" }, tiles[4]);
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[0]);
+  step(0.1);
+  expect(active.assignedId).toBe(player);
+  reorderTask(state, active.id, 2);
+  for (let n = 0; n < 120 && next.progress != 1; n++) step(1 / 60);
+  expect(next.progress).toBe(1);
+  expect(active.progress).toBe(0);
+});
+
+it("uses reachable stored logs when the first owned stockpile cannot be reached", () => {
+  const { state, player, camp, tiles, step } = arrival();
+  const [store, log] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[4]], immovable: true },
+    stockpile: {}, holder: { held: [], capacity: 19 }, controllable: { controllerId: player } },
+  { spatial: { ...state.ecs.spatial[tiles[4]] }, good: { type: "wood", amount: 1 },
+    haulable: {}, controllable: { controllerId: player } }]);
+  require("game/holder").give(state.ecs, log, store);
+  state.ecs.walkable[tiles[2]].neighbours = {};
+  state.ecs.container[camp] = { capacity: 8, amounts: { wood: 4 } };
+  const site = placeShelter(state, tiles[1]);
+  const build = enqueueTask(state, { key: "build_shelter" }, site);
+  step(4);
+  expect(build.progress).toBe(1);
+  expect(state.ecs.shelter[site].stage).toBe("lean-to");
+  expect(state.ecs.holder[store].held).toEqual([log]);
+});
+
+it("wakes waiting work without restarting a walk to sleep", () => {
+  const { state, player, camp, tiles, step } = arrival();
+  state.ecs.container[camp] = { capacity: 8, amounts: { wood: 4 } };
+  const site = placeShelter(state, tiles[1]);
+  enqueueTask(state, { key: "build_shelter" }, site);
+  const planner = state.ecs.planner[player];
+  state.ecs.spatial[player] = { ...state.ecs.spatial[tiles[4]] };
+  planner.world.places.sleep = camp;
+  state.days = planner.world.days = 0.9;
+  planner.world.feeling.tired = true;
+  planner.task = ["walk_to", "sleep"];
+  planner.plan = [["sleep"]];
+  require("game/tasks").walk_to(state, player, planner.world, 0, true, "sleep");
+  const plan = planner.plan;
+  step(1 / 60);
+  expect(planner.plan).toBe(plan);
+  expect(planner.task).toEqual(["walk_to", "sleep"]);
+});
+
+it("skips a chop delivery that cannot pick up its logs and runs later work", () => {
+  const { state, player, tiles, step } = arrival();
+  const [tree] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true }, good: { type: "wood", amount: 1 } }]);
+  state.ecs.holder[player].capacity = 0;
+  const chop = enqueueTask(state, { key: "cut_tree_down" }, tree);
+  const next = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
+  step(2);
+  expect(chop.waiting).toBe("Can't do this yet");
+  expect(next.progress).toBe(1);
 });

@@ -637,6 +637,9 @@ hr {
   .queue { list-style: none; margin: 0; padding: 0; }
   .task { display: grid; grid-template-columns: 20px minmax(0, 1fr) 40px; gap: 6px; padding: 7px 12px; border-bottom: 1px solid #65575b; }
   .task.current { background: #393e35; border-left: 3px solid #a6b88c; padding-left: 9px; }
+  .task.waiting { background: #382f32; }
+  .task.waiting .task-content, .task.waiting .grip { opacity: 0.65; }
+  .task-waiting { color: #e2c879; }
   .grip { font: 15px sans-serif; color: #c3b7b6; align-self: center; cursor: grab; text-align: center; }
   .grip.play { font-size: 11px; color: #bdd3a8; align-self: start; margin-top: 6px; }
   .task-title { font-size: 17px; line-height: 1.1; }

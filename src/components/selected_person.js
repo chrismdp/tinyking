@@ -9,13 +9,14 @@ import { hungerStage } from "game/hunger";
 import { fullEntity } from "game/entities";
 
 const TASK_LABELS = {
-  build_shelter: "Building", carry_home: "Carrying goods home", walk_to: "Walking",
+  work_shelter: "Building", build_shelter: "Building", carry_home: "Carrying goods home", walk_to: "Walking",
   chop_tree: "Chopping wood", forage: "Foraging", sleep: "Sleeping", eat: "Eating",
   create_field: "Clearing a field", create_stockpile: "Clearing a stockpile", wait_for: "Waiting"
 };
 
 export function SelectedPerson({ entityId }) {
   const state = React.useContext(GameState);
+  if (entityId == state.ui?.playerId) return null;
   const entity = fullEntity(state.ecs, entityId);
 
   if (entityId) {

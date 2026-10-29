@@ -19,3 +19,10 @@ it("uses readable names for arrival work in the existing selected-person panel",
   expect(html).toContain("Building");
   expect(html).not.toContain("build_shelter");
 });
+
+it("hides the old selected-person name for the player and keeps other people's labels", () => {
+  const state = { ui: { playerId: "1" }, ecs: { personable: { 1: { hunger: 0 }, 2: { hunger: 0 } } } };
+  const selected = id => renderToStaticMarkup(<GameState.Provider value={state}><SelectedPerson entityId={id}/></GameState.Provider>);
+  expect(selected("1")).toBe("");
+  expect(selected("2")).toContain("Villager");
+});

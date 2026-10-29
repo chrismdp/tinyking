@@ -41,7 +41,7 @@ For now, biomes change only how the map looks. (Being built on the `world-hex` b
 - In a good world hex, people trust strangers sooner and help each other more.
 - In an evil one, trust comes slowly and help is grudging.
 
-Morality isn't fixed. When you behave badly (harming people, breaking your word), it drifts towards evil. When you help others, it drifts towards good, gradually making the place better as a whole.
+Morality isn't fixed. When you behave badly (harming people, breaking your word), it drifts towards evil. When you help others, it drifts towards good, gradually making the place better as a whole. The change ripples to neighbouring world hexes, so the one-step rule always holds.
 
 ## People and families
 
@@ -182,8 +182,8 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 - **Children grow up after a couple of game years.**
 - **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
 - **The rule of five comes from trait match.**
+- **Morality changes spread.** When your behaviour moves a world hex's morality, any neighbour now more than one step away is pulled along to within one step. That can pull its own neighbours in turn, so the change ripples outwards until the one-step rule holds everywhere again. What you do in one place gradually shifts the world around it.
 
 ## Open questions
 
-- **Morality drift and the neighbour rule.** If your behaviour drags a world hex from neutral to evil, a neighbouring world hex may be good, which breaks the one-step rule between neighbours. Should the change spread to neighbours, or should the rule apply only when the world is first generated?
 - **Dying with no heir.** The game is open-ended, so what happens then? Do you carry on as the person closest to you, or does that line end and you start again as a new stranger?

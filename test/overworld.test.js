@@ -1,7 +1,7 @@
 import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { Grid, Hex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, walkWorld, homeOf, walkStep, propagateFrom,
+  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, propagateFrom,
   WORLD_RADIUS
 } from "game/overworld";
 
@@ -39,6 +39,65 @@ const worldFor = seed => {
   return worlds.get(seed);
 };
 
+// NOTE: Include complete worlds and oceans; measuring a walk's parent alone
+// misses the borders that make a map look speckled. Cache the surveys.
+const regionalWorlds = () => Array.from({ length: 100 }, (_, i) => worldFor(i + 1));
+
+describe("regions across many seeds", () => {
+  it("keeps about two thirds of all neighbours the same on each axis", () => {
+    for (const axis in AXES) {
+      let same = 0;
+      let pairs = 0;
+      for (const world of regionalWorlds()) {
+        for (const h of world.hexes) {
+          for (const n of neighboursIn(world, h)) {
+            pairs++;
+            same += h[axis] == n[axis] ? 1 : 0;
+          }
+        }
+      }
+      expect(Math.abs(same / pairs - 2 / 3)).toBeLessThan(0.06);
+    }
+  });
+
+  it("gives each of the three values about a third of the world on every axis", () => {
+    for (const axis in AXES) {
+      const counts = [0, 0, 0];
+      for (const world of regionalWorlds()) {
+        world.hexes.forEach(h => { counts[step(axis, h[axis])]++; });
+      }
+      const total = counts.reduce((a, b) => a + b, 0);
+      counts.forEach(count => expect(Math.abs(count / total - 1 / 3)).toBeLessThan(0.055));
+    }
+  });
+
+  it("joins oceans into seas and land into continents instead of isolated specks", () => {
+    const counts = { ocean: 0, land: 0, seaInterior: 0, isolatedSea: 0, isolatedLand: 0 };
+    for (const world of regionalWorlds()) {
+      for (const h of world.hexes) {
+        const alike = neighboursIn(world, h).filter(n => n.ocean == h.ocean).length;
+        if (h.ocean) {
+          counts.ocean++;
+          counts.seaInterior += alike >= 2 ? 1 : 0;
+          counts.isolatedSea += alike == 0 ? 1 : 0;
+        } else {
+          counts.land++;
+          counts.isolatedLand += alike == 0 ? 1 : 0;
+        }
+      }
+      expect(clashesIn(world)).toEqual([]);
+    }
+    // NOTE: 90% allows coastline tips and the world's clipped edges, but
+    // requires almost every sea hex to belong to more than a pair. Singles
+    // should be under 1% on either side. Also reject all-land/all-sea worlds.
+    expect(counts.seaInterior / counts.ocean).toBeGreaterThan(0.9);
+    expect(counts.isolatedSea / counts.ocean).toBeLessThan(0.01);
+    expect(counts.isolatedLand / counts.land).toBeLessThan(0.01);
+    expect(counts.ocean / (counts.ocean + counts.land)).toBeGreaterThan(0.3);
+    expect(counts.ocean / (counts.ocean + counts.land)).toBeLessThan(0.7);
+  });
+});
+
 // NOTE: a copy of the world with one world hex's value changed
 const withValue = (world, key, axis, value) => ({
   ...world,
@@ -65,37 +124,6 @@ describe("the biomes", () => {
     expect(AXES.morality).toEqual(["good", "neutral", "evil"]);
     expect(AXES.temperature).toEqual(["hot", "temperate", "cold"]);
     expect(AXES.moisture).toEqual(["wet", "normal", "dry"]);
-  });
-});
-
-describe("the axis walk", () => {
-  it("sticks at either end instead of reflecting a clamped roll", () => {
-    expect(walkStep(0, [0], 0)).toEqual(0);
-    expect(walkStep(0, [0], 4.99 / 6)).toEqual(0);
-    expect(walkStep(0, [0], 5.01 / 6)).toEqual(1);
-    expect(walkStep(2, [2], 0.99 / 6)).toEqual(1);
-    expect(walkStep(2, [2], 1.01 / 6)).toEqual(2);
-  });
-
-  it("conditions the weights on every generated neighbour", () => {
-    // NOTE: the 0 is forbidden by the 2: the surviving weights are 4:1.
-    expect(walkStep(1, [1, 2], 0.79)).toEqual(1);
-    expect(walkStep(1, [1, 2], 0.81)).toEqual(2);
-    for (let i = 0; i < 100; i++) {
-      expect(walkStep(0, [0, 2], i / 100)).toEqual(1);
-    }
-  });
-
-  it("leans the change chances towards latitude without changing the stay weight", () => {
-    const counts = target => {
-      const result = [0, 0, 0];
-      for (let i = 0; i < 6000; i++) {
-        result[walkStep(1, [1], (i + 0.5) / 6000, target)]++;
-      }
-      return result;
-    };
-    expect(counts(0)).toEqual([1750, 4000, 250]);
-    expect(counts(2)).toEqual([250, 4000, 1750]);
   });
 });
 
@@ -145,38 +173,10 @@ describe("the world of world hexes", () => {
     expect(clashes).toEqual([]);
   });
 
-  it("walks morality and moisture roughly 4/6 same, 1/6 down and 1/6 up", () => {
-    const counts = { morality: [0, 0, 0], moisture: [0, 0, 0] };
-    for (let seed = 1; seed <= 200; seed++) {
-      const world = walkWorld(seed);
-      const generated = new Map();
-      for (const h of world.hexes) {
-        const parent = generated.get(h.parent);
-        if (parent) {
-          const neighbours = neighboursIn(world, h).filter(n => generated.has(keyOf(n)));
-          for (const axis of ["morality", "moisture"]) {
-            // NOTE: measure untruncated rolls; clamping and constraints
-            // deliberately change the distribution, tested separately above.
-            if (step(axis, parent[axis]) == 1 && neighbours.every(n => step(axis, n[axis]) == 1)) {
-              counts[axis][step(axis, h[axis])]++;
-            }
-          }
-        }
-        generated.set(keyOf(h), h);
-      }
-    }
-    for (const axis in counts) {
-      const total = counts[axis].reduce((a, b) => a + b, 0);
-      expect(total).toBeGreaterThan(1000);
-      [1 / 6, 4 / 6, 1 / 6].forEach((rate, i) =>
-        expect(Math.abs(counts[axis][i] / total - rate)).toBeLessThan(0.04));
-    }
-  });
-
   it("has colder north and south polar rows than equatorial rows", () => {
     const bands = { north: [], equator: [], south: [] };
     for (let seed = 1; seed <= 40; seed++) {
-      const world = walkWorld(seed);
+      const world = worldFor(seed);
       const cy = Hex(world.centre).toPoint().y;
       for (const h of world.hexes) {
         const latitude = (Hex(h).toPoint().y - cy) / (Hex().height() * world.radius);
@@ -261,7 +261,7 @@ describe("the world of world hexes", () => {
 describe("a change spreading out from one world hex", () => {
   // NOTE: a world all neutral, temperate and normal, except one good hex
   const calm = () => {
-    const world = walkWorld(1, { radius: 2 });
+    const world = smallWorldFor(1);
     return { ...world, hexes: world.hexes.map(h => ({
       ...h, morality: "neutral", temperature: "temperate", moisture: "normal", biome: "grassland"
     })) };
@@ -289,7 +289,7 @@ describe("a change spreading out from one world hex", () => {
 
   it("restores the one-step rule across the whole world, whichever hex changes on whichever axis", () => {
     SEEDS.slice(0, 3).forEach(seed => {
-      const world = walkWorld(seed, { radius: 2 });
+      const world = smallWorldFor(seed);
       for (const axis in AXES) {
         world.hexes.forEach((hex, i) => {
           // NOTE: push it to whichever extreme is further from where it was

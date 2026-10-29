@@ -1,4 +1,4 @@
-import MersenneTwister from "mersenne-twister";
+import SimplexNoise from "simplex-noise";
 
 import { Grid, Hex, ALL_SIDES } from "game/hex";
 import { surveyWorld } from "game/world_terrain";
@@ -45,27 +45,6 @@ const neighbourKeys = hex => {
   return neighbourIndex.get(key);
 };
 
-// NOTE: Clamp an out-of-range roll to the end it hit (5/6 stay, 1/6
-// inward), rather than reflecting it and doubling the chance of leaving.
-// Remove values forbidden by ANY generated neighbour, then renormalise.
-// Latitude redistributes the two change weights, leaving the stay at four.
-export function walkStep(anchor, neighbours, random, target = anchor) {
-  const weights = [0, 0, 0];
-  const down = target < anchor ? 1.75 : target > anchor ? 0.25 : 1;
-  const up = 2 - down;
-  for (const [delta, weight] of [[-1, down], [0, 4], [1, up]]) {
-    const value = Math.max(0, Math.min(2, anchor + delta));
-    if (neighbours.every(n => Math.abs(value - n) <= 1)) {
-      weights[value] += weight;
-    }
-  }
-  let roll = random * weights.reduce((a, b) => a + b, 0);
-  for (let value = 0; value < weights.length; value++) {
-    roll -= weights[value];
-    if (roll < 0) { return value; }
-  }
-}
-
 // NOTE: When one world hex's value on an axis changes, the change spreads:
 // any neighbour now more than a step away is pulled to one step away, and
 // so on outwards from each hex that moved, until the one-step rule holds
@@ -95,36 +74,47 @@ export function propagateFrom(world, key, axis) {
 }
 
 const layouts = new Map();
-export function walkWorld(seed, { radius = WORLD_RADIUS } = {}) {
+export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
   const centre = radius == WORLD_RADIUS ? WORLD_CENTRE : Hex(radius, radius);
   if (!layouts.has(radius)) {
     layouts.set(radius, [...Grid.spiral({ center: centre, radius })]);
   }
-  const generator = new MersenneTwister(seed);
-  const generated = new Map();
-  const cy = centre.toPoint().y;
+  // NOTE: Sample separate seeded fields in units of a world hex's height.
+  // Scales and thresholds balance thirds and about 2/3 matching neighbours
+  // across seeds, after the one-step repair below.
+  const fields = Object.fromEntries(Object.keys(AXES).map(axis => [axis, new SimplexNoise(axis + ":" + seed)]));
+  const c = centre.toPoint();
   const hexes = layouts.get(radius).map(hex => {
-    const neighbours = neighbourKeys(hex).map(k => generated.get(k)).filter(h => h);
-    const parent = neighbours.length ? neighbours[Math.floor(generator.random() * neighbours.length)] : null;
     const values = {};
-    const latitude = Math.abs(hex.toPoint().y - cy) / (Hex().height() * radius);
-    const band = Math.min(2, Math.floor(latitude * 3));
+    const p = hex.toPoint();
+    const x = (p.x - c.x) / Hex().height();
+    const y = (p.y - c.y) / Hex().height();
+    const latitude = radius ? Math.abs(y) / radius : 0;
     for (const axis in AXES) {
-      const steps = AXES[axis];
-      const anchor = parent ? steps.indexOf(parent[axis]) : Math.floor(generator.random() * 3);
-      values[axis] = steps[parent ? walkStep(anchor, neighbours.map(n => steps.indexOf(n[axis])),
-        generator.random(), axis == "temperature" ? band : anchor) : anchor];
+      const scale = axis == "temperature" ? 0.145 : 0.125;
+      const threshold = axis == "temperature" ? 0.22 : 0.215;
+      const noise = fields[axis].noise2D(x * scale + 17.3, y * scale - 9.1);
+      const value = axis == "temperature" ? 1.6 * (latitude - 0.4) + 0.65 * noise : noise;
+      values[axis] = AXES[axis][value < -threshold ? 0 : value > threshold ? 2 : 1];
     }
-    const h = { x: hex.x, y: hex.y, ...values, parent: parent ? Hex(parent).toString() : null,
-      biome: biomeOf(values.temperature, values.moisture) };
-    generated.set(hex.toString(), h);
-    return h;
+    return { x: hex.x, y: hex.y, ...values };
   });
-  return { radius, centre: { x: centre.x, y: centre.y }, hexes };
-}
-
-export function generateWorld(seed, options) {
-  const world = walkWorld(seed, options);
+  // NOTE: Use the same pull as an in-play change, in fixed spiral and side
+  // order. A clash between extremes pulls one to the middle, which cannot
+  // create another clash on a three-step axis. Include oceans in the repair.
+  const byKey = new Map(hexes.map(h => [Hex(h).toString(), h]));
+  for (const h of hexes) {
+    for (const key of neighbourKeys(Hex(h))) {
+      const n = byKey.get(key);
+      if (!n) { continue; }
+      for (const axis in AXES) {
+        const steps = AXES[axis];
+        n[axis] = steps[pullTowards(steps.indexOf(n[axis]), steps.indexOf(h[axis]))];
+      }
+    }
+  }
+  hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
+  const world = { radius, centre: { x: centre.x, y: centre.y }, hexes };
   return { ...world, ...surveyWorld(world.hexes, seed) };
 }
 

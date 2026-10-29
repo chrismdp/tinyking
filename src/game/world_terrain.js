@@ -34,8 +34,8 @@ export function createLandField(seed) {
   const relief = new SimplexNoise("terrain:" + seed);
   // NOTE: the two finer octaves are at map scale, so a coast wiggles across
   // a single map instead of running as a near-straight line
-  const landAt = ({x, y}) => land.noise2D(x * 0.00023 + 17.3, y * 0.00023 - 9.1) +
-    0.2 * land.noise2D(x * 0.00075 - 31.7, y * 0.00075 + 14.6) +
+  const landAt = ({x, y}) => land.noise2D(x * 0.00009 + 17.3, y * 0.00009 - 9.1) +
+    0.2 * land.noise2D(x * 0.0002 - 31.7, y * 0.0002 + 14.6) +
     0.1 * land.noise2D(x * 0.0025 + 5.9, y * 0.0025 - 22.4) +
     0.05 * land.noise2D(x * 0.007 - 13.1, y * 0.007 + 3.3);
   return {
@@ -86,7 +86,7 @@ export function surveyWorld(hexes, seed) {
       const landFraction = count / tiles.length;
       return { ...h, landFraction, ocean: landFraction < 0.5 };
     });
-    // NOTE: The walk visits rings outwards, so the first suitable hex is
+    // NOTE: The spiral visits rings outwards, so the first suitable hex is
     // nearest the centre. Ring order breaks ties deterministically.
     for (const h of surveyed) {
       if (h.landFraction < 0.65) { continue; }

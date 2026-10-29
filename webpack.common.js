@@ -64,7 +64,7 @@ module.exports = {
       },
       {
         test: /\.(png|svg)$/,
-        use: [ "file-loader" ],
+        type: "asset/resource",
       },
       {
         test: /\.csv$/,
@@ -72,7 +72,7 @@ module.exports = {
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
-        use: [ "file-loader" ],
+        type: "asset/resource",
       },
     ],
   },

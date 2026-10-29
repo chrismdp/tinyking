@@ -1,6 +1,7 @@
 import MersenneTwister from "mersenne-twister";
 
 import { Grid, Hex, ALL_SIDES } from "game/hex";
+import { surveyWorld } from "game/world_terrain";
 
 // NOTE: The world is a hexagon of world hexes, and the map the game is
 // played on is one of them. Each world hex has one value on each of three
@@ -94,7 +95,7 @@ export function propagateFrom(world, key, axis) {
 }
 
 const layouts = new Map();
-export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
+export function walkWorld(seed, { radius = WORLD_RADIUS } = {}) {
   const centre = radius == WORLD_RADIUS ? WORLD_CENTRE : Hex(radius, radius);
   if (!layouts.has(radius)) {
     layouts.set(radius, [...Grid.spiral({ center: centre, radius })]);
@@ -122,9 +123,12 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
   return { radius, centre: { x: centre.x, y: centre.y }, hexes };
 }
 
-// NOTE: The map is played in the centre world hex, so it always has six
-// neighbours, as the new game window's six neighbouring towns expect.
-export const homeOf = world => world.hexes.find(h => h.x == world.centre.x && h.y == world.centre.y);
+export function generateWorld(seed, options) {
+  const world = walkWorld(seed, options);
+  return { ...world, ...surveyWorld(world.hexes, seed) };
+}
+
+export const homeOf = world => world.hexes.find(h => h.x == world.home.x && h.y == world.home.y);
 
 export const colder = temperature =>
   AXES.temperature[Math.min(AXES.temperature.length - 1, AXES.temperature.indexOf(temperature) + 1)];

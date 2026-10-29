@@ -540,7 +540,9 @@ hr {
   position: absolute;
   top: 10px;
   left: 10px;
-  max-width: 360px;
+  max-width: 490px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
   padding: 5px 15px 10px;
   color: white;
   background: rgba(20, 18, 24, 0.82);
@@ -554,6 +556,8 @@ hr {
 .overworld {
   display: block;
   margin: 5px auto;
+  max-width: 100%;
+  height: auto;
 
   text { font-family: 'Raleway', sans-serif; pointer-events: none; }
 }

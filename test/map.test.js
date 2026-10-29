@@ -1,3 +1,4 @@
+import { createLandField, worldPoint } from "game/world_terrain";
 import { Hex, Grid, generateMap, generateTrees, MIN_START_TREES } from "game/map";
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, colder, BIOMES } from "game/overworld";
@@ -13,8 +14,8 @@ async function regenerate(state, seed) {
   state.map = map;
 }
 
-// NOTE: 30 plays in a desert and 3 in tundra, the two barest biomes
-const SEEDS = [1, 1234, 98765, 30, 3];
+// NOTE: a few full maps cover playability; biome density is tested on small fixtures.
+const SEEDS = [20, 1234, 98765];
 
 // NOTE: a map takes most of a second to make, so each seed's map is made
 // once and shared by the tests that only read it
@@ -34,7 +35,9 @@ describe("generateMap", () => {
   it("leaves nothing from a previous map in the space index when the map is regenerated", async () => {
     const state = {};
     await regenerate(state, 1234);
+    maps[1234] = structuredClone(state);
     await regenerate(state, 98765);
+    maps[98765] = state;
 
     for (const hex in state.space) {
       for (const id of state.space[hex]) {
@@ -60,14 +63,40 @@ describe("generateMap", () => {
       expect(tiles.some(t => t.hex.x == hex.x && t.hex.y == hex.y)).toBe(true));
   });
 
-  it("rings the hexagon with sea, so its edge is a clean hexagon", async () => {
+  it("has sea on some edges and land running off others, following the shared field", async () => {
+    let sea = 0;
+    let land = 0;
     for (const seed of SEEDS) {
       const state = await mapFor(seed);
-      const centre = Hex(state.map.centre.x, state.map.centre.y);
+      const centre = Hex(state.map.centre);
+      const field = createLandField(state.world.landSeed);
+      const home = homeOf(state.world);
       const rim = tileHexes(state).filter(t => centre.distance(t.hex) == state.map.radius);
       expect(rim.length).toEqual(66);
-      rim.forEach(t => expect(state.ecs.mappable[t.id].terrain).toEqual("deep water"));
+      for (const {id, hex} of rim) {
+        const isLand = field.landAt(worldPoint(home, hex.toPoint())) >= 0;
+        const water = state.ecs.mappable[id].terrain.includes("water");
+        if (!isLand) { expect(water).toBe(true); sea++; }
+        if (!water) { land++; }
+      }
     }
+    expect(sea).toBeGreaterThan(0);
+    expect(land).toBeGreaterThan(0);
+  });
+
+  it("is mostly land before settlements clear any terrain, for every tested seed", async () => {
+    for (const seed of SEEDS) {
+      const state = await mapFor(seed);
+      expect(homeOf(state.world).landFraction).toBeGreaterThanOrEqual(0.65);
+      const land = Object.values(state.ecs.mappable).filter(t => !t.terrain.includes("water"));
+      expect(land.length / 397).toBeGreaterThanOrEqual(0.6);
+    }
+  });
+
+  it("replays the same complete map from the same seed", async () => {
+    const replay = {};
+    await regenerate(replay, 1234);
+    expect(replay).toEqual(await mapFor(1234));
   });
 
   it("keeps everything at or above zero, so the map's points stay positive", async () => {
@@ -90,7 +119,7 @@ describe("generateMap", () => {
     }
   });
 
-  it("keeps the world of world hexes in state, playing in its centre", async () => {
+  it("keeps the world of world hexes in state, playing in the chosen land hex", async () => {
     for (const seed of SEEDS) {
       const state = await mapFor(seed);
       expect(state.world).toEqual(generateWorld(seed));
@@ -142,6 +171,8 @@ describe("trees", () => {
   const WIDTH = 2100;
   const HEIGHT = 2390;
   const treesIn = (seed, biome, start) => generateTrees(seed, landscape, {}, WIDTH, HEIGHT, { biomeAt: () => biome, start });
+  const small = Grid.hexagon({ center: Hex(6, 6), radius: 6 });
+  const smallLand = Object.fromEntries(small.map(h => [h.toString(), { terrain: "grassland" }]));
 
   it("keeps grassland's woods exactly as they were", () => {
     // NOTE: counts and checksums from before biomes set the density
@@ -153,7 +184,8 @@ describe("trees", () => {
   });
 
   it("grows each biome's trees as thickly as the biome says, the same seed over the same land", () => {
-    const count = biome => treesIn(7, biome).length;
+    const count = biome => generateTrees(7, smallLand, {}, small.pointWidth(), small.pointHeight(),
+      { biomeAt: () => biome }).length;
     const counts = {};
     Object.keys(BIOMES).forEach(biome => { counts[biome] = count(biome); });
 
@@ -173,17 +205,18 @@ describe("trees", () => {
   });
 
   it("always grows a few trees within reach of the start, in every biome", () => {
-    // NOTE: the start is ringed by sea four hexes out, so only these hexes count
+    // NOTE: a small grassland patch, sea three hexes out, then unreachable
+    // grassland beyond: only the inner patch counts towards starting wood.
+    const start = Hex(4, 4);
     const island = {};
-    Grid.hexagon({ center: centre, radius: 6 }).forEach(hex => {
-      island[hex] = { terrain: centre.distance(hex) == 4 ? "deep water" : "grassland" };
+    const grid = Grid.hexagon({ center: start, radius: 4 });
+    grid.forEach(hex => {
+      island[hex] = { terrain: start.distance(hex) == 3 ? "deep water" : "grassland" };
     });
-    const inReach = [...Grid.hexagon({ center: centre, radius: 3 })].map(hex => hex.toString());
-    // NOTE: only as far across as the island reaches
-    const { x, y } = Hex(17, 17).toPoint();
+    const inReach = new Set([...Grid.hexagon({ center: start, radius: 2 })].map(hex => hex.toString()));
     Object.keys(BIOMES).forEach(biome => {
-      const trees = generateTrees(1234, island, {}, x + 60, y + 60, { biomeAt: () => biome, start: centre });
-      const near = trees.filter(t => inReach.includes(Hex().fromPoint(t).toString()));
+      const trees = generateTrees(1234, island, {}, grid.pointWidth(), grid.pointHeight(), { biomeAt: () => biome, start });
+      const near = trees.filter(t => inReach.has(Hex().fromPoint(t).toString()));
       expect([biome, near.length >= MIN_START_TREES]).toEqual([biome, true]);
     });
   });

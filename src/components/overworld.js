@@ -15,6 +15,10 @@ const ink = colour => {
   return 0.299 * r + 0.587 * g + 0.114 * b > 140 ? "#1d1a17" : "#f4efe6";
 };
 
+const OCEAN_COLOUR = 0x286b9b;
+const colourOf = h => h.ocean ? OCEAN_COLOUR : BIOME_COLOURS[h.biome];
+const labelOf = h => h.ocean ? "ocean" : h.biome;
+
 const MORALITY_MARK = { good: "#f2c14e", evil: "#7a3fa0" };
 
 // NOTE: The world of world hexes, seen from above: each coloured by its
@@ -36,16 +40,24 @@ export function Overworld({ world, size, labels }) {
   const hex = (h, isHome) => (
     <g key={h.x + "," + h.y} transform={"translate(" + (h.at.x * scale).toFixed(1) + "," + (h.at.y * scale).toFixed(1) + ")"}
       className={isHome ? "home" : ""}>
-      <title>{h.biome + ": " + h.morality + ", " + h.temperature + ", " + h.moisture + (isHome ? " (you are here)" : "")}</title>
-      <polygon points={corners} fill={isHome ? "none" : css(BIOME_COLOURS[h.biome])}
+      <title>{labelOf(h) + ": " + h.morality + ", " + h.temperature + ", " + h.moisture + (isHome ? " (you are here)" : "")}</title>
+      <polygon points={corners} fill={isHome ? "none" : css(colourOf(h))}
         stroke={isHome ? "#d93b30" : "rgba(0, 0, 0, 0.35)"} strokeWidth={isHome ? 3 : 1}/>
-      { !isHome && MORALITY_MARK[h.morality] &&
+      { !isHome && !h.ocean && MORALITY_MARK[h.morality] &&
         <circle cx={0} cy={-size * 0.62} r={size * 0.1} fill={MORALITY_MARK[h.morality]} stroke="rgba(0, 0, 0, 0.4)"/> }
-      { !isHome && labels &&
-        <text textAnchor="middle" fontSize={line * 0.95} fill={ink(BIOME_COLOURS[h.biome])}>
-          <tspan x={0} y={-line * 0.6}>{h.morality}</tspan>
-          <tspan x={0} y={line * 0.45}>{h.temperature}</tspan>
-          <tspan x={0} y={line * 1.5}>{h.moisture}</tspan>
+      { !isHome && (labels || h.ocean) &&
+        <text textAnchor="middle" fontSize={line * 0.95} fill={ink(colourOf(h))}>
+          { h.ocean ? <>
+            <tspan x={0} y={labels ? -line * 0.6 : line * 0.3}>ocean</tspan>
+            { labels && <>
+              <tspan x={0} y={line * 0.45} fontSize={line * 0.75}>{h.morality}</tspan>
+              <tspan x={0} y={line * 1.5} fontSize={line * 0.75}>{h.temperature + " / " + h.moisture}</tspan>
+            </> }
+          </> : <>
+            <tspan x={0} y={-line * 0.6}>{h.morality}</tspan>
+            <tspan x={0} y={line * 0.45}>{h.temperature}</tspan>
+            <tspan x={0} y={line * 1.5}>{h.moisture}</tspan>
+          </> }
         </text> }
     </g>
   );
@@ -67,6 +79,7 @@ Overworld.propTypes = {
 export function BiomeKey() {
   return (
     <ul className="biome-key">
+      <li><span className="swatch" style={{ background: css(OCEAN_COLOUR) }}/>ocean</li>
       { Object.keys(BIOMES).map(b => (
         <li key={b}><span className="swatch" style={{ background: css(BIOME_COLOURS[b]) }}/>{b}</li>
       )) }

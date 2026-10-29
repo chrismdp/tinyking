@@ -11,8 +11,11 @@
     "playtest": "node scripts/playtest.js"
   },
   "jest": {
+    "cacheDirectory": "<rootDir>/.cache/jest",
+    "sandboxInjectedGlobals": ["Math", "Object", "Array"],
     "moduleNameMapper": {
       "game/(.*)": "<rootDir>/src/game/$1",
+      "^render/(.*)$": "<rootDir>/src/render/$1",
       "^data/(.*)$": "<rootDir>/src/data/$1"
     }
   },

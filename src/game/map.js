@@ -10,25 +10,15 @@ import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
+import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
-
-// NOTE: The map is one big hexagon of small hexes, a "world hex". Centring
-// it at offset (radius, radius) keeps every hex's coordinates, and so every
-// point on the map, at or above zero.
-const MAP_RADIUS = 11;
-const MAP_CENTRE = Hex(MAP_RADIUS, MAP_RADIUS);
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
 const STARTING_KNOWN_DISTANCE = 5;
 
 const UPDATE_PROGRESS_EVERY = 500;
-
-// NOTE: how far out (as a share of the radius) the land starts to fall away
-// towards the sea, and how steeply
-const FALLOFF_START = 0.78;
-const FALLOFF = 9;
 
 export const HAIR = [
   0x8D3633, // red
@@ -110,49 +100,15 @@ export function generateFamilies({ state, seed, playerStartTile }) {
   }
 }
 
-async function generateTerrain(grid, seed, progressUpdate) {
-
-  const simplex = new SimplexNoise(seed);
-  let result = {};
-  for (let grid_index = 0; grid_index < grid.length; grid_index++) {
-    const hex = grid[grid_index];
-
-    // NOTE: land falls away towards the edge, so the world hex is an island
-    // with a rim of sea all round
-    const ring = MAP_CENTRE.distance(hex);
-    const relativeDistance = ring / MAP_RADIUS;
-    hex.customHeight =
-      Math.min(1.5, simplex.noise2D(hex.x * 0.025, hex.y * 0.025) * 1) +
-      Math.max(0, simplex.noise2D(hex.x * 0.1, hex.y * 0.1) * 2);
-    if (relativeDistance >= FALLOFF_START) {
-      hex.customHeight -= (relativeDistance - FALLOFF_START) * FALLOFF;
-    }
-    if (ring == MAP_RADIUS) {
-      hex.customHeight = -1;
-    }
-    let terrain = "";
-    if (hex.customHeight > 1.4) {
-      terrain = "mountain";
-    } else if (hex.customHeight <= -0.2) {
-      terrain = "deep water";
-    } else if (hex.customHeight < 0) {
-      terrain = "shallow water";
-    } else {
-      if (simplex.noise2D(hex.x * 0.5, hex.y * 0.5) > 0.85) {
-        terrain = "stone";
-      } else {
-        terrain = "grassland";
-      }
-    }
+async function generateTerrain(grid, world, progressUpdate) {
+  const field = createLandField(world.landSeed);
+  const home = homeOf(world);
+  const result = {};
+  for (let i = 0; i < grid.length; i++) {
+    const hex = grid[i];
     const point = hex.toPoint();
-    result[hex] = {
-      x: point.x,
-      y: point.y,
-      terrain: terrain
-    };
-    if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
-      await progressUpdate("terrain");
-    }
+    result[hex] = { ...point, terrain: field.terrainAt(worldPoint(home, point)) };
+    if (i % UPDATE_PROGRESS_EVERY == 0) { await progressUpdate("terrain"); }
   }
   return result;
 }
@@ -197,7 +153,9 @@ function reachableFrom(start, landscape, settlements, reach) {
   const reached = new Set([start.toString()]);
   let frontier = [start];
   for (let d = 0; d < reach; d++) {
-    frontier = frontier.flatMap(hex => Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES))
+    frontier = frontier.flatMap(hex => Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES)
+      .filter((n, side) => hex.toString() != start.toString() || !settlements[start] ||
+        side == settlements[start].frontDoorSide))
       .filter(hex => {
         const key = hex.toString();
         if (reached.has(key) || !landscape[key] || !walkable[landscape[key].terrain] || settlements[key]) {
@@ -280,21 +238,6 @@ const walkable = {
   "grassland": 1.0
 };
 
-async function findPlayerStart(grid, landscape, progressUpdate) {
-  const spiral = Grid.spiral({ center: MAP_CENTRE, radius: MAP_RADIUS });
-  for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
-    const hex = spiral[spiral_index];
-    if (landscape[hex].terrain == "grassland") {
-      return hex;
-    }
-    if (spiral_index % UPDATE_PROGRESS_EVERY == 0) {
-      await progressUpdate("player start");
-    }
-  }
-  // TODO: do something more useful here
-  throw "Cannot find any grassland for player to start on!";
-}
-
 async function generateEconomicValue(grid, landscape, progressUpdate) {
   const spiral = Grid.spiral({ radius: 5 });
   spiral.shift(); // Ignore centre
@@ -338,10 +281,10 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
   let generator = new MersenneTwister(seed);
   for (let grid_index = 0; grid_index < grid.length; grid_index++) {
     const target = grid[grid_index];
-    // NOTE: a house turns the hexes round it to grassland, so none goes
-    // next to the rim, which must stay sea
+    // NOTE: Keep house clearings inside the map and off the coast.
     const inland = MAP_CENTRE.distance(target) < MAP_RADIUS - 1;
-    if (!settlements[target] && inland && landscape[target].terrain == "grassland") {
+    if (!settlements[target] && inland && landscape[target].terrain == "grassland" &&
+      Grid.hexagon({ center: target, radius: 1 }).every(h => !landscape[h].terrain.includes("water"))) {
       const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
       if (generator.random_int() % dieRoll == 0) {
         if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
@@ -371,9 +314,9 @@ export async function generateMap(state, seed, progressUpdate) {
   state.world = generateWorld(seed);
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
-  let landscape = await generateTerrain(grid, seed, progressUpdate);
+  let landscape = await generateTerrain(grid, state.world, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
-  const start = await findPlayerStart(grid, landscape, progressUpdate);
+  const start = Hex(homeOf(state.world).start);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
 
   // NOTE: Every tile takes its world hex's temperature, but high ground is

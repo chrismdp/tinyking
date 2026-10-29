@@ -1,6 +1,7 @@
+import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { Grid, Hex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, walkStep, propagateFrom,
+  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, walkWorld, homeOf, walkStep, propagateFrom,
   WORLD_RADIUS
 } from "game/overworld";
 
@@ -28,6 +29,11 @@ const clashesIn = world => world.hexes.flatMap(h => neighboursIn(world, h).flatM
     .map(axis => ({ axis, a: keyOf(h), b: keyOf(n) }))));
 
 const worlds = new Map();
+const smallWorlds = new Map();
+const smallWorldFor = seed => {
+  if (!smallWorlds.has(seed)) { smallWorlds.set(seed, generateWorld(seed, { radius: 2 })); }
+  return smallWorlds.get(seed);
+};
 const worldFor = seed => {
   if (!worlds.has(seed)) { worlds.set(seed, generateWorld(seed)); }
   return worlds.get(seed);
@@ -114,8 +120,9 @@ describe("the world of world hexes", () => {
   });
 
   it("makes the same world from the same seed, and a different one from another", () => {
-    SEEDS.forEach(seed => expect(generateWorld(seed)).toEqual(generateWorld(seed)));
-    const worlds = SEEDS.map(seed => JSON.stringify(generateWorld(seed).hexes));
+    const originals = SEEDS.map(worldFor);
+    SEEDS.forEach((seed, i) => expect(generateWorld(seed)).toEqual(originals[i]));
+    const worlds = originals.map(world => JSON.stringify(world.hexes));
     expect(new Set(worlds).size).toEqual(SEEDS.length);
   });
 
@@ -141,7 +148,7 @@ describe("the world of world hexes", () => {
   it("walks morality and moisture roughly 4/6 same, 1/6 down and 1/6 up", () => {
     const counts = { morality: [0, 0, 0], moisture: [0, 0, 0] };
     for (let seed = 1; seed <= 200; seed++) {
-      const world = worldFor(seed);
+      const world = walkWorld(seed);
       const generated = new Map();
       for (const h of world.hexes) {
         const parent = generated.get(h.parent);
@@ -169,7 +176,7 @@ describe("the world of world hexes", () => {
   it("has colder north and south polar rows than equatorial rows", () => {
     const bands = { north: [], equator: [], south: [] };
     for (let seed = 1; seed <= 40; seed++) {
-      const world = worldFor(seed);
+      const world = walkWorld(seed);
       const cy = Hex(world.centre).toPoint().y;
       for (const h of world.hexes) {
         const latitude = (Hex(h).toPoint().y - cy) / (Hex().height() * world.radius);
@@ -182,18 +189,67 @@ describe("the world of world hexes", () => {
     expect(mean("south")).toBeGreaterThan(mean("equator") + 0.25);
   });
 
-  it("plays in the centre world hex, which has all six neighbours", () => {
-    const world = worldFor(4242424);
-    const home = homeOf(world);
-    expect([home.x, home.y]).toEqual([world.centre.x, world.centre.y]);
-    expect(neighboursIn(world, home).length).toEqual(6);
+  it("chooses the nearest mostly-land hex with a farmable start, even when the centre is ocean", () => {
+    let oceanCentres = 0;
+    for (const seed of SEEDS) {
+      const world = worldFor(seed);
+      const centre = Hex(world.centre);
+      const home = homeOf(world);
+      expect(home.landFraction).toBeGreaterThanOrEqual(0.65);
+      expect(home.start).toBeDefined();
+      expect(home.ocean).toBe(false);
+      const closer = world.hexes.filter(h => centre.distance(Hex(h)) < centre.distance(Hex(home)));
+      const field = createLandField(world.landSeed);
+      const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
+      for (const h of closer.filter(h => h.landFraction >= 0.65)) {
+        const terrain = new Map(tiles.map(tile => [keyOf(tile), field.terrainAt(worldPoint(h, tile.toPoint()))]));
+        if ([...terrain.values()].filter(t => !t.includes("water")).length / tiles.length < 0.6) { continue; }
+        const patches = tiles.filter(tile => MAP_CENTRE.distance(tile) <= MAP_RADIUS - 2);
+        expect(patches.some(tile => [...Grid.hexagon({ center: tile, radius: 2 })]
+          .every(n => terrain.get(keyOf(n)) == "grassland"))).toBe(false);
+      }
+      if (world.hexes.find(h => keyOf(h) == keyOf(centre)).ocean) { oceanCentres++; }
+    }
+    expect(oceanCentres).toBeGreaterThan(0);
+  });
+
+  it("classifies ocean hexes from their actual tile samples and carries axes through them", () => {
+    let oceans = 0;
+    for (const seed of SEEDS.slice(0, 3)) {
+      const world = worldFor(seed);
+      const field = createLandField(world.landSeed);
+      const points = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })].map(h => h.toPoint());
+      for (const h of world.hexes) {
+        const land = points.filter(p => field.landAt(worldPoint(h, p)) >= 0).length / points.length;
+        expect(h.landFraction).toEqual(land);
+        expect(h.ocean).toEqual(land < 0.5);
+        if (h.ocean) { oceans++; }
+      }
+      expect(clashesIn(world)).toEqual([]);
+    }
+    expect(oceans).toBeGreaterThan(20);
+  });
+
+  it("keeps the chosen map mostly dry with two farmable rings across many seeds", () => {
+    const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
+    for (let seed = 1; seed <= 120; seed++) {
+      const world = smallWorldFor(seed);
+      const home = homeOf(world);
+      const field = createLandField(world.landSeed);
+      const dry = tiles.filter(h => !field.terrainAt(worldPoint(home, h.toPoint())).includes("water"));
+      expect(dry.length / tiles.length).toBeGreaterThanOrEqual(0.6);
+      const start = Hex(home.start);
+      expect(MAP_CENTRE.distance(start)).toBeLessThanOrEqual(MAP_RADIUS - 2);
+      Grid.hexagon({ center: start, radius: 2 }).forEach(h =>
+        expect(field.terrainAt(worldPoint(home, h.toPoint()))).toEqual("grassland"));
+    }
   });
 
   it("lands the playable world hex on every biome and every morality across seeds", () => {
     const biomes = new Set();
     const moralities = new Set();
     for (let seed = 1; seed <= 120; seed++) {
-      const home = homeOf(worldFor(seed));
+      const home = homeOf(smallWorldFor(seed));
       biomes.add(home.biome);
       moralities.add(home.morality);
     }
@@ -205,7 +261,7 @@ describe("the world of world hexes", () => {
 describe("a change spreading out from one world hex", () => {
   // NOTE: a world all neutral, temperate and normal, except one good hex
   const calm = () => {
-    const world = generateWorld(1, { radius: 2 });
+    const world = walkWorld(1, { radius: 2 });
     return { ...world, hexes: world.hexes.map(h => ({
       ...h, morality: "neutral", temperature: "temperate", moisture: "normal", biome: "grassland"
     })) };
@@ -233,7 +289,7 @@ describe("a change spreading out from one world hex", () => {
 
   it("restores the one-step rule across the whole world, whichever hex changes on whichever axis", () => {
     SEEDS.slice(0, 3).forEach(seed => {
-      const world = generateWorld(seed, { radius: 2 });
+      const world = walkWorld(seed, { radius: 2 });
       for (const axis in AXES) {
         world.hexes.forEach((hex, i) => {
           // NOTE: push it to whichever extreme is further from where it was
@@ -246,6 +302,18 @@ describe("a change spreading out from one world hex", () => {
         });
       }
     });
+  });
+
+  it("propagates through oceans on the full world without changing their land classification", () => {
+    const world = worldFor(1234);
+    for (const axis in AXES) {
+      const hex = world.hexes.find(h => h.ocean && h[axis] != AXES[axis][2]);
+      const changed = withValue(world, keyOf(hex), axis, AXES[axis][2]);
+      const after = propagateFrom(changed, keyOf(hex), axis);
+      expect(clashesIn(after)).toEqual([]);
+      expect(after.hexes.find(h => keyOf(h) == keyOf(hex))[axis]).toEqual(AXES[axis][2]);
+      expect(after.hexes.map(h => [h.ocean, h.landFraction])).toEqual(world.hexes.map(h => [h.ocean, h.landFraction]));
+    }
   });
 
   it("keeps each biome in step when temperature or moisture spreads", () => {

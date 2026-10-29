@@ -24,6 +24,13 @@ What the player should enjoy:
 
 **The world.** World hexes sit in a larger grid. Neighbouring world hexes differ by at most one step on each axis, so hot never borders cold and good never borders evil. You travel between world hexes by walking off the edge of the map.
 
+**How the world is made.**
+
+- **Neighbours by random walk.** World hexes are generated outwards from a starting one. On each axis, a new world hex stays the same as its neighbour with probability 4/6, moves one step worse with 1/6, and moves one step better with 1/6.
+- **Latitude.** North and south are colder: temperature's walk is pulled towards a band that is cold at the poles and hot at the equator.
+- **Land and sea** come from one continuous noise field across the whole world, so coastlines run on across world-hex borders. A map has sea on the sides that face ocean and land running off the edge on the sides that face land.
+- **Ocean world hexes** still carry morality, temperature and moisture, so the walk runs across the sea and the one-step rule holds between lands on either side. For now they are shown as plain ocean.
+
 **Biomes.** Temperature and moisture together give nine biomes:
 
 |           | dry    | normal    | wet             |

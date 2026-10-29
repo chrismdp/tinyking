@@ -5,6 +5,7 @@ import { GameState } from "components/contexts";
 import { Name } from "components/name";
 import { TraitList } from "components/trait_list";
 
+import { hungerStage } from "game/hunger";
 import { fullEntity } from "game/entities";
 
 export function SelectedPerson({ entityId }) {
@@ -20,6 +21,7 @@ export function SelectedPerson({ entityId }) {
             (entity.planner && entity.planner.task && entity.planner.task[0])
           }</span>
       </h1>
+      <div className="hunger-stage">{hungerStage(entity.personable)}</div>
       <div className="traits">
         <TraitList traits={entity.traits}/>
       </div>

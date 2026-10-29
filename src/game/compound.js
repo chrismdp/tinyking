@@ -294,24 +294,24 @@ export const move_to_place = (type, filter, param) => [
   ]
 ];
 
-export const find_food = () => [
+export const find_food = () => ["gruel", "grain"].flatMap(good => [
   [
-    world => !world.holding.gruel,
+    world => !world.holding[good],
     () => [
-      [ "pick_up", "gruel" ],
+      [ "pick_up", good ],
       [ "find_food" ]
     ]
   ],
   [
-    world => world.holding.gruel,
+    world => world.holding[good],
     () => [
       [ "set_label" ],
       [ "move_to_place", "meet", "space" ],
       [ "set_label", "eating"],
-      [ "eat", "gruel" ]
+      [ "eat", good ]
     ]
   ]
-];
+]);
 
 // TODO: Not yet complete. A number of these tasks don't yet exist: not quite
 // ready to do crafting.

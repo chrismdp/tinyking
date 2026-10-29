@@ -8,6 +8,7 @@ import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } fr
 import { topController } from "game/playable";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
+import { hungerSpeed } from "game/hunger";
 import { MAX_SUBTASKS } from "game/primitive";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
@@ -77,7 +78,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   const weightCost = state.ecs.holder[actorId].held
     .map(id => state.ecs.haulable[id].speedModifier || 1)
     .reduce((result, x) => result * x, 1);
-  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost * weightCost;
+  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost * weightCost * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
   let dx = targetPoint.x - s.x;
   let dy = targetPoint.y - s.y;
   const length = Math.sqrt(dx * dx + dy * dy);
@@ -165,13 +166,16 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   return (state.days <= world.wait_until) ? Task.CONTINUE : Task.FINISH;
 }
 
+// Timed work consumes effort, so a hunger change takes effect mid-task too.
+function workComplete(state, actorId, world, dt, firstRun, duration) {
+  if (firstRun) world.workRemaining = duration;
+  world.workRemaining -= dt * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
+  return world.workRemaining <= 1e-12;
+}
+
 const TIME_TO_DESIGNATE = time.HOUR / 3;
 export function create_stockpile(state, actorId, world, dt, firstRun, targetId) {
-  if (firstRun) {
-    world.wait_until = state.days + TIME_TO_DESIGNATE;
-  }
-
-  if (state.days > world.wait_until) {
+  if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_DESIGNATE)) {
     newEntities(state, [{
       nameable: { nickname: "Stockpile" },
       spatial: { ...state.ecs.spatial[targetId] },
@@ -185,11 +189,7 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
 }
 
 export function create_field(state, actorId, world, dt, firstRun, targetId) {
-  if (firstRun) {
-    world.wait_until = state.days + TIME_TO_DESIGNATE;
-  }
-
-  if (state.days > world.wait_until) {
+  if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_DESIGNATE)) {
     newEntities(state, [{
       nameable: { nickname: "Field" },
       spatial: { ...state.ecs.spatial[targetId] },
@@ -207,11 +207,8 @@ export function create_field(state, actorId, world, dt, firstRun, targetId) {
 
 const TIME_TO_CHOP_WOOD = time.HOUR / 2;
 export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
-  if (firstRun) {
-    world.wait_until = state.days + TIME_TO_CHOP_WOOD;
-  }
-
-  if (state.days > world.wait_until) {
+  if (!state.ecs.good[targetId]) return Task.ABORT;
+  if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_CHOP_WOOD)) {
     newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
       spatial: { ...state.ecs.spatial[targetId], immovable: false },
       nameable: { nickname: "Log" },
@@ -299,10 +296,9 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
       deleteEntity(state, id);
     }
 
-    world.wait_until = state.days + SUBTASK_TIMES[subtask.result];
   }
 
-  if (state.days > world.wait_until) {
+  if (workComplete(state, actorId, world, dt, firstRun, SUBTASK_TIMES[world.places[place].result])) {
     const subtask = world.places[place];
     if (!state.ecs.farmable[targetId]) {
       throw "Cannot find farmable for " + targetId;
@@ -310,7 +306,6 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     const slot = state.ecs.farmable[targetId].slots[subtask.idx];
     slot.state = subtask.result;
     if (subtask.result == "harvested") {
-      console.log("HARVEST", state.ecs.spatial[targetId], slot, subtask);
       newEntities(state, Array.from({ length: slot.amount }, () => ({
         spatial: { x: subtask.x, y: subtask.y, immovable: false },
         good: { type: slot.content, amount: 1 },
@@ -542,16 +537,16 @@ export function sleep(state, actorId, world, dt) {
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
 
-const FOOD_REPLENISH = {
-  gruel: 24, // NOTE: this means we finish eating in about an hour
-};
-
 export function pick_up_from_container(state, actorId, world, dt, firstRun, place, thing) {
   const containerId = world.places[place];
   if (!containerId) {
     return Task.ABORT;
   }
 
+  if (!(state.ecs.container[containerId].amounts[thing] > 0)) {
+    delete world.places[place];
+    return Task.ABORT;
+  }
   state.ecs.container[containerId].amounts[thing] -= 1;
 
   const s = state.ecs.spatial[actorId];
@@ -574,11 +569,14 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
     }
     take(state.ecs, id, null);
     deleteEntity(state, id);
+    world.mealRemaining = time.HOUR;
   }
 
-  const person = state.ecs.personable[actorId];
-  person.hunger -= dt * FOOD_REPLENISH[thing];
-  return (person.hunger >= 0.1) ? Task.CONTINUE : Task.FINISH;
+  world.mealRemaining -= dt;
+  if (world.mealRemaining > 1e-12) return Task.CONTINUE;
+  state.ecs.personable[actorId].hunger = 0;
+  state.ecs.personable[actorId].starving = false;
+  return Task.FINISH;
 }
 
 export function get_attention(state, actorId, world, dt, firstRun, targetId) {

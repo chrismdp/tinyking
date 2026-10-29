@@ -91,6 +91,28 @@ Survival is the smallest version that works. It exists so that time matters: doi
 
 Today hunger and tiredness rise and the planner sends people to eat and sleep, but going without has no consequences. The hunger stages and winter are new.
 
+## Weather
+
+Weather comes from a simple pressure model run across the world hexes, so it's driven by the biomes rather than rolled at random.
+
+**Pressure.** Each world hex has an air pressure:
+
+- Its baseline comes from its biome. Cold is high pressure; hot is low. Ocean world hexes swing more than land ones.
+- The season shifts it: winter raises pressure over land, summer lowers it.
+- Slow-moving weather systems (a drifting noise field) roll across the world from west to east, so a storm can be seen coming from a neighbour.
+
+**Wind** blows from high pressure to low, between neighbouring world hexes. Its strength is the pressure difference.
+
+**Rain and snow.** Moist air comes from oceans, and wet biomes, and travels on the wind. When it reaches low pressure or rises over high ground, it falls. On tiles cold enough (cold biome, high ground, or winter), it falls as snow.
+
+**Snow lies on the ground.** It builds up on each tile while it snows there, and turns the ground white. It melts when the tile warms up, so it lasts all year on cold high ground and comes and goes in temperate winters.
+
+**Storms.** Fast pressure changes bring windstorms, and they are fiercest on open plains: grassland, steppe and savanna. Trees bend, dust and leaves blow, and the sky darkens.
+
+**What you see.** Falling rain and snow, snow cover on the ground, clouds dimming the light, and trees swaying with the wind. The clock shows the current weather.
+
+**What it changes.** For now, nothing in play: it's looks only, like biomes were at first. Later candidates are rain watering crops, snow slowing walking, and storms damaging fields or roofs. Each of those gets added only when it makes a decision more interesting.
+
 ## People and families
 
 Everyone belongs to a family, and families live in villages: clusters of houses. Children stay children for a couple of game years, then grow up, so families and marriages move quickly enough to watch. Each person has parents, a spouse and children where they apply. Today's code generates families per house (`generateFamily` in `src/game/map.js`) but doesn't record who is related to whom. That record comes first, because almost everything below depends on it.

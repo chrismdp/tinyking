@@ -14,10 +14,13 @@ import { Hex, HEX_SIZE } from "game/hex";
 
 export const SEA_LEVEL = 0;
 
+// NOTE: Each terrain's height starts at its base and rises by up to its
+// rise with the noise. These are 70% of the first bands, which made the
+// relief too extreme.
 const TERRAIN = {
-  "grassland": { base: 4, rise: 44 },
-  "stone": { base: 12, rise: 50 },
-  "mountain": { base: 100, rise: 90 },
+  "grassland": { base: 2.8, rise: 30.8 },
+  "stone": { base: 8.4, rise: 35 },
+  "mountain": { base: 70, rise: 63 },
 };
 const WATER = ["shallow water", "deep water"];
 

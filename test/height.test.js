@@ -122,6 +122,30 @@ describe("terrain height", () => {
     expect(summit).toBeGreaterThan(Math.max(...grass) * 2);
   });
 
+  it("keeps each terrain's heights within its band, at 70% of the old relief", () => {
+    // NOTE: the old bands were grassland 4 to 48, stone 12 to 62 and
+    // mountain 100 to 190; each base and rise is now 70% of that
+    const bands = {
+      grassland: { low: 2.8, high: 2.8 + 30.8 },
+      stone: { low: 8.4, high: 8.4 + 35 },
+      mountain: { low: 70, high: 70 + 63 },
+    };
+    const wide = [...Grid.rectangle({ width: 40, height: 40 })];
+    const inner = wide.filter(hex => hex.x > 0 && hex.y > 0 && hex.x < 39 && hex.y < 39);
+    for (const terrain in bands) {
+      const { low, high } = bands[terrain];
+      const heights = [];
+      [3, 17, 4242].forEach(seed => {
+        const field = createHeightField({ seed, terrainAt: () => terrain });
+        inner.forEach(hex => cornersOf(hex).forEach(p => heights.push(field.cornerHeight(p.x, p.y))));
+      });
+      expect(Math.min(...heights)).toBeGreaterThanOrEqual(low);
+      expect(Math.max(...heights)).toBeLessThanOrEqual(high);
+      // NOTE: and the noise still spreads them across most of the band
+      expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan((high - low) * 0.6);
+    }
+  });
+
   it("treats anywhere off the map as sea", () => {
     const field = createHeightField({ seed: 11, terrainAt: grassland });
     expect(field.heightAt(-5000, -5000)).toEqual(SEA_LEVEL);

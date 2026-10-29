@@ -226,7 +226,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 - **Sworn followers share your job queue.** No detailed feudal duties.
 - **Children grow up after a couple of game years.**
 - **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
-- **The rule of five comes from trait match.**
+- **The rule of five comes from traits and tastes, and relationships are one-way.**
 - **Morality changes spread.** When your behaviour moves a world hex's morality, any neighbour now more than one step away is pulled along to within one step. That can pull its own neighbours in turn, so the change ripples outwards until the one-step rule holds everywhere again. What you do in one place gradually shifts the world around it.
 
 ## Open questions

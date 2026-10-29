@@ -218,6 +218,10 @@ export function tree(ground, ecs, id) {
 
 // --- Buildings ---------------------------------------------------------------
 
+// NOTE: a unit pyramid on a square base lined up with the axes, so it can be
+// stretched to fit the walls
+const squarePyramid = () => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4);
+
 export function building(ground, state, id, options) {
   const { x, y } = state.ecs.spatial[id];
   return house(ground, x, y, state.ecs.building[id].entrance, options);
@@ -251,8 +255,8 @@ export function house(ground, x, y, entrance, { playerOwned, selected }) {
 
   const parts = [
     { geometry: new THREE.BoxGeometry(w, body, d), colour: COLOURS.wall, matrix: at(0, low + body / 2, 0) },
-    { geometry: new THREE.ConeGeometry(Math.SQRT1_2, 1, 4), colour: COLOURS.roof,
-      matrix: at(0, high + wall + roof / 2, 0, 0, Math.PI / 4, 0, w + 10, roof, d + 10) },
+    { geometry: squarePyramid(), colour: COLOURS.roof,
+      matrix: at(0, high + wall + roof / 2, 0, 0, 0, 0, w + 10, roof, d + 10) },
     { geometry: new THREE.BoxGeometry(w * 0.3, 16, 2), colour: COLOURS.door, matrix: at(0, doorGround + 8, d / 2 + 0.5) },
   ];
   if (playerOwned) {
@@ -438,7 +442,7 @@ export function tileOverlay(ground, ecs, id, { selected }) {
 export function field(ground, state, id, { selected }) {
   const group = new THREE.Group();
   const centre = state.ecs.spatial[id];
-  group.add(new THREE.Mesh(drapedHex(ground, centre, 0.9, 0.6), overlay(COLOURS.field, 0.45, 2)));
+  group.add(new THREE.Mesh(drapedHex(ground, centre, 0.9, 0.6), overlay(COLOURS.field, 0.7, 2)));
 
   state.ecs.farmable[id].slots.forEach((slot, idx) => {
     const p = { x: centre.x + TRIANGLES[idx].x, y: centre.y + TRIANGLES[idx].y };

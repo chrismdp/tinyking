@@ -250,6 +250,41 @@ What depends on which direction:
 
 Haters matter through the family tree too. If the father of the woman you want to marry is in your bottom fifth, he is a real obstacle.
 
+## Possessions
+
+People and households own things, and what they own matters to how they feel and what they ask for:
+
+- **Land and buildings:** the house, fields, trade buildings and pastures, held by a household.
+- **Animals:** each animal belongs to a household.
+- **Stores:** food, wood and goods in a household's store.
+- **Tools and keepsakes:** a smith's hammer, a weaver's loom, a family heirloom handed down the generations.
+
+Possessions are inherited when someone dies, can be given as gifts, lent and borrowed, or stolen. A gift chosen for someone's tastes means more than one that isn't.
+
+## Quests grow out of people's lives
+
+Quests follow the approach of Sol Trader's missions. There's no quest board. A quest is a favour that comes out of a villager's own planning: when what they want is easiest got by asking someone, they ask. Nothing is rolled at random.
+
+- **What starts one:** the giver's real situation:
+  - relationships: who they love, hate, miss or are estranged from;
+  - possessions: what they have, lack, lost or covet;
+  - traits: a generous person shares, a proud one won't ask a sibling directly, a greedy one hoards.
+  
+  A quest about a secret only exists if the secret really does.
+- **Trust gates what you're offered:** strangers ask small things, and close friends ask personal ones. The gate is the giver's own ring for you, which is one-way.
+- **Who it touches:** a quest changes goodwill between the people involved, not just towards you. Helping a sister reconcile with her brother can bring them closer. Exposing a hoarder makes an enemy, while the hungry families remember who helped.
+- **Quests serve the design goals.** They push you into the life of the place: meeting families, learning their stories, carrying things between villages, travelling to other world hexes, being trusted, marrying in and taking on land.
+- **Avoid Sol Trader's rough edges:**
+  - an offer lapses when its reason does;
+  - things carried are real possessions;
+  - rewards come from what the giver actually has: food, goods, help, an introduction, or goodwill.
+
+Candidate quests to start from:
+- **Families:** find the missing cousin, winter reunion, mend a family rift.
+- **Food and possessions:** food for distant kin, expose a grain hoard.
+- **Local help:** harvest before frost, fuel for the widow, shelter an outcast.
+- **Feelings and duty:** quiet courtship gift, witness a broken oath.
+
 ## Knowledge
 
 You start knowing only what you can see. As people trust you more, they tell you more:
@@ -278,7 +313,7 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 - **Per-person relationship lists with the four rings and goodwill:** new.
 - **Jobs posted by villagers and taken by the player:** reuses the job queue (`manager.js`) and the `check_jobs` task.
 - **Ageing, death, births and marriage over time:** the code already has days, seasons and the `dead` flag; births and ageing are new.
-- **Recruiting:** today a single job. In this design it is replaced by reaching someone's Personal ring.
+- **Recruiting:** the one-click Recruit order is removed. People help you because of where you sit in their rings, and sworn followers share your job queue.
 - **Start:** today the player starts in the middle with a house. In this design they start at a camp at the map edge.
 - **A task list for the player's character:** new. It can reuse the job queue, scoped to one person.
 - **Foraging, and building in stages from wood:** new. Felling trees, hauling, fields and stockpiles already exist.
@@ -313,6 +348,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 
 - **No winning.** The game is open-ended.
 - **Start alone.**
+- **Goodwill replaces recruiting.** There's no Recruit button. People help because they care about you, because you pay them, or because they swore to you.
 - **You don't manage your own food.** Your character feeds themself between tasks, as villagers do. Food matters between people instead: favours from families running short, gifts, being invited to eat, and sharing in a hard winter.
 - **You gather, tasks don't.** A task that needs materials you don't have waits, and your character moves on to the next task. It resumes by itself once you've brought the materials home. Nothing fetches on your behalf, because choosing how to spend your time is the game.
 - **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.

@@ -175,9 +175,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     const { night, sunset } = skyAt(state.days);
     const tint = WHITE.clone().lerp(SUNSET, sunset).lerp(NIGHT, night * 1.6);
     sun.color.copy(tint);
-    sun.intensity = SUN * (1 - night * 1.5);
+    sun.intensity = SUN * (1 - night * 1.2);
     hemisphere.color.copy(tint);
-    hemisphere.intensity = SKY * (1 - night * 1.1);
+    hemisphere.intensity = SKY * (1 - night * 0.9);
   };
 
   const pickables = () => [terrain.mesh, ...Object.values(objects)];

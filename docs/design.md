@@ -147,10 +147,12 @@ People help you for one of three reasons, and each works differently.
 The existing code already models "who answers to whom": each person has a controller (`controllable.controllerId`), and `topController` walks up the chain. That is a feudal hierarchy, so it can carry this ladder directly:
 
 1. **Stranger:** a camp and nothing else.
-2. **Cottager:** a hut and a small plot. You're now someone with a place.
-3. **Householder:** a house, a field, a family and perhaps hired hands.
-4. **Lord of a village:** by marriage, inheritance, or founding a village with people sworn to you. You hold the land; families live on it and owe you service.
-5. **Tiny King:** the lords of other villages swear fealty to you.
+2. **Head of a family:** your own house, and a spouse or children living in it.
+3. **Lord of a hamlet:** a few households living on your land and sworn to you.
+4. **Lord of a town:** a larger settlement, with hamlet lords sworn to you.
+5. **Tiny King:** town lords swear fealty to you.
+
+You climb a rung by marriage, inheritance, or gathering people who swear to you. Each rung adds a layer of people who answer to you, and those layers are exactly what the controller chain already records.
 
 **Lords control marriages.** When a lord dies and the heir is a child, the liege (the lord above) becomes the child's guardian and decides who the heir marries. Historically this was how land changed hands. In the game, marrying heirs within your realm becomes the main political tool.
 

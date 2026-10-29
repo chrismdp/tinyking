@@ -128,59 +128,62 @@ export function CustomGame() {
     state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
 
   return (
-    <div>
+    <div className="custom-game">
       <h1 className="handle">Start new game</h1>
       { state.map && <>
-        <div icon="person">
+        <div className="game-preview" icon="person">
           <div className="row overlay">
-            <button onClick={() => setTab(TABS.PERSON)} className={`${tab == TABS.PERSON ? "" : "unselected"}`}><FontAwesomeIcon icon="user"/></button>
-            <button onClick={() => setTab(TABS.HOUSE)} className={`${tab == TABS.HOUSE ? "" : "unselected"}`}><FontAwesomeIcon icon="shield-alt"/></button>
-            <button onClick={() => setTab(TABS.NEIGHBOUR)} className={`${tab == TABS.NEIGHBOUR ? "" : "unselected"}`}><FontAwesomeIcon icon="mountain"/></button>
-            <button onClick={() => setTab(TABS.SEED)} className={`${tab == TABS.SEED ? "" : "unselected"}`}><FontAwesomeIcon icon="random"/></button>
+            <button aria-label="Character" aria-pressed={tab == TABS.PERSON} onClick={() => setTab(TABS.PERSON)} className={`${tab == TABS.PERSON ? "" : "unselected"}`}><FontAwesomeIcon icon="user"/></button>
+            <button aria-label="House" aria-pressed={tab == TABS.HOUSE} onClick={() => setTab(TABS.HOUSE)} className={`${tab == TABS.HOUSE ? "" : "unselected"}`}><FontAwesomeIcon icon="shield-alt"/></button>
+            <button aria-label="Neighbours" aria-pressed={tab == TABS.NEIGHBOUR} onClick={() => setTab(TABS.NEIGHBOUR)} className={`${tab == TABS.NEIGHBOUR ? "" : "unselected"}`}><FontAwesomeIcon icon="mountain"/></button>
+            <button aria-label="Game settings" aria-pressed={tab == TABS.SEED} onClick={() => setTab(TABS.SEED)} className={`${tab == TABS.SEED ? "" : "unselected"}`}><FontAwesomeIcon icon="random"/></button>
           </div>
           <div className="character" ref={characterView}></div>
         </div>
-        { tab == TABS.PERSON && <>
-          <h2>Customise your character</h2>
-          <div className="row">
-            <label>Gender:</label>
-            <button onClick={() => { setMale(true); }} disabled={male == true}>Male</button>
-            <button onClick={() => { setMale(false); }} disabled={male == false}>Female</button>
-          </div>
-          <div className="row" style={{clear: "both"}}>
-            <label htmlFor="name">First name:</label>
-            <input type="text" ref={nameField}/>
-            <button onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div>
-          <CharacterSelection label="Hair colour:" id={state.ui.playerId} attribute="hair" selections={HAIR} onChange={timeToUpdate}/>
-        </>}
-        { tab == TABS.HOUSE && <>
-          <h2>Customise your house</h2>
-          <div className="row">
-            <label htmlFor="name">House:</label>
-            <input type="text" ref={familyNameField}/>
-            <button onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div>
-        </>}
-        { tab == TABS.NEIGHBOUR && <>
-          <h2>Customise neighbouring tile</h2>
-        </>}
-        { tab == TABS.SEED && <>
-          <h2>Game settings</h2>
-          <div className="row">
-            <label htmlFor="seed">Map seed:</label>
-            <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>
-            <button onClick={randomiseSeed}><FontAwesomeIcon icon="dice"/></button>
-          </div>
-          <div className="row">
-            <button onClick={reset}>Reset to seed</button>
-            { progress.label && <div className="progress">{progress.label}</div> }
-          </div>
-          { state.world && <>
-            <WeatherMap weather={state.weather} world={state.world} size={18}/>
-            <div className="world-hex">{t("world.world_hex", homeOf(state.world))}</div>
-          </> }
-        </>}
+        <div className="game-options">
+          { tab == TABS.PERSON && <>
+            <h2>Customise your character</h2>
+            <div className="row">
+              <label>Gender:</label>
+              <button onClick={() => { setMale(true); }} disabled={male == true}>Male</button>
+              <button onClick={() => { setMale(false); }} disabled={male == false}>Female</button>
+            </div>
+            <div className="row" style={{clear: "both"}}>
+              <label htmlFor="name">First name:</label>
+              <input id="name" type="text" ref={nameField}/>
+              <button aria-label="Randomise first name" onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
+            </div>
+            <CharacterSelection label="Hair colour:" id={state.ui.playerId} attribute="hair" selections={HAIR} onChange={timeToUpdate}/>
+          </>}
+          { tab == TABS.HOUSE && <>
+            <h2>Customise your house</h2>
+            <div className="row">
+              <label htmlFor="house">House:</label>
+              <input id="house" type="text" ref={familyNameField}/>
+              <button aria-label="Randomise house name" onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
+            </div>
+          </>}
+          { tab == TABS.NEIGHBOUR && <>
+            <h2>Customise neighbouring tile</h2>
+          </>}
+          { tab == TABS.SEED && <>
+            <h2>Game settings</h2>
+            <div className="row">
+              <label htmlFor="seed">Map seed:</label>
+              <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>
+              <button aria-label="Randomise map seed" onClick={randomiseSeed}><FontAwesomeIcon icon="dice"/></button>
+            </div>
+            <div className="row">
+              <button onClick={reset}>Reset to seed</button>
+              { progress.label && <div className="progress">{progress.label}</div> }
+            </div>
+            { state.world && <>
+              <WeatherMap weather={state.weather} world={state.world} size={18}/>
+              <div className="world-hex">{t("world.world_hex", homeOf(state.world))}</div>
+            </> }
+          </>}
+        </div>
+        <button className="mobile-start" onClick={() => state.ui.actions.close_window("mapgen")}>Start game</button>
       </> }
     </div>
   );

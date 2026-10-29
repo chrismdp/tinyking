@@ -14,7 +14,14 @@ export function Window({ windowId, x, y, children }) {
   // findDOMNode for it to fall back on
   const panel = React.useRef(null);
 
-  const fixed = window.innerWidth < 700 || window.innerHeight < 500;
+  const [fixed, setFixed] = React.useState(() =>
+    window.matchMedia("(max-width: 700px), (max-height: 500px)").matches);
+  React.useEffect(() => {
+    const media = window.matchMedia("(max-width: 700px), (max-height: 500px)");
+    const resize = () => setFixed(media.matches);
+    media.addEventListener("change", resize);
+    return () => media.removeEventListener("change", resize);
+  }, []);
 
   let attrs = { disabled: !!fixed };
   if (!fixed) {
@@ -24,7 +31,7 @@ export function Window({ windowId, x, y, children }) {
   return (
     <div className='desktop'>
       <Draggable nodeRef={panel} handle=".handle" bounds="parent" {...attrs}>
-        <div ref={panel} className='panel'>
+        <div ref={panel} className={`panel scrollable${fixed ? " panel-fixed" : ""}`} style={{ "--window-y": fixed ? "0px" : `${y}px` }}>
           <button aria-label="Close window" onClick={close} className='close'><FontAwesomeIcon icon="times"/></button>
           {children}
         </div>

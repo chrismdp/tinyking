@@ -2,8 +2,15 @@
 /*@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@500&family=Roboto+Slab&display=swap');*/
 @import url('https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;1,400&family=Raleway:wght@500&display=swap');
 
-/* Fix mobile Safari weirdness: https://chanind.github.io/javascript/2019/09/28/avoid-100vh-on-mobile-web.html#comment-4634290908 */
-html, body, #root { height: 100%; }
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+// The game follows the visible viewport as browser toolbars open and close.
+html, body, #root { height: 100vh; height: 100dvh; }
 
 $brown-200: #453a3d;
 $brown-300: #5c4b46;
@@ -25,7 +32,7 @@ body {
   /*background: #2f4999; ocean */
   background: #000000;
   overflow: hidden;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 .knockedback {
@@ -104,11 +111,12 @@ canvas {
   }
 
   #ui {
+    position: relative;
     pointer-events: none;
     height: 100%;
     display: grid;
-    grid-template-columns: 5px 25px 1fr 0.5fr 0.5fr 25px 5px;
-    grid-template-rows: 5px 25px auto 70px 35px 5px;
+    grid-template-columns: calc(5px + var(--safe-left)) 25px 1fr 0.5fr 0.5fr 25px calc(5px + var(--safe-right));
+    grid-template-rows: calc(5px + var(--safe-top)) 25px auto 70px 35px calc(5px + var(--safe-bottom));
     grid-template-areas:
       ". . . . . . ."
       ". Supplies Supplies Clock Clock Clock ."
@@ -138,6 +146,7 @@ canvas {
     text-align: right;
     button {
       font-size: 1.1vh;
+      font-size: clamp(0.875rem, 1.1svh, 1.25rem);
       margin-left: 5px;
       background: black;
       &:disabled {
@@ -170,6 +179,7 @@ canvas {
     animation: fade-in 1.5s forwards;
     opacity: 0;
     font-size: 1.75vh;
+    font-size: clamp(0.875rem, 1.75svh, 1.25rem);
   }
 
   #tutorial {
@@ -184,6 +194,7 @@ canvas {
       margin-left: 5px;
       grid-area: Task;
       font-size: 2vh;
+      font-size: clamp(1rem, 2svh, 1.5rem);
       text-shadow: 1px 1px #000000;
       pointer-events: none;
       opacity: 0;
@@ -203,6 +214,7 @@ canvas {
       grid-area: Lower;
       font-style: italic;
       font-size: 2.5vh;
+      font-size: clamp(1rem, 2.5svh, 2rem);
       text-shadow: 1px 1px #000000;
       margin: 50px 20px;
       animation: fade-in 0.5s forwards;
@@ -219,10 +231,12 @@ canvas {
     .header {
       text-align: center;
       font-size: 3vh;
+      font-size: clamp(1.125rem, 3svh, 2.5rem);
       z-index: 1;
       text-shadow: 1px 1px #000000;
       pointer-events: none;
       margin-top: 20vh;
+      margin-top: 20svh;
 
       .main {
         font-size: 2em;
@@ -250,6 +264,7 @@ canvas {
 
     .header {
       font-size: 5vh;
+      font-size: clamp(1.75rem, 5svh, 4rem);
       grid-area: Header;
       z-index: 1;
       text-shadow: 1px 1px #000000;
@@ -278,7 +293,7 @@ canvas {
       font-size: 2em;
       margin: 10px 0;
       a { padding: 0 5px; }
-      img { height: 3vh; }
+      img { height: 3vh; height: 3svh; }
     }
 
     .disclaimer {
@@ -290,6 +305,7 @@ canvas {
   #main-menu, #game-over {
     menu {
       font-size: 2.5vh;
+      font-size: clamp(1rem, 2.5svh, 2rem);
       text-shadow: 1px 1px #000000;
       grid-area: Menu;
       padding: 0;
@@ -383,17 +399,6 @@ button {
 
   padding: 10px;
   border-radius: 4px;
-
-  @media (max-width: 499px) {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    touch-action: pan-y;
-  }
 
   @media (min-width: 500px) {
     box-shadow: 10px 10px 20px 10px rgba(0, 0, 0, 0.1);
@@ -546,6 +551,12 @@ hr {
   left: 10px;
   max-width: 490px;
   max-height: calc(100vh - 40px);
+  max-height: calc(100svh - 40px - var(--safe-top) - var(--safe-bottom));
+  box-sizing: border-box;
+  top: calc(10px + var(--safe-top));
+  left: calc(10px + var(--safe-left));
+  max-width: min(490px, calc(100% - 20px - var(--safe-left) - var(--safe-right)));
+  touch-action: pan-y;
   overflow: auto;
   padding: 5px 15px 10px;
   color: white;
@@ -598,10 +609,11 @@ hr {
 #task-panel {
   pointer-events: auto;
   position: absolute;
-  left: 25px;
-  top: 23px;
+  left: calc(25px + var(--safe-left));
+  top: calc(23px + var(--safe-top));
   width: 342px;
-  max-height: calc(100% - 46px);
+  max-height: calc(100vh - 46px);
+  max-height: calc(100svh - 46px - var(--safe-top) - var(--safe-bottom));
   display: flex;
   flex-direction: column;
   color: #f7f1e7;
@@ -615,7 +627,8 @@ hr {
   .micro { font: 10px Raleway, sans-serif; color: #d2c5c2; white-space: nowrap; }
   button { padding: 0; background: transparent; color: #dfd0cf; font: 22px Georgia, serif; min-width: 28px; min-height: 30px; }
   button:disabled { opacity: 0.25; }
-  .task-body { overflow-y: auto; touch-action: pan-y; }
+  header, footer { flex-shrink: 0; }
+  .task-body { min-height: 0; overflow: auto; touch-action: pan-y; }
   .hunger { padding: 8px 15px 9px; background: #382f32; border-bottom: 1px solid #65575b; }
   .hunger-line { display: flex; justify-content: space-between; font-size: 15px; color: #e2c879; }
   .meter { height: 5px; border-radius: 5px; background: #241f23; overflow: hidden; margin-top: 7px; }
@@ -643,18 +656,25 @@ hr {
 }
 button, a { cursor: pointer; }
 button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offset: 2px; }
-#game #clock { position: absolute; top: 20px; right: 24px; font-size: 16px; }
-#game #speed-controls { position: absolute; bottom: 18px; right: 24px; }
+#game #clock { grid-area: auto; position: absolute; top: calc(20px + var(--safe-top)); right: calc(24px + var(--safe-right)); font-size: 16px; }
+#game #speed-controls { grid-area: auto; position: absolute; bottom: calc(18px + var(--safe-bottom)); right: calc(24px + var(--safe-right)); }
 #game #speed-controls button { min-height: 44px; min-width: 44px; font-size: 16px; }
-#game #selected-person { position: absolute; bottom: 75px; left: 392px; margin: 0; max-width: calc(100% - 420px); font-size: 12px; text-shadow: 1px 2px 3px #000; }
+#game #selected-person { grid-area: auto; position: absolute; bottom: calc(75px + var(--safe-bottom)); left: calc(392px + var(--safe-left)); margin: 0; max-width: calc(100% - 420px - var(--safe-left) - var(--safe-right)); max-height: calc(100vh - 120px); max-height: calc(100svh - 120px - var(--safe-top) - var(--safe-bottom)); overflow: auto; touch-action: pan-y; font-size: 12px; text-shadow: 1px 2px 3px #000; }
 #game #selected-person h1 { margin: 0; font-size: 22px; }
 #game #selected-person .traits { position: static; }
 #world canvas { touch-action: none; }
-.popper { z-index: 5; font-size: 16px; max-width: min(380px, 90vw); max-height: 70vh; overflow: auto; box-sizing: border-box; }
+.popper { z-index: 5; font-size: 16px; max-width: min(380px, 90vw); max-height: 70vh; max-height: min(70svh, calc(100svh - 20px - var(--safe-top) - var(--safe-bottom))); overflow: auto; box-sizing: border-box; }
 .popper .close, .panel .close { float: right; background: transparent; min-width: 44px; min-height: 44px; padding: 10px; }
 .job-list button { min-height: 44px; font-size: 16px; }
 .popper a { display: inline-block; min-height: 44px; line-height: 44px; }
 .panel { font-size: 16px; z-index: 10; box-sizing: border-box; }
+.panel.scrollable {
+  max-height: calc(100vh - 40px - var(--window-y, 0px));
+  max-height: calc(100svh - 40px - var(--window-y, 0px) - var(--safe-top) - var(--safe-bottom));
+  overflow: auto;
+  touch-action: pan-y;
+}
+.mobile-start { display: none; }
 .panel .character canvas { max-width: 100%; height: auto !important; }
 .panel .row button { min-height: 44px; height: auto; min-width: 44px; font-size: 16px; }
 .panel .row input { min-height: 38px; font-size: 16px; min-width: 0; flex: 1 1 80px; }
@@ -662,7 +682,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .panel .row.overlay { width: auto; gap: 4px; }
 .desktop { z-index: 10; pointer-events: none; }
 @media (max-width: 700px), (max-height: 500px) {
-  #task-panel { top: auto; bottom: 74px; left: 10px; width: min(342px, calc(100% - 20px)); max-height: calc(100% - 175px); z-index: 3; }
+  #task-panel { top: auto; bottom: calc(74px + var(--safe-bottom)); left: calc(10px + var(--safe-left)); width: min(342px, calc(100% - 22px - var(--safe-left) - var(--safe-right))); max-height: calc(100vh - 175px); max-height: calc(100svh - 175px - var(--safe-top) - var(--safe-bottom)); z-index: 3; }
   #task-panel header { min-height: 44px; padding: 0 8px 0 15px; }
   #task-panel header button { min-width: 44px; min-height: 44px; }
   #task-panel .task-body { display: block; }
@@ -675,25 +695,58 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #task-panel footer strong { display: block; font-size: 17px; }
   #task-panel .compact-task { display: block; font-size: 14px; }
   #task-panel .hunger-line { font-size: 16px; }
-  #game #clock { top: 12px; right: 12px; font-size: 16px; }
-  #game #speed-controls { bottom: 12px; right: 12px; }
-  #game #selected-person { bottom: 12px; left: 12px; max-width: calc(100% - 180px); font-size: 12px; }
+  #game #clock { top: calc(12px + var(--safe-top)); right: calc(12px + var(--safe-right)); font-size: 16px; }
+  #game #speed-controls { bottom: calc(12px + var(--safe-bottom)); right: calc(12px + var(--safe-right)); }
+  #game #selected-person { bottom: calc(12px + var(--safe-bottom)); left: calc(12px + var(--safe-left)); max-width: calc(100% - 180px - var(--safe-left) - var(--safe-right)); max-height: 60px; font-size: 12px; }
   #game #selected-person h1 { font-size: 17px; }
   #game #selected-person .hunger-stage { font-size: 14px; }
   #game #selected-person .traits { display: none; }
-  .popper { position: fixed !important; transform: none !important; top: 80px !important; left: 10px !important; right: 10px !important; max-width: none !important; max-height: calc(100dvh - 260px) !important; overflow-y: auto !important; }
+  .popper { position: fixed !important; transform: none !important; top: calc(80px + var(--safe-top)) !important; left: calc(10px + var(--safe-left)) !important; right: calc(10px + var(--safe-right)) !important; max-width: none !important; max-height: calc(100vh - 280px) !important; max-height: calc(100svh - 280px - var(--safe-top) - var(--safe-bottom)) !important; overflow: auto !important; }
   .popper .arrow { display: none; }
-  .panel { position: absolute; inset: 10px; width: auto; max-width: 460px; margin: auto; overflow-y: auto; touch-action: pan-y; }
-  #game #main-menu .header { font-size: 28px; }
+  .panel.panel-fixed {
+    position: fixed;
+    inset: calc(10px + var(--safe-top)) calc(10px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(10px + var(--safe-left));
+    transform: none !important;
+    width: auto;
+    max-width: 460px;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100svh - 20px - var(--safe-top) - var(--safe-bottom));
+    margin: auto;
+  }
+  .custom-game .row.overlay { position: static; margin-top: 12px; }
+  .custom-game .character canvas {
+    display: block;
+    margin: auto;
+    width: auto !important;
+    max-height: 25vh;
+    max-height: 25svh;
+  }
+  .custom-game h2 { margin: 10px 0; }
+  .mobile-start { display: block; position: sticky; bottom: 0; width: 100%; min-height: 44px; margin-top: 12px; font-size: 18px; }
+  #game #main-menu { height: auto; min-height: 0; margin: 10px; overflow: auto; touch-action: pan-y; }
+  #game #main-menu .header { font-size: 5vh; font-size: clamp(1.5rem, 5svh, 1.75rem); }
   #game #main-menu menu { font-size: 20px; }
   #game #main-menu menu a { min-height: 44px; line-height: 44px; }
+}
+
+@media (min-width: 550px) and (max-height: 500px) {
+  .custom-game {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    column-gap: 10px;
+    > .handle, > .mobile-start { grid-column: 1 / -1; }
+    .game-preview { grid-column: 1; }
+    .game-options { grid-column: 2; padding-top: 12px; }
+    .row.overlay { flex-wrap: wrap; }
+    .row label { flex-basis: 85px; }
+  }
 }
 
 @media (min-width: 701px) and (min-height: 501px) {
   #task-panel footer {
     position: fixed;
-    left: 392px;
-    bottom: 22px;
+    left: calc(392px + var(--safe-left));
+    bottom: calc(22px + var(--safe-bottom));
     padding: 0;
     border: 0;
     background: transparent;
@@ -720,13 +773,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #task-panel footer small { font-size: 13px; }
 }
 
-@media (max-width: 700px), (max-height: 500px) {
-  .popper { max-height: calc(100dvh - 280px) !important; }
-}
 @media (min-width: 650px) and (max-height: 500px) {
   .popper {
-    top: 60px !important;
-    left: 370px !important;
-    max-height: calc(100dvh - 140px) !important;
+    top: calc(60px + var(--safe-top)) !important;
+    left: calc(370px + var(--safe-left)) !important;
+    max-height: calc(100vh - 140px) !important;
+    max-height: calc(100svh - 140px - var(--safe-top) - var(--safe-bottom)) !important;
   }
 }

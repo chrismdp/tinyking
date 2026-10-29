@@ -439,7 +439,7 @@ export function person(state, e, t, { realm, selected }) {
   standing.name = "standing-figure";
   figure.add(standing);
   if (state.intro && e.id == state.ui.playerId) {
-    figure.add(seatedPerson(size, e.personable.body, HAIR[e.personable.hair]));
+    figure.rotation.y = state.intro.facing || 0;
     const bundle = arrivalBundle();
     bundle.visible = false;
     bundle.position.set(size * 0.4, size * 0.8, 0);
@@ -515,49 +515,16 @@ export function arrivalBundle() {
   return group;
 }
 
-function seatedPerson(size, body, hair) {
-  const group = new THREE.Group();
-  group.name = "seated-figure";
-  group.visible = false;
-  const torso = new THREE.Mesh(mergeColoured([
-    { geometry: new THREE.CapsuleGeometry(size * 0.32, size * 0.28, 2, 6), colour: body, matrix: at(0, size * 0.56, 0, -0.12) },
-    { geometry: new THREE.IcosahedronGeometry(size * 0.3, 0), colour: COLOURS.skin, matrix: at(0, size * 1.23, size * 0.08) },
-    { geometry: new THREE.SphereGeometry(size * 0.33, 6, 3, 0, Math.PI * 2, 0, Math.PI * 0.5), colour: hair, matrix: at(0, size * 1.27, size * 0.04) },
-    { geometry: new THREE.BoxGeometry(size * 0.1, size * 0.1, size * 0.12), colour: COLOURS.skin, matrix: at(0, size * 1.21, size * 0.38) }
-  ]), vertexColoured);
-  group.add(torso);
-  const legs = new THREE.Group();
-  legs.name = "seated-legs";
-  for (const side of [-1, 1]) {
-    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(size * 0.16, size * 0.5, 2, 5), lambert(body));
-    leg.rotation.x = Math.PI / 2;
-    leg.rotation.z = side * 0.16;
-    leg.position.set(side * size * 0.23, size * 0.18, size * 0.43);
-    legs.add(leg);
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(size * 0.28, size * 0.18, size * 0.35), lambert(0x493A31));
-    foot.position.set(side * size * 0.28, size * 0.1, size * 0.83);
-    legs.add(foot);
-  }
-  group.add(legs);
-  return group;
-}
-
-export function poseArrivalPerson(object, intro, size, { ground, camp, spatial } = {}) {
+export function poseArrivalPerson(object, intro, size, { ground, camp } = {}) {
   const figure = object.getObjectByName("figure");
-  const standing = object.getObjectByName("standing-figure");
-  const seated = object.getObjectByName("seated-figure");
   const bundle = object.getObjectByName("arrival-bundle");
-  if (!seated) return;
-  const sitting = intro.pose == "sitting";
+  if (!bundle) return;
   const walking = intro.pose == "walking";
-  standing.visible = !sitting;
-  seated.visible = sitting;
-  seated.position.y = sitting ? (1 - (intro.sit || 0)) * size * 0.3 : 0;
   figure.position.y = walking ? Math.abs(Math.sin(intro.elapsed * 9)) * size * 0.025 : 0;
   figure.rotation.z = walking ? Math.sin(intro.elapsed * 9) * 0.025 : 0;
   figure.rotation.x = intro.pose == "putting-down" ? Math.sin((intro.putDown || 0) * Math.PI) * 0.25 : 0;
   if (intro.pose != "standing") figure.rotation.y = intro.facing || 0;
-  bundle.visible = intro.pose != "standing" && !sitting && (intro.putDown || 0) < 1;
+  bundle.visible = (intro.putDown || 0) < 1 && intro.pose != "standing";
   bundle.position.set(size * 0.4, size * 0.8, 0);
   bundle.rotation.set(0, 0, 0);
   if (intro.pose == "putting-down" && ground) {
@@ -569,11 +536,6 @@ export function poseArrivalPerson(object, intro, size, { ground, camp, spatial }
     // Swing the long stick out around the shoulder before turning it down.
     bundle.position.x += Math.sin(intro.putDown * Math.PI) * size * 2;
     bundle.quaternion.copy(figure.getWorldQuaternion(new THREE.Quaternion()).invert()).slerp(new THREE.Quaternion(), 1 - intro.putDown);
-  }
-  // Keep the sitting feet on sloping terrain, rather than burying them.
-  if (sitting && ground && spatial) {
-    const front = { x: spatial.x + Math.sin(intro.facing) * size * 0.9, y: spatial.y + Math.cos(intro.facing) * size * 0.9 };
-    seated.position.y += Math.max(0, ground.heightAt(front.x, front.y) - ground.heightAt(spatial.x, spatial.y));
   }
 }
 
@@ -740,7 +702,25 @@ export function stockpile(ground, state, id, { selected }) {
 
 // --- Arrival camp and timber shelters ----------------------------------------
 export function camp(ground, state, id) {
-  const { x, y } = state.ecs.spatial[id];
+  return campPieces(ground, state.ecs.spatial[id], state.ecs.camp?.[id]?.bundle);
+}
+
+export function campSetup(ground, point) {
+  const object = campPieces(ground, point, CAMP_LAYOUT.bundle);
+  poseCampSetup(object, { putDown: 0, fire: 0, bedroll: 0 });
+  return object;
+}
+
+export function poseCampSetup(object, intro) {
+  object.getObjectByName("arrival-bundle").visible = intro.putDown == 1;
+  for (const [name, scale] of [["campfire", intro.fire], ["bedroll", intro.bedroll]]) {
+    const piece = object.getObjectByName(name);
+    piece.visible = scale > 0;
+    piece.scale.setScalar(scale);
+  }
+}
+
+function campPieces(ground, { x, y }, bundlePoint) {
   const group = new THREE.Group();
   group.position.set(x, ground.heightAt(x, y), y);
   const fire = new THREE.Group();
@@ -776,8 +756,8 @@ export function camp(ground, state, id) {
   roll.position.set(0, 4, -12);
   bed.add(roll);
   group.add(bed);
-  if (state.ecs.camp?.[id]?.bundle) {
-    const p = state.ecs.camp[id].bundle;
+  if (bundlePoint) {
+    const p = bundlePoint;
     const bundle = arrivalBundle();
     bundle.position.set(p.x, ground.heightAt(x + p.x, y + p.y) - ground.heightAt(x, y), p.y);
     group.add(bundle);

@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { INTRO_TIMING } from "game/intro";
 
 const PAN_KEYS = {
   KeyW: [0, 1], ArrowUp: [0, 1],
@@ -301,16 +300,15 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
   };
 }
 
-// A close view follows the walk, then opens a little to hold the whole camp.
+// Hold the entry edge and the clearing together, including on a narrow phone.
 export function arrivalShot(intro, spatial, camp, aspect, heightAt) {
-  const t = Math.min(1, Math.max(0, (intro.elapsed - INTRO_TIMING.walk + 1) / (INTRO_TIMING.duration - INTRO_TIMING.walk + 1)));
-  const blend = t * t * (3 - 2 * t);
-  const x = spatial.x + (camp.x - 5 - spatial.x) * blend;
-  const z = spatial.y + (camp.y + 4 - spatial.y) * blend;
   const start = intro.points[0];
-  const entryYaw = Math.atan2(start.x - camp.x, start.y - camp.y) + 0.7;
-  const turn = Math.atan2(Math.sin(-2 - entryYaw), Math.cos(-2 - entryYaw));
-  return { x, z, y: heightAt(x, z) + 14,
-    distance: (310 + 90 * blend) / Math.min(1, Math.max(0.72, aspect)),
-    yaw: entryYaw + turn * blend, pitch: 0.78 };
+  const x = (start.x + camp.x) / 2;
+  const z = (start.y + camp.y) / 2;
+  const y = (heightAt(start.x, start.y) + heightAt(camp.x, camp.y)) / 2 + 20;
+  const radius = Math.max(...[start, camp, spatial].map(p =>
+    Math.hypot(p.x - x, heightAt(p.x, p.y) + 20 - y, p.y - z) + 55));
+  const halfFov = Math.atan(Math.tan(20 * Math.PI / 180) * Math.min(1, aspect));
+  return { x, z, y, distance: radius / Math.sin(halfFov) / 0.8,
+    yaw: Math.atan2(start.x - camp.x, start.y - camp.y) + 0.7, pitch: 0.78 };
 }

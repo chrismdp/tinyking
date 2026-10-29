@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const path = require("path");
 const fs = require("fs");
 const { chromium } = require("playwright-core");
+const { startIntro } = require("../src/game/intro");
 const { generateMap } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { updateEcology } = require("../src/game/ecology");
@@ -17,10 +18,11 @@ const URL = process.argv[2] || "http://localhost:8098/";
 const SHOTS = path.resolve(__dirname, "../shots");
 
 async function world(seed) {
-  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "fast" };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
+  startIntro(state, { skip: true });
   return state;
 }
 const snapshot = state => structuredClone({ ecs: state.ecs, days: state.days, playerId: state.ui.playerId });

@@ -11,7 +11,7 @@ import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
 import { anyControlledAlive } from "game/playable";
-import { startIntro, skipIntro, introActive, standAfterIntro } from "game/intro";
+import { startIntro, skipIntro, introActive } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
@@ -183,7 +183,6 @@ export function World() {
       },
       choose_job: (playerId, job, targetId) => {
         if (introActive(state)) return;
-        standAfterIntro(state);
         if (job.key == "build_shelter") {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
@@ -194,7 +193,6 @@ export function World() {
       },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)) return;
-        standAfterIntro(state);
         enqueueTask(state, { key }, personId, metadata);
         renderUI();
       },

@@ -44,7 +44,6 @@ describe("generateMap", () => {
         expect(state.ecs.spatial[id]).toBeDefined();
         expect(Hex().fromPoint(state.ecs.spatial[id]).toString()).toEqual(hex);
       }
-      // NOTE: trees are jittered, so a hex just off the map can hold a tree but no tile
       expect(state.space[hex].filter(id => state.ecs.mappable[id]).length).toBeLessThanOrEqual(1);
     }
   });
@@ -274,7 +273,7 @@ describe("villages", () => {
       const houses = villages.flatMap(v => v.houses);
       expect(new Set(houses).size).toBe(houses.length);
       expect(houses.length).toBe(Object.keys(state.ecs.building).length);
-      expect(Object.keys(state.ecs.camp)).toHaveLength(1);
+      expect(Object.keys(state.ecs.camp || {})).toHaveLength(0);
       const start = Hex(state.map.playerStartTile);
       for (const village of villages) {
         expect(village.name.length).toBeGreaterThan(2);
@@ -291,7 +290,9 @@ describe("villages", () => {
       }
       const player = Object.keys(state.ecs.playable)[0];
       expect(state.ecs.village[player].villageId).toBeNull();
+      expect(state.ecs.household[player]).toBeUndefined();
       for (const id in state.ecs.personable) {
+        if (id == player) continue;
         const home = state.ecs.household[id].houseId;
         expect(state.ecs.village[id].villageId).toBe(state.ecs.village[home].villageId);
       }

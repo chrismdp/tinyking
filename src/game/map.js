@@ -145,12 +145,6 @@ export function generateFamilies({ state, seed, playerStartTile }) {
     state.ecs.manager[id].ordered = true;
     state.ecs.planner[id].world.ordered = true;
     state.ecs.controllable[id].controllerId = id;
-    const [camp] = newEntities(state, [{
-      spatial: { ...Hex(playerStartTile).toPoint(), immovable: true },
-      nameable: { nickname: "Camp" }, camp: {}, village: { villageId: null },
-      sleepable: { capacity: 1, level: 0, occupiers: [] }, controllable: { controllerId: id }
-    }]);
-    state.ecs.household[id] = { id, houseId: camp };
   }
   initializeRelationships(state, seed);
 }
@@ -415,6 +409,9 @@ export async function generateMap(state, seed, progressUpdate) {
   const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
     biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
     start
+  }).filter(tree => {
+    const hex = Hex().fromPoint(tree);
+    return landscape[hex]?.terrain == "grassland" && !settlements[hex];
   });
   const generator = new MersenneTwister(seed);
 

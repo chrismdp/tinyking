@@ -60,7 +60,7 @@ export function createLandField(seed) {
   };
 }
 
-const startPatches = tiles.filter(h => MAP_CENTRE.distance(h) >= MAP_RADIUS - 4 && MAP_CENTRE.distance(h) <= MAP_RADIUS - 2).map(hex => ({
+const startPatches = tiles.filter(h => MAP_CENTRE.distance(h) == MAP_RADIUS - 2).map(hex => ({
   hex,
   keys: [...Grid.hexagon({ center: hex, radius: 2 })].map(h => h.toString())
 }));

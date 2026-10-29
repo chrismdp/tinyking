@@ -5,6 +5,7 @@ const path = require("path");
 const os = require("os");
 const { chromium } = require("playwright-core");
 require("./game-register");
+const { startIntro } = require("../src/game/intro");
 const { generateMap, Hex } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { enqueueTask } = require("../src/game/manager");
@@ -14,10 +15,11 @@ const URL = process.argv[2] || "http://localhost:8101/";
 const SHOTS = path.resolve(__dirname, "../shots");
 
 async function snapshots() {
-  const state = { ecs: { nextId: 1 }, days: 0.375, ui: {}, redraws: [], game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, days: 0.375, ui: { show: {} }, redraws: [], game_speed: "fast" };
   const result = await generateMap(state, 13, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
+  startIntro(state, { skip: true });
   const player = result.playerId;
   const save = () => JSON.parse(JSON.stringify({ ecs: state.ecs, days: state.days, space: state.space, map: state.map, villages: state.villages }));
   const shots = { camp: save() };

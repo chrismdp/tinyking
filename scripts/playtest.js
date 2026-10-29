@@ -89,7 +89,8 @@ async function opening(page) {
         const camp = s.ecs.spatial[s.intro.campId];
         resolve({ elapsed: s.intro.elapsed, realSeconds: performance.now() / 1000 - started,
           nearCamp: Math.hypot(p.x - camp.x, p.y - camp.y) < 40,
-          sitting: s.intro.pose == "sitting", bundle: !!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
+          standing: s.intro.pose == "standing", bundle: !!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
+          campCount: Object.keys(s.ecs.camp || {}).length, steps: s.intro.tileIds.length - 1,
           days: s.days, needs: JSON.stringify(s.ecs.personable), control: s.ui.show.speed_controls });
       };
       requestAnimationFrame(watch);
@@ -100,9 +101,10 @@ async function opening(page) {
     s.ui.actions.set_speed("fast");
     s.ui.actions.choose_job(s.ui.playerId, { key: "move_to_here" }, s.intro.tileIds.at(-1));
     s.ui.actions.select_entity(s.ui.playerId);
-    return { days, p, needs, locked: s.game_speed == "normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls };
+    return { days, p, needs, noCamp: !Object.keys(s.ecs.camp || {}).length,
+      locked: s.game_speed == "normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls };
   });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1400);
   const walked = await page.evaluate(p => {
     const s = window.tinyking;
     const now = s.ecs.spatial[s.ui.playerId];
@@ -110,10 +112,10 @@ async function opening(page) {
   }, start.p);
   await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 15000 });
   const end = await page.evaluate(() => window.introFinished);
-  check("the arrival plays, holds time and control, then sits at camp with the bundle placed",
-    start.locked && walked && end.realSeconds >= 8 && end.realSeconds <= 12 && end.nearCamp && end.sitting && end.bundle &&
+  check("the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
+    start.noCamp && start.locked && walked && end.realSeconds >= 4 && end.realSeconds <= 6 && end.nearCamp && end.standing && end.bundle && end.campCount == 1 && end.steps == 2 &&
     end.control && end.days == start.days && end.needs == start.needs,
-    { seconds: end.realSeconds, walked, nearCamp: end.nearCamp, sitting: end.sitting, bundle: end.bundle, locked: start.locked, gameDays: end.days - start.days });
+    { seconds: end.realSeconds, noCamp: start.noCamp, steps: end.steps, walked, nearCamp: end.nearCamp, standing: end.standing, bundle: end.bundle, locked: start.locked, gameDays: end.days - start.days });
 }
 
 async function play(page) {
@@ -524,11 +526,14 @@ async function play(page) {
   if (sites[0]) await panTo(sites[0]);
   const siteTile = await orderOn(sites, "Build shelter");
   check("a lean-to site can be placed from the popup", siteTile && await game(() => Object.keys(window.tinyking.ecs.construction || {}).length == 1));
+  const buildStarted = Date.now();
+  const buildDay = await game(() => window.tinyking.days);
   await speed(FAST);
   if (siteTile) {
     await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
   }
-  check("logs are delivered and a lean-to finishes", await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")));
+  check("logs are delivered and a lean-to finishes", await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")),
+    { seconds: (Date.now() - buildStarted) / 1000, gameHours: Math.round((await game(() => window.tinyking.days) - buildDay) * 24) });
 
   await closeUp(page, game, "zoom.png");
 

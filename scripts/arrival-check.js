@@ -3,16 +3,19 @@
 require("./game-register");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const { startIntro } = require("../src/game/intro");
 const { generateMap, Hex } = require("../src/game/map");
 const { path } = require("../src/game/pathfinding");
 const { topController } = require("../src/game/playable");
 const { createSimulation } = require("../src/game/simulation");
 
 async function mapFor(seed) {
-  const s = { ecs: { nextId: 1 }, ui: {}, days: 0.375, redraws: [], game_speed: "fast" };
+  const s = { ecs: { nextId: 1 }, ui: { show: {} }, days: 0.375, redraws: [], game_speed: "fast" };
   const result = await generateMap(s, seed, async () => {});
   s.ui.playerId = result.playerId;
   s.map = result.map;
+  assert.equal(Object.keys(s.ecs.camp || {}).length, 0);
+  startIntro(s, { skip: true });
   return s;
 }
 const hash = s => crypto.createHash("sha256").update(JSON.stringify(s.ecs)).digest("hex");
@@ -43,13 +46,20 @@ async function survive(seed, eat) {
     const s = await mapFor(seed);
     const id = s.ui.playerId;
     const start = Hex(s.map.playerStartTile);
-    assert(Hex(s.map.centre).distance(start) >= 18);
+    assert.equal(Hex(s.map.centre).distance(start), s.map.radius - 2);
+    assert.equal(s.intro.tileIds.length, 3);
+    assert.equal(Hex().fromPoint(s.ecs.spatial[s.intro.tileIds[0]]).distance(start), 2);
     assert(Object.keys(s.ecs.personable).filter(p => topController(s.ecs, p) == id).length == 1);
     assert(Object.keys(s.ecs.building).every(h => topController(s.ecs, h) != id));
     const tileAt = point => s.space[Hex().fromPoint(point)].find(t => s.ecs.mappable[t]);
     const from = tileAt(s.ecs.spatial[id]);
+    assert(s.intro.tileIds.every(tile => s.ecs.walkable[tile].speed > 0));
+    assert.equal(s.ecs.mappable[from].terrain, "grassland");
     assert(Object.keys(s.ecs.building).some(h => start.distance(Hex().fromPoint(s.ecs.spatial[h])) <= 8 && path(s, from, tileAt(s.ecs.spatial[h]))));
-    console.log("PASS edge camp and reachable village, seed", seed);
+    for (const resources of [s.ecs.tree, s.ecs.forageable]) {
+      assert(Object.keys(resources).some(r => start.distance(Hex().fromPoint(s.ecs.spatial[r])) <= 4 && path(s, from, tileAt(s.ecs.spatial[r]))));
+    }
+    console.log("PASS two-hex camp, reachable village, wood and forage, seed", seed);
   }
   const a = await survive(13, true);
   assert.equal(a, await survive(13, true));

@@ -4,6 +4,7 @@
 require("./game-register");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const { startIntro } = require("../src/game/intro");
 const { generateMap } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { season } = require("../src/game/time");
@@ -11,10 +12,11 @@ const { homeOf } = require("../src/game/overworld");
 
 async function run(seed) {
   const started = performance.now();
-  const state = { ecs: { nextId: 1 }, space: {}, ui: {}, redraws: [], days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, space: {}, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "fast" };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
+  startIntro(state, { skip: true });
   const people = Object.keys(state.ecs.personable);
   let meals = 0;
   let winterMeals = 0;

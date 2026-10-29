@@ -71,6 +71,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let lastIntro = null;
   let wasArriving = false;
   let shot = null;
+  let campSetup = null;
 
   const isKnown = point => revealAll || known.has(hexKey(point)) || arrivalKnown.has(hexKey(point));
 
@@ -212,7 +213,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     object.userData.last = { x: s.x, y: s.y };
     if (id == state.ui.playerId && state.intro && !state.ecs.personable[id].dead) {
       models.poseArrivalPerson(object, state.intro, state.ecs.personable[id].size, {
-        ground, spatial: s, camp: state.ecs.spatial[state.intro.campId]
+        ground, camp: state.intro.campPoint
       });
     }
   };
@@ -306,12 +307,22 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const arriving = introActive(state);
       const changedIntro = lastIntro != state.intro || wasArriving != arriving;
       if (changedIntro) {
+        if (campSetup) {
+          scene.remove(campSetup);
+          models.disposeObject(campSetup);
+          campSetup = null;
+        }
+        if (arriving) {
+          campSetup = models.campSetup(ground, state.intro.campPoint);
+          scene.add(campSetup);
+        }
         arrivalKnown = new Set(arriving ? state.intro.tileIds.flatMap(id => {
           const hex = Hex().fromPoint(state.ecs.spatial[id]);
           return [hex.toString(), ...Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).map(n => n.toString())];
         }) : []);
         showKnown();
       }
+      if (campSetup) models.poseCampSetup(campSetup, state.intro);
       if (refreshKnown()) {
         showKnown();
       }
@@ -363,7 +374,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
       light();
       if (state.intro && (arriving || changedIntro)) {
-        const target = arrivalShot(state.intro, state.ecs.spatial[state.ui.playerId], state.ecs.spatial[state.intro.campId], camera.aspect, ground.heightAt);
+        const target = arrivalShot(state.intro, state.ecs.spatial[state.ui.playerId], state.intro.campPoint, camera.aspect, ground.heightAt);
         if (!shot || changedIntro) shot = target;
         else {
           const ease = 1 - Math.exp(-dt * 7);
@@ -418,6 +429,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     objectOf: id => objects[id],
     dispose() {
       rig.dispose();
+      if (campSetup) models.disposeObject(campSetup);
       for (const id in objects) {
         remove(id);
       }

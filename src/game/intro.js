@@ -1,13 +1,12 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
-import { path } from "game/pathfinding";
+import { newEntities } from "game/entities";
 
 // Seconds on the wall clock, independent of the simulation speed.
-export const INTRO_TIMING = { enter: 0.6, walk: 6.6, putDown: 1.3, settle: 1.2, duration: 10.4, idle: 1.5 };
+export const INTRO_TIMING = { enter: 0.3, walk: 2.7, putDown: 1, fire: 0.55, bedroll: 0.55, duration: 5.2 };
 export const CAMP_LAYOUT = {
   fire: { x: -25, y: -10 },
   bundle: { x: 20, y: 2 },
-  drop: { x: 28, y: 20 },
-  seat: { x: -25, y: 24 }
+  drop: { x: 28, y: 20 }
 };
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -18,30 +17,30 @@ const tileAt = (state, p) => (state.space[Hex().fromPoint(p)] || []).find(id => 
 export const introActive = state => !!state.intro?.active;
 
 export function arrivalRoute(state) {
-  const campId = state.ecs.household[state.ui.playerId].houseId;
-  const camp = state.ecs.spatial[campId];
-  const goal = tileAt(state, camp);
-  // Only consider edges connected to camp, including a detour around water.
-  const reached = new Set([goal]);
-  const todo = [goal];
-  for (const id of todo) for (const n of Object.values(state.ecs.walkable[id].neighbours)) {
-    if (!reached.has(n)) { reached.add(n); todo.push(n); }
-  }
+  const campPoint = Hex(state.map.playerStartTile).toPoint();
+  const goal = tileAt(state, campPoint);
+  const centre = Hex(state.map.centre);
+  const village = Object.values(state.villages).map(v => Hex(v.centre).toPoint())
+    .sort((a, b) => distance(a, campPoint) - distance(b, campPoint))[0];
   const entries = [];
-  for (const id of reached) {
-    const tile = state.ecs.spatial[id];
+  // The terrain survey guarantees a grassland clearing two hexes from the
+  // boundary. Choose a straight, walkable approach pointing towards a village.
+  for (const [side, middle] of Object.entries(state.ecs.walkable[goal].neighbours)) {
+    const edge = state.ecs.walkable[middle].neighbours[side];
+    if (!edge || centre.distance(Hex().fromPoint(state.ecs.spatial[edge])) != state.map.radius) continue;
+    const tile = state.ecs.spatial[edge];
     const hex = Hex().fromPoint(tile);
-    for (const n of Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES)) {
-      if (tileAt(state, n.toPoint())) continue;
-      // A tile's edge is halfway to its neighbour; start just beyond it.
-      const start = lerp(tile, n.toPoint(), 0.72);
-      entries.push({ id, start });
-    }
+    const outside = Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES)[side].toPoint();
+    if (tileAt(state, outside)) continue;
+    const start = lerp(tile, outside, 0.72);
+    const facing = Math.atan2(campPoint.x - start.x, campPoint.y - start.y);
+    const towardsVillage = Math.atan2(village.x - campPoint.x, village.y - campPoint.y);
+    entries.push({ start, tileIds: [edge, middle, goal], alignment: Math.cos(facing - towardsVillage) });
   }
-  entries.sort((a, b) => distance(a.start, camp) - distance(b.start, camp));
+  entries.sort((a, b) => b.alignment - a.alignment);
   const entry = entries[0];
-  const tileIds = path(state, entry.id, goal).map(step => step.id);
-  return { campId, tileIds, points: [entry.start, ...tileIds.map(id => ({ ...state.ecs.spatial[id] })), offset(camp, CAMP_LAYOUT.drop)] };
+  return { campPoint: { ...campPoint }, tileIds: entry.tileIds,
+    points: [entry.start, ...entry.tileIds.slice(0, -1).map(id => ({ ...state.ecs.spatial[id] })), offset(campPoint, CAMP_LAYOUT.drop)] };
 }
 
 function move(state, point) {
@@ -60,22 +59,13 @@ function along(points, t) {
   }
 }
 
-function putDown(state) {
-  const camp = state.ecs.camp[state.intro.campId];
-  if (!camp.bundle) {
-    camp.bundle = { ...CAMP_LAYOUT.bundle };
-    state.redraws.push(state.intro.campId);
-  }
-}
-
 export function startIntro(state, { skip = false } = {}) {
   const route = arrivalRoute(state);
-  state.intro = { ...route, active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, sit: 0 };
-  delete state.ecs.camp[route.campId].bundle;
+  state.intro = { ...route, active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
   state.ui.selected = null;
   state.ui.show.speed_controls = false;
   move(state, route.points[0]);
-  state.redraws.push(state.ui.playerId, route.campId);
+  state.redraws.push(state.ui.playerId);
   updateIntro(state, 0);
   if (skip) skipIntro(state);
 }
@@ -83,48 +73,36 @@ export function startIntro(state, { skip = false } = {}) {
 export function skipIntro(state) {
   if (!introActive(state)) return;
   const intro = state.intro;
-  const camp = state.ecs.spatial[intro.campId];
-  move(state, offset(camp, CAMP_LAYOUT.seat));
-  putDown(state);
-  Object.assign(intro, { active: false, elapsed: INTRO_TIMING.duration, phase: "complete", pose: "sitting", putDown: 1, sit: 1, facing: Math.PI, idle: INTRO_TIMING.idle });
+  const [campId] = newEntities(state, [{
+    spatial: { ...intro.campPoint, immovable: true },
+    nameable: { nickname: "Camp" }, camp: { bundle: { ...CAMP_LAYOUT.bundle } }, village: { villageId: null },
+    sleepable: { capacity: 1, level: 0, occupiers: [] }, controllable: { controllerId: state.ui.playerId }
+  }]);
+  state.ecs.household[state.ui.playerId] = { id: state.ui.playerId, houseId: campId };
+  move(state, offset(intro.campPoint, CAMP_LAYOUT.drop));
+  Object.assign(intro, { campId, active: false, elapsed: INTRO_TIMING.duration, phase: "complete", pose: "standing", putDown: 1, fire: 1, bedroll: 1,
+    facing: Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y) });
+  state.redraws.push(campId);
   state.ui.show.speed_controls = true;
-}
-
-export function standAfterIntro(state) {
-  if (state.intro && !state.intro.active) state.intro.pose = "standing";
 }
 
 export function updateIntro(state, seconds) {
   const intro = state.intro;
-  if (!intro) return;
-  if (!intro.active) {
-    if (intro.pose == "standing") return;
-    intro.idle -= seconds;
-    if (intro.idle <= 0) standAfterIntro(state);
-    return;
-  }
+  if (!intro?.active) return;
   intro.elapsed = Math.min(INTRO_TIMING.duration, intro.elapsed + seconds);
   const t = intro.elapsed;
-  const camp = state.ecs.spatial[intro.campId];
   if (t < INTRO_TIMING.walk) {
     const step = along(intro.points, Math.max(0, t - INTRO_TIMING.enter) / (INTRO_TIMING.walk - INTRO_TIMING.enter));
     move(state, step.point);
     intro.facing = step.facing;
-  } else if (t < INTRO_TIMING.walk + INTRO_TIMING.putDown) {
-    intro.phase = "putting-down";
-    intro.pose = "putting-down";
-    intro.putDown = smooth((t - INTRO_TIMING.walk) / INTRO_TIMING.putDown);
-    intro.facing = Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y);
-    move(state, offset(camp, CAMP_LAYOUT.drop));
   } else {
-    putDown(state);
-    const settling = Math.min(1, (t - INTRO_TIMING.walk - INTRO_TIMING.putDown) / INTRO_TIMING.settle);
-    intro.phase = settling < 1 ? "settling" : "sitting";
-    intro.pose = settling < 1 ? "walking" : "sitting";
-    intro.putDown = 1;
-    intro.sit = smooth(Math.min(1, Math.max(0, (t - INTRO_TIMING.walk - INTRO_TIMING.putDown - INTRO_TIMING.settle) / 0.6)));
-    intro.facing = settling < 1 ? Math.atan2(CAMP_LAYOUT.seat.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.seat.y - CAMP_LAYOUT.drop.y) : Math.PI;
-    move(state, offset(camp, lerp(CAMP_LAYOUT.drop, CAMP_LAYOUT.seat, settling)));
+    move(state, offset(intro.campPoint, CAMP_LAYOUT.drop));
+    intro.facing = Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y);
+    intro.putDown = smooth(Math.min(1, (t - INTRO_TIMING.walk) / INTRO_TIMING.putDown));
+    intro.fire = smooth(Math.min(1, Math.max(0, (t - INTRO_TIMING.walk - INTRO_TIMING.putDown) / INTRO_TIMING.fire)));
+    intro.bedroll = smooth(Math.min(1, Math.max(0, (t - INTRO_TIMING.walk - INTRO_TIMING.putDown - INTRO_TIMING.fire) / INTRO_TIMING.bedroll)));
+    intro.phase = intro.putDown < 1 ? "putting-down" : "making-camp";
+    intro.pose = intro.putDown < 1 ? "putting-down" : "standing";
   }
   if (t >= INTRO_TIMING.duration) skipIntro(state);
 }

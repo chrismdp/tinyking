@@ -79,7 +79,7 @@ it.each([[1440, 900], [390, 664], [664, 390]])("keeps the traveller and camp in 
   const camp = { x: 50, y: 30 };
   const intro = { points: [{ x: -250, y: -100 }], elapsed: 0, active: true };
   const camera = new THREE.PerspectiveCamera(40, width / height, 5, 12000);
-  for (const [elapsed, spatial] of [[0, intro.points[0]], [3.3, { x: -100, y: 0 }], [10.4, { x: 25, y: 54 }]]) {
+  for (const [elapsed, spatial] of [[0, intro.points[0]], [1.4, { x: -100, y: 0 }], [5.2, { x: 78, y: 50 }]]) {
     intro.elapsed = elapsed;
     const shot = arrivalShot(intro, spatial, camp, camera.aspect, () => 0);
     camera.position.set(shot.x + Math.sin(shot.yaw) * Math.cos(shot.pitch) * shot.distance, shot.y + Math.sin(shot.pitch) * shot.distance, shot.z + Math.cos(shot.yaw) * Math.cos(shot.pitch) * shot.distance);
@@ -88,10 +88,10 @@ it.each([[1440, 900], [390, 664], [664, 390]])("keeps the traveller and camp in 
     const p = new THREE.Vector3(spatial.x, 20, spatial.y).project(camera);
     expect(Math.abs(p.x)).toBeLessThan(0.8);
     expect(Math.abs(p.y)).toBeLessThan(0.8);
-    if (elapsed > 9) {
-      const fire = new THREE.Vector3(camp.x - 25, 10, camp.y - 10).project(camera);
-      expect(Math.abs(fire.x)).toBeLessThan(0.8);
-      expect(Math.abs(fire.y)).toBeLessThan(0.8);
+    for (const point of [intro.points[0], camp, { x: camp.x - 25, y: camp.y - 10 }]) {
+      const framed = new THREE.Vector3(point.x, 10, point.y).project(camera);
+      expect(Math.abs(framed.x)).toBeLessThan(0.8);
+      expect(Math.abs(framed.y)).toBeLessThan(0.8);
     }
   }
 });

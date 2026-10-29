@@ -88,13 +88,12 @@
     "mersenne-twister": "^1.1.0",
     "node-forge": ">=1.3.0",
     "node-polyglot": "^2.4.0",
-    "pixi-viewport": "^4.34.4",
-    "pixi.js": "^6.4.2",
     "react-draggable": "^4.4.3",
     "react-ga": "^3.3.0",
     "react-polyglot": "^0.7.2",
     "react-router-dom": "^5.2.0",
     "selectn": "^1.1.2",
-    "simplex-noise": "^2.4.0"
+    "simplex-noise": "^2.4.0",
+    "three": "^0.186.1"
   }
 }

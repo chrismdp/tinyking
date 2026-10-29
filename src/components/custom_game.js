@@ -1,12 +1,10 @@
 import React from "react";
 
-import * as PIXI from "pixi.js";
-import * as render from "pixi/render";
+import { createPreview } from "render/preview";
 
 import { useTranslate } from "react-polyglot";
-import { fullEntity } from "game/entities";
 
-import { Grid, Hex, BODY_MALE, BODY_FEMALE, HAIR } from "game/map";
+import { BODY_MALE, BODY_FEMALE, HAIR } from "game/map";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
@@ -68,101 +66,46 @@ export function CustomGame() {
   const reset = React.useCallback(() =>
     state.ui.actions.generate_map(seedField.current.value), [state]);
 
-  const [ stage, setStage ] = React.useState(null);
+  const [ preview, setPreview ] = React.useState(null);
 
   const [ tab, setTab ] = React.useState(TABS.PERSON);
   const [ selectedNeighbour, setSelectedNeighbour ] = React.useState(0);
 
   React.useEffect(() => {
     const ref = characterView.current;
-    let app;
+    let view;
     if (ref) {
-      app = new PIXI.Application({
+      view = createPreview(ref, {
         width: 300,
         height: 250,
-        antialias: true,
-        backgroundAlpha: 0,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-        autoResize: true
+        onPickPerson: () => setTab(TABS.PERSON),
+        onPickNeighbour: index => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(index); }
       });
-      setStage(app.stage);
-
-      ref.appendChild(app.view);
+      setPreview(view);
     }
 
     return function cleanup() {
-      if (ref) {
-        ref.removeChild(app.view);
-      }
-      if (app) {
-        app.destroy();
+      if (view) {
+        view.dispose();
       }
     };
   }, [state, state.map]);
 
-  // NOTE: Again this is a way to imperatively tell the PIXI stage for this
+  // NOTE: Again this is a way to imperatively tell the preview for this
   // component to re-render - there's probably a better way.
   const [ needsUpdate, setNeedsUpdate ] = React.useState();
   const timeToUpdate = React.useCallback(() => setNeedsUpdate({}), [setNeedsUpdate]);
 
   React.useEffect(() => {
-    if (!stage) {
+    if (!preview) {
       return;
     }
 
-    stage.removeChildren();
-
-    let displayObject;
-    if (state.ui.playerId) {
-      const spiral = Grid.spiral({ center: { x: 0, y: 0 }, radius: 1 });
-      const map = new PIXI.Container();
-      map.interactive = true;
-      for (let spiral_index = 0; spiral_index < spiral.length; spiral_index++) {
-        const hex = spiral[spiral_index];
-
-        const neighbour = new PIXI.Graphics();
-        neighbour.position = Hex(hex).toPoint();
-        neighbour.beginFill(render.COLOURS.grassland);
-        neighbour.lineStyle({color: "black", width: 2, alpha: 0.04});
-        neighbour.drawPolygon(...Hex().corners());
-        neighbour.endFill();
-        if (spiral_index > 0) {
-          const town = render.town("Town", 0x996666, render.COLOURS.stone);
-
-          if (tab == TABS.NEIGHBOUR && selectedNeighbour + 1 == spiral_index) {
-            town.addChild(render.selection(75, 0xff0000));
-          }
-
-          neighbour.addChild(town);
-        }
-        neighbour.interactive = true;
-        const selectNeighbour = () => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(spiral_index - 1); };
-        neighbour.on("click", selectNeighbour);
-        neighbour.on("tap", selectNeighbour);
-        map.addChild(neighbour);
-      }
-      map.position.set(135, 125);
-      map.scale.set(0.75, 0.75);
-      map.anchor = { x: 0.5, y: 0.5 };
-      stage.addChild(map);
-
-      const entity = fullEntity(state.ecs, state.ui.playerId);
-      if (entity.spatial && entity.personable) {
-        displayObject = render.person(state, entity, null, t);
-        displayObject.position.set(135, 125);
-        displayObject.scale.set(1, 1);
-        displayObject.anchor = { x: 0.5, y: 0.5 };
-        const select = () => { setTab(TABS.PERSON); };
-        displayObject.interactive = true;
-        displayObject.on("click", select);
-        displayObject.on("tap", select);
-        if (tab == TABS.PERSON) {
-          displayObject.addChild(render.selection(50, 0xff0000));
-        }
-        stage.addChild(displayObject);
-      }
-    }
+    preview.update(state, {
+      playerId: state.ui.playerId,
+      personSelected: tab == TABS.PERSON,
+      selectedNeighbour: tab == TABS.NEIGHBOUR ? selectedNeighbour : -1
+    }, t);
 
     if (seedField.current && state.map) {
       seedField.current.value = state.map.seed;
@@ -179,13 +122,7 @@ export function CustomGame() {
         familyNameField.current.value = familyName(n);
       }
     }
-
-    return function cleanup() {
-      if (displayObject) {
-        stage.removeChild(displayObject);
-      }
-    };
-  }, [stage, state, t, state.ecs.nameable,
+  }, [preview, state, t, state.ecs.nameable,
     state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
 
   return (

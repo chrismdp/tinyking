@@ -5,16 +5,13 @@ import { createPopper } from "@popperjs/core";
 import TWEEN from "@tweenjs/tween.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import * as PIXI from "pixi.js";
-import { Viewport } from "pixi-viewport";
+import * as THREE from "three";
 
 import { useTranslate } from "react-polyglot";
 
-import { Hex, generateMap } from "game/map";
+import { generateMap } from "game/map";
 import { topController, anyControlledAlive } from "game/playable";
-import * as time from "game/time";
 import * as htn from "game/htn";
-import { entityExists } from "game/entities";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
@@ -23,80 +20,18 @@ import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
 import { pushJob, removeJob } from "game/manager";
 
-import * as render from "pixi/render";
+import { createWorldView } from "render/world_view";
 
-import fogSprite from "assets/fogSprite.png";
+const renderMap = (webgl, state, selectEntity, renderUI, t) => {
+  if (state.renderer) {
+    state.renderer.dispose();
+  }
 
-const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
-  app.stage.destroy({children: true});
-  app.stage = new PIXI.Container();
-
-  state.fog = {};
-  state.fogTexture = PIXI.Texture.from(fogSprite);
-  state.redraws = [];
-
-  const { width, height, playerStartTile } = state.map;
-
-  const { pixi } = state;
-
-  pixi.viewport = new Viewport({
-    screenWidth: app.view.offsetWidth,
-    screenHeight: app.view.offsetHeight,
-    worldWidth: width,
-    worldHeight: height,
-    passiveWheel: false,
-    disableOnContextMenu: true
-  });
-
-  app.stage.addChild(pixi.viewport);
-  pixi.uiOverlay = new PIXI.Container();
-  app.stage.addChild(pixi.uiOverlay);
-
-  const point = Hex(playerStartTile.x, playerStartTile.y).toPoint();
-
-  pixi.viewport.
-    drag().
-    wheel().
-    pinch().
-    clampZoom({minScale: 0.01, maxScale: 10}).
-    clamp({direction: "all"}).
-    zoomPercent(-0.5).
-    moveCenter(point.x, point.y);
-
-  let layer = {
-    tiles: new PIXI.Container(),
-    stockpiles: new PIXI.Container(),
-    haulable: new PIXI.Container(),
-    people: new PIXI.Container(),
-    buildings: new PIXI.Container(),
-    fog: new PIXI.Container(),
-  };
-  layer.fog.name = "fog";
-
+  // NOTE: draw everything on the first frame
   state.redraws = Array.from({length: state.ecs.nextId - 1}, (v, i) => "" + (i + 1));
 
-  pixi.base = new PIXI.Container();
-
-  Object.values(layer).forEach(l => pixi.base.addChild(l));
-
-  pixi.viewport.addChild(pixi.base);
-
-  pixi.filters = {
-    sunset: new PIXI.filters.ColorMatrixFilter(),
-    night: new PIXI.filters.ColorMatrixFilter(),
-    game_over: new PIXI.filters.ColorMatrixFilter()
-  };
-  pixi.base.filters = Object.values(pixi.filters);
-
-  // See: https://github.com/pixijs/pixi.js/issues/4607
-  const tint = 0xFFBA86;
-  const r = tint >> 16 & 0xFF;
-  const g = tint >> 8 & 0xFF;
-  const b = tint & 0xFF;
-  pixi.filters.sunset.matrix[0] = r / 255;
-  pixi.filters.sunset.matrix[6] = g / 255;
-  pixi.filters.sunset.matrix[12] = b / 255;
-  pixi.filters.night.night(0.75);
+  state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
+  state.renderer.resize(window.innerWidth, window.innerHeight);
 
   const simulation = createSimulation(state, { onHour: renderUI });
 
@@ -106,71 +41,7 @@ const renderMap = (app, state, popupOver, setPopupInfo, renderUI, t) => {
 
   state.ticker.add(frameMod => simulation.step(frameMod));
 
-  state.ticker.add(() => timeFilter(state.pixi, state.days));
-
-  state.ticker.add(() => {
-    // NOTE: the simulation only moves spatials; follow them here
-    for (const id in state.ecs.personable) {
-      if (pixi[id]) {
-        for (const displayObject of pixi[id]) {
-          displayObject.position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
-        }
-      }
-    }
-
-    if (state.redraws.length > 0) {
-      const dirty = state.redraws;
-      state.redraws = [];
-      const known = state.ecs.playable[state.ui.playerId].known.map(k => state.space[Hex(k)]).flat().filter(e => state.ecs.mappable[e]);
-      for (const id of dirty) {
-        if (pixi[id]) {
-          for (const displayObject of pixi[id]) {
-            displayObject.destroy();
-          }
-          pixi[id] = [];
-        }
-        if (!entityExists(state.ecs, id)) {
-          delete pixi[id];
-          continue;
-        }
-        let result = render.entity(state, id, t, false);
-        if (!Array.isArray(result[0])) {
-          result = [ result ];
-        }
-        result.forEach(([chosenLayer, displayObject]) => {
-          if (chosenLayer && displayObject) {
-            if (!pixi[id]) {
-              pixi[id] = [];
-            }
-
-            pixi[id].push(displayObject);
-            layer[chosenLayer].addChild(displayObject);
-
-            if (state.ecs.mappable[id] && !known.includes(id)) {
-              if (!state.fog[id]) {
-                state.fog[id] = new PIXI.Sprite(state.fogTexture);
-                state.fog[id].position.set(state.ecs.spatial[id].x, state.ecs.spatial[id].y);
-                state.fog[id].anchor.set(0.5, 0.5);
-                layer.fog.addChild(state.fog[id]);
-              }
-            } else if (state.fog[id]) {
-              layer.fog.removeChild(state.fog[id]);
-              delete state.fog[id];
-            }
-          }
-
-          if (displayObject && !state.fog[id]) {
-            displayObject.entityId = id;
-            displayObject.interactive = true;
-            displayObject.on("click", popupOver);
-            displayObject.on("touchstart", () => displayObject.maybeSelect = true);
-            displayObject.on("touchmove", () => displayObject.maybeSelect = false);
-            displayObject.on("touchend", e => displayObject.maybeSelect && popupOver(e));
-          }
-        });
-      }
-    }
-  });
+  state.ticker.add(() => state.renderer.frame());
 };
 
 const virtualPosition = {
@@ -184,34 +55,6 @@ const virtualPosition = {
     this.y = y;
   }
 };
-
-const MAX_NIGHT = 0.5;
-function timeFilter(pixi, days) {
-  const hour = time.hour_of_day(days);
-  if (hour > 22 || hour <= 5) {
-    pixi.filters.night.alpha = MAX_NIGHT;
-    pixi.filters.sunset.alpha = 0;
-  } else if (hour <= 7) {
-    const t = (hour - 5) / 2;
-    pixi.filters.night.alpha = MAX_NIGHT - MAX_NIGHT * t;
-    pixi.filters.sunset.alpha = t * 0.5;
-  } else if (hour <= 10) {
-    const t = (hour - 7) / 3;
-    pixi.filters.night.alpha = 0;
-    pixi.filters.sunset.alpha = 0.5 - 0.5 * t;
-  } else if (hour <= 18) {
-    pixi.filters.night.alpha = 0;
-    pixi.filters.sunset.alpha = 0;
-  } else if (hour <= 20) {
-    const t = (hour - 18) / 2;
-    pixi.filters.night.alpha = 0;
-    pixi.filters.sunset.alpha = t;
-  } else if (hour <= 22) {
-    const t = (hour - 20) / 2;
-    pixi.filters.sunset.alpha = 1 - t;
-    pixi.filters.night.alpha = MAX_NIGHT * t;
-  }
-}
 
 export function World() {
   const stateContainer = React.useRef({});
@@ -238,10 +81,6 @@ export function World() {
     }
   }, [state, setPopupInfo]);
 
-  const popupOver = React.useCallback(event => {
-    selectEntity(event.currentTarget.entityId, event.data.pointerType == "touch");
-  }, [selectEntity]);
-
   React.useEffect(() => {
     if (popupInfo.id) {
       popper.current = createPopper(virtualReference.current, popperElement.current, {
@@ -253,24 +92,21 @@ export function World() {
         ]
       });
 
-      // NOTE: we use the first display object associated with this entity
-      const point = state.pixi[popupInfo.id][0].getGlobalPosition();
+      const point = state.renderer.screenPosition(popupInfo.id);
       virtualReference.current.set(point.x, point.y);
     } else {
       popper.current = null;
     }
-  }, [state.pixi, popupInfo]);
+    // NOTE: the renderer highlights whatever the popup is showing
+    if (state.ui) {
+      state.ui.selected = popupInfo.id;
+    }
+  }, [state, popupInfo]);
 
   React.useEffect(() => {
-    let app = new PIXI.Application({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      antialias: true,
-      backgroundAlpha: 0,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-      autoResize: true
-    });
+    const webgl = new THREE.WebGLRenderer({ antialias: true });
+    webgl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    webgl.setSize(window.innerWidth, window.innerHeight);
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       end_turn: async () => {
@@ -280,7 +116,7 @@ export function World() {
           const value = { s: 0 };
           new TWEEN.Tween(value)
             .to({ s: -1 }, 2500)
-            .onUpdate(() => state.pixi.filters.game_over.saturate(value.s))
+            .onUpdate(() => state.renderer.setDesaturation(-value.s))
             .start();
         }
         renderUI();
@@ -343,7 +179,6 @@ export function World() {
         if (state.ticker) {
           state.ticker.destroy();
         }
-        state.pixi = {};
         state.ticker = createTicker();
         state.ticker.start();
 
@@ -355,11 +190,7 @@ export function World() {
         state.map = results.map;
         state.ui.playerId = results.playerId;
 
-        if (app.stage.children.length > 0) {
-          app.stage.removeChildren();
-        }
-
-        renderMap(app, state, popupOver, setPopupInfo, renderUI, t);
+        renderMap(webgl, state, selectEntity, renderUI, t);
 
         renderUI();
       },
@@ -371,17 +202,26 @@ export function World() {
       }
     } };
 
-    containingDiv.current.appendChild(app.view);
+    containingDiv.current.appendChild(webgl.domElement);
 
     window.onresize = () => {
-      app.renderer.resize(window.innerWidth, window.innerHeight);
+      if (state.renderer) {
+        state.renderer.resize(window.innerWidth, window.innerHeight);
+      } else {
+        webgl.setSize(window.innerWidth, window.innerHeight);
+      }
     };
+
+    if (process.env.NODE_ENV !== "production") {
+      // NOTE: lets scripts/playtest.js look inside the running game
+      window.tinyking = state;
+    }
 
     (async () => {
       const seed =  Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
     })();
-  }, [renderUI, state, selectEntity, popupOver, t]);
+  }, [renderUI, state, selectEntity, t]);
 
   return (
     <div id="game">

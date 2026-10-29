@@ -7,7 +7,8 @@
     "test": "npx jest",
     "watch": "npx jest --watch",
     "build": "webpack --config webpack.prod.js",
-    "start": "webpack serve --config webpack.dev.js --progress"
+    "start": "webpack serve --config webpack.dev.js --progress",
+    "playtest": "node scripts/playtest.js"
   },
   "jest": {
     "moduleNameMapper": {
@@ -64,6 +65,7 @@
     "html-webpack-root-plugin": "git+https://github.com/jeremy-hunter/html-webpack-root-plugin.git#patch-1",
     "jest": "^27.0.6",
     "node-notifier": "^10.0.0",
+    "playwright-core": "^1.64.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "sass": "^1.37.5",

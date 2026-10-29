@@ -107,3 +107,6 @@ dist
 
 # ctags file
 tags
+
+# Playtest screenshots (scripts/playtest.js)
+shots/

@@ -1,6 +1,6 @@
 import SimplexNoise from "simplex-noise";
 
-import { Hex, HEX_SIZE } from "game/map";
+import { Hex, HEX_SIZE } from "game/hex";
 
 // NOTE: How high the land looks. This is for drawing only: nothing in the
 // game reads it, so hills never change paths, speeds or rules.

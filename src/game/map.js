@@ -1,6 +1,6 @@
-import * as Honeycomb from "honeycomb-grid";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
+import { HEX_SIZE, Hex, Grid, ALL_SIDES } from "game/hex";
 
 import MersenneTwister from "mersenne-twister";
 
@@ -9,9 +9,9 @@ import { newEntities, entitiesInSameLocation } from "game/entities";
 import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
-export const HEX_SIZE = 60;
+export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
+
 const MAP_RADIUS = 10;
-const HEX_HEIGHT = HEX_SIZE * Math.sqrt(3);
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
@@ -35,20 +35,6 @@ export const HAIR = [
 
 export const BODY_MALE = 0x4E3F30;
 export const BODY_FEMALE = 0x3B6071;
-
-export const Hex = Honeycomb.extendHex({
-  size: HEX_SIZE,
-  orientation: "flat",
-  origin: [ HEX_SIZE, HEX_HEIGHT * 0.5 ]
-});
-
-export const InnerHex = Honeycomb.extendHex({
-  size: 0.5 * HEX_SIZE,
-  orientation: "flat",
-  origin: [ HEX_SIZE * 0.5, HEX_HEIGHT * 0.25 ]
-});
-
-export const Grid = Honeycomb.defineGrid(Hex);
 
 function generateFamily(size, spatial, front, generator, days) {
   let result = [];
@@ -284,8 +270,6 @@ function discoverStartingTiles(ecs, id, center) {
     .map(s => ({ x: s.x, y: s.y }));
   discoverTiles(ecs, { id, tiles });
 }
-
-export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);
 
 export async function generateMap(state, seed, progressUpdate) {
   // NOTE: a new map starts with an empty space index; entity ids restart at

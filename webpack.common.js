@@ -39,6 +39,8 @@ module.exports = {
   output: {
     filename: "[name].[contenthash].js",
     path: path.resolve(__dirname, "dist"),
+    // NOTE: absolute, so deep links like /debug/worldgen load the bundle from the root
+    publicPath: "/",
   },
   optimization: {
     moduleIds: "deterministic",

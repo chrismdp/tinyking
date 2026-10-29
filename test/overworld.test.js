@@ -1,6 +1,7 @@
 import { Grid, Hex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, repairClashes, WORLD_RADIUS
+  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, repairClashes, propagateFrom,
+  WORLD_RADIUS
 } from "game/overworld";
 
 const SEEDS = [1, 1234, 98765, 4242424, 7777777, 31337, 2026];
@@ -13,6 +14,27 @@ const neighboursIn = (world, hex) => {
     .map(n => world.hexes.find(h => h.x == n.x && h.y == n.y))
     .filter(h => h);
 };
+
+const keyOf = hex => Hex(hex.x, hex.y).toString();
+
+// NOTE: every pair of neighbours more than one step apart, on any axis
+const clashesIn = world => {
+  const clashes = [];
+  world.hexes.forEach(h => neighboursIn(world, h).forEach(n => {
+    for (const axis in AXES) {
+      if (Math.abs(step(axis, h[axis]) - step(axis, n[axis])) > 1) {
+        clashes.push({ axis, a: [h.x, h.y, h[axis]], b: [n.x, n.y, n[axis]] });
+      }
+    }
+  }));
+  return clashes;
+};
+
+// NOTE: a copy of the world with one world hex's value changed
+const withValue = (world, key, axis, value) => ({
+  ...world,
+  hexes: world.hexes.map(h => keyOf(h) == key ? { ...h, [axis]: value } : h)
+});
 
 describe("the biomes", () => {
   it("names all nine from temperature and moisture", () => {
@@ -154,6 +176,65 @@ describe("the world of world hexes", () => {
     }
     expect([...biomes].sort()).toEqual(Object.keys(BIOMES).sort());
     expect([...moralities].sort()).toEqual([...AXES.morality].sort());
+  });
+});
+
+describe("a change spreading out from one world hex", () => {
+  // NOTE: a world all neutral, temperate and normal, except one good hex
+  const calm = () => {
+    const world = generateWorld(1);
+    return { ...world, hexes: world.hexes.map(h => ({
+      ...h, morality: "neutral", temperature: "temperate", moisture: "normal", biome: "grassland"
+    })) };
+  };
+
+  it("pulls a good neighbour to neutral when a world hex turns evil", () => {
+    const world = calm();
+    const centre = world.hexes.find(h => h.x == world.centre.x && h.y == world.centre.y);
+    const [ good ] = neighboursIn(world, centre);
+    const before = withValue(world, keyOf(good), "morality", "good");
+    const changed = withValue(before, keyOf(centre), "morality", "evil");
+    expect(clashesIn(changed).length).toBeGreaterThan(0);
+
+    const after = propagateFrom(changed, keyOf(centre), "morality");
+
+    const find = (w, hex) => w.hexes.find(h => h.x == hex.x && h.y == hex.y);
+    expect(find(after, centre).morality).toEqual("evil");
+    expect(find(after, good).morality).toEqual("neutral");
+    expect(clashesIn(after)).toEqual([]);
+    // NOTE: nothing else moves, and the world it was given is left alone
+    after.hexes.filter(h => keyOf(h) != keyOf(good))
+      .forEach(h => expect(h).toEqual(find(changed, h)));
+    expect(find(changed, good).morality).toEqual("good");
+  });
+
+  it("restores the one-step rule across the whole world, whichever hex changes on whichever axis", () => {
+    SEEDS.forEach(seed => {
+      const world = generateWorld(seed);
+      for (const axis in AXES) {
+        world.hexes.forEach((hex, i) => {
+          // NOTE: push it to whichever extreme is further from where it was
+          const value = step(axis, hex[axis]) < 1 ? 2 : (step(axis, hex[axis]) > 1 ? 0 : (i % 2) * 2);
+          const changed = withValue(world, keyOf(hex), axis, AXES[axis][value]);
+          const after = propagateFrom(changed, keyOf(hex), axis);
+          expect(after.hexes.find(h => keyOf(h) == keyOf(hex))[axis]).toEqual(AXES[axis][value]);
+          expect(clashesIn(after)).toEqual([]);
+          after.hexes.forEach(h => expect(h.biome).toEqual(biomeOf(h.temperature, h.moisture)));
+        });
+      }
+    });
+  });
+
+  it("keeps each biome in step when temperature or moisture spreads", () => {
+    const world = calm();
+    const centre = world.hexes.find(h => h.x == world.centre.x && h.y == world.centre.y);
+    const [ cold ] = neighboursIn(world, centre);
+    const before = withValue(world, keyOf(cold), "temperature", "cold");
+    const changed = withValue(before, keyOf(centre), "temperature", "hot");
+    const after = propagateFrom(changed, keyOf(centre), "temperature");
+    const pulled = after.hexes.find(h => keyOf(h) == keyOf(cold));
+    expect(pulled.temperature).toEqual("temperate");
+    expect(pulled.biome).toEqual("grassland");
   });
 });
 

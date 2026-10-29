@@ -41,29 +41,64 @@ const THRESHOLD = 0.25;
 
 const quantise = value => value < -THRESHOLD ? 0 : (value > THRESHOLD ? 2 : 1);
 
-// NOTE: Steps are 0, 1 and 2, and neighbours may differ by one at most, so
-// a clash is a 0 next to a 2. Cells are visited from least to most certain
-// (ties in order), and an extreme that still clashes moves to the middle.
-// A middle step clashes with nothing, and values only ever move to the
-// middle, so one pass leaves no clash: when the first cell of a clashing
-// pair was visited, the other was already extreme, so it would have moved.
+// NOTE: Neighbours may differ by one step at most. A step more than one
+// away from its anchor is pulled to one step away, on its own side.
+const pullTowards = (step, anchor) => Math.abs(step - anchor) <= 1 ? step : anchor + Math.sign(step - anchor);
+
+const neighbourKeys = hex => Grid.hexagon({ center: hex, radius: 1 })
+  .neighborsOf(hex, ALL_SIDES)
+  .map(n => n.toString());
+
+// NOTE: Steps are 0, 1 and 2, so a clash is a 0 next to a 2. Cells are
+// visited from least to most certain (ties in order), and one that still
+// clashes is pulled towards its neighbour, to the middle. A middle step
+// clashes with nothing, and values only ever move to the middle, so one
+// pass leaves no clash: when the first cell of a clashing pair was visited,
+// the other was already extreme, so it would have moved.
 export function repairClashes(steps, neighbours, confidence) {
   const result = [...steps];
   const order = steps.map((_, i) => i).sort((a, b) => confidence[a] - confidence[b] || a - b);
   for (const i of order) {
-    if (result[i] != 1 && neighbours[i].some(j => Math.abs(result[j] - result[i]) > 1)) {
-      result[i] = 1;
+    for (const j of neighbours[i]) {
+      result[i] = pullTowards(result[i], result[j]);
     }
   }
   return result;
 }
 
+// NOTE: When one world hex's value on an axis changes, the change spreads:
+// any neighbour now more than a step away is pulled to one step away, and
+// so on outwards from each hex that moved, until the one-step rule holds
+// everywhere again. The changed hex keeps its new value; hexes only ever
+// move towards it, so the spreading stops. Returns a new world.
+export function propagateFrom(world, key, axis) {
+  const steps = AXES[axis];
+  const hexes = world.hexes.map(h => ({ ...h }));
+  const byKey = new Map(hexes.map(h => [Hex(h.x, h.y).toString(), h]));
+  const queue = [key];
+  while (queue.length > 0) {
+    const from = byKey.get(queue.shift());
+    for (const next of neighbourKeys(Hex(from.x, from.y))) {
+      const to = byKey.get(next);
+      if (!to) {
+        continue;
+      }
+      const pulled = steps[pullTowards(steps.indexOf(to[axis]), steps.indexOf(from[axis]))];
+      if (pulled != to[axis]) {
+        to[axis] = pulled;
+        queue.push(next);
+      }
+    }
+  }
+  hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
+  return { ...world, hexes };
+}
+
 export function generateWorld(seed) {
   const grid = [...Grid.hexagon({ center: WORLD_CENTRE, radius: WORLD_RADIUS })];
   const index = new Map(grid.map((hex, i) => [hex.toString(), i]));
-  const neighbours = grid.map(hex => Grid.hexagon({ center: hex, radius: 1 })
-    .neighborsOf(hex, ALL_SIDES)
-    .map(n => index.get(n.toString()))
+  const neighbours = grid.map(hex => neighbourKeys(hex)
+    .map(key => index.get(key))
     .filter(i => i != null));
 
   const steps = {};

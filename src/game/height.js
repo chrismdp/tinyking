@@ -35,15 +35,22 @@ const SECTOR = Math.PI / 3;
 const OFFSETS = Hex().corners().map(c => ({ x: c.x, y: c.y }));
 
 const hexKey = (x, y) => Hex().fromPoint(x, y).toString();
+const cornerHexes = new Map();
 
 // NOTE: The hexes meeting at a corner: stepping half a hex out from the
 // corner in each of six directions lands in (or between) exactly those.
 function hexesAround(x, y) {
+  const key = Math.round(x / CORNER_STEP_X) + "," + Math.round(y / CORNER_STEP_Y);
+  if (cornerHexes.has(key)) {
+    return cornerHexes.get(key);
+  }
   const keys = new Set();
   for (let k = 0; k < 6; k++) {
     keys.add(hexKey(x + Math.cos(k * SECTOR) * HEX_SIZE * 0.5, y + Math.sin(k * SECTOR) * HEX_SIZE * 0.5));
   }
-  return [...keys];
+  const result = [...keys];
+  cornerHexes.set(key, result);
+  return result;
 }
 
 export function createHeightField({ seed, terrainAt }) {

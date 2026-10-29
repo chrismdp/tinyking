@@ -106,3 +106,24 @@ describe("removeBidirectionalLink", () => {
     expect(ecs.walkable["2"].neighbours).toEqual({});
   });
 });
+
+describe("pathfinding on larger, well-travelled maps", () => {
+  it("finishes an unreachable search even when worn paths give a cycle a negative cost", () => {
+    const state = { space: {}, ecs: { spatial: {}, walkable: {} } };
+    const hexes = [...Grid.spiral({ radius: 1 })];
+    hexes.slice(0, 3).forEach((hex, i) => {
+      const id = String(i + 1);
+      state.ecs.spatial[id] = hex.toPoint();
+      state.space[hex] = [id];
+      state.ecs.walkable[id] = { speed: 1, worn: { path: 300 }, neighbours: {} };
+    });
+    let visits = 0;
+    Object.defineProperty(state.ecs.walkable["1"], "neighbours", { get() {
+      if (++visits > 20) { throw new Error("search keeps revisiting closed tiles"); }
+      return { 0: "2" };
+    } });
+    state.ecs.walkable["2"].neighbours = { 3: "1" };
+    expect(sut.path(state, "1", "3")).toBeNull();
+    expect(visits).toBeLessThanOrEqual(2);
+  });
+});

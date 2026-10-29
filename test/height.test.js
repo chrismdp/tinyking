@@ -150,3 +150,15 @@ describe("terrain height", () => {
     expect(field.heightAt(-5000, -5000)).toEqual(SEA_LEVEL);
   });
 });
+
+it("reuses corner geometry between maps while reading each map's own terrain", () => {
+  const point = cornersOf(Hex(40, 40))[0];
+  const conversions = jest.spyOn(Object.getPrototypeOf(Hex()), "fromPoint");
+  const land = createHeightField({ seed: 13, terrainAt: () => "grassland" });
+  expect(land.cornerHeight(point.x, point.y)).toBeGreaterThan(SEA_LEVEL);
+  conversions.mockClear();
+  const sea = createHeightField({ seed: 13, terrainAt: () => "deep water" });
+  expect(sea.cornerHeight(point.x, point.y)).toBe(SEA_LEVEL);
+  expect(conversions).not.toHaveBeenCalled();
+  conversions.mockRestore();
+});

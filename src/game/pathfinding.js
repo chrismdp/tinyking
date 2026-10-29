@@ -45,44 +45,78 @@ function reconstructPath(cameFrom, id) {
   return result;
 }
 
-const debug = false;
+// NOTE: The frontier is a stable minimum heap. Updating a score adds an
+// entry; stale entries are skipped when popped, without sorting the frontier.
+class Frontier {
+  constructor() { this.entries = []; this.order = 0; }
+  before(a, b) { return a.score < b.score || (a.score == b.score && a.order < b.order); }
+  push(id, score) {
+    const entry = { id, score, order: this.order++ };
+    let i = this.entries.length;
+    this.entries.push(entry);
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (!this.before(entry, this.entries[parent])) { break; }
+      this.entries[i] = this.entries[parent];
+      i = parent;
+    }
+    this.entries[i] = entry;
+  }
+  pop() {
+    const first = this.entries[0];
+    const last = this.entries.pop();
+    if (this.entries.length > 0) {
+      let i = 0;
+      while (i * 2 + 1 < this.entries.length) {
+        let child = i * 2 + 1;
+        if (child + 1 < this.entries.length && this.before(this.entries[child + 1], this.entries[child])) { child++; }
+        if (!this.before(this.entries[child], last)) { break; }
+        this.entries[i] = this.entries[child];
+        i = child;
+      }
+      this.entries[i] = last;
+    }
+    return first;
+  }
+}
 
 export function path(state, start, goal) {
-  const openSet = [start];
+  const openSet = new Frontier();
+  const closed = new Set();
   const cameFrom = {};
 
   const gScore = {};
   const fScore = {};
+  const costs = {};
   gScore[start] = 0;
 
   fScore[start] = h(state.ecs, start, goal);
+  openSet.push(start, fScore[start]);
 
-  while (openSet.length > 0) {
-    openSet.sort((a, b) => (fScore[a] || Infinity) - (fScore[b] || Infinity));
-    if (debug) { console.log("P OS", openSet, "GS", gScore, "FS", fScore); }
-    const current = openSet[0];
-    if (debug) { console.log("P CURRENT", current); }
+  while (openSet.entries.length > 0) {
+    const { id: current, score } = openSet.pop();
+    if (closed.has(String(current)) || score != fScore[current]) { continue; }
     if (current == goal) {
-      if (debug) { console.log("P HIT", cameFrom, current, goal); }
       return reconstructPath(cameFrom, current);
     }
-    openSet.shift();
+    closed.add(String(current));
     for (const side in state.ecs.walkable[current].neighbours) {
       const n = state.ecs.walkable[current].neighbours[side];
-      const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
-        0.2 : 1;
-      const wornIncentive = Math.max(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
-      const tentativeScore = gScore[current] +
-        (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty)) - wornIncentive;
-      if (debug) { console.log("P n", n, "TS", tentativeScore, "GSN", gScore[n]); }
+      // NOTE: worn roads can have negative cost. A route never needs to
+      // loop; closing expanded tiles keeps disconnected searches finite.
+      if (closed.has(String(n))) { continue; }
+      if (!(n in costs)) {
+        const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
+          0.2 : 1;
+        const wornIncentive = Math.max(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
+        costs[n] = (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty)) - wornIncentive;
+      }
+      const tentativeScore = gScore[current] + costs[n];
       if (!(n in gScore) || tentativeScore < gScore[n]) {
-        if (debug) { console.log("P cameFrom", n, current); }
         cameFrom[n] = { id: current, exit: +side };
         gScore[n] = tentativeScore;
         fScore[n] = gScore[n] + h(state.ecs, n, goal);
-        if (!openSet.includes(n)) {
-          openSet.push(n);
-        }
+        openSet.push(n, fScore[n]);
       }
     }
   }

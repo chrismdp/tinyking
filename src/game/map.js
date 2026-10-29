@@ -1,5 +1,5 @@
 import * as Honeycomb from "honeycomb-grid";
-import * as SimplexNoise from "simplex-noise";
+import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
 
 import MersenneTwister from "mersenne-twister";

@@ -154,6 +154,25 @@ The existing code already models "who answers to whom": each person has a contro
 
 You climb a rung by marriage, inheritance, or gathering people who swear to you. Each rung adds a layer of people who answer to you, and those layers are exactly what the controller chain already records.
 
+**Land is divided into fixed areas, as in Crusader Kings III.** The areas are drawn when the map is generated, using nested hexes where seven of each size make the next:
+
+| Area | Made of | Small hexes |
+|---|---|---|
+| Household | 1 hex | 1 |
+| Hamlet | a flower of 7 hexes (one hex and its six neighbours) | 7 |
+| Town | 7 hamlets | 49 |
+| Kingdom | 7 towns | 343 |
+
+A world hex is about 400 small hexes, so one kingdom roughly fills one world hex. Seven-hex flowers tile the map exactly. Groups of seven flowers don't make a perfect larger hexagon, so town borders come out slightly ragged, which suits medieval estates.
+
+**Each area is a title**, and a title exists whether or not anyone holds it. Every hamlet, town and kingdom has a name, and "who holds this?" always has an answer, even if the answer is nobody.
+
+- You hold a hamlet when you live in it and its households are sworn to you.
+- You hold a town when most of its seven hamlets are held by you or by lords sworn to you.
+- Titles pass by inheritance, and you can grant a hamlet you hold to a sworn follower, who becomes its lord under you.
+- Villages are generated inside these areas, so the first villagers already hold hamlets. Taking one over by marriage then works naturally.
+- An overlay shows the borders and who holds each title.
+
 **Lords control marriages.** When a lord dies and the heir is a child, the liege (the lord above) becomes the child's guardian and decides who the heir marries. Historically this was how land changed hands. In the game, marrying heirs within your realm becomes the main political tool.
 
 ## The rule of five
@@ -235,6 +254,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 - **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
 - **Sworn followers share your job queue.** No detailed feudal duties.
 - **Children grow up after a couple of game years.**
+- **Land is divided into fixed areas** (nested hexes: hamlet of 7, town of 49, kingdom of 343), each one a title, as in Crusader Kings III.
 - **Dying with no heir** means starting again as a new stranger in the same world.
 - **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
 - **The rule of five comes from traits and tastes, and relationships are one-way.**

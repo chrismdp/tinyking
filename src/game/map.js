@@ -290,6 +290,10 @@ function discoverStartingTiles(ecs, id, center) {
 export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);
 
 export async function generateMap(state, seed, progressUpdate) {
+  // NOTE: a new map starts with an empty space index; entity ids restart at
+  // 1, so anything left from an old map would point at the wrong entities
+  state.space = {};
+
   const grid = Grid.rectangle({width: MAP_RADIUS * 2, height: MAP_RADIUS * 2});
   let landscape = await generateTerrain(grid, seed, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);

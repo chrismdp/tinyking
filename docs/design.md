@@ -72,6 +72,36 @@ Food is the pressure. Foraging only just keeps you fed, so time spent on other p
 
 Once you are in someone's Personal ring, they put "help my friend" high in their own priorities, so they turn up to help with your house and field. Their loyalty shows in what they actually do, through the planner.
 
+## Who helps you, and why
+
+People help you for one of three reasons, and each works differently.
+
+**Because they care.** Kin and friends in your Personal ring help for free. They expect help back, though: if you ignore their harvest, they drift outwards. Medieval villages ran on this kind of exchange; neighbours came for each other's harvests ("boon work").
+
+**Because you pay them.** You hire hands with food or goods. It's quick and doesn't need a friendship, but it's a contract, not a bond:
+
+- While someone works for you for pay, they can't come closer than Social.
+- Offering pay to someone who already helps you out of care insults them, and they drop a ring. Paying for what was given freely spoils it, which is a real effect in people.
+- Hired hands stop when the pay stops.
+
+**Because they swore to you.** Someone in your Personal ring who lives on land you hold can swear fealty: a public oath, which was how medieval bonds of service worked. The oath runs both ways:
+
+- They owe you labour (a few days a week on your fields, more at harvest) and come when you call.
+- You owe them protection, food in a hard winter, and fair judgement in their quarrels.
+- If you break your side, the oath breaks, and everyone close to them hears about it.
+
+## The feudal ladder
+
+The existing code already models "who answers to whom": each person has a controller (`controllable.controllerId`), and `topController` walks up the chain. That is a feudal hierarchy, so it can carry this ladder directly:
+
+1. **Stranger:** a camp and nothing else.
+2. **Cottager:** a hut and a small plot. You're now someone with a place.
+3. **Householder:** a house, a field, a family and perhaps hired hands.
+4. **Lord of a village:** by marriage, inheritance, or founding a village with people sworn to you. You hold the land; families live on it and owe you service.
+5. **Tiny King:** the lords of other villages swear fealty to you.
+
+**Lords control marriages.** When a lord dies and the heir is a child, the liege (the lord above) becomes the child's guardian and decides who the heir marries. Historically this was how land changed hands. In the game, marrying heirs within your realm becomes the main political tool.
+
 ## Not everyone likes you
 
 Each person has traits, and so does your character. How well your traits match theirs sets the closest ring they will ever let you into. Some people will only ever be Public, however much you help them. A few dislike you on sight. They take your help without thanks, speak badly of you to the people close to them, and side against you.
@@ -148,7 +178,8 @@ Marriage, succession, gossip, the five layers and travel between world hexes com
 
 ## Open questions
 
-- **What is winning?** Ruling the whole world hex, a line that lasts a number of generations, or no end at all, just a story that keeps going?
+- **What is winning?** The feudal ladder suggests an answer: every village lord in the world hex has sworn to your line. Is that it, or is there no end at all, just a story that keeps going?
+- **Feudal duties.** Is the service a sworn follower owes worth modelling in detail (days of labour, rent in kind), or should it be a simple "they help when asked"?
 - **Time per generation.** How long should one generation take to play?
 - **Starting alone or not.** Does the player start alone, or with a spouse or companion?
 - **How you control your character.** Do you give your character orders from the task list and watch them carry the orders out, as now? Or do you steer them directly?

@@ -11,6 +11,8 @@ import * as models from "render/models";
 import { realmColour } from "render/colours";
 import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
+import { createInstances } from "render/instances";
+import { villageModel, animateWorkplace } from "render/villages";
 import { createForest } from "render/forest";
 import { introActive } from "game/intro";
 import { createCameraRig, arrivalShot } from "render/camera";
@@ -57,6 +59,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const weatherView = createWeatherView(ground);
   scene.add(weatherView.mesh);
 
+  const instances = createInstances();
+  scene.add(instances.mesh);
   const objects = {};
   const people = new Set();
   let known = new Set();
@@ -93,6 +97,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
     }
     forest.invalidate();
+    instances.invalidate();
   };
 
   const currentSelection = () => [state.ui.selected, state.ui.show && state.ui.show.selected_person]
@@ -100,6 +105,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const remove = id => {
     forest.remove(id);
+    instances.remove(id);
     if (objects[id]) {
       scene.remove(objects[id]);
       models.disposeObject(objects[id]);
@@ -129,6 +135,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     if (ecs.forageable && ecs.forageable[id]) {
       return models.foragePlant(ground, state, id);
     }
+    if (ecs.backyard?.[id] || ecs.workplace?.[id] || ecs.meetingPlace?.[id] || ecs.pasture?.[id] || ecs.animal?.[id]) return villageModel(ground, state, id);
     if (ecs.camp?.[id]) return models.camp(ground, state, id);
     if (ecs.shelter?.[id]) return models.shelter(ground, state, id);
     if (ecs.building[id]) {
@@ -171,6 +178,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     objects[id] = object;
     if ((state.ecs.good[id] && state.ecs.good[id].type == "wood" && !(state.ecs.haulable && state.ecs.haulable[id])) || state.ecs.forageable && state.ecs.forageable[id]) {
       forest.add(id, object);
+    } else if (state.ecs.farmable?.[id] && !selected.includes(id) || state.ecs.backyard?.[id] || state.ecs.workplace?.[id] || state.ecs.meetingPlace?.[id] || state.ecs.pasture?.[id] || state.ecs.animal?.[id]) {
+      instances.add(id, object);
     } else {
       scene.add(object);
     }
@@ -187,6 +196,10 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
     const ring = object.getObjectByName("ring");
     ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), models.surfaceNormal(ground, s.x, s.y));
+
+    const figure = object.getObjectByName("figure");
+    if (state.ecs.planner[id]?.task?.[0] == "trade_work") figure.rotation.z = Math.sin(performance.now() / 180) * 0.07;
+    else if (state.ecs.profession?.[id]) figure.rotation.z = 0;
 
     const last = object.userData.last;
     if (last) {
@@ -215,8 +228,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     hemisphere.intensity = SKY * (1 - night * 0.9) * cloud.sky;
   };
 
-  const pickables = () => [terrain.mesh, forest.mesh, ...Object.entries(objects)
-    .filter(([id]) => !forest.has(id)).map(([, object]) => object)];
+  const pickables = () => [terrain.mesh, forest.mesh, instances.mesh, ...Object.entries(objects)
+    .filter(([id]) => !forest.has(id) && !instances.has(id)).map(([, object]) => object)];
 
   const pick = (clientX, clientY) => {
     const rect = canvas.getBoundingClientRect();
@@ -281,6 +294,10 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   return {
     camera,
+    // Observer control for reproducible village inspection and captures.
+    focusOn(point, distance = 1000) {
+      rig.shot({ x: point.x, z: point.y, y: ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 });
+    },
     frame() {
       const now = performance.now();
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
@@ -317,6 +334,20 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       forest.update();
       const weather = localWeather(state);
       if (weather) forest.setWind(weather.wind, weather.type == "storm", now / 1000);
+
+      for (const id in state.ecs.animal || {}) {
+        const object = objects[id], p = state.ecs.spatial[id];
+        if (!object) continue;
+        object.position.set(p.x, ground.heightAt(p.x, p.y), p.y);
+        object.rotation.y = state.ecs.animal[id].facing;
+        object.visible = isKnown(p);
+        instances.invalidate(id);
+      }
+      for (const id in state.ecs.workplace || {}) if (objects[id]) {
+        animateWorkplace(state, id, objects[id], now / 1000);
+        if (objects[id].getObjectByName("smoke")) instances.invalidate(id);
+      }
+      instances.update();
 
       for (const id of people) {
         followPerson(id);
@@ -392,6 +423,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       terrain.dispose();
       forest.dispose();
+      instances.dispose();
       weatherView.dispose();
       canvas.style.filter = "";
     }

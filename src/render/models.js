@@ -142,7 +142,7 @@ function hexOutline(ground, centre, colour) {
 
 // NOTE: Bake several coloured parts into one geometry, so a tree or a house
 // costs a single draw call.
-function mergeColoured(parts) {
+export function mergeColoured(parts) {
   const positions = [];
   const normals = [];
   const colours = [];
@@ -171,7 +171,7 @@ function mergeColoured(parts) {
   return merged;
 }
 
-const at = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(
+export const at = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(
   new THREE.Vector3(x, y, z),
   new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)),
   new THREE.Vector3(sx, sy, sz));
@@ -655,17 +655,17 @@ export function tileOverlay(ground, ecs, id, { selected }) {
 export function field(ground, state, id, { selected }) {
   const group = new THREE.Group();
   const centre = state.ecs.spatial[id];
-  group.add(new THREE.Mesh(drapedHex(ground, centre, 0.9, 0.6), overlay(COLOURS.field, 0.7, 2)));
+  const soil = [{ geometry: drapedHex(ground, centre, 0.9, 0.9), colour: COLOURS.field }];
 
   state.ecs.farmable[id].slots.forEach((slot, idx) => {
     const p = { x: centre.x + TRIANGLES[idx].x, y: centre.y + TRIANGLES[idx].y };
     if (["harvested", "harvestable", "ploughed", "sown"].includes(slot.state)) {
-      group.add(new THREE.Mesh(drapedQuad(ground, [
+      soil.push({ geometry: drapedQuad(ground, [
         { x: p.x - 14, y: p.y - 5.5 },
         { x: p.x + 14, y: p.y - 5.5 },
         { x: p.x + 14, y: p.y + 5.5 },
         { x: p.x - 14, y: p.y + 5.5 },
-      ], 0.8, 3, 1), overlay(COLOURS.dirt, 1, 3)));
+      ], 1.2, 3, 1), colour: COLOURS.dirt });
     }
     if (["harvested"].includes(slot.state)) {
       const stubble = new THREE.Mesh(stubbleGeometry(), lambert(0x2A211C));
@@ -674,13 +674,15 @@ export function field(ground, state, id, { selected }) {
     } else if (["harvestable", "sown"].includes(slot.state)) {
       const radius = Math.min(6,
         Math.max(2,
-          (state.days - slot.updated) * 6 / crops[slot.content].growingTime));
+          (slot.growth ?? state.days - slot.updated) * 6 / crops[slot.content].growingTime));
       const crop = new THREE.Mesh(cropGeometry(), lambert(parseInt(crops[slot.content].colour, 16)));
       crop.scale.set(radius, slot.state == "harvestable" ? radius * 2.2 : radius * 1.6, radius);
       crop.position.copy(toWorld(ground, p, 0));
       group.add(crop);
     }
   });
+
+  group.add(new THREE.Mesh(mergeColoured(soil), vertexColoured));
 
   if (selected) {
     const marker = selectionMarker(24);

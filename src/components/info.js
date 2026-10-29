@@ -74,6 +74,9 @@ export function Info({ entityId }) {
 
   const entity = React.useMemo(() => fullEntity(state.ecs, entityId), [state.ecs, entityId]);
   const title = entity.mappable ? t("terrain." + entity.mappable.terrain) : (entity.nameable ? (<Name nameable={entity.nameable} clickable={false}/>) : "Information");
+  const houseId = (entity.animal || entity.farmable || entity.workplace || entity.backyard || entity.pasture)?.houseId;
+  const ownerId = houseId && state.ecs.controllable?.[houseId]?.controllerId;
+  const village = houseId && state.villages?.[state.ecs.village?.[houseId]?.villageId];
 
   const [jobs, setJobs] = React.useState([]);
 
@@ -141,7 +144,11 @@ export function Info({ entityId }) {
           </li>))}
         </ul>
       </>)}
-      { entity.controllable && entity.controllable.controllerId != entity.id && (<>
+      {houseId && <div className="household-owner">
+        <div>Household: {state.ecs.nameable?.[ownerId] ? <NameList ids={[ownerId]}/> : "Unknown"}</div>
+        <div>Village: {village?.name || "Unknown"}</div>
+      </div>}
+      { !houseId && entity.controllable && entity.controllable.controllerId != entity.id && (<>
         <span>{ entity.personable ? "Liege:" : "Controlled by:"} </span>
         <NameList ids={[entity.controllable.controllerId]}/>
       </>)}

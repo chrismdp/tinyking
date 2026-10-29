@@ -263,7 +263,14 @@ export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
       controllable: { controllerId: topController(state.ecs, actorId) }
     })));
     const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
-    if (order) { order.gathered = world.gathered; order.gatheredDone = true; order.detail = "Carrying logs to camp"; }
+    if (order) {
+      order.gathered = world.gathered;
+      // Keep the harvest amount after the tree is removed. The remaining
+      // gathered ids already track delivery; no separate UI progress is stored.
+      order.gatheredTotal = world.gathered.length;
+      order.gatheredDone = true;
+      order.detail = "Carrying logs to camp";
+    }
     state.redraws.push(...world.gathered);
     deleteEntity(state, targetId);
 

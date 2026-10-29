@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { Hex, HEX_SIZE } from "game/map";
+import { Hex, Grid, ALL_SIDES, HEX_SIZE } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
 import { localWeather, coldEnough } from "game/weather";
@@ -12,7 +12,8 @@ import { realmColour } from "render/colours";
 import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
 import { createForest } from "render/forest";
-import { createCameraRig } from "render/camera";
+import { introActive } from "game/intro";
+import { createCameraRig, arrivalShot } from "render/camera";
 import { createWeatherView } from "render/weather";
 import { weatherLight, skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
@@ -62,8 +63,12 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let knownCount = -1;
   let revealAll = false;
   let selected = [];
+  let arrivalKnown = new Set();
+  let lastIntro = null;
+  let wasArriving = false;
+  let shot = null;
 
-  const isKnown = point => revealAll || known.has(hexKey(point));
+  const isKnown = point => revealAll || known.has(hexKey(point)) || arrivalKnown.has(hexKey(point));
 
   // NOTE: the biome and morality of the tile under a point
   const lookAt = point => lookOf(state, (state.space[hexKey(point)] || []).find(e => state.ecs.mappable[e]));
@@ -84,7 +89,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
     for (const id in objects) {
       if (objects[id].userData.hexKey) {
-        objects[id].visible = revealAll || known.has(objects[id].userData.hexKey);
+        objects[id].visible = revealAll || known.has(objects[id].userData.hexKey) || arrivalKnown.has(objects[id].userData.hexKey);
       }
     }
     forest.invalidate();
@@ -178,7 +183,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       return;
     }
     object.position.set(s.x, ground.heightAt(s.x, s.y), s.y);
-    object.visible = isKnown(s);
+    object.visible = isKnown(s) || (id == state.ui.playerId && introActive(state));
 
     const ring = object.getObjectByName("ring");
     ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), models.surfaceNormal(ground, s.x, s.y));
@@ -192,6 +197,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
     }
     object.userData.last = { x: s.x, y: s.y };
+    if (id == state.ui.playerId && state.intro && !state.ecs.personable[id].dead) {
+      models.poseArrivalPerson(object, state.intro, state.ecs.personable[id].size, {
+        ground, spatial: s, camp: state.ecs.spatial[state.intro.campId]
+      });
+    }
   };
 
   const light = () => {
@@ -245,6 +255,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const rig = createCameraRig(camera, canvas, {
     bounds: { centre: middle, apothem },
+    enabled: () => !introActive(state),
     maxDistance: () => Math.max(3600, wholeMapDistance() * 1.5),
     groundHeight: (x, z) => ground.heightAt(x, z),
     onClick: e => {
@@ -275,6 +286,15 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
       lastFrame = now;
 
+      const arriving = introActive(state);
+      const changedIntro = lastIntro != state.intro || wasArriving != arriving;
+      if (changedIntro) {
+        arrivalKnown = new Set(arriving ? state.intro.tileIds.flatMap(id => {
+          const hex = Hex().fromPoint(state.ecs.spatial[id]);
+          return [hex.toString(), ...Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).map(n => n.toString())];
+        }) : []);
+        showKnown();
+      }
       if (refreshKnown()) {
         showKnown();
       }
@@ -311,7 +331,17 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
 
       light();
-      rig.update(dt);
+      if (state.intro && (arriving || changedIntro)) {
+        const target = arrivalShot(state.intro, state.ecs.spatial[state.ui.playerId], state.ecs.spatial[state.intro.campId], camera.aspect, ground.heightAt);
+        if (!shot || changedIntro) shot = target;
+        else {
+          const ease = 1 - Math.exp(-dt * 7);
+          for (const key of Object.keys(target)) shot[key] += (target[key] - shot[key]) * ease;
+        }
+        rig.shot(shot);
+      } else rig.update(dt);
+      lastIntro = state.intro;
+      wasArriving = arriving;
       weatherView.update(weather, camera, now / 1000,
         ["grassland", "steppe", "savanna"].includes(homeOf(state.world).biome),
         coldEnough(homeOf(state.world), state.days));

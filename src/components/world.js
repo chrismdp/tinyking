@@ -11,6 +11,7 @@ import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
 import { anyControlledAlive } from "game/playable";
+import { startIntro, skipIntro, introActive, standAfterIntro } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
@@ -44,7 +45,12 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
     TWEEN.update();
   });
 
-  state.ticker.add(frameMod => simulation.step(frameMod));
+  let simulationTime = performance.now();
+  state.ticker.add(frameMod => {
+    const now = performance.now();
+    simulation.step(frameMod, (now - simulationTime) / 1000);
+    simulationTime = now;
+  });
 
   state.ticker.add(() => state.renderer.frame());
 };
@@ -81,7 +87,7 @@ export function World() {
   const t = useTranslate();
 
   const selectEntity = React.useCallback((id, touch) => {
-    if (!state.ui.show.main_menu) {
+    if (!introActive(state) && !state.ui.show.main_menu) {
       setPopupInfo(s => (s.id != id) ? { id, touch } : {});
     }
   }, [state, setPopupInfo]);
@@ -133,6 +139,7 @@ export function World() {
         renderUI();
       },
       set_speed: (speedClass) => {
+        if (introActive(state)) return;
         state.game_speed = speedClass;
         renderUI();
       },
@@ -156,9 +163,18 @@ export function World() {
         state.ui.show.tutorial = false;
         state.ui.show.clock = true;
         state.ui.show.speed_controls = true;
+        state.game_speed = "normal";
+        setPopupInfo({});
+        startIntro(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" });
+        renderUI();
+      },
+      skip_intro: () => {
+        skipIntro(state);
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
+        if (introActive(state)) return;
+        standAfterIntro(state);
         if (job.key == "build_shelter") {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
@@ -167,9 +183,10 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
-      reorder_task: (id, index) => { reorderTask(state, id, index); renderUI(); },
-      cancel_task: id => { cancelTask(state, id); renderUI(); },
+      reorder_task: (id, index) => { if (introActive(state)) return; reorderTask(state, id, index); renderUI(); },
+      cancel_task: id => { if (introActive(state)) return; cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
+        if (introActive(state)) return;
         cancelJob(state, managerId, key, targetId);
         setPopupInfo({});
         renderUI();
@@ -179,6 +196,7 @@ export function World() {
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
+        state.intro = null;
         if (state.ticker) {
           state.ticker.destroy();
         }
@@ -194,6 +212,8 @@ export function World() {
         state.ui.playerId = results.playerId;
         if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
+        // Hold the new world still while the player chooses their character.
+        if (state.ui.show.main_menu || state.ui.show.mapgen) state.game_speed = "paused";
         renderMap(webgl, state, selectEntity, renderUI, t);
 
         renderUI();

@@ -1,5 +1,8 @@
 import React from "react";
 
+import { introActive } from "game/intro";
+import { IntroOverlay } from "components/intro_overlay";
+
 import { TaskPanel } from "components/task_panel";
 import { CustomGame } from "components/custom_game";
 import { Info } from "components/info";
@@ -15,6 +18,7 @@ import { SpeedControls } from "components/speed_controls";
 export function UserInterface() {
   const state = React.useContext(GameState);
   const show = state.ui && state.ui.show || {};
+  if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
     <div id="ui">
       {show.clock && <Clock/>}

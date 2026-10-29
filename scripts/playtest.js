@@ -19,7 +19,7 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 
-const URL = process.argv[2] || "http://localhost:8080/";
+const BASE_URL = process.argv[2] || "http://localhost:8080/";
 const SECONDS = +(process.argv[3] || 60);
 const SHOTS = path.resolve(__dirname, "..", "shots");
 const CHROME = process.env.CHROME ||
@@ -50,6 +50,7 @@ const check = (name, ok, detail) => {
   });
 
   try {
+    await opening(page);
     await play(page);
   } catch (e) {
     console.error(e.stack);
@@ -59,6 +60,54 @@ const check = (name, ok, detail) => {
   await browser.close();
   process.exit(report.checks.every(c => c.ok) ? 0 : 1);
 })().catch(e => { console.error(e); process.exit(2); });
+
+async function opening(page) {
+  const url = new URL(BASE_URL);
+  url.searchParams.set("seed", "13");
+  url.searchParams.delete("intro");
+  await page.goto(url.href);
+  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 30000 });
+  await page.getByText("Start new game", { exact: true }).click();
+  await page.waitForSelector(".character canvas");
+  await page.locator(".panel .close").first().click();
+  await page.waitForFunction(() => window.tinyking.intro?.active);
+  const start = await page.evaluate(() => {
+    const s = window.tinyking;
+    const days = s.days;
+    const started = performance.now() / 1000 - s.intro.elapsed;
+    window.introFinished = new Promise(resolve => {
+      const watch = () => {
+        if (s.intro.active) return requestAnimationFrame(watch);
+        const p = s.ecs.spatial[s.ui.playerId];
+        const camp = s.ecs.spatial[s.intro.campId];
+        resolve({ elapsed: s.intro.elapsed, realSeconds: performance.now() / 1000 - started,
+          nearCamp: Math.hypot(p.x - camp.x, p.y - camp.y) < 40,
+          sitting: s.intro.pose == "sitting", bundle: !!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
+          days: s.days, needs: JSON.stringify(s.ecs.personable), control: s.ui.show.speed_controls });
+      };
+      requestAnimationFrame(watch);
+    });
+    const p = { ...s.ecs.spatial[s.ui.playerId] };
+    const needs = JSON.stringify(s.ecs.personable);
+    // These are the same handlers used by the game UI.
+    s.ui.actions.set_speed("fast");
+    s.ui.actions.choose_job(s.ui.playerId, { key: "move_to_here" }, s.intro.tileIds.at(-1));
+    s.ui.actions.select_entity(s.ui.playerId);
+    return { days, p, needs, locked: s.game_speed == "normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls };
+  });
+  await page.waitForTimeout(3000);
+  const walked = await page.evaluate(p => {
+    const s = window.tinyking;
+    const now = s.ecs.spatial[s.ui.playerId];
+    return Math.hypot(now.x - p.x, now.y - p.y) > 20 && s.renderer.objectOf(s.ui.playerId).getObjectByName("arrival-bundle").visible;
+  }, start.p);
+  await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 15000 });
+  const end = await page.evaluate(() => window.introFinished);
+  check("the arrival plays, holds time and control, then sits at camp with the bundle placed",
+    start.locked && walked && end.realSeconds >= 8 && end.realSeconds <= 12 && end.nearCamp && end.sitting && end.bundle &&
+    end.control && end.days == start.days && end.needs == start.needs,
+    { seconds: end.realSeconds, walked, nearCamp: end.nearCamp, sitting: end.sitting, bundle: end.bundle, locked: start.locked, gameDays: end.days - start.days });
+}
 
 async function play(page) {
   const game = (fn, arg) => page.evaluate(fn, arg);
@@ -213,7 +262,10 @@ async function play(page) {
   });
 
   // --- Start a game ---------------------------------------------------------------
-  await page.goto(URL + (URL.includes("?") ? "&" : "?") + "seed=13");
+  const playURL = new URL(BASE_URL);
+  playURL.searchParams.set("seed", "13");
+  playURL.searchParams.set("intro", "skip");
+  await page.goto(playURL.href);
   await page.waitForTimeout(8000);
   if (await page.locator("#webpack-dev-server-client-overlay").count() > 0) {
     throw new Error("the dev server's error overlay is covering the game: fix the build's errors or warnings");
@@ -225,6 +277,9 @@ async function play(page) {
 
   await page.locator(".panel .close").first().click();
   await speed(PAUSE);
+  // Open out from the arrival's camp close-up for the existing order checks.
+  await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
+  await page.mouse.wheel(0, 915);
   await page.waitForTimeout(500);
   await shot("start.png");
   check("the player starts at a camp with a bedroll and no house", await game(() => {
@@ -399,7 +454,7 @@ async function play(page) {
   await page.setViewportSize(VIEW);
 
   // --- The debug worldgen page shows the whole map --------------------------------
-  await page.goto(URL.replace(/\/$/, "") + "/debug/worldgen");
+  await page.goto(new URL("/debug/worldgen", BASE_URL).href);
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer, null, { timeout: 30000 });
   await page.waitForTimeout(1500);
   await shot("worldgen.png");

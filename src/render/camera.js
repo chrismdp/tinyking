@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { INTRO_TIMING } from "game/intro";
 
 const PAN_KEYS = {
   KeyW: [0, 1], ArrowUp: [0, 1],
@@ -27,7 +28,7 @@ const SIDE_NORMALS = [0, 1, 2].map(k => ({ x: Math.cos(k * Math.PI / 3), z: Math
 // NOTE: An orbiting camera over the map. Drag (or WASD / arrows) pans, the
 // wheel or a pinch zooms towards the pointer, right-drag or Q/E rotates and
 // right-drag up and down tilts. A press that does not move is a click.
-export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, maxDistance = () => 3600 }) {
+export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, enabled = () => true, maxDistance = () => 3600 }) {
   const rig = { x: bounds.centre.x, z: bounds.centre.y, y: 0, yaw: 0, pitch: 0.95, distance: 900 };
   const keys = new Set();
   const pointers = new Map();
@@ -102,6 +103,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   };
 
   const onPointerDown = e => {
+    if (!enabled()) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dom.setPointerCapture(e.pointerId);
     if (pointers.size == 2) {
@@ -114,6 +116,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   };
 
   const onPointerMove = e => {
+    if (!enabled()) return;
     if (!pointers.has(e.pointerId)) {
       return;
     }
@@ -152,6 +155,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   };
 
   const onPointerUp = e => {
+    if (!enabled()) return;
     pointers.delete(e.pointerId);
     if (pointers.size < 2) {
       pinch = null;
@@ -174,6 +178,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   // two-finger sideways swipe arrives as deltaX and rotates, which is the
   // closest Chrome and Firefox get to the trackpad's rotate gesture
   const onWheel = e => {
+    if (!enabled()) return;
     e.preventDefault();
     rig.yaw += e.deltaX * 0.005;
     zoomTowards(Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0012)), e.clientX, e.clientY);
@@ -182,10 +187,12 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   // NOTE: Safari reports the trackpad's rotate and pinch gestures directly
   let gesture = null;
   const onGestureStart = e => {
+    if (!enabled()) return;
     e.preventDefault();
     gesture = { rotation: e.rotation, scale: e.scale };
   };
   const onGestureChange = e => {
+    if (!enabled()) return;
     e.preventDefault();
     if (!gesture) {
       return;
@@ -200,6 +207,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   };
 
   const onKeyDown = e => {
+    if (!enabled()) return;
     if (!typingInto(e.target) && (PAN_KEYS[e.code] || ROTATE_KEYS[e.code])) {
       keys.add(e.code);
     }
@@ -223,6 +231,15 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
 
   return {
     get distance() { return rig.distance; },
+    // A directed shot can target the traveller outside the normal pan bounds.
+    shot({ x, z, y, distance, yaw, pitch }) {
+      keys.clear();
+      pointers.clear();
+      press = null;
+      pinch = null;
+      Object.assign(rig, { x, z, y, distance, yaw, pitch });
+      place();
+    },
     lookAt(x, z, distance) {
       rig.x = x;
       rig.z = z;
@@ -282,4 +299,18 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
       window.removeEventListener("blur", onBlur);
     }
   };
+}
+
+// A close view follows the walk, then opens a little to hold the whole camp.
+export function arrivalShot(intro, spatial, camp, aspect, heightAt) {
+  const t = Math.min(1, Math.max(0, (intro.elapsed - INTRO_TIMING.walk + 1) / (INTRO_TIMING.duration - INTRO_TIMING.walk + 1)));
+  const blend = t * t * (3 - 2 * t);
+  const x = spatial.x + (camp.x - 5 - spatial.x) * blend;
+  const z = spatial.y + (camp.y + 4 - spatial.y) * blend;
+  const start = intro.points[0];
+  const entryYaw = Math.atan2(start.x - camp.x, start.y - camp.y) + 0.7;
+  const turn = Math.atan2(Math.sin(-2 - entryYaw), Math.cos(-2 - entryYaw));
+  return { x, z, y: heightAt(x, z) + 14,
+    distance: (310 + 90 * blend) / Math.min(1, Math.max(0.72, aspect)),
+    yaw: entryYaw + turn * blend, pitch: 0.78 };
 }

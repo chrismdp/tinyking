@@ -1,4 +1,5 @@
 import * as htn from "game/htn";
+import { introActive, updateIntro } from "game/intro";
 import * as time from "game/time";
 import { updateWeather } from "game/weather";
 import { drift } from "game/people";
@@ -187,7 +188,10 @@ export function createSimulation(state, { onHour } = {}) {
   };
 
   return {
-    step(frameMod) {
+    step(frameMod, realSeconds = frameMod / 60) {
+      const arriving = introActive(state);
+      updateIntro(state, realSeconds);
+      if (arriving) return;
       updatePlanners(state, frameMod);
       advanceTime(frameMod);
     }

@@ -13,6 +13,7 @@ const MIN_DISTANCE = 120;
 const MAX_DISTANCE = 3200;
 const MIN_PITCH = 0.3;
 const MAX_PITCH = 1.45;
+const CLEARANCE = 25;
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -82,6 +83,8 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
       rig.x + Math.sin(rig.yaw) * c * rig.distance,
       rig.y + Math.sin(rig.pitch) * rig.distance,
       rig.z + Math.cos(rig.yaw) * c * rig.distance);
+    // NOTE: never dip the camera into a hillside
+    camera.position.y = Math.max(camera.position.y, groundHeight(camera.position.x, camera.position.z) + CLEARANCE);
     camera.lookAt(rig.x, rig.y, rig.z);
     camera.updateMatrixWorld();
   };

@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Hex } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
+import { createHeightField } from "game/height";
 
 import * as models from "render/models";
 import { realmColour } from "render/colours";
@@ -12,8 +13,8 @@ import { skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
 const hexKey = point => Hex().fromPoint(point).toString();
 
-const SUN = 2.6;
-const SKY = 1.5;
+const SUN = 3.4;
+const SKY = 1.0;
 const WHITE = new THREE.Color(0xFFFFFF);
 const SUNSET = new THREE.Color(SUNSET_TINT);
 const NIGHT = new THREE.Color(NIGHT_TINT);
@@ -21,8 +22,17 @@ const NIGHT = new THREE.Color(NIGHT_TINT);
 // NOTE: Draws the game in 3D. It owns nothing in the simulation: each frame
 // it reads ecs.spatial for moving things and rebuilds whatever the game has
 // listed in state.redraws.
-export function createWorldView(renderer, state, { t, onSelect, ground = models.FLAT_GROUND }) {
+export function createWorldView(renderer, state, { t, onSelect }) {
   const canvas = renderer.domElement;
+
+  const ground = createHeightField({
+    seed: state.map.seed,
+    terrainAt: key => {
+      const id = (state.space[key] || []).find(e => state.ecs.mappable[e]);
+      return id && state.ecs.mappable[id].terrain;
+    }
+  });
+
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
@@ -31,7 +41,7 @@ export function createWorldView(renderer, state, { t, onSelect, ground = models.
   const hemisphere = new THREE.HemisphereLight(0xDDE8FF, 0x4A4030, SKY);
   scene.add(hemisphere);
   const sun = new THREE.DirectionalLight(0xFFFFFF, SUN);
-  sun.position.set(-0.45, 1, 0.6);
+  sun.position.set(-0.7, 0.8, 0.45);
   scene.add(sun);
 
   const terrain = createTerrain(state, ground);
@@ -163,7 +173,7 @@ export function createWorldView(renderer, state, { t, onSelect, ground = models.
 
   const light = () => {
     const { night, sunset } = skyAt(state.days);
-    const tint = WHITE.clone().lerp(SUNSET, sunset * 0.8).lerp(NIGHT, night * 1.6);
+    const tint = WHITE.clone().lerp(SUNSET, sunset).lerp(NIGHT, night * 1.6);
     sun.color.copy(tint);
     sun.intensity = SUN * (1 - night * 1.5);
     hemisphere.color.copy(tint);
@@ -208,7 +218,8 @@ export function createWorldView(renderer, state, { t, onSelect, ground = models.
   });
 
   const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y).toPoint();
-  rig.lookAt(start.x, start.y, 1100);
+  rig.tilt(0.8);
+  rig.lookAt(start.x, start.y, 1000);
 
   let lastFrame = performance.now();
 

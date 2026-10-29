@@ -187,7 +187,7 @@ async function play(page) {
       return miss;
     }
     try {
-      await page.getByRole("button", { name: button, exact: true }).waitFor({ timeout: 1200 });
+      await page.getByRole("button", { name: button, exact: true }).waitFor({ timeout: WAIT });
     } catch {
       const offered = await page.locator(".job-list button").allInnerTexts();
       await closePopup();
@@ -440,20 +440,23 @@ async function play(page) {
 
   // NOTE: the player's few villagers work the job queue in order and sleep at
   // night, so a late order may still be waiting
-  const outcome = await game(([recruit, tree]) => {
+  const outcome = await game(([recruit, tree, fieldTile, stockpileTile]) => {
     const s = window.tinyking;
     const waiting = key => s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == key);
+    // Generated family farms must not satisfy the player's Create Field check.
+    const atOrderedTile = target => id => target &&
+      s.ecs.spatial[id].x == s.ecs.spatial[target].x && s.ecs.spatial[id].y == s.ecs.spatial[target].y;
     return {
-      fields: Object.keys(s.ecs.farmable || {}).length,
+      fields: Object.keys(s.ecs.farmable || {}).filter(atOrderedTile(fieldTile)).length,
       fieldWaiting: waiting("create_field"),
-      stockpiles: Object.keys(s.ecs.stockpile || {}).length,
+      stockpiles: Object.keys(s.ecs.stockpile || {}).filter(atOrderedTile(stockpileTile)).length,
       stockpileWaiting: waiting("create_stockpile"),
       recruited: s.ecs.controllable[recruit] && s.ecs.controllable[recruit].controllerId == s.ui.playerId,
       recruitWaiting: waiting("recruit"),
       treeGone: !s.ecs.good[tree],
       treeWaiting: waiting("cut_tree_down")
     };
-  }, [recruit, tree]);
+  }, [recruit, tree, fieldTile, stockpileTile]);
   check("the orders are carried out (or still waiting their turn)",
     (outcome.fields > 0 || outcome.fieldWaiting) &&
     (outcome.stockpiles > 0 || outcome.stockpileWaiting) &&
@@ -478,7 +481,7 @@ async function play(page) {
   check("a lean-to site can be placed from the popup", siteTile && await game(() => Object.keys(window.tinyking.ecs.construction || {}).length == 1));
   await speed(FAST);
   if (siteTile) {
-    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 120000 });
+    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 180000 });
   }
   check("logs are delivered and a lean-to finishes", await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")));
 

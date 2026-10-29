@@ -10,6 +10,7 @@ const { generateMap } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { updateWeather } = require("../src/game/weather");
 const { Hex } = require("../src/game/hex");
+const { eveningPlace } = require("../src/game/villages");
 const BASE = process.argv[2] || "http://localhost:8106/";
 const SHOTS = path.resolve(__dirname, "../shots");
 const CHROME = "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome";
@@ -27,34 +28,64 @@ async function fixtures() {
     return c.distance(Hex().fromPoint(state.ecs.spatial[a])) - c.distance(Hex().fromPoint(state.ecs.spatial[b]));
   })[0];
   const simulation = createSimulation(state);
-  let forge, farms, evening, fieldId, greenId, maxGathered = 0;
+  let forge, farms, evening, fieldId, greenId, maxGathered = 0, familyWorkers = 0;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   while (state.days < 3) {
     simulation.step(3);
     if (!forge && state.ecs.planner[smith].task?.[0] == "trade_work") forge = copy(state);
-    if (!farms) for (const f of Object.keys(state.ecs.farmable)) {
-      const farmer = state.ecs.farmable[f].claimerId;
-      if (farmer && state.ecs.planner[farmer].task?.[0] == "perform_subtask_in_slot" && state.ecs.farmable[f].slots.some(slot => slot.state == "harvestable")) {
-        farms = copy(state); fieldId = f; break;
+    const working = Object.keys(state.ecs.farmable).filter(id => {
+      const field = state.ecs.farmable[id];
+      return field.claimerId && state.ecs.planner[field.claimerId].task?.[0] == "perform_subtask_in_slot";
+    });
+    for (const id of working) {
+      const field = state.ecs.farmable[id];
+      const n = working.filter(other => state.ecs.farmable[other].houseId == field.houseId).length;
+      if (n > familyWorkers && field.slots.some(slot => slot.state == "harvestable")) {
+        farms = copy(state); fieldId = id; familyWorkers = n;
       }
     }
-    if ((state.days % 1) * 24 >= 18 && (state.days % 1) * 24 < 20) {
-      for (const g of Object.keys(state.ecs.meetingPlace).filter(id => state.ecs.meetingPlace[id].kind == "green")) {
-        const n = Object.keys(state.ecs.personable).filter(id => !state.ecs.personable[id].dead && distance(state.ecs.spatial[id], state.ecs.spatial[g]) < 40).length;
+    if ((state.days % 1) * 24 >= 18 && (state.days % 1) * 24 < 21) {
+      const gathered = {};
+      for (const id of Object.keys(state.ecs.personable)) {
+        if (state.ecs.personable[id].dead || state.ecs.planner[id].task?.[0] != "wait_for") continue;
+        const place = eveningPlace(state, id);
+        if (place && state.ecs.meetingPlace[place.id].kind == "green" && distance(state.ecs.spatial[id], place) < 12) {
+          gathered[place.id] = (gathered[place.id] || 0) + 1;
+        }
+      }
+      for (const [g, n] of Object.entries(gathered)) {
         if (n > maxGathered) { maxGathered = n; evening = copy(state); greenId = g; }
       }
     }
     state.redraws.length = 0;
   }
   assert(forge && farms && evening, "real villagers must work and gather");
-  const pastureId = Object.keys(state.ecs.pasture).find(id => state.ecs.pasture[id].kind == "sheep");
-  const smithVillage = state.ecs.village[smith].villageId;
-  const village = state.villages[smithVillage];
+  assert(familyWorkers >= 2, "the crop snapshot must show two members working their family's fields");
+  const fieldHouse = farms.ecs.farmable[fieldId].houseId;
+  const familyPoints = Object.keys(farms.ecs.farmable).filter(id => {
+    const field = farms.ecs.farmable[id];
+    return field.houseId == fieldHouse && field.claimerId && farms.ecs.planner[field.claimerId].task?.[0] == "perform_subtask_in_slot";
+  }).map(id => farms.ecs.spatial[id]);
+  const fieldPoint = { x: familyPoints.reduce((sum, p) => sum + p.x, 0) / familyPoints.length,
+    y: familyPoints.reduce((sum, p) => sum + p.y, 0) / familyPoints.length };
+  const central = (a, b) => Hex(state.map.centre).distance(Hex().fromPoint(state.ecs.spatial[a])) -
+    Hex(state.map.centre).distance(Hex().fromPoint(state.ecs.spatial[b]));
+  const pastureId = Object.keys(initial.ecs.pasture).filter(id => {
+    const pen = initial.ecs.pasture[id];
+    return pen.kind == "sheep" && Object.keys(initial.ecs.personable).every(person => {
+      const p = initial.ecs.spatial[person];
+      return Math.abs(p.x - pen.centre.x) > pen.halfWidth + 15 || Math.abs(p.y - pen.centre.y) > pen.halfDepth + 15;
+    });
+  }).sort(central)[0];
+  assert(pastureId, "the pasture capture needs an unobstructed flock");
+  // A compact hamlet fits in the unmodified default camera on desktop and phone.
+  const village = Object.values(state.villages).filter(v => v.houses.length <= 5)
+    .sort((a, b) => a.houses.length - b.houses.length || central(a.houses[0], b.houses[0]))[0];
   const villageHouse = village.houses.slice().sort((a, b) => Hex(village.centre).distance(Hex().fromPoint(state.ecs.spatial[a])) - Hex(village.centre).distance(Hex().fromPoint(state.ecs.spatial[b])))[0];
   const points = village.houses.map(id => state.ecs.spatial[id]);
   const villagePoint = { x: (Math.min(...points.map(p => p.x)) + Math.max(...points.map(p => p.x))) / 2,
     y: (Math.min(...points.map(p => p.y)) + Math.max(...points.map(p => p.y))) / 2 };
-  return { initial, forge, farms, evening, smith, fieldId, greenId, pastureId, villageHouse, villagePoint, maxGathered };
+  return { initial, forge, farms, evening, smith, fieldId, fieldPoint, greenId, pastureId, villageHouse, villagePoint, maxGathered, familyWorkers, village: village.id, houses: village.houses.length };
 }
 
 (async () => {
@@ -90,12 +121,14 @@ async function fixtures() {
       await page.waitForTimeout(500);
     }
     async function shot(name) {
+      const collapse = page.getByRole("button", { name: "Collapse task list", exact: true });
+      if (await collapse.count()) await collapse.click();
       await page.waitForTimeout(8000);
       await page.screenshot({ path: path.join(SHOTS, name + ".png") });
     }
     await install(f.initial); await focus(f.villagePoint, 1000); await shot("village-default"); console.log("captured village");
     await install(f.forge); await focus(f.smith, 280); await shot("smith-forge"); console.log("captured forge");
-    await install(f.farms); await focus(f.fieldId, 600); await shot("family-fields"); console.log("captured fields");
+    await install(f.farms); await focus(f.fieldPoint, 600); await shot("family-fields"); console.log("captured fields");
     await install(f.initial); await focus(f.pastureId, 370); await shot("animals-pasture"); console.log("captured pasture");
     await install(f.evening); await focus(f.greenId, 600); await shot("green-evening"); console.log("captured green");
     const mobile = await browser.newContext({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
@@ -121,7 +154,7 @@ async function fixtures() {
     }, { snapshot: f.initial, house: f.villagePoint });
     await phone.waitForTimeout(8000);
     await phone.screenshot({ path: path.join(SHOTS, "village-phone.png") });
-    console.log(JSON.stringify({ smith: f.smith, field: f.fieldId, green: f.greenId, gathered: f.maxGathered, pasture: f.pastureId, fieldHex: Hex().fromPoint(f.farms.ecs.spatial[f.fieldId]).toString(), errors }));
+    console.log(JSON.stringify({ village: f.village, houses: f.houses, smith: f.smith, field: f.fieldId, familyWorkers: f.familyWorkers, green: f.greenId, gathered: f.maxGathered, pasture: f.pastureId, fieldHex: Hex().fromPoint(f.farms.ecs.spatial[f.fieldId]).toString(), errors }));
     assert.deepEqual(errors, []);
     await mobile.close();
   } finally { await browser.close(); }

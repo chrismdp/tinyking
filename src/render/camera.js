@@ -10,7 +10,7 @@ const ROTATE_KEYS = { KeyQ: 1, KeyE: -1 };
 
 const CLICK_SLOP = 6;
 const MIN_DISTANCE = 120;
-const MAX_DISTANCE = 3200;
+const MAX_DISTANCE = 3600;
 const MIN_PITCH = 0.3;
 const MAX_PITCH = 1.45;
 const CLEARANCE = 25;
@@ -20,11 +20,16 @@ const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const typingInto = target => target && (
   target.tagName == "INPUT" || target.tagName == "TEXTAREA" || target.isContentEditable);
 
+// NOTE: The map is a hexagon with its points at the top and bottom, so its
+// sides face these directions; the camera's target is kept within
+// `apothem` of the centre along each of them.
+const SIDE_NORMALS = [0, 1, 2].map(k => ({ x: Math.cos(k * Math.PI / 3), z: Math.sin(k * Math.PI / 3) }));
+
 // NOTE: An orbiting camera over the map. Drag (or WASD / arrows) pans, the
 // wheel or a pinch zooms towards the pointer, right-drag or Q/E rotates and
 // right-drag up and down tilts. A press that does not move is a click.
 export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) {
-  const rig = { x: bounds.width / 2, z: bounds.height / 2, y: 0, yaw: 0, pitch: 0.95, distance: 900 };
+  const rig = { x: bounds.centre.x, z: bounds.centre.y, y: 0, yaw: 0, pitch: 0.95, distance: 900 };
   const keys = new Set();
   const pointers = new Map();
   let press = null;
@@ -37,8 +42,15 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
   const forward = () => new THREE.Vector3(-Math.sin(rig.yaw), 0, -Math.cos(rig.yaw));
 
   const keepInBounds = () => {
-    rig.x = clamp(rig.x, 0, bounds.width);
-    rig.z = clamp(rig.z, 0, bounds.height);
+    // NOTE: twice round, as pulling in along one side can push out along another
+    for (let pass = 0; pass < 2; pass++) {
+      for (const n of SIDE_NORMALS) {
+        const d = (rig.x - bounds.centre.x) * n.x + (rig.z - bounds.centre.y) * n.z;
+        const over = d - clamp(d, -bounds.apothem, bounds.apothem);
+        rig.x -= over * n.x;
+        rig.z -= over * n.z;
+      }
+    }
     rig.distance = clamp(rig.distance, MIN_DISTANCE, MAX_DISTANCE);
     rig.pitch = clamp(rig.pitch, MIN_PITCH, MAX_PITCH);
   };

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { Hex } from "game/map";
+import { Hex, HEX_SIZE } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
 import { createHeightField } from "game/height";
@@ -206,8 +206,14 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     return null;
   };
 
+  // NOTE: the map's centre, and how far its flat sides and its points are
+  // from it (to the middle of the rim hexes)
+  const middle = Hex(state.map.centre.x, state.map.centre.y).toPoint();
+  const apothem = state.map.radius * HEX_SIZE * 1.5;
+  const circumradius = state.map.radius * HEX_SIZE * Math.sqrt(3);
+
   const rig = createCameraRig(camera, canvas, {
-    bounds: { width: state.map.width, height: state.map.height },
+    bounds: { centre: middle, apothem },
     groundHeight: (x, z) => ground.heightAt(x, z),
     onClick: e => {
       const id = pick(e.clientX, e.clientY);
@@ -290,8 +296,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       if (!revealAll) {
         revealAll = true;
         showKnown();
-        rig.lookAt(state.map.width / 2, state.map.height / 2, Math.max(state.map.width, state.map.height) * 1.3);
-        rig.tilt(1.2);
+        // NOTE: near enough straight down, and far enough back that the
+        // hexagon's points (and a hex beyond) fit in the view
+        const fit = (circumradius + HEX_SIZE * 4) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        rig.tilt(1.45);
+        rig.lookAt(middle.x, middle.y, fit);
       }
     },
     pick,

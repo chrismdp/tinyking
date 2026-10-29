@@ -43,6 +43,41 @@ For now, biomes change only how the map looks. (Being built on the `world-hex` b
 
 Morality isn't fixed. When you behave badly (harming people, breaking your word), it drifts towards evil. When you help others, it drifts towards good, gradually making the place better as a whole. The change ripples to neighbouring world hexes, so the one-step rule always holds.
 
+## Trees and wood
+
+Wood builds houses, so how many trees a biome has decides how hard a start there is. Each biome sets the kind of tree and how dense they grow. Every tree still gives wood.
+
+| Biome | Trees | Density |
+|---|---|---|
+| Jungle | broad, round canopy | very dense |
+| Taiga | pines | dense |
+| Grassland | mixed woods | patches |
+| Marsh | willows | scattered |
+| Savanna | flat-topped acacias | sparse, lone trees |
+| Steppe | scrub | sparse |
+| Bog / snowfield | stunted pines | sparse |
+| Tundra | dwarf shrubs | almost none |
+| Desert | palms near water, cacti elsewhere | almost none |
+
+- **High ground:** trees follow the one-step-colder rule, so hills carry pines.
+- **Evil world hexes:** the trees there are dark and withered.
+- **Hard and easy starts:** a desert or tundra start is hard, because wood is scarce and you depend on villagers who have some. A jungle start has plenty of wood, but you have to clear land before you can farm. (Being built on the `world-hex` branch.)
+
+**Regrowth and planting (later).** Today trees never grow back, so chopping strips a map bare in time. Trees should slowly spread near existing trees, and you, or anyone, can take on a "plant saplings" task.
+
+## Food and survival
+
+Survival is kept light. It exists so that time matters: doing someone's harvest means not feeding yourself.
+
+- **Hunger has effects, in stages.** Hungry: you work more slowly. Starving: you're weak, and people find you harder to warm to. Death comes only after days of neglect.
+- **Winter is the test.** Nothing grows, and foraging gives little, so what you've stored decides how winter goes. A lord who feeds their people through a hard winter keeps their loyalty.
+- **Villagers live under the same rules.** A family running short asks for help, which creates favours. A famine year makes the whole village anxious.
+- **Tiredness** stays as it is.
+- **Left out for now:** thirst, health and injury.
+- **Warmth (maybe later):** cold places would need firewood. Add it only if winter turns out too easy.
+
+Today hunger and tiredness rise and the planner sends people to eat and sleep, but going without has no consequences. The hunger stages and winter are new.
+
 ## People and families
 
 Everyone belongs to a family, and families live in villages: clusters of houses. Children stay children for a couple of game years, then grow up, so families and marriages move quickly enough to watch. Each person has parents, a spouse and children where they apply. Today's code generates families per house (`generateFamily` in `src/game/map.js`) but doesn't record who is related to whom. That record comes first, because almost everything below depends on it.

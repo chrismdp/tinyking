@@ -51,7 +51,10 @@ async function fixtures() {
   const smithVillage = state.ecs.village[smith].villageId;
   const village = state.villages[smithVillage];
   const villageHouse = village.houses.slice().sort((a, b) => Hex(village.centre).distance(Hex().fromPoint(state.ecs.spatial[a])) - Hex(village.centre).distance(Hex().fromPoint(state.ecs.spatial[b])))[0];
-  return { initial, forge, farms, evening, smith, fieldId, greenId, pastureId, villageHouse, maxGathered };
+  const points = village.houses.map(id => state.ecs.spatial[id]);
+  const villagePoint = { x: (Math.min(...points.map(p => p.x)) + Math.max(...points.map(p => p.x))) / 2,
+    y: (Math.min(...points.map(p => p.y)) + Math.max(...points.map(p => p.y))) / 2 };
+  return { initial, forge, farms, evening, smith, fieldId, greenId, pastureId, villageHouse, villagePoint, maxGathered };
 }
 
 (async () => {
@@ -82,7 +85,7 @@ async function fixtures() {
     async function focus(id, distance) {
       await page.evaluate(({ id, distance }) => {
         const s = window.tinyking;
-        s.renderer.focusOn(s.ecs.spatial[id], distance);
+        s.renderer.focusOn(typeof id == "object" ? id : s.ecs.spatial[id], distance);
       }, { id, distance });
       await page.waitForTimeout(500);
     }
@@ -90,7 +93,7 @@ async function fixtures() {
       await page.waitForTimeout(8000);
       await page.screenshot({ path: path.join(SHOTS, name + ".png") });
     }
-    await install(f.initial); await focus(f.villageHouse, 1000); await shot("village-default"); console.log("captured village");
+    await install(f.initial); await focus(f.villagePoint, 1000); await shot("village-default"); console.log("captured village");
     await install(f.forge); await focus(f.smith, 280); await shot("smith-forge"); console.log("captured forge");
     await install(f.farms); await focus(f.fieldId, 600); await shot("family-fields"); console.log("captured fields");
     await install(f.initial); await focus(f.pastureId, 370); await shot("animals-pasture"); console.log("captured pasture");
@@ -113,9 +116,9 @@ async function fixtures() {
         return { x, y: Math.round(p.y / (60 * Math.sqrt(3)) - (x & 1) / 2) };
       });
       s.redraws = Array.from({ length: s.ecs.nextId }, (_, i) => String(i));
-      s.renderer.focusOn(s.ecs.spatial[house], 1000);
+      s.renderer.focusOn(house, 1000);
       s.ui.actions.change_visibility({ main_menu: false, info: null, selected_person: null, clock: true, speed_controls: true });
-    }, { snapshot: f.initial, house: f.villageHouse });
+    }, { snapshot: f.initial, house: f.villagePoint });
     await phone.waitForTimeout(8000);
     await phone.screenshot({ path: path.join(SHOTS, "village-phone.png") });
     console.log(JSON.stringify({ smith: f.smith, field: f.fieldId, green: f.greenId, gathered: f.maxGathered, pasture: f.pastureId, fieldHex: Hex().fromPoint(f.farms.ecs.spatial[f.fieldId]).toString(), errors }));

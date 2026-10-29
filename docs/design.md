@@ -47,34 +47,40 @@ Morality isn't fixed. When you behave badly (harming people, breaking your word)
 
 Wood builds houses, so how many trees a biome has decides how hard a start there is. Each biome sets the kind of tree and how dense they grow. Every tree still gives wood.
 
-| Biome | Trees | Density |
-|---|---|---|
-| Jungle | broad, round canopy | very dense |
-| Taiga | pines | dense |
-| Grassland | mixed woods | patches |
-| Marsh | willows | scattered |
-| Savanna | flat-topped acacias | sparse, lone trees |
-| Steppe | scrub | sparse |
-| Bog / snowfield | stunted pines | sparse |
-| Tundra | dwarf shrubs | almost none |
-| Desert | palms near water, cacti elsewhere | almost none |
+| Biome | Trees | Density | Regrowth |
+|---|---|---|---|
+| Jungle | broad, round canopy | very dense | fast |
+| Taiga | pines | dense | medium |
+| Grassland | mixed woods | patches | medium |
+| Marsh | willows | scattered | medium |
+| Savanna | flat-topped acacias | sparse, lone trees | slow |
+| Steppe | scrub | sparse | slow |
+| Bog / snowfield | stunted pines | sparse | very slow |
+| Tundra | dwarf shrubs | almost none | very slow |
+| Desert | palms near water, cacti elsewhere | almost none | almost none |
 
 - **High ground:** trees follow the one-step-colder rule, so hills carry pines.
 - **Evil world hexes:** the trees there are dark and withered.
 - **Hard and easy starts:** a desert or tundra start is hard, because wood is scarce and you depend on villagers who have some. A jungle start has plenty of wood, but you have to clear land before you can farm. (Being built on the `world-hex` branch.)
 
-**Regrowth and planting (later).** Today trees never grow back, so chopping strips a map bare in time. Trees should slowly spread near existing trees, and you, or anyone, can take on a "plant saplings" task.
+**Regrowth.** Today trees never grow back, so chopping strips a map bare in time. That needs fixing now, because the game uses up wood. Trees regrow at a rate set by the biome:
+
+- New saplings appear near existing trees, so woods spread from their edges and a bare plain stays bare.
+- A sapling becomes a young tree and then a mature one over a few seasons. Only mature trees give full wood.
+- Nothing grows in winter.
+- Growth stops at the biome's natural density, so a jungle refills its gaps quickly and a desert barely changes.
+
+**Planting (later).** You, or anyone, can take on a "plant saplings" task to start a wood where none would grow on its own.
 
 ## Food and survival
 
-Survival is kept light. It exists so that time matters: doing someone's harvest means not feeding yourself.
+Survival is the smallest version that works. It exists so that time matters: doing someone's harvest means not feeding yourself.
 
 - **Hunger has effects, in stages.** Hungry: you work more slowly. Starving: you're weak, and people find you harder to warm to. Death comes only after days of neglect.
 - **Winter is the test.** Nothing grows, and foraging gives little, so what you've stored decides how winter goes. A lord who feeds their people through a hard winter keeps their loyalty.
 - **Villagers live under the same rules.** A family running short asks for help, which creates favours. A famine year makes the whole village anxious.
 - **Tiredness** stays as it is.
-- **Left out for now:** thirst, health and injury.
-- **Warmth (maybe later):** cold places would need firewood. Add it only if winter turns out too easy.
+- **Left out for now:** thirst, health, injury and warmth. Warmth is the most likely to come back later, if winter turns out too easy, because cold places would then need firewood.
 
 Today hunger and tiredness rise and the planner sends people to eat and sleep, but going without has no consequences. The hunger stages and winter are new.
 
@@ -215,6 +221,8 @@ The smallest version that tests whether this is fun:
 5. Villagers post two kinds of job: help with the harvest, and fetch wood. You accept a job, do it, and earn goodwill.
 6. Reaching Social shows that person's family tree.
 7. Reaching Personal makes them come and help with your house.
+8. Hunger with stages, so time spent helping others costs you something.
+9. Trees regrow at the biome's rate, so wood isn't used up for good.
 
 Marriage, succession, gossip, sworn followers and travel between world hexes come after this, and only if the arrival is fun.
 

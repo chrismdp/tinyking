@@ -9,7 +9,7 @@ The people model adds family records, village membership, personality and relati
 | `personality` | `traits: string[]`, `likes: string[]`, `dislikes: string[]` |
 | `village` | `villageId: string \| null`, on both houses and people |
 | `household` | `houseId: string`, on people |
-| `relationships` | `known: { [otherId]: { ring, goodwill } }` |
+| `relationships` | `known: { [otherId]: { ring, goodwill, base } }` |
 
 `state.villages` maps each village id to `{ id, name, centre: { x, y }, houses: string[] }`.
 The player's house and character have a null village id.

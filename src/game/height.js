@@ -14,6 +14,11 @@ import { Hex, HEX_SIZE } from "game/hex";
 
 export const SEA_LEVEL = 0;
 
+// NOTE: Land whose hex centre stands at least this high counts as high
+// ground, as mountains always do: roughly the top 5% of grassland, mostly
+// foothills, where the land rises to meet a mountain.
+export const HIGH_GROUND = 35;
+
 // NOTE: Each terrain's height starts at its base and rises by up to its
 // rise with the noise. These are 70% of the first bands, which made the
 // relief too extreme.

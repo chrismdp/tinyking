@@ -1,4 +1,6 @@
 import { Hex, Grid, generateMap } from "game/map";
+import { createHeightField, HIGH_GROUND } from "game/height";
+import { generateWorld, homeOf, colder } from "game/overworld";
 
 const noProgress = async () => {};
 
@@ -77,6 +79,50 @@ describe("generateMap", () => {
         const id = state.space[hex.toString()].find(e => state.ecs.mappable[e]);
         expect(state.ecs.mappable[id].terrain).toEqual("grassland");
       });
+    }
+  });
+
+  it("keeps the world of world hexes in state, playing in its centre", async () => {
+    for (const seed of SEEDS) {
+      const state = {};
+      await regenerate(state, seed);
+      expect(state.world).toEqual(generateWorld(seed));
+      expect(homeOf(state.world)).toBeDefined();
+    }
+  });
+
+  it("makes high ground one step colder than the world hex, down to cold, and the rest the world hex's temperature", async () => {
+    let high = 0;
+    let colderThanHome = 0;
+    for (const seed of SEEDS) {
+      const state = {};
+      await regenerate(state, seed);
+      const home = homeOf(state.world);
+      const ground = createHeightField({ seed, terrainAt: key => {
+        const id = (state.space[key] || []).find(e => state.ecs.mappable[e]);
+        return id && state.ecs.mappable[id].terrain;
+      }});
+      for (const id in state.ecs.mappable) {
+        const { terrain, temperature } = state.ecs.mappable[id];
+        const isHigh = terrain == "mountain" || ground.hex(state.ecs.spatial[id]).centre >= HIGH_GROUND;
+        expect([id, temperature]).toEqual([id, isHigh ? colder(home.temperature) : home.temperature]);
+        high += isHigh ? 1 : 0;
+        colderThanHome += temperature != home.temperature ? 1 : 0;
+      }
+    }
+    // NOTE: so the rule is actually exercised
+    expect(high).toBeGreaterThan(20);
+    expect(colderThanHome).toBeGreaterThan(0);
+  });
+
+  it("leaves walking speed to the terrain alone, whatever the world hex", async () => {
+    const speeds = { "grassland": 1, "stone": 0.5, "mountain": 0, "shallow water": 0, "deep water": 0 };
+    for (const seed of SEEDS) {
+      const state = {};
+      await regenerate(state, seed);
+      for (const id in state.ecs.mappable) {
+        expect(state.ecs.walkable[id].speed).toEqual(speeds[state.ecs.mappable[id].terrain]);
+      }
     }
   });
 });

@@ -8,6 +8,8 @@ import MersenneTwister from "mersenne-twister";
 import { newEntities, entitiesInSameLocation } from "game/entities";
 import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
+import { createHeightField, HIGH_GROUND } from "game/height";
+import { generateWorld, homeOf, tileTemperature } from "game/overworld";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
 
@@ -286,6 +288,7 @@ export async function generateMap(state, seed, progressUpdate) {
   // NOTE: a new map starts with an empty space index; entity ids restart at
   // 1, so anything left from an old map would point at the wrong entities
   state.space = {};
+  state.world = generateWorld(seed);
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, seed, progressUpdate);
@@ -305,10 +308,18 @@ export async function generateMap(state, seed, progressUpdate) {
     };
   });
 
+  // NOTE: Every tile takes its world hex's temperature, but high ground is
+  // a step colder. How high a tile is comes from the same height field the
+  // renderer draws, now that the houses have settled the terrain.
+  const home = homeOf(state.world);
+  const ground = createHeightField({ seed, terrainAt: key => landscape[key] && landscape[key].terrain });
+  const temperatureOf = tile => tileTemperature(home.temperature,
+    tile.terrain == "mountain" || ground.hex(tile).centre >= HIGH_GROUND);
+
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
-    mappable: { terrain: tile.terrain },
+    mappable: { terrain: tile.terrain, temperature: temperatureOf(tile) },
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },

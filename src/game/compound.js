@@ -1,4 +1,5 @@
 import * as time from "game/time";
+import { hashUnit } from "game/math";
 import { firstFreeJob } from "game/manager";
 
 const always = () => true;
@@ -70,17 +71,27 @@ export const person = () => [
     () => [ [ "haul", "wood" ] ]
   ],
   [
-    always,
-    () => [
+    world => 0.5 + hashUnit(world.actorId + ":idle:" + world.days) * 0.5,
+    delay => [
       [ "set_label" ],
       [ "move_to_place", "meet", "space" ],
       [ "forget_place", "meet" ], // TODO: Idle animations
-      [ "wait_for", time.HOUR * 0.5 + Math.random() * time.HOUR * 0.5 ] // 30-60m
+      [ "wait_for", time.HOUR * delay ] // 30-60m
     ]
   ]
 ];
 
 export const check_jobs = () => [
+  [
+    (_, jobs) => firstFreeJob(jobs, "forage"),
+    entry => [
+      ["take_job", entry.job.key],
+      ["walk_to", entry.targetId],
+      ["set_label", "foraging"],
+      ["forage", entry.targetId],
+      ["complete_job", entry.job.key]
+    ]
+  ],
   [
     (_, jobs) => firstFreeJob(jobs, "move_to_here"),
     entry => [
@@ -150,12 +161,12 @@ export const farm = () => [
 
 export const recruit = (targetId) => [
   [
-    always,
-    () => [
+    world => 0.5 + hashUnit(world.actorId + ":recruit:" + targetId + ":" + world.days),
+    delay => [
       ["set_label", "recruiting"],
       ["get_attention", targetId],
       ["walk_to", targetId],
-      ["wait_for", time.HOUR * 0.5 + time.HOUR * Math.random()],
+      ["wait_for", time.HOUR * delay],
       ["set_controller_to_me", targetId],
       ["release_attention", targetId]
     ]
@@ -294,24 +305,33 @@ export const move_to_place = (type, filter, param) => [
   ]
 ];
 
-export const find_food = () => ["gruel", "grain"].flatMap(good => [
-  [
-    world => !world.holding[good],
-    () => [
-      [ "pick_up", good ],
-      [ "find_food" ]
-    ]
-  ],
-  [
+const FOODS = ["gruel", "grain", "forage"];
+
+export const find_food = () => [
+  ...FOODS.map(good => [
     world => world.holding[good],
     () => [
       [ "set_label" ],
       [ "move_to_place", "meet", "space" ],
-      [ "set_label", "eating"],
+      [ "set_label", "eating" ],
       [ "eat", good ]
     ]
+  ]),
+  ...FOODS.map(good => [
+    world => !world.holding[good],
+    () => [ [ "pick_up", good ], [ "find_food" ] ]
+  ]),
+  [
+    always,
+    () => [
+      [ "move_to_place", "forage_plant", "forage_plant" ],
+      [ "set_label", "foraging" ],
+      [ "forage", "forage_plant" ],
+      [ "forget_place", "forage_plant" ],
+      [ "find_food" ]
+    ]
   ]
-]);
+];
 
 // TODO: Not yet complete. A number of these tasks don't yet exist: not quite
 // ready to do crafting.

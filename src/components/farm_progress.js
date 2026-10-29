@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import { GameState } from "components/contexts";
 
-import { Until } from "components/until";
+import { season } from "game/time";
 
 import crops from "data/crops.json";
 
@@ -12,15 +12,16 @@ export function FarmProgress({ farmable }) {
 
   const next = farmable.slots.filter(s => s.state == "sown")
     .reduce((res, s) => {
-      const progress = (state.days - s.updated) / crops[s.content].growingTime;
-      return (progress > res[1]) ? [s, progress] : res;
+      const progress = (s.growth || 0) / crops[s.content].growingTime;
+      return (!res[0] || progress > res[1]) ? [s, progress] : res;
     }, [null, 0]);
 
   return next[0] && (<div>
     <div>
       Next harvest: {next[0].content} <progress max="1" value={next[1]}/>
     </div>
-    <Until time={next[0].updated + crops[next[0].content].growingTime}/>
+    <div>{season(state.days) == "winter" ? "Growth paused for winter" :
+      (crops[next[0].content].growingTime * (1 - next[1])).toFixed(1) + " growing days left"}</div>
   </div>);
 }
 

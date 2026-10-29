@@ -10,7 +10,7 @@ export function directlyControlledBy(ecs, id) {
 export function anyControlledAlive(ecs, playableId) {
   return [playableId, ...directlyControlledBy(ecs, playableId).map(c => c.id)]
     .map(id => ecs.personable[id])
-    .some(p => !p.dead);
+    .some(p => p && !p.dead);
 }
 
 export function topController(ecs, id) {

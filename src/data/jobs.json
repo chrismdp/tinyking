@@ -48,5 +48,16 @@
         { "key": "recruit" }
       ]
     }
+  },
+  {
+    "conditions": {
+      "target.forageable.amount": { "greater": 0 },
+      "not": { "job_targets" : { "includes": "$target.id" } }
+    },
+    "event": {
+      "jobs": [
+        { "key": "forage" }
+      ]
+    }
   }
 ]

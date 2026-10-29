@@ -1,10 +1,11 @@
 import { rowOfTiles } from "./support/world";
 import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
-import { eat, perform_subtask_in_slot, walk_to, chop_tree } from "game/tasks";
+import { eat, perform_subtask_in_slot, walk_to, chop_tree, pick_up_from_stockpile, find_place } from "game/tasks";
 import { give } from "game/holder";
 import { TRIANGLES } from "game/map";
 import { HOUR } from "game/time";
+import { anyControlledAlive } from "game/playable";
 import { Task } from "game/htn";
 
 function hungryVillage() {
@@ -24,7 +25,9 @@ function hungryVillage() {
 
 function advance(state, days) {
   const simulation = createSimulation(state);
-  for (let frame = 0; frame < days * 1440; frame++) simulation.step(1);
+  // Six-minute steps keep the multi-day checks fast; movement and work
+  // timing have separate minute-scale assertions below.
+  for (let frame = 0; frame < days * 240; frame++) simulation.step(6);
 }
 
 it.each(["container", "stockpile"])("finds grain in a %s and eats porridge without player orders", storage => {
@@ -146,4 +149,119 @@ it("eating clears the starving flag immediately", () => {
   give(state.ecs, meal, villager);
   eat(state, villager, {}, HOUR, true, "grain");
   expect(state.ecs.personable[villager].starving).toBe(false);
+});
+
+it("a hungry villager walks to wild food, forages it, and eats", () => {
+  const { state, villager, tiles } = hungryVillage();
+  const [bush] = newEntities(state, [{
+    spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
+    forageable: { kind: "berries", biome: "grassland", amount: 1, growth: 0 }
+  }]);
+  const before = { ...state.ecs.spatial[villager] };
+  const simulation = createSimulation(state);
+  let travelled = 0;
+  for (let frame = 0; frame < 480; frame++) {
+    simulation.step(1);
+    const p = state.ecs.spatial[villager];
+    travelled = Math.max(travelled, Math.hypot(p.x - before.x, p.y - before.y));
+  }
+  expect(state.ecs.personable[villager].hunger).toBeLessThan(0.5);
+  expect(state.ecs.forageable[bush].amount).toBe(0);
+  expect(travelled).toBeGreaterThan(100);
+});
+
+it("the player's forage order carries a portion home for winter", () => {
+  const { state, villager, tiles } = hungryVillage();
+  state.ecs.personable[villager].hunger = 0;
+  const [store, bush] = newEntities(state, [{
+    spatial: { ...state.ecs.spatial[tiles[0]], immovable: true },
+    controllable: { controllerId: villager }, container: { capacity: 30, amounts: {} }
+  }, {
+    spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
+    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
+  }]);
+  state.ecs.manager[villager].jobs.push({ job: { key: "forage" }, targetId: bush });
+  advance(state, HOUR * 8);
+  expect(state.ecs.container[store].amounts.forage).toBe(1);
+  expect(state.ecs.forageable[bush].amount).toBe(0);
+  expect(state.ecs.manager[villager].jobs).toEqual([]);
+});
+
+it("winter offers no wild meals and crops keep only their growing-season progress", () => {
+  const { state, villager, tiles } = hungryVillage();
+  state.days = 9;
+  state.ecs.planner[villager].world.days = 9;
+  const [field, bush] = newEntities(state, [{
+    spatial: { ...state.ecs.spatial[tiles[1]], immovable: true },
+    farmable: { claimerId: "other", slots: [{ content: "grain", state: "sown", updated: 0, growth: 4 }] },
+    controllable: { controllerId: villager }
+  }, {
+    spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
+    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
+  }]);
+  advance(state, 2.9);
+  expect(state.ecs.farmable[field].slots[0].state).toBe("sown");
+  expect(state.ecs.farmable[field].slots[0].growth).toBe(4);
+  expect(state.ecs.forageable[bush].amount).toBe(1);
+  expect(state.ecs.personable[villager].hunger).toBeGreaterThan(4);
+  expect(state.ecs.personable[villager].starving).toBe(true);
+  expect(state.ecs.personable[villager].dead).toBeFalsy();
+  advance(state, 0.8);
+  expect(state.ecs.farmable[field].slots[0].state).toBe("harvestable");
+  expect(state.ecs.personable[villager].hunger).toBeLessThan(0.9);
+  expect(state.ecs.personable[villager].starving).toBe(false);
+});
+
+it("a harvested slot cannot produce a second crop without being sown again", () => {
+  const { state, villager, tiles } = hungryVillage();
+  state.ecs.planner = {};
+  state.ecs.farmable = { [tiles[1]]: { slots: [{ content: "grain", state: "harvested", updated: -10 }] } };
+  advance(state, 1);
+  expect(state.ecs.farmable[tiles[1]].slots[0].state).toBe("harvested");
+});
+
+it("same-seed planners replay identically without global randomness", () => {
+  const a = hungryVillage().state;
+  const b = hungryVillage().state;
+  a.map = b.map = { seed: 4321 };
+  const random = jest.spyOn(Math, "random").mockImplementation(() => { throw new Error("unseeded simulation randomness"); });
+  try {
+    advance(a, 1);
+    advance(b, 1);
+    expect(a.ecs).toEqual(b.ecs);
+  } finally {
+    random.mockRestore();
+  }
+});
+
+it("starvation death can be checked even when the player owns buildings", () => {
+  const { state, villager, tiles } = hungryVillage();
+  state.ecs.personable[villager].dead = true;
+  state.ecs.controllable[tiles[0]] = { id: tiles[0], controllerId: villager };
+  expect(anyControlledAlive(state.ecs, villager)).toBe(false);
+});
+
+it("a second villager cannot pick up a stockpiled meal that someone already ate", () => {
+  const { state, villager } = hungryVillage();
+  state.ecs.haulable = {};
+  const world = { places: { food: { ...state.ecs.spatial[villager], id: "gone", stockpileId: "store" } } };
+  expect(pick_up_from_stockpile(state, villager, world, 0, true, "food")).toBe(Task.ABORT);
+  expect(world.places.food).toBeFalsy();
+});
+
+it("chooses reachable forage even when a closer plant is across water", () => {
+  const { state, villager, tiles } = hungryVillage();
+  const [island, unreachable, reachable] = newEntities(state, [{
+    spatial: { x: 0, y: -104, immovable: true },
+    mappable: { terrain: "grassland" }, walkable: { worn: {}, speed: 1, neighbours: {} }
+  }, {
+    spatial: { x: 0, y: -104, immovable: true },
+    forageable: { kind: "berries", biome: "grassland", amount: 1, growth: 0 }
+  }, {
+    spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
+    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
+  }]);
+  const world = state.ecs.planner[villager].world;
+  find_place(state, villager, world, 0, true, "food", "forage_plant");
+  expect(world.places.food).toBe(reachable);
 });

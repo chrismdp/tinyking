@@ -2,6 +2,10 @@ import { nothing } from "immer";
 
 export const MAX_SUBTASKS = 3;
 
+export function forage(world) {
+  world.holding.forage = true;
+}
+
 export function chop_tree() {}
 export function wait_for() {}
 export function set_controller_to_me() {}

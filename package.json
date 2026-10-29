@@ -8,7 +8,8 @@
     "watch": "npx jest --watch",
     "build": "webpack --config webpack.prod.js",
     "start": "webpack serve --config webpack.dev.js --progress",
-    "playtest": "node scripts/playtest.js"
+    "playtest": "node scripts/playtest.js",
+    "survival-check": "node scripts/survival-check.js"
   },
   "jest": {
     "cacheDirectory": "<rootDir>/.cache/jest",

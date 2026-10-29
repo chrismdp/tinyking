@@ -121,6 +121,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     if (ecs.good[id] && ecs.good[id].type == "wood") {
       return models.tree(ground, ecs, id, lookAt(ecs.spatial[id]));
     }
+    if (ecs.forageable && ecs.forageable[id]) {
+      return models.foragePlant(ground, state, id);
+    }
     if (ecs.building[id]) {
       return models.building(ground, state, id, {
         playerOwned: topController(ecs, id) == state.ui.playerId,
@@ -159,7 +162,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       object.visible = isKnown(state.ecs.spatial[id]);
     }
     objects[id] = object;
-    if (state.ecs.good[id] && state.ecs.good[id].type == "wood" && !(state.ecs.haulable && state.ecs.haulable[id])) {
+    if ((state.ecs.good[id] && state.ecs.good[id].type == "wood" && !(state.ecs.haulable && state.ecs.haulable[id])) || state.ecs.forageable && state.ecs.forageable[id]) {
       forest.add(id, object);
     } else {
       scene.add(object);

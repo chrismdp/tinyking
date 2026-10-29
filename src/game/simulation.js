@@ -5,6 +5,8 @@ import { drift } from "game/people";
 import { topController } from "game/playable";
 import { jobQueueFor } from "game/manager";
 
+import { updateEcology } from "game/ecology";
+
 import crops from "data/crops.json";
 
 export const SPEED = {
@@ -29,6 +31,7 @@ function updatePlanners(state, frameMod) {
     const planner = state.ecs.planner[id];
     if (state.ecs.personable[id] && state.ecs.personable[id].dead) continue;
 
+    planner.world.actorId = id;
     // Update sensors
     if (state.ecs.personable[id]) {
       const person = state.ecs.personable[id];
@@ -110,6 +113,7 @@ function starve(state, id) {
 // it changes ECS state and lists changed entities in state.redraws.
 export function createSimulation(state, { onHour } = {}) {
   let hour = 0;
+  let winter = time.season(state.days) == "winter";
   if (!state.weather) updateWeather(state, 0);
 
   const advanceTime = frameMod => {
@@ -119,6 +123,8 @@ export function createSimulation(state, { onHour } = {}) {
       hour += toAdd;
       while (hour + 1e-12 >= time.HOUR) {
         hour -= time.HOUR;
+        const end = state.days;
+        state.days = end - hour;
 
         // FIXME: This potentially leads to frame spikes each hour
         for (const id in state.ecs.planner) {
@@ -138,11 +144,11 @@ export function createSimulation(state, { onHour } = {}) {
         if (state.ecs.farmable) {
           for (const id in state.ecs.farmable) {
             for (const slot of state.ecs.farmable[id].slots) {
-              if (slot.content) {
+              if (slot.content && slot.state == "sown" && time.season(state.days) != "winter") {
                 state.redraws.push(id);
 
-                const age = state.days - slot.updated;
-                if (age > crops[slot.content].growingTime) {
+                slot.growth = (slot.growth || 0) + time.HOUR;
+                if (slot.growth + 1e-12 >= crops[slot.content].growingTime) {
                   slot.state = "harvestable";
                   slot.amount = crops[slot.content].harvestableAmount;
                 }
@@ -150,15 +156,19 @@ export function createSimulation(state, { onHour } = {}) {
             }
           }
         }
-        // Sample every crossed hour, even if a long step crosses several.
-        const end = state.days;
-        state.days = end - hour;
+        const nowWinter = time.season(state.days) == "winter";
+        if (winter != nowWinter) {
+          state.redraws.push(...Object.keys(state.ecs.forageable || {}));
+          winter = nowWinter;
+        }
+        // Sample every crossed hour, including season boundaries.
+        updateEcology(state);
         updateWeather(state);
         drift(state, 1);
-        state.days = end;
         if (onHour) {
           onHour();
         }
+        state.days = end;
       }
     }
   };

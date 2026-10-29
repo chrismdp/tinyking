@@ -120,7 +120,8 @@
     "create_stockpile": "Create Stockpile",
     "create_field": "Create Field",
     "recruit": "Recruit",
-    "cancel_job": "Cancel"
+    "cancel_job": "Cancel",
+    "forage": "Forage"
   },
   "tasks": {
     "create_stockpile": "Clearing space",
@@ -132,7 +133,8 @@
     "plough_field": "Ploughing",
     "create_field": "Clearing space",
     "sow_field": "Sowing",
-    "harvest_field": "Harvesting"
+    "harvest_field": "Harvesting",
+    "foraging": "Foraging"
   },
   "rooms": {
     "sleeping_quarters": {

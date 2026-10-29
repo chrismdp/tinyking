@@ -8,6 +8,7 @@ import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } fr
 import { topController } from "game/playable";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
+import { forageAvailable } from "game/ecology";
 import { hungerSpeed } from "game/hunger";
 import { MAX_SUBTASKS } from "game/primitive";
 
@@ -45,7 +46,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   }
 
   let targetPoint;
-  if (typeof world.target === "object" && world.target.x && world.target.y) {
+  if (typeof world.target === "object" && world.target.x != null && world.target.y != null) {
     targetPoint = world.target;
   } else {
     targetPoint = state.ecs.spatial[world.target];
@@ -171,6 +172,30 @@ function workComplete(state, actorId, world, dt, firstRun, duration) {
   if (firstRun) world.workRemaining = duration;
   world.workRemaining -= dt * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
   return world.workRemaining <= 1e-12;
+}
+
+export function forage(state, actorId, world, dt, firstRun, target) {
+  const targetId = world.places[target] || target;
+  const plant = state.ecs.forageable && state.ecs.forageable[targetId];
+  if (!forageAvailable(state, plant)) {
+    delete world.places[target];
+    return Task.ABORT;
+  }
+  const holder = state.ecs.holder[actorId];
+  if (holder.held.length >= holder.capacity ||
+    math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[targetId]) > 10 ** 2) return Task.ABORT;
+  if (!workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2)) return Task.CONTINUE;
+  plant.amount--;
+  plant.growth = 0;
+  const [food] = newEntities(state, [{
+    spatial: { ...state.ecs.spatial[actorId] },
+    nameable: { nickname: plant.kind == "berries" ? "Berries" : "Roots" },
+    good: { type: "forage", amount: 1 }, haulable: {},
+    controllable: { controllerId: topController(state.ecs, actorId) }
+  }]);
+  give(state.ecs, food, actorId);
+  state.redraws.push(actorId, targetId);
+  return Task.FINISH;
 }
 
 const TIME_TO_DESIGNATE = time.HOUR / 3;
@@ -316,6 +341,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
       slot.content = subtask.lose;
     }
     slot.updated = state.days;
+    slot.growth = 0;
     state.redraws.push(targetId);
     return Task.FINISH;
   }
@@ -398,8 +424,9 @@ export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, plac
     return Task.ABORT;
   }
 
-  if (state.ecs.haulable[slot.id].heldBy != slot.stockpileId) {
+  if (!state.ecs.haulable[slot.id] || state.ecs.haulable[slot.id].heldBy != slot.stockpileId) {
     // NOTE: someone else has already picked this up!
+    delete world.places[place];
     return Task.ABORT;
   }
 
@@ -427,6 +454,19 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
+  } else if (filter == "forage_plant") {
+    const reached = new Set();
+    const queue = [closestNavPointTo(state, state.ecs.spatial[actorId])];
+    for (let i = 0; i < queue.length; i++) {
+      const id = queue[i];
+      if (reached.has(id)) continue;
+      reached.add(id);
+      queue.push(...Object.values(state.ecs.walkable[id].neighbours).filter(id => !reached.has(id)));
+    }
+    const available = Object.keys(state.ecs.forageable || {}).filter(id =>
+      forageAvailable(state, state.ecs.forageable[id]) && reached.has(closestNavPointTo(state, state.ecs.spatial[id])));
+    available.sort(closestSpatialTo(state, actorId));
+    found_place = available[0];
   } else if (filter == "container_with") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
@@ -510,7 +550,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       .filter(e => e);
 
     if (options.length > 0) {
-      found_place = options[Math.floor(Math.random() * options.length)];
+      found_place = options[Math.floor(math.hashUnit((state.map && state.map.seed || 0) + ":meet:" + actorId + ":" + state.days) * options.length)];
     } else {
       found_place = state.space[Hex().fromPoint(state.ecs.spatial[actorId])].find(e => state.ecs.walkable[e]);
     }

@@ -6,6 +6,8 @@ import { COLOURS, ITEM_COLOURS, SELECTED } from "render/colours";
 import { treeColours, treeKind } from "render/biomes";
 import { label } from "render/labels";
 
+import { forageAvailable } from "game/ecology";
+
 import crops from "data/crops.json";
 
 const ROUTES_TO_FULL_PATH = 100;
@@ -284,13 +286,50 @@ const treeGeometry = (kind, amount, biome, morality) => {
 // and whether it is by water
 export function tree(ground, ecs, id, look) {
   const { x, y } = ecs.spatial[id];
-  const amount = Math.max(1, Math.min(3, ecs.good[id].amount));
+  const growth = ecs.tree && ecs.tree[id];
+  const amount = Math.max(1, Math.min(3, growth ? growth.fullLogs : ecs.good[id].amount));
   const kind = treeKind(look, id);
   const mesh = new THREE.Mesh(treeGeometry(kind, amount, look.biome, look.morality), vertexColoured);
   // NOTE: sink the trunk a little so it never floats on a slope
   mesh.position.set(x, ground.heightAt(x, y) - 2, y);
   mesh.rotation.y = (+id * 2.399) % (Math.PI * 2);
-  mesh.userData.anchorHeight = TREE_SHAPES[kind].height * treeSize(amount);
+  const scale = growth && growth.stage == "sapling" ? 0.25 : growth && growth.stage == "young" ? 0.55 : 1;
+  mesh.scale.setScalar(scale);
+  mesh.userData.anchorHeight = TREE_SHAPES[kind].height * treeSize(amount) * scale;
+  return mesh;
+}
+
+// --- Wild food ---------------------------------------------------------------
+
+const forageGeometries = new Map();
+export function foragePlant(ground, state, id) {
+  const plant = state.ecs.forageable[id];
+  const ripe = forageAvailable(state, plant);
+  const key = plant.kind + ":" + ripe;
+  if (!forageGeometries.has(key)) {
+    const parts = [
+      { geometry: new THREE.CylinderGeometry(0.7, 1.1, 9, 4), colour: COLOURS.trunk, matrix: at(0, 4, 0) },
+      { geometry: new THREE.CylinderGeometry(0.5, 0.8, 8, 4), colour: COLOURS.trunk, matrix: at(-3, 5, 0, 0, 0, -0.6) },
+      { geometry: new THREE.CylinderGeometry(0.5, 0.8, 8, 4), colour: COLOURS.trunk, matrix: at(3, 5, 1, 0, 0, 0.6) }
+    ];
+    if (ripe) {
+      const leaf = plant.kind == "berries" ? 0x4F793D : 0x7C934A;
+      for (const [x, y, z] of [[0, 10, 0], [-5, 8, 0], [5, 8, 2]]) {
+        parts.push({ geometry: new THREE.IcosahedronGeometry(6, 0), colour: leaf, matrix: at(x, y, z, 0, 0.5, 0, 1, 0.7, 1) });
+      }
+      for (let k = 0; k < 6; k++) {
+        const angle = k * Math.PI / 3;
+        parts.push({ geometry: new THREE.IcosahedronGeometry(1.6, 0), colour: plant.kind == "berries" ? 0xC45C77 : 0xC4A16D,
+          matrix: at(Math.cos(angle) * 5, plant.kind == "berries" ? 11 : 2, Math.sin(angle) * 5) });
+      }
+    }
+    forageGeometries.set(key, shared(mergeColoured(parts)));
+  }
+  const mesh = new THREE.Mesh(forageGeometries.get(key), vertexColoured);
+  const { x, y } = state.ecs.spatial[id];
+  mesh.position.set(x, ground.heightAt(x, y), y);
+  mesh.rotation.y = (+id * 2.399) % (Math.PI * 2);
+  mesh.userData.anchorHeight = 14;
   return mesh;
 }
 

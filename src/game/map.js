@@ -10,6 +10,7 @@ import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
+import { initializeEcology, generateForage } from "game/ecology";
 import { updateWeather } from "game/weather";
 import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
 import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
@@ -495,6 +496,8 @@ export async function generateMap(state, seed, progressUpdate) {
     ]);
   }
 
+  initializeEcology(state, seed);
+  generateForage(state, seed, playerStartTile);
   updateWeather(state, 0, seed);
   await progressUpdate("complete");
 

@@ -20,7 +20,8 @@ export const COLOURS = {
 export const ITEM_COLOURS = {
   "wood": COLOURS.dirt,
   "grain": COLOURS.harvestable,
-  "gruel": 0x7A845C
+  "gruel": 0x7A845C,
+  "forage": 0xC45C77
 };
 
 export const PLAYER_REALM = 0xD93B30;

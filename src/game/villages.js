@@ -163,6 +163,9 @@ export function eveningPlace(state, actorId) {
   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
   const id = places[Math.floor(hashUnit(actorId + ":evening:" + Math.floor(state.days)) * places.length)];
   const p = state.ecs.spatial[id];
-  const phase = hashUnit(actorId + ":gather") * Math.PI * 2;
-  return { id, x: p.x + Math.sin(phase) * 24, y: p.y + Math.cos(phase) * 20 };
+  const villagers = Object.keys(state.ecs.personable).filter(person => state.ecs.village[person]?.villageId == v.id);
+  const index = villagers.indexOf(actorId);
+  const phase = index * Math.PI * (3 - Math.sqrt(5)) + hashUnit(v.id + ":gather") * Math.PI * 2;
+  const radius = 40 * Math.sqrt((index + 0.5) / villagers.length);
+  return { id, x: p.x + Math.sin(phase) * radius, y: p.y + Math.cos(phase) * radius };
 }

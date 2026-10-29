@@ -174,3 +174,19 @@ it("keeps wild plants and woodland out of the reserved village yards, greens and
     expect(tiles.has(Hex().fromPoint(s.ecs.spatial[id]).toString())).toBe(false);
   }
 });
+
+it("spreads evening visitors across the green so household groups do not occupy the same spot", async () => {
+  const s = await world(1);
+  s.days = 0.8;
+  for (const village of Object.values(s.villages)) {
+    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const places = visitors.map(id => {
+      const w = s.ecs.planner[id].world;
+      find_place(s, id, w, 0, true, "meet", "space");
+      return w.places.meet;
+    });
+    for (let a = 0; a < places.length; a++) for (let b = a + 1; b < places.length; b++) {
+      if (places[a].id == places[b].id) expect(Math.hypot(places[a].x - places[b].x, places[a].y - places[b].y)).toBeGreaterThan(10);
+    }
+  }
+});

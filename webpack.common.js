@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackRootPlugin = require("html-webpack-root-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { GitRevisionPlugin } = require("git-revision-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 const webpack =  require("webpack");
 
 var gitRevisionPlugin = new GitRevisionPlugin();
@@ -29,6 +30,7 @@ module.exports = {
       base: "/"
     }),
     new HtmlWebpackRootPlugin(),
+    new ESLintPlugin(),
     gitRevisionPlugin,
     new webpack.DefinePlugin({
       VERSION: JSON.stringify(gitRevisionPlugin.version())
@@ -56,7 +58,7 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: [ "babel-loader", "eslint-loader" ],
+        use: [ "babel-loader" ],
       },
       {
         test: /\.scss$/,

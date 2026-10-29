@@ -121,6 +121,29 @@ Everyone belongs to a family, and families live in villages: clusters of houses.
 
 Villagers keep running their own lives through the existing HTN planner: work, eat, sleep, farm, haul. The planner stays as it is. Relationships add new options to it; they don't replace it.
 
+## Villages that look lived in
+
+Villages are generated with the trappings of real households, in the spirit of Manor Lords' burgage plots: each house sits on its own plot, with a backyard that says what the family does.
+
+- **Farms.** Most families farm: fields beside the village that the family works through the seasons, sown, tended and harvested. They already exist in the code as farmable fields.
+- **Backyards:** vegetable gardens, chicken coops, a goat or pig pen, beehives.
+- **Animals.** Sheep and cows graze in fenced pastures, and chickens and pigs stay near their household. They move about and belong to a family.
+- **Trades.** Some households have a trade with its own building and daily work: smith (forge), carpenter, weaver, baker (oven), tanner, miller. A trade shapes who a person is: what they do all day, which favours they ask for, what they can give or make, and who comes to their door.
+- **Shared places:** a well, a green or meeting place where people gather in the evening, and in bigger villages a shrine or chapel and an alehouse.
+
+For now, trades and animals give villages their look and give villagers their daily routines. A full economy of goods, trade and prices waits until it's needed.
+
+## Villagers have their own social life
+
+The point of the game is watching people live. Villagers act on the rings and goodwill among themselves, not just towards you:
+
+- **Visiting and chatting:** people visit those they're close to, chat at the well and on the green, and goodwill between them grows or fades.
+- **Courting and marrying:** unmarried adults who reach Intimate with each other court and marry, and set up a household together.
+- **Families grow:** children are born, grow up in a couple of game years, and leave home. The old die.
+- **Quarrels:** people who dislike each other avoid each other, argue and gossip.
+
+All of this shows on screen, so you can watch it happen: who walks to whose house, who sits together on the green, and a wedding when it happens.
+
 ## Relationships: the four rings
 
 This is the proxemics model from Sol Trader (blog, April 2015). Each person has a limited number of slots at each level of closeness to other people, the player included. The rings are one-way: see the rule of five below.
@@ -262,6 +285,14 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 - **Personality traits and tastes:** new. The existing `traits` component holds temporary states (hungry, cold, planted), not personality, so personality is a separate addition.
 - **One-way relationship lists per person:** new, with the rule-of-five thresholds set at world generation.
 
+## Build order
+
+Weather, biomes, building stages and the world map are good enough for now. The people come next.
+
+1. **Villages come alive:** households with farms, backyards, animals and trades, and villagers' own social life (visiting, courting, marrying, children growing up), all shown on screen.
+2. **The relationship game for the player:** talking (chat, ask about someone, offer help, give a gift), favours, goodwill through the rings, the person panel and the family tree from the mock-ups, and friends helping you build. Your character feeds themself.
+3. **Goals and quests.** Early goals are about people, not buildings: "someone in Bramblefield trusts you", "learn a family's story", "someone helps you without being asked", "you're invited to a wedding". After that, quests grow out of people's lives, using Sol Trader's mission approach, and send you to other villages and world hexes.
+
 ## First prototype: the arrival
 
 The smallest version that tests whether this is fun:
@@ -282,6 +313,7 @@ Marriage, succession, gossip, sworn followers and travel between world hexes com
 
 - **No winning.** The game is open-ended.
 - **Start alone.**
+- **You don't manage your own food.** Your character feeds themself between tasks, as villagers do. Food matters between people instead: favours from families running short, gifts, being invited to eat, and sharing in a hard winter.
 - **You gather, tasks don't.** A task that needs materials you don't have waits, and your character moves on to the next task. It resumes by itself once you've brought the materials home. Nothing fetches on your behalf, because choosing how to spend your time is the game.
 - **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
 - **Sworn followers share your job queue.** No detailed feudal duties.

@@ -4,7 +4,6 @@ import * as math from "game/math";
 
 import MersenneTwister from "mersenne-twister";
 
-import ReactGA from "react-ga";
 
 import { newEntities, entitiesInSameLocation } from "game/entities";
 import { directlyControlledBy, discoverTiles } from "game/playable";
@@ -115,7 +114,6 @@ export function generateFamilies({ state, seed, playerStartTile }) {
 }
 
 async function generateTerrain(grid, seed, progressUpdate) {
-  ReactGA.event({category: "Map generation", action: "generate"});
 
   const simplex = new SimplexNoise(seed);
   const centre = { x: grid.width * 0.5, y: grid.height * 0.5 };

@@ -6,7 +6,6 @@ import "./style.scss";
 
 import React from "react";
 import { createRoot } from "react-dom/client";
-import ReactGA from "react-ga";
 import { I18n } from "react-polyglot";
 import { BrowserRouter as Router } from "react-router-dom";
 
@@ -33,4 +32,3 @@ if (process.env.NODE_ENV !== "production") {
   console.log("Tiny King: development mode!");
 }
 
-ReactGA.initialize("UA-431118-26", {debug: false});//process.env.NODE_ENV !== "production"});

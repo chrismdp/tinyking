@@ -88,7 +88,6 @@
     "node-polyglot": "^2.4.0",
     "prop-types": "^15.8.1",
     "react-draggable": "^4.7.2",
-    "react-ga": "^3.3.1",
     "react-polyglot": "^0.7.2",
     "react-router-dom": "^5.3.4",
     "regenerator-runtime": "^0.14.1",
@@ -98,9 +97,6 @@
   "overrides": {
     "babel-preset-current-node-syntax": {
       "@babel/core": "$@babel/core"
-    },
-    "react-ga": {
-      "react": "$react"
     }
   }
 }

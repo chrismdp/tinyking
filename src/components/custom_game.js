@@ -10,6 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameState } from "components/contexts";
 import { firstName, familyName } from "game/name";
 import { CharacterSelection } from "components/character_selection";
+import { Overworld } from "components/overworld";
+import { homeOf } from "game/overworld";
 
 function newSeed() {
   return Math.round(Math.random() * 10000000);
@@ -174,6 +176,10 @@ export function CustomGame() {
             <button onClick={reset}>Reset to seed</button>
             { progress.label && <div className="progress">{progress.label}</div> }
           </div>
+          { state.world && <>
+            <Overworld world={state.world} size={18}/>
+            <div className="world-hex">{t("world.world_hex", homeOf(state.world))}</div>
+          </> }
         </>}
       </> }
     </div>

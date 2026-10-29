@@ -296,7 +296,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     setDesaturation(amount) {
       canvas.style.filter = amount > 0 ? "grayscale(" + amount + ")" : "";
     },
-    showWholeMap() {
+    // NOTE: besidePanel moves the map right, out from under a panel on the left
+    showWholeMap({ besidePanel } = {}) {
       if (!revealAll) {
         revealAll = true;
         showKnown();
@@ -304,7 +305,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         // hexagon's points (and a hex beyond) fit in the view
         const fit = (circumradius + HEX_SIZE * 4) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         rig.tilt(1.45);
-        rig.lookAt(middle.x, middle.y, fit);
+        rig.lookAt(middle.x - (besidePanel ? circumradius * 0.4 : 0), middle.y, fit);
       }
     },
     pick,

@@ -188,5 +188,10 @@
         "steps.0": "Harvest your field"
       }
     }
+  },
+  "world": {
+    "temperature": "Temperature: %{value}",
+    "high_ground": "Temperature: %{value} (high ground, a step colder than its world hex)",
+    "world_hex": "World hex: %{biome} (%{morality}, %{temperature}, %{moisture})"
   }
 }

@@ -218,7 +218,9 @@ export function World() {
     }
 
     (async () => {
-      const seed =  Math.round(Math.random() * 10000000);
+      // NOTE: ?seed=1234 in the address plays that seed, to look at a world again
+      const requested = new URLSearchParams(window.location.search).get("seed");
+      const seed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
       await state.ui.actions.generate_map(seed);
     })();
   }, [renderUI, state, selectEntity, t]);

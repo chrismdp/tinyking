@@ -6,6 +6,7 @@ import { useTranslate } from "react-polyglot";
 import { fullEntity } from "game/entities";
 import { Hex } from "game/map";
 import { topController } from "game/playable";
+import { homeOf } from "game/overworld";
 
 import { GameState } from "components/contexts";
 import { JobList } from "components/job_list";
@@ -43,6 +44,24 @@ Job.propTypes = {
   job: PropTypes.object.isRequired,
   managerId: PropTypes.string.isRequired,
   linkToTarget: PropTypes.bool.isRequired
+};
+
+// NOTE: how a tile feels (high ground is colder) and the world hex it is in
+function WorldHex({ mappable }) {
+  const state = React.useContext(GameState);
+  const t = useTranslate();
+  const home = homeOf(state.world);
+  const high = mappable.temperature != home.temperature;
+  return (
+    <div className="world-hex">
+      <div>{t(high ? "world.high_ground" : "world.temperature", { value: mappable.temperature })}</div>
+      <div>{t("world.world_hex", home)}</div>
+    </div>
+  );
+}
+
+WorldHex.propTypes = {
+  mappable: PropTypes.object.isRequired,
 };
 
 export function Info({ entityId }) {
@@ -94,6 +113,7 @@ export function Info({ entityId }) {
       {title && (<h1 className="capitalise handle">{title}
         <span className="knockedback"> #{entity.id}</span>
       </h1>)}
+      { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       <TraitList traits={entity.traits}/>
       { entity.attributes && (<div>
         {

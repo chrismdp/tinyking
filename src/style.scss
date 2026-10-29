@@ -535,3 +535,53 @@ hr {
   opacity: 0.25;
   margin: 15px 40px;
 }
+
+.worldgen {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: 360px;
+  padding: 5px 15px 10px;
+  color: white;
+  background: rgba(20, 18, 24, 0.82);
+  border-radius: 6px;
+  pointer-events: auto;
+
+  h2 { margin: 5px 0; }
+  p { margin: 5px 0; }
+}
+
+.overworld {
+  display: block;
+  margin: 5px auto;
+
+  text { font-family: 'Raleway', sans-serif; pointer-events: none; }
+}
+
+.biome-key {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 5px 0;
+  list-style: none;
+  font-size: 0.9em;
+
+  li {
+    width: 33%;
+    text-transform: capitalize;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+  }
+}
+
+.world-hex {
+  margin: 5px 0;
+  text-transform: none;
+}
+

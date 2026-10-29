@@ -12,12 +12,13 @@ cancellation. Reordering preserves completed gathering, delivery and work.
 Hunger and sleep can interrupt orders. Queue edits preserve meals in progress.
 The existing popup Cancel link uses the same cleanup as the queue’s × button.
 Depleted or missing gathering targets advance rather than blocking the queue.
-Villagers retain their existing planner priorities; recruited people still join
-the player's control hierarchy, while the player works through the personal queue.
+Villagers retain their existing planner priorities and household control, while
+the player works through the personal queue.
 
 Tasks accept `forId` and `expectedGoodwill`. The panel can display these fields,
-but nothing in the game creates favours. No favour list, new person panel or
-family tree has been added.
+but nothing in the game creates favours. This first arrival piece did not add a
+favour list, person panel or family tree. The subsequent people UI work is
+recorded in [people-ui-implementation.md](people-ui-implementation.md).
 
 Chopping and ordered foraging carry goods home. Camp goods lie on the ground,
 with no camp container. Finished shelters provide an owned store and sleeping

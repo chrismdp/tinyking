@@ -40,3 +40,28 @@ it("batches equal trees, excludes fogged trees and preserves instance picking af
   expect(disposed).toHaveBeenCalledTimes(1);
   expect(forest.mesh.children.length).toBe(0);
 });
+
+it("uses at most eight triangles per distant tree and restores close-up geometry", () => {
+  const forest = createForest();
+  const geometry = new THREE.IcosahedronGeometry(12, 1);
+  geometry.translate(0, 20, 0);
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(
+    Array.from({ length: geometry.attributes.position.count * 3 }, () => 0.4), 3));
+  const tree = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ vertexColors: true }));
+  tree.position.set(70, 3, 20);
+  forest.add("tree", tree);
+  forest.update();
+  const batch = forest.mesh.children[0];
+  expect(batch.geometry).toBe(geometry);
+  forest.setDistant(true);
+  forest.update();
+  expect(batch.geometry.attributes.position.count / 3).toBeLessThanOrEqual(8);
+  expect(batch.userData.entityIds).toEqual(["tree"]);
+  const matrix = new THREE.Matrix4();
+  batch.getMatrixAt(0, matrix);
+  expect(new THREE.Vector3().setFromMatrixPosition(matrix)).toEqual(tree.position);
+  forest.setDistant(false);
+  forest.update();
+  expect(batch.geometry).toBe(geometry);
+  forest.dispose();
+});

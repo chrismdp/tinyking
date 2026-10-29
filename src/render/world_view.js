@@ -281,6 +281,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         }
       }
       terrain.update();
+      forest.setDistant(rig.distance > 3000);
       forest.update();
 
       for (const id of people) {

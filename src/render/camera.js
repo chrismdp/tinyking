@@ -212,6 +212,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   window.addEventListener("blur", onBlur);
 
   return {
+    get distance() { return rig.distance; },
     lookAt(x, z, distance) {
       rig.x = x;
       rig.z = z;

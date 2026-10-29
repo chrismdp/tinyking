@@ -135,7 +135,13 @@
     "create_field": "Clearing space",
     "sow_field": "Sowing",
     "harvest_field": "Harvesting",
-    "foraging": "Foraging"
+    "foraging": "Foraging",
+    "at_forge": "At the forge",
+    "carpentry": "Carpentry",
+    "weaving": "Weaving",
+    "baking": "Baking",
+    "tanning": "Tanning hides",
+    "milling": "Milling grain"
   },
   "rooms": {
     "sleeping_quarters": {

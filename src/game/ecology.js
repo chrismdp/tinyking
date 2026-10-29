@@ -68,6 +68,7 @@ function plantAt(state, point, biome, key) {
 export function generateForage(state, seed, start = state.map && state.map.playerStartTile) {
   if (!state.ecology) initializeEcology(state, seed);
   for (const [key, tile] of Object.entries(state.ecology.tiles)) {
+    if (state.ecs.mappable[tile.id].villagePlot) continue;
     if ((state.space[key] || []).some(id => state.ecs.building?.[id])) continue;
     const density = BIOME_ECOLOGY[tile.biome].forageDensity;
     const count = Math.floor(density) + (hashUnit(seed + ":forage:" + key) < density % 1 ? 1 : 0);
@@ -91,7 +92,7 @@ export function generateForage(state, seed, start = state.map && state.map.playe
       }
       frontier = next;
     }
-    const spots = [...reached].filter(id => !(state.space[Hex().fromPoint(state.ecs.spatial[id])] || [])
+    const spots = [...reached].filter(id => !state.ecs.mappable[id].villagePlot && !(state.space[Hex().fromPoint(state.ecs.spatial[id])] || [])
       .some(e => state.ecs.building?.[e]));
     let near = Object.keys(state.ecs.forageable || {}).filter(id => {
       const tile = state.ecology.tiles[Hex().fromPoint(state.ecs.spatial[id])];
@@ -156,7 +157,7 @@ export function updateEcology(state) {
     const tile = tiles[hex];
     if (!tile || (counts[tile.biome] || 0) >= (treeCaps[tile.biome] || 0)) continue;
     const space = state.space[hex] || [];
-    if (space.some(e => state.ecs.building?.[e] || state.ecs.camp?.[e] || state.ecs.shelter?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
+    if (space.some(e => state.ecs.mappable?.[e]?.villagePlot || state.ecs.building?.[e] || state.ecs.camp?.[e] || state.ecs.shelter?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
     // Inspect only this tile and its six neighbours, never the whole forest.
     const crowded = Grid.hexagon({ center: hex, radius: 1 }).some(h => (state.space[h] || []).some(e => {
       if (!state.ecs.tree[e] && !state.ecs.forageable?.[e]) return false;

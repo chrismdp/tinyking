@@ -11,6 +11,7 @@ import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding"
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 import { initializeEcology, generateForage } from "game/ecology";
+import { generateVillageLife } from "game/villages";
 import { updateWeather } from "game/weather";
 import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
 import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
@@ -517,6 +518,7 @@ export async function generateMap(state, seed, progressUpdate) {
     ]);
   }
 
+  generateVillageLife(state, seed, playerStartTile);
   initializeEcology(state, seed);
   generateForage(state, seed, playerStartTile);
   updateWeather(state, 0, seed);

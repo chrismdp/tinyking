@@ -6,6 +6,7 @@ import { drift } from "game/people";
 import { topController } from "game/playable";
 import { jobQueueFor, readyPlayerTasks, deferPlayerTask } from "game/manager";
 
+import { updateVillageLife } from "game/villages";
 import { updateEcology } from "game/ecology";
 
 import crops from "data/crops.json";
@@ -194,6 +195,7 @@ export function createSimulation(state, { onHour } = {}) {
       if (arriving) return;
       updatePlanners(state, frameMod);
       advanceTime(frameMod);
+      if (SPEED[state.game_speed]) updateVillageLife(state);
     }
   };
 }

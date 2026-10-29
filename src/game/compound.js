@@ -1,4 +1,5 @@
 import * as time from "game/time";
+import { TRADE_LABELS } from "game/villages";
 import { hashUnit } from "game/math";
 import { firstFreeJob } from "game/manager";
 
@@ -65,6 +66,10 @@ export const person = () => [
       [ "set_label" ],
       [ "farm" ]
     ]
+  ],
+  [
+    always,
+    () => [["work_trade"]]
   ],
   [
     always,
@@ -493,3 +498,8 @@ export const sow_field = (targetId, seed) => [
     ]
   ]
 ];
+
+export const work_trade = () => [[
+  world => world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
+  job => [["walk_to", job.workplaceId], ["set_label", TRADE_LABELS[job.trade]], ["trade_work", job.workplaceId]]
+]];

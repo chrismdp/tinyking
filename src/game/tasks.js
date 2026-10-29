@@ -9,6 +9,7 @@ import { topController } from "game/playable";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
+import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
 import { workOnShelter, collectShelterLog, deliverShelterLog } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
@@ -53,7 +54,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     targetPoint = state.ecs.spatial[world.target];
   }
   if (targetPoint == null) {
-    console.log("Cannot find targetPoint from " + JSON.stringify(world.target));
+    delete world.places[target];
     return Task.ABORT;
   }
 
@@ -566,6 +567,8 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     }
     available.sort(closestSpatialTo(state, actorId));
     found_place = available[0];
+  } else if (filter == "space" && time.hour_of_day(state.days) >= 18 && time.hour_of_day(state.days) < 21 && eveningPlace(state, actorId)) {
+    found_place = eveningPlace(state, actorId);
   } else if (filter == "space") {
     const spiral = Grid.spiral({
       center: Hex().fromPoint(state.ecs.spatial[actorId]),
@@ -727,4 +730,10 @@ export function carry_home(state, actorId, world, dt, firstRun) {
     state.redraws.push(home, actorId);
   }
   return Task.CONTINUE;
+}
+
+export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
+  if (!state.ecs.workplace?.[workplaceId] || time.hour_of_day(state.days) >= 17 || time.hour_of_day(state.days) < 8) return Task.FINISH;
+  if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[workplaceId]) > 12 ** 2) return Task.ABORT;
+  return workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2) ? Task.FINISH : Task.CONTINUE;
 }

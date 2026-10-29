@@ -6,6 +6,8 @@ Status: draft, 29 October 2026. Nothing below is built yet unless it says so.
 
 You arrive at the edge of a world hex as a stranger with a camp and nothing else: no house and no followers. You gather wood and food yourself to build a home and plant a field. The people who live there already have villages, homes and families, and they go about their own lives. You earn your place by helping them and getting to know them. You marry into a family, inherit or found a village, and pass it to your children. Over generations a stranger's line becomes a tiny kingdom.
 
+The game is open-ended. Nobody wins; the story just keeps going.
+
 What the player should enjoy:
 
 - watching a small civilisation live its own life
@@ -32,11 +34,18 @@ What the player should enjoy:
 
 **Elevation.** High ground is one step colder than the world hex around it, so a temperate world hex has snowy, pine-covered high ground.
 
-For now, biome and morality change only how the map looks. Later they should change who lives there and what happens. For example, strangers might be trusted more slowly in an evil world hex. (Being built on the `world-hex` branch.)
+For now, biomes change only how the map looks. (Being built on the `world-hex` branch.)
+
+**Morality is a spectrum, and it changes how people behave.** Underneath the three bands (good, neutral, evil), a world hex's morality is a continuous value.
+
+- In a good world hex, people trust strangers sooner and help each other more.
+- In an evil one, trust comes slowly and help is grudging.
+
+Morality isn't fixed. When you behave badly (harming people, breaking your word), it drifts towards evil. When you help others, it drifts towards good, gradually making the place better as a whole.
 
 ## People and families
 
-Everyone belongs to a family, and families live in villages: clusters of houses. Each person has parents, a spouse and children where they apply. Today's code generates families per house (`generateFamily` in `src/game/map.js`) but doesn't record who is related to whom. That record comes first, because almost everything below depends on it.
+Everyone belongs to a family, and families live in villages: clusters of houses. Children stay children for a couple of game years, then grow up, so families and marriages move quickly enough to watch. Each person has parents, a spouse and children where they apply. Today's code generates families per house (`generateFamily` in `src/game/map.js`) but doesn't record who is related to whom. That record comes first, because almost everything below depends on it.
 
 Villagers keep running their own lives through the existing HTN planner: work, eat, sleep, farm, haul. The planner stays as it is. Relationships add new options to it; they don't replace it.
 
@@ -57,7 +66,7 @@ The slots are limited, so someone new moving closer can push someone else furthe
 
 ## You do the work yourself
 
-Nobody works for you at the start. You direct your own character from a **task list**: the jobs you have agreed to do for others, plus your own work. Your character walks there and does each task. There's no doing it from a distance, and while you're busy for one person, you aren't helping another.
+You start alone, and nobody works for you. You direct your own character from a **task list**: the jobs you have agreed to do for others, plus your own work. Your character walks there and does each task. There's no doing it from a distance, and while you're busy for one person, you aren't helping another.
 
 **Your own work: from a camp to a farm.**
 
@@ -68,7 +77,9 @@ Nobody works for you at the start. You direct your own character from a **task l
 
 Food is the pressure. Foraging only just keeps you fed, so time spent on other people's jobs is time not spent feeding yourself. That trade-off is the game's first real decision.
 
-**Other people's jobs: the queue turned around.** Today the player posts jobs and villagers carry them out. In this design villagers post the jobs they need done (help with the harvest, fetch wood, mend a fence). You accept them onto your task list and do them yourself to earn goodwill. The job queue and the planner's job handling already exist; only who posts and who takes changes. Your own character can also run on the planner, with your task list as its jobs.
+**How you control your character.** You give your character orders the way you give orders now, and each order goes onto your task list. Your character works through the list, running on the same planner as everyone else.
+
+**Other people's jobs: favours.** When villagers want help (with the harvest, fetching wood, mending a fence), their requests appear as a list of favours. You choose which to accept, and accepted favours join your task list. You earn goodwill by doing them. The job queue and the planner's job handling already exist; what changes is who posts the jobs and who takes them.
 
 Once you are in someone's Personal ring, they put "help my friend" high in their own priorities, so they turn up to help with your house and field. Their loyalty shows in what they actually do, through the planner.
 
@@ -86,7 +97,7 @@ People help you for one of three reasons, and each works differently.
 
 **Because they swore to you.** Someone in your Personal ring who lives on land you hold can swear fealty: a public oath, which was how medieval bonds of service worked. The oath runs both ways:
 
-- They owe you labour (a few days a week on your fields, more at harvest) and come when you call.
+- They share your job queue. When you set yourself a task ("I'm going to clear that field"), a sworn follower can take it and do it for you. There are no separate duties to track.
 - You owe them protection, food in a hard winter, and fair judgement in their quarrels.
 - If you break your side, the oath breaks, and everyone close to them hears about it.
 
@@ -162,11 +173,17 @@ The smallest version that tests whether this is fun:
 
 Marriage, succession, gossip, sworn followers and travel between world hexes come after this, and only if the arrival is fun.
 
+## Decided
+
+- **No winning.** The game is open-ended.
+- **Start alone.**
+- **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
+- **Sworn followers share your job queue.** No detailed feudal duties.
+- **Children grow up after a couple of game years.**
+- **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
+- **The rule of five comes from trait match.**
+
 ## Open questions
 
-- **What is winning?** The feudal ladder suggests an answer: every village lord in the world hex has sworn to your line. Is that it, or is there no end at all, just a story that keeps going?
-- **Feudal duties.** Is the service a sworn follower owes worth modelling in detail (days of labour, rent in kind), or should it be a simple "they help when asked"?
-- **Time per generation.** How long should one generation take to play?
-- **Starting alone or not.** Does the player start alone, or with a spouse or companion?
-- **How you control your character.** Do you give your character orders from the task list and watch them carry the orders out, as now? Or do you steer them directly?
-- **How much morality matters.** How strongly should a world hex's good or evil change people's behaviour?
+- **Morality drift and the neighbour rule.** If your behaviour drags a world hex from neutral to evil, a neighbouring world hex may be good, which breaks the one-step rule between neighbours. Should the change spread to neighbours, or should the rule apply only when the world is first generated?
+- **Dying with no heir.** The game is open-ended, so what happens then? Do you carry on as the person closest to you, or does that line end and you start again as a new stranger?

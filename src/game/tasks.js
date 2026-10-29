@@ -397,14 +397,10 @@ export function pick_up_entity_with_good(state, actorId, world, dt, firstRun, pl
   state.redraws.push(targetId);
 }
 
-export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, place, type) {
+export function pick_up_from_stockpile(state, actorId, world, dt, firstRun, place) {
   const slot = world.places[place];
   if (!slot) {
     return Task.ABORT;
-  }
-
-  if (topController(state.ecs, actorId) == state.ui.playerId) {
-    console.log(actorId, "PUFS", slot, type, place, world.places);
   }
 
   if (state.ecs.haulable[slot.id].heldBy != slot.stockpileId) {

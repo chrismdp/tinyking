@@ -38,3 +38,38 @@ describe("simulation step", () => {
     expect(state.ecs.personable[1].tiredness).toBeCloseTo(time.HOUR, 12);
   });
 });
+
+describe("a player villager the planner cannot plan for", () => {
+  // NOTE: at night, with no jobs and every place-finding attempt on cooldown,
+  // the person task has no method that succeeds.
+  const stuckState = () => ({
+    ecs: {
+      nextId: 2,
+      planner: { 1: { id: "1", world: {
+        days: 0.1,
+        no_place_for: { container_with_space: 99, stockpile_open_slot: 99, meet: 99 },
+        places: {},
+        feeling: {},
+        holding: {}
+      } } },
+      personable: { 1: { tiredness: 0, hunger: 0 } },
+      manager: { 1: { jobs: [] } },
+      controllable: { 1: { controllerId: "1" } }
+    },
+    redraws: [],
+    ui: { playerId: "1" },
+    days: 0.1,
+    game_speed: "normal"
+  });
+
+  it("warns and idles instead of crashing the game", () => {
+    const state = stuckState();
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    expect(() => createSimulation(state).step(1)).not.toThrow();
+
+    expect(warn).toHaveBeenCalled();
+    expect(state.ecs.planner[1].task).toEqual(["wait_for", time.HOUR * 0.5]);
+    warn.mockRestore();
+  });
+});

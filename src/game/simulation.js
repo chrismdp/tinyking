@@ -16,6 +16,8 @@ const DAYS = 86400;
 
 export const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
 
+const IDLE_PLAN = () => [["wait_for", time.HOUR * 0.5]];
+
 function updatePlanners(state, frameMod) {
   if (SPEED[state.game_speed] == 0) {
     return;
@@ -48,7 +50,8 @@ function updatePlanners(state, frameMod) {
       if (topController(state.ecs, planner.id) == state.ui.playerId) {
         // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));
         if (!planner.plan) {
-          throw "no plan";
+          console.warn("No plan for", planner.id, "- idling");
+          planner.plan = IDLE_PLAN();
         }
       }
     }

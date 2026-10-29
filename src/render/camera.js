@@ -149,9 +149,33 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
     }
   };
 
+  // NOTE: a trackpad pinch arrives as deltaY (with ctrlKey) and zooms; a
+  // two-finger sideways swipe arrives as deltaX and rotates, which is the
+  // closest Chrome and Firefox get to the trackpad's rotate gesture
   const onWheel = e => {
     e.preventDefault();
-    zoomTowards(Math.exp(e.deltaY * 0.0012), e.clientX, e.clientY);
+    rig.yaw += e.deltaX * 0.005;
+    zoomTowards(Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0012)), e.clientX, e.clientY);
+  };
+
+  // NOTE: Safari reports the trackpad's rotate and pinch gestures directly
+  let gesture = null;
+  const onGestureStart = e => {
+    e.preventDefault();
+    gesture = { rotation: e.rotation, scale: e.scale };
+  };
+  const onGestureChange = e => {
+    e.preventDefault();
+    if (!gesture) {
+      return;
+    }
+    rig.yaw += THREE.MathUtils.degToRad(e.rotation - gesture.rotation);
+    zoomTowards(gesture.scale / e.scale, e.clientX, e.clientY);
+    gesture = { rotation: e.rotation, scale: e.scale };
+  };
+  const onGestureEnd = e => {
+    e.preventDefault();
+    gesture = null;
   };
 
   const onKeyDown = e => {
@@ -168,6 +192,9 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
   dom.addEventListener("pointerup", onPointerUp);
   dom.addEventListener("pointercancel", onPointerUp);
   dom.addEventListener("wheel", onWheel, { passive: false });
+  dom.addEventListener("gesturestart", onGestureStart);
+  dom.addEventListener("gesturechange", onGestureChange);
+  dom.addEventListener("gestureend", onGestureEnd);
   dom.addEventListener("contextmenu", noMenu);
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
@@ -223,6 +250,9 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick }) 
       dom.removeEventListener("pointerup", onPointerUp);
       dom.removeEventListener("pointercancel", onPointerUp);
       dom.removeEventListener("wheel", onWheel);
+      dom.removeEventListener("gesturestart", onGestureStart);
+      dom.removeEventListener("gesturechange", onGestureChange);
+      dom.removeEventListener("gestureend", onGestureEnd);
       dom.removeEventListener("contextmenu", noMenu);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);

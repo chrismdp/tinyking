@@ -1,6 +1,6 @@
 import { Grid, Hex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, repairClashes, propagateFrom,
+  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, walkStep, propagateFrom,
   WORLD_RADIUS
 } from "game/overworld";
 
@@ -8,33 +8,29 @@ const SEEDS = [1, 1234, 98765, 4242424, 7777777, 31337, 2026];
 
 const step = (axis, value) => AXES[axis].indexOf(value);
 
+const keyOf = hex => hex.x + "," + hex.y;
+const geometry = new Map();
+const indices = new WeakMap();
 const neighboursIn = (world, hex) => {
-  const grid = Grid.hexagon({ center: Hex(hex.x, hex.y), radius: 1 });
-  return grid.neighborsOf(Hex(hex.x, hex.y), ALL_SIDES)
-    .map(n => world.hexes.find(h => h.x == n.x && h.y == n.y))
-    .filter(h => h);
+  const key = keyOf(hex);
+  if (!geometry.has(key)) {
+    geometry.set(key, Grid.hexagon({ center: Hex(hex), radius: 1 })
+      .neighborsOf(Hex(hex), ALL_SIDES).map(keyOf));
+  }
+  if (!indices.has(world)) {
+    indices.set(world, new Map(world.hexes.map(h => [keyOf(h), h])));
+  }
+  return geometry.get(key).map(k => indices.get(world).get(k)).filter(h => h);
 };
 
-const keyOf = hex => Hex(hex.x, hex.y).toString();
+const clashesIn = world => world.hexes.flatMap(h => neighboursIn(world, h).flatMap(n =>
+  Object.keys(AXES).filter(axis => Math.abs(step(axis, h[axis]) - step(axis, n[axis])) > 1)
+    .map(axis => ({ axis, a: keyOf(h), b: keyOf(n) }))));
 
-// NOTE: every pair of neighbours more than one step apart, on any axis
-const neighbourIndex = new Map();
-const clashesIn = world => {
-  const at = new Map(world.hexes.map(h => [keyOf(h), h]));
-  const clashes = [];
-  world.hexes.forEach(h => {
-    if (!neighbourIndex.has(keyOf(h))) {
-      neighbourIndex.set(keyOf(h), neighboursIn(world, h).map(keyOf));
-    }
-    return neighbourIndex.get(keyOf(h)).map(k => at.get(k)).forEach(n => {
-    for (const axis in AXES) {
-      if (Math.abs(step(axis, h[axis]) - step(axis, n[axis])) > 1) {
-        clashes.push({ axis, a: [h.x, h.y, h[axis]], b: [n.x, n.y, n[axis]] });
-      }
-    }
-    });
-  });
-  return clashes;
+const worlds = new Map();
+const worldFor = seed => {
+  if (!worlds.has(seed)) { worlds.set(seed, generateWorld(seed)); }
+  return worlds.get(seed);
 };
 
 // NOTE: a copy of the world with one world hex's value changed
@@ -66,58 +62,49 @@ describe("the biomes", () => {
   });
 });
 
-describe("repairing clashes", () => {
-  // NOTE: cells in a row, each next to the one either side
-  const row = n => Array.from({ length: n }, (_, i) => [i - 1, i + 1].filter(j => j >= 0 && j < n));
-
-  it("moves the less certain of two clashing extremes to the middle step", () => {
-    expect(repairClashes([0, 2], row(2), [0.1, 0.5])).toEqual([1, 2]);
-    expect(repairClashes([0, 2], row(2), [0.5, 0.1])).toEqual([0, 1]);
+describe("the axis walk", () => {
+  it("sticks at either end instead of reflecting a clamped roll", () => {
+    expect(walkStep(0, [0], 0)).toEqual(0);
+    expect(walkStep(0, [0], 4.99 / 6)).toEqual(0);
+    expect(walkStep(0, [0], 5.01 / 6)).toEqual(1);
+    expect(walkStep(2, [2], 0.99 / 6)).toEqual(1);
+    expect(walkStep(2, [2], 1.01 / 6)).toEqual(2);
   });
 
-  it("leaves cells that do not clash alone", () => {
-    expect(repairClashes([0, 1, 2, 1, 0], row(5), [1, 1, 1, 1, 1])).toEqual([0, 1, 2, 1, 0]);
-    expect(repairClashes([0, 0, 2, 2], row(4), [0.9, 0.3, 0.8, 0.9])).toEqual([0, 1, 2, 2]);
-    expect(repairClashes([0, 0, 2, 2], row(4), [0.9, 0.8, 0.3, 0.9])).toEqual([0, 0, 1, 2]);
-  });
-
-  it("is the same every time, with ties broken by position", () => {
-    // NOTE: the first 2 gives way to the 0, which then still clashes with
-    // the last 2, so gives way itself
-    expect(repairClashes([2, 0, 2], row(3), [0.3, 0.3, 0.3])).toEqual([1, 1, 2]);
-    expect(repairClashes([2, 0, 2], row(3), [0.3, 0.3, 0.3])).toEqual([1, 1, 2]);
-  });
-
-  it("leaves no clash anywhere, whatever it starts from", () => {
-    const grid = [...Grid.hexagon({ center: Hex(5, 5), radius: 5 })];
-    const index = new Map(grid.map((h, i) => [h.toString(), i]));
-    const neighbours = grid.map(h => Grid.hexagon({ center: h, radius: 1 }).neighborsOf(h, ALL_SIDES)
-      .map(n => index.get(n.toString())).filter(i => i != null));
-    for (let trial = 0; trial < 20; trial++) {
-      const steps = grid.map((h, i) => (i * 7 + trial * 13 + h.x * h.y) % 3);
-      const confidence = grid.map((h, i) => ((i * 31 + trial) % 17) / 17);
-      const repaired = repairClashes(steps, neighbours, confidence);
-      repaired.forEach((s, i) => {
-        // NOTE: only extremes ever move, and only to the middle
-        expect(s == steps[i] || s == 1).toBe(true);
-        neighbours[i].forEach(j => expect(Math.abs(s - repaired[j])).toBeLessThanOrEqual(1));
-      });
+  it("conditions the weights on every generated neighbour", () => {
+    // NOTE: the 0 is forbidden by the 2: the surviving weights are 4:1.
+    expect(walkStep(1, [1, 2], 0.79)).toEqual(1);
+    expect(walkStep(1, [1, 2], 0.81)).toEqual(2);
+    for (let i = 0; i < 100; i++) {
+      expect(walkStep(0, [0, 2], i / 100)).toEqual(1);
     }
+  });
+
+  it("leans the change chances towards latitude without changing the stay weight", () => {
+    const counts = target => {
+      const result = [0, 0, 0];
+      for (let i = 0; i < 6000; i++) {
+        result[walkStep(1, [1], (i + 0.5) / 6000, target)]++;
+      }
+      return result;
+    };
+    expect(counts(0)).toEqual([1750, 4000, 250]);
+    expect(counts(2)).toEqual([250, 4000, 1750]);
   });
 });
 
 describe("the world of world hexes", () => {
-  it("is a hexagon of 37 world hexes, radius 3", () => {
-    const world = generateWorld(1234);
-    expect(WORLD_RADIUS).toEqual(3);
-    expect(world.radius).toEqual(3);
-    expect(world.hexes.length).toEqual(37);
+  it("is a hexagon of 91 world hexes, radius 5", () => {
+    const world = worldFor(1234);
+    expect(WORLD_RADIUS).toEqual(5);
+    expect(world.radius).toEqual(5);
+    expect(world.hexes.length).toEqual(91);
     const centre = Hex(world.centre.x, world.centre.y);
-    world.hexes.forEach(h => expect(centre.distance(Hex(h.x, h.y))).toBeLessThanOrEqual(3));
+    world.hexes.forEach(h => expect(centre.distance(Hex(h.x, h.y))).toBeLessThanOrEqual(5));
   });
 
   it("gives every world hex a value on each axis, and the biome they make", () => {
-    const world = generateWorld(98765);
+    const world = worldFor(98765);
     world.hexes.forEach(h => {
       expect(AXES.morality).toContain(h.morality);
       expect(AXES.temperature).toContain(h.temperature);
@@ -136,7 +123,7 @@ describe("the world of world hexes", () => {
     const clashes = [];
     let pairs = 0;
     SEEDS.forEach(seed => {
-      const world = generateWorld(seed);
+      const world = worldFor(seed);
       world.hexes.forEach(h => neighboursIn(world, h).forEach(n => {
         pairs++;
         for (const axis in AXES) {
@@ -146,28 +133,57 @@ describe("the world of world hexes", () => {
         }
       }));
     });
-    // NOTE: 37 hexes have 90 neighbouring pairs, each seen from both sides
-    expect(pairs).toEqual(SEEDS.length * 180);
+    // NOTE: 91 hexes have 240 neighbouring pairs, each seen from both sides
+    expect(pairs).toEqual(SEEDS.length * 480);
     expect(clashes).toEqual([]);
   });
 
-  it("forms broad regions, not noise: most neighbours share each value", () => {
-    let same = 0;
-    let pairs = 0;
-    SEEDS.forEach(seed => {
-      const world = generateWorld(seed);
-      world.hexes.forEach(h => neighboursIn(world, h).forEach(n => {
-        for (const axis in AXES) {
-          pairs++;
-          same += h[axis] == n[axis] ? 1 : 0;
+  it("walks morality and moisture roughly 4/6 same, 1/6 down and 1/6 up", () => {
+    const counts = { morality: [0, 0, 0], moisture: [0, 0, 0] };
+    for (let seed = 1; seed <= 200; seed++) {
+      const world = worldFor(seed);
+      const generated = new Map();
+      for (const h of world.hexes) {
+        const parent = generated.get(h.parent);
+        if (parent) {
+          const neighbours = neighboursIn(world, h).filter(n => generated.has(keyOf(n)));
+          for (const axis of ["morality", "moisture"]) {
+            // NOTE: measure untruncated rolls; clamping and constraints
+            // deliberately change the distribution, tested separately above.
+            if (step(axis, parent[axis]) == 1 && neighbours.every(n => step(axis, n[axis]) == 1)) {
+              counts[axis][step(axis, h[axis])]++;
+            }
+          }
         }
-      }));
-    });
-    expect(same / pairs).toBeGreaterThan(0.5);
+        generated.set(keyOf(h), h);
+      }
+    }
+    for (const axis in counts) {
+      const total = counts[axis].reduce((a, b) => a + b, 0);
+      expect(total).toBeGreaterThan(1000);
+      [1 / 6, 4 / 6, 1 / 6].forEach((rate, i) =>
+        expect(Math.abs(counts[axis][i] / total - rate)).toBeLessThan(0.04));
+    }
+  });
+
+  it("has colder north and south polar rows than equatorial rows", () => {
+    const bands = { north: [], equator: [], south: [] };
+    for (let seed = 1; seed <= 40; seed++) {
+      const world = worldFor(seed);
+      const cy = Hex(world.centre).toPoint().y;
+      for (const h of world.hexes) {
+        const latitude = (Hex(h).toPoint().y - cy) / (Hex().height() * world.radius);
+        const band = latitude <= -0.7 ? "north" : latitude >= 0.7 ? "south" : Math.abs(latitude) <= 0.2 ? "equator" : null;
+        if (band) { bands[band].push(step("temperature", h.temperature)); }
+      }
+    }
+    const mean = band => bands[band].reduce((a, b) => a + b, 0) / bands[band].length;
+    expect(mean("north")).toBeGreaterThan(mean("equator") + 0.25);
+    expect(mean("south")).toBeGreaterThan(mean("equator") + 0.25);
   });
 
   it("plays in the centre world hex, which has all six neighbours", () => {
-    const world = generateWorld(4242424);
+    const world = worldFor(4242424);
     const home = homeOf(world);
     expect([home.x, home.y]).toEqual([world.centre.x, world.centre.y]);
     expect(neighboursIn(world, home).length).toEqual(6);
@@ -177,7 +193,7 @@ describe("the world of world hexes", () => {
     const biomes = new Set();
     const moralities = new Set();
     for (let seed = 1; seed <= 120; seed++) {
-      const home = homeOf(generateWorld(seed));
+      const home = homeOf(worldFor(seed));
       biomes.add(home.biome);
       moralities.add(home.morality);
     }
@@ -189,7 +205,7 @@ describe("the world of world hexes", () => {
 describe("a change spreading out from one world hex", () => {
   // NOTE: a world all neutral, temperate and normal, except one good hex
   const calm = () => {
-    const world = generateWorld(1);
+    const world = generateWorld(1, { radius: 2 });
     return { ...world, hexes: world.hexes.map(h => ({
       ...h, morality: "neutral", temperature: "temperate", moisture: "normal", biome: "grassland"
     })) };
@@ -217,7 +233,7 @@ describe("a change spreading out from one world hex", () => {
 
   it("restores the one-step rule across the whole world, whichever hex changes on whichever axis", () => {
     SEEDS.slice(0, 3).forEach(seed => {
-      const world = generateWorld(seed);
+      const world = generateWorld(seed, { radius: 2 });
       for (const axis in AXES) {
         world.hexes.forEach((hex, i) => {
           // NOTE: push it to whichever extreme is further from where it was

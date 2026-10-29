@@ -2,13 +2,12 @@
 // Plays the running dev build in headless Chromium and checks it, all
 // through the UI (mouse, wheel and keys), reading game state through the
 // dev-only window.tinyking:
-//   main menu -> new game (re-rolling the map until another realm's villager
-//   is in view, so there is someone to recruit) -> start
+//   main menu -> new game -> stranger at a camp (seed 13)
 //   click a villager to select it
 //   order Recruit, Move here, Create Field, Create Stockpile and Cut down from
 //   the popups, and watch a villager walk to the Move here tile
 //   play on at fastest speed, checking villagers stay on the ground and the
-//   orders get carried out
+//   orders get carried out, and logs are delivered to finish a lean-to
 //   resize the window, then open the debug worldgen page
 //   no console errors throughout
 // Screenshots go to shots/ (gitignored).
@@ -26,8 +25,7 @@ const SHOTS = path.resolve(__dirname, "..", "shots");
 const CHROME = process.env.CHROME ||
   path.join(os.homedir(), ".cache/ms-playwright/chromium-1248/chrome-linux64/chrome");
 const VIEW = { width: 1280, height: 800 };
-const WAIT = 5000;
-const REROLLS = 12;
+const WAIT = 10000;
 
 const report = { errors: [], checks: [] };
 const check = (name, ok, detail) => {
@@ -39,7 +37,7 @@ const check = (name, ok, detail) => {
   fs.mkdirSync(SHOTS, { recursive: true });
   const browser = await chromium.launch({
     executablePath: CHROME,
-    args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
+    args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
   });
   const page = await browser.newPage({ viewport: VIEW });
   page.on("pageerror", e => report.errors.push("pageerror: " + e.message));
@@ -54,6 +52,7 @@ const check = (name, ok, detail) => {
   try {
     await play(page);
   } catch (e) {
+    console.error(e.stack);
     check("the playtest ran to the end", false, String(e.message || e).split("\n")[0]);
   }
   check("no console errors", report.errors.length == 0, report.errors);
@@ -107,7 +106,7 @@ async function play(page) {
     }
     return points
       .filter(p => p.x > 20 && p.x < canvas.clientWidth - 20 && p.y > 20 && p.y < canvas.clientHeight - 120)
-      .find(p => s.renderer.pick(p.x, p.y) == id) || null;
+      .find(p => s.renderer.pick(p.x, p.y) == id && document.elementFromPoint(p.x, p.y) == canvas) || null;
   }, id);
 
   const selectByClick = async id => {
@@ -118,7 +117,7 @@ async function play(page) {
     await page.mouse.click(at.x, at.y);
     try {
       await page.waitForFunction(id => window.tinyking.ui.selected == id, id, { timeout: WAIT });
-    } catch (e) {
+    } catch {
       const picked = await game(() => window.tinyking.ui.selected);
       await closePopup();
       return "clicked at " + Math.round(at.x) + "," + Math.round(at.y) + " but selected " + picked;
@@ -132,8 +131,8 @@ async function play(page) {
       return miss;
     }
     try {
-      await page.getByRole("button", { name: button }).waitFor({ timeout: WAIT });
-    } catch (e) {
+      await page.getByRole("button", { name: button, exact: true }).waitFor({ timeout: 1200 });
+    } catch {
       const offered = await page.locator(".job-list button").allInnerTexts();
       await closePopup();
       return "popup offers " + JSON.stringify(offered);
@@ -149,7 +148,7 @@ async function play(page) {
         if (beforeOrder) {
           await beforeOrder();
         }
-        await page.getByRole("button", { name: button }).click();
+        await page.getByRole("button", { name: button, exact: true }).click();
         if (misses.length) {
           console.log("note: " + button + " skipped " + misses.join("; "));
         }
@@ -159,6 +158,20 @@ async function play(page) {
     }
     console.log("could not order " + button + " - " + (misses.join("; ") || "nothing to try"));
     return null;
+  };
+
+  const panTo = async id => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (await clickPointFor(id)) return;
+      const point = await game(id => window.tinyking.renderer.screenPosition(id), id);
+      const dx = Math.max(-350, Math.min(350, 800 - point.x));
+      const dy = Math.max(-220, Math.min(220, 350 - point.y));
+      await page.mouse.move(800, 550);
+      await page.mouse.down();
+      await page.mouse.move(800 + dx, 550 + dy, { steps: 8 });
+      await page.mouse.up();
+      await page.waitForTimeout(100);
+    }
   };
 
   const queued = () => game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.map(j => j.job.key));
@@ -175,6 +188,7 @@ async function play(page) {
     const nearest = ids => ids.sort((a, b) => distance(a) - distance(b));
     const drawn = id => s.renderer.objectOf(id) && s.renderer.objectOf(id).visible;
     const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
+    const camp = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
     const tileIn = hex => s.space[hex].find(id => s.ecs.mappable[id]);
     const knownHexes = Object.keys(s.space).filter(hex => known.has(hex) && tileIn(hex));
     return {
@@ -189,28 +203,18 @@ async function play(page) {
         .filter(hex => s.space[hex].length == 1)
         .map(tileIn)
         .filter(id => s.ecs.mappable[id].terrain == "grassland")),
+      build: nearest(knownHexes.filter(hex => s.space[hex].length == 1).map(tileIn)
+        .filter(id => s.ecs.mappable[id].terrain == "grassland" &&
+          Math.hypot(s.ecs.spatial[id].x - camp.x, s.ecs.spatial[id].y - camp.y) < 260)),
       trees: nearest(Object.keys(s.ecs.good)
         .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
         .filter(drawn))
     };
   });
 
-  // NOTE: the first few of each that a click can reach
-  const clickable = async (ids, enough) => {
-    const found = [];
-    for (const id of ids) {
-      if (found.length >= enough) {
-        break;
-      }
-      if (await clickPointFor(id)) {
-        found.push(id);
-      }
-    }
-    return found;
-  };
-
   // --- Start a game ---------------------------------------------------------------
-  await page.goto(URL);
+  await page.goto(URL + (URL.includes("?") ? "&" : "?") + "seed=13");
+  await page.waitForTimeout(8000);
   if (await page.locator("#webpack-dev-server-client-overlay").count() > 0) {
     throw new Error("the dev server's error overlay is covering the game: fix the build's errors or warnings");
   }
@@ -219,42 +223,16 @@ async function play(page) {
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
   await shot("new-game.png");
 
-  // NOTE: Recruiting needs another realm's villager on known land, and
-  // fields and stockpiles need empty grassland; small or wooded maps may have
-  // neither in view, so re-roll the map until every order has a target
-  let rerolls = 0;
-  for (;;) {
-    const t = await targets();
-    const reachable = {
-      recruit: await clickable(t.recruit, 1),
-      move: await clickable(t.move, 1),
-      empty: await clickable(t.empty, 2),
-      trees: await clickable(t.trees, 1)
-    };
-    const ready = reachable.recruit.length && reachable.move.length && reachable.empty.length >= 2 && reachable.trees.length;
-    if (ready || rerolls >= REROLLS) {
-      check("a map with a target in view for every order", ready, { rerolls, ...reachable });
-      break;
-    }
-    // NOTE: roll a new seed with the dice in the window and regenerate
-    rerolls++;
-    await page.locator(".row.overlay button").nth(3).click();
-    await page.locator("#seed + button").click();
-    // NOTE: the dice already write the seed into state.map, so wait for the
-    // regenerated world's new renderer instead
-    await game(() => { window.previousRenderer = window.tinyking.renderer; });
-    await page.getByRole("button", { name: "Reset to seed" }).click();
-    await page.waitForFunction(() => {
-      const s = window.tinyking;
-      return s.renderer && s.renderer != window.previousRenderer && s.redraws.length == 0;
-    }, null, { timeout: 30000 });
-    await page.waitForTimeout(300);
-  }
-
   await page.locator(".panel .close").first().click();
   await speed(PAUSE);
   await page.waitForTimeout(500);
   await shot("start.png");
+  check("the player starts at a camp with a bedroll and no house", await game(() => {
+    const s = window.tinyking;
+    const camp = Object.keys(s.ecs.camp || {})[0];
+    return camp && s.ecs.sleepable[camp].capacity == 1 && !s.ecs.container[camp] &&
+      !Object.keys(s.ecs.building).some(id => s.ecs.controllable[id].controllerId == s.ui.playerId);
+  }));
 
   // --- Select a villager by clicking it (paused, so they hold still) --------------
   const villagers = await game(() => {
@@ -277,11 +255,12 @@ async function play(page) {
 
   // --- Orders from the popups (still paused) ------------------------------------------
   const t = await targets();
-  const recruit = await orderOn(t.recruit, "Recruit");
-  check("Recruit can be ordered on another realm's villager", recruit && (await queued()).includes("recruit"), { recruit });
-
   const target = await orderOn(t.move, "Move here", () => shot("job-menu.png"));
   check("clicking a tile opens its job menu, and Move here queues a job", target && (await queued()).includes("move_to_here"), { target });
+
+  check("a task appears in the task panel", await page.locator("#task-panel .task-title").first().innerText() == "Move here");
+  const recruit = await orderOn(t.recruit, "Recruit");
+  check("Recruit can be ordered on another realm's villager", recruit && (await queued()).includes("recruit"), { recruit });
 
   // NOTE: a tile already ordered is a job target, so offers no more jobs
   const fieldTile = await orderOn(t.empty.filter(id => id != target), "Create Field");
@@ -319,6 +298,7 @@ async function play(page) {
     await speed(PAUSE);
     await shot("arrived.png");
   }
+  check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
   await closeUp(page, game, "zoom-day.png");
 
   // --- Play on ------------------------------------------------------------------------
@@ -384,6 +364,27 @@ async function play(page) {
     (outcome.recruited || outcome.recruitWaiting) &&
     (outcome.treeGone || outcome.treeWaiting), outcome);
   check("at least one of those orders is done", outcome.fields + outcome.stockpiles > 0 || outcome.recruited || outcome.treeGone, outcome);
+
+  // Gather enough timber, place a site through its popup, and wait for actual delivery and work.
+  await speed(PAUSE);
+  await closePopup();
+  let woodQueued = 0;
+  const buildTargets = await targets();
+  for (const id of buildTargets.trees) {
+    if (woodQueued >= 5) break;
+    await panTo(id);
+    const ordered = await orderOn([id], "Cut down");
+    if (ordered) woodQueued += await game(id => window.tinyking.ecs.good[id].amount, id);
+  }
+  const sites = buildTargets.build.filter(id => id != fieldTile && id != stockpileTile);
+  if (sites[0]) await panTo(sites[0]);
+  const siteTile = await orderOn(sites, "Build shelter");
+  check("a lean-to site can be placed from the popup", siteTile && await game(() => Object.keys(window.tinyking.ecs.construction || {}).length == 1));
+  await speed(FAST);
+  if (siteTile) {
+    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 120000 });
+  }
+  check("logs are delivered and a lean-to finishes", await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")));
 
   await closeUp(page, game, "zoom.png");
 

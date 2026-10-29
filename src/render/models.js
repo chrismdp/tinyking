@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Hex, HAIR, HEX_SIZE, TRIANGLES } from "game/map";
 import * as math from "game/math";
 import { COLOURS, ITEM_COLOURS, SELECTED } from "render/colours";
+import { BIOME_LOOKS, tintForMorality } from "render/biomes";
 import { label } from "render/labels";
 
 import crops from "data/crops.json";
@@ -192,27 +193,86 @@ const markerGeometry = () => {
 
 // --- Trees -----------------------------------------------------------------
 
-const treeGeometries = {};
-const treeGeometry = amount => {
-  if (!treeGeometries[amount]) {
-    const r = HEX_SIZE * (0.1 + amount * 0.1);
-    treeGeometries[amount] = shared(mergeColoured([
-      { geometry: new THREE.CylinderGeometry(r * 0.12, r * 0.18, r * 0.8, 5), colour: COLOURS.trunk, matrix: at(0, r * 0.4, 0) },
-      { geometry: new THREE.ConeGeometry(r * 0.8, r * 1.6, 6), colour: COLOURS.tree, matrix: at(0, r * 1.25, 0) },
-      { geometry: new THREE.ConeGeometry(r * 0.6, r * 1.2, 6), colour: COLOURS.tree, matrix: at(0, r * 1.95, 0, 0, 0.5) },
-    ]));
-  }
-  return treeGeometries[amount];
+const SNOW = 0xE8EEF3;
+const GOLDEN = new THREE.Color(0xFFD27A);
+const WITHERED = new THREE.Color(0x4A2F55);
+
+// NOTE: Each tree shape as parts of size r, from the ground up, and how tall
+// it stands in r. "leaves", "tip" and "trunk" take the biome's colours.
+const TREE_SHAPES = {
+  conifer: { height: 2.5, parts: r => [
+    { geometry: new THREE.CylinderGeometry(r * 0.12, r * 0.18, r * 0.8, 5), colour: "trunk", matrix: at(0, r * 0.4, 0) },
+    { geometry: new THREE.ConeGeometry(r * 0.8, r * 1.6, 6), colour: "leaves", matrix: at(0, r * 1.25, 0) },
+    { geometry: new THREE.ConeGeometry(r * 0.6, r * 1.2, 6), colour: "leaves", matrix: at(0, r * 1.95, 0, 0, 0.5) },
+  ]},
+  pine: { height: 2.6, parts: r => [
+    { geometry: new THREE.CylinderGeometry(r * 0.08, r * 0.12, r * 0.7, 5), colour: "trunk", matrix: at(0, r * 0.35, 0) },
+    { geometry: new THREE.ConeGeometry(r * 0.52, r * 1.1, 6), colour: "leaves", matrix: at(0, r * 1.0, 0) },
+    { geometry: new THREE.ConeGeometry(r * 0.42, r * 0.95, 6), colour: "leaves", matrix: at(0, r * 1.6, 0, 0, 0.5) },
+    { geometry: new THREE.ConeGeometry(r * 0.3, r * 0.8, 6), colour: "tip", matrix: at(0, r * 2.15, 0) },
+  ]},
+  round: { height: 2.1, parts: r => [
+    { geometry: new THREE.CylinderGeometry(r * 0.12, r * 0.2, r * 1.1, 5), colour: "trunk", matrix: at(0, r * 0.55, 0) },
+    { geometry: new THREE.IcosahedronGeometry(r * 0.8, 0), colour: "leaves", matrix: at(0, r * 1.45, 0, 0, 0, 0, 1, 0.8, 1) },
+    { geometry: new THREE.IcosahedronGeometry(r * 0.5, 0), colour: "leaves", matrix: at(r * 0.45, r * 1.15, r * 0.2, 0.4, 0.3) },
+  ]},
+  acacia: { height: 1.6, parts: r => [
+    { geometry: new THREE.CylinderGeometry(r * 0.07, r * 0.11, r * 1.3, 5), colour: "trunk", matrix: at(0, r * 0.65, 0, 0, 0, 0.12) },
+    { geometry: new THREE.CylinderGeometry(r * 0.95, r * 0.6, r * 0.28, 7), colour: "leaves", matrix: at(r * 0.08, r * 1.4, 0) },
+  ]},
+  cactus: { height: 1.6, parts: r => [
+    { geometry: new THREE.CylinderGeometry(r * 0.15, r * 0.18, r * 1.5, 6), colour: "leaves", matrix: at(0, r * 0.75, 0) },
+    { geometry: new THREE.CylinderGeometry(r * 0.08, r * 0.08, r * 0.35, 5), colour: "leaves", matrix: at(r * 0.24, r * 0.7, 0, 0, 0, Math.PI / 2) },
+    { geometry: new THREE.CylinderGeometry(r * 0.09, r * 0.09, r * 0.55, 5), colour: "leaves", matrix: at(r * 0.4, r * 0.95, 0) },
+    { geometry: new THREE.CylinderGeometry(r * 0.08, r * 0.08, r * 0.3, 5), colour: "leaves", matrix: at(-r * 0.22, r * 0.95, 0, 0, 0, Math.PI / 2) },
+    { geometry: new THREE.CylinderGeometry(r * 0.08, r * 0.08, r * 0.4, 5), colour: "leaves", matrix: at(-r * 0.36, r * 1.12, 0) },
+  ]},
+  scrub: { height: 0.9, parts: r => [
+    { geometry: new THREE.IcosahedronGeometry(r * 0.45, 0), colour: "leaves", matrix: at(0, r * 0.35, 0, 0, 0, 0, 1, 0.75, 1) },
+    { geometry: new THREE.IcosahedronGeometry(r * 0.32, 0), colour: "leaves", matrix: at(r * 0.45, r * 0.25, r * 0.15, 0.5) },
+    { geometry: new THREE.IcosahedronGeometry(r * 0.28, 0), colour: "leaves", matrix: at(-r * 0.3, r * 0.22, -r * 0.35, 0.2, 0.7) },
+  ]},
 };
 
-export function tree(ground, ecs, id) {
+const treeSize = amount => HEX_SIZE * (0.1 + amount * 0.1);
+
+const treeGeometries = new Map();
+const treeGeometry = (amount, biome, morality) => {
+  const key = [amount, biome, morality].join(":");
+  if (!treeGeometries.has(key)) {
+    const look = BIOME_LOOKS[biome];
+    const colours = {
+      trunk: new THREE.Color(COLOURS.trunk),
+      leaves: new THREE.Color(look.leaves),
+      tip: new THREE.Color(look.snow ? SNOW : look.leaves),
+    };
+    for (const part in colours) {
+      if (morality == "evil") {
+        // NOTE: evil trees look withered: their leaves go dark and purple
+        tintForMorality(colours[part], morality);
+        if (part != "trunk") {
+          colours[part].lerp(WITHERED, 0.5);
+        }
+      } else if (morality == "good") {
+        // NOTE: a lighter touch than the ground, so leaves stay green
+        colours[part].lerp(GOLDEN, 0.06).multiplyScalar(1.08);
+      }
+    }
+    const parts = TREE_SHAPES[look.tree].parts(treeSize(amount));
+    treeGeometries.set(key, shared(mergeColoured(parts.map(p => ({ ...p, colour: colours[p.colour].getHex() })))));
+  }
+  return treeGeometries.get(key);
+};
+
+// NOTE: look is the biome and morality of the ground the tree stands on
+export function tree(ground, ecs, id, look) {
   const { x, y } = ecs.spatial[id];
   const amount = Math.max(1, Math.min(3, ecs.good[id].amount));
-  const mesh = new THREE.Mesh(treeGeometry(amount), vertexColoured);
+  const mesh = new THREE.Mesh(treeGeometry(amount, look.biome, look.morality), vertexColoured);
   // NOTE: sink the trunk a little so it never floats on a slope
   mesh.position.set(x, ground.heightAt(x, y) - 2, y);
   mesh.rotation.y = (+id * 2.399) % (Math.PI * 2);
-  mesh.userData.anchorHeight = HEX_SIZE * (0.1 + amount * 0.1) * 2.5;
+  mesh.userData.anchorHeight = TREE_SHAPES[BIOME_LOOKS[look.biome].tree].height * treeSize(amount);
   return mesh;
 }
 

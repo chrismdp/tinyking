@@ -7,6 +7,7 @@ import { createHeightField } from "game/height";
 
 import * as models from "render/models";
 import { realmColour } from "render/colours";
+import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
 import { createCameraRig } from "render/camera";
 import { skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
@@ -55,6 +56,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let selected = [];
 
   const isKnown = point => revealAll || known.has(hexKey(point));
+
+  // NOTE: the biome and morality of the tile under a point
+  const lookAt = point => lookOf(state, (state.space[hexKey(point)] || []).find(e => state.ecs.mappable[e]));
 
   const refreshKnown = () => {
     const list = state.ecs.playable[state.ui.playerId].known;
@@ -105,7 +109,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
     // NOTE: Must come _after_ haulable as otherwise logs would be rendered as trees!
     if (ecs.good[id] && ecs.good[id].type == "wood") {
-      return models.tree(ground, ecs, id);
+      return models.tree(ground, ecs, id, lookAt(ecs.spatial[id]));
     }
     if (ecs.building[id]) {
       return models.building(ground, state, id, {

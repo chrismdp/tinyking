@@ -5,14 +5,16 @@ import { fullEntity } from "game/entities";
 
 import * as models from "render/models";
 import { COLOURS, PLAYER_REALM, SELECTED } from "render/colours";
+import { createGroundColours } from "render/biomes";
 import { label } from "render/labels";
 
 const ground = models.FLAT_GROUND;
 
 // NOTE: The little 3D scene in the "Start new game" window: the player's
-// villager on their home hex, ringed by six neighbouring towns. Clicking the
-// villager or a town calls back so the window can switch tab. It only
-// redraws when told to.
+// villager on their home hex, ringed by six neighbouring towns, on ground
+// coloured like the hexes round the player's start. Clicking the villager or
+// a town calls back so the window can switch tab. It only redraws when told
+// to.
 export function createPreview(container, { width, height, onPickPerson, onPickNeighbour }) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -76,6 +78,15 @@ export function createPreview(container, { width, height, onPickPerson, onPickNe
 
   return {
     update(state, { playerId, personSelected, selectedNeighbour }, t) {
+      if (state.map && state.world) {
+        const groundColour = createGroundColours(state);
+        const around = Grid.spiral({ center: Hex(state.map.playerStartTile), radius: 1 });
+        tiles.forEach((tile, index) => {
+          const id = (state.space[around[index].toString()] || []).find(e => state.ecs.mappable[e]);
+          tile.material = models.lambert(id ? groundColour(id).getHex() : COLOURS.grassland);
+        });
+      }
+
       scene.remove(dynamic);
       models.disposeObject(dynamic);
       dynamic = new THREE.Group();

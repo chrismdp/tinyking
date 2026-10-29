@@ -5,7 +5,7 @@ import "regenerator-runtime/runtime";
 import "./style.scss";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import ReactGA from "react-ga";
 import { I18n } from "react-polyglot";
 import { BrowserRouter as Router } from "react-router-dom";
@@ -22,13 +22,12 @@ library.add(faDice, faTimes, faPlay, faPause, faFastForward, faShieldAlt, faUser
 
 const locale = window.locale || "en";
 
-ReactDOM.render(
+createRoot(document.getElementById("root")).render(
   (<Router>
     <I18n locale={locale} messages={messages}>
       <World/>
     </I18n>
-  </Router>),
-  document.getElementById("root"));
+  </Router>));
 
 if (process.env.NODE_ENV !== "production") {
   console.log("Tiny King: development mode!");

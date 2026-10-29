@@ -10,6 +10,9 @@ import { GameState } from "components/contexts";
 export function Window({ windowId, x, y, children }) {
   const state = React.useContext(GameState);
   const close = React.useCallback(() => state.ui.actions.close_window(windowId), [state, windowId]);
+  // NOTE: react-draggable finds the panel through this ref; React 19 has no
+  // findDOMNode for it to fall back on
+  const panel = React.useRef(null);
 
   const fixed = window.innerWidth < 500;
 
@@ -20,8 +23,8 @@ export function Window({ windowId, x, y, children }) {
 
   return (
     <div className='desktop'>
-      <Draggable handle=".handle" bounds="parent" {...attrs}>
-        <div className='panel'>
+      <Draggable nodeRef={panel} handle=".handle" bounds="parent" {...attrs}>
+        <div ref={panel} className='panel'>
           <div onClick={close} className='close'><FontAwesomeIcon icon="times"/></div>
           {children}
         </div>

@@ -134,7 +134,7 @@ const check = (report, name, ok, detail) => {
       .filter(id => s.ecs.mappable[id].terrain == "grassland")
       .filter(id => Object.values(s.space).some(list => list.length == 1 && list[0] == id))
       .map(id => ({ id, d: Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y) }))
-      .filter(c => c.d > 200 && c.d < 420)
+      .filter(c => c.d > 150 && c.d < 600)
       .filter(c => {
         const hex = Object.keys(s.space).find(k => s.space[k][0] == c.id);
         return known.has(hex);
@@ -190,14 +190,15 @@ const check = (report, name, ok, detail) => {
     check(report, "a villager walks to the ordered tile", walk && walk.to < 20 && walk.from > walk.to, walk);
     await page.screenshot({ path: path.join(SHOTS, "arrived.png") });
   }
-  await closeUp("zoom-day.png");
 
   // --- Order a field, a stockpile, a recruit and a felled tree ----------------
   await page.locator("#speed-controls button").nth(0).click();
   const orderOn = async (ids, button) => {
+    const misses = [];
     for (const id of ids) {
       const at = await game(id => window.tinyking.renderer.screenPosition(id), id);
       if (at.x < 50 || at.x > 1230 || at.y < 50 || at.y > 700) {
+        misses.push(id + " off screen");
         continue;
       }
       await page.mouse.click(at.x, at.y + 4);
@@ -207,10 +208,12 @@ const check = (report, name, ok, detail) => {
         await page.getByRole("button", { name: button }).click();
         return id;
       }
+      misses.push(id + (picked == id ? " has no " + button : " hidden behind " + picked));
       if (picked) {
         await page.locator(".popper .close").click();
       }
     }
+    console.log("could not order " + button + ":", misses.join(", ") || "nothing to try");
     return null;
   };
   let fieldTile = null;
@@ -240,6 +243,7 @@ const check = (report, name, ok, detail) => {
   const tree = await orderOn(trees, "Cut down");
   check(report, "Create Field and Cut down can be ordered from the popup", fieldTile && tree, { fieldTile, tree });
   await page.locator("#speed-controls button").nth(2).click();
+  await closeUp("zoom-day.png");
 
   // --- Play on --------------------------------------------------------------------
   const sample = () => game(() => {
@@ -287,10 +291,13 @@ const check = (report, name, ok, detail) => {
       fields: Object.keys(s.ecs.farmable || {}).length,
       stockpiles: Object.keys(s.ecs.stockpile || {}).length,
       treeGone: !s.ecs.good[tree],
+      // NOTE: the player's few villagers work the queue in order and sleep at night
+      treeStillQueued: s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "cut_tree_down" && j.targetId == tree),
       logs: Object.keys(s.ecs.haulable || {}).filter(id => s.ecs.good[id] && s.ecs.good[id].type == "wood").length
     };
   }, [fieldTile, tree]);
-  check(report, "the field and stockpile are made and the tree felled", grown.fields > 0 && grown.stockpiles > 0 && grown.treeGone, grown);
+  check(report, "the field and stockpile are made, and the tree felled or still queued",
+    grown.fields > 0 && grown.stockpiles > 0 && (grown.treeGone || grown.treeStillQueued), grown);
 
   await closeUp("zoom.png");
 

@@ -130,12 +130,11 @@ describe("terrain height", () => {
       stone: { low: 8.4, high: 8.4 + 35 },
       mountain: { low: 70, high: 70 + 63 },
     };
-    const wide = [...Grid.rectangle({ width: 40, height: 40 })];
-    const inner = wide.filter(hex => hex.x > 0 && hex.y > 0 && hex.x < 39 && hex.y < 39);
+    const inner = [...Grid.rectangle({ width: 18, height: 18 })];
     for (const terrain in bands) {
       const { low, high } = bands[terrain];
       const heights = [];
-      [3, 17, 4242].forEach(seed => {
+      [3, 17, 4242, 99999].forEach(seed => {
         const field = createHeightField({ seed, terrainAt: () => terrain });
         inner.forEach(hex => cornersOf(hex).forEach(p => heights.push(field.cornerHeight(p.x, p.y))));
       });

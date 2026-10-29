@@ -15,6 +15,17 @@ async function regenerate(state, seed) {
 
 const SEEDS = [1, 1234, 98765, 4242424, 7777777];
 
+// NOTE: a map takes most of a second to make, so each seed's map is made
+// once and shared by the tests that only read it
+const maps = {};
+const mapFor = async seed => {
+  if (!maps[seed]) {
+    maps[seed] = {};
+    await regenerate(maps[seed], seed);
+  }
+  return maps[seed];
+};
+
 const tileHexes = state => Object.keys(state.ecs.mappable)
   .map(id => ({ id, hex: Hex().fromPoint(state.ecs.spatial[id]) }));
 
@@ -35,8 +46,7 @@ describe("generateMap", () => {
   });
 
   it("makes the map one big hexagon of small hexes, radius 11 round its centre", async () => {
-    const state = {};
-    await regenerate(state, 1234);
+    const state = await mapFor(1234);
     const centre = Hex(state.map.centre.x, state.map.centre.y);
     const tiles = tileHexes(state);
 
@@ -51,8 +61,7 @@ describe("generateMap", () => {
 
   it("rings the hexagon with sea, so its edge is a clean hexagon", async () => {
     for (const seed of SEEDS) {
-      const state = {};
-      await regenerate(state, seed);
+      const state = await mapFor(seed);
       const centre = Hex(state.map.centre.x, state.map.centre.y);
       const rim = tileHexes(state).filter(t => centre.distance(t.hex) == state.map.radius);
       expect(rim.length).toEqual(66);
@@ -61,8 +70,7 @@ describe("generateMap", () => {
   });
 
   it("keeps everything at or above zero, so the map's points stay positive", async () => {
-    const state = {};
-    await regenerate(state, 1234);
+    const state = await mapFor(1234);
     tileHexes(state).forEach(({ hex }) => {
       const { x, y } = hex.toPoint();
       expect(x).toBeGreaterThanOrEqual(0);
@@ -72,8 +80,7 @@ describe("generateMap", () => {
 
   it("starts the player on grassland with grassland all round it, on every seed", async () => {
     for (const seed of SEEDS) {
-      const state = {};
-      await regenerate(state, seed);
+      const state = await mapFor(seed);
       const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y);
       Grid.spiral({ center: start, radius: 1 }).forEach(hex => {
         const id = state.space[hex.toString()].find(e => state.ecs.mappable[e]);
@@ -84,8 +91,7 @@ describe("generateMap", () => {
 
   it("keeps the world of world hexes in state, playing in its centre", async () => {
     for (const seed of SEEDS) {
-      const state = {};
-      await regenerate(state, seed);
+      const state = await mapFor(seed);
       expect(state.world).toEqual(generateWorld(seed));
       expect(homeOf(state.world)).toBeDefined();
     }
@@ -95,8 +101,7 @@ describe("generateMap", () => {
     let high = 0;
     let colderThanHome = 0;
     for (const seed of SEEDS) {
-      const state = {};
-      await regenerate(state, seed);
+      const state = await mapFor(seed);
       const home = homeOf(state.world);
       const ground = createHeightField({ seed, terrainAt: key => {
         const id = (state.space[key] || []).find(e => state.ecs.mappable[e]);
@@ -118,8 +123,7 @@ describe("generateMap", () => {
   it("leaves walking speed to the terrain alone, whatever the world hex", async () => {
     const speeds = { "grassland": 1, "stone": 0.5, "mountain": 0, "shallow water": 0, "deep water": 0 };
     for (const seed of SEEDS) {
-      const state = {};
-      await regenerate(state, seed);
+      const state = await mapFor(seed);
       for (const id in state.ecs.mappable) {
         expect(state.ecs.walkable[id].speed).toEqual(speeds[state.ecs.mappable[id].terrain]);
       }

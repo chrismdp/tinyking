@@ -1,5 +1,5 @@
 import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
-import { Grid, Hex, ALL_SIDES } from "game/hex";
+import { Grid, Hex, WorldGrid, WorldHex, ALL_SIDES } from "game/hex";
 import {
   AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, propagateFrom,
   WORLD_RADIUS
@@ -15,8 +15,8 @@ const indices = new WeakMap();
 const neighboursIn = (world, hex) => {
   const key = keyOf(hex);
   if (!geometry.has(key)) {
-    geometry.set(key, Grid.hexagon({ center: Hex(hex), radius: 1 })
-      .neighborsOf(Hex(hex), ALL_SIDES).map(keyOf));
+    geometry.set(key, WorldGrid.hexagon({ center: WorldHex(hex), radius: 1 })
+      .neighborsOf(WorldHex(hex), ALL_SIDES).map(keyOf));
   }
   if (!indices.has(world)) {
     indices.set(world, new Map(world.hexes.map(h => [keyOf(h), h])));
@@ -133,8 +133,8 @@ describe("the world of world hexes", () => {
     expect(WORLD_RADIUS).toEqual(5);
     expect(world.radius).toEqual(5);
     expect(world.hexes.length).toEqual(91);
-    const centre = Hex(world.centre.x, world.centre.y);
-    world.hexes.forEach(h => expect(centre.distance(Hex(h.x, h.y))).toBeLessThanOrEqual(5));
+    const centre = WorldHex(world.centre.x, world.centre.y);
+    world.hexes.forEach(h => expect(centre.distance(WorldHex(h.x, h.y))).toBeLessThanOrEqual(5));
   });
 
   it("gives every world hex a value on each axis, and the biome they make", () => {
@@ -177,9 +177,9 @@ describe("the world of world hexes", () => {
     const bands = { north: [], equator: [], south: [] };
     for (let seed = 1; seed <= 40; seed++) {
       const world = worldFor(seed);
-      const cy = Hex(world.centre).toPoint().y;
+      const cy = WorldHex(world.centre).toPoint().y;
       for (const h of world.hexes) {
-        const latitude = (Hex(h).toPoint().y - cy) / (Hex().height() * world.radius);
+        const latitude = (WorldHex(h).toPoint().y - cy) / (WorldHex().height() * world.radius);
         const band = latitude <= -0.7 ? "north" : latitude >= 0.7 ? "south" : Math.abs(latitude) <= 0.2 ? "equator" : null;
         if (band) { bands[band].push(step("temperature", h.temperature)); }
       }
@@ -193,12 +193,12 @@ describe("the world of world hexes", () => {
     let oceanCentres = 0;
     for (const seed of SEEDS) {
       const world = worldFor(seed);
-      const centre = Hex(world.centre);
+      const centre = WorldHex(world.centre);
       const home = homeOf(world);
       expect(home.landFraction).toBeGreaterThanOrEqual(0.65);
       expect(home.start).toBeDefined();
       expect(home.ocean).toBe(false);
-      const closer = world.hexes.filter(h => centre.distance(Hex(h)) < centre.distance(Hex(home)));
+      const closer = world.hexes.filter(h => centre.distance(WorldHex(h)) < centre.distance(WorldHex(home)));
       const field = createLandField(world.landSeed);
       const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
       for (const h of closer.filter(h => h.landFraction >= 0.65)) {

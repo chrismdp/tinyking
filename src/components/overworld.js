@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import { Hex, HEX_SIZE } from "game/hex";
+import { WorldHex as Hex, HEX_SIZE } from "game/hex";
 import { homeOf, BIOMES } from "game/overworld";
 import { BIOME_COLOURS } from "render/biomes";
 

@@ -1,6 +1,6 @@
 import SimplexNoise from "simplex-noise";
 
-import { Grid, Hex, ALL_SIDES } from "game/hex";
+import { WorldGrid as Grid, WorldHex as Hex, ALL_SIDES } from "game/hex";
 import { surveyWorld } from "game/world_terrain";
 
 // NOTE: The world is a hexagon of world hexes, and the map the game is

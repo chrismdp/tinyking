@@ -26,3 +26,25 @@ it("draws ocean hexes blue and labels them ocean in both world views, with axes 
   }
   expect(renderToStaticMarkup(<BiomeKey/>)).toContain("ocean");
 });
+
+it("draws pointy-top polygons on a pointy-top grid in both world views", () => {
+  const world = { home: { x: 0, y: 0 }, hexes: [
+    { x: 0, y: 0, biome: "grassland" },
+    { x: 1, y: 0, biome: "grassland" },
+    { x: 0, y: 1, biome: "grassland" }
+  ] };
+  for (const labels of [true, false]) {
+    const html = renderToStaticMarkup(<Overworld world={world} size={30} labels={labels}/>);
+    const points = html.match(/points="([^"]+)"/)[1].split(" ").map(p => p.split(",").map(Number));
+    const xs = points.map(p => p[0]);
+    const ys = points.map(p => p[1]);
+    expect(Math.max(...ys) - Math.min(...ys)).toEqual(60);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(52, 0);
+    const centres = [...html.matchAll(/transform="translate\(([^)]+)\)"/g)]
+      .slice(0, 3).map(m => m[1].split(",").map(Number));
+    expect(centres[1][1]).toEqual(centres[0][1]);
+    expect(centres[1][0] - centres[0][0]).toBeCloseTo(52, 0);
+    expect(centres[2][1] - centres[0][1]).toEqual(45);
+    expect(centres[2][0] - centres[0][0]).toBeCloseTo(26, 0);
+  }
+});

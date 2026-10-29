@@ -1,7 +1,7 @@
 import SimplexNoise from "simplex-noise";
-import { Hex, Grid, HEX_SIZE } from "game/hex";
+import { Hex, Grid, WorldHex, HEX_SIZE } from "game/hex";
 
-export const MAP_RADIUS = 11;
+export const MAP_RADIUS = 22;
 export const MAP_CENTRE = Hex(MAP_RADIUS, MAP_RADIUS);
 const centre = MAP_CENTRE.toPoint();
 const tiles = [...Grid.spiral({ center: MAP_CENTRE, radius: MAP_RADIUS })];
@@ -11,13 +11,13 @@ const offsets = tiles.map(hex => {
 });
 const origins = new Map();
 
-// NOTE: The axial translations (23,-11) and (11,12) tile the plane with
-// 397-tile hexagons, including their stepped borders. Multiplying offset
+// NOTE: The axial translations (45,-22) and (22,23) tile the plane with
+// 1519-tile hexagons, including their stepped borders. Multiplying offset
 // coordinates by the map width would leave gaps and shift alternate columns.
 export function worldPoint(worldHex, localPoint) {
   const key = worldHex.x + "," + worldHex.y;
   if (!origins.has(key)) {
-    const { q, r } = Hex(worldHex);
+    const { q, r } = WorldHex(worldHex);
     const a = (2 * MAP_RADIUS + 1) * q + MAP_RADIUS * r;
     const b = -MAP_RADIUS * q + (MAP_RADIUS + 1) * r;
     origins.set(key, { x: HEX_SIZE * 1.5 * a, y: Hex().height() * (b + a / 2) });
@@ -34,8 +34,8 @@ export function createLandField(seed) {
   const relief = new SimplexNoise("terrain:" + seed);
   // NOTE: the two finer octaves are at map scale, so a coast wiggles across
   // a single map instead of running as a near-straight line
-  const landAt = ({x, y}) => land.noise2D(x * 0.00009 + 17.3, y * 0.00009 - 9.1) +
-    0.2 * land.noise2D(x * 0.0002 - 31.7, y * 0.0002 + 14.6) +
+  const landAt = ({x, y}) => land.noise2D(x * 0.000045 + 17.3, y * 0.000045 - 9.1) +
+    0.2 * land.noise2D(x * 0.0001 - 31.7, y * 0.0001 + 14.6) +
     0.1 * land.noise2D(x * 0.0025 + 5.9, y * 0.0025 - 22.4) +
     0.05 * land.noise2D(x * 0.007 - 13.1, y * 0.007 + 3.3);
   return {

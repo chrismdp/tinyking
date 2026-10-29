@@ -1,4 +1,4 @@
-import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { Hex, Grid, WorldHex, WorldGrid, ALL_SIDES } from "game/hex";
 import { MAP_CENTRE, MAP_RADIUS, createLandField, worldPoint } from "game/world_terrain";
 
 const origin = h => worldPoint(h, MAP_CENTRE.toPoint());
@@ -15,8 +15,8 @@ describe("the continuous world terrain", () => {
   });
 
   it("agrees along every shared world border, sampled in each map's local coordinates", () => {
-    const home = Hex(5, 5);
-    const neighbours = Grid.hexagon({ center: home, radius: 1 }).neighborsOf(home, ALL_SIDES);
+    const home = WorldHex(5, 5);
+    const neighbours = WorldGrid.hexagon({ center: home, radius: 1 }).neighborsOf(home, ALL_SIDES);
     for (const seed of [1, 1234, 98765]) {
       const a = createLandField(seed);
       const b = createLandField(seed);
@@ -41,9 +41,26 @@ describe("the continuous world terrain", () => {
     }
   });
 
+  it("places world neighbours in pointy-top directions while small tiles stay flat-top", () => {
+    expect(Hex().width()).toBeGreaterThan(Hex().height());
+    expect(WorldHex().height()).toBeGreaterThan(WorldHex().width());
+    const home = WorldHex(5, 5);
+    const from = origin(home);
+    const neighbours = WorldGrid.hexagon({ center: home, radius: 1 }).neighborsOf(home, ALL_SIDES);
+    for (const n of neighbours) {
+      const to = origin(n);
+      const expected = n.toPoint().subtract(home.toPoint());
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      // NOTE: stepped map borders skew the ideal directions by less than one small tile.
+      const cosine = (dx * expected.x + dy * expected.y) / (Math.hypot(dx, dy) * Math.hypot(expected.x, expected.y));
+      expect(cosine).toBeGreaterThan(0.999);
+    }
+  });
+
   it("tiles neighbouring maps without overlapping or skipping small hexes", () => {
-    const home = Hex(5, 5);
-    const neighbours = Grid.hexagon({ center: home, radius: 1 }).neighborsOf(home, ALL_SIDES);
+    const home = WorldHex(5, 5);
+    const neighbours = WorldGrid.hexagon({ center: home, radius: 1 }).neighborsOf(home, ALL_SIDES);
     const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
     const keys = new Set();
     for (const h of [home, ...neighbours]) {
@@ -54,7 +71,7 @@ describe("the continuous world terrain", () => {
         keys.add(key);
       }
     }
-    expect(keys.size).toEqual(7 * 397);
+    expect(keys.size).toEqual(7 * 1519);
     for (const tile of tiles.filter(h => MAP_CENTRE.distance(h) == MAP_RADIUS)) {
       const around = Grid.hexagon({ center: tile, radius: 1 }).neighborsOf(tile, ALL_SIDES);
       for (const n of around) {
@@ -68,8 +85,8 @@ describe("the continuous world terrain", () => {
     const field = createLandField(1234);
     const seen = new Set();
     let inlandWater = 0;
-    for (let x = 0; x < 12000; x += 110) {
-      for (let y = 0; y < 12000; y += 110) {
+    for (let x = 0; x < 24000; x += 110) {
+      for (let y = 0; y < 24000; y += 110) {
         const p = {x, y};
         const terrain = field.terrainAt(p);
         seen.add(terrain);

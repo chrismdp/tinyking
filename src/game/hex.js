@@ -20,4 +20,13 @@ export const InnerHex = Honeycomb.extendHex({
 
 export const Grid = Honeycomb.defineGrid(Hex);
 
+// NOTE: Small tiles are flat-top; the hexagon they form, and the grid of
+// those world hexes, are pointy-top. Each grid has its own offset coordinates.
+export const WorldHex = Honeycomb.extendHex({
+  size: HEX_SIZE,
+  orientation: "pointy",
+  origin: [ HEX_HEIGHT * 0.5, HEX_SIZE ]
+});
+export const WorldGrid = Honeycomb.defineGrid(WorldHex);
+
 export const ALL_SIDES = Array.from({length: 6}, (x, i) => i);

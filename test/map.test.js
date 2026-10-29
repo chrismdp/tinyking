@@ -49,18 +49,28 @@ describe("generateMap", () => {
     }
   });
 
-  it("makes the map one big hexagon of small hexes, radius 11 round its centre", async () => {
+  it("makes the map one big hexagon of small hexes, radius 22 round its centre", async () => {
     const state = await mapFor(1234);
     const centre = Hex(state.map.centre.x, state.map.centre.y);
     const tiles = tileHexes(state);
 
-    expect(state.map.radius).toEqual(11);
-    // NOTE: 1 + 3 * 11 * 12 hexes make a full hexagon of radius 11
-    expect(tiles.length).toEqual(397);
-    expect(new Set(tiles.map(t => t.hex.toString())).size).toEqual(397);
-    tiles.forEach(t => expect(centre.distance(t.hex)).toBeLessThanOrEqual(11));
-    Grid.hexagon({ center: centre, radius: 11 }).forEach(hex =>
+    expect(state.map.radius).toEqual(22);
+    // NOTE: 1 + 3 * 22 * 23 hexes make a full hexagon of radius 22
+    expect(tiles.length).toEqual(1519);
+    expect(new Set(tiles.map(t => t.hex.toString())).size).toEqual(1519);
+    tiles.forEach(t => expect(centre.distance(t.hex)).toBeLessThanOrEqual(22));
+    Grid.hexagon({ center: centre, radius: 22 }).forEach(hex =>
       expect(tiles.some(t => t.hex.x == hex.x && t.hex.y == hex.y)).toBe(true));
+  });
+
+  it("keeps village and family density as the map grows in area", async () => {
+    const states = await Promise.all(SEEDS.map(mapFor));
+    const houses = states.reduce((n, s) => n + Object.keys(s.ecs.building).length, 0);
+    const people = states.reduce((n, s) => n + Object.keys(s.ecs.personable).length, 0);
+    // NOTE: the radius-11 fixtures had 27 houses and 50 villagers in total.
+    // Allow different coasts and clearings, while requiring roughly four times the population.
+    expect(houses).toBeGreaterThanOrEqual(27 * 3);
+    expect(people).toBeGreaterThanOrEqual(50 * 3);
   });
 
   it("has sea on some edges and land running off others, following the shared field", async () => {
@@ -72,7 +82,7 @@ describe("generateMap", () => {
       const field = createLandField(state.world.landSeed);
       const home = homeOf(state.world);
       const rim = tileHexes(state).filter(t => centre.distance(t.hex) == state.map.radius);
-      expect(rim.length).toEqual(66);
+      expect(rim.length).toEqual(132);
       for (const {id, hex} of rim) {
         const isLand = field.landAt(worldPoint(home, hex.toPoint())) >= 0;
         const water = state.ecs.mappable[id].terrain.includes("water");
@@ -89,7 +99,7 @@ describe("generateMap", () => {
       const state = await mapFor(seed);
       expect(homeOf(state.world).landFraction).toBeGreaterThanOrEqual(0.65);
       const land = Object.values(state.ecs.mappable).filter(t => !t.terrain.includes("water"));
-      expect(land.length / 397).toBeGreaterThanOrEqual(0.6);
+      expect(land.length / 1519).toBeGreaterThanOrEqual(0.6);
     }
   });
 

@@ -143,7 +143,7 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 
 **Marriage** needs a person in your Intimate ring, and the wedding joins two families. Marrying the heir of a village is the main way to come to own it. Marriage also brings the other family's goodwill: your in-laws start out closer to you.
 
-**Succession.** You play a character, not a dynasty. When your character dies, you continue as their heir, keeping what the family owns and the relationships the heir has made. Dying without an heir ends the game.
+**Succession.** You play a character, not a dynasty. When your character dies, you continue as their heir, keeping what the family owns and the relationships the heir has made. What happens if you die with no heir is an open question (see below).
 
 **Founding.** Alternatively, you can build your own house and gather a following (people in your Personal ring) into a new village that you own.
 

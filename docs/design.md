@@ -250,6 +250,14 @@ What depends on which direction:
 
 Haters matter through the family tree too. If the father of the woman you want to marry is in your bottom fifth, he is a real obstacle.
 
+## History before you arrive
+
+Like Sol Trader, the world has a past. When a world is generated, two generations of village life are simulated quickly, using the same social rules that run during play: people court, marry, have children, quarrel, fall out, move to another village, and die. Each of these is recorded as an **event**, with the people involved, a date and a place.
+
+- **People remember what they know.** Each person knows the events in their own life and their family's, and some of their neighbours'. What they know shapes their opinions of others, and you learn it by talking and asking about people. Gossip is passing events on.
+- **Things are handed down.** Possessions pass from the dead to their heirs, so objects carry their history: "the hammer her grandfather forged", "the ring from his mother's first marriage". A keepsake's story is part of what you learn about a family, and it's a reason for quests: a lost heirloom, a disputed inheritance.
+- **Families have a past.** The family tree you see in play is the result of this history, not a random draw, and old quarrels and old loves still matter.
+
 ## Possessions
 
 People and households own things, and what they own matters to how they feel and what they ask for:
@@ -324,7 +332,7 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 
 Weather, biomes, building stages and the world map are good enough for now. The people come next.
 
-1. **Villages come alive:** households with farms, backyards, animals and trades, and villagers' own social life (visiting, courting, marrying, children growing up), all shown on screen.
+1. **Villages come alive:** households with farms, backyards, animals and trades, and villagers' own social life (visiting, courting, marrying, children growing up), all shown on screen. Two generations of history are simulated at world generation, with possessions handed down.
 2. **The relationship game for the player:** talking (chat, ask about someone, offer help, give a gift), favours, goodwill through the rings, the person panel and the family tree from the mock-ups, and friends helping you build. Your character feeds themself.
 3. **Goals and quests.** Early goals are about people, not buildings: "someone in Bramblefield trusts you", "learn a family's story", "someone helps you without being asked", "you're invited to a wedding". After that, quests grow out of people's lives, using Sol Trader's mission approach, and send you to other villages and world hexes.
 

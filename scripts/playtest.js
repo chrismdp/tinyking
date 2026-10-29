@@ -322,7 +322,7 @@ async function play(page) {
       !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
 
   // Start fresh again so the original interaction checks keep their empty camp.
-  await page.goto(URL + (URL.includes("?") ? "&" : "?") + "seed=13");
+  await page.goto(playURL.href);
   await page.waitForTimeout(8000);
   await page.getByText("Start new game").first().click();
   await page.waitForSelector(".character canvas");

@@ -190,3 +190,28 @@ it("spreads evening visitors across the green so household groups do not occupy 
     }
   }
 });
+
+it("gives evening visitors room for their bodies outside houses and animal pens", async () => {
+  const s = await world(1);
+  s.days = 0.8;
+  for (const village of Object.values(s.villages)) {
+    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const places = visitors.map(id => {
+      const w = s.ecs.planner[id].world;
+      find_place(s, id, w, 0, true, "meet", "space");
+      return w.places.meet;
+    });
+    for (const [i, p] of places.entries()) {
+      const centre = s.ecs.spatial[p.id];
+      expect(Math.hypot(p.x - centre.x, p.y - centre.y)).toBeLessThan(300);
+      for (const other of places.slice(i + 1)) expect(Math.hypot(p.x - other.x, p.y - other.y)).toBeGreaterThanOrEqual(32);
+      for (const house of Object.keys(s.ecs.building)) {
+        const h = s.ecs.spatial[house];
+        expect(Math.hypot(p.x - h.x, p.y - h.y)).toBeGreaterThanOrEqual(55);
+      }
+      for (const pen of Object.values(s.ecs.pasture)) {
+        expect(Math.abs(p.x - pen.centre.x) >= pen.halfWidth + 12 || Math.abs(p.y - pen.centre.y) >= pen.halfDepth + 12).toBe(true);
+      }
+    }
+  }
+});

@@ -34,7 +34,7 @@ export function generateVillageLife(state, seed, start) {
     return ecs.spatial[id];
   };
   // Search through the actual navigation graph, so a nearby field is reachable.
-  const nearby = (house, reach = 5) => {
+  const nearby = (house, reach = 5, includePlots = false) => {
     const origin = Hex().fromPoint(ecs.spatial[house]);
     const tile = tileAt[origin];
     const reached = new Set();
@@ -47,7 +47,8 @@ export function generateVillageLife(state, seed, start) {
         if (origin.distance(Hex().fromPoint(ecs.spatial[n])) <= reach && !reached.has(n)) queue.push(n);
       }
     }
-    return [...reached].filter(id => ecs.mappable[id].terrain == "grassland" && !occupied.has(keyOf(ecs.spatial[id])))
+    return [...reached].filter(id => ecs.mappable[id].terrain == "grassland" &&
+      (!occupied.has(keyOf(ecs.spatial[id])) || includePlots && reserved.has(keyOf(ecs.spatial[id]))))
       .sort((a, b) => origin.distance(Hex().fromPoint(ecs.spatial[a])) - origin.distance(Hex().fromPoint(ecs.spatial[b])) || Number(a) - Number(b));
   };
   const add = (point, villageId, components, houseId) => newEntities(state, [{
@@ -138,6 +139,37 @@ export function generateVillageLife(state, seed, start) {
     const pasturePoint = reserve(nearby(village.houses[0])[0]);
     if (pasturePoint) enclosure(pasturePoint, village.id, village.houses[0], vi % 2 ? "cow" : "sheep", 39, 34, vi % 2 ? 3 : 5);
   }
+  // A crowded village needs more than the centre of a single tile. Allocate
+  // body-sized spaces after all household plots, keeping doors and pens clear.
+  const fieldHexes = new Set(Object.keys(ecs.farmable).map(id => keyOf(ecs.spatial[id])));
+  const obstacles = Object.keys(ecs.spatial).flatMap(id => {
+    const kind = ecs.meetingPlace?.[id]?.kind;
+    const radius = ecs.building[id] || kind == "chapel" ? 55 : kind == "alehouse" ? 45 :
+      ecs.workplace?.[id]?.trade == "miller" ? 45 : ecs.workplace?.[id] || ecs.backyard?.[id] ? 30 : kind == "well" ? 28 : 0;
+    return radius ? [{ ...ecs.spatial[id], radius }] : [];
+  });
+  const pens = Object.values(ecs.pasture);
+  for (const village of Object.values(state.villages)) {
+    const population = Object.keys(ecs.personable).filter(id => ecs.village[id].villageId == village.id).length;
+    const candidates = nearby(village.houses[0], 8, true).filter(id => !fieldHexes.has(keyOf(ecs.spatial[id])))
+      .flatMap(tile => [{ tile, ...ecs.spatial[tile] }, ...Array.from({ length: 6 }, (_, i) => ({ tile,
+        x: ecs.spatial[tile].x + Math.cos(i * Math.PI / 3) * 34,
+        y: ecs.spatial[tile].y + Math.sin(i * Math.PI / 3) * 34 }))])
+      .filter(p => !obstacles.some(o => (p.x - o.x) ** 2 + (p.y - o.y) ** 2 < o.radius ** 2) &&
+        !pens.some(pen => Math.abs(p.x - pen.centre.x) < pen.halfWidth + 12 && Math.abs(p.y - pen.centre.y) < pen.halfDepth + 12));
+    const used = [];
+    for (const id of village.sharedPlaces.filter(id => ["green", "alehouse"].includes(ecs.meetingPlace[id].kind))) {
+      const centre = ecs.spatial[id];
+      const distance = p => (p.x - centre.x) ** 2 + (p.y - centre.y) ** 2;
+      const points = ecs.meetingPlace[id].gatheringPoints = [];
+      for (const p of candidates.slice().sort((a, b) => distance(a) - distance(b))) {
+        if (used.some(other => (p.x - other.x) ** 2 + (p.y - other.y) ** 2 < 34 ** 2)) continue;
+        points.push({ x: p.x, y: p.y }); used.push(p);
+        reserve(p.tile);
+        if (points.length == population) break;
+      }
+    }
+  }
   // Clear only the reserved village land, before woodland ecology is initialized.
   for (const id of Object.keys(ecs.good)) if (ecs.good[id].type == "wood" && reserved.has(keyOf(ecs.spatial[id]))) deleteEntity(state, id);
 }
@@ -162,10 +194,7 @@ export function eveningPlace(state, actorId) {
   if (!v) return null;
   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
   const id = places[Math.floor(hashUnit(actorId + ":evening:" + Math.floor(state.days)) * places.length)];
-  const p = state.ecs.spatial[id];
   const villagers = Object.keys(state.ecs.personable).filter(person => state.ecs.village[person]?.villageId == v.id);
   const index = villagers.indexOf(actorId);
-  const phase = index * Math.PI * (3 - Math.sqrt(5)) + hashUnit(v.id + ":gather") * Math.PI * 2;
-  const radius = 40 * Math.sqrt((index + 0.5) / villagers.length);
-  return { id, x: p.x + Math.sin(phase) * radius, y: p.y + Math.cos(phase) * radius };
+  return { id, ...state.ecs.meetingPlace[id].gatheringPoints[index] };
 }

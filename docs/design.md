@@ -4,7 +4,7 @@ Status: draft, 29 October 2026. Nothing below is built yet unless it says so.
 
 ## The pitch
 
-You arrive at the edge of a world hex as a stranger, with nothing: no house and no followers. The people who live there already have villages, homes and families, and they go about their own lives. You earn your place by helping them and getting to know them. You marry into a family, inherit or found a village, and pass it to your children. Over generations a stranger's line becomes a tiny kingdom.
+You arrive at the edge of a world hex as a stranger with a camp and nothing else: no house and no followers. You gather wood and food yourself to build a home and plant a field. The people who live there already have villages, homes and families, and they go about their own lives. You earn your place by helping them and getting to know them. You marry into a family, inherit or found a village, and pass it to your children. Over generations a stranger's line becomes a tiny kingdom.
 
 What the player should enjoy:
 
@@ -55,11 +55,48 @@ The slots are limited, so someone new moving closer can push someone else furthe
 
 **Goodwill** moves you inwards. You earn it mainly by doing jobs for people, and also by chatting, gifts, and helping people they care about. Doing harm to someone loses goodwill with them and with the people close to them.
 
-## Jobs: the queue turned around
+## You do the work yourself
 
-Today the player posts jobs and villagers carry them out. In this design villagers post the jobs they need done (help with the harvest, fetch wood, mend a fence), and the player takes them to earn goodwill. The job queue and the planner's job handling already exist; only who posts and who takes changes.
+Nobody works for you at the start. You direct your own character from a **task list**: the jobs you have agreed to do for others, plus your own work. Your character walks there and does each task. There's no doing it from a distance, and while you're busy for one person, you aren't helping another.
 
-Once you are in someone's Personal ring, they put "help my friend" high in their own priorities. Their loyalty then shows in what they actually do, through the planner.
+**Your own work: from a camp to a farm.**
+
+1. **Camp.** You start with a campfire and a bedroll at the edge of the map. It's somewhere to sleep, with nothing stored.
+2. **Gather.** Chop wood in the woods, forage for berries and roots, and carry it all back to the camp. Felling trees and hauling already exist.
+3. **Build.** Wood becomes a house in stages: a lean-to, then a hut, then a proper house. Each stage takes wood and time, and more hands make it faster.
+4. **Farm.** Clear and plant your own field, then sow and harvest it. All of this already exists.
+
+Food is the pressure. Foraging only just keeps you fed, so time spent on other people's jobs is time not spent feeding yourself. That trade-off is the game's first real decision.
+
+**Other people's jobs: the queue turned around.** Today the player posts jobs and villagers carry them out. In this design villagers post the jobs they need done (help with the harvest, fetch wood, mend a fence). You accept them onto your task list and do them yourself to earn goodwill. The job queue and the planner's job handling already exist; only who posts and who takes changes. Your own character can also run on the planner, with your task list as its jobs.
+
+Once you are in someone's Personal ring, they put "help my friend" high in their own priorities, so they turn up to help with your house and field. Their loyalty shows in what they actually do, through the planner.
+
+## Not everyone likes you
+
+Each person has traits, and so does your character. How well your traits match theirs sets the closest ring they will ever let you into. Some people will only ever be Public, however much you help them. A few dislike you on sight. They take your help without thanks, speak badly of you to the people close to them, and side against you.
+
+These people also matter through the family tree. The surly father of the woman you want to marry is a real obstacle.
+
+## Leading a village: Lencioni's five layers
+
+The rings describe one person's closeness to you. Once you lead a household or a village, the group as a whole needs its own measure. Patrick Lencioni's pyramid from *The Five Dysfunctions of a Team* and *The Advantage* gives one. Each layer stands on the one below it:
+
+1. **Trust.** People believe you mean well. Without it, nothing above works.
+2. **Conflict.** People argue with you openly, instead of grumbling where you can't hear.
+3. **Commitment.** Once a plan is decided, everyone backs it, even people who argued against it.
+4. **Accountability.** Villagers hold each other to what was agreed, so you don't have to.
+5. **Results.** The village works for shared goals, not just for each family.
+
+In play, each layer you reach unlocks something, and each layer you lack shows up as a problem:
+
+- **Low trust** means people hide problems from you.
+- **No open conflict** means grudges build up quietly.
+- **Weak commitment** means jobs get half-done.
+- **No accountability** means a lazy villager drags everyone down.
+- **Results** let you give the village one shared goal, such as "bring in the harvest before winter", and it organises itself.
+
+This gives running a village its own gameplay that is separate from making friends.
 
 ## Knowledge
 
@@ -90,24 +127,29 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 - **Jobs posted by villagers and taken by the player:** reuses the job queue (`manager.js`) and the `check_jobs` task.
 - **Ageing, death, births and marriage over time:** the code already has days, seasons and the `dead` flag; births and ageing are new.
 - **Recruiting:** today a single job. In this design it is replaced by reaching someone's Personal ring.
-- **Start:** today the player starts in the middle with a house. In this design they start at the map edge with no house.
+- **Start:** today the player starts in the middle with a house. In this design they start at a camp at the map edge.
+- **A task list for the player's character:** new. It can reuse the job queue, scoped to one person.
+- **Foraging, and building in stages from wood:** new. Felling trees, hauling, fields and stockpiles already exist.
+- **Trait compatibility setting the closest ring:** new, built on the existing traits (`src/game/traits.js`).
 
 ## First prototype: the arrival
 
 The smallest version that tests whether this is fun:
 
-1. Start at the edge of the map, with no house.
-2. Two or three villages of related families, with the relationships recorded.
-3. The four rings and goodwill, with the ring shown on a person when you select them.
-4. Villagers post two kinds of job: help with the harvest, and fetch wood. Doing one gains goodwill.
-5. Reaching Social shows that person's family tree.
-6. Reaching Personal makes them help you build your first house.
+1. Start at a camp at the edge of the map, with no house.
+2. A task list for your character. You chop wood, forage, and build a lean-to and then a hut.
+3. Two or three villages of related families, with the relationships recorded.
+4. The four rings and goodwill, with the ring shown on a person when you select them. Traits cap how close some people will let you get.
+5. Villagers post two kinds of job: help with the harvest, and fetch wood. You accept a job, do it, and earn goodwill.
+6. Reaching Social shows that person's family tree.
+7. Reaching Personal makes them come and help with your house.
 
-Marriage, succession, gossip and travel between world hexes come after this, and only if the arrival is fun.
+Marriage, succession, gossip, the five layers and travel between world hexes come after this, and only if the arrival is fun.
 
 ## Open questions
 
 - **What is winning?** Ruling the whole world hex, a line that lasts a number of generations, or no end at all, just a story that keeps going?
 - **Time per generation.** How long should one generation take to play?
 - **Starting alone or not.** Does the player start alone, or with a spouse or companion?
+- **How you control your character.** Do you give your character orders from the task list and watch them carry the orders out, as now? Or do you steer them directly?
 - **How much morality matters.** How strongly should a world hex's good or evil change people's behaviour?

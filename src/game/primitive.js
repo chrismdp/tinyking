@@ -105,7 +105,7 @@ export function eat(world, expected, thing) {
 
 export function create_subtasks(world, expected, targetId, result) {
   if (expected) {
-    world.subtasks = Array.from({length: MAX_SUBTASKS}, i => ({ x: i, y: i, result, id: targetId }));
+    world.subtasks = Array.from({length: MAX_SUBTASKS}, (_, i) => ({ x: i, y: i, result, id: targetId }));
   }
 }
 

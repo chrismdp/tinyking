@@ -470,9 +470,6 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
           })))).flat();
     available.sort(closestPointTo(state, actorId));
     found_place = available[0];
-    if (topController(state.ecs, actorId) == state.ui.playerId) {
-      console.log(actorId, "SSW FP", found_place);
-    }
   } else if (filter == "stockpile_open_slot") {
     const available_in_realm = Object.keys(state.ecs.stockpile || {}).filter(id =>
       realm == topController(state.ecs, id));

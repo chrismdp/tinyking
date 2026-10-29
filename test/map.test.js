@@ -1,6 +1,6 @@
-import { Hex, Grid, generateMap } from "game/map";
+import { Hex, Grid, generateMap, generateTrees, MIN_START_TREES } from "game/map";
 import { createHeightField, HIGH_GROUND } from "game/height";
-import { generateWorld, homeOf, colder } from "game/overworld";
+import { generateWorld, homeOf, colder, BIOMES } from "game/overworld";
 
 const noProgress = async () => {};
 
@@ -13,7 +13,8 @@ async function regenerate(state, seed) {
   state.map = map;
 }
 
-const SEEDS = [1, 1234, 98765, 4242424, 7777777];
+// NOTE: 30 plays in a desert and 3 in tundra, the two barest biomes
+const SEEDS = [1, 1234, 98765, 30, 3];
 
 // NOTE: a map takes most of a second to make, so each seed's map is made
 // once and shared by the tests that only read it
@@ -130,3 +131,81 @@ describe("generateMap", () => {
     }
   });
 });
+
+describe("trees", () => {
+  // NOTE: a map-sized hexagon that is all grassland, with no houses
+  const landscape = {};
+  const centre = Hex(11, 11);
+  Grid.hexagon({ center: centre, radius: 11 }).forEach(hex => {
+    landscape[hex] = { terrain: "grassland" };
+  });
+  const WIDTH = 2100;
+  const HEIGHT = 2390;
+  const treesIn = (seed, biome, start) => generateTrees(seed, landscape, {}, WIDTH, HEIGHT, { biomeAt: () => biome, start });
+
+  it("keeps grassland's woods exactly as they were", () => {
+    // NOTE: counts and checksums from before biomes set the density
+    const before = { 7: [401, 2101659], 42: [316, 1376539], 1234: [309, 1250293], 98765: [426, 1669840] };
+    for (const seed in before) {
+      const trees = treesIn(+seed, "grassland");
+      expect([trees.length, trees.reduce((sum, t) => sum + t.x * 3 + t.y, 0)]).toEqual(before[seed]);
+    }
+  });
+
+  it("grows each biome's trees as thickly as the biome says, the same seed over the same land", () => {
+    const count = biome => [7, 42, 1234, 98765].reduce((sum, seed) => sum + treesIn(seed, biome).length, 0);
+    const counts = {};
+    Object.keys(BIOMES).forEach(biome => { counts[biome] = count(biome); });
+
+    expect(counts.jungle).toBeGreaterThan(counts.grassland);
+    expect(counts.grassland).toBeGreaterThan(counts.desert);
+
+    // NOTE: very dense, dense, patches, scattered, sparse, almost none
+    expect(counts.jungle).toBeGreaterThan(counts.taiga);
+    expect(counts.taiga).toBeGreaterThan(counts.grassland);
+    expect(counts.grassland).toBeGreaterThan(counts.marsh);
+    ["savanna", "steppe", "snowfield"].forEach(sparse => {
+      expect(counts.marsh).toBeGreaterThan(counts[sparse]);
+      expect(counts[sparse]).toBeGreaterThan(counts.tundra);
+      expect(counts[sparse]).toBeGreaterThan(counts.desert);
+    });
+    expect(counts.desert).toBeGreaterThan(0);
+  });
+
+  it("always grows a few trees within reach of the start, in every biome", () => {
+    // NOTE: the start is ringed by sea four hexes out, so only these hexes count
+    const island = {};
+    Grid.hexagon({ center: centre, radius: 6 }).forEach(hex => {
+      island[hex] = { terrain: centre.distance(hex) == 4 ? "deep water" : "grassland" };
+    });
+    const inReach = [...Grid.hexagon({ center: centre, radius: 3 })].map(hex => hex.toString());
+    Object.keys(BIOMES).forEach(biome => {
+      [7, 42, 1234].forEach(seed => {
+        const trees = generateTrees(seed, island, {}, WIDTH, HEIGHT, { biomeAt: () => biome, start: centre });
+        const near = trees.filter(t => inReach.includes(Hex().fromPoint(t).toString()));
+        expect([biome, seed, near.length >= MIN_START_TREES]).toEqual([biome, seed, true]);
+      });
+    });
+  });
+
+  it("leaves trees within reach of the start on real maps, desert and tundra too", async () => {
+    for (const seed of SEEDS) {
+      const state = await mapFor(seed);
+      // NOTE: walk out from the start along the walkable links, five hexes at most
+      const tileAt = hex => (state.space[hex.toString()] || []).find(e => state.ecs.mappable[e]);
+      const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y);
+      const reached = new Set([tileAt(start)]);
+      let frontier = [tileAt(start)];
+      for (let d = 0; d < 5; d++) {
+        frontier = frontier.flatMap(id => Object.values(state.ecs.walkable[id].neighbours))
+          .filter(id => !reached.has(id));
+        frontier.forEach(id => reached.add(id));
+      }
+      const trees = Object.keys(state.ecs.good)
+        .filter(id => state.ecs.good[id].type == "wood" && reached.has(tileAt(Hex().fromPoint(state.ecs.spatial[id]))));
+      expect([seed, homeOf(state.world).biome, trees.length >= MIN_START_TREES])
+        .toEqual([seed, homeOf(state.world).biome, true]);
+    }
+  });
+});
+

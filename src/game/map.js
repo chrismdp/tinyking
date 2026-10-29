@@ -9,14 +9,14 @@ import { newEntities, entitiesInSameLocation } from "game/entities";
 import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { createHeightField, HIGH_GROUND } from "game/height";
-import { generateWorld, homeOf, tileTemperature } from "game/overworld";
+import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
 
 // NOTE: The map is one big hexagon of small hexes, a "world hex". Centring
 // it at offset (radius, radius) keeps every hex's coordinates, and so every
 // point on the map, at or above zero.
-export const MAP_RADIUS = 11;
+const MAP_RADIUS = 11;
 const MAP_CENTRE = Hex(MAP_RADIUS, MAP_RADIUS);
 
 const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
@@ -158,10 +158,65 @@ async function generateTerrain(grid, seed, progressUpdate) {
 }
 
 const GRID_STEP = 30;
-function generateTrees(seed, landscape, settlements, world_x, world_y) {
+
+// NOTE: How thickly each biome grows trees. Trees stand on grassland
+// wherever the woods noise is above the cutoff, and then only at the share
+// of those spots given by keep, so a low cutoff with a small keep scatters
+// lone trees widely while a high one keeps them to a few patches. Grassland
+// keeps the cutoff it always had.
+const TREE_DENSITY = {
+  jungle: { cutoff: 0, keep: 1 },
+  taiga: { cutoff: 0.3, keep: 1 },
+  grassland: { cutoff: 0.6, keep: 1 },
+  marsh: { cutoff: 0.2, keep: 0.12 },
+  savanna: { cutoff: -0.2, keep: 0.035 },
+  steppe: { cutoff: 0, keep: 0.04 },
+  snowfield: { cutoff: 0.2, keep: 0.06 },
+  tundra: { cutoff: 0.4, keep: 0.025 },
+  desert: { cutoff: 0.4, keep: 0.02 },
+};
+
+// NOTE: Whatever the biome, a few trees always grow on land the start can
+// walk to within this many hexes, so there is wood to be had.
+export const MIN_START_TREES = 6;
+const START_TREE_REACH = 4;
+
+// NOTE: a number from 0 to 1 that is always the same for the same text
+function hashUnit(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  }
+  h = Math.imul(h ^ (h >>> 16), 0x85EBCA6B);
+  h = Math.imul(h ^ (h >>> 13), 0xC2B2AE35);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+// NOTE: the land hexes the start can walk to, not through other houses
+function reachableFrom(start, landscape, settlements, reach) {
+  const reached = new Set([start.toString()]);
+  let frontier = [start];
+  for (let d = 0; d < reach; d++) {
+    frontier = frontier.flatMap(hex => Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES))
+      .filter(hex => {
+        const key = hex.toString();
+        if (reached.has(key) || !landscape[key] || !walkable[landscape[key].terrain] || settlements[key]) {
+          return false;
+        }
+        reached.add(key);
+        return true;
+      });
+  }
+  return reached;
+}
+
+// NOTE: biomeAt(hex) gives the biome a hex's trees grow as. Given a start,
+// the most wooded spots it can reach are planted until it has a few trees.
+export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start }) {
   const result = [];
   const simplex = new SimplexNoise(seed);
   let generator = new MersenneTwister(seed);
+  const spots = [];
 
   for (let sx = 0; sx < world_x / GRID_STEP; sx++) {
     const x = sx * GRID_STEP;
@@ -170,16 +225,41 @@ function generateTrees(seed, landscape, settlements, world_x, world_y) {
 
       const hex = Hex().fromPoint(x, y);
       if (hex && landscape[hex] && landscape[hex].terrain == "grassland" && !settlements[hex]) {
-        if (Math.min(simplex.noise2D(x * 0.001, y * 0.001), 0.6) +
+        const woods = Math.min(simplex.noise2D(x * 0.001, y * 0.001), 0.6) +
           (simplex.noise2D(x * 0.01, y * 0.01) * 0.3) +
-          (simplex.noise2D(x * 0.02, y * 0.02) * 0.0) > 0.6) {
+          (simplex.noise2D(x * 0.02, y * 0.02) * 0.0);
+        const { cutoff, keep } = TREE_DENSITY[biomeAt(hex)];
+        const grows = woods > cutoff && (keep >= 1 || hashUnit(seed + ":" + sx + "," + sy) < keep);
+        if (grows) {
           result.push({
             x: x + generator.random_int() % (GRID_STEP * 0.5) - GRID_STEP * 0.5,
             y: y + generator.random_int() % (GRID_STEP * 0.5) - GRID_STEP * 0.5
           });
+        } else {
+          spots.push({ x, y, hex, woods });
         }
       }
     }
+  }
+
+  if (start) {
+    const reached = reachableFrom(start, landscape, settlements, START_TREE_REACH);
+    const near = result.filter(t => reached.has(Hex().fromPoint(t).toString())).length;
+    // NOTE: jittered like the rest, but kept in the spot's own hex, and
+    // not on the start's own ring, which is kept clear for fields
+    spots
+      .map(spot => ({
+        ...spot,
+        tree: {
+          x: spot.x - Math.floor(hashUnit(seed + ":x:" + spot.x + "," + spot.y) * GRID_STEP * 0.5) - 1,
+          y: spot.y - Math.floor(hashUnit(seed + ":y:" + spot.x + "," + spot.y) * GRID_STEP * 0.5) - 1
+        }
+      }))
+      .filter(spot => reached.has(spot.hex.toString()) && start.distance(spot.hex) >= 2 &&
+        Hex().fromPoint(spot.tree).toString() == spot.hex.toString())
+      .sort((a, b) => b.woods - a.woods || a.x - b.x || a.y - b.y)
+      .slice(0, Math.max(0, MIN_START_TREES - near))
+      .forEach(spot => result.push(spot.tree));
   }
   return result;
 }
@@ -295,7 +375,22 @@ export async function generateMap(state, seed, progressUpdate) {
   await generateEconomicValue(grid, landscape, progressUpdate);
   const start = await findPlayerStart(grid, landscape, progressUpdate);
   const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
-  const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight());
+
+  // NOTE: Every tile takes its world hex's temperature, but high ground is
+  // a step colder. How high a tile is comes from the same height field the
+  // renderer draws, now that the houses have settled the terrain. A tile's
+  // biome (so high ground's is colder) decides how thickly trees grow on it.
+  const home = homeOf(state.world);
+  const ground = createHeightField({ seed, terrainAt: key => landscape[key] && landscape[key].terrain });
+  for (const key in landscape) {
+    const tile = landscape[key];
+    tile.temperature = tileTemperature(home.temperature,
+      tile.terrain == "mountain" || ground.hex(tile).centre >= HIGH_GROUND);
+  }
+  const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
+    biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
+    start
+  });
   const generator = new MersenneTwister(seed);
 
   const houses = Object.values(settlements).map(s => {
@@ -308,18 +403,10 @@ export async function generateMap(state, seed, progressUpdate) {
     };
   });
 
-  // NOTE: Every tile takes its world hex's temperature, but high ground is
-  // a step colder. How high a tile is comes from the same height field the
-  // renderer draws, now that the houses have settled the terrain.
-  const home = homeOf(state.world);
-  const ground = createHeightField({ seed, terrainAt: key => landscape[key] && landscape[key].terrain });
-  const temperatureOf = tile => tileTemperature(home.temperature,
-    tile.terrain == "mountain" || ground.hex(tile).centre >= HIGH_GROUND);
-
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
-    mappable: { terrain: tile.terrain, temperature: temperatureOf(tile) },
+    mappable: { terrain: tile.terrain, temperature: tile.temperature },
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },

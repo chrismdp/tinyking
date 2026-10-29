@@ -79,3 +79,26 @@ it("marks the eldest living child as the heir even when they live in another hou
   expect(after).toMatch(/aria-label="Select Alice Miller[^\"]*◇ Heir/);
   expect(state.ecs.kinship[parent].children).toEqual([person, sibling]);
 });
+
+it("distinguishes a sibling's spouse from an unrelated known companion", () => {
+  const { state, player, person, parent, sibling } = peopleWorld();
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  state.ecs.relationships[player].known[sibling] = { ring: "public", goodwill: 0 };
+  state.ecs.kinship[parent].children = [person];
+  state.ecs.kinship[sibling].parents = [];
+  let html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toMatch(/Alice Miller<\/button><span class="kin">Known to you/);
+  state.ecs.kinship[parent].children = [person, player];
+  state.ecs.kinship[player].parents = [parent];
+  state.ecs.kinship[player].spouse = sibling;
+  state.ecs.kinship[sibling].spouse = player;
+  html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toMatch(/Alice Miller<\/button><span class="kin">Sister-in-law/);
+});
+
+it("marks the known householder as in the family-tree mock-up", () => {
+  const { state, player, person } = peopleWorld();
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  const html = render(state, <FamilyTree entityId={person}/>);
+  expect(html).toMatch(/aria-label="Select Edith Miller[^\"]*Householder/);
+});

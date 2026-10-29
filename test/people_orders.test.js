@@ -50,6 +50,20 @@ it("rechecks trust on arrival for ask about, and reports the refusal while advan
   expect(state.knowledge?.[player]?.feelings[person]).toBeUndefined();
 });
 
+it("learns gossip and family names only after completing a queued visit", () => {
+  const { state, player, person, parent, sibling, step } = peopleWorld();
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16, base: 16 };
+  enqueueTask(state, { key: "ask_about" }, person, { aboutId: sibling });
+  expect(state.knowledge).toBeUndefined();
+  step(0.05);
+  expect(state.knowledge).toBeUndefined();
+  step(2);
+  expect(state.ecs.manager[player].jobs).toEqual([]);
+  expect(state.knowledge[player].feelings[person][sibling]).toBe("social");
+  expect(state.knowledge[player].people[parent]).toBeDefined();
+  expect(state.ecs.relationships[player].known[parent]).toBeUndefined();
+});
+
 it("feeds the player automatically, displays an interruption and resumes partially finished queued work", () => {
   const { state, player, tiles, step } = peopleWorld();
   const task = enqueueTask(state, { key: "create_field" }, tiles[0]);
@@ -113,4 +127,21 @@ it("keeps a gift in hand through a meal interruption and resumes its delivery", 
   expect(task.progress).toBe(1);
   expect(state.ecs.controllable[item].controllerId).toBe(person);
   expect(state.ecs.personable[player].hunger).toBeLessThan(0.5);
+});
+
+it("delivers an already held gift when its old ground position is unreachable", () => {
+  const { state, player, person, tiles, step } = peopleWorld();
+  const [item] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[0]] }, good: { type: "wood", amount: 1 }, haulable: {}, controllable: { controllerId: player } }]);
+  require("game/holder").give(state.ecs, item, player);
+  state.ecs.planner[player].world.holding.wood = true;
+  state.ecs.spatial[player] = { ...state.ecs.spatial[tiles[5]] };
+  for (const side of Object.keys(state.ecs.walkable[tiles[0]].neighbours)) {
+    require("game/pathfinding").removeBidirectionalLink(state.ecs, tiles[0], +side);
+  }
+  const task = enqueueTask(state, { key: "give_gift" }, person, { gift: { sourceId: item, type: "wood" } });
+  step(2);
+  expect(task.progress).toBe(1);
+  expect(state.ecs.controllable[item].controllerId).toBe(person);
+  expect(state.ecs.relationships[player].known[person]).toBeDefined();
+  expect(state.ecs.relationships[person].known[player]).toBeDefined();
 });

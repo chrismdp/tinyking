@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
-import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, trusts, patienceLeft, giftOptions, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
+import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, giftOptions, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
 import { topController } from "game/playable";
 
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
@@ -35,7 +35,9 @@ function relation(state, personId, otherId) {
   if (kin.parents.includes(otherId)) return male === undefined ? "Parent" : male ? "Father" : "Mother";
   if (kin.children.includes(otherId)) return male === undefined ? "Child" : male ? "Son" : "Daughter";
   if (kin.parents.some(id => state.ecs.kinship[otherId]?.parents.includes(id))) return male === undefined ? "Sibling" : male ? "Brother" : "Sister";
-  return "Family";
+  if (siblingsOf(state, personId).some(id => state.ecs.kinship[id].spouse == otherId) ||
+    (kin.spouse && siblingsOf(state, kin.spouse).includes(otherId))) return male === undefined ? "Sibling-in-law" : male ? "Brother-in-law" : "Sister-in-law";
+  return "Known to you";
 }
 
 function household(state, houseId) {
@@ -204,7 +206,9 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
         const dead = person?.dead, heir = person && heirOf(state, node.id);
         const label = node.unknown ? "?" : (dead ? "† " : "") + displayName(state, node.id);
         const meta = node.unknown ? "Not yet known" : dead ? "Died aged " + node.age : node.age + " · " + (node.age >= 18 && !node.spouse ? "Unmarried adult" : node.age < 18 ? "Child" : "Living");
-        const tag = heir ? "◇ Heir · " + heir : node.id == entityId ? "Selected person" : "";
+        const houseId = person && state.ecs.household[node.id]?.houseId;
+        const householder = !dead && houseId && state.ecs.controllable[houseId]?.controllerId == node.id;
+        const tag = heir ? "◇ Heir · " + heir : node.id == entityId ? "Selected person" : householder ? "Householder" : "";
         return <g key={node.id} className={"node" + (node.unknown ? " unknown" : "") + (dead ? " dead" : "") + (node.id == entityId ? " selected" : "")}
           transform={`translate(${x} ${y})`} role={node.unknown ? "img" : "button"} tabIndex={node.unknown ? undefined : 0}
           aria-label={node.unknown ? "Unknown relative" : "Select " + label + ", " + meta + (tag ? ", " + tag : "")}

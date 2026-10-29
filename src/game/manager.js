@@ -118,7 +118,7 @@ function waitingReason(state, actorId, job) {
     const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
       giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);
     if (!gift) return "Gift no longer available";
-    if (!job.giftItem && !canReachTask(state, actorId, job.gift.sourceId)) return "No path to gift";
+    if (!job.giftItem && ecs.haulable?.[job.gift.sourceId]?.heldBy != actorId && !canReachTask(state, actorId, job.gift.sourceId)) return "No path to gift";
   }
   if (job.job.key == "forage" && !ecs.forageable?.[target]) return "Target gone";
   if (job.job.key == "build_shelter" && !ecs.construction?.[target]) return "Site gone";

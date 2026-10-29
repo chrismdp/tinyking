@@ -1,4 +1,6 @@
 import { phrasesFromObjectTree } from "game/i18n";
+import messages from "../src/data/messages.json";
+import { TALK_JOBS } from "game/player";
 
 describe("phrasesFromObjectTree", () => {
   it("allows null", () => {
@@ -35,4 +37,11 @@ describe("phrasesFromObjectTree", () => {
       value: 1
     }]);
   });
+});
+
+it.each(TALK_JOBS)("has a readable rendered activity label for %s", key => {
+  const phrases = phrasesFromObjectTree(messages);
+  const phrase = phrases.find(p => p.phrase == "tasks." + key);
+  expect(phrase).toBeDefined();
+  expect(phrase.value).toMatch(/^[A-Z][a-z ]+$/);
 });

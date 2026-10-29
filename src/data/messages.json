@@ -119,6 +119,9 @@
     "build_shelter": "Build shelter"
   },
   "tasks": {
+    "chat": "Chatting",
+    "ask_about": "Sharing family news",
+    "give_gift": "Giving a gift",
     "create_stockpile": "Clearing space",
     "cut_tree_down": "Felling trees",
     "eating": "Eating",

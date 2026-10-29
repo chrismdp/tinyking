@@ -14,7 +14,7 @@ export function peopleWorld() {
     holder: { held: [], capacity: 20 }, controllable: { controllerId: player },
     nameable: { male: false, nickname: age == 30 ? "Agnes Miller" : age == 60 ? "Edith Miller" : "Alice Miller" }
   })));
-  // Villagers own their households; they are never recruited by interactions.
+  // Villagers own their households.
   for (const id of [person, parent, sibling]) state.ecs.controllable[id].controllerId = id;
   state.ecs.personable[player] = { age: 24, hunger: 0, tiredness: 0 };
   state.ecs.nameable[player] = { nickname: "Will Ashdown" };

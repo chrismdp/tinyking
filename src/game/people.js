@@ -1,3 +1,5 @@
+import { topController } from "game/playable";
+
 // Personality is separate from traits, which holds temporary physical states.
 export const TRAIT_PAIRS = [
   ["hard-working", "lazy"], ["generous", "greedy"], ["proud", "humble"],
@@ -184,7 +186,8 @@ export function knownFamilyTree(state, viewerId, personId) {
   const trust = state.ecs.relationships[personId].known[viewerId];
   const trusted = viewerId == personId || (trust && RINGS.indexOf(trust.ring) >= 1);
   const known = state.ecs.relationships[viewerId].known;
-  const visible = id => trusted || id == personId || id == viewerId || !!known[id];
+  const learned = state.knowledge?.[viewerId]?.people || {};
+  const visible = id => trusted || id == personId || id == viewerId || !!known[id] || !!learned[id];
   let nextUnknown = 0;
   const aliases = Object.fromEntries([...selected].map(id => [id, visible(id) ? id : "unknown-" + (++nextUnknown)]));
   const nodes = {};
@@ -200,4 +203,107 @@ export function knownFamilyTree(state, viewerId, personId) {
     };
   }
   return { rootId: personId, nodes };
+}
+
+export const CHAT_GOODWILL = 2;
+export const DAILY_PATIENCE = { public: 2, social: 4, personal: 6, intimate: 8 };
+export const TALK_TIRED = "They've had enough of talking for today";
+export const SOCIAL_REQUIRED = "They need to trust you before sharing gossip";
+export const FOOD_TYPES = ["forage", "grain", "gruel"];
+const GIFT_VALUES = { forage: 2, grain: 3, gruel: 5, wood: 3 };
+const GIFT_TRAITS = { forage: "generous", grain: "hard-working", gruel: "cheerful", wood: "hard-working" };
+
+export function trusts(state, personId, viewerId) {
+  return RINGS.indexOf(state.ecs.relationships[personId].known[viewerId]?.ring) >= 1;
+}
+
+function knowledgeFor(state, viewerId) {
+  state.knowledge ||= {};
+  return state.knowledge[viewerId] ||= { people: {}, feelings: {} };
+}
+
+function learnPerson(state, viewerId, id) {
+  const knowledge = knowledgeFor(state, viewerId);
+  return knowledge.people[id] ||= { traits: [] };
+}
+
+// Looking at a person is not meeting them. Only a real interaction introduces you.
+export function beginInteraction(state, actorId, personId) {
+  meet(state, actorId, personId);
+  meet(state, personId, actorId);
+  const learned = learnPerson(state, actorId, personId);
+  const trait = state.ecs.personality[personId].traits.find(t => !learned.traits.includes(t));
+  if (trait) learned.traits.push(trait);
+  if (trusts(state, personId, actorId)) {
+    for (const node of Object.values(knownFamilyTree(state, actorId, personId).nodes)) {
+      if (!node.unknown) learnPerson(state, actorId, node.id);
+    }
+  }
+}
+
+export function patienceLeft(state, actorId, personId) {
+  const record = state.talking?.[personId]?.[actorId];
+  const used = record?.day == Math.floor(state.days) ? record.used : 0;
+  const ring = state.ecs.relationships[personId].known[actorId]?.ring || "public";
+  return Math.max(0, DAILY_PATIENCE[ring] - used);
+}
+
+function spendPatience(state, actorId, personId) {
+  if (!patienceLeft(state, actorId, personId)) return false;
+  state.talking ||= {};
+  state.talking[personId] ||= {};
+  const records = state.talking[personId];
+  const day = Math.floor(state.days);
+  if (records[actorId]?.day != day) records[actorId] = { day, used: 0 };
+  records[actorId].used++;
+  return true;
+}
+
+export function chat(state, actorId, personId) {
+  beginInteraction(state, actorId, personId);
+  if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
+  addGoodwill(state, actorId, personId, CHAT_GOODWILL);
+  return { ok: true };
+}
+
+export function askAbout(state, actorId, personId, aboutId) {
+  if (!trusts(state, personId, actorId)) return { ok: false, message: SOCIAL_REQUIRED };
+  const bond = state.ecs.relationships[personId].known[aboutId];
+  if (!bond) return { ok: false, message: "They don't know that person" };
+  beginInteraction(state, actorId, personId);
+  if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
+  const knowledge = knowledgeFor(state, actorId);
+  (knowledge.feelings[personId] ||= {})[aboutId] = bond.ring;
+  for (const node of Object.values(knownFamilyTree(state, personId, aboutId).nodes)) {
+    if (!node.unknown) learnPerson(state, actorId, node.id);
+  }
+  return { ok: true, ring: bond.ring };
+}
+
+export function giftGoodwill(state, actorId, personId, item) {
+  const tastes = state.ecs.personality[personId];
+  const tags = [item.type, GIFT_TRAITS[item.type]];
+  const taste = tags.some(t => tastes.likes.includes(t)) ? 1.5 : tags.some(t => tastes.dislikes.includes(t)) ? 0.5 : 1;
+  const need = FOOD_TYPES.includes(item.type) && state.ecs.personable[personId].hunger > 0.9 ? 2 : 1;
+  const feeling = { hate: 0.05, like: 1, love: 1.25 }[disposition(state, personId, actorId)];
+  return (item.value ?? GIFT_VALUES[item.type] ?? 4) * taste * need * feeling;
+}
+
+// One option is one portion/item. Sources remain real until collected by the task.
+export function giftOptions(state, actorId) {
+  const ecs = state.ecs;
+  const owned = id => ecs.controllable[id] && topController(ecs, id) == topController(ecs, actorId);
+  const options = [];
+  for (const sourceId of Object.keys(ecs.haulable || {})) {
+    const item = ecs.good[sourceId], holder = ecs.haulable[sourceId].heldBy;
+    if (!item || item.amount <= 0 || !owned(sourceId) || (holder && holder != actorId && !ecs.stockpile?.[holder])) continue;
+    options.push({ sourceId, type: item.type, amount: item.amount, value: item.value });
+  }
+  for (const sourceId of Object.keys(ecs.container || {})) {
+    if (!owned(sourceId)) continue;
+    for (const [type, amount] of Object.entries(ecs.container[sourceId].amounts)) {
+      if (amount > 0) options.push({ sourceId, type, amount });
+    }
+  }
+  return options;
 }

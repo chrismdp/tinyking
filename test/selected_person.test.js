@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { SelectedPerson } from "../src/components/selected_person";
 import { GameState } from "components/contexts";
 
+jest.mock("game/name", () => ({ name: n => n.nickname }));
+
 jest.mock("components/contexts", () => ({ GameState: require("react").createContext({}) }), { virtual: true });
 jest.mock("components/name", () => ({ Name: () => "Villager" }), { virtual: true });
 jest.mock("components/trait_list", () => ({ TraitList: () => null }), { virtual: true });

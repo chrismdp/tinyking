@@ -314,7 +314,7 @@ it("cancels a waiting build without interrupting a later running task", () => {
   expect(state.ecs.construction[site].delivered).toBe(0);
 });
 
-it.each(["move_to_here", "cut_tree_down", "forage", "recruit", "create_field", "create_stockpile", "build_shelter"])("keeps a missing %s target with a reason and advances the queue", key => {
+it.each(["move_to_here", "cut_tree_down", "forage", "chat", "ask_about", "give_gift", "create_field", "create_stockpile", "build_shelter"])("keeps a missing %s target with a reason and advances the queue", key => {
   const { state, player, tiles, step } = arrival();
   const gone = enqueueTask(state, { key }, "gone");
   const next = enqueueTask(state, { key: "move_to_here" }, tiles[2]);

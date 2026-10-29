@@ -3,6 +3,7 @@ import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource } from "game/construction";
 import { forageAvailable } from "game/ecology";
 import { topController } from "game/playable";
+import { giftOptions } from "game/people";
 
 export const firstFreeJob = (jobs, key) => jobs.find(j => !j.assignedId && !j.waiting && j.job.key == key);
 
@@ -112,7 +113,13 @@ function waitingReason(state, actorId, job) {
   }
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (job.job.key == "recruit" && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (job.job.key == "give_gift") {
+    const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
+      giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);
+    if (!gift) return "Gift no longer available";
+    if (!job.giftItem && !canReachTask(state, actorId, job.gift.sourceId)) return "No path to gift";
+  }
   if (job.job.key == "forage" && !ecs.forageable?.[target]) return "Target gone";
   if (job.job.key == "build_shelter" && !ecs.construction?.[target]) return "Site gone";
   if (!canReachTask(state, actorId, target)) return "No path there";

@@ -8,7 +8,10 @@ export function forage(world) {
 
 export function chop_tree() {}
 export function wait_for() {}
-export function set_controller_to_me() {}
+export function collect_gift(world, expected, source, type) { world.holding[type] = true; }
+export function talk(world, expected, personId, key, aboutId, type) {
+  if (key == "give_gift") world.holding[type] = false;
+}
 
 export function claim_farmable(world, expected, farmableId) {
   world.claimedFarmable = farmableId;

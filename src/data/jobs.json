@@ -36,21 +36,6 @@
   },
   {
     "conditions": {
-      "target.personable": "exists",
-      "target.controllable.controllerId": {
-        "not": {
-          "is": "$actor.controllable.controllerId"
-        }
-      }
-    },
-    "event": {
-      "jobs": [
-        { "key": "recruit" }
-      ]
-    }
-  },
-  {
-    "conditions": {
       "target.forageable.amount": { "greater": 0 },
       "not": { "job_targets" : { "includes": "$target.id" } }
     },

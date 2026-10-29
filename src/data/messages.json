@@ -12,7 +12,6 @@
   "personable.explore.radius": "reveals %{smart_count} tile in each direction |||| reveals %{smart_count} tiles in each direction",
   "personable.die.exhaustion": "dies of exhaustion!",
   "personable.die.hunger": "dies of hunger!",
-  "personable.recruited": "joins your kingdom",
   "spatial.move": "moves here",
   "attributes.lose.moves": "uses %{smart_count} movement point |||| uses %{smart_count} movement points",
 
@@ -101,10 +100,6 @@
       "name": "Explore",
       "summary": "Explore the surrounding area."
     },
-    "recruit": {
-      "name": "Recruit",
-      "summary": "Encourage this household to join your kingdom."
-    },
     "sleep": {
       "name": "Sleep indoors",
       "summary": "Get some rest in a proper bed."
@@ -119,7 +114,6 @@
     "move_to_here": "Move here",
     "create_stockpile": "Create Stockpile",
     "create_field": "Create Field",
-    "recruit": "Recruit",
     "cancel_job": "Cancel",
     "forage": "Forage",
     "build_shelter": "Build shelter"
@@ -128,7 +122,6 @@
     "create_stockpile": "Clearing space",
     "cut_tree_down": "Felling trees",
     "eating": "Eating",
-    "recruiting": "Recruiting",
     "waiting_for": "Waiting",
     "sleeping": "Sleeping",
     "plough_field": "Ploughing",

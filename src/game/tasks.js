@@ -13,6 +13,8 @@ import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
 import { workOnShelter, collectShelterLog, deliverShelterLog } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
+import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill } from "game/people";
+import { TALK_MINUTES } from "game/player";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
@@ -39,6 +41,7 @@ function closestNavPointTo(state, point) {
 
 export function walk_to(state, actorId, world, dt, firstRun, target) {
   const s = state.ecs.spatial[actorId];
+  if (state.ecs.haulable?.[target]?.heldBy == actorId) return Task.FINISH;
 
   world.target = world.places[target] || target;
 
@@ -682,18 +685,56 @@ export function release_attention(state, actorId, world, dt, firstRun, targetId)
   target.world.capturedBy = null;
 }
 
-export function set_controller_to_me(state, actorId, world, dt, firstRun, targetId) {
-  const target = state.ecs.controllable[targetId];
-  if (!target) {
-    throw "Cannot set_controller_to_me for non-controllable " + targetId;
+export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type) {
+  const ecs = state.ecs;
+  const available = giftOptions(state, actorId).find(g => g.sourceId == sourceId && g.type == type);
+  const held = ecs.haulable?.[sourceId]?.heldBy == actorId;
+  if (!available || (!held && math.squaredDistance(ecs.spatial[actorId], ecs.spatial[sourceId]) > 100)) return Task.ABORT;
+  const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+  if ((!held || ecs.good[sourceId].amount > 1) && ecs.holder[actorId].held.length >= ecs.holder[actorId].capacity) return Task.ABORT;
+  let itemId = sourceId;
+  if (ecs.container?.[sourceId] || ecs.good[sourceId].amount > 1) {
+    if (ecs.container?.[sourceId]) ecs.container[sourceId].amounts[type]--;
+    else ecs.good[sourceId].amount--;
+    [itemId] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { type, amount: 1, value: available.value },
+      haulable: {}, controllable: { controllerId: actorId } }]);
   }
-  target.controllerId = topController(state.ecs, actorId);
+  if (!held || itemId != sourceId) give(ecs, itemId, actorId);
+  removeFromSpace(state, itemId);
+  order.giftItem = itemId;
+  state.redraws.push(itemId, actorId, sourceId);
+  return Task.FINISH;
+}
 
-  for (const id in state.ecs.controllable) {
-    if (topController(state.ecs, id) == actorId) {
-      state.redraws.push(id);
+export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId) {
+  const ecs = state.ecs;
+  if (!ecs.personable[personId] || ecs.personable[personId].dead) return Task.ABORT;
+  // Attention asks the other planner to wait. If they were already walking,
+  // finish approaching their current position before spending conversation time.
+  if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > 100) return Task.ABORT;
+  if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
+  let result;
+  if (key == "chat") result = chat(state, actorId, personId);
+  if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
+  if (key == "give_gift") {
+    const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+    const itemId = order.giftItem, item = ecs.good[itemId];
+    if (!item || ecs.haulable[itemId]?.heldBy != actorId) return Task.ABORT;
+    beginInteraction(state, actorId, personId);
+    const goodwill = giftGoodwill(state, actorId, personId, item);
+    take(ecs, itemId);
+    ecs.controllable[itemId].controllerId = personId;
+    if (give(ecs, itemId, personId)) ecs.planner[personId].world.holding[item.type] = true;
+    else {
+      ecs.spatial[itemId] = { ...ecs.spatial[personId], id: itemId };
+      state.space[Hex().fromPoint(ecs.spatial[itemId])].push(itemId);
     }
+    addGoodwill(state, actorId, personId, goodwill);
+    state.redraws.push(personId, actorId, itemId);
+    result = { ok: true };
   }
+  state.ui.talkResult = { personId, message: result.message || (key == "ask_about" ? "They shared family news and their feelings." : key == "chat" ? "You spent some time together." : "They accepted your gift.") };
+  return Task.FINISH;
 }
 
 export const work_shelter = workOnShelter;

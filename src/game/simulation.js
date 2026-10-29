@@ -66,7 +66,7 @@ function updatePlanners(state, frameMod) {
       const queue = jobQueueFor(state.ecs, planner.id);
       const jobs = state.ecs.manager[state.ui.playerId]?.ordered ?
         (id == state.ui.playerId ? readyPlayerTasks(state) : (topController(state.ecs, id) == state.ui.playerId ? [] : queue)) : queue;
-      const [ plan ] = htn.solve(planner.world, jobs, [ [ "person" ] ]);
+      const [ plan ] = htn.solve(planner.world, jobs, [ [ planner.world.ordered ? "player" : "person" ] ]);
       planner.plan = plan;
       if (topController(state.ecs, planner.id) == state.ui.playerId) {
         // console.log("PLANNER:" , planner.id, JSON.stringify(planner.plan));

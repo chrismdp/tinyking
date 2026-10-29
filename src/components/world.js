@@ -88,9 +88,17 @@ export function World() {
 
   const selectEntity = React.useCallback((id, touch) => {
     if (!introActive(state) && !state.ui.show.main_menu) {
+      if (state.ecs.personable[id] && id != state.ui.playerId) {
+        setPopupInfo({});
+        state.ui.show.selected_person = id;
+        state.ui.selected = id;
+        renderUI();
+        return;
+      }
+      state.ui.show.selected_person = null;
       setPopupInfo(s => (s.id != id) ? { id, touch } : {});
     }
-  }, [state, setPopupInfo]);
+  }, [state, setPopupInfo, renderUI]);
 
   React.useEffect(() => {
     if (popupInfo.id) {
@@ -112,7 +120,7 @@ export function World() {
     }
     // NOTE: the renderer highlights whatever the popup is showing
     if (state.ui) {
-      state.ui.selected = popupInfo.id;
+      state.ui.selected = popupInfo.id || state.ui.show.selected_person;
     }
   }, [state, popupInfo]);
 
@@ -136,6 +144,7 @@ export function World() {
       },
       change_visibility: action => {
         state.ui.show = { ...state.ui.show, ...action };
+        if ("selected_person" in action) state.ui.selected = action.selected_person;
         renderUI();
       },
       set_speed: (speedClass) => {
@@ -183,6 +192,12 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
+      talk_to: (personId, key, metadata) => {
+        if (introActive(state)) return;
+        standAfterIntro(state);
+        enqueueTask(state, { key }, personId, metadata);
+        renderUI();
+      },
       reorder_task: (id, index) => { if (introActive(state)) return; reorderTask(state, id, index); renderUI(); },
       cancel_task: id => { if (introActive(state)) return; cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
@@ -196,6 +211,10 @@ export function World() {
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
+        state.knowledge = {};
+        state.talking = {};
+        state.ui.talkResult = null;
+        state.ui.show.selected_person = null;
         state.intro = null;
         if (state.ticker) {
           state.ticker.destroy();

@@ -52,3 +52,12 @@ it("dims waiting work and highlights the assigned chop task instead of the first
   expect(html).toContain("⌛");
   expect(html).toContain("Cancel Build the lean-to");
 });
+
+it("does not claim a hungry player stopped to eat while they are sleeping", () => {
+  const state = { ui: { playerId: "p", actions: {} }, ecs: {
+    manager: { p: { jobs: [] } }, personable: { p: { hunger: 1.2 } }, nameable: { p: { nickname: "Will" } },
+    spatial: {}, planner: { p: { world: { feeling: { hungry: true }, label: "sleeping" }, task: ["sleep"], plan: [] } }
+  } };
+  const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+  expect(html).not.toContain("Stopped to eat");
+});

@@ -111,14 +111,6 @@ export const check_jobs = () => [
     ]
   ],
   [
-    (_, jobs) => firstFreeJob(jobs, "recruit"),
-    entry => [
-      ["take_job", entry.job.key],
-      ["recruit", entry.targetId],
-      ["complete_job", entry.job.key]
-    ]
-  ],
-  [
     (_, jobs) => firstFreeJob(jobs, "create_field"),
     entry => [
       ["take_job", entry.job.key],
@@ -184,20 +176,6 @@ export const farm = () => [
     always,
     () => [ [ "plough_any_field" ] ]
   ],
-];
-
-export const recruit = (targetId) => [
-  [
-    world => 0.5 + hashUnit(world.actorId + ":recruit:" + targetId + ":" + world.days),
-    delay => [
-      ["set_label", "recruiting"],
-      ["get_attention", targetId],
-      ["walk_to", targetId],
-      ["wait_for", time.HOUR * delay],
-      ["set_controller_to_me", targetId],
-      ["release_attention", targetId]
-    ]
-  ]
 ];
 
 export const store_held = () => [

@@ -2,6 +2,7 @@ import produce, { setAutoFreeze } from "immer";
 import * as tasks from "game/tasks";
 import * as primitive from "game/primitive";
 import * as compound from "game/compound";
+import * as player from "game/player";
 import { deferPlayerTask } from "game/manager";
 
 // NOTE: We do not want our source world rep to be frozen - we want to be able
@@ -37,8 +38,8 @@ export function solve(world, jobs, tasks, plan = []) {
       if (debug) { console.log("NO SOLN FOUND FOR REST OF TASKS", rest); }
     }
     if (debug) { console.log("PRECOND FAILED FOR ", name); }
-  } else if (compound[name]) {
-    const methods = compound[name](...args);
+  } else if (player[name] || compound[name]) {
+    const methods = (player[name] || compound[name])(...args);
     for (const method of methods) {
       let conditions = method[0](world, jobs);
       if (!Array.isArray(conditions)) {

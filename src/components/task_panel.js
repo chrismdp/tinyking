@@ -9,7 +9,8 @@ import { woodTask } from "game/wood_task";
 
 export const TASK_TITLES = {
   cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
-  recruit: "Recruit", create_field: "Create Field", create_stockpile: "Create Stockpile"
+  chat: "Chat", ask_about: "Ask about someone", give_gift: "Give a gift",
+  create_field: "Create Field", create_stockpile: "Create Stockpile"
 };
 
 function estimatedMinutes(ecs, playerId, job) {
@@ -19,7 +20,7 @@ function estimatedMinutes(ecs, playerId, job) {
   const site = ecs.construction?.[job.targetId];
   const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
-      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, recruit: 60 }[job.job.key] || 0) * (1 - (job.progress || 0));
+      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10 }[job.job.key] || 0) * (1 - (job.progress || 0));
   return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
 }
 
@@ -40,6 +41,8 @@ export function TaskPanel() {
   const planner = ecs.planner[id];
   const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const currentWood = current && woodTask(state, current, true);
+  const sleeping = planner.task?.[0] == "sleep" || planner.world.label == "sleeping" || planner.plan?.some(task => task[0] == "sleep");
+  const eating = !planner.world.currentJob && !sleeping && (planner.world.feeling?.hungry || ["eat", "forage"].includes(planner.task?.[0]));
   const stage = Object.values(ecs.shelter || {}).find(s => s.stage)?.stage;
   const hungry = person.hunger > 0.9;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
@@ -55,6 +58,7 @@ export function TaskPanel() {
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
         {!Object.values(ecs.container || {}).some(c => c.amounts.forage || c.amounts.grain || c.amounts.gruel) && <small>You have no food. Foraging is next.</small>}
       </div>}
+      {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
       <ol className="queue">{jobs.map((job, index) => {
         const construction = ecs.construction?.[job.targetId];
         const title = job.job.key == "build_shelter" ? "Build the " + (construction?.stage || "lean-to") : TASK_TITLES[job.job.key];
@@ -68,7 +72,9 @@ export function TaskPanel() {
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
           <span className={"grip" + (active ? " play" : "")} title="Drag to reorder">{job.waiting ? "⌛" : active ? "▶" : "⠿"}</span>
           <div className="task-content"><div className="task-title">{title}</div>
-            <small>{job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && ` · ${wood ? wood.phase : `~${minutes}m`}`}</small>
+            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? name(ecs.nameable[job.targetId]) : job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && ` · ${wood ? wood.phase : `~${minutes}m`}`}</small>
+            {job.gift && <small>{job.gift.type} · 1 item</small>}
+            {job.aboutId && <small>About {name(ecs.nameable[job.aboutId])}</small>}
             {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {job.expectedGoodwill}</span>}
             {job.waiting && <small className="task-waiting">{job.detail || job.waiting}</small>}
             {active && <>{wood && !wood.detail.startsWith(wood.phase) && <small>{wood.phase}</small>}
@@ -86,6 +92,6 @@ export function TaskPanel() {
       <div className="queue-note">Drag ⠿ to reorder · × to cancel · You do each job.</div>
     </div>
     <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
-      <small className="compact-task">{status} · {current ? currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
+      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
   </aside>;
 }

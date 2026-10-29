@@ -4,6 +4,7 @@ import { GameState } from "components/contexts";
 
 import { Name } from "components/name";
 import { TraitList } from "components/trait_list";
+import { PersonPanel } from "./person_panel";
 
 import { hungerStage } from "game/hunger";
 import { fullEntity } from "game/entities";
@@ -17,6 +18,7 @@ const TASK_LABELS = {
 export function SelectedPerson({ entityId }) {
   const state = React.useContext(GameState);
   if (entityId == state.ui?.playerId) return null;
+  if (state.ecs.personality?.[entityId]) return <PersonPanel key={entityId} entityId={entityId}/>;
   const entity = fullEntity(state.ecs, entityId);
 
   if (entityId) {

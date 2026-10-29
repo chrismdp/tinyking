@@ -262,3 +262,47 @@ it("initializes all visual weather and snow afresh when a map is regenerated", a
   expect(Object.values(state.snow).every(depth => depth == 0)).toBe(true);
   expect(state.snowRevision).toBe(0);
 });
+
+describe("villages", () => {
+  it("groups houses into named hamlets of 3–8, with space around the unchanged player start", async () => {
+    for (const seed of SEEDS) {
+      const state = await mapFor(seed);
+      expect(state.villages).toBeDefined();
+      const villages = Object.values(state.villages);
+      expect(villages.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(villages.map(v => v.name)).size).toBe(villages.length);
+      const houses = villages.flatMap(v => v.houses);
+      expect(new Set(houses).size).toBe(houses.length);
+      expect(houses.length + 1).toBe(Object.keys(state.ecs.building).length);
+      const start = Hex(state.map.playerStartTile);
+      for (const village of villages) {
+        expect(village.name.length).toBeGreaterThan(2);
+        expect(village.houses.length).toBeGreaterThanOrEqual(3);
+        expect(village.houses.length).toBeLessThanOrEqual(8);
+        for (const id of village.houses) {
+          const hex = Hex().fromPoint(state.ecs.spatial[id]);
+          expect(state.ecs.village[id].villageId).toBe(village.id);
+          expect(start.distance(hex)).toBeGreaterThanOrEqual(3);
+          expect(Hex(village.centre).distance(hex)).toBeLessThanOrEqual(3);
+          expect(village.houses.some(other => other != id &&
+            hex.distance(Hex().fromPoint(state.ecs.spatial[other])) <= 3)).toBe(true);
+        }
+      }
+      const player = Object.keys(state.ecs.playable)[0];
+      expect(state.ecs.village[player].villageId).toBeNull();
+      for (const id in state.ecs.personable) {
+        const home = state.ecs.household[id].houseId;
+        expect(state.ecs.village[id].villageId).toBe(state.ecs.village[home].villageId);
+      }
+    }
+  });
+});
+
+it("provides a bed for every member of the larger households", async () => {
+  const state = await mapFor(1234);
+  for (const id in state.ecs.building) {
+    const occupants = Object.values(state.ecs.household).filter(h => h.houseId == id).length;
+    const beds = state.ecs.building[id].rooms.reduce((n, room) => n + (state.ecs.sleepable[room]?.capacity || 0), 0);
+    expect(beds).toBeGreaterThanOrEqual(occupants);
+  }
+});

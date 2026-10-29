@@ -11,11 +11,11 @@ import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding"
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 import { updateWeather } from "game/weather";
+import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
 import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
 
-const SETTLEMENT_LIKELIHOOD = 50; // 30 - certain, 100 - sparse
 const MIN_START_SETTLEMENT_DISTANCE = 3;
 const STARTING_KNOWN_DISTANCE = 5;
 
@@ -38,67 +38,102 @@ export const HAIR = [
 export const BODY_MALE = 0x4E3F30;
 export const BODY_FEMALE = 0x3B6071;
 
-function generateFamily(size, spatial, front, generator, days) {
-  let result = [];
-  const grid = Grid.hexagon({ center: spatial, radius: 1 });
-  const sides = Array.from({length: 6}, (v, i) => (front + i) % 6);
-  const starts = grid.neighborsOf(spatial, sides);
-  const familySeed = generator.random_int();
-  for (let p = 0; p < size; p++) {
-    const { x, y } = starts[p].toPoint();
-    const male = generator.random_int() % 2 == 0;
-    result.push({
-      nameable: { type: "person", familySeed, male, seed: generator.random_int() },
-      spatial: { x, y },
-      traits: { values: {} },
-      attributes: {},
-      controllable: {},
-      holder: { held: [], capacity: 2 },
-      personable: {
-        type: "person",
-        size: p > 1 ? 12 : 20,
-        male: male,
-        hair: generator.random_int() % HAIR.length,
-        body: male ? BODY_MALE : BODY_FEMALE,
-        tiredness: 0.2 + generator.random_incl() * 0.4,
-        hunger: 0.4 + generator.random_incl() * 0.4
-      },
-      manager: { jobs: [] },
-      planner: {
-        world: {
-          no_place_for: {},
-          jobs: [],
-          places: {},
-          feeling: {},
-          holding: {},
-          days,
-        }
-      },
-    });
-  }
-  return result;
+function generatePerson({ spatial, male, age, familySeed, generator, days }) {
+  return {
+    nameable: { type: "person", familySeed, male, seed: generator.random_int() },
+    spatial,
+    kinship: { parents: [], spouse: null, children: [] },
+    personality: generatePersonality(generator),
+    traits: { values: {} },
+    attributes: {},
+    controllable: {},
+    holder: { held: [], capacity: 2 },
+    personable: {
+      type: "person",
+      age,
+      size: age < ADULT_AGE ? 12 : 20,
+      male,
+      hair: generator.random_int() % HAIR.length,
+      body: male ? BODY_MALE : BODY_FEMALE,
+      tiredness: 0.2 + generator.random_incl() * 0.4,
+      hunger: 0.4 + generator.random_incl() * 0.4
+    },
+    manager: { jobs: [] },
+    planner: { world: { no_place_for: {}, jobs: [], places: {}, feeling: {}, holding: {}, days } }
+  };
 }
 
 export function generateFamilies({ state, seed, playerStartTile }) {
-  let generator = new MersenneTwister(seed);
+  const generator = new MersenneTwister(seed);
+  const homes = {};
   for (const buildingId in state.ecs.building) {
-    let people = [];
-    let spatial = Hex().fromPoint(state.ecs.spatial[buildingId]);
-    if (spatial.x == playerStartTile.x && spatial.y == playerStartTile.y) {
-      const player = { ...generateFamily(1, spatial, state.ecs.building[buildingId].entrance, generator, state.days)[0],
-        playable: { known: [] },
-      };
-      people = [ player ];
-    } else {
-      const familySize = 1 + (generator.random_int() % 3);
-      people = generateFamily(familySize, spatial, state.ecs.building[buildingId].entrance, generator, state.days).map(p => ({ ...p }));
-    }
-    const ids = newEntities(state, people);
-    for (const id of ids) {
-      state.ecs.controllable[id].controllerId = ids[0];
-    }
-    state.ecs.controllable[buildingId].controllerId = ids[0];
+    const spatial = Hex().fromPoint(state.ecs.spatial[buildingId]);
+    const villageId = spatial.x == playerStartTile.x && spatial.y == playerStartTile.y ?
+      null : state.ecs.village[buildingId].villageId;
+    const home = { buildingId, spatial, villageId, people: [] };
+    (homes[villageId] ||= []).push(home);
   }
+
+  const inhabit = (home, age, male, familySeed, parents = []) => {
+    const entrance = state.ecs.building[home.buildingId].entrance;
+    const sides = Array.from({ length: 6 }, (v, i) => (entrance + i) % 6);
+    const starts = Grid.hexagon({ center: home.spatial, radius: 1 }).neighborsOf(home.spatial, sides);
+    const [id] = newEntities(state, [{
+      ...generatePerson({ spatial: starts[home.people.length].toPoint(), male, age,
+        familySeed, generator, days: state.days }),
+      village: { villageId: home.villageId },
+      household: { houseId: home.buildingId }
+    }]);
+    home.people.push(id);
+    state.ecs.kinship[id].parents = [...parents];
+    for (const parent of parents) state.ecs.kinship[parent].children.push(id);
+    state.ecs.controllable[id].controllerId = home.people[0];
+    state.ecs.controllable[home.buildingId].controllerId = home.people[0];
+    return id;
+  };
+  const marry = (a, b) => {
+    state.ecs.kinship[a].spouse = b;
+    state.ecs.kinship[b].spouse = a;
+  };
+
+  for (const villageId in homes) {
+    const houses = homes[villageId];
+    if (villageId == "null") {
+      for (const home of houses) {
+        const id = inhabit(home, 20 + generator.random_int() % 16, generator.random_int() % 2 == 0, generator.random_int());
+        state.ecs.playable ||= {};
+        state.ecs.playable[id] = { id, known: [] };
+      }
+      continue;
+    }
+    // Three living generations: elders, their adult children in neighbouring
+    // houses, and grandchildren. A few grown grandchildren live on their own.
+    const familySeed = generator.random_int();
+    const elders = [inhabit(houses[0], 66 + generator.random_int() % 7, true, familySeed)];
+    if (generator.random_int() % 3 != 0) {
+      elders.push(inhabit(houses[0], 64 + generator.random_int() % 7, false, familySeed));
+      marry(...elders);
+    }
+    let firstParents;
+    for (let h = 1; h < houses.length; h++) {
+      const home = houses[h];
+      const male = generator.random_int() % 2 == 0;
+      if (h > 2 && generator.random_int() % 4 == 0) {
+        inhabit(home, 18 + generator.random_int() % 5, male, familySeed, firstParents);
+        continue;
+      }
+      const head = inhabit(home, 40 + generator.random_int() % 5, male, familySeed, elders);
+      const spouse = inhabit(home, 40 + generator.random_int() % 5, !male, generator.random_int());
+      marry(head, spouse);
+      const parents = [head, spouse];
+      if (h == 1) firstParents = parents;
+      const children = 1 + generator.random_int() % 2;
+      for (let c = 0; c < children; c++) {
+        inhabit(home, 2 + generator.random_int() % 15, generator.random_int() % 2 == 0, familySeed, parents);
+      }
+    }
+  }
+  initializeRelationships(state, seed);
 }
 
 async function generateTerrain(grid, world, progressUpdate) {
@@ -278,28 +313,48 @@ function makeHouse(generator, settlements, grid, target, landscape) {
 }
 
 async function generateSettlements(seed, grid, landscape, start, progressUpdate) {
-  let settlements = {};
-  let generator = new MersenneTwister(seed);
-  for (let grid_index = 0; grid_index < grid.length; grid_index++) {
-    const target = grid[grid_index];
-    // NOTE: Keep house clearings inside the map and off the coast.
-    const inland = MAP_CENTRE.distance(target) < MAP_RADIUS - 1;
-    if (!settlements[target] && inland && landscape[target].terrain == "grassland" &&
-      Grid.hexagon({ center: target, radius: 1 }).every(h => !landscape[h].terrain.includes("water"))) {
-      const dieRoll = Math.max(3, SETTLEMENT_LIKELIHOOD - landscape[target].economic_value * 2);
-      if (generator.random_int() % dieRoll == 0) {
-        if (start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE) {
-          makeHouse(generator, settlements, grid, target, landscape);
-        }
-      }
+  const settlements = {};
+  const villages = {};
+  const generator = new MersenneTwister(seed);
+  // Keep clearings inland and leave the player's starting neighbourhood alone.
+  const candidates = grid.filter(target => MAP_CENTRE.distance(target) < MAP_RADIUS - 1 &&
+    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && landscape[target].terrain == "grassland" &&
+    Grid.hexagon({ center: target, radius: 1 }).every(h => landscape[h] && !landscape[h].terrain.includes("water")));
+  const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
+    .sort((a, b) => b.rank - a.rank).map(c => c.hex);
+  // The first hamlet is within visiting distance of the start, as before.
+  const near = [...ranked].sort((a, b) => start.distance(a) - start.distance(b));
+  const centres = [];
+  const targetCount = Math.max(1, Math.round(grid.length / 140));
+  const prefixes = ["Ash", "Bramble", "Cinder", "Elm", "Fern", "Hazel", "Oak", "Reed", "Thorn", "Willow", "Yew"];
+  const suffixes = ["brook", "combe", "dale", "field", "ford", "ham", "hurst", "stead", "wick", "wood"];
+  const nameOffset = generator.random_int() % prefixes.length;
+  for (const centre of [...near.slice(0, 1), ...ranked]) {
+    if (centres.length >= targetCount) break;
+    if (centres.some(other => centre.distance(other) < 7)) continue;
+    const sites = [centre, ...ranked.filter(h => h.toString() != centre.toString() && h.distance(centre) <= 3)];
+    const chosen = [];
+    const size = 3 + generator.random_int() % 6;
+    for (const site of sites) {
+      if (chosen.length >= size) break;
+      if (chosen.every(h => h.distance(site) >= 2) &&
+        Object.values(settlements).every(h => Hex(h).distance(site) >= 2)) chosen.push(site);
     }
-    if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
-      await progressUpdate("settlements");
+    if (chosen.length < 3) continue;
+    const id = "village-" + (centres.length + 1);
+    const name = prefixes[(nameOffset + centres.length) % prefixes.length] +
+      suffixes[generator.random_int() % suffixes.length] + (centres.length >= prefixes.length ? " " + (centres.length + 1) : "");
+    villages[id] = { id, name, centre: { x: centre.x, y: centre.y }, houses: [] };
+    centres.push(centre);
+    for (const hex of chosen) {
+      makeHouse(generator, settlements, grid, hex, landscape);
+      settlements[hex].villageId = id;
     }
+    await progressUpdate("settlements");
   }
-
-  makeHouse(generator, settlements, grid, start, landscape, generator);
-  return settlements;
+  makeHouse(generator, settlements, grid, start, landscape);
+  settlements[start].villageId = null;
+  return { settlements, villages };
 }
 
 function discoverStartingTiles(ecs, id, center) {
@@ -320,7 +375,8 @@ export async function generateMap(state, seed, progressUpdate) {
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
   const start = Hex(homeOf(state.world).start);
-  const settlements = await generateSettlements(seed, grid, landscape, start, progressUpdate);
+  const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, progressUpdate);
+  state.villages = villages;
 
   // NOTE: Every tile takes its world hex's temperature, but high ground is
   // a step colder. How high a tile is comes from the same height field the
@@ -345,7 +401,8 @@ export async function generateMap(state, seed, progressUpdate) {
       spatial: { x, y, immovable: true },
       nameable: { nickname: "Log cabin" },
       controllable: {},
-      building: { entrance: s.frontDoorSide, rooms: [] }
+      building: { entrance: s.frontDoorSide, rooms: [] },
+      village: { villageId: s.villageId }
     };
   });
 
@@ -385,6 +442,11 @@ export async function generateMap(state, seed, progressUpdate) {
     }
   }
 
+  for (const id in state.ecs.building) {
+    const villageId = state.ecs.village[id].villageId;
+    if (villageId) state.villages[villageId].houses.push(id);
+  }
+
   const playerStartTile = { x: start.x, y: start.y };
   const map = {
     seed,
@@ -407,6 +469,7 @@ export async function generateMap(state, seed, progressUpdate) {
         removeBidirectionalLink(state.ecs, mappables[0], side);
       }
     });
+    const householdSize = Object.values(state.ecs.household).filter(h => h.houseId == id).length;
     const inhabitants = directlyControlledBy(state.ecs, state.ecs.controllable[id].controllerId).length + 1;
 
     // NOTE: Create rooms (2 each at the moment in every building, one for stockpiles one for sleeping
@@ -415,7 +478,7 @@ export async function generateMap(state, seed, progressUpdate) {
         spatial: { ...state.ecs.spatial[id] },
         controllable: { controllerId: building.id },
         interior: { buildingId: building.id },
-        sleepable: { capacity: 3, level: 1, occupiers: [] },
+        sleepable: { capacity: Math.max(3, householdSize), level: 1, occupiers: [] },
       },
       {
         spatial: { ...state.ecs.spatial[id] },

@@ -1,6 +1,7 @@
 import * as htn from "game/htn";
 import * as time from "game/time";
 import { updateWeather } from "game/weather";
+import { drift } from "game/people";
 import { topController } from "game/playable";
 import { jobQueueFor } from "game/manager";
 
@@ -122,6 +123,7 @@ export function createSimulation(state, { onHour } = {}) {
         const end = state.days;
         state.days = end - hour;
         updateWeather(state);
+        drift(state, 1);
         state.days = end;
         if (onHour) {
           onHour();

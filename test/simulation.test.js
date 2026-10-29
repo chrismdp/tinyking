@@ -92,3 +92,20 @@ it("refreshes world weather and snow on the hour, including every hour in a long
   expect(state.weather).not.toBe(before);
   expect(state.ecs.personable[1].hunger).toBeCloseTo(3 * time.HOUR);
 });
+
+it("drifts relationships once per crossed hour, and leaves them alone while paused", () => {
+  const state = villageState("paused");
+  state.ecs.relationships = { 1: { known: { 2: { ring: "social", goodwill: 10.25 } } } };
+  state.ecs.personality = {
+    1: { traits: [], likes: [], dislikes: [] },
+    2: { traits: [], likes: [], dislikes: [] }
+  };
+  state.opinionThresholds = { hate: -1, love: 1 };
+  const simulation = createSimulation(state);
+  simulation.step(180);
+  expect(state.ecs.relationships[1].known[2].goodwill).toBe(10.25);
+  state.game_speed = "fast";
+  simulation.step(180);
+  expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9.875);
+  expect(state.ecs.relationships[1].known[2].ring).toBe("public");
+});

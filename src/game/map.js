@@ -10,6 +10,7 @@ import { directlyControlledBy, discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
+import { updateWeather } from "game/weather";
 import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
@@ -312,6 +313,8 @@ export async function generateMap(state, seed, progressUpdate) {
   // 1, so anything left from an old map would point at the wrong entities
   state.space = {};
   state.world = generateWorld(seed);
+  state.snow = {};
+  state.snowRevision = 0;
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
@@ -429,6 +432,7 @@ export async function generateMap(state, seed, progressUpdate) {
     ]);
   }
 
+  updateWeather(state, 0, seed);
   await progressUpdate("complete");
 
   return { playerId, map };

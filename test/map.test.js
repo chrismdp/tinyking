@@ -252,3 +252,13 @@ describe("trees", () => {
   });
 });
 
+
+it("initializes all visual weather and snow afresh when a map is regenerated", async () => {
+  const state = { snow: { stale: 1 }, snowRevision: 99, weather: { stale: { type: "snow" } } };
+  await regenerate(state, 13);
+  expect(Object.keys(state.weather)).toHaveLength(91);
+  expect(state.weather.stale).toBeUndefined();
+  expect(Object.keys(state.snow)).toHaveLength(1519);
+  expect(Object.values(state.snow).every(depth => depth == 0)).toBe(true);
+  expect(state.snowRevision).toBe(0);
+});

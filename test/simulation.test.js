@@ -73,3 +73,22 @@ describe("a player villager the planner cannot plan for", () => {
     warn.mockRestore();
   });
 });
+
+it("refreshes world weather and snow on the hour, including every hour in a long step", () => {
+  const state = villageState("fast");
+  state.world = { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, temperature: "cold", moisture: "wet", biome: "snowfield" }] };
+  state.map = { seed: 13 };
+  state.ecs.mappable = { 2: { terrain: "mountain", temperature: "cold" } };
+  const simulation = createSimulation(state);
+  expect(state.weather["0,0"].type).toBeDefined();
+  expect(state.snow[2]).toBe(0);
+  const before = state.weather;
+  simulation.step(1);
+  expect(state.weather).toBe(before);
+  let hours = 0;
+  const longStep = createSimulation(state, { onHour: () => hours++ });
+  longStep.step(180);
+  expect(hours).toBe(3);
+  expect(state.weather).not.toBe(before);
+  expect(state.ecs.personable[1].hunger).toBeCloseTo(3 * time.HOUR);
+});

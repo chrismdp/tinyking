@@ -65,3 +65,15 @@ describe("pick_up_from_stockpile", () => {
     consoleLog.mockRestore();
   });
 });
+
+it("walks at exactly the same speed through snow as over bare ground", () => {
+  const dry = rowOfTiles(3);
+  const snowy = rowOfTiles(3);
+  snowy.state.snow = Object.fromEntries(snowy.tiles.map(id => [id, 1]));
+  snowy.state.weather = { "0,0": { type: "snow" } };
+  for (const fixture of [dry, snowy]) {
+    walk_to(fixture.state, fixture.villager, { places: {} }, 0.0001, true, fixture.tiles[2]);
+  }
+  expect(snowy.state.ecs.spatial[snowy.villager]).toEqual(dry.state.ecs.spatial[dry.villager]);
+  expect(snowy.state.ecs.walkable).toEqual(dry.state.ecs.walkable);
+});

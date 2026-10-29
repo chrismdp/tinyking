@@ -1,5 +1,6 @@
 import * as htn from "game/htn";
 import * as time from "game/time";
+import { updateWeather } from "game/weather";
 import { topController } from "game/playable";
 import { jobQueueFor } from "game/manager";
 
@@ -80,13 +81,14 @@ function updatePlanners(state, frameMod) {
 // it changes ECS state and lists changed entities in state.redraws.
 export function createSimulation(state, { onHour } = {}) {
   let hour = 0;
+  if (!state.weather) updateWeather(state, 0);
 
   const advanceTime = frameMod => {
     if (SPEED[state.game_speed]) {
       const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
       state.days += toAdd;
       hour += toAdd;
-      if (hour > time.HOUR) {
+      while (hour + 1e-12 >= time.HOUR) {
         hour -= time.HOUR;
 
         // FIXME: This potentially leads to frame spikes each hour
@@ -116,6 +118,11 @@ export function createSimulation(state, { onHour } = {}) {
             }
           }
         }
+        // Sample every crossed hour, even if a long step crosses several.
+        const end = state.days;
+        state.days = end - hour;
+        updateWeather(state);
+        state.days = end;
         if (onHour) {
           onHour();
         }

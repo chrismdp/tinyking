@@ -102,31 +102,17 @@ The existing code already models "who answers to whom": each person has a contro
 
 **Lords control marriages.** When a lord dies and the heir is a child, the liege (the lord above) becomes the child's guardian and decides who the heir marries. Historically this was how land changed hands. In the game, marrying heirs within your realm becomes the main political tool.
 
-## Not everyone likes you
+## The rule of five
 
-Each person has traits, and so does your character. How well your traits match theirs sets the closest ring they will ever let you into. Some people will only ever be Public, however much you help them. A few dislike you on sight. They take your help without thanks, speak badly of you to the people close to them, and side against you.
+Of every five people you meet, one will love you, three will like you, and one will hate you, whatever you do.
 
-These people also matter through the family tree. The surly father of the woman you want to marry is a real obstacle.
+- **The one who loves you** warms to you quickly, starts at Social, and can reach Intimate.
+- **The three who like you** start at Public. How close they get depends on what you do: help them, and they move in; neglect them, and they drift out. This middle group is where most of the game is played.
+- **The one who hates you** never gets past Public. They take your help without thanks, speak badly of you to the people close to them, and side against you.
 
-## Leading a village: Lencioni's five layers
+Who lands in which fifth isn't random. Each person has traits, and so does your character. Rank everyone you meet by how well their traits match yours: the best-matched fifth love you, and the worst-matched fifth hate you. So a different character would win over different people, and the split is always one, three, one, in every village.
 
-The rings describe one person's closeness to you. Once you lead a household or a village, the group as a whole needs its own measure. Patrick Lencioni's pyramid from *The Five Dysfunctions of a Team* and *The Advantage* gives one. Each layer stands on the one below it:
-
-1. **Trust.** People believe you mean well. Without it, nothing above works.
-2. **Conflict.** People argue with you openly, instead of grumbling where you can't hear.
-3. **Commitment.** Once a plan is decided, everyone backs it, even people who argued against it.
-4. **Accountability.** Villagers hold each other to what was agreed, so you don't have to.
-5. **Results.** The village works for shared goals, not just for each family.
-
-In play, each layer you reach unlocks something, and each layer you lack shows up as a problem:
-
-- **Low trust** means people hide problems from you.
-- **No open conflict** means grudges build up quietly.
-- **Weak commitment** means jobs get half-done.
-- **No accountability** means a lazy villager drags everyone down.
-- **Results** let you give the village one shared goal, such as "bring in the harvest before winter", and it organises itself.
-
-This gives running a village its own gameplay that is separate from making friends.
+Haters matter through the family tree too. If the father of the woman you want to marry is in your bottom fifth, he is a real obstacle.
 
 ## Knowledge
 
@@ -160,7 +146,7 @@ Conversations follow Sol Trader's patience rule: each conversation has limited p
 - **Start:** today the player starts in the middle with a house. In this design they start at a camp at the map edge.
 - **A task list for the player's character:** new. It can reuse the job queue, scoped to one person.
 - **Foraging, and building in stages from wood:** new. Felling trees, hauling, fields and stockpiles already exist.
-- **Trait compatibility setting the closest ring:** new, built on the existing traits (`src/game/traits.js`).
+- **The rule of five:** ranking people by trait match with the player. New, built on the existing traits (`src/game/traits.js`).
 
 ## First prototype: the arrival
 
@@ -169,12 +155,12 @@ The smallest version that tests whether this is fun:
 1. Start at a camp at the edge of the map, with no house.
 2. A task list for your character. You chop wood, forage, and build a lean-to and then a hut.
 3. Two or three villages of related families, with the relationships recorded.
-4. The four rings and goodwill, with the ring shown on a person when you select them. Traits cap how close some people will let you get.
+4. The four rings and goodwill, with the ring shown on a person when you select them. The rule of five decides each person's starting ring and how close they can get.
 5. Villagers post two kinds of job: help with the harvest, and fetch wood. You accept a job, do it, and earn goodwill.
 6. Reaching Social shows that person's family tree.
 7. Reaching Personal makes them come and help with your house.
 
-Marriage, succession, gossip, the five layers and travel between world hexes come after this, and only if the arrival is fun.
+Marriage, succession, gossip, sworn followers and travel between world hexes come after this, and only if the arrival is fun.
 
 ## Open questions
 

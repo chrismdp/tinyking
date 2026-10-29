@@ -134,6 +134,23 @@ export function generateFamilies({ state, seed, playerStartTile }) {
       }
     }
   }
+  if (!state.ecs.playable || !Object.keys(state.ecs.playable).length) {
+    const [id] = newEntities(state, [{
+      ...generatePerson({ spatial: Hex(playerStartTile).toPoint(), male: generator.random_int() % 2 == 0,
+        age: 20 + generator.random_int() % 16, familySeed: generator.random_int(), generator, days: state.days }),
+      village: { villageId: null }
+    }]);
+    state.ecs.playable = { [id]: { id, known: [] } };
+    state.ecs.manager[id].ordered = true;
+    state.ecs.planner[id].world.ordered = true;
+    state.ecs.controllable[id].controllerId = id;
+    const [camp] = newEntities(state, [{
+      spatial: { ...Hex(playerStartTile).toPoint(), immovable: true },
+      nameable: { nickname: "Camp" }, camp: {}, village: { villageId: null },
+      sleepable: { capacity: 1, level: 0, occupiers: [] }, controllable: { controllerId: id }
+    }]);
+    state.ecs.household[id] = { id, houseId: camp };
+  }
   initializeRelationships(state, seed);
 }
 
@@ -208,7 +225,7 @@ function reachableFrom(start, landscape, settlements, reach) {
 // NOTE: biomeAt(hex) gives the biome a hex's trees grow as. Given a start,
 // the most wooded spots it can reach are planted until it has a few trees.
 export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start }) {
-  const result = [];
+  let result = [];
   const simplex = new SimplexNoise(seed);
   let generator = new MersenneTwister(seed);
   const spots = [];
@@ -238,6 +255,7 @@ export function generateTrees(seed, landscape, settlements, world_x, world_y, { 
   }
 
   if (start) {
+    result = result.filter(tree => start.distance(Hex().fromPoint(tree)) > 1);
     const reached = reachableFrom(start, landscape, settlements, START_TREE_REACH);
     const near = result.filter(t => reached.has(Hex().fromPoint(t).toString())).length;
     // NOTE: jittered like the rest, but kept in the spot's own hex, and
@@ -324,13 +342,14 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
   const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
     .sort((a, b) => b.rank - a.rank).map(c => c.hex);
   // The first hamlet is within visiting distance of the start, as before.
-  const near = [...ranked].sort((a, b) => start.distance(a) - start.distance(b));
+  const reached = reachableFrom(start, landscape, {}, 8);
+  const near = ranked.filter(h => reached.has(h.toString())).sort((a, b) => start.distance(a) - start.distance(b));
   const centres = [];
   const targetCount = Math.max(1, Math.round(grid.length / 140));
   const prefixes = ["Ash", "Bramble", "Cinder", "Elm", "Fern", "Hazel", "Oak", "Reed", "Thorn", "Willow", "Yew"];
   const suffixes = ["brook", "combe", "dale", "field", "ford", "ham", "hurst", "stead", "wick", "wood"];
   const nameOffset = generator.random_int() % prefixes.length;
-  for (const centre of [...near.slice(0, 1), ...ranked]) {
+  for (const centre of [...near, ...ranked]) {
     if (centres.length >= targetCount) break;
     if (centres.some(other => centre.distance(other) < 7)) continue;
     const sites = [centre, ...ranked.filter(h => h.toString() != centre.toString() && h.distance(centre) <= 3)];
@@ -353,8 +372,10 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
     }
     await progressUpdate("settlements");
   }
-  makeHouse(generator, settlements, grid, start, landscape);
-  settlements[start].villageId = null;
+  // Keep the bedroll clearing and its farm-sized ring free of trees.
+  Grid.hexagon({ center: start, radius: 1 }).forEach(hex => {
+    landscape[hex].terrain = "grassland";
+  });
   return { settlements, villages };
 }
 

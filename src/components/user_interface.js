@@ -1,5 +1,6 @@
 import React from "react";
 
+import { TaskPanel } from "components/task_panel";
 import { CustomGame } from "components/custom_game";
 import { Info } from "components/info";
 import { Window } from "components/window";
@@ -23,7 +24,7 @@ export function UserInterface() {
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
       {show.mapgen && <Window windowId="mapgen" x={60} y={70}><CustomGame/></Window>}
       {show.selected_person && <SelectedPerson entityId={show.selected_person}/>}
-      {show.speed_controls && <SpeedControls/>}
+      {show.speed_controls && <><TaskPanel/><SpeedControls/></>}
     </div>
   );
 }

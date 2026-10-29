@@ -50,7 +50,20 @@ function updatePlanners(state, frameMod) {
       if (planner.task) {
         htn.finishTask(planner, planner.task);
       }
-      const jobs = jobQueueFor(state.ecs, planner.id);
+      const queue = jobQueueFor(state.ecs, planner.id);
+      if (planner.world.ordered) {
+        // Needs can consume a queued plant before its turn; felling can also
+        // remove a target. Finished gathering still has its delivery to do.
+        while (queue[0] && !queue[0].gatheredDone &&
+          (!state.ecs.spatial[queue[0].targetId] ||
+            (queue[0].job.key == "forage" && !state.ecs.forageable?.[queue[0].targetId]?.amount))) {
+          queue[0].progress = 1;
+          queue.shift();
+          planner.world.currentJob = null;
+        }
+      }
+      const jobs = state.ecs.manager[state.ui.playerId]?.ordered ?
+        (id == state.ui.playerId ? queue.slice(0, 1) : (topController(state.ecs, id) == state.ui.playerId ? [] : queue)) : queue;
       const [ plan ] = htn.solve(planner.world, jobs, [ [ "person" ] ]);
       planner.plan = plan;
       if (topController(state.ecs, planner.id) == state.ui.playerId) {

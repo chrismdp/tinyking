@@ -637,3 +637,87 @@ export function stockpile(ground, state, id, { selected }) {
   group.userData.anchorHeight = 0;
   return group;
 }
+
+// --- Arrival camp and timber shelters ----------------------------------------
+export function camp(ground, state, id) {
+  const { x, y } = state.ecs.spatial[id];
+  const group = new THREE.Group();
+  group.position.set(x, ground.heightAt(x, y), y);
+  const fire = new THREE.Group();
+  fire.name = "campfire";
+  fire.position.set(-25, 0, -10);
+  for (let k = 0; k < 8; k++) {
+    const angle = k * Math.PI / 4;
+    const stone = new THREE.Mesh(new THREE.IcosahedronGeometry(3.5, 0), lambert(0x78736B));
+    stone.position.set(Math.cos(angle) * 12, 2, Math.sin(angle) * 12);
+    fire.add(stone);
+  }
+  for (const angle of [-0.6, 0.6]) {
+    const log = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3, 20, 5), lambert(COLOURS.trunk));
+    log.rotation.set(Math.PI / 2, 0, angle);
+    log.position.y = 4;
+    fire.add(log);
+  }
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(6, 18, 5), new THREE.MeshBasicMaterial({ color: 0xF4A338 }));
+  flame.position.y = 13;
+  fire.add(flame);
+  const heart = new THREE.Mesh(new THREE.ConeGeometry(3, 12, 5), new THREE.MeshBasicMaterial({ color: 0xFFE190 }));
+  heart.position.set(1, 11, 3);
+  fire.add(heart);
+  group.add(fire);
+  const bed = new THREE.Group();
+  bed.name = "bedroll";
+  bed.position.set(0, 0, 0);
+  const blanket = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 27), lambert(0x6B8069));
+  blanket.position.y = 2;
+  bed.add(blanket);
+  const roll = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 14, 7), lambert(0xAF9B79));
+  roll.rotation.z = Math.PI / 2;
+  roll.position.set(0, 4, -12);
+  bed.add(roll);
+  group.add(bed);
+  group.userData.anchorHeight = 23;
+  return group;
+}
+
+export function shelter(ground, state, id) {
+  const ecs = state.ecs;
+  const { x, y } = ecs.spatial[id];
+  const site = ecs.construction[id];
+  const stage = ecs.shelter[id].stage;
+  const group = new THREE.Group();
+  group.position.set(x, ground.heightAt(x, y), y);
+  const add = (geometry, colour, matrix) => {
+    const mesh = new THREE.Mesh(geometry, lambert(colour));
+    mesh.applyMatrix4(matrix);
+    group.add(mesh);
+    return mesh;
+  };
+  if (stage == "house") {
+    const houseModel = house(ground, x, y, 1, { playerOwned: true, selected: false });
+    houseModel.position.set(0, -ground.heightAt(x, y), 0);
+    group.add(houseModel);
+  } else if (stage == "hut") {
+    add(new THREE.BoxGeometry(54, 27, 44), 0x8F7150, at(0, 13.5, 0));
+    add(squarePyramid(), 0xA89159, at(0, 38, 0, 0, 0, 0, 66, 23, 54));
+    add(new THREE.BoxGeometry(13, 20, 2), COLOURS.door, at(0, 10, 23));
+  } else if (stage == "lean-to") {
+    for (const px of [-24, 24]) {
+      add(new THREE.CylinderGeometry(2, 2.5, 29, 5), COLOURS.trunk, at(px, 14.5, -10));
+    }
+    add(new THREE.BoxGeometry(56, 4, 39), 0xAC9560, at(0, 17, 2, 0.65));
+    add(new THREE.BoxGeometry(40, 3, 28), 0x6B8069, at(0, 2, 2));
+  }
+  if (site) {
+    for (const [px, pz] of [[-30, -25], [30, -25], [-30, 25], [30, 25]]) {
+      add(new THREE.CylinderGeometry(1.5, 2, 20, 4), 0xC4AB76, at(px, 10, pz));
+    }
+    for (let k = 0; k < site.delivered; k++) {
+      const log = add(new THREE.CylinderGeometry(2.8, 3.3, 27, 6), 0x89643E,
+        at(-27 + k % 5 * 6, 4 + Math.floor(k / 5) * 6, 29, Math.PI / 2));
+      log.name = "delivered-log";
+    }
+  }
+  group.userData.anchorHeight = stage == "house" ? 65 : stage == "hut" ? 50 : 30;
+  return group;
+}

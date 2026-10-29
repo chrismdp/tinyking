@@ -133,3 +133,6 @@ export function complete_subtask(world, expected, place) {
     world.subtasks.splice(idx, 1);
   }
 }
+
+export function build_shelter() {}
+export function carry_home() {}

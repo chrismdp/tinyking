@@ -83,12 +83,17 @@ export const person = () => [
 
 export const check_jobs = () => [
   [
+    (_, jobs) => firstFreeJob(jobs, "build_shelter"),
+    entry => [["take_job", entry.job.key], ["build_shelter", entry.targetId], ["complete_job", entry.job.key]]
+  ],
+  [
     (_, jobs) => firstFreeJob(jobs, "forage"),
-    entry => [
+    entry => entry.gatheredDone ? [["take_job", entry.job.key], ["carry_home"], ["complete_job", entry.job.key]] : [
       ["take_job", entry.job.key],
       ["walk_to", entry.targetId],
       ["set_label", "foraging"],
       ["forage", entry.targetId],
+      ["carry_home"],
       ["complete_job", entry.job.key]
     ]
   ],
@@ -130,11 +135,12 @@ export const check_jobs = () => [
   ],
   [
     (_, jobs) => firstFreeJob(jobs, "cut_tree_down"),
-    entry => [
+    entry => entry.gatheredDone ? [["take_job", entry.job.key], ["carry_home"], ["complete_job", entry.job.key]] : [
       ["take_job", entry.job.key],
       ["set_label", "cut_tree_down"],
       ["walk_to", entry.targetId],
       ["chop_tree", entry.targetId],
+      ["carry_home"],
       ["complete_job", entry.job.key]
     ]
   ]

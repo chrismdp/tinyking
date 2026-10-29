@@ -105,7 +105,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
     dom.setPointerCapture(e.pointerId);
     if (pointers.size == 2) {
       const [a, b] = [...pointers.values()];
-      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) };
+      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y), angle: Math.atan2(b.y - a.y, b.x - a.x) };
       press = null;
     } else if (pointers.size == 1) {
       press = { id: e.pointerId, button: e.button, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false };
@@ -123,6 +123,9 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
       if (d > 0 && pinch.distance > 0) {
         zoomTowards(pinch.distance / d, (a.x + b.x) / 2, (a.y + b.y) / 2);
       }
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
+      rig.yaw -= Math.atan2(Math.sin(angle - pinch.angle), Math.cos(angle - pinch.angle));
+      pinch.angle = angle;
       pinch.distance = d;
       return;
     }
@@ -153,7 +156,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
       pinch = null;
     }
     if (press && press.id == e.pointerId) {
-      if (!press.moved && press.button == 0) {
+      if (e.type != "pointercancel" && !press.moved && press.button == 0) {
         onClick(e);
       }
       press = null;

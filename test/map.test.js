@@ -264,7 +264,7 @@ it("initializes all visual weather and snow afresh when a map is regenerated", a
 });
 
 describe("villages", () => {
-  it("groups houses into named hamlets of 3–8, with space around the unchanged player start", async () => {
+  it("groups houses into named hamlets of 3–8, with space around the camp start", async () => {
     for (const seed of SEEDS) {
       const state = await mapFor(seed);
       expect(state.villages).toBeDefined();
@@ -273,7 +273,8 @@ describe("villages", () => {
       expect(new Set(villages.map(v => v.name)).size).toBe(villages.length);
       const houses = villages.flatMap(v => v.houses);
       expect(new Set(houses).size).toBe(houses.length);
-      expect(houses.length + 1).toBe(Object.keys(state.ecs.building).length);
+      expect(houses.length).toBe(Object.keys(state.ecs.building).length);
+      expect(Object.keys(state.ecs.camp)).toHaveLength(1);
       const start = Hex(state.map.playerStartTile);
       for (const village of villages) {
         expect(village.name.length).toBeGreaterThan(2);

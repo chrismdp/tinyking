@@ -1,0 +1,85 @@
+import React from "react";
+import { GameState } from "components/contexts";
+import { name } from "game/name";
+import { hungerSpeed } from "game/hunger";
+import { HEX_SIZE, Hex } from "game/hex";
+import { STAGES } from "game/construction";
+
+export const TASK_TITLES = {
+  cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
+  recruit: "Recruit", create_field: "Create Field", create_stockpile: "Create Stockpile"
+};
+
+function estimatedMinutes(ecs, playerId, job) {
+  const point = ecs.spatial[job.targetId];
+  const from = ecs.spatial[playerId] || point;
+  const walking = point && from ? Math.hypot(point.x - from.x, point.y - from.y) / (20 * HEX_SIZE) * 60 : 0;
+  const site = ecs.construction?.[job.targetId];
+  const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
+    job.workRemaining != null ? job.workRemaining * 1440 :
+      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, recruit: 60 }[job.job.key] || 0) * (1 - (job.progress || 0));
+  return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
+}
+
+export function TaskPanel() {
+  const state = React.useContext(GameState);
+  const [collapsed, setCollapsed] = React.useState(() => typeof window != "undefined" && window.matchMedia("(max-width: 700px), (max-height: 500px)").matches);
+  const [dragged, setDragged] = React.useState(null);
+  React.useEffect(() => {
+    const media = window.matchMedia("(max-width: 700px), (max-height: 500px)");
+    const resize = () => setCollapsed(media.matches);
+    media.addEventListener("change", resize);
+    return () => media.removeEventListener("change", resize);
+  }, []);
+  const ecs = state.ecs;
+  const id = state.ui.playerId;
+  const jobs = ecs.manager[id].jobs;
+  const person = ecs.personable[id];
+  const planner = ecs.planner[id];
+  const stage = Object.values(ecs.shelter || {}).find(s => s.stage)?.stage;
+  const hungry = person.hunger > 0.9;
+  const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
+  const location = stage ? (stage == "lean-to" ? "Lean-to" : stage == "hut" ? "Hut" : "House") : "Camp at the edge";
+  return <aside id="task-panel" className={collapsed ? "collapsed" : ""} aria-label="Your task list">
+    <header>
+      <h3>Your tasks</h3><span className="micro">{jobs.length} IN QUEUE</span>
+      <button aria-label={collapsed ? "Expand task list" : "Collapse task list"} onClick={() => setCollapsed(!collapsed)}>{collapsed ? "+" : "−"}</button>
+    </header>
+    <div className="task-body">
+      {hungry && <div className="hunger" aria-label={status + " — working more slowly"}>
+        <div className="hunger-line"><span>{status}</span><span>Working more slowly</span></div>
+        <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
+        {!Object.values(ecs.container || {}).some(c => c.amounts.forage || c.amounts.grain || c.amounts.gruel) && <small>You have no food. Foraging is next.</small>}
+      </div>}
+      <ol className="queue">{jobs.map((job, index) => {
+        const construction = ecs.construction?.[job.targetId];
+        const title = job.job.key == "build_shelter" ? "Build the " + (construction?.stage || "lean-to") : TASK_TITLES[job.job.key];
+        const point = ecs.spatial[job.targetId];
+        const at = point ? Hex().fromPoint(point) : null;
+        const minutes = estimatedMinutes(ecs, id, job);
+        const progress = Math.round((job.progress || 0) * 100);
+        const detail = job.detail || (construction ? `0 of ${STAGES[construction.stage].logs} logs` : job.job.key == "cut_tree_down" ? `0 of ${ecs.good?.[job.targetId]?.amount || 1} logs` : job.job.key == "forage" ? "0 of 1 meal" : "0 of 1 task");
+        return <li className={"task" + (index == 0 ? " current" : "")} key={job.id}
+          draggable onDragStart={e => { setDragged(job.id); e.dataTransfer.setData("text/plain", job.id); }}
+          onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
+          <span className={"grip" + (index == 0 ? " play" : "")} title="Drag to reorder">{index == 0 ? "▶" : "⠿"}</span>
+          <div className="task-content"><div className="task-title">{title}</div>
+            <small>{job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {construction ? "Camp" : at ? `Tile ${at.x}, ${at.y}` : "Camp"}{index > 0 && ` · ~${minutes}m`}</small>
+            {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {job.expectedGoodwill}</span>}
+            {index == 0 && <><div className="task-progress"><span>{detail}</span><span>{progress}% · ~{minutes}m left</span></div>
+              <div className="meter" role="progressbar" aria-label={title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div></>}
+          </div>
+          <div className="task-tools">
+            <button aria-label={"Cancel " + title} onClick={() => state.ui.actions.cancel_task(job.id)}>×</button>
+            <div className="task-moves"><button aria-label="Move earlier" disabled={index == 0} onClick={() => state.ui.actions.reorder_task(job.id, index - 1)}>↑</button>
+              <button aria-label="Move later" disabled={index == jobs.length - 1} onClick={() => state.ui.actions.reorder_task(job.id, index + 1)}>↓</button></div>
+          </div>
+        </li>;
+      })}</ol>
+      {!jobs.length && <p className="queue-note">Choose an action on the map to add a task.</p>}
+      <div className="queue-note">Drag ⠿ to reorder · × to cancel · You do each job.</div>
+    </div>
+    <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
+      <small className="compact-task">{status} · {jobs[0] ? TASK_TITLES[jobs[0].job.key] || "Build the " + (ecs.construction?.[jobs[0].targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
+  </aside>;
+}

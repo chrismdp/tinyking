@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
-import { topController, anyControlledAlive } from "game/playable";
+import { anyControlledAlive } from "game/playable";
 import * as htn from "game/htn";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
@@ -18,8 +18,9 @@ import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
-import { pushJob, removeJob } from "game/manager";
+import { enqueueTask, reorderTask, cancelTask, removeJob } from "game/manager";
 
+import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
 
@@ -35,6 +36,10 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
   const simulation = createSimulation(state, { onHour: renderUI });
+  let uiTime = 0;
+  state.ticker.add(() => {
+    if (performance.now() - uiTime > 250) { uiTime = performance.now(); renderUI(); }
+  });
 
   state.ticker.add(() => {
     TWEEN.update();
@@ -84,6 +89,7 @@ export function World() {
 
   React.useEffect(() => {
     if (popupInfo.id) {
+      if (popper.current) popper.current.destroy();
       popper.current = createPopper(virtualReference.current, popperElement.current, {
         placement: (popupInfo.touch ? "top" : "bottom-start"),
         modifiers: [
@@ -96,6 +102,7 @@ export function World() {
       const point = state.renderer.screenPosition(popupInfo.id);
       virtualReference.current.set(point.x, point.y);
     } else {
+      if (popper.current) popper.current.destroy();
       popper.current = null;
     }
     // NOTE: the renderer highlights whatever the popup is showing
@@ -153,16 +160,16 @@ export function World() {
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        pushJob(state.ecs, playerId, { job, targetId });
-        // NOTE: For now, we replan anyone in our team who is not in a job
-        for (const id in state.ecs.planner) {
-          const planner = state.ecs.planner[id];
-          if (!planner.world.currentJob && topController(state.ecs, id) == playerId) {
-            htn.replan(planner);
-          }
+        if (job.key == "build_shelter") {
+          targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
+          if (!targetId) return;
         }
+        enqueueTask(state, job, targetId);
         setPopupInfo({});
+        renderUI();
       },
+      reorder_task: (id, index) => { reorderTask(state, id, index); renderUI(); },
+      cancel_task: id => { cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
         const assignedId = removeJob(state.ecs, managerId, key, targetId);
         const planner = state.ecs.planner[assignedId];
@@ -171,6 +178,7 @@ export function World() {
           htn.replan(planner);
         }
         setPopupInfo({});
+        renderUI();
       },
       select_entity: (id, touch) => {
         selectEntity(id, touch);
@@ -243,7 +251,7 @@ export function World() {
         </Route>
         </Switch>
         <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupInfo.id ? "visible" : "hidden" }} {...popper.attributes}>
-          <div onClick={() => setPopupInfo({})} className='close'><FontAwesomeIcon icon="times"/></div>
+          <button aria-label="Close menu" onClick={() => setPopupInfo({})} className='close'><FontAwesomeIcon icon="times"/></button>
           {popupInfo.id && (<Info entityId={popupInfo.id}/>)}
           <div className="arrow" ref={arrowElement}/>
         </div>

@@ -593,3 +593,98 @@ hr {
   text-transform: none;
 }
 
+
+// Arrival HUD follows section 01 of the arrival study.
+#task-panel {
+  pointer-events: auto;
+  position: absolute;
+  left: 25px;
+  top: 23px;
+  width: 342px;
+  max-height: calc(100% - 46px);
+  display: flex;
+  flex-direction: column;
+  color: #f7f1e7;
+  background: #453a3d;
+  border: 1px solid #78686b;
+  border-radius: 5px;
+  box-shadow: 8px 12px 25px #0005;
+  font-size: 17px;
+  header { display: flex; align-items: center; gap: 10px; padding: 8px 10px 7px 15px; border-bottom: 1px solid #65575b; background: #4a3e42; }
+  h3 { margin: 0; flex: 1; font-size: 24px; }
+  .micro { font: 10px Raleway, sans-serif; color: #d2c5c2; white-space: nowrap; }
+  button { padding: 0; background: transparent; color: #dfd0cf; font: 22px Georgia, serif; min-width: 28px; min-height: 30px; }
+  button:disabled { opacity: 0.25; }
+  .task-body { overflow-y: auto; touch-action: pan-y; }
+  .hunger { padding: 8px 15px 9px; background: #382f32; border-bottom: 1px solid #65575b; }
+  .hunger-line { display: flex; justify-content: space-between; font-size: 15px; color: #e2c879; }
+  .meter { height: 5px; border-radius: 5px; background: #241f23; overflow: hidden; margin-top: 7px; }
+  .meter span { height: 100%; display: block; background: #e2c879; border-radius: 5px; }
+  small { display: block; color: #d2c5c2; font-size: 12px; line-height: 1.4; }
+  .queue { list-style: none; margin: 0; padding: 0; }
+  .task { display: grid; grid-template-columns: 20px minmax(0, 1fr) 40px; gap: 6px; padding: 7px 12px; border-bottom: 1px solid #65575b; }
+  .task.current { background: #393e35; border-left: 3px solid #a6b88c; padding-left: 9px; }
+  .grip { font: 15px sans-serif; color: #c3b7b6; align-self: center; cursor: grab; text-align: center; }
+  .grip.play { font-size: 11px; color: #bdd3a8; align-self: start; margin-top: 6px; }
+  .task-title { font-size: 17px; line-height: 1.1; }
+  .task small, .task-credit { font-size: 12px; margin-top: 2px; }
+  .task-credit { color: #a8d6c5; }
+  .task-progress { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px; font-size: 12px; color: #d1dfc1; margin-top: 6px; }
+  .task .meter { height: 4px; margin-top: 4px; }
+  .task .meter span { background: #a7be8f; }
+  .task-tools { display: flex; flex-direction: column; align-items: center; }
+  .task-moves { display: flex; }
+  .task-moves button { font-size: 13px; min-width: 20px; min-height: 24px; }
+  .queue-note { margin: 0; padding: 9px 15px; font-size: 12px; color: #d2c5c2; }
+  footer { padding: 10px 15px; border-top: 1px solid #65575b; background: #382f32; }
+  footer strong { font-size: 19px; font-weight: normal; }
+  .compact-task { display: none; }
+  &.collapsed .task-body { display: none; }
+}
+button, a { cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offset: 2px; }
+#game #clock { position: absolute; top: 20px; right: 24px; font-size: 16px; }
+#game #speed-controls { position: absolute; bottom: 18px; right: 24px; }
+#game #speed-controls button { min-height: 44px; min-width: 44px; font-size: 16px; }
+#game #selected-person { position: absolute; bottom: 75px; left: 392px; margin: 0; max-width: calc(100% - 420px); font-size: 12px; text-shadow: 1px 2px 3px #000; }
+#game #selected-person h1 { margin: 0; font-size: 22px; }
+#game #selected-person .traits { position: static; }
+#world canvas { touch-action: none; }
+.popper { z-index: 5; font-size: 16px; max-width: min(380px, 90vw); max-height: 70vh; overflow: auto; box-sizing: border-box; }
+.popper .close, .panel .close { float: right; background: transparent; min-width: 44px; min-height: 44px; padding: 10px; }
+.job-list button { min-height: 44px; font-size: 16px; }
+.popper a { display: inline-block; min-height: 44px; line-height: 44px; }
+.panel { font-size: 16px; z-index: 10; box-sizing: border-box; }
+.panel .character canvas { max-width: 100%; height: auto !important; }
+.panel .row button { min-height: 44px; height: auto; min-width: 44px; font-size: 16px; }
+.panel .row input { min-height: 38px; font-size: 16px; min-width: 0; flex: 1 1 80px; }
+.panel .row label { flex: 0 0 95px; }
+.panel .row.overlay { width: auto; gap: 4px; }
+.desktop { z-index: 10; pointer-events: none; }
+@media (max-width: 700px), (max-height: 500px) {
+  #task-panel { top: auto; bottom: 74px; left: 10px; width: min(342px, calc(100% - 20px)); max-height: calc(100% - 175px); z-index: 3; }
+  #task-panel header { min-height: 44px; padding: 0 8px 0 15px; }
+  #task-panel header button { min-width: 44px; min-height: 44px; }
+  #task-panel .task-body { display: block; }
+  #task-panel.collapsed .task-body { display: none; }
+  #task-panel .task-tools button { font-size: 18px; min-width: 44px; min-height: 44px; }
+  #task-panel .task { grid-template-columns: 16px minmax(0, 1fr) 88px; padding: 9px; }
+  #task-panel .task-tools { align-items: flex-end; }
+  #task-panel .task small, #task-panel .task-progress, #task-panel .queue-note { font-size: 14px; }
+  #task-panel footer { padding: 5px 15px; }
+  #task-panel footer strong { display: block; font-size: 17px; }
+  #task-panel .compact-task { display: block; font-size: 14px; }
+  #task-panel .hunger-line { font-size: 16px; }
+  #game #clock { top: 12px; right: 12px; font-size: 16px; }
+  #game #speed-controls { bottom: 12px; right: 12px; }
+  #game #selected-person { bottom: 12px; left: 12px; max-width: calc(100% - 180px); font-size: 12px; }
+  #game #selected-person h1 { font-size: 17px; }
+  #game #selected-person .hunger-stage { font-size: 14px; }
+  #game #selected-person .traits { display: none; }
+  .popper { position: fixed !important; transform: none !important; top: 80px !important; left: 10px !important; right: 10px !important; max-width: none !important; max-height: calc(100dvh - 260px) !important; overflow-y: auto !important; }
+  .popper .arrow { display: none; }
+  .panel { position: absolute; inset: 10px; width: auto; max-width: 460px; margin: auto; overflow-y: auto; touch-action: pan-y; }
+  #game #main-menu .header { font-size: 28px; }
+  #game #main-menu menu { font-size: 20px; }
+  #game #main-menu menu a { min-height: 44px; line-height: 44px; }
+}

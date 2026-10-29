@@ -14,7 +14,7 @@ export function Window({ windowId, x, y, children }) {
   // findDOMNode for it to fall back on
   const panel = React.useRef(null);
 
-  const fixed = window.innerWidth < 500;
+  const fixed = window.innerWidth < 700 || window.innerHeight < 500;
 
   let attrs = { disabled: !!fixed };
   if (!fixed) {
@@ -25,7 +25,7 @@ export function Window({ windowId, x, y, children }) {
     <div className='desktop'>
       <Draggable nodeRef={panel} handle=".handle" bounds="parent" {...attrs}>
         <div ref={panel} className='panel'>
-          <div onClick={close} className='close'><FontAwesomeIcon icon="times"/></div>
+          <button aria-label="Close window" onClick={close} className='close'><FontAwesomeIcon icon="times"/></button>
           {children}
         </div>
       </Draggable>

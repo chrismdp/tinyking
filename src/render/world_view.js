@@ -124,6 +124,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     if (ecs.forageable && ecs.forageable[id]) {
       return models.foragePlant(ground, state, id);
     }
+    if (ecs.camp?.[id]) return models.camp(ground, state, id);
+    if (ecs.shelter?.[id]) return models.shelter(ground, state, id);
     if (ecs.building[id]) {
       return models.building(ground, state, id, {
         playerOwned: topController(ecs, id) == state.ui.playerId,

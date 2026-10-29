@@ -12,3 +12,10 @@ it.each([[0.9, "Fed"], [1, "Hungry"], [3, "Starving"]])("shows hunger %s as %s i
   const html = renderToStaticMarkup(<GameState.Provider value={state}><SelectedPerson entityId="1"/></GameState.Provider>);
   expect(html).toContain(stage);
 });
+
+it("uses readable names for arrival work in the existing selected-person panel", () => {
+  const state = { ecs: { personable: { 1: { hunger: 0 } }, planner: { 1: { task: ["build_shelter"] } } } };
+  const html = renderToStaticMarkup(<GameState.Provider value={state}><SelectedPerson entityId="1"/></GameState.Provider>);
+  expect(html).toContain("Building");
+  expect(html).not.toContain("build_shelter");
+});

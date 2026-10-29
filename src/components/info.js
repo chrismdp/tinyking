@@ -18,6 +18,7 @@ import { SleepingQuarters } from "components/sleeping_quarters";
 import { EntityContainer } from "components/entity_container";
 
 import Engine from "json-rules-engine-simplified";
+import { canPlaceShelter, STAGES } from "game/construction";
 import rules from "data/jobs.json";
 
 function Job({ job, managerId, linkToTarget }) {
@@ -89,14 +90,16 @@ export function Info({ entityId }) {
       };
       const result = await new Engine(rules).run(payload);
       if (!isCancelled) {
-        setJobs(result.map(r => r.jobs).flat());
+        const offered = result.map(r => r.jobs).flat();
+        if (canPlaceShelter(state, entityId) || (entity.construction && !payload.job_targets.includes(entityId))) offered.push({ key: "build_shelter" });
+        setJobs(offered);
       }
     })();
 
     return function cleanup() {
       isCancelled = true;
     };
-  }, [setJobs, entity, state.ecs, state.ui.playerId, entityId, state.space]);
+  }, [setJobs, entity, state, state.ecs, state.ui.playerId, entityId, state.space]);
 
   const [targetOfJobs, setTargetOfJobs] = React.useState([]);
   React.useEffect(() => {
@@ -128,6 +131,8 @@ export function Info({ entityId }) {
         }
       </div>)}
       { entity.farmable && entity.farmable.slots.some(s => s.state == "sown") && <FarmProgress farmable={entity.farmable}/> }
+      {entity.construction && <p>{entity.construction.delivered} of {STAGES[entity.construction.stage].logs} logs · {Math.floor(entity.construction.work * 60)} of {STAGES[entity.construction.stage].hours * 60} minutes of work</p>}
+      {entity.container && <EntityContainer entityId={entityId}/>}
       { entity.building && (<><span>Rooms: </span>
         <ul>{
           entity.building.rooms.map(r => (<li key={r}>

@@ -133,3 +133,10 @@ it("does not exceed a neighbouring biome's zero natural tree density", () => {
   hours(state, 24 * 8);
   expect(Object.values(state.ecs.tree).every(tree => tree.biome == "jungle")).toBe(true);
 });
+
+it.each(["camp", "shelter"])("keeps regrowing trees out of the player's %s", component => {
+  const { state, tiles, mature } = wood();
+  newEntities(state, tiles.map(id => ({ spatial: { ...state.ecs.spatial[id], immovable: true }, [component]: {} })));
+  hours(state, 48);
+  expect(Object.keys(state.ecs.tree)).toEqual([mature]);
+});

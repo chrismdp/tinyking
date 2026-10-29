@@ -121,7 +121,8 @@
     "create_field": "Create Field",
     "recruit": "Recruit",
     "cancel_job": "Cancel",
-    "forage": "Forage"
+    "forage": "Forage",
+    "build_shelter": "Build shelter"
   },
   "tasks": {
     "create_stockpile": "Clearing space",

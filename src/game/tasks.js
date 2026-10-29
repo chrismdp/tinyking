@@ -10,6 +10,7 @@ import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { hungerSpeed } from "game/hunger";
+import { workOnShelter } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
@@ -73,6 +74,12 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
   }
 
+  const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId && j.job.key == "move_to_here");
+  if (order) {
+    const distance = Math.sqrt(math.squaredDistance(s, targetPoint));
+    if (order.distance == null) order.distance = Math.max(1, distance);
+    order.progress = Math.max(0, Math.min(1, 1 - distance / order.distance));
+  }
   const terrainCost = state.ecs.walkable[next.id].speed || 1;
   // NOTE: number of hex sides per hour
   const baseHumanSpeed = 20;
@@ -157,6 +164,7 @@ export function complete_job(state, actorId, world, dt, firstRun, key) {
       "but there is no job assigned to us in", actorId, " controller jobs:", jobs);
     return Task.ABORT;
   }
+  jobs[idx].progress = 1;
   jobs.splice(idx, 1);
 }
 
@@ -170,7 +178,13 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
 // Timed work consumes effort, so a hunger change takes effect mid-task too.
 function workComplete(state, actorId, world, dt, firstRun, duration) {
   if (firstRun) world.workRemaining = duration;
+  const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
+  if (firstRun && order && order.workRemaining != null) world.workRemaining = order.workRemaining;
   world.workRemaining -= dt * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
+  if (order) {
+    order.workRemaining = Math.max(0, world.workRemaining);
+    order.progress = Math.max(0, 1 - world.workRemaining / duration);
+  }
   return world.workRemaining <= 1e-12;
 }
 
@@ -194,6 +208,8 @@ export function forage(state, actorId, world, dt, firstRun, target) {
     controllable: { controllerId: topController(state.ecs, actorId) }
   }]);
   give(state.ecs, food, actorId);
+  const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId && j.job.key == "forage");
+  if (order) { order.gathered = [food]; order.gatheredDone = true; order.detail = "Carrying food to camp"; }
   state.redraws.push(actorId, targetId);
   return Task.FINISH;
 }
@@ -234,13 +250,16 @@ const TIME_TO_CHOP_WOOD = time.HOUR / 2;
 export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   if (!state.ecs.good[targetId]) return Task.ABORT;
   if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_CHOP_WOOD)) {
-    newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
+    world.gathered = newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
       spatial: { ...state.ecs.spatial[targetId], immovable: false },
       nameable: { nickname: "Log" },
       good: { type: "wood", amount: 1 },
       haulable: { speedModifier: 0.5 },
       controllable: { controllerId: topController(state.ecs, actorId) }
-    }))).forEach(id => state.redraws.push(id));
+    })));
+    const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
+    if (order) { order.gathered = world.gathered; order.gatheredDone = true; order.detail = "Carrying logs to camp"; }
+    state.redraws.push(...world.gathered);
     deleteEntity(state, targetId);
 
     return Task.FINISH;
@@ -654,4 +673,44 @@ export function set_controller_to_me(state, actorId, world, dt, firstRun, target
       state.redraws.push(id);
     }
   }
+}
+
+export const build_shelter = workOnShelter;
+
+export function carry_home(state, actorId, world, dt, firstRun) {
+  if (!world.ordered) return Task.FINISH;
+  const ecs = state.ecs;
+  const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
+  if (!home) return Task.FINISH;
+  if (firstRun) world.carryTarget = null;
+  const held = ecs.holder[actorId].held[0];
+  const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+  const gathered = order?.gathered || world.gathered || [];
+  const next = held || gathered.find(id => ecs.haulable[id] && !ecs.haulable[id].heldBy);
+  if (!next) { world.gathered = []; return Task.FINISH; }
+  const target = held ? home : next;
+  const result = walk_to(state, actorId, world, dt, world.carryTarget != target, target);
+  world.carryTarget = target;
+  if (result != Task.FINISH) return result;
+  world.carryTarget = null;
+  if (!held) {
+    give(ecs, next, actorId);
+    state.redraws.push(next, actorId);
+  } else {
+    const type = ecs.good[held].type;
+    const container = ecs.container[home];
+    take(ecs, held);
+    if (container && containerHasSpace(container)) {
+      container.amounts[type] = (container.amounts[type] || 0) + 1;
+      deleteEntity(state, held);
+    } else {
+      Object.assign(ecs.spatial[held], { x: ecs.spatial[home].x + 22, y: ecs.spatial[home].y + 16 });
+      state.redraws.push(held);
+    }
+    world.gathered = gathered.filter(id => id != held);
+    if (order) order.gathered = world.gathered;
+    world.holding[type] = ecs.holder[actorId].held.some(id => ecs.good[id]?.type == type);
+    state.redraws.push(home, actorId);
+  }
+  return Task.CONTINUE;
 }

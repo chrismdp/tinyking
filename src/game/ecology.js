@@ -156,7 +156,7 @@ export function updateEcology(state) {
     const tile = tiles[hex];
     if (!tile || (counts[tile.biome] || 0) >= (treeCaps[tile.biome] || 0)) continue;
     const space = state.space[hex] || [];
-    if (space.some(e => state.ecs.building?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
+    if (space.some(e => state.ecs.building?.[e] || state.ecs.camp?.[e] || state.ecs.shelter?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
     // Inspect only this tile and its six neighbours, never the whole forest.
     const crowded = Grid.hexagon({ center: hex, radius: 1 }).some(h => (state.space[h] || []).some(e => {
       if (!state.ecs.tree[e] && !state.ecs.forageable?.[e]) return false;

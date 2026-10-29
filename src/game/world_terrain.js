@@ -60,7 +60,7 @@ export function createLandField(seed) {
   };
 }
 
-const startPatches = tiles.filter(h => MAP_CENTRE.distance(h) <= MAP_RADIUS - 2).map(hex => ({
+const startPatches = tiles.filter(h => MAP_CENTRE.distance(h) >= MAP_RADIUS - 4 && MAP_CENTRE.distance(h) <= MAP_RADIUS - 2).map(hex => ({
   hex,
   keys: [...Grid.hexagon({ center: hex, radius: 2 })].map(h => h.toString())
 }));
@@ -73,7 +73,9 @@ function startIn(field, home) {
   if ([...terrain.values()].filter(t => !t.includes("water")).length / tiles.length < 0.6) {
     return;
   }
-  const patch = startPatches.find(p => p.keys.every(k => terrain.get(k) == "grassland"));
+  const clear = startPatches.filter(p => p.keys.every(k => terrain.get(k) == "grassland"));
+  // A second clearing leaves room for a nearby village, joined by walkable land.
+  const patch = clear.find(p => clear.some(v => p.hex.distance(v.hex) >= 3 && p.hex.distance(v.hex) <= 4));
   return patch && { x: patch.hex.x, y: patch.hex.y };
 }
 

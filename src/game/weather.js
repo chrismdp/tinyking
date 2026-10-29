@@ -103,7 +103,7 @@ export function weatherForWorld(world, seed, days) {
     }
     const moisture = clamp(weight ? moistureAt(h) * 0.55 + supply / weight * 0.45 : moistureAt(h));
     const change = Math.abs(settled[key] - pressureAt(h, seed, Math.max(0, at - 3 * HOUR)));
-    const stormThreshold = PLAINS.includes(h.biome) ? 5.5 : ["jungle", "taiga"].includes(h.biome) ? 14 : 9;
+    const stormThreshold = PLAINS.includes(h.biome) ? 11 : ["jungle", "taiga"].includes(h.biome) ? 20 : 15;
     let type = "clear";
     if (settled[key] < 1020 && change > stormThreshold) {
       type = "storm";

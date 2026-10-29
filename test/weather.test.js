@@ -102,7 +102,7 @@ it("brings storms much more often to open plains than jungle or taiga over seeds
   expect(counts.jungle / samples).toBeLessThan(0.04);
   expect(counts.taiga / samples).toBeLessThan(0.04);
   for (const biome of ["grassland", "steppe", "savanna"]) {
-    expect(counts[biome] / samples).toBeLessThan(0.4);
+    expect(counts[biome] / samples).toBeLessThan(0.1);
     expect(counts[biome]).toBeGreaterThan(100);
     expect(counts[biome]).toBeGreaterThan(counts.jungle * 3);
     expect(counts[biome]).toBeGreaterThan(counts.taiga * 3);

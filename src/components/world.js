@@ -11,14 +11,13 @@ import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
 import { anyControlledAlive } from "game/playable";
-import * as htn from "game/htn";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
-import { enqueueTask, reorderTask, cancelTask, removeJob } from "game/manager";
+import { enqueueTask, reorderTask, cancelTask, cancelJob } from "game/manager";
 
 import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
@@ -171,12 +170,7 @@ export function World() {
       reorder_task: (id, index) => { reorderTask(state, id, index); renderUI(); },
       cancel_task: id => { cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
-        const assignedId = removeJob(state.ecs, managerId, key, targetId);
-        const planner = state.ecs.planner[assignedId];
-        if (planner) {
-          planner.world.currentJob = null;
-          htn.replan(planner);
-        }
+        cancelJob(state, managerId, key, targetId);
         setPopupInfo({});
         renderUI();
       },

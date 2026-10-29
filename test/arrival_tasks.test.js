@@ -235,3 +235,17 @@ it("takes construction wood from a stockpile and redraws it after pickup", () =>
   expect(state.ecs.holder[store].held).toEqual([]);
   expect(state.redraws).toContain(store);
 });
+
+it("cancels a running forage order from the existing popup without inventing held food", () => {
+  const { state, player, tiles, step } = arrival();
+  const [bush] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true },
+    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 } }]);
+  enqueueTask(state, { key: "forage" }, bush);
+  for (let n = 0; n < 60 && state.ecs.planner[player].task?.[0] != "forage"; n++) step(1 / 60);
+  expect(state.ecs.planner[player].task[0]).toBe("forage");
+  require("game/manager").cancelJob(state, player, "forage", bush);
+  step(0.1);
+  expect(state.ecs.manager[player].jobs).toEqual([]);
+  expect(state.ecs.planner[player].world.holding.forage).toBeFalsy();
+  expect(state.ecs.forageable[bush].amount).toBe(1);
+});

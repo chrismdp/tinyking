@@ -33,6 +33,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
   const pointers = new Map();
   let press = null;
   let pinch = null;
+  let tapTimer = null;
 
   const raycaster = new THREE.Raycaster();
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -157,7 +158,13 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
     }
     if (press && press.id == e.pointerId) {
       if (e.type != "pointercancel" && !press.moved && press.button == 0) {
-        onClick(e);
+        if (e.pointerType == "touch") {
+          // Open after the compatibility click, which could otherwise hit
+          // a newly mounted popup button at the finger's position.
+          tapTimer = setTimeout(() => { tapTimer = null; onClick(e); }, 0);
+        } else {
+          onClick(e);
+        }
       }
       press = null;
     }
@@ -260,6 +267,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, ma
       place();
     },
     dispose() {
+      clearTimeout(tapTimer);
       dom.removeEventListener("pointerdown", onPointerDown);
       dom.removeEventListener("pointermove", onPointerMove);
       dom.removeEventListener("pointerup", onPointerUp);

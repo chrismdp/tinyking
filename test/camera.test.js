@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { createCameraRig } from "render/camera";
 
 it("pans with one touch, pinches to zoom, twists to rotate, taps to select and ignores cancelled touches", () => {
+  jest.useFakeTimers();
   global.window = new EventTarget();
   const dom = new EventTarget();
   Object.assign(dom, { clientWidth: 390, clientHeight: 844, setPointerCapture() {},
@@ -39,7 +40,12 @@ it("pans with one touch, pinches to zoom, twists to rotate, taps to select and i
   expect(onClick).not.toHaveBeenCalled();
   pointer("pointerdown", 1, 100, 300);
   pointer("pointerup", 1, 100, 300);
+  // The browser still dispatches a compatibility click after pointerup. Open
+  // the menu afterwards so that click cannot activate a button under the tap.
+  expect(onClick).not.toHaveBeenCalled();
+  jest.runOnlyPendingTimers();
   expect(onClick).toHaveBeenCalledTimes(1);
   rig.dispose();
   delete global.window;
+  jest.useRealTimers();
 });

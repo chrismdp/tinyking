@@ -71,3 +71,19 @@ export function cancelTask(state, taskId) {
   if (index == 0) interruptOrder(state);
   jobs.splice(index, 1);
 }
+
+export function cancelJob(state, managerId, key, targetId) {
+  const manager = state.ecs.manager[managerId];
+  const entry = manager.jobs.find(j => j.job.key == key && j.targetId == targetId);
+  if (!entry) return;
+  if (manager.ordered && managerId == state.ui.playerId) {
+    cancelTask(state, entry.id);
+  } else {
+    const assignedId = removeJob(state.ecs, managerId, key, targetId);
+    const planner = state.ecs.planner[assignedId];
+    if (planner) {
+      planner.world.currentJob = null;
+      planner.plan = null;
+    }
+  }
+}

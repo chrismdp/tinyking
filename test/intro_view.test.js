@@ -57,6 +57,33 @@ const openingView = () => {
   return { state, view, id, npcs };
 };
 
+it("keeps isolated activities, clears crowded bubbles and reveals the selected encounter without changing tasks", () => {
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  const { state, view, id, npcs } = openingView();
+  const visible = personId => view.objectOf(personId).children.find(c => c.userData.activity)?.visible;
+  const tasks = JSON.stringify(state.ecs.planner);
+  try {
+    view.frame();
+    expect(visible(id)).toBe(true);
+    expect(npcs.filter(visible)).toHaveLength(1);
+    state.ui.show.selected_person = npcs[2];
+    view.frame();
+    expect(visible(npcs[2])).toBe(true);
+    expect(visible(npcs[0])).toBe(false);
+    expect(visible(npcs[1])).toBe(false);
+
+    state.ui.show.selected_person = null;
+    [-80, 0, 140].forEach((x, i) => { state.ecs.spatial[npcs[i]].x = x; });
+    view.frame();
+    expect(npcs.map(visible)).toEqual([true, true, true]);
+    expect(visible(id)).toBe(true);
+    expect(JSON.stringify(state.ecs.planner)).toBe(tasks);
+  } finally {
+    view.dispose();
+    delete global.window;
+  }
+});
+
 it.each(["watch", "skip", "url"])("refreshes existing player and NPC labels on intro entry and %s handover without planner redraws", method => {
   global.window = { addEventListener() {}, removeEventListener() {} };
   const { state, view, id, npcs } = openingView();

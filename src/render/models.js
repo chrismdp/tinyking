@@ -480,6 +480,7 @@ export function person(state, e, t, { realm, selected }) {
   const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => displayName(state, id)) : null;
   if (activity) {
     const text = label(activity);
+    text.name = "activity";
     text.position.y = height + 14;
     group.add(text);
   }

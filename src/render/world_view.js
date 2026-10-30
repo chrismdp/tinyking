@@ -219,6 +219,38 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
   };
 
+  // Keep ordinary activity where it fits; the player and selected encounter
+  // retain their full wording. Recompute after movement and camera changes.
+  const showActivities = () => {
+    const overlaps = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+    const activities = [];
+    for (const id of people) {
+      const object = objects[id], text = object.getObjectByName("activity");
+      if (!object.visible || !text) continue;
+      const at = text.getWorldPosition(new THREE.Vector3());
+      const depth = -at.clone().applyMatrix4(camera.matrixWorldInverse).z;
+      const centre = at.project(camera);
+      const halfWidth = text.scale.x * camera.projectionMatrix.elements[0] / depth / 2;
+      const halfHeight = text.scale.y * camera.projectionMatrix.elements[5] / depth / 2;
+      const bounds = [centre.x - halfWidth, centre.y - halfHeight, centre.x + halfWidth, centre.y + halfHeight];
+      const foot = object.position.clone().project(camera);
+      const head = object.position.clone().add(new THREE.Vector3(0, object.userData.anchorHeight, 0)).project(camera);
+      const bodyWidth = state.ecs.personable[id].size * camera.projectionMatrix.elements[0] / depth / 2;
+      activities.push({ id, text, bounds,
+        body: [Math.min(foot.x, head.x) - bodyWidth, Math.min(foot.y, head.y), Math.max(foot.x, head.x) + bodyWidth, Math.max(foot.y, head.y)],
+        onScreen: depth > 0 && centre.z < 1 && overlaps(bounds, [-1, -1, 1, 1]),
+        priority: id == state.ui.playerId || selected.includes(id) });
+    }
+    const shown = [];
+    activities.sort((a, b) => Number(b.priority) - Number(a.priority));
+    for (const activity of activities) {
+      const { id, text, bounds, priority, onScreen } = activity;
+      text.visible = onScreen && (priority || (!shown.some(other => overlaps(bounds, other)) &&
+        !activities.some(other => other.id != id && overlaps(bounds, other.body))));
+      if (text.visible) shown.push(bounds);
+    }
+  };
+
   const light = () => {
     const { night, sunset } = skyAt(state.days);
     const cloud = weatherLight((localWeather(state) || {}).type);
@@ -385,6 +417,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         }
         rig.shot(shot);
       } else rig.update(dt);
+      showActivities();
       lastIntro = state.intro;
       wasArriving = arriving;
       weatherView.update(weather, camera, now / 1000,

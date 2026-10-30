@@ -22,7 +22,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       const data = await page.evaluate(() => {
         const s = window.tinyking, player = s.ui.playerId, selected = s.ui.selected || s.ui.show.selected_person;
         const bond = s.ecs.relationships[selected]?.known[player];
-        return { day: s.days, gameHours: s.days * 24, playerTasks: s.ecs.manager[player].jobs, hunger: s.ecs.personable[player].hunger,
+        return { day: s.days, gameHours: s.days * 24, playerTasks: s.ecs.manager[player].jobs, hunger: s.ecs.personable[player].hunger, tiredness: s.ecs.personable[player].tiredness,
           selected, ring: bond?.ring || "public", hint: document.querySelector(".feeling-line strong")?.textContent || null,
           favours: Object.values(s.favours?.requests || {}).filter(r => (s.knowledge?.[player]?.favours || []).includes(r.id)), helperObservation: window.favourObservation,
           latestEvents: (s.events || []).filter(e => e.day >= 0).slice(-5) };
@@ -115,7 +115,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     story.actions.push({ action: "Accepted the discovered fuel request and moved it ahead of building", favourId });
     await pair("favour-accepted-in-queue", true);
     // Read-only observation plus normal Pause commands captures the real
-    // handover and real help before Fast can move past them. No diagnostic setup.
+    // handover, material-ready boundary and real help before Fast passes them.
     await page.evaluate(id => {
       const s = window.tinyking;
       window.favourObservation = { favourId: id };
@@ -130,8 +130,24 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
           o.delivery = { day: s.days, targetPosition: { ...s.ecs.spatial[r.targetId] }, store: { ...s.ecs.container[r.targetId].amounts }, request: JSON.parse(JSON.stringify(r)), position: { ...s.ecs.spatial[s.ui.playerId] }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
           s.ui.actions.set_speed("paused");
         }
+        const build = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "build_shelter"), site = s.ecs.construction[build?.targetId];
+        if (o.delivery && !o.materialReady && site?.stage == "lean-to" && site.delivered == 4) {
+          o.materialReady = { day: s.days, target: build.targetId, site: { ...site }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
+          s.ui.actions.set_speed("paused");
+        }
+        const conversation = s.knowledge[s.ui.playerId]?.people[r.giverId]?.conversation;
+        if (o.materialReady && !o.chat && conversation?.day > o.materialReady.day) {
+          o.chat = { ...conversation, result: { ...s.ui.talkResult }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
+        }
+        const player = s.ecs.planner[s.ui.playerId], needTask = player.task?.[0];
+        if (["eat", "sleep"].includes(needTask)) {
+          o.care ||= {};
+          o.care[needTask] ||= { day: s.days, hunger: s.ecs.personable[s.ui.playerId].hunger, tiredness: s.ecs.personable[s.ui.playerId].tiredness };
+        }
+        const walking = Object.values(s.ecs.planner).find(p => p.task?.[0] == "walk_to" && p.world.helpingFriend?.kind == "build");
+        if (walking && !o.helperWalk) o.helperWalk = { day: s.days, helperId: walking.id, target: walking.world.helpingFriend.targetId, position: { ...s.ecs.spatial[walking.id] } };
         const helper = Object.values(s.ecs.planner).find(p => p.task?.[0] == "help_friend_work" && p.world.helpingFriend?.kind == "build");
-        if (helper && !o.help) {
+        if (helper && o.chat && !o.help) {
           const target = helper.world.helpingFriend.targetId;
           o.help = { day: s.days, helperId: helper.id, target, targetPosition: { x: helper.world.helpingFriend.x, y: helper.world.helpingFriend.y }, sitePosition: { ...s.ecs.spatial[target] }, position: { ...s.ecs.spatial[helper.id] }, site: { ...s.ecs.construction[target] }, controller: s.ecs.controllable[helper.id].controllerId, home: s.ecs.household[helper.id].houseId, bond: { ...s.ecs.relationships[helper.id].known[s.ui.playerId] } };
           s.ui.actions.set_speed("paused");
@@ -152,6 +168,16 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await pair("earned-ring-improvement");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
+    await page.waitForFunction(() => window.favourObservation?.materialReady, null, { timeout: 180000 });
+    await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
+    await page.getByRole("button", { name: "Chat", exact: true }).click();
+    const earlierChat = page.locator(".task").filter({ hasText: "Chat" }).getByRole("button", { name: "Move earlier", exact: true });
+    while (await earlierChat.isEnabled()) await earlierChat.click();
+    story.actions.push({ action: "Paused the whole game at four delivered logs; queued a third Chat with the earned friend ahead of Build using Move earlier", person,
+      boundary: await page.evaluate(() => window.favourObservation.materialReady),
+      queue: await page.evaluate(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs) });
+    await pair("material-ready-chat-before-build");
+    await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
     await page.waitForFunction(() => window.favourObservation?.help, null, { timeout: 180000 });
     const proof = await page.evaluate(() => {
       const s = window.tinyking, o = window.favourObservation;
@@ -160,6 +186,14 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     });
     assert(Math.hypot(proof.delivery.position.x - proof.delivery.targetPosition.x, proof.delivery.position.y - proof.delivery.targetPosition.y) <= 10, "Delivery must be physical at the requesting household");
     assert.equal(proof.delivery.request.delivered, 1);
+    assert.equal(proof.delivery.request.progress, 1);
+    assert.equal(proof.delivery.request.goodwill, 12);
+    assert.equal(proof.help.site.stage, "lean-to");
+    assert.equal(proof.help.site.delivered, 4);
+    assert.equal(proof.chat.result.message, "You spent some time together.", "The third Chat must complete with consent");
+    assert.equal(proof.helperWalk.helperId, person);
+    assert.equal(proof.help.helperId, person);
+    assert(Math.hypot(proof.help.position.x - proof.helperWalk.position.x, proof.help.position.y - proof.helperWalk.position.y) > 0, "The earned friend must actually walk to help");
     assert(Math.hypot(proof.help.position.x - proof.help.targetPosition.x, proof.help.position.y - proof.help.targetPosition.y) <= 10, "Helper must stand at the actual site");
     assert(Math.hypot(proof.help.position.x - proof.help.sitePosition.x, proof.help.position.y - proof.help.sitePosition.y) <= 50, "Helper must work beside the actual frame");
     assert(proof.help.site.work > 0, "Helper must contribute actual construction work");
@@ -193,7 +227,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await frame("player");
     assert.equal(story.errors.length, 0, story.errors.join("\n"));
     story.complete = true;
-    story.assistance += " Two conversations and a real fuel delivery earned Personal; no materials, needs or rings were injected. The observer used Pause at actual delivery/help. Phone frames resize the same session to 390x664 with CDP touch emulation.";
+    story.assistance += " Two conversations and a real fuel delivery earned Personal; a third consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
     console.log("PASS real favour accepted, physically delivered once and rewarded; earned Personal friend walked and worked; storyboard complete; no console errors");
   } catch (error) {
     story.failure = String(error);

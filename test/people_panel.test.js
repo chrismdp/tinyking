@@ -6,11 +6,67 @@ import { PersonPanel, FamilyTree, layoutFamily } from "../src/components/person_
 import { GameState } from "../src/components/contexts";
 import { peopleWorld } from "./support/people";
 import { knownFamilyTree, askAbout } from "game/people";
+import { createPossession, transferPossession } from "game/possessions";
 
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 
 const render = (state, view) => renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={state}>{view}</GameState.Provider></I18n>);
+
+it("keeps unknown possession makers and past owners anonymous until their names are learned", () => {
+  const { state, player, person, parent, sibling } = peopleWorld();
+  state.ecs.relationships[player].known[person] = { ring: "public", goodwill: 0 };
+  const item = createPossession(state, parent, "Miller ring");
+  transferPossession(state, item, sibling, "gift");
+  transferPossession(state, item, person, "inheritance");
+  const before = JSON.stringify(state);
+  const panel = () => render(state, <PersonPanel entityId={person}/>);
+  const tree = render(state, <FamilyTree entityId={person}/>);
+  expect(tree).not.toContain("Edith Miller");
+  expect(tree).not.toContain("Alice Miller");
+  let html = panel();
+  expect(html).toContain("Miller ring");
+  expect(html).toContain("Made by an unknown person. First owned by an unknown person.");
+  expect(html).toContain("an unknown person (made) → an unknown person (gift) → Agnes Miller (inheritance)");
+  expect(html).not.toContain("Edith Miller");
+  expect(html).not.toContain("Alice Miller");
+  expect(JSON.stringify(state)).toBe(before);
+
+  state.ecs.relationships[player].known[parent] = { ring: "public", goodwill: 0 };
+  (state.knowledge[player] ||= { people: {}, feelings: {}, events: [] }).people[sibling] = {};
+  html = panel();
+  expect(html).toContain("Made by Edith Miller. First owned by Edith Miller.");
+  expect(html).toContain("Edith Miller (made) → Alice Miller (gift) → Agnes Miller (inheritance)");
+  expect(state.ecs.relationships[person].known[player]).toBeUndefined();
+});
+
+it("keeps an owned unique gift's identity and history without revealing unknown previous owners", () => {
+  const { state, player, person, parent, sibling } = peopleWorld();
+  state.ecs.relationships[player].known[person] = { ring: "public", goodwill: 0 };
+  const item = createPossession(state, parent, "Ashdown keepsake");
+  transferPossession(state, item, sibling, "gift");
+  transferPossession(state, item, player, "inheritance");
+  const before = JSON.stringify(state);
+  const chooser = jest.spyOn(React, "useState").mockImplementation(initial => [initial === null ? "gift" : initial, jest.fn()]);
+  try {
+    const panel = () => render(state, <PersonPanel entityId={person}/>);
+    let html = panel();
+    expect(html).toContain("Choose a gift");
+    expect(html).toContain("Ashdown keepsake · value 12");
+    expect(html).toContain("Personal possession · an unknown person → an unknown person → Will Ashdown");
+    expect(html).toContain("1 available");
+    expect(html).not.toContain("Edith Miller");
+    expect(html).not.toContain("Alice Miller");
+    expect(JSON.stringify(state)).toBe(before);
+
+    state.ecs.relationships[player].known[parent] = { ring: "public", goodwill: 0 };
+    (state.knowledge[player] ||= { people: {}, feelings: {}, events: [] }).people[sibling] = {};
+    html = panel();
+    expect(html).toContain("Personal possession · Edith Miller → Alice Miller → Will Ashdown");
+    expect(state.ecs.possession[item].ownerId).toBe(player);
+    expect(state.ecs.possession[item].owners.map(o => o.personId)).toEqual([parent, sibling, player]);
+  } finally { chooser.mockRestore(); }
+});
 
 it("shows only an impression and learned traits at Public, and the true ring at Social", () => {
   const { state, player, person, parent } = peopleWorld();

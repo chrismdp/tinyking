@@ -1,3 +1,6 @@
+import { transferPossession } from "game/possessions";
+import { recordEvent } from "game/events";
+import { chatTogether } from "game/social";
 import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
@@ -422,6 +425,12 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
     .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
 
   if (!droppedId) { world.holding[type] = false; return Task.ABORT; }
+  if (state.ecs.possession?.[droppedId]) {
+    take(state.ecs, droppedId);
+    state.ecs.possession[droppedId].carried = true;
+    world.holding[type] = false;
+    return Task.FINISH;
+  }
   take(state.ecs, droppedId);
   deleteEntity(state, droppedId);
   if (state.ecs.container[containerId].amounts[type]) {
@@ -647,7 +656,7 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
     const holder = state.ecs.holder[actorId];
     const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == thing);
     if (!id) {
-      console.log("EAT", actorId, "NO", thing, "to eat");
+      world.holding[thing] = false;
       return Task.ABORT;
     }
     take(state.ecs, id, null);
@@ -688,7 +697,16 @@ export function release_attention(state, actorId, world, dt, firstRun, targetId)
 export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type) {
   const ecs = state.ecs;
   const available = giftOptions(state, actorId).find(g => g.sourceId == sourceId && g.type == type);
+  const personal = ecs.possession?.[sourceId];
   const held = ecs.haulable?.[sourceId]?.heldBy == actorId;
+  if (personal && personal.ownerId == actorId) {
+    if (ecs.holder[actorId].held.length >= ecs.holder[actorId].capacity) return Task.ABORT;
+    const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+    order.giftItem = sourceId;
+    personal.carried = false;
+    give(ecs, sourceId, actorId);
+    return Task.FINISH;
+  }
   if (!available || (!held && math.squaredDistance(ecs.spatial[actorId], ecs.spatial[sourceId]) > 100)) return Task.ABORT;
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
   if ((!held || ecs.good[sourceId].amount > 1) && ecs.holder[actorId].held.length >= ecs.holder[actorId].capacity) return Task.ABORT;
@@ -696,7 +714,7 @@ export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type
   if (ecs.container?.[sourceId] || ecs.good[sourceId].amount > 1) {
     if (ecs.container?.[sourceId]) ecs.container[sourceId].amounts[type]--;
     else ecs.good[sourceId].amount--;
-    [itemId] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { type, amount: 1, value: available.value },
+    [itemId] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { ...available, sourceId: undefined, amount: 1, type },
       haulable: {}, controllable: { controllerId: actorId } }]);
   }
   if (!held || itemId != sourceId) give(ecs, itemId, actorId);
@@ -723,9 +741,12 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
     beginInteraction(state, actorId, personId);
     const goodwill = giftGoodwill(state, actorId, personId, item);
     take(ecs, itemId);
+    if (ecs.possession?.[itemId]) {
+      transferPossession(state, itemId, personId, "gift", actorId);
+    } else recordEvent(state, "gift", [actorId, personId], [itemId]);
     ecs.controllable[itemId].controllerId = personId;
-    if (give(ecs, itemId, personId)) ecs.planner[personId].world.holding[item.type] = true;
-    else {
+    if (!ecs.possession?.[itemId] && give(ecs, itemId, personId)) ecs.planner[personId].world.holding[item.type] = true;
+    else if (!ecs.possession?.[itemId]) {
       ecs.spatial[itemId] = { ...ecs.spatial[personId], id: itemId };
       state.space[Hex().fromPoint(ecs.spatial[itemId])].push(itemId);
     }
@@ -784,4 +805,14 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
   if (!state.ecs.workplace?.[workplaceId] || time.hour_of_day(state.days) >= 17 || time.hour_of_day(state.days) < 8) return Task.FINISH;
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[workplaceId]) > 12 ** 2) return Task.ABORT;
   return workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2) ? Task.FINISH : Task.CONTINUE;
+}
+
+export function socialise(state, actorId, world, dt, firstRun, partnerId) {
+  if (firstRun) world.wait_until = state.days + 0.5 / 24;
+  if (!world.social || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired) { delete world.social; return Task.FINISH; }
+  if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) { delete world.social; return Task.FINISH; }
+  if (state.days < world.wait_until) return Task.CONTINUE;
+  if (actorId < partnerId) chatTogether(state, actorId, partnerId);
+  delete world.social;
+  return Task.FINISH;
 }

@@ -13,11 +13,13 @@ const FARM_LABELS = { ploughed: "plough_field", sown: "sow_field", harvested: "h
 
 // Observable activity comes from the running task, never a future plan or a
 // world.label left over from earlier work. Both the model and sheet use this.
-export function currentActivity(ecs, id, t) {
+export function currentActivity(ecs, id, t, personName = id => ecs.nameable[id]?.nickname || "someone") {
   if (ecs.personable?.[id]?.dead) return t("tasks.dead");
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return t("tasks.idle");
   const [key, target, place] = task;
+  if (key == "walk_to" && world?.social?.partnerId == target) return "Visiting " + personName(target);
+  if (key == "socialise" && world.social) return (world.social.courting ? "Courting " : "Chatting with ") + personName(target);
   if (["chop_tree", "walk_to", "carry_home"].includes(key)) {
     const order = Object.values(ecs.manager || {}).flatMap(m => m.jobs).find(j => j.assignedId == id && !j.waiting && j.job.key == "cut_tree_down");
     const phase = order && woodPhase(ecs, id, order);

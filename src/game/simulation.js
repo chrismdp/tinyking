@@ -1,3 +1,5 @@
+import { socialHour } from "game/social";
+import { die } from "game/possessions";
 import * as htn from "game/htn";
 import { introActive, updateIntro } from "game/intro";
 import * as time from "game/time";
@@ -98,30 +100,7 @@ function updatePlanners(state, frameMod) {
 }
 
 function starve(state, id) {
-  state.ecs.personable[id].dead = true;
-  state.ecs.personable[id].deathCause = "starvation";
-  const planner = state.ecs.planner[id];
-  if (planner) {
-    planner.task = null;
-    planner.plan = null;
-    planner.world.label = null;
-  }
-  for (const farm of Object.values(state.ecs.farmable || {})) {
-    if (farm.claimerId == id) farm.claimerId = null;
-  }
-  for (const manager of Object.values(state.ecs.manager || {})) {
-    for (const job of manager.jobs) if (job.assignedId == id) job.assignedId = null;
-  }
-  for (const bed of Object.values(state.ecs.sleepable || {})) {
-    bed.occupiers = bed.occupiers.filter(occupier => occupier != id);
-  }
-  for (const other of Object.values(state.ecs.planner)) {
-    if (other.world.capturedBy == id) {
-      other.world.capturedBy = null;
-      htn.replan(other);
-    }
-  }
-  state.redraws.push(id);
+  die(state, id, "starvation");
 }
 
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
@@ -180,6 +159,7 @@ export function createSimulation(state, { onHour } = {}) {
         updateEcology(state);
         updateWeather(state);
         drift(state, 1);
+        socialHour(state);
         if (onHour) {
           onHour();
         }

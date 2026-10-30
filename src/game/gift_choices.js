@@ -11,9 +11,9 @@ export function giftChoices(state, actorId) {
     const atHome = building && building == ecs.household?.[actorId]?.houseId;
     const hex = Hex().fromPoint(ecs.spatial[holder || gift.sourceId]);
     const location = `tile ${hex.x}, ${hex.y}`;
-    const source = holder == actorId ? "In your hands" : holder ? "Stockpile · " + location :
+    const source = gift.possession?.carried ? "Personal possession" : holder == actorId ? "In your hands" : holder ? "Stockpile · " + location :
       ecs.container?.[gift.sourceId] ? (atHome ? "Home stores" : "Container · " + location) : "On the ground · " + location;
-    const key = JSON.stringify([gift.type, gift.value, source]);
+    const key = JSON.stringify([gift.type, gift.value, source, gift.possession ? gift.sourceId : null]);
     if (choices.has(key)) choices.get(key).amount += gift.amount;
     else choices.set(key, { gift, source, amount: gift.amount });
   }

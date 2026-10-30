@@ -108,9 +108,10 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
 
 it("lets the family plough, sow, harvest and haul only its own fields into its household store", async () => {
   const s = await world();
-  const h = Object.values(s.ecs.household).find(h => h.farming && !h.trade);
+  const h = Object.values(s.ecs.household).find(h => h.farming && !h.trade && Object.keys(s.ecs.personable).some(id =>
+    !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId == h.id));
   expect(h).toBeDefined();
-  const family = Object.keys(s.ecs.personable).filter(id => s.ecs.household[id]?.houseId == h.id);
+  const family = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId == h.id);
   for (const id of Object.keys(s.ecs.planner)) if (!family.includes(id)) delete s.ecs.planner[id];
   for (const f of h.fields) for (const slot of s.ecs.farmable[f].slots) Object.assign(slot, { state: "empty", content: null, growth: 0 });
   const seen = new Set();
@@ -179,7 +180,7 @@ it("spreads evening visitors across the green so household groups do not occupy 
   const s = await world(1);
   s.days = 0.8;
   for (const village of Object.values(s.villages)) {
-    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
     const places = visitors.map(id => {
       const w = s.ecs.planner[id].world;
       find_place(s, id, w, 0, true, "meet", "space");
@@ -194,7 +195,7 @@ it("spreads evening visitors across the green so household groups do not occupy 
 it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
   const s = await world(8);
   for (const village of Object.values(s.villages)) {
-    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
     const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(s.ecs.meetingPlace[id].kind));
     const spaces = new Set(venues.flatMap(id => s.ecs.meetingPlace[id].gatheringPoints.map(p => p.x + "," + p.y)));
     expect(spaces.size).toBeGreaterThanOrEqual(visitors.length);
@@ -210,7 +211,7 @@ it.each([1, 8, 13, 20, 1234, 98765])("gives evening visitors room for their bodi
   const s = await world(seed);
   s.days = 0.8;
   for (const village of Object.values(s.villages)) {
-    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
     const places = visitors.map(id => {
       const w = s.ecs.planner[id].world;
       find_place(s, id, w, 0, true, "meet", "space");

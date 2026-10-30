@@ -1,3 +1,4 @@
+import { knownEvents, eventSentence } from "game/events";
 import React from "react";
 import PropTypes from "prop-types";
 import { useTranslate } from "react-polyglot";
@@ -93,7 +94,7 @@ export function PersonPanel({ entityId }) {
   const trade = ecs.profession?.[entityId]?.trade;
   const occupation = ecs.personable[entityId].age < 18 ? "Child" : trade ? titleCase(trade) :
     ecs.household[houseId]?.farming ? "Farming household" : null;
-  const activity = currentActivity(ecs, entityId, t);
+  const activity = currentActivity(ecs, entityId, t, id => displayName(state, id));
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
       <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{occupation ? occupation + " · " : ""}{activity}</p></div>
@@ -112,9 +113,11 @@ export function PersonPanel({ entityId }) {
       {!dead && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
       {!dead && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
-        {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
+        {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => displayName(state, o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
           Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{displayName(state, id)}</button>)}</div>}
       {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{displayName(state, id) + " is in " + personName + "'s " + titleCase(ring) + " ring."}</p>)}</div>}
+      <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => displayName(state, id))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
+      <div className="possessions"><p className="label">Personal possessions</p>{Object.values(ecs.possession || {}).filter(p => p.ownerId == entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {displayName(state, p.maker)}. First owned by {displayName(state, p.originalOwner)}.</p><p>{p.owners.map(o => displayName(state, o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
       {state.ui.talkResult?.personId == entityId && <p className="talk-note" role="status">{state.ui.talkResult.message}</p>}
     </div>
     <footer className="person-footer"><button onClick={() => setTreeOpen(true)}>Open family tree »</button><small>{knownCount == Object.keys(tree.nodes).length ? titleCase(possessive) + " whole family tree is known." : `${knownCount} ${knownCount == 1 ? "name" : "names"} known · the rest show as ?`}</small></footer>

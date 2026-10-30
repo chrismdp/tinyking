@@ -14,7 +14,7 @@ export const player_jobs = () => [
     (_, jobs) => firstFreeJob(jobs, key),
     entry => {
       const gift = key == "give_gift" && !entry.giftItem ? [
-        ["walk_to", entry.gift.sourceId], ["collect_gift", entry.gift.sourceId, entry.gift.type]
+        ...(entry.gift.possession?.carried ? [] : [["walk_to", entry.gift.sourceId]]), ["collect_gift", entry.gift.sourceId, entry.gift.type]
       ] : [];
       return [["take_job", key], ...gift, ["get_attention", entry.targetId],
         ["walk_to", entry.targetId], ["set_label", key],

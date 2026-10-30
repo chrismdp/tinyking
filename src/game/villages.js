@@ -53,7 +53,7 @@ export function generateVillageLife(state, seed, start) {
   };
   const add = (point, villageId, components, houseId) => newEntities(state, [{
     spatial: { x: point.x, y: point.y, immovable: true }, village: { villageId },
-    ...(houseId ? { controllable: { controllerId: ecs.controllable[houseId].controllerId } } : {}),
+    ...(houseId ? { controllable: { controllerId: houseId } } : {}),
     ...components
   }])[0];
   const enclosure = (point, villageId, houseId, kind, halfWidth, halfDepth, count, existing) => {
@@ -67,6 +67,7 @@ export function generateVillageLife(state, seed, start) {
         spatial: { x: point.x + Math.sin(phase) * (halfWidth - radius) * 0.65,
           y: point.y + Math.cos(phase) * (halfDepth - radius) * 0.65 },
         nameable: { nickname: kind }, village: { villageId },
+        controllable: { controllerId: houseId },
         animal: { houseId, pastureId: id, kind, phase, radius, facing: phase }
       }]);
     }
@@ -87,6 +88,8 @@ export function generateVillageLife(state, seed, start) {
       village.sharedPlaces.push(add(point, village.id, { nameable: { nickname: kind == "chapel" ? "Chapel" : "Alehouse" }, meetingPlace: { kind } }));
     }
     // First allocate every yard; fields must not take another family's backyard.
+    const inhabited = village.houses.filter(house => Object.keys(ecs.personable).some(id =>
+      !ecs.personable[id].dead && ecs.personable[id].age >= 18 && ecs.household[id]?.houseId == house));
     for (const houseId of village.houses) {
       const origin = Hex().fromPoint(ecs.spatial[houseId]);
       const adjacent = Grid.hexagon({ center: origin, radius: 1 }).neighborsOf(origin, ALL_SIDES);
@@ -98,18 +101,18 @@ export function generateVillageLife(state, seed, start) {
       const household = { id: houseId, farming: true, fields: [], backyards: [], storeId,
         plot: { hexes: [...new Set([origin.toString(), keyOf(yard)])] } };
       ecs.household[houseId] = household;
-      const h = village.houses.indexOf(houseId);
-      if (h < Math.min(6, village.houses.length - 2)) {
+      const h = inhabited.indexOf(houseId);
+      if (h >= 0 && h < Math.min(6, village.houses.length - 2)) {
         household.trade = TRADES[(h + vi) % TRADES.length];
         const point = { x: yard.x - 22, y: yard.y };
         household.workplaceId = add(point, village.id, {
           nameable: { nickname: household.trade == "smith" ? "Forge" : household.trade + " workshop" },
           workplace: { houseId, trade: household.trade, power: household.trade == "miller" ? "wind" : null }
         }, houseId);
-        const worker = Object.keys(ecs.personable).find(id => ecs.household[id]?.houseId == houseId && ecs.personable[id].age >= 18);
+        const worker = Object.keys(ecs.personable).find(id => ecs.household[id]?.houseId == houseId && !ecs.personable[id].dead && ecs.personable[id].age >= 18);
         ecs.profession ||= {};
-        ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
-        ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
+        if (worker) ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
+        if (worker) ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
       }
       const kinds = [BACKYARDS[householdIndex % BACKYARDS.length]];
       if (hashUnit(seed + ":backyard:" + houseId) < 0.6) kinds.push(BACKYARDS[(householdIndex + 2) % BACKYARDS.length]);
@@ -172,7 +175,7 @@ export function generateVillageLife(state, seed, start) {
       return used;
     };
     let used = spacesAround(venues.map(id => ecs.spatial[id]));
-    const population = Object.keys(ecs.personable).filter(id => ecs.village[id].villageId == village.id).length;
+    const population = Object.keys(ecs.personable).filter(id => !ecs.personable[id].dead && ecs.village[id].villageId == village.id).length;
     if (used.length < population) {
       // Fields can surround the original green. Choose the nearest reachable
       // unused tile with room for everyone, leaving all household plots intact.
@@ -277,5 +280,11 @@ export function eveningPlace(state, actorId) {
     cached = { key, pools, assignments };
     eveningAssignments.set(v, cached);
   }
-  return cached.assignments.get(actorId) || null;
+  if (cached.assignments.has(actorId)) return cached.assignments.get(actorId);
+  if (!villagers.includes(actorId)) return null;
+  // New arrivals can fill a clearing. They stay at their own family house
+  // until a space is free, rather than walking towards an undefined point.
+  const houseId = state.ecs.household?.[actorId]?.houseId;
+  const home = state.ecs.spatial?.[houseId];
+  return home ? { id: houseId, x: home.x, y: home.y } : null;
 }

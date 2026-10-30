@@ -916,3 +916,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 #task-panel .meal-interruption { padding: 10px 15px; background: #393e35; border-left: 3px solid #a6b88c; border-bottom: 1px solid #65575b; }
 #task-panel .meal-interruption strong { font-weight: normal; font-size: 17px; }
 .family-tree { margin: 0 auto; }
+
+.event-feed { pointer-events: auto; position: absolute; right: 14px; bottom: 66px; width: 290px; max-width: calc(100vw - 28px); background: rgba(30, 34, 27, .94); color: #eee5cd; border: 1px solid #928163; border-radius: 5px; font-size: 12px; z-index: 12;
+  summary { cursor: pointer; padding: 9px 12px; }
+  .event-entries { max-height: 210px; overflow-y: auto; padding: 4px 9px; }
+  button { display: block; text-align: left; width: 100%; background: transparent; color: inherit; border: 0; border-top: 1px solid #625c4c; padding: 8px 2px; cursor: pointer; font: inherit; }
+}
+.heard-events, .possessions { margin-top: 15px; p { line-height: 1.45; } summary { cursor: pointer; } }
+@media(max-width: 600px) { .event-feed { right: 8px; bottom: 60px; width: 215px; font-size: 11px; } .people-sheet { z-index: 20; } }

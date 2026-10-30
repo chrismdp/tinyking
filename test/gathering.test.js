@@ -57,3 +57,11 @@ it("recomputes from living local visitors and current venues after arrivals, dea
   s.villages.home.sharedPlaces = ["alehouse"];
   expect(eveningPlace(s, c)).toEqual({ id: "alehouse", ...alehouse });
 });
+
+it("gives an arrival a home destination when all clear gathering ground is occupied", () => {
+  const [a, b, c] = idsFor(0);
+  const s = fixture([a, b, c]);
+  s.ecs.household = { [c]: { houseId: "cottage" } };
+  s.ecs.spatial = { cottage: { x: 300, y: 100 } };
+  expect(eveningPlace(s, c)).toMatchObject({ id: "cottage", x: 300, y: 100 });
+});

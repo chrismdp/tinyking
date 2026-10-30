@@ -1,3 +1,4 @@
+import { generateHistory, giveTradeTools } from "game/history";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
 import { HEX_SIZE, Hex, Grid, ALL_SIDES } from "game/hex";
@@ -65,7 +66,7 @@ function generatePerson({ spatial, male, age, familySeed, generator, days }) {
   };
 }
 
-export function generateFamilies({ state, seed, playerStartTile }) {
+export function generateFamilies({ state, seed, playerStartTile, founding = false }) {
   const generator = new MersenneTwister(seed);
   const homes = {};
   for (const buildingId in state.ecs.building) {
@@ -85,7 +86,7 @@ export function generateFamilies({ state, seed, playerStartTile }) {
         familySeed, generator, days: state.days }),
       village: { villageId: home.villageId },
       household: { houseId: home.buildingId }
-    }]);
+    }], "person-");
     home.people.push(id);
     state.ecs.kinship[id].parents = [...parents];
     for (const parent of parents) state.ecs.kinship[parent].children.push(id);
@@ -124,8 +125,9 @@ export function generateFamilies({ state, seed, playerStartTile }) {
         inhabit(home, 18 + generator.random_int() % 5, male, familySeed, firstParents);
         continue;
       }
-      const head = inhabit(home, 40 + generator.random_int() % 5, male, familySeed, elders);
-      const spouse = inhabit(home, 40 + generator.random_int() % 5, !male, generator.random_int());
+      const adultAge = founding ? 22 + generator.random_int() % 25 : 40 + generator.random_int() % 5;
+      const head = inhabit(home, adultAge, male, familySeed, !founding || h == 1 ? elders : []);
+      const spouse = inhabit(home, adultAge, !male, generator.random_int());
       marry(head, spouse);
       const parents = [head, spouse];
       if (h == 1) firstParents = parents;
@@ -140,7 +142,7 @@ export function generateFamilies({ state, seed, playerStartTile }) {
       ...generatePerson({ spatial: Hex(playerStartTile).toPoint(), male: generator.random_int() % 2 == 0,
         age: 20 + generator.random_int() % 16, familySeed: generator.random_int(), generator, days: state.days }),
       village: { villageId: null }
-    }]);
+    }], "person-");
     state.ecs.playable = { [id]: { id, known: [] } };
     state.ecs.manager[id].ordered = true;
     state.ecs.planner[id].world.ordered = true;
@@ -475,7 +477,8 @@ export async function generateMap(state, seed, progressUpdate) {
     radius: MAP_RADIUS
   };
 
-  generateFamilies({ state, seed, playerStartTile });
+  generateFamilies({ state, seed, playerStartTile, founding: true });
+  generateHistory(state, seed);
   const playerId = Object.values(state.ecs.playable)[0].id;
   state.ecs.controllable[playerId].controllerId = playerId;
   discoverStartingTiles(state.ecs, playerId, playerStartTile);
@@ -516,6 +519,7 @@ export async function generateMap(state, seed, progressUpdate) {
   }
 
   generateVillageLife(state, seed, playerStartTile);
+  giveTradeTools(state);
   initializeEcology(state, seed);
   generateForage(state, seed, playerStartTile);
   updateWeather(state, 0, seed);

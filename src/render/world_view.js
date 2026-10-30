@@ -119,6 +119,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const build = id => {
     const ecs = state.ecs;
     const isSelected = selected.includes(id);
+    if (ecs.personable?.[id]?.historical || ecs.possession?.[id]?.carried) return null;
     if (ecs.interior[id]) {
       return null;
     }

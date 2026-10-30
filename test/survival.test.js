@@ -265,3 +265,11 @@ it("chooses reachable forage even when a closer plant is across water", () => {
   find_place(state, villager, world, 0, true, "food", "forage_plant");
   expect(world.places.food).toBe(reachable);
 });
+
+it("forgets a held-food claim if an interrupted meal already consumed that portion", () => {
+  const { state, villager } = hungryVillage();
+  const world = state.ecs.planner[villager].world;
+  world.holding.forage = true;
+  expect(eat(state, villager, world, 0, true, "forage")).toBe(Task.ABORT);
+  expect(world.holding.forage).toBe(false);
+});

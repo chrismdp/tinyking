@@ -1,0 +1,12 @@
+import React from "react";
+import { GameState } from "components/contexts";
+import { eventSentence } from "game/events";
+
+export function EventFeed() {
+  const state = React.useContext(GameState);
+  const display = id => state.personName?.(id) || state.ecs.nameable[id]?.nickname || "an unknown person";
+  const events = (state.events || []).filter(e => e.day >= 0 && ["marriage", "birth", "death", "quarrel", "reconciliation", "inheritance", "gift"].includes(e.type)).slice(-12).reverse();
+  return <details className="event-feed"><summary>Village news <span>{events.length || ""}</span></summary>
+    <div className="event-entries">{events.length ? events.map(e => <button key={e.id} aria-label={"Select " + display(e.people[0])} onClick={() => state.ui.actions.select_entity(e.people[0], false)}>{eventSentence(state, e, display)}</button>) : <p>Village life is quiet. News will appear here.</p>}</div>
+  </details>;
+}

@@ -476,7 +476,7 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t) : null;
+  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => state.personName?.(id) || state.ecs.nameable[id]?.nickname || "someone") : null;
   if (activity) {
     const text = label(activity);
     text.position.y = height + 14;

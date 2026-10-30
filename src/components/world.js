@@ -1,3 +1,4 @@
+import { name } from "game/name";
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
@@ -30,8 +31,9 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   }
 
   // NOTE: draw everything on the first frame
-  state.redraws = Array.from({length: state.ecs.nextId - 1}, (v, i) => "" + (i + 1));
+  state.redraws = Object.keys(state.ecs.spatial);
 
+  state.personName = id => name(state.ecs.nameable[id]);
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 

@@ -56,3 +56,16 @@ it("shares current timber phases but shows actual meals and sleep during interru
   planner.task = ["sleep"];
   expect(currentActivity(state.ecs, player, t)).toBe("Sleeping");
 });
+
+it("shows the real chatting or courtship partner and clears it on an interrupted task", () => {
+  const { state, person, sibling } = peopleWorld();
+  const planner = state.ecs.planner[person];
+  planner.world.social = { partnerId: sibling, courting: false };
+  planner.world.label = "at_forge";
+  planner.task = ["socialise", sibling];
+  expect(currentActivity(state.ecs, person, t)).toBe("Chatting with Alice Miller");
+  planner.world.social.courting = true;
+  expect(currentActivity(state.ecs, person, t)).toBe("Courting Alice Miller");
+  planner.task = ["eat", "grain"];
+  expect(currentActivity(state.ecs, person, t)).toBe("Eating");
+});

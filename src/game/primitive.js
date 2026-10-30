@@ -143,3 +143,5 @@ export function deliver_log(world) { world.holding.wood = false; }
 export function carry_home() {}
 
 export function trade_work() {}
+
+export function socialise() {}

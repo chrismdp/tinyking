@@ -1,3 +1,4 @@
+import { knownEvents, learnEvent } from "game/events";
 import { topController } from "game/playable";
 
 // Personality is separate from traits, which holds temporary physical states.
@@ -52,7 +53,7 @@ export function disposition(state, a, b) {
 }
 
 function calibrateOpinions(state) {
-  const ids = Object.keys(state.ecs.personality);
+  const ids = Object.keys(state.ecs.personality).filter(id => !state.ecs.personable[id]?.dead);
   const scores = [];
   for (const a of ids) for (const b of ids) if (a != b) scores.push(opinion(state, a, b));
   scores.sort((a, b) => a - b);
@@ -63,10 +64,24 @@ function calibrateOpinions(state) {
   state.opinionThresholds = { hate: cut(0.2), love: cut(0.8) };
 }
 
+// Seasonal snapshots share untouched bond records. Only a written bond needs
+// copying; live lists do not pay for this copy-on-write bookkeeping.
+const sharedLists = new WeakSet();
+export function copyRelationshipList(list) {
+  const copy = {};
+  for (const id in list) copy[id] = list[id];
+  sharedLists.add(copy);
+  return copy;
+}
+function writableBond(list, id) {
+  if (sharedLists.has(list)) list[id] = { ...list[id] };
+}
+
 // Only the incoming member is protected. Displacement can cascade outwards,
 // but never changes goodwill or the other person's view of this relationship.
 function moveTo(list, id, rank) {
   const ring = RINGS[rank];
+  writableBond(list, id);
   list[id].ring = ring;
   const cap = RING_CAPS[ring];
   if (!cap) return;
@@ -98,6 +113,7 @@ export function addGoodwill(state, from, to, amount) {
   if (from == to) return;
   meet(state, to, from);
   const list = state.ecs.relationships[to].known;
+  writableBond(list, from);
   const bond = list[from];
   bond.goodwill += amount;
   const eligible = Math.min(goodwillRank(bond.goodwill), DISPOSITION_CAP[disposition(state, to, from)]);
@@ -107,9 +123,12 @@ export function addGoodwill(state, from, to, amount) {
 
 export function drift(state, hours) {
   if (hours <= 0) return;
-  for (const { known: list } of Object.values(state.ecs.relationships || {})) {
+  for (const [personId, { known: list }] of Object.entries(state.ecs.relationships || {})) {
+    if (state.ecs.personable?.[personId]?.dead) continue;
     for (const id in list) {
-      const bond = list[id];
+      let bond = list[id];
+      if ((bond.goodwill || 0) == (bond.base || 0)) continue;
+      writableBond(list, id); bond = list[id];
       // NOTE: a bond settles back to where it started, so family stays close
       // and only goodwill earned or lost since then fades
       const base = bond.base || 0;
@@ -154,6 +173,18 @@ export function initializeRelationships(state, seed) {
         list[other] = { ring: "public", goodwill, base: goodwill };
         moveTo(list, other, rank);
       }
+    }
+  }
+}
+
+// Keep the earned history when setting the arriving population's quantiles.
+export function recalibrateRelationships(state) {
+  calibrateOpinions(state);
+  for (const [id, r] of Object.entries(state.ecs.relationships)) {
+    if (state.ecs.personable[id]?.dead) continue;
+    for (const other of Object.keys(r.known)) {
+      const allowed = DISPOSITION_CAP[disposition(state, id, other)];
+      if (RINGS.indexOf(r.known[other].ring) > allowed) moveTo(r.known, other, allowed);
     }
   }
 }
@@ -277,6 +308,7 @@ export function askAbout(state, actorId, personId, aboutId) {
   for (const node of Object.values(knownFamilyTree(state, personId, aboutId).nodes)) {
     if (!node.unknown) learnPerson(state, actorId, node.id);
   }
+  for (const event of knownEvents(state, personId, aboutId)) learnEvent(state, actorId, event);
   return { ok: true, ring: bond.ring };
 }
 
@@ -292,12 +324,13 @@ export function giftGoodwill(state, actorId, personId, item) {
 // One option is one portion/item. Sources remain real until collected by the task.
 export function giftOptions(state, actorId) {
   const ecs = state.ecs;
-  const owned = id => ecs.controllable[id] && topController(ecs, id) == topController(ecs, actorId);
+  const owned = id => ecs.possession?.[id] ? ecs.possession[id].ownerId == actorId :
+    ecs.controllable[id] && topController(ecs, id) == topController(ecs, actorId);
   const options = [];
   for (const sourceId of Object.keys(ecs.haulable || {})) {
     const item = ecs.good[sourceId], holder = ecs.haulable[sourceId].heldBy;
     if (!item || item.amount <= 0 || !owned(sourceId) || (holder && holder != actorId && !ecs.stockpile?.[holder])) continue;
-    options.push({ sourceId, type: item.type, amount: item.amount, value: item.value });
+    options.push({ sourceId, ...item, ...(ecs.possession?.[sourceId] ? { possession: ecs.possession[sourceId] } : {}) });
   }
   for (const sourceId of Object.keys(ecs.container || {})) {
     if (!owned(sourceId)) continue;

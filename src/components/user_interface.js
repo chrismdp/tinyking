@@ -1,3 +1,4 @@
+import { EventFeed } from "./event_feed";
 import React from "react";
 
 import { introActive } from "game/intro";
@@ -28,7 +29,7 @@ export function UserInterface() {
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
       {show.mapgen && <Window windowId="mapgen" x={60} y={70}><CustomGame/></Window>}
       {show.selected_person && <SelectedPerson entityId={show.selected_person}/>}
-      {show.speed_controls && <><TaskPanel/><SpeedControls/></>}
+      {show.speed_controls && <><TaskPanel/><SpeedControls/><EventFeed/></>}
     </div>
   );
 }

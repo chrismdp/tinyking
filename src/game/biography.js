@@ -36,7 +36,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
       if (e.type == "birth" && a == person) text = "Born to " + e.people.slice(1).map(n).join(" and ") + " in " + when(e);
       if (e.type == "quarrel") text = "Fell out with " + n(other) + " in " + when(e);
       if (e.type == "reconciliation") text = "Made peace with " + n(other) + " in " + when(e);
-      if (e.type == "inheritance" && b == person) text = "Inherited " + (e.items.map(id => state.ecs.possession?.[id]?.name || "a household").join(", ") || "an estate") + " from " + n(a) + " in " + when(e);
+      if (e.type == "inheritance" && b == person) text = "Inherited " + (e.items.map(id => state.ecs.possession?.[id]?.name || (state.ecs.building?.[id] ? "a household" : "property")).join(", ") || "an estate") + " from " + n(a) + " in " + when(e);
     }
     if (text && !facts.some(f => f.topic == e.type + ":" + other)) facts.push({ key: e.id, text: text + ".", eventId: e.id, topic: e.type + ":" + other });
   }

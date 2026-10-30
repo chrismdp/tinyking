@@ -75,3 +75,15 @@ it("returns two stable distinctive facts from learned evidence and does not use 
   expect(read(s, player, person)).toEqual(facts);
   expect(JSON.stringify(s)).toBe(before);
 });
+
+it("does not turn a learned remote ring inheritance into a household when its item component is missing", () => {
+  const { state: s, player, person, parent } = peopleWorld();
+  const item = createPossession(s, parent, "Remote ring");
+  transferPossession(s, item, person, "inheritance");
+  s.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  chat(s, player, person);
+  delete s.ecs.possession[item];
+  const facts = read(s, player, person);
+  expect(facts.some(f => f.text == "Inherited property from Edith Miller in spring of year 1.")).toBe(true);
+  expect(JSON.stringify(facts)).not.toMatch(/inherited a household|Inherited a household|Still carries/);
+});

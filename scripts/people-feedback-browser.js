@@ -192,7 +192,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         for(const attempt of Object.values(o.playAttempts))if(!attempt.end&&attempt.ids.every(id=>s.ecs.planner[id].world.social?.kind!="play")){
           attempt.end={day:s.days,people:attempt.ids.map(id=>{const p=s.ecs.planner[id];return {id,task:p.task,feeling:{...p.world.feeling},needs:{hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness},lastPlay:p.world.lastPlay};})};
         }
-        if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
+        if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"&&p.world.social?.started?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"&&p.world.social?.stage=="visiting"&&p.world.social.conversations>0&&s.knowledge?.[id]?.people?.[p.world.social.partnerId]?.conversation?.day>=o.start?"adult-conversation":null;
           if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
           if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);}}
         if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
@@ -201,7 +201,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
       await page.waitForFunction(()=>window.feedbackObserve.end||window.feedbackObserve.capture,null,{timeout:120000});
       const capture=await page.evaluate(()=>window.feedbackObserve.capture);
       if(capture){
-        report.samples.push(await page.evaluate(c=>{const s=window.tinyking,id=c.id,p=s.ecs.planner[id];return {...c,person:s.ecs.personable[id].name,age:s.ecs.personable[id].age,task:p.task,position:{...s.ecs.spatial[id]},social:JSON.parse(JSON.stringify(p.world.social||null)),visible:s.renderer.objectOf(id)?.visible};},capture));
+        report.samples.push(await page.evaluate(c=>{const s=window.tinyking,id=c.id,p=s.ecs.planner[id],partner=p.world.social?.partnerId;return {...c,person:s.ecs.personable[id].name,age:s.ecs.personable[id].age,task:p.task,position:{...s.ecs.spatial[id]},partnerPosition:partner&&{...s.ecs.spatial[partner]},completedContact:s.knowledge?.[id]?.people?.[partner]?.conversation,social:JSON.parse(JSON.stringify(p.world.social||null)),visible:s.renderer.objectOf(id)?.visible};},capture));
         await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.select_entity(id,false);s.renderer.focusOn(s.ecs.spatial[id],650);},capture.id);
         await page.waitForTimeout(800);
         await shot("desktop-"+capture.kind);
@@ -220,6 +220,9 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert(report.observation.childCounts.play_together>0,"Children play in pairs");
     assert(report.observation.counts.perform_subtask_in_slot>0,"Real farm work remains reachable");
     assert(report.observation.conversations.length>0,"Conversations update contact");
+    const adultContact=report.samples.find(x=>x.kind=="adult-conversation")?.completedContact;
+    assert(adultContact?.day>=report.observation.start,"Visible adult conversation actually completes during this observation");
+    assert(Math.hypot(adultContact.position.x-adultContact.otherPosition.x,adultContact.position.y-adultContact.otherPosition.y)<=85,"Completed adult contact is physically local");
     const episodes=new Set(report.observation.play.map(x=>[x.id,x.partnerId].sort().join(":")+":"+x.started));
     assert(episodes.size>=2,"More than one real paired play episode completes during the ordinary day");
     assert(report.observation.play.every(x=>(x.ended-x.started)*24>=.5),"Completed play lasts at least half a game hour");

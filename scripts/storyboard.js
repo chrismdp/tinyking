@@ -187,9 +187,20 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
         upgrade.steps.push(step);
         if(step.kind=="ready")break;
         await page.getByRole("button",{name:"Fast speed",exact:true}).click();
-        await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:180000});
+        await page.waitForFunction(()=>{
+          const s=window.tinyking,id=s.ui.playerId,controls=window.upgradeControls||=[];
+          for(const job of [...s.ecs.manager[id].jobs])if(job.waiting=="Target gone"){
+            controls.push({day:s.days,action:"Cancel stale Target gone order",taskId:job.id,targetId:job.targetId});s.ui.actions.cancel_task(job.id);
+          }
+          const person=s.ecs.personable[id],p=s.ecs.planner[id];
+          if(!s.ecs.manager[id].jobs.length&&!["eat","sleep","forage"].includes(p.task?.[0])){
+            const key=person.hunger>.9?"find_food":person.tiredness>.9?"rest":null;
+            if(key){controls.push({day:s.days,action:key});s.ui.actions.choose_job(id,{key},id);}
+          }
+          return !s.ecs.manager[id].jobs.length;
+        },null,{timeout:180000});
         await page.getByRole("button",{name:"Pause",exact:true}).click();
-        step.after=await page.evaluate(()=>({day:window.tinyking.days,knownTiles:window.tinyking.ecs.playable[window.tinyking.ui.playerId].known.length}));
+        step.after=await page.evaluate(()=>({day:window.tinyking.days,knownTiles:window.tinyking.ecs.playable[window.tinyking.ui.playerId].known.length,controls:window.upgradeControls||[]}));
         if(step.kind=="explore")assert(step.after.knownTiles>step.knownTiles,"Move here must physically reveal new terrain");
       }
       await frame("funded-upgrade-timber");
@@ -259,7 +270,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     const page = browser.contexts().flatMap(context => context.pages())[0];
     const snapshot = page && await page.evaluate(() => {
       const s = window.tinyking;
-      return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages, events: s.events, knowledge: s.knowledge, favours: s.favours, ui: { playerId: s.ui.playerId }, observation: window.favourObservation };
+      return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages, events: s.events, knowledge: s.knowledge, favours: s.favours, ui: { playerId: s.ui.playerId }, observation: window.favourObservation, upgradeControls: window.upgradeControls };
     }).catch(() => null);
     if (snapshot) fs.writeFileSync(path.join(out, "failure-state.json"), JSON.stringify(snapshot));
     if (page) await page.screenshot({ path: path.join(out, "failure.png") }).catch(() => {});

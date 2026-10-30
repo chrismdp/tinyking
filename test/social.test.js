@@ -145,3 +145,23 @@ it("indexes a new marriage cottage on a supplied summary-world house site", () =
   expect(s.villages.village.houses).toHaveLength(4);
   expect(Object.values(s.space).flat().length).toBeGreaterThan(before);
 });
+
+it("lets grown children leave crowded households for empty village homes", () => {
+  const { state: s, person: a, parent, sibling } = peopleWorld();
+  const house = s.ecs.household[a].houseId;
+  s.ecs.building = { [house]: { rooms: [] }, empty: { rooms: [] } };
+  s.ecs.controllable.empty = { controllerId: "empty" };
+  s.ecs.village.empty = { villageId: "village" };
+  s.villages.village = { id: "village", houses: [house, "empty"] };
+  for (const id of ["grown-a", "grown-b"]) {
+    s.ecs.personable[id] = { age: 22 };
+    s.ecs.household[id] = { houseId: house }; s.ecs.village[id] = { villageId: "village" };
+    s.ecs.controllable[id] = { controllerId: parent }; s.ecs.kinship[id] = { parents: [parent], spouse: null, children: [] };
+    s.ecs.kinship[parent].children.push(id);
+  }
+  advanceSeason(s, 0);
+  const movers = [a, sibling, "grown-a", "grown-b"].filter(id => s.ecs.household[id].houseId == "empty");
+  expect(movers).toHaveLength(1);
+  expect(s.events.some(e => e.type == "move" && e.toHouse == "empty")).toBe(true);
+  expect(topController(s.ecs, movers[0])).toBe(movers[0]);
+});

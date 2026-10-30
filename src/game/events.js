@@ -31,7 +31,9 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   const event = { id: "event-" + (state.events.length + 1), type, people: [...people],
     day: state.days, season: Math.floor(state.days / 3), villageId,
     place: state.ecs.household?.[people[0]]?.houseId || villageId,
-    items: [...items], ...details };
+    items: [...items],
+    ...(type == "gift" ? { positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
+      [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));
   for (const id of Object.keys(state.ecs.personable || {})) {

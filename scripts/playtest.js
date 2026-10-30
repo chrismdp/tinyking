@@ -496,9 +496,12 @@ async function play(page) {
         const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
         itemId = job?.giftItem || itemId;
         if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
-          const a = s.ecs.spatial[s.ui.playerId], b = s.ecs.spatial[personId];
+          // Read the actual handover, before either character's next walking
+          // task. A requestAnimationFrame observer can run several steps later.
+          const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
+          const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
           resolve({ itemId, type: s.ecs.good[itemId]?.type, owner: s.ecs.controllable[itemId]?.controllerId,
-            personId, distance: Math.hypot(a.x - b.x, a.y - b.y) });
+            personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
         } else requestAnimationFrame(watch);
       };
       requestAnimationFrame(watch);

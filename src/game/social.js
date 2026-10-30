@@ -6,7 +6,7 @@ import { hashUnit } from "game/math";
 import { recordEvent } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 
-export const SOCIAL_RATES = { birthPerSeason: 0.055, oldDeathPerSeason: 0.035, courtshipSeasons: 2, childYears: 2, adultYearsPerGameYear: 1 };
+export const SOCIAL_RATES = { birthPerSeason: 0.055, oldDeathPerSeason: 0.02, courtshipSeasons: 2, childYears: 2, adultYearsPerGameYear: 1 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
 const roll = (s, key) => hashUnit(s.peopleSeed + ":social:" + key);
 const living = s => Object.keys(s.ecs.personable).filter(id => alive(s, id) && !s.ecs.playable?.[id]);
@@ -73,7 +73,12 @@ export function moveHouse(s, id, houseId) {
   s.ecs.household[id] = { id, houseId };
   s.ecs.village[id] = { id, villageId: s.ecs.village[houseId]?.villageId || s.ecs.village[id]?.villageId };
   const w = s.ecs.planner?.[id]?.world;
-  if (w) { w.places = {}; w.no_place_for = {}; delete w.social; }
+  if (w) {
+    w.places = {}; w.no_place_for = {}; delete w.social;
+    s.ecs.planner[id].task = null; s.ecs.planner[id].plan = null;
+    for (const farm of Object.values(s.ecs.farmable || {})) if (farm.claimerId == id) farm.claimerId = null;
+    w.claimedFarmable = null;
+  }
   if (fromHouse != houseId) recordEvent(s, "move", [id], [], { fromHouse, toHouse: houseId });
 }
 
@@ -173,6 +178,32 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   return true;
 }
 
+// Grown children leave crowded homes when a local house is empty. This gives
+// families access to the village's existing fields instead of crowding one plot.
+function settleAdults(s) {
+  const ecs = s.ecs, roster = living(s), residents = {};
+  for (const id of roster) (residents[ecs.household[id]?.houseId] ||= []).push(id);
+  const members = house => residents[house] || [];
+  for (const village of Object.values(s.villages || {})) {
+    for (const house of village.houses || []) {
+      if (members(house).length) continue;
+      const candidates = roster.filter(id => ecs.village[id]?.villageId == village.id && ecs.personable[id].age >= 18 &&
+        ecs.kinship[id]?.parents.length && ecs.controllable[ecs.household[id]?.houseId]?.controllerId != id &&
+        members(ecs.household[id]?.houseId).length > 4).sort((a, b) => ecs.personable[a].age - ecs.personable[b].age || a.localeCompare(b));
+      for (const id of candidates) {
+        const from = ecs.household[id].houseId, spouse = ecs.kinship[id].spouse;
+        const family = [id];
+        if (alive(s, spouse) && ecs.household[spouse]?.houseId == from) family.push(spouse);
+        family.push(...ecs.kinship[id].children.filter(child => alive(s, child) && ecs.personable[child].age < 18 && ecs.household[child]?.houseId == from));
+        if (members(from).length - family.length < 2) continue;
+        for (const person of family) moveHouse(s, person, house);
+        residents[from] = members(from).filter(id => !family.includes(id)); residents[house] = family;
+        break;
+      }
+    }
+  }
+}
+
 // The shared seasonal demographic transition. Live play calls this on exactly
 // the same boundaries; summary history substitutes abstract meetings for walking.
 export function advanceSeason(s, season, summary = false) {
@@ -190,6 +221,7 @@ export function advanceSeason(s, season, summary = false) {
     s.redraws?.push(id);
     if (p.age >= 60 && roll(s, "death:" + id + ":" + season) < SOCIAL_RATES.oldDeathPerSeason * (1 + (p.age - 60) / 12) || p.age >= 88) die(s, id);
   }
+  settleAdults(s);
   for (const villageId of Object.keys(s.villages || {})) {
     const locals = ids.filter(id => alive(s, id) && ecs.village[id]?.villageId == villageId);
     if (summary) {
@@ -222,7 +254,7 @@ export function advanceSeason(s, season, summary = false) {
       const b = ecs.kinship[a].spouse, p = ecs.personable[a];
       if (!b || a > b || !alive(s, b) || ecs.playable?.[b] || p.age < 18 || p.age > 55 || ecs.personable[b].age > 55) continue;
       const house = ecs.household[a]?.houseId;
-      if (locals.filter(id => ecs.household[id]?.houseId == house && ecs.personable[id].age < 18).length >= 2) continue;
+      if (locals.filter(id => ecs.household[id]?.houseId == house).length >= 6) continue;
       if (season - (p.lastBirth ?? -10000) < 12) continue;
       if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) birth(s, a, b, season);
     }

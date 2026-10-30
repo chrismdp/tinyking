@@ -30,3 +30,19 @@ it("keeps a personal gift safe when both working hands are full", () => {
   expect(collect_gift(s, player, s.ecs.planner[player].world, 0, true, item, "heirloom")).toBe(Task.ABORT);
   expect(s.ecs.possession[item].carried).toBe(true);
 });
+
+it("records the real handover positions independently of later walking", () => {
+  const { state: s, player, person } = peopleWorld();
+  const item = createPossession(s, player, "Silver ring", "heirloom");
+  s.ecs.spatial[player] = { ...s.ecs.spatial[person] };
+  s.ecs.manager[player].jobs.push({ assignedId: player });
+  const w = s.ecs.planner[player].world;
+  collect_gift(s, player, w, 0, true, item, "heirloom");
+  talk(s, player, w, 0, true, person, "give_gift");
+  talk(s, player, w, 1, false, person, "give_gift");
+  const e = s.events.find(e => e.type == "gift");
+  expect(e.positions[player]).toEqual(e.positions[person]);
+  const point = { ...e.positions[player] };
+  s.ecs.spatial[player].x += 500;
+  expect(e.positions[player]).toEqual(point);
+});

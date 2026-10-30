@@ -102,13 +102,14 @@ export function path(state, start, goal) {
     closed.add(String(current));
     for (const side in state.ecs.walkable[current].neighbours) {
       const n = state.ecs.walkable[current].neighbours[side];
-      // NOTE: worn roads can have negative cost. A route never needs to
-      // loop; closing expanded tiles keeps disconnected searches finite.
+      // A route never needs to loop; disconnected searches remain finite.
       if (closed.has(String(n))) { continue; }
       if (!(n in costs)) {
         const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
           0.2 : 1;
-        const wornIncentive = Math.max(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
+        // Wear discounts at most half a grassland edge. Unbounded rewards
+        // made costs negative and sent hungry people on map-wide detours.
+        const wornIncentive = Math.min(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
         costs[n] = (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty)) - wornIncentive;
       }
       const tentativeScore = gScore[current] + costs[n];

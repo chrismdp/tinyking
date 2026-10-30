@@ -331,7 +331,7 @@ export const find_food = () => [
   ]),
   ...FOODS.map(good => [
     world => !world.holding[good],
-    () => [ [ "pick_up", good ], [ "find_food" ] ]
+    () => [ [ "pick_up", good, true ], [ "find_food" ] ]
   ]),
   [
     always,
@@ -372,32 +372,37 @@ export const make_gruel = () => [
   ],
 ];
 
-export const pick_up = (good) => [
-  [
-    always,
-    () => [
-      [ "move_to_place", "haulable_with " + good, "haulable_with_good", good ],
-      [ "pick_up_entity_with_good", "haulable_with " + good, good ],
-      [ "forget_place", "haulable_with " + good ],
+export const pick_up = (good, storedFirst = false) => {
+  const methods = [
+    [
+      always,
+      () => [
+        [ "move_to_place", "haulable_with " + good, "haulable_with_good", good ],
+        [ "pick_up_entity_with_good", "haulable_with " + good, good ],
+        [ "forget_place", "haulable_with " + good ],
+      ]
+    ],
+    [
+      always,
+      () => [
+        [ "move_to_place", "stockpile_with " + good, "stockpile_slot_with", good ],
+        [ "pick_up_from_stockpile", "stockpile_with " + good, good ],
+        [ "forget_place", "stockpile_with " + good ],
+      ]
+    ],
+    [
+      always,
+      () => [
+        [ "move_to_place", "container_with " + good, "container_with", good ],
+        [ "pick_up_from_container", "container_with " + good, good ],
+        [ "forget_place", "container_with " + good ],
+      ]
     ]
-  ],
-  [
-    always,
-    () => [
-      [ "move_to_place", "stockpile_with " + good, "stockpile_slot_with", good ],
-      [ "pick_up_from_stockpile", "stockpile_with " + good, good ],
-      [ "forget_place", "stockpile_with " + good ],
-    ]
-  ],
-  [
-    always,
-    () => [
-      [ "move_to_place", "container_with " + good, "container_with", good ],
-      [ "pick_up_from_container", "container_with " + good, good ],
-      [ "forget_place", "container_with " + good ],
-    ]
-  ]
-];
+  ];
+  // Meals use the household reserve before competing for loose harvest.
+  // Farming and hauling retain their existing resource order.
+  return storedFirst ? [methods[2], methods[1], methods[0]] : methods;
+};
 
 export const plough_field = (targetId) => [
   [

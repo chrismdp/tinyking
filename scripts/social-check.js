@@ -11,6 +11,7 @@ const { generateMap } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { startIntro } = require("../src/game/intro");
 const { demographics } = require("./social-mobility-probe");
+const { foodSummary, actorTrace } = require("./food-audit");
 const { eveningPlace } = require("../src/game/villages");
 const snapshot = s => JSON.stringify(Object.fromEntries(["ecs", "space", "days", "villages", "map", "world", "weather", "knowledge", "events", "social", "peopleSeed", "opinionThresholds"].map(k => [k, s[k]])));
 async function run(seed, capture) {
@@ -22,12 +23,20 @@ async function run(seed, capture) {
   const initialEvents = s.events.length;
   const initialDemographics = demographics(s);
   const previousHunger = Object.fromEntries(original.map(id => [id, s.ecs.personable[id].hunger]));
-  let meals = 0, twoYears, evening, wedding, visit, travelling, move;
+  let meals = 0, actualMeals = 0, winterMeals = 0, mealAnomalies = 0, twoYears, evening, wedding, visit, travelling, move, eating;
+  const food = [{ day: s.days, ...foodSummary(s) }], riskDays = new Map(), deathTraces = [];
+  const riskFile = OUT + "/risk-" + seed + (capture ? "" : "-observed") + ".jsonl";
+  fs.writeFileSync(riskFile, "");
   const count = () => Object.values(s.ecs.personable).filter(p => !p.dead).length;
   const sim = createSimulation(s, { onHour() {
+    if (Math.abs(s.days % 3) < 1e-7) food.push({ day: s.days, ...foodSummary(s) });
     for (const id of Object.keys(s.ecs.personable)) if (!s.ecs.personable[id].dead) {
       const p = s.ecs.personable[id]; assert(Number.isFinite(p.hunger));
       if (p.hunger < previousHunger[id]) meals++;
+      if (p.hunger > 2.5 && riskDays.get(id) != Math.floor(s.days)) {
+        riskDays.set(id, Math.floor(s.days));
+        fs.appendFileSync(riskFile, JSON.stringify(actorTrace(s, id)) + "\n");
+      }
       previousHunger[id] = p.hunger;
     }
     for (const id of Object.keys(s.ecs.personable)) if (!s.ecs.personable[id].dead && s.ecs.village[id]?.villageId) {
@@ -59,21 +68,36 @@ async function run(seed, capture) {
   } });
   const end = s.days + 60, twoYearDay = s.days + 24;
   while (s.days < end - 1e-9) {
+    const before = Object.fromEntries(Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead).map(id => [id, { hunger: s.ecs.personable[id].hunger, task: s.ecs.planner[id]?.task?.[0] }]));
+    const danger = Object.keys(before).filter(id => before[id].hunger > 5.9).map(id => actorTrace(s, id));
     sim.step(6); s.redraws.length = 0;
+    for (const id in before) {
+      if (s.ecs.personable[id].hunger < before[id].hunger) {
+        actualMeals++; if (Math.floor((s.days - 6 / 1440) / 3) % 4 == 3) winterMeals++;
+        if (before[id].task != "eat") mealAnomalies++;
+      }
+    }
+    for (const trace of danger) if (s.ecs.personable[trace.id].dead) deathTraces.push(trace);
+    if (capture && !eating) {
+      const id = Object.keys(before).find(id => s.ecs.planner[id]?.task?.[0] == "eat" && s.ecs.household[id]?.houseId && !s.ecs.playable[id]);
+      if (id) { fs.writeFileSync(OUT + "/eating-state.json", snapshot(s)); fs.writeFileSync(OUT + "/eating-meta.json", JSON.stringify(actorTrace(s, id))); eating = true; }
+    }
     if (!twoYears && s.days >= twoYearDay - 1e-9) {
-      twoYears = { survivingOriginal: original.filter(id => !s.ecs.personable[id].dead).length, initial: original.length, population: count(), meals };
+      twoYears = { survivingOriginal: original.filter(id => !s.ecs.personable[id].dead).length, initial: original.length, population: count(), meals, actualMeals };
       assert(twoYears.survivingOriginal / original.length >= .75, "two-year survival fell below 75%");
       console.log("TWO YEARS " + JSON.stringify({ seed, ...twoYears }));
     }
   }
   assert(meals > original.length * 10, "people must actually eat");
+  food.push({ day: s.days, ...foodSummary(s) });
+  fs.writeFileSync(OUT + "/food-" + seed + ".json", JSON.stringify({ food, actualMeals, winterMeals, mealAnomalies, deathTraces }, null, 2));
   const final = count();
   fs.writeFileSync(OUT + "/social-final-" + seed + ".json", snapshot(s));
   console.log("FINAL " + JSON.stringify({seed, final, deaths: s.events.slice(initialEvents).filter(e => e.type == "death").map(e => e.cause), eventCounts: s.events.slice(initialEvents).reduce((r,e) => { r[e.type]=(r[e.type]||0)+1; return r; }, {}) }));
   assert(final / original.length >= .75 && final / original.length <= 1.3, "five-year population unstable: " + final + "/" + original.length);
   const events = {}; for (const e of s.events.slice(initialEvents)) events[e.type] = (events[e.type] || 0) + 1;
   const hash = crypto.createHash("sha256").update(JSON.stringify(s.ecs)).digest("hex");
-  return { seed, initial: original.length, initialDemographics, finalDemographics: demographics(s), crossVillageMarriages: s.events.slice(initialEvents).filter(e => e.type == "marriage" && new Set(e.fromVillages).size > 1).length, twoYears, final, events, meals, evening, wedding, historyMs: s.historyGenerationMs, seconds: (performance.now() - started) / 1000, hash };
+  return { seed, initial: original.length, initialDemographics, finalDemographics: demographics(s), crossVillageMarriages: s.events.slice(initialEvents).filter(e => e.type == "marriage" && new Set(e.fromVillages).size > 1).length, twoYears, final, events, meals, actualMeals, winterMeals, mealAnomalies, food, deathCauses: s.events.slice(initialEvents).filter(e => e.type == "death").reduce((r,e) => { r[e.cause] = (r[e.cause] || 0) + 1; return r; }, {}), evening, wedding, historyMs: s.historyGenerationMs, seconds: (performance.now() - started) / 1000, hash };
 }
 (async () => {
   const reports = [];

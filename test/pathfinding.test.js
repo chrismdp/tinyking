@@ -127,3 +127,17 @@ describe("pathfinding on larger, well-travelled maps", () => {
     expect(visits).toBeLessThanOrEqual(2);
   });
 });
+
+it("does not reward a worn detour over an adjacent destination", () => {
+  const hexes = [...Grid.spiral({ radius: 2 })];
+  const s = { space: {}, ecs: { spatial: {}, walkable: {} } };
+  hexes.slice(0, 5).forEach((h, i) => {
+    const id = String(i); s.ecs.spatial[id] = h.toPoint(); s.space[h] = [id];
+    s.ecs.walkable[id] = { speed: 1, worn: { road: i > 1 ? 2000 : 0 }, neighbours: {} };
+  });
+  s.ecs.walkable[0].neighbours = { 0: "2", 1: "1" };
+  s.ecs.walkable[2].neighbours = { 0: "3" };
+  s.ecs.walkable[3].neighbours = { 0: "4" };
+  s.ecs.walkable[4].neighbours = { 0: "1" };
+  expect(sut.path(s, "0", "1").map(p => p.id)).toEqual(["0", "1"]);
+});

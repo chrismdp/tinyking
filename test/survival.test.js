@@ -292,3 +292,28 @@ it("eats held food without a trip to an old cached gathering place", () => {
   expect(plan).toContainEqual(["eat", "grain"]);
   expect(plan).not.toContainEqual(["walk_to", "meet"]);
 });
+
+it("eats accessible household grain before chasing loose grain beyond a broken route", () => {
+  const { state: s, villager: a, tiles } = hungryVillage();
+  const [store, loose] = newEntities(s, [{
+    spatial: { ...s.ecs.spatial[tiles[0]], immovable: true }, controllable: { controllerId: a },
+    container: { capacity: 30, amounts: { grain: 3 } }
+  }, { spatial: { ...s.ecs.spatial[tiles[2]] }, controllable: { controllerId: a },
+    good: { type: "grain", amount: 1 }, haulable: {} }]);
+  s.ecs.walkable[tiles[1]].neighbours = {}; s.ecs.walkable[tiles[0]].neighbours = {};
+  advance(s, HOUR * 5);
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.3);
+  expect(s.ecs.container[store].amounts.grain).toBe(2);
+  expect(s.ecs.good[loose].amount).toBe(1);
+});
+
+it("does not use a stranger's private reserve when its own food runs out", () => {
+  const { state: s, villager: a, tiles } = hungryVillage();
+  const [owner, store] = newEntities(s, [{ controllable: {} }, {
+    spatial: { ...s.ecs.spatial[tiles[0]] }, container: { capacity: 30, amounts: { grain: 3 } }, controllable: {}
+  }]);
+  s.ecs.controllable[owner].controllerId = owner; s.ecs.controllable[store].controllerId = owner;
+  advance(s, HOUR * 5);
+  expect(s.ecs.container[store].amounts.grain).toBe(3);
+  expect(s.ecs.personable[a].hunger).toBeGreaterThan(1.4);
+});

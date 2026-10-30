@@ -1,9 +1,12 @@
 import { peopleWorld } from "./support/people";
 import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason } from "game/social";
+import { meet } from "game/people";
 import { socialHour } from "game/social_visits";
 import { die, repairHouseholds, createPossession } from "game/possessions";
 import { topController } from "game/playable";
 import { find_place } from "game/tasks";
+import { newEntities } from "game/entities";
+import { createSimulation } from "game/simulation";
 import { removeBidirectionalLink } from "game/pathfinding";
 import { currentActivity } from "game/person_activity";
 
@@ -239,4 +242,43 @@ it("counts an earlier birth before a second couple can exceed the six-resident h
   const residents = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable[id] && s.ecs.household[id]?.houseId == tiles[3]);
   expect(s.events.filter(e => e.type == "birth")).toHaveLength(1);
   expect(residents).toHaveLength(6);
+});
+
+
+it("builds mutual intimacy from first acquaintance through spaced real cross-community visits", () => {
+  const { state: s, a, b, parent, kin, tiles } = communities();
+  // Sparse-contact fixture: one free day per season; other days have ordered
+  // routines. Every hour, meal, sleep, route and conversation runs normally.
+  s.ecs.personable[parent].dead = true; s.ecs.personable[kin].dead = true;
+  s.opinionThresholds = { hate: -100, love: -99 };
+  s.ecs.sleepable = {}; s.ecs.interior = {};
+  for (const house of [tiles[3], tiles[5]]) {
+    const [store, bed] = newEntities(s, [{ spatial: { ...s.ecs.spatial[house] },
+      container: { capacity: 100, amounts: { grain: 100 } }, controllable: { controllerId: house }, interior: { buildingId: house }
+    }, { spatial: { ...s.ecs.spatial[house] }, sleepable: { capacity: 6, occupiers: [] },
+      controllable: { controllerId: house }, interior: { buildingId: house } }]);
+    s.ecs.building[house].rooms = [store, bed];
+  }
+  for (const id of [a, b]) s.ecs.relationships[id].known = {};
+  meet(s, a, b); meet(s, b, a);
+  expect(s.ecs.relationships[a].known[b]).toMatchObject({ ring: "social", goodwill: 16 });
+  expect(canCourt(s, a, b)).toBe(false);
+  const simulation = createSimulation(s), start = s.days;
+  let travelled = false, intimacy;
+  for (let i = 0; i < 24 * 240; i++) {
+    const free = Math.floor(s.days) % 3 == 0;
+    for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;
+    simulation.step(6);
+    if (s.ecs.planner[a].world.social?.stage == "outbound") travelled = true;
+    if (!intimacy && canCourt(s, a, b)) intimacy = s.days;
+  }
+  expect(travelled).toBe(true);
+  const visits = s.events.filter(e => e.type == "visit" && e.people.includes(a) && e.people.includes(b));
+  expect(visits.length).toBeGreaterThanOrEqual(6);
+  expect(intimacy).toBeGreaterThan(start);
+  expect(s.ecs.relationships[a].known[b].goodwill).toBeGreaterThanOrEqual(60);
+  expect(s.ecs.relationships[b].known[a].ring).toBe("intimate");
+  const wedding = s.events.find(e => e.type == "marriage" && e.people.includes(a) && e.people.includes(b));
+  expect(wedding).toBeDefined();
+  expect(wedding.day - intimacy).toBeGreaterThanOrEqual(6);
 });

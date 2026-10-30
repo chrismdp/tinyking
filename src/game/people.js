@@ -25,7 +25,9 @@ export function generatePersonality(generator) {
 export const RINGS = ["public", "social", "personal", "intimate"];
 export const RING_CAPS = { intimate: 2, personal: 6, social: 10 };
 export const GOODWILL_STEPS = [0, 10, 30, 60];
-export const DRIFT_PER_HOUR = 0.125;
+// A neglected bond loses 0.6 goodwill per day (1.8 per season).
+// Sparse real visits must be able to accumulate the same contact as history.
+export const DRIFT_PER_HOUR = 0.025;
 const STARTING_BUFFER = 6;
 const DISPOSITION_CAP = { hate: 0, like: 2, love: 3 };
 

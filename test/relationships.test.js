@@ -1,4 +1,4 @@
-import { opinion, disposition, meet, addGoodwill, drift, feelingHint, knownFamilyTree } from "game/people";
+import { opinion, disposition, meet, addGoodwill, drift, feelingHint, knownFamilyTree, DRIFT_PER_HOUR } from "game/people";
 
 const person = (traits = ["proud"]) => ({ traits, likes: ["generous", "brave"], dislikes: ["greedy", "lazy"] });
 const socialWorld = (count = 30) => {
@@ -103,18 +103,18 @@ describe("goodwill and ring slots", () => {
     }
   });
 
-  it("decays earned goodwill back to where the bond started and moves neglected bonds out over days, without promoting displaced people", () => {
+  it("decays earned goodwill back to where the bond started and moves neglected bonds out over weeks, without promoting displaced people", () => {
     const state = socialWorld();
     addGoodwill(state, "4", "1", 60);
     known(state)[5] = { ring: "public", goodwill: 100 };
     known(state)[6] = { ring: "public", goodwill: -4 };
     drift(state, 0);
     expect(known(state)[4].ring).toBe("intimate");
-    drift(state, 24 * 7);
+    drift(state, 24 * 7 * (0.125 / DRIFT_PER_HOUR));
     expect(known(state)[4].ring).toBe("personal");
     expect(known(state)[5].ring).toBe("public");
     expect(known(state)[6].goodwill).toBe(0);
-    drift(state, 24 * 30);
+    drift(state, 24 * 30 * (0.125 / DRIFT_PER_HOUR));
     // NOTE: 4 loves 1 at first sight, so the bond started at social and settles back there
     expect(known(state)[4]).toEqual({ ring: "social", goodwill: known(state)[4].base, base: known(state)[4].base });
   });

@@ -46,3 +46,19 @@ it("records the real handover positions independently of later walking", () => {
   s.ecs.spatial[player].x += 500;
   expect(e.positions[player]).toEqual(point);
 });
+
+it("keeps the delivered food identity and owner in the receipt after consumption", () => {
+  const { state: s, player, person } = peopleWorld();
+  const item = createPossession(s, player, "Bread", "heirloom");
+  delete s.ecs.possession[item]; s.ecs.good[item].type = "grain";
+  s.ecs.spatial[item] = { ...s.ecs.spatial[person] };
+  s.ecs.spatial[player] = { ...s.ecs.spatial[person] };
+  const w = s.ecs.planner[player].world;
+  s.ecs.manager[player].jobs.push({ assignedId: player });
+  collect_gift(s, player, w, 0, true, item, "grain");
+  talk(s, player, w, 0, true, person, "give_gift");
+  talk(s, player, w, 1, false, person, "give_gift");
+  expect(s.ecs.controllable[item].controllerId).toBe(person);
+  delete s.ecs.good[item]; delete s.ecs.controllable[item];
+  expect(s.events.find(e => e.type == "gift").gifts).toContainEqual({ id: item, type: "grain", ownerId: person });
+});

@@ -741,10 +741,10 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
     beginInteraction(state, actorId, personId);
     const goodwill = giftGoodwill(state, actorId, personId, item);
     take(ecs, itemId);
+    ecs.controllable[itemId].controllerId = personId;
     if (ecs.possession?.[itemId]) {
       transferPossession(state, itemId, personId, "gift", actorId);
     } else recordEvent(state, "gift", [actorId, personId], [itemId]);
-    ecs.controllable[itemId].controllerId = personId;
     if (!ecs.possession?.[itemId] && give(ecs, itemId, personId)) ecs.planner[personId].world.holding[item.type] = true;
     else if (!ecs.possession?.[itemId]) {
       ecs.spatial[itemId] = { ...ecs.spatial[personId], id: itemId };

@@ -32,7 +32,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     day: state.days, season: Math.floor(state.days / 3), villageId,
     place: state.ecs.household?.[people[0]]?.houseId || villageId,
     items: [...items],
-    ...(type == "gift" ? { positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
+    ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));
@@ -62,7 +62,7 @@ export function eventSentence(state, event, displayName) {
   const n = id => displayName(id), [a, b] = event.people;
   const when = ["spring", "summer", "autumn", "winter"][((event.season % 4) + 4) % 4] + " of year " + (Math.floor(event.season / 4) + 1);
   const village = state.villages?.[event.villageId]?.name;
-  const item = event.items.map(id => state.ecs.possession?.[id]?.name || state.ecs.good?.[id]?.type || "an item").join(", ");
+  const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || "an item").join(", ");
   const text = {
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),

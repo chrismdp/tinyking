@@ -500,7 +500,8 @@ async function play(page) {
           // task. A requestAnimationFrame observer can run several steps later.
           const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
           const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
-          resolve({ itemId, type: s.ecs.good[itemId]?.type, owner: s.ecs.controllable[itemId]?.controllerId,
+          const delivered = receipt?.gifts.find(g => g.id == itemId);
+          resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
             personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
         } else requestAnimationFrame(watch);
       };

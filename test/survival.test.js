@@ -6,7 +6,7 @@ import { give } from "game/holder";
 import { TRIANGLES } from "game/map";
 import { HOUR } from "game/time";
 import { anyControlledAlive } from "game/playable";
-import { Task } from "game/htn";
+import { Task, solve } from "game/htn";
 
 function hungryVillage() {
   const fixture = rowOfTiles(3);
@@ -272,4 +272,14 @@ it("forgets a held-food claim if an interrupted meal already consumed that porti
   world.holding.forage = true;
   expect(eat(state, villager, world, 0, true, "forage")).toBe(Task.ABORT);
   expect(world.holding.forage).toBe(false);
+});
+
+it("eats carried grain before attempting storage when hunger and a full store compete", () => {
+  const { state, villager } = hungryVillage();
+  const world = state.ecs.planner[villager].world;
+  world.days = .4; world.feeling.hungry = true; world.holding.grain = true;
+  world.places.container_with_space = "full-store";
+  const [plan] = solve(world, [], [["person"]]);
+  expect(plan).toContainEqual(["eat", "grain"]);
+  expect(plan.some(t => t[0] == "drop_entity_into_container")).toBe(false);
 });

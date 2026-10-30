@@ -121,7 +121,7 @@ export function generateFamilies({ state, seed, playerStartTile, founding = fals
     for (let h = 1; h < houses.length; h++) {
       const home = houses[h];
       const male = generator.random_int() % 2 == 0;
-      if (h > 2 && generator.random_int() % 4 == 0) {
+      if (!founding && h > 2 && generator.random_int() % 4 == 0) {
         inhabit(home, 18 + generator.random_int() % 5, male, familySeed, firstParents);
         continue;
       }
@@ -131,7 +131,7 @@ export function generateFamilies({ state, seed, playerStartTile, founding = fals
       marry(head, spouse);
       const parents = [head, spouse];
       if (h == 1) firstParents = parents;
-      const children = 1 + generator.random_int() % 2;
+      const children = founding ? 0 : 1 + generator.random_int() % 2;
       for (let c = 0; c < children; c++) {
         inhabit(home, 2 + generator.random_int() % 15, generator.random_int() % 2 == 0, familySeed, parents);
       }

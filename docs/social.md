@@ -2,7 +2,7 @@
 
 The social simulation runs without a renderer. `historyStep(worldHexState, season)` returns a new world state for one dated season. The input stays unchanged. Old events and geography stay shared because the step never edits them.
 
-Generation starts with founding households and advances 180 seasons, or 45 game years. Founding households include unrelated families so that villagers can find partners outside their close kin. Dead people remain ECS records. Their `historical` flag keeps their bodies off the map. Family trees and provenance still refer to their original identities.
+Generation starts with founding households and advances 180 seasons, or 45 game years. Founding households start with adults. Seasonal births produce their children. The founders include unrelated families so that villagers can find partners outside their close kin. Dead people remain ECS records. Their `historical` flag keeps their bodies off the map. Family trees and provenance still refer to their original identities.
 
 ## Records
 
@@ -18,7 +18,7 @@ A person learns their own events and close family events. Other villagers hear a
 
 Learning about a quarrel with a close relative costs three goodwill towards the other participant. A gift to a close relative or a reconciliation adds one goodwill towards the giver or reconciler. Each witness receives each effect once. These rules change goodwill. They do not change a person's tastes or disposition.
 
-Evening conversations last half a game hour. They add four goodwill towards someone loved, one towards someone liked, or subtract 0.25 towards someone hated. A hostile pair has a 12% quarrel chance. A quarrel costs six goodwill in both directions and starts three days of avoidance. Their next conversation after avoidance records a reconciliation. Food, sleep and player orders retain priority.
+Evening conversations last half a game hour. They add four goodwill towards someone loved, one towards someone liked, or subtract 0.25 towards someone hated. A hostile pair has a 12% quarrel chance. A quarrel costs six goodwill in both directions and starts three days of avoidance. Their next conversation after avoidance records a reconciliation. Meals and sleep run before storage, social visits and work. A full store cannot block a hungry person from eating carried grain. Player orders retain their existing priority.
 
 Unmarried adults need mutual Intimate rings to court. Parents, siblings and people who share grandparents cannot court. Mutual closeness must last two seasons before marriage. The living player takes no part in automatic courtship, marriage, ageing or succession.
 

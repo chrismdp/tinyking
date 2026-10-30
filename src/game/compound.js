@@ -35,10 +35,6 @@ export const person = () => [
     ]
   ],
   [
-    always,
-    () => [ [ "store_held" ] ]
-  ],
-  [
     world => world.feeling.tired && (time.hour_of_day(world.days) >= 20 || time.hour_of_day(world.days) < 9),
     () => [
       [ "set_label" ],
@@ -52,6 +48,10 @@ export const person = () => [
       [ "set_label" ],
       [ "find_food" ]
     ]
+  ],
+  [
+    always,
+    () => [ [ "store_held" ] ]
   ],
   [
     always,

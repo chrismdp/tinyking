@@ -182,7 +182,7 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
 // families access to the village's existing fields instead of crowding one plot.
 function settleAdults(s) {
   const ecs = s.ecs, roster = living(s), residents = {};
-  for (const id of roster) (residents[ecs.household[id]?.houseId] ||= []).push(id);
+  for (const id of roster) (residents[ecs.household?.[id]?.houseId] ||= []).push(id);
   const members = house => residents[house] || [];
   for (const village of Object.values(s.villages || {})) {
     for (const house of village.houses || []) {

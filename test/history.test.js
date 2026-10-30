@@ -1,4 +1,5 @@
-import { generateMap } from "game/map";
+import { newEntities } from "game/entities";
+import { generateMap, generateFamilies, Hex } from "game/map";
 import { disposition, RING_CAPS } from "game/people";
 import { historyStep } from "game/social";
 const generate = async seed => {
@@ -49,4 +50,14 @@ it.each([20, 1234, 98765])("keeps seed %s's population roughly stable over five 
 it("keeps goodwill earned during history when calibrating the arriving population", async () => {
   const s = await generate(20);
   expect(Object.values(s.ecs.relationships).some(r => Object.values(r.known).some(b => b.goodwill != b.base))).toBe(true);
+});
+
+it("starts history with adult founding households so the seasonal step produces the children", () => {
+  const s = { ecs: { nextId: 1 }, days: .375, villages: { v: { id: "v", houses: [] } } };
+  for (let n = 0; n < 3; n++) {
+    const [id] = newEntities(s, [{ spatial: { ...Hex(5 + n * 2, 5).toPoint(), immovable: true }, building: { entrance: 0 }, controllable: {}, village: { villageId: "v" } }]);
+    s.villages.v.houses.push(id);
+  }
+  generateFamilies({ state: s, seed: 20, playerStartTile: Hex(1, 1), founding: true });
+  expect(Object.values(s.ecs.personable).every(p => p.age >= 18)).toBe(true);
 });

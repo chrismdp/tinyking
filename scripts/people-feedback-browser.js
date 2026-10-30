@@ -152,7 +152,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     report.preparation=await page.evaluate(()=>window.feedbackPreparation);
     await page.setViewportSize({width:1440,height:900});
     await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});window.feedbackObserve={start:s.days,counts:{},childCounts:{},actors:{},play:[],help:[],conversations:[],needsBefore:{},storesBefore:{},capturedKinds:{}};
-      const o=window.feedbackObserve;o.playProgress={};o.careProgress={};o.playerCare=[];for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
+      const o=window.feedbackObserve;o.playProgress={};o.careProgress={};o.playerCare=[];o.playAttempts={};for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
       for(const [id,c] of Object.entries(s.ecs.container))o.storesBefore[id]={...c.amounts};
       let last=-Infinity;const watch=()=>{
         const player=s.ui.playerId,needs=s.ecs.personable[player];
@@ -162,6 +162,12 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         }
         for(const id of Object.keys(s.residents)){
           const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||!person||person.dead||id==player)continue;
+          if(p.world.social?.kind=="play"){
+            const v=p.world.social,key=[id,v.partnerId].sort().join(":")+":"+v.expires;
+            const attempt=o.playAttempts[key]||={ids:[id,v.partnerId],expires:v.expires,frames:[]};
+            const snapshot=pid=>{const q=s.ecs.planner[pid],n=s.ecs.personable[pid];return {id:pid,age:n.age,needs:{hunger:n.hunger,tiredness:n.tiredness},feeling:{...q.world.feeling},task:q.task,plan:q.plan,position:{...s.ecs.spatial[pid]},social:q.world.social,route:q.world.route,target:q.world.target,capturedBy:q.world.capturedBy,gardenHelp:q.world.gardenHelp};};
+            if(attempt.last!=s.days){attempt.last=s.days;attempt.frames.push(JSON.parse(JSON.stringify({day:s.days,people:attempt.ids.map(snapshot)})));}
+          }
           if(person.age<18&&p.task?.[0]=="play_together"&&p.world.social?.started){
             const v=p.world.social,k=id+":"+v.started,pos=s.ecs.spatial[id];
             const progress=o.playProgress[k]||={id,partnerId:v.partnerId,started:v.started,first:s.days,origin:{x:pos.x,y:pos.y},maxDisplacement:0};
@@ -182,6 +188,9 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
           if(!progress.completed&&slot?.tendedBy==progress.id&&slot.tendedDay==Math.floor(progress.first)){
             progress.completed=s.days;progress.after=JSON.parse(JSON.stringify(slot));
           }
+        }
+        for(const attempt of Object.values(o.playAttempts))if(!attempt.end&&attempt.ids.every(id=>s.ecs.planner[id].world.social?.kind!="play")){
+          attempt.end={day:s.days,people:attempt.ids.map(id=>{const p=s.ecs.planner[id];return {id,task:p.task,feeling:{...p.world.feeling},needs:{hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness},lastPlay:p.world.lastPlay};})};
         }
         if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
           if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}

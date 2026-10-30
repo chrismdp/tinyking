@@ -4,9 +4,9 @@ import { path } from "game/pathfinding";
 import { advanceSeason, eligiblePartner, romanticInterest, compareSocial } from "game/social";
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
-const idle = p => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
-  !p.world.currentJob && !p.world.claimedFarmable && !p.world.helpingFriend && !p.world.gardenHelp && !p.world.worldJourney && !p.world.worldArrival && !p.world.social &&
-  (["wait_for", "socialise"].includes(p.task?.[0]) || p.task?.[0] == "walk_to" && p.task[1] == "meet");
+const idle = (p, child) => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
+  !p.world.currentJob && !p.world.claimedFarmable && !p.world.helpingFriend && (!p.world.gardenHelp || child) && !p.world.worldJourney && !p.world.worldArrival && !p.world.social &&
+  (["wait_for", "socialise"].includes(p.task?.[0]) || p.task?.[0] == "walk_to" && p.task[1] == "meet" || child && !p.plan?.length && (!p.task || p.task[0] == "tend_garden"));
 export const socialTask = p => ["socialise", "play_together"].includes(p.task?.[0]) || p.task?.[0] == "walk_to" &&
   ["socialDestination", p.world.social?.partnerId, p.world.social?.homeId].includes(p.task[1]);
 
@@ -30,7 +30,7 @@ export function socialHour(s) {
       s.ecs.personable[v.partnerId]?.dead || (!s.ecs.planner[v.partnerId]?.world.social || s.ecs.planner[v.partnerId].world.social.stage == "returning"))) returnFromVisit(s, id);
   }
   if (hour < 9 || hour >= 21) return;
-  const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id]));
+  const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], s.ecs.personable[id].age < 18));
   startChildPlay(s, ids, hour);
   const adults = ids.filter(id => s.ecs.personable[id].age >= 18 && !s.ecs.planner[id].world.social);
   const seekers = new Set(adults.filter(a => adults.some(b => romanticInterest(s, a, b))));
@@ -84,13 +84,17 @@ function startChildPlay(s, ids, hour) {
       const route=from && to && path(s,from,to);
       if (!route) return false;
       const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / 10;
-      return hours + .5 < Math.min(2, 19 - hour);
+      const planner=s.ecs.planner[id],careHours=planner.task?.[0]=="tend_garden"?planner.world.workRemaining*24:0;
+      return careHours + hours + .5 < Math.min(2, 19 - hour);
     }));
     if (!pair) continue;
     for (const [id,partnerId,i] of [[a,b,0],[b,a,1]]) {
       const p=s.ecs.planner[id];
       p.world.social={kind:"play",partnerId,stage:"outbound",expires:Math.min(s.days+2/24,Math.floor(s.days)+19/24),playPoints:pair};
-      p.world.places.socialDestination=pair[i]; p.task=null;p.plan=null;
+      p.world.places.socialDestination=pair[i];
+      // Finish the current real crop before meeting. More untended crops do
+      // not reserve the child's entire day or interrupt the current chore.
+      if(p.task?.[0]!="tend_garden"){p.task=null;p.plan=null;}
     }
   }
 }

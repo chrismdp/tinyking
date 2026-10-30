@@ -120,6 +120,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
   let pending = null;
   const background = fn => {
     state.worldBusy = true;
+    if(onHour) onHour();
     pending = fn().then(() => { state.worldBusy=false; pending=null; }).catch(error => { state.worldBusy=false; pending=null; state.travelError=String(error.stack || error); state.game_speed="paused"; if(onError) onError(error); else console.error(error); });
     return pending;
   };

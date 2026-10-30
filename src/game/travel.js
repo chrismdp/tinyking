@@ -124,7 +124,9 @@ export async function ensureMap(s, key) {
     seed = Math.floor(hashUnit(j.seed + ":hex:" + key) * 4294967296);
   fresh.ecs.namespace = "w" + hex.x + "_" + hex.y + "-";
   const started = performance.now();
-  const result = await generateMap(fresh, seed, async () => {}, {
+  const result = await generateMap(fresh, seed, async label => {
+    if(s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label);
+  }, {
     world: s.world,
     hex,
     noPlayer: true,

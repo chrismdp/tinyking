@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright-core");
 const out = path.resolve(process.argv[3] || "shots/feedback-browser");
 fs.mkdirSync(out, { recursive: true });
-const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 normal generated world. Public UI commands select, Chat, explicit Find food, Move here and speed only. Physical exploration reveals village terrain before activity screenshots. State read for evidence; no injected needs, resources, relations, time or outcomes." };
+const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 normal generated world. Public UI commands select, Chat, explicit Find food/Rest, Move here and speed only. Physical exploration reveals village terrain before activity screenshots. Phone viewport during the preparation wait reduces rendering cost. State read for evidence; no injected needs, resources, relations, time or outcomes." };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME || "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome", args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const session = await browser.newBrowserCDPSession();
@@ -134,6 +134,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     // completed. Observe a full evening-to-evening day through the next natural
     // sleep and daylight, using actual food/rest orders throughout preparation.
     report.scheduledObservation=await page.evaluate(()=>Math.ceil(window.tinyking.days)+18/24);
+    await page.setViewportSize({width:390,height:664});
     await page.evaluate(target=>{
       const s=window.tinyking;window.feedbackPreparation={start:s.days,target,care:[]};
       const watch=()=>{
@@ -149,6 +150,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     await page.getByRole("button",{name:"Fast speed",exact:true}).click();
     await page.waitForFunction(()=>window.feedbackPreparation.end,null,{timeout:120000});
     report.preparation=await page.evaluate(()=>window.feedbackPreparation);
+    await page.setViewportSize({width:1440,height:900});
     await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});window.feedbackObserve={start:s.days,counts:{},childCounts:{},actors:{},play:[],help:[],conversations:[],needsBefore:{},storesBefore:{},capturedKinds:{}};
       const o=window.feedbackObserve;o.playProgress={};o.careProgress={};o.playerCare=[];for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
       for(const [id,c] of Object.entries(s.ecs.container))o.storesBefore[id]={...c.amounts};

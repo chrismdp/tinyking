@@ -29,12 +29,12 @@ it.each(["walking", "putting-down", "standing"])("hides player and NPC activity 
   expect(npc.getObjectByName("marker").userData.bob).toBe(personHeight(20) + 16);
 });
 
-const openingView = () => {
+const openingView = (debug = false) => {
   const centre = Hex(0, 0), grid = Grid.hexagon({ center: centre, radius: 3 });
   const state = { ecs: { nextId: 1, interior: {}, good: {}, building: {}, household: {} }, space: {}, redraws: [], days: 0.375,
     map: { seed: 13, radius: 3, centre, playerStartTile: Hex(1, 0) },
     world: { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, biome: "grassland", temperature: "temperate", moisture: "normal", morality: "neutral" }] },
-    villages: { v: { centre } }, ui: { show: {} } };
+    villages: { v: { centre } }, ui: { debug, show: {} } };
   const ids = newEntities(state, grid.map(h => ({ spatial: { ...h.toPoint(), immovable: true }, mappable: { terrain: "grassland" },
     walkable: { speed: 1, neighbours: {} } })));
   grid.forEach((hex, i) => {
@@ -57,14 +57,19 @@ const openingView = () => {
   return { state, view, id, npcs };
 };
 
-it("keeps isolated activities, clears crowded bubbles and reveals the selected encounter without changing tasks", () => {
+it.each([true, false])("keeps isolated activities, clears crowded bubbles and reveals the selected encounter without changing tasks (Debug: %s)", debug => {
   global.window = { addEventListener() {}, removeEventListener() {} };
-  const { state, view, id, npcs } = openingView();
+  const { state, view, id, npcs } = openingView(debug);
+  if (!debug) {
+    state.ecs.planner[id].task = ["sleep"];
+    state.ecs.planner[npcs[0]].task = ["eat", "grain"];
+  }
   const visible = personId => view.objectOf(personId).children.find(c => c.userData.activity)?.visible;
   const tasks = JSON.stringify(state.ecs.planner);
   try {
     view.frame();
     expect(visible(id)).toBe(true);
+    expect(view.objectOf(id).getObjectByName("activity").userData.activity).toBe(debug ? "tasks.idle · no task" : "tasks.sleeping");
     expect(npcs.filter(visible)).toHaveLength(1);
     state.ui.show.selected_person = npcs[2];
     view.frame();
@@ -84,16 +89,19 @@ it("keeps isolated activities, clears crowded bubbles and reveals the selected e
   }
 });
 
-it.each(["watch", "skip", "url"])("refreshes existing player and NPC labels on intro entry and %s handover without planner redraws", method => {
+it.each(["watch", "skip", "url"].flatMap(method => [[method, true], [method, false]]))("refreshes existing player and NPC labels on intro entry and %s handover without planner redraws (Debug: %s)", (method, debug) => {
   global.window = { addEventListener() {}, removeEventListener() {} };
-  const { state, view, id, npcs } = openingView();
+  const { state, view, id, npcs } = openingView(debug);
+  if (!debug) state.ecs.planner[npcs[0]].task = ["walk_to", "forge"];
+  const tasks = JSON.stringify(state.ecs.planner);
   const activities = (personId = id) => view.objectOf(personId).children.filter(c => c.userData.activity).map(c => c.userData.activity);
-  const npcActivities = [["tasks.idle"], ["tasks.eating"], ["tasks.at_forge"]];
+  const playerActivities = debug ? ["tasks.idle · no task"] : [];
+  const npcActivities = debug ? [["tasks.idle · no task"], ["tasks.eating · eat"], ["tasks.at_forge · trade_work"]] : [[], ["tasks.eating"], ["tasks.at_forge"]];
   const npcMarker = () => view.objectOf(npcs[1]).getObjectByName("marker").userData.bob;
   try {
     state.ui.show.selected_person = npcs[1];
     view.frame();
-    expect(activities()).toEqual(["tasks.idle"]);
+    expect(activities()).toEqual(playerActivities);
     expect(npcs.map(activities)).toEqual(npcActivities);
     expect(npcMarker()).toBe(personHeight(20) + 32);
     expect(state.redraws).toEqual([]);
@@ -109,16 +117,19 @@ it.each(["watch", "skip", "url"])("refreshes existing player and NPC labels on i
       for (const npc of npcs) expect(state.redraws).not.toContain(npc);
       view.frame();
     }
-    expect(activities()).toEqual(["tasks.idle"]);
+    expect(activities()).toEqual(playerActivities);
     expect(npcs.map(activities)).toEqual(npcActivities);
     expect(npcMarker()).toBe(personHeight(20) + 32);
     expect(view.objectOf(id).getObjectByName("arrival-bundle").visible).toBe(false);
     expect(view.objectOf(id).getObjectByName("seated-figure")).toBeUndefined();
+    expect(JSON.stringify(state.ecs.planner)).toBe(tasks);
     state.ui.selected = id;
+    view.frame();
+    expect(view.objectOf(id).getObjectByName("marker").userData.bob).toBe(personHeight(20) + (debug ? 32 : 16));
     state.ecs.planner[id].task = ["eat", "grain"];
     state.redraws.push(id);
     view.frame();
-    expect(activities()).toEqual(["tasks.eating"]);
+    expect(activities()).toEqual([debug ? "tasks.eating · eat" : "tasks.eating"]);
     expect(view.objectOf(id).getObjectByName("marker").userData.bob).toBe(personHeight(20) + 32);
   } finally {
     view.dispose();

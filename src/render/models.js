@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 import { Hex, HAIR, HEX_SIZE, TRIANGLES } from "game/map";
 import * as math from "game/math";
-import { CAMP_LAYOUT } from "game/intro";
+import { CAMP_LAYOUT, introActive } from "game/intro";
 import { COLOURS, ITEM_COLOURS, SELECTED } from "render/colours";
 import { treeColours, treeKind } from "render/biomes";
 import { label } from "render/labels";
@@ -476,7 +476,8 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner ? currentActivity(state.ecs, e.id, t) : null;
+  const arriving = e.id == state.ui?.playerId && introActive(state);
+  const activity = e.planner && !arriving ? currentActivity(state.ecs, e.id, t) : null;
   if (activity) {
     const text = label(activity);
     text.position.y = height + 14;

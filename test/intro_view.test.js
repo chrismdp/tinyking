@@ -1,7 +1,86 @@
 jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() + "/node_modules/three/build/three.module.js"));
+jest.mock("render/labels", () => ({ label: jest.fn(text => {
+  const object = new (require("three").Group)();
+  object.userData.activity = text;
+  return object;
+}) }));
 import * as THREE from "three";
-import { camp, person, FLAT_GROUND, poseArrivalPerson, campSetup, poseCampSetup } from "render/models";
-import { CAMP_LAYOUT } from "game/intro";
+import { camp, person, personHeight, FLAT_GROUND, poseArrivalPerson, campSetup, poseCampSetup } from "render/models";
+import { label } from "render/labels";
+import { createWorldView } from "render/world_view";
+import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { newEntities } from "game/entities";
+import { CAMP_LAYOUT, INTRO_TIMING, startIntro, updateIntro, skipIntro } from "game/intro";
+
+it.each(["walking", "putting-down", "standing"])("hides only the player's activity and label marker offset during the active %s pose", pose => {
+  const planner = { task: null, world: {} };
+  const state = { ui: { playerId: "p" }, intro: { active: true, pose, elapsed: 1.4, putDown: pose == "standing" ? 1 : 0.5 },
+    ecs: { good: {}, planner: { p: planner, npc: { task: ["eat", "grain"] } } } };
+  const e = { id: "p", personable: { size: 20, body: 0x4E3F30, hair: 0 }, planner };
+  label.mockClear();
+  const player = person(state, e, x => x, { realm: 0xFFFFFF, selected: true });
+  expect(label).not.toHaveBeenCalled();
+  expect(player.getObjectByName("marker").userData.bob).toBe(personHeight(20) + 16);
+  poseArrivalPerson(player, state.intro, 20);
+  expect(player.getObjectByName("arrival-bundle").visible).toBe(pose != "standing");
+  expect(player.getObjectByName("seated-figure")).toBeUndefined();
+  person(state, { ...e, id: "npc", planner: state.ecs.planner.npc }, x => x, { realm: 0xFFFFFF });
+  expect(label).toHaveBeenLastCalledWith("tasks.eating");
+});
+
+const openingView = () => {
+  const centre = Hex(0, 0), grid = Grid.hexagon({ center: centre, radius: 3 });
+  const state = { ecs: { nextId: 1, interior: {}, good: {}, building: {}, household: {} }, space: {}, redraws: [], days: 0.375,
+    map: { seed: 13, radius: 3, centre, playerStartTile: Hex(1, 0) },
+    world: { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, biome: "grassland", temperature: "temperate", moisture: "normal", morality: "neutral" }] },
+    villages: { v: { centre } }, ui: { show: {} } };
+  const ids = newEntities(state, grid.map(h => ({ spatial: { ...h.toPoint(), immovable: true }, mappable: { terrain: "grassland" },
+    walkable: { speed: 1, neighbours: {} } })));
+  grid.forEach((hex, i) => {
+    Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).forEach((other, side) => {
+      const j = grid.findIndex(h => h.toString() == other.toString());
+      if (j >= 0) state.ecs.walkable[ids[i]].neighbours[side] = ids[j];
+    });
+  });
+  const [id] = newEntities(state, [{ spatial: { x: 90, y: 0 }, personable: { size: 20, body: 0x4E3F30, hair: 0 },
+    planner: { task: null, world: {} }, playable: { known: grid.map(h => ({ x: h.x, y: h.y })) }, controllable: {} }]);
+  state.ui.playerId = id;
+  state.ecs.controllable[id].controllerId = id;
+  state.redraws.push(id);
+  const domElement = { clientWidth: 1440, clientHeight: 900, style: {}, addEventListener() {}, removeEventListener() {} };
+  const view = createWorldView({ domElement, render() {} }, state, { t: x => x, onSelect() {} });
+  return { state, view, id };
+};
+
+it.each(["watch", "skip", "url"])("refreshes the existing player model on intro entry and %s handover without planner redraws", method => {
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  const { state, view, id } = openingView();
+  const activities = () => view.objectOf(id).children.filter(c => c.userData.activity).map(c => c.userData.activity);
+  try {
+    view.frame();
+    expect(activities()).toEqual(["tasks.idle"]);
+    startIntro(state, { skip: method == "url" });
+    view.frame();
+    if (method != "url") {
+      expect(activities()).toEqual([]);
+      if (method == "watch") updateIntro(state, INTRO_TIMING.duration);
+      else skipIntro(state);
+      view.frame();
+    }
+    expect(activities()).toEqual(["tasks.idle"]);
+    expect(view.objectOf(id).getObjectByName("arrival-bundle").visible).toBe(false);
+    expect(view.objectOf(id).getObjectByName("seated-figure")).toBeUndefined();
+    state.ui.selected = id;
+    state.ecs.planner[id].task = ["eat", "grain"];
+    state.redraws.push(id);
+    view.frame();
+    expect(activities()).toEqual(["tasks.eating"]);
+    expect(view.objectOf(id).getObjectByName("marker").userData.bob).toBe(personHeight(20) + 32);
+  } finally {
+    view.dispose();
+    delete global.window;
+  }
+});
 
 it("carries a cloth bundle clear of the body, then leaves it beside the bedroll", () => {
   const state = { ui: { playerId: "p" }, intro: { pose: "walking", phase: "walking" }, ecs: { good: {}, camp: { c: { bundle: CAMP_LAYOUT.bundle } }, spatial: { c: { x: 0, y: 0 } } } };

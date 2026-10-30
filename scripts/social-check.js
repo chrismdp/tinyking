@@ -10,6 +10,7 @@ const crypto = require("node:crypto");
 const { generateMap } = require("../src/game/map");
 const { createSimulation } = require("../src/game/simulation");
 const { startIntro } = require("../src/game/intro");
+const { demographics } = require("./social-mobility-probe");
 const { eveningPlace } = require("../src/game/villages");
 const snapshot = s => JSON.stringify(Object.fromEntries(["ecs", "space", "days", "villages", "map", "world", "weather", "knowledge", "events", "social", "peopleSeed", "opinionThresholds"].map(k => [k, s[k]])));
 async function run(seed, capture) {
@@ -19,8 +20,9 @@ async function run(seed, capture) {
   startIntro(s, { skip: true });
   const original = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead);
   const initialEvents = s.events.length;
+  const initialDemographics = demographics(s);
   const previousHunger = Object.fromEntries(original.map(id => [id, s.ecs.personable[id].hunger]));
-  let meals = 0, twoYears, evening, wedding;
+  let meals = 0, twoYears, evening, wedding, visit, travelling, move;
   const count = () => Object.values(s.ecs.personable).filter(p => !p.dead).length;
   const sim = createSimulation(s, { onHour() {
     for (const id of Object.keys(s.ecs.personable)) if (!s.ecs.personable[id].dead) {
@@ -35,6 +37,21 @@ async function run(seed, capture) {
       const chatting = Object.keys(s.ecs.planner).filter(id => s.ecs.planner[id].task?.[0] == "socialise");
       const village = chatting.map(id => s.ecs.village[id]?.villageId).find(v => chatting.filter(id => s.ecs.village[id]?.villageId == v).length >= 4);
       if (village) { fs.writeFileSync(OUT + "/social-evening-state.json", snapshot(s)); fs.writeFileSync(OUT + "/social-evening-meta.json", JSON.stringify({ village, chatting })); evening = true; console.log("CAPTURE real evening " + s.days); }
+    }
+    if (capture && !travelling) {
+      const id = Object.keys(s.ecs.planner).find(id => {
+        const p = s.ecs.planner[id], b = p.world.social?.partnerId;
+        return p.task?.[0] == "walk_to" && p.task[1] == "socialDestination" && b && s.ecs.village[id]?.villageId != s.ecs.village[b]?.villageId;
+      });
+      if (id) { fs.writeFileSync(OUT + "/mobility-travelling-state.json", snapshot(s)); fs.writeFileSync(OUT + "/mobility-travelling-meta.json", JSON.stringify({ id, partnerId: s.ecs.planner[id].world.social.partnerId })); travelling = true; }
+    }
+    if (capture && !visit) {
+      const event = s.events.slice(initialEvents).find(e => e.type == "visit" && e.fromVillage != e.toVillage);
+      if (event) { fs.writeFileSync(OUT + "/mobility-visit-state.json", snapshot(s)); fs.writeFileSync(OUT + "/mobility-visit-meta.json", JSON.stringify(event)); visit = true; }
+    }
+    if (capture && !move) {
+      const event = s.events.slice(initialEvents).find(e => e.type == "marriage" && new Set(e.fromVillages).size > 1);
+      if (event) { fs.writeFileSync(OUT + "/mobility-move-state.json", snapshot(s)); fs.writeFileSync(OUT + "/mobility-move-meta.json", JSON.stringify(event)); move = true; }
     }
     if (capture && !wedding && s.events.slice(initialEvents).some(e => e.type == "marriage")) {
       fs.writeFileSync(OUT + "/social-wedding-state.json", snapshot(s)); wedding = true; console.log("CAPTURE real wedding " + s.days);
@@ -56,7 +73,7 @@ async function run(seed, capture) {
   assert(final / original.length >= .75 && final / original.length <= 1.3, "five-year population unstable: " + final + "/" + original.length);
   const events = {}; for (const e of s.events.slice(initialEvents)) events[e.type] = (events[e.type] || 0) + 1;
   const hash = crypto.createHash("sha256").update(JSON.stringify(s.ecs)).digest("hex");
-  return { seed, initial: original.length, twoYears, final, events, meals, evening, wedding, historyMs: s.historyGenerationMs, seconds: (performance.now() - started) / 1000, hash };
+  return { seed, initial: original.length, initialDemographics, finalDemographics: demographics(s), crossVillageMarriages: s.events.slice(initialEvents).filter(e => e.type == "marriage" && new Set(e.fromVillages).size > 1).length, twoYears, final, events, meals, evening, wedding, historyMs: s.historyGenerationMs, seconds: (performance.now() - started) / 1000, hash };
 }
 (async () => {
   const reports = [];
@@ -65,7 +82,7 @@ async function run(seed, capture) {
   }
   for (const seed of (process.argv.slice(2).filter(s => s != "--determinism").length ? process.argv.slice(2).filter(s => s != "--determinism").map(Number) : [20, 1234, 98765])) {
     try {
-      const report = await run(seed, seed == 20); reports.push(report); console.log(JSON.stringify(report));
+      const report = await run(seed, seed == 20); reports.push(report); console.log(JSON.stringify({ ...report, initialDemographics: undefined, finalDemographics: undefined }));
       fs.writeFileSync(OUT + "/social-simulation.json", JSON.stringify(reports, null, 2));
     } catch (error) { console.error("FAIL seed " + seed, error); process.exitCode = 1; }
   }

@@ -1,5 +1,5 @@
 import { newEntities } from "game/entities";
-import { generateMap, generateFamilies, Hex } from "game/map";
+import { generateMap, generateFamilies, Hex, TRIANGLES } from "game/map";
 import { disposition, RING_CAPS } from "game/people";
 import { historyStep } from "game/social";
 const generate = async seed => {
@@ -14,6 +14,9 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   expect(s.ecs.kinship).toEqual(again.ecs.kinship);
   expect(s.events.some(e => e.type == "birth")).toBe(true);
   expect(s.events.some(e => e.type == "marriage")).toBe(true);
+  expect(s.events.some(e => e.type == "marriage" && new Set(e.fromVillages).size > 1)).toBe(true);
+  const player = Object.keys(s.ecs.playable)[0];
+  expect(s.knowledge?.[player]?.events || []).toEqual([]);
   expect(s.events.some(e => e.type == "death")).toBe(true);
   expect(s.events.some(e => e.type == "inheritance")).toBe(true);
   expect(Math.min(...s.events.map(e => e.season))).toBeLessThanOrEqual(-176);
@@ -32,7 +35,13 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   const n = living.length * (living.length - 1);
   expect(counts.hate / n).toBeCloseTo(0.2, 2);
   expect(counts.love / n).toBeCloseTo(0.2, 2);
-  for (const v of Object.values(s.villages)) expect(v.houses.length).toBeGreaterThanOrEqual(3);
+  for (const v of Object.values(s.villages)) { expect(v.houses.length).toBeGreaterThanOrEqual(3); expect(v.houses.length).toBeLessThanOrEqual(8); }
+  for (const v of Object.values(s.villages)) for (const house of v.houses) {
+    const residents = living.filter(id => s.ecs.household[id]?.houseId == house).length;
+    const store = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
+    expect(s.ecs.container[store].amounts.gruel).toBe(Math.max(1, residents));
+    expect(s.ecs.container[store].amounts.grain).toBe(Math.max(1, residents) * TRIANGLES.length);
+  }
 });
 
 it.each([20, 1234, 98765])("keeps seed %s's population roughly stable over five seasonal years", async seed => {

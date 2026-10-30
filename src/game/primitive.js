@@ -145,3 +145,7 @@ export function carry_home() {}
 export function trade_work() {}
 
 export function socialise() {}
+
+export function arrive_home(world) { delete world.moveHome; }
+export function return_from_visit(world) { if (world.social) world.social.stage = "returning"; }
+export function end_visit(world) { delete world.social; delete world.places.socialDestination; }

@@ -62,7 +62,9 @@ export function repairHouseholds(state) {
     const old = ecs.controllable[houseId]?.controllerId;
     const head = members.includes(old) ? old : members.sort((a, b) => ecs.personable[b].age - ecs.personable[a].age || a.localeCompare(b))[0];
     if (!ecs.controllable[houseId]) continue;
-    ecs.controllable[houseId].controllerId = head || houseId;
+    // Legal ownership survives an owner's move. Residence determines working
+    // permissions separately, so an inherited house cannot annex another home.
+    if (!ecs.personable[old] || ecs.personable[old].dead) ecs.controllable[houseId].controllerId = head || houseId;
     for (const id of members) ecs.controllable[id].controllerId = head;
     const household = ecs.household?.[houseId];
     if (household?.trade) {
@@ -93,6 +95,8 @@ export function die(state, id, cause = "old age") {
     if (!heir) ecs.possession[itemId].estateOf = id;
     transferPossession(state, itemId, heir, "inheritance", id);
   }
+  const houses = Object.keys(ecs.building || {}).filter(h => ecs.controllable[h]?.controllerId == id);
+  if (heir && houses.length) recordEvent(state, "inheritance", [id, heir], houses);
   // The estate can be unclaimed. No living person answers to a dead controller.
   for (const [other, c] of Object.entries(ecs.controllable || {})) if (c.controllerId == id) c.controllerId = heir || other;
   ecs.controllable[id].controllerId = id;

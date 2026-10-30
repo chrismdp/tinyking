@@ -7,6 +7,7 @@ import { COLOURS, ITEM_COLOURS, SELECTED } from "render/colours";
 import { treeColours, treeKind } from "render/biomes";
 import { label } from "render/labels";
 
+import { displayName } from "game/knowledge";
 import { currentActivity } from "game/person_activity";
 import { forageAvailable } from "game/ecology";
 
@@ -476,7 +477,7 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => state.personName?.(id) || state.ecs.nameable[id]?.nickname || "someone") : null;
+  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => displayName(state, id)) : null;
   if (activity) {
     const text = label(activity);
     text.position.y = height + 14;

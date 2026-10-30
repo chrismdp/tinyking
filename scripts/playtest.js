@@ -21,7 +21,7 @@ const { chromium } = require("playwright-core");
 
 const BASE_URL = process.argv[2] || "http://localhost:8080/";
 const SECONDS = +(process.argv[3] || 60);
-const SHOTS = path.resolve(__dirname, "..", "shots");
+const SHOTS = path.resolve(process.env.PLAYTEST_OUT || path.join(__dirname, "..", "shots"));
 const CHROME = process.env.CHROME ||
   path.join(os.homedir(), ".cache/ms-playwright/chromium-1248/chrome-linux64/chrome");
 const VIEW = { width: 1280, height: 800 };

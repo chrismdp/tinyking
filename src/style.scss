@@ -924,3 +924,18 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 .heard-events, .possessions { margin-top: 15px; p { line-height: 1.45; } summary { cursor: pointer; } }
 @media(max-width: 600px) { .event-feed { right: 8px; bottom: 60px; width: 215px; font-size: 11px; } .people-sheet { z-index: 20; } }
+
+// Keep news, tasks and transport controls in separate rows on narrow screens.
+@media (max-width: 700px), (max-height: 500px) {
+  #ui { --news-space: 52px; }
+  #ui:has(.event-feed[open]) { --news-space: 208px; }
+  .event-feed { left: calc(10px + var(--safe-left)); right: calc(10px + var(--safe-right)); bottom: calc(66px + var(--safe-bottom)); width: auto; max-width: none; z-index: 22; font-size: 13px;
+    summary { min-height: 44px; box-sizing: border-box; padding: 13px 12px; }
+    .event-entries { max-height: 150px; }
+    button { min-height: 44px; }
+  }
+  #task-panel { bottom: calc(74px + var(--news-space) + var(--safe-bottom)); max-height: calc(100svh - 175px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
+  .people-sheet { max-height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
+  .tree-window { height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
+  #game #speed-controls { z-index: 23; }
+}

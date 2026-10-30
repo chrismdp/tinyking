@@ -3,10 +3,10 @@ import { Hex } from "game/hex";
 import MersenneTwister from "mersenne-twister";
 import { addGoodwill, disposition, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift } from "game/people";
 import { hashUnit } from "game/math";
-import { recordEvent } from "game/events";
+import { recordEvent, closeFamily } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 
-export const SOCIAL_RATES = { birthPerSeason: 0.055, oldDeathPerSeason: 0.02, courtshipSeasons: 2, childYears: 2, adultYearsPerGameYear: 1 };
+export const SOCIAL_RATES = { birthPerSeason: 0.55, oldDeathPerSeason: 0.02, courtshipSeasons: 2, childYears: 2, adultYearsPerGameYear: 2 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
 const roll = (s, key) => hashUnit(s.peopleSeed + ":social:" + key);
 const living = s => Object.keys(s.ecs.personable).filter(id => alive(s, id) && !s.ecs.playable?.[id]);
@@ -26,7 +26,7 @@ const add = (s, components) => {
 };
 
 const ancestryCache = new WeakMap();
-function related(s, a, b) {
+export function related(s, a, b) {
   if (!ancestryCache.has(s)) ancestryCache.set(s, new Map());
   const cache = ancestryCache.get(s);
   const ancestors = id => {
@@ -40,55 +40,77 @@ function related(s, a, b) {
     return result;
   };
   const aa = ancestors(a), bb = ancestors(b);
-  return aa.has(b) || bb.has(a) || [...aa].some(p => bb.has(p));
+  if (aa.has(b) || bb.has(a)) return true;
+  for (const p of aa) if (bb.has(p)) return true;
+  return false;
 }
 
 const affinityCache = new WeakMap();
 function mutualAttraction(s, a, b) {
-  if (!affinityCache.has(s)) affinityCache.set(s, new Map());
-  const cache = affinityCache.get(s), key = [a, b].sort().join(":");
-  if (!cache.has(key)) cache.set(key, disposition(s, a, b) == "love" && disposition(s, b, a) == "love" && !related(s, a, b));
-  return cache.get(key);
+  if (!affinityCache.has(s.opinionThresholds)) affinityCache.set(s.opinionThresholds, new Map());
+  const cache = affinityCache.get(s.opinionThresholds);
+  if (!cache.has(a)) cache.set(a, new Map());
+  const list = cache.get(a);
+  if (!list.has(b)) list.set(b, disposition(s, a, b) == "love" && disposition(s, b, a) == "love" && !related(s, a, b));
+  return list.get(b);
 }
 
-function romanticInterest(s, a, b) {
-  return a != b && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 &&
-    (!s.ecs.kinship[a].spouse || !alive(s, s.ecs.kinship[a].spouse)) &&
-    (!s.ecs.kinship[b].spouse || !alive(s, s.ecs.kinship[b].spouse)) &&
-    mutualAttraction(s, a, b);
+// Eligibility is local-map wide. This does not imply attraction or consent.
+export function eligiblePartner(s, a, b) {
+  return a != b && alive(s, a) && alive(s, b) && !s.ecs.playable?.[a] && !s.ecs.playable?.[b] &&
+    s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 &&
+    (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) &&
+    (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b);
 }
-const socialPreference = (s, a, b) => (romanticInterest(s, a, b) ? 200 : 0) + (s.ecs.relationships[a].known[b]?.goodwill || 0);
+export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
+export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
+export const socialPreference = (s, a, b) => (romanticInterest(s, a, b) ? 200 : 0) + (s.ecs.relationships[a].known[b]?.goodwill || 0);
 
 export function canCourt(s, a, b) {
-  if (a == b || !alive(s, a) || !alive(s, b) || s.ecs.playable?.[a] || s.ecs.playable?.[b]) return false;
-  return s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 &&
-    (!s.ecs.kinship[a].spouse || !alive(s, s.ecs.kinship[a].spouse)) &&
-    (!s.ecs.kinship[b].spouse || !alive(s, s.ecs.kinship[b].spouse)) &&
-    s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&
-    s.ecs.relationships[a]?.known[b]?.ring == "intimate" && s.ecs.relationships[b]?.known[a]?.ring == "intimate" && !related(s, a, b);
+  return s.ecs.relationships[a]?.known[b]?.ring == "intimate" && s.ecs.relationships[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b);
 }
 
-export function moveHouse(s, id, houseId) {
-  const fromHouse = s.ecs.household[id]?.houseId;
+// Empty does not mean ownerless: an inherited estate may have an absentee owner.
+export function availableHouse(s, houseId, people = []) {
+  const owner = s.ecs.controllable?.[houseId]?.controllerId;
+  return !owner || owner == houseId || !alive(s, owner) || people.includes(owner);
+}
+
+function familyHomeAvailable(s, houseId, people) {
+  const owner = s.ecs.controllable?.[houseId]?.controllerId;
+  return availableHouse(s, houseId, people) || people.some(id => closeFamily(s, owner).includes(id));
+}
+
+export function moveHouse(s, id, houseId, summary = false) {
+  const fromHouse = s.ecs.household[id]?.houseId, fromVillage = s.ecs.village[id]?.villageId;
+  if (fromHouse == houseId) return;
+  if (availableHouse(s, houseId, [id])) s.ecs.controllable[houseId].controllerId = id;
   s.ecs.household[id] = { id, houseId };
-  s.ecs.village[id] = { id, villageId: s.ecs.village[houseId]?.villageId || s.ecs.village[id]?.villageId };
+  s.ecs.village[id] = { ...s.ecs.village[id], id, villageId: s.ecs.village[houseId]?.villageId || s.ecs.village[id]?.villageId };
   const w = s.ecs.planner?.[id]?.world;
   if (w) {
     w.places = {}; w.no_place_for = {}; delete w.social;
     s.ecs.planner[id].task = null; s.ecs.planner[id].plan = null;
     for (const farm of Object.values(s.ecs.farmable || {})) if (farm.claimerId == id) farm.claimerId = null;
-    w.claimedFarmable = null;
+    w.claimedFarmable = null; w.currentJob = null; w.subtasks = null; w.moveHome = houseId;
+    for (const bed of Object.values(s.ecs.sleepable || {})) bed.occupiers = bed.occupiers.filter(p => p != id);
+    for (const manager of Object.values(s.ecs.manager || {})) for (const job of manager.jobs) if (job.assignedId == id) job.assignedId = null;
   }
-  if (fromHouse != houseId) recordEvent(s, "move", [id], [], { fromHouse, toHouse: houseId });
+  if (summary && s.ecs.spatial[houseId]) s.ecs.spatial[id] = { ...s.ecs.spatial[id], x: s.ecs.spatial[houseId].x, y: s.ecs.spatial[houseId].y };
+  recordEvent(s, "move", [id], [], { fromHouse, toHouse: houseId, fromVillage, toVillage: s.ecs.village[id].villageId });
 }
 
-function coupleHouse(s, a, b) {
+function coupleHouse(s, a, b, dependents = []) {
   const ecs = s.ecs, village = s.villages?.[ecs.village[a]?.villageId];
-  const members = house => living(s).filter(id => ecs.household[id]?.houseId == house && id != a && id != b).length;
+  const counts = {}, excluded = new Set([a, b, ...dependents]);
+  for (const id of living(s)) if (!excluded.has(id)) { const house = ecs.household[id]?.houseId; counts[house] = (counts[house] || 0) + 1; }
+  const members = house => counts[house] || 0;
   const family = [...new Set([ecs.household[a]?.houseId, ecs.household[b]?.houseId])].filter(Boolean);
-  const room = family.find(id => members(id) <= 4);
+  const room = family.find(id => members(id) <= 4 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
   if (room) return room;
-  const empty = village?.houses?.find(id => members(id) == 0);
+  const villageHomes = [...new Set([...(village?.houses || []), ...(s.villages?.[ecs.village[b]?.villageId]?.houses || []),
+    ...Object.keys(ecs.building || {}).filter(id => [a, b].includes(ecs.controllable[id]?.controllerId))])];
+  const empty = villageHomes.find(id => members(id) == 0 && familyHomeAvailable(s, id, [a, b]));
   if (empty) return empty;
   if (!village || village.houses.length >= 8) return null;
   // A summary world can provide build sites as plain coordinates. Rendered worlds
@@ -112,9 +134,12 @@ function coupleHouse(s, a, b) {
   return house;
 }
 
-export function marry(s, a, b) {
+export function marry(s, a, b, summary = false) {
   if (!canCourt(s, a, b)) return false;
-  const house = coupleHouse(s, a, b);
+  const dependents = [...new Set([a, b].flatMap(id => s.ecs.kinship[id].children))].filter(id => alive(s, id) &&
+    s.ecs.personable[id].age < 18 && [s.ecs.household[a]?.houseId, s.ecs.household[b]?.houseId].includes(s.ecs.household[id]?.houseId));
+  if (dependents.length > 4) return false;
+  const house = coupleHouse(s, a, b, dependents);
   if (!house) return false;
   // Retain previous spouses in event history; current spouse links are reciprocal.
   for (const id of [a, b]) {
@@ -122,8 +147,9 @@ export function marry(s, a, b) {
     if (old) s.ecs.kinship[old].spouse = null;
   }
   s.ecs.kinship[a].spouse = b; s.ecs.kinship[b].spouse = a;
-  moveHouse(s, a, house); moveHouse(s, b, house);
-  recordEvent(s, "marriage", [a, b]);
+  const fromVillages = [s.ecs.village[a]?.villageId, s.ecs.village[b]?.villageId];
+  for (const id of [a, b, ...dependents]) moveHouse(s, id, house, summary);
+  recordEvent(s, "marriage", [a, b], [], { fromVillages, houseId: house });
   repairHouseholds(s);
   return true;
 }
@@ -160,12 +186,13 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   if (!alive(s, a) || !alive(s, b) || !summary && distance(s, a, b) > 85 ** 2) return false;
   s.social ||= { courtships: {}, avoidance: {} };
   s.social.avoidance ||= {};
-  const key = [a, b].sort().join(":"), until = s.social.avoidance[key];
+  const key = (a < b ? a + ":" + b : b + ":" + a), until = s.social.avoidance[key];
   if (until > s.days) return false;
   if (until && until <= s.days) {
     delete s.social.avoidance[key];
     recordEvent(s, "reconciliation", [a, b]);
   }
+  s.social.contacts ||= {}; s.social.contacts[key] = s.days;
   const hostile = disposition(s, a, b) == "hate" || disposition(s, b, a) == "hate";
   if (summary && hostile) conversations = 1;
   if (hostile && roll(s, "quarrel:" + key + ":" + Math.floor(s.days)) < 1 - 0.88 ** conversations) {
@@ -180,23 +207,23 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
 
 // Grown children leave crowded homes when a local house is empty. This gives
 // families access to the village's existing fields instead of crowding one plot.
-function settleAdults(s) {
+function settleAdults(s, summary) {
   const ecs = s.ecs, roster = living(s), residents = {};
   for (const id of roster) (residents[ecs.household?.[id]?.houseId] ||= []).push(id);
   const members = house => residents[house] || [];
   for (const village of Object.values(s.villages || {})) {
     for (const house of village.houses || []) {
       if (members(house).length) continue;
-      const candidates = roster.filter(id => ecs.village[id]?.villageId == village.id && ecs.personable[id].age >= 18 &&
+      const candidates = roster.filter(id => familyHomeAvailable(s, house, [id, ecs.kinship[id]?.spouse]) && ecs.personable[id].age >= 18 &&
         ecs.kinship[id]?.parents.length && ecs.controllable[ecs.household[id]?.houseId]?.controllerId != id &&
-        members(ecs.household[id]?.houseId).length > 4).sort((a, b) => ecs.personable[a].age - ecs.personable[b].age || a.localeCompare(b));
+        members(ecs.household[id]?.houseId).length > 2).sort((a, b) => ecs.personable[a].age - ecs.personable[b].age || a.localeCompare(b));
       for (const id of candidates) {
         const from = ecs.household[id].houseId, spouse = ecs.kinship[id].spouse;
         const family = [id];
         if (alive(s, spouse) && ecs.household[spouse]?.houseId == from) family.push(spouse);
         family.push(...ecs.kinship[id].children.filter(child => alive(s, child) && ecs.personable[child].age < 18 && ecs.household[child]?.houseId == from));
         if (members(from).length - family.length < 2) continue;
-        for (const person of family) moveHouse(s, person, house);
+        for (const person of family) moveHouse(s, person, house, summary);
         residents[from] = members(from).filter(id => !family.includes(id)); residents[house] = family;
         break;
       }
@@ -204,50 +231,66 @@ function settleAdults(s) {
   }
 }
 
-// The shared seasonal demographic transition. Live play calls this on exactly
-// the same boundaries; summary history substitutes abstract meetings for walking.
+// Live play and summary history share every demographic transition. Only
+// summary encounters stand in for navigation and timed conversations.
 export function advanceSeason(s, season, summary = false) {
   s.social ||= {}; s.social.courtships ||= {}; s.social.avoidance ||= {};
   const ecs = s.ecs, ids = living(s);
   for (const key of Object.keys(s.social.courtships)) {
     const [a, b] = key.split(":");
-    if (!canCourt(s, a, b)) delete s.social.courtships[key];
+    if (!canCourt(s, a, b) || !summary && (s.social.contacts?.[key] ?? -Infinity) < s.days - 3) delete s.social.courtships[key];
   }
   for (const id of ids) {
     const p = ecs.personable[id];
-    p.lifeYears = (p.lifeYears ?? (p.age < 18 ? p.age / 9 : p.age - 16)) + 0.25;
-    p.age = Math.floor(p.lifeYears < 2 ? p.lifeYears * 9 : 18 + p.lifeYears - 2);
+    p.lifeYears = (p.lifeYears ?? (p.age < 18 ? p.age / 9 : 2 + (p.age - 18) / SOCIAL_RATES.adultYearsPerGameYear)) + 0.25;
+    p.age = Math.floor(p.lifeYears < 2 ? p.lifeYears * 9 : 18 + (p.lifeYears - 2) * SOCIAL_RATES.adultYearsPerGameYear);
     p.size = p.age < 18 ? 12 : 20;
     s.redraws?.push(id);
     if (p.age >= 60 && roll(s, "death:" + id + ":" + season) < SOCIAL_RATES.oldDeathPerSeason * (1 + (p.age - 60) / 12) || p.age >= 88) die(s, id);
   }
-  settleAdults(s);
-  for (const villageId of Object.keys(s.villages || {})) {
-    const locals = ids.filter(id => alive(s, id) && ecs.village[id]?.villageId == villageId);
-    if (summary) {
-      // Rank candidates once per season. Re-sorting every unmatched roster for
-      // every conversation made history cubic in village population.
-      const preferences = new Map(locals.map(a => [a, locals.filter(b => b != a)
-        .map(b => ({ id: b, score: socialPreference(s, a, b) }))
-        .sort((b, c) => c.score - b.score || b.id.localeCompare(c.id)).map(b => b.id)]));
-      // Six half-day conversations with a seasonal companion, summarized as
-      // one contact with the equivalent goodwill and quarrel probability.
-      const paired = new Set();
-      const order = locals.map(id => ({ id, order: roll(s, season + ":order:" + id) })).sort((a, b) => a.order - b.order).map(p => p.id);
-      for (const a of order) {
-        if (paired.has(a)) continue;
-        const b = preferences.get(a).find(b => !paired.has(b));
-        if (!b) continue;
-        paired.add(a); paired.add(b); chatTogether(s, a, b, true, 6);
+  settleAdults(s, summary);
+  const roster = ids.filter(id => alive(s, id));
+  if (summary) {
+    const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
+    const byVillage = new Map(), live = new Set(roster);
+    for (const id of roster) {
+      const village = ecs.village[id]?.villageId;
+      if (!byVillage.has(village)) byVillage.set(village, []);
+      byVillage.get(village).push(id);
+    }
+    const paired = new Set();
+    const order = roster.map(id => ({ id, order: roll(s, season + ":order:" + id) })).sort((a, b) => a.order - b.order).map(p => p.id);
+    for (const a of order) {
+      if (paired.has(a)) continue;
+      const locals = byVillage.get(ecs.village[a]?.villageId) || [];
+      const friends = Object.keys(ecs.relationships[a].known).filter(id => live.has(id) && ecs.relationships[a].known[id].ring != "public");
+      const localOrFriend = new Set([...locals, ...friends]);
+      const candidates = new Set([...localOrFriend, ...(singles.has(a) ? singles : [])]);
+      let b, best = -Infinity;
+      for (const id of candidates) {
+        if (id == a || paired.has(id)) continue;
+        const key = a < id ? a + ":" + id : id + ":" + a;
+        if (s.social.avoidance[key] > s.days) continue;
+        const seeking = singles.has(a) && singles.has(id) && !related(s, a, id);
+        if (!localOrFriend.has(id) && !seeking) continue;
+        const score = (seeking && mutualAttraction(s, a, id) ? 200 : 0) + (ecs.relationships[a].known[id]?.goodwill || 0);
+        if (score > best || score == best && id.localeCompare(b) < 0) { b = id; best = score; }
       }
+      if (!b) continue;
+      paired.add(a); paired.add(b);
+      if (ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordEvent(s, "visit", [a, b], [], { fromVillage: ecs.village[a]?.villageId, toVillage: ecs.village[b]?.villageId, summary: true });
+      chatTogether(s, a, b, true, 6);
     }
-    const used = new Set();
-    for (const a of locals) for (const b of locals) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b)) {
-      const key = a + ":" + b;
-      const started = s.social.courtships[key] ?? season;
-      s.social.courtships[key] = started;
-      if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b)) { used.add(a); used.add(b); }
-    }
+  }
+  const used = new Set();
+  for (const a of roster) for (const b of Object.keys(ecs.relationships[a]?.known || {})) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
+    const key = a + ":" + b;
+    const started = s.social.courtships[key] ?? season;
+    s.social.courtships[key] = started;
+    if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) { used.add(a); used.add(b); }
+  }
+  for (const villageId of Object.keys(s.villages || {})) {
+    const locals = roster.filter(id => ecs.village[id]?.villageId == villageId);
     const target = (s.villages[villageId].houses?.length || 3) * 3;
     const fertility = Math.min(2, Math.max(0.2, target / Math.max(1, locals.length)));
     for (const a of locals) {
@@ -255,7 +298,7 @@ export function advanceSeason(s, season, summary = false) {
       if (!b || a > b || !alive(s, b) || ecs.playable?.[b] || p.age < 18 || p.age > 55 || ecs.personable[b].age > 55) continue;
       const house = ecs.household[a]?.houseId;
       if (locals.filter(id => ecs.household[id]?.houseId == house).length >= 6) continue;
-      if (season - (p.lastBirth ?? -10000) < 12) continue;
+      if (season - (p.lastBirth ?? -10000) < 4) continue;
       if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) birth(s, a, b, season);
     }
   }
@@ -287,37 +330,4 @@ export function historyStep(worldHexState, season) {
   drift(copy, 72);
   advanceSeason(copy, season, true);
   return copy;
-}
-
-// Pick real nearby idle villagers for a visible, timed planner task. Needs and
-// ordered jobs retain priority. Social intent is never a stale world.label.
-export function socialHour(s) {
-  const season = Math.floor(s.days / 3);
-  s.social ||= { lastSeason: season, courtships: {}, avoidance: {} };
-  if (s.social.lastSeason == null) s.social.lastSeason = season;
-  while (s.social.lastSeason < season) advanceSeason(s, s.social.lastSeason + 1);
-  for (const p of Object.values(s.ecs.planner || {})) if (p.task?.[0] != "socialise" && !(p.task?.[0] == "walk_to" && p.task[1] == p.world.social?.partnerId)) delete p.world.social;
-  const hour = (s.days % 1) * 24;
-  if (hour < 18 || hour >= 21) return;
-  const ids = living(s).filter(id => {
-    const p = s.ecs.planner[id], w = p?.world;
-    return w && !w.ordered && !w.capturedBy && !w.feeling.hungry && !w.feeling.tired && !w.currentJob && !w.social &&
-      ["wait_for", "socialise"].includes(p.task?.[0]);
-  });
-  const used = new Set();
-  for (const a of ids) {
-    if (used.has(a)) continue;
-    const b = ids.filter(b => b != a && !used.has(b) && (distance(s, a, b) <= 85 ** 2 || distance(s, a, b) <= 600 ** 2 && romanticInterest(s, a, b)) &&
-      !(s.social.avoidance?.[[a, b].sort().join(":")] > s.days)).sort((b, c) => socialPreference(s, a, c) - socialPreference(s, a, b) || distance(s, a, b) - distance(s, a, c))[0];
-    if (!b) continue;
-    used.add(a); used.add(b);
-    const courting = canCourt(s, a, b);
-    for (const [id, partnerId] of [[a, b], [b, a]]) {
-      const p = s.ecs.planner[id]; p.world.social = { partnerId, courting };
-      if (distance(s, id, partnerId) > 85 ** 2) {
-        p.task = null; p.plan = [["walk_to", partnerId], ["socialise", partnerId]];
-      } else { p.task = ["socialise", partnerId]; p.plan = []; }
-      p.world.wait_until = s.days + 0.5 / 24;
-    }
-  }
 }

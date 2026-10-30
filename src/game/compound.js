@@ -61,6 +61,14 @@ export const person = () => [
     ]
   ],
   [
+    world => world.moveHome,
+    house => [["walk_to", house], ["arrive_home"]]
+  ],
+  [
+    world => world.social,
+    () => [["social_visit"]]
+  ],
+  [
     world => time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 18,
     () => [
       [ "set_label" ],
@@ -480,3 +488,9 @@ export const work_trade = () => [[
   world => world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
   job => [["walk_to", job.workplaceId], ["set_label", TRADE_LABELS[job.trade]], ["trade_work", job.workplaceId]]
 ]];
+
+export const social_visit = () => [
+  [world => world.social?.stage == "returning" && world.social, visit => [["walk_to", visit.homeId], ["end_visit"]]],
+  [world => world.social?.visitor && world.social, visit => [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["return_from_visit"], ["walk_to", visit.homeId], ["end_visit"]]],
+  [world => world.social, visit => [["socialise", visit.partnerId], ["end_visit"]]]
+];

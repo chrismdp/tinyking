@@ -1,4 +1,4 @@
-import { socialHour } from "game/social";
+import { socialHour } from "game/social_visits";
 import { die } from "game/possessions";
 import * as htn from "game/htn";
 import { introActive, updateIntro } from "game/intro";

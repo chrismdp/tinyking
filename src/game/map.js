@@ -7,7 +7,7 @@ import MersenneTwister from "mersenne-twister";
 
 
 import { newEntities, entitiesInSameLocation } from "game/entities";
-import { directlyControlledBy, discoverTiles } from "game/playable";
+import { discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { createHeightField, HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
@@ -492,8 +492,8 @@ export async function generateMap(state, seed, progressUpdate) {
         removeBidirectionalLink(state.ecs, mappables[0], side);
       }
     });
-    const householdSize = Object.values(state.ecs.household).filter(h => h.houseId == id).length;
-    const inhabitants = directlyControlledBy(state.ecs, state.ecs.controllable[id].controllerId).length + 1;
+    const householdSize = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead && state.ecs.household[person]?.houseId == id).length;
+    const inhabitants = Math.max(1, householdSize);
 
     // NOTE: Create rooms (2 each at the moment in every building, one for stockpiles one for sleeping
     building.rooms = newEntities(state, [

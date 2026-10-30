@@ -1,6 +1,6 @@
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
-import { chatTogether } from "game/social";
+import { chatTogether, canCourt } from "game/social";
 import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
@@ -8,7 +8,7 @@ import * as math from "game/math";
 import * as time from "game/time";
 import { replan, Task } from "game/htn";
 import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
-import { topController } from "game/playable";
+import { topController, householdAccess } from "game/playable";
 import { jobQueueFor, firstFreeJob } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
@@ -495,10 +495,9 @@ const FIND_PLACE_DELAY = time.HOUR * 4;
 export function find_place(state, actorId, world, dt, firstRun, type, filter, filterParam) {
   let found_place;
 
-  const realm = topController(state.ecs, actorId);
   if (filter == "allows_sleep") {
     const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
-      realm == topController(state.ecs, id) &&
+      householdAccess(state.ecs, actorId, id) &&
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
@@ -518,21 +517,21 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
   } else if (filter == "container_with") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
-      realm == topController(state.ecs, id) &&
+      householdAccess(state.ecs, actorId, id) &&
       state.ecs.container[id].amounts[filterParam] > 0);
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
   } else if (filter == "container_with_space") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
-      realm == topController(state.ecs, id) &&
+      householdAccess(state.ecs, actorId, id) &&
       containerHasSpace(state.ecs.container[id]));
     available_in_realm.sort(closestSpatialTo(state, actorId));
     found_place = available_in_realm[0];
   } else if (filter == "stockpile_slot_with") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available = Object.keys(state.ecs.stockpile || {})
-      .filter(id => realm == topController(state.ecs, id))
+      .filter(id => householdAccess(state.ecs, actorId, id))
       .map(id => !state.ecs.holder[id] ? [] :
         (state.ecs.holder[id].held
           .filter(h =>
@@ -548,7 +547,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     found_place = available[0];
   } else if (filter == "stockpile_open_slot") {
     const available_in_realm = Object.keys(state.ecs.stockpile || {}).filter(id =>
-      realm == topController(state.ecs, id));
+      householdAccess(state.ecs, actorId, id));
     const points = available_in_realm.map(id => {
       if (state.ecs.interior[id]) {
         return (state.ecs.holder[id].held.length < state.ecs.holder[id].capacity) ?
@@ -569,7 +568,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     let available = [];
     if (state.ecs.haulable) {
       available = Object.keys(state.ecs.haulable).filter(id =>
-        realm == topController(state.ecs, id) &&
+        householdAccess(state.ecs, actorId, id) &&
         state.ecs.good[id] &&
         state.ecs.good[id].type == filterParam &&
         !state.ecs.haulable[id].heldBy);
@@ -581,7 +580,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     if (state.ecs.farmable) {
       available = Object.keys(state.ecs.farmable).filter(id =>
         (!state.ecs.farmable[id].claimerId || state.ecs.farmable[id].claimerId == actorId) &&
-        realm == topController(state.ecs, id) &&
+        householdAccess(state.ecs, actorId, id) &&
         state.ecs.farmable[id].slots.some(s => filterParam.includes(s.state)));
     }
     available.sort(closestSpatialTo(state, actorId));
@@ -808,11 +807,22 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
 }
 
 export function socialise(state, actorId, world, dt, firstRun, partnerId) {
-  if (firstRun) world.wait_until = state.days + 0.5 / 24;
-  if (!world.social || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired) { delete world.social; return Task.FINISH; }
-  if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) { delete world.social; return Task.FINISH; }
-  if (state.days < world.wait_until) return Task.CONTINUE;
-  if (actorId < partnerId) chatTogether(state, actorId, partnerId);
-  delete world.social;
+  const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
+  if (!v || v.stage == "returning" || !other || other.stage == "returning" || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
+  if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return v.visitor ? Task.FINISH : Task.CONTINUE;
+  if (v.stage != "visiting") {
+    v.started = other.started ?? state.days; other.started = v.started;
+    v.stage = "visiting"; v.courting = canCourt(state, actorId, partnerId);
+    if (v.visitor) recordEvent(state, "visit", [actorId, partnerId], [], { fromVillage: state.ecs.village[actorId]?.villageId, toVillage: state.ecs.village[partnerId]?.villageId });
+  }
+  const conversations = Math.max(v.conversations || 0, other.conversations || 0);
+  if (state.days - v.started < (conversations + 1) * 0.5 / 24) return Task.CONTINUE;
+  chatTogether(state, actorId, partnerId);
+  v.conversations = other.conversations = conversations + 1;
+  if (v.conversations < 3) return Task.CONTINUE;
   return Task.FINISH;
 }
+
+export function arrive_home() {}
+export function return_from_visit() {}
+export function end_visit() {}

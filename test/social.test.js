@@ -1,7 +1,8 @@
 import { peopleWorld } from "./support/people";
 import { recordEvent, learnEvent, knownEvents } from "game/events";
 import { createPossession, transferPossession, die, heirFor } from "game/possessions";
-import { chatTogether, canCourt, marry, birth, advanceSeason, historyStep, socialHour } from "game/social";
+import { chatTogether, canCourt, marry, birth, advanceSeason, historyStep } from "game/social";
+import { socialHour } from "game/social_visits";
 import { topController } from "game/playable";
 
 const mutual = (s, a, b) => {
@@ -106,12 +107,12 @@ it("repairs a dead trade holder and keeps household controllers acyclic after mo
 
 it("makes a real evening visit to a mutually loved villager beyond chatting distance", () => {
   const { state: s, person: a, sibling: b } = peopleWorld();
-  s.days = 19 / 24; s.ecs.spatial[b].x += 200;
+  s.days = 19 / 24; s.ecs.spatial[b] = { ...s.ecs.spatial["6"] };
   s.ecs.kinship[a].parents = []; s.ecs.kinship[b].parents = [];
   s.opinionThresholds = { hate: -100, love: -99 };
   for (const id of [a, b]) { s.ecs.planner[id].task = ["wait_for", 1]; s.ecs.planner[id].plan = []; }
   socialHour(s);
-  expect(s.ecs.planner[a].plan).toContainEqual(["walk_to", b]);
+  expect(s.ecs.planner[a].world.social.partnerId).toBe(b);
 });
 
 it("leaves dead people's last feelings and the history input unchanged", () => {

@@ -7,7 +7,7 @@ import { GameState } from "components/contexts";
 
 function SpeedButton({ icon, game_speed, click }) {
   const state = React.useContext(GameState);
-  return (<button onClick={click(game_speed)} disabled={state.game_speed == game_speed}>
+  return (<button aria-label={{ paused: "Pause", normal: "Normal speed", fast: "Fast speed" }[game_speed]} onClick={click(game_speed)} disabled={state.game_speed == game_speed}>
     <FontAwesomeIcon icon={icon}/>
   </button>);
 }

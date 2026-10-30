@@ -18,8 +18,10 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable[id]?
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return t("tasks.idle");
   const [key, target, place] = task;
-  if (key == "walk_to" && world?.social?.partnerId == target) return "Visiting " + personName(target);
-  if (key == "socialise" && world.social) return (world.social.courting ? "Courting " : "Chatting with ") + personName(target);
+  if (key == "walk_to" && world?.moveHome == target) return "Moving home";
+  if (key == "walk_to" && world?.social?.stage == "returning" && target == world.social.homeId) return "Returning home";
+  if (key == "walk_to" && (target == "socialDestination" || world?.social?.partnerId == target)) return "Travelling to visit " + personName(world.social.partnerId);
+  if (key == "socialise" && world.social) return world.social.stage == "waiting" ? "Waiting for " + personName(target) : (world.social.courting ? "Courting " : "Chatting with ") + personName(target);
   if (["chop_tree", "walk_to", "carry_home"].includes(key)) {
     const order = Object.values(ecs.manager || {}).flatMap(m => m.jobs).find(j => j.assignedId == id && !j.waiting && j.job.key == "cut_tree_down");
     const phase = order && woodPhase(ecs, id, order);

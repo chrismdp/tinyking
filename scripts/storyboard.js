@@ -9,7 +9,7 @@ const url = new URL(process.argv[2] || "http://localhost:8108/");
 url.searchParams.set("seed", url.searchParams.get("seed") || "13");
 url.searchParams.delete("intro");
 const out = path.resolve(process.argv[3] || "shots/storyboard");
-const story = { url: url.href, actions: [], frames: [], errors: [] };
+const story = { assistance: "Command-assisted: selection, orders and speed use public ui.actions. Chat, news and family controls are clicked. No state/results shortcuts.", url: url.href, actions: [], frames: [], errors: [] };
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.CHROME || "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome", args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });

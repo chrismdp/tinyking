@@ -176,3 +176,15 @@ it("marks the spouse as household heir before the eldest child, matching real in
   const html = render(state, <FamilyTree entityId={person}/>);
   expect(html).toContain("Select Dora Taylor, 55 · Living, ◇ Heir");
 });
+
+it("does not reveal an unknown social partner in a selected person's activity", () => {
+  const { state, player, person, sibling } = peopleWorld();
+  state.personName = id => state.ecs.nameable[id].nickname;
+  state.ecs.planner[person].world.social = { partnerId: sibling, courting: true };
+  state.ecs.planner[person].task = ["socialise", sibling];
+  let html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Courting an unknown person"); expect(html).not.toContain("Alice Miller");
+  state.ecs.relationships[player].known[sibling] = { ring: "public", goodwill: 0 };
+  html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Courting Alice Miller");
+});

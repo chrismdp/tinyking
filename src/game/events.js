@@ -8,12 +8,16 @@ export function closeFamily(state, id) {
     ...kin.parents.flatMap(p => state.ecs.kinship[p]?.children || [])])].filter(p => p && p != id);
 }
 
+const eventSets = new WeakMap();
+
 export function learnEvent(state, viewerId, event) {
   state.knowledge ||= {};
   const knowledge = state.knowledge[viewerId] ||= { people: {}, feelings: {} };
   knowledge.events ||= [];
-  if (knowledge.events.includes(event.id)) return;
-  knowledge.events.push(event.id);
+  let known = eventSets.get(knowledge.events);
+  if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
+  if (known.has(event.id)) return;
+  knowledge.events.push(event.id); known.add(event.id);
   const family = closeFamily(state, viewerId);
   if (event.type == "quarrel") {
     for (const actor of event.people) if (actor != viewerId && event.people.some(id => id != actor && family.includes(id))) {
@@ -27,10 +31,10 @@ export function learnEvent(state, viewerId, event) {
 
 export function recordEvent(state, type, people, items = [], details = {}) {
   state.events ||= [];
-  const villageId = state.ecs.village?.[people[0]]?.villageId || null;
+  const villageId = (type == "visit" ? details.toVillage : null) || state.ecs.village?.[people[0]]?.villageId || null;
   const event = { id: "event-" + (state.events.length + 1), type, people: [...people],
     day: state.days, season: Math.floor(state.days / 3), villageId,
-    place: state.ecs.household?.[people[0]]?.houseId || villageId,
+    place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
@@ -62,12 +66,13 @@ export function eventSentence(state, event, displayName) {
   const n = id => displayName(id), [a, b] = event.people;
   const when = ["spring", "summer", "autumn", "winter"][((event.season % 4) + 4) % 4] + " of year " + (Math.floor(event.season / 4) + 1);
   const village = state.villages?.[event.villageId]?.name;
-  const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || "an item").join(", ");
+  const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
   const text = {
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),
     death: () => n(a) + " died" + (event.cause ? " of " + event.cause : ""),
-    move: () => n(a) + " moved to " + n(event.toHouse),
+    move: () => n(a) + " moved to " + n(event.toHouse) + (state.villages?.[event.toVillage]?.name ? " in " + state.villages[event.toVillage].name : ""),
+    visit: () => n(a) + " visited " + n(b) + (state.villages?.[event.toVillage]?.name ? " in " + state.villages[event.toVillage].name : ""),
     quarrel: () => n(a) + " quarrelled with " + n(b),
     reconciliation: () => n(a) + " made peace with " + n(b),
     gift: () => n(a) + " gave " + (item || "a gift") + " to " + n(b),

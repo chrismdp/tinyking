@@ -1,3 +1,4 @@
+import { displayName as knownDisplayName } from "game/knowledge";
 import { heirFor } from "game/possessions";
 import { knownEvents, eventSentence } from "game/events";
 import React from "react";
@@ -8,7 +9,6 @@ import { giftChoices } from "game/gift_choices";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
 import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
-import { topController } from "game/playable";
 
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
 const displayName = (state, id) => state.ecs.nameable[id] ? name(state.ecs.nameable[id]) : "?";
@@ -47,7 +47,7 @@ function relation(state, personId, otherId) {
 
 function household(state, houseId) {
   const ecs = state.ecs;
-  const head = houseId && ecs.controllable[houseId] && topController(ecs, houseId);
+  const head = houseId && ecs.controllable[houseId]?.controllerId;
   const family = head && ecs.nameable[head] ? displayName(state, head).split(" ").slice(1).join(" ") : "";
   const home = houseId ? displayName(state, houseId) : "No household";
   return { home: home == "Log cabin" && family ? family + " cottage" : home,
@@ -95,7 +95,7 @@ export function PersonPanel({ entityId }) {
   const trade = ecs.profession?.[entityId]?.trade;
   const occupation = ecs.personable[entityId].age < 18 ? "Child" : trade ? titleCase(trade) :
     ecs.household[houseId]?.farming ? "Farming household" : null;
-  const activity = currentActivity(ecs, entityId, t, id => displayName(state, id));
+  const activity = currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)));
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
       <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{occupation ? occupation + " · " : ""}{activity}</p></div>
@@ -117,7 +117,7 @@ export function PersonPanel({ entityId }) {
         {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => displayName(state, o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
           Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{displayName(state, id)}</button>)}</div>}
       {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{displayName(state, id) + " is in " + personName + "'s " + titleCase(ring) + " ring."}</p>)}</div>}
-      <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => displayName(state, id))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
+      <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => knownDisplayName(state, id, id => displayName(state, id)))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
       <div className="possessions"><p className="label">Personal possessions</p>{Object.values(ecs.possession || {}).filter(p => p.ownerId == entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {displayName(state, p.maker)}. First owned by {displayName(state, p.originalOwner)}.</p><p>{p.owners.map(o => displayName(state, o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
       {state.ui.talkResult?.personId == entityId && <p className="talk-note" role="status">{state.ui.talkResult.message}</p>}
     </div>
@@ -159,7 +159,7 @@ function heirOf(state, id) {
   const ecs = state.ecs;
   for (const house of new Set(Object.values(ecs.household).map(h => h.houseId))) {
     if (!ecs.controllable[house]) continue;
-    const head = topController(ecs, house), kin = ecs.kinship[head];
+    const head = ecs.controllable[house].controllerId, kin = ecs.kinship[head];
     if (!kin) continue;
     const heir = heirFor(state, head);
     if (heir == id) return household(state, house).home;

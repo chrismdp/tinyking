@@ -3,6 +3,30 @@ import { createPossession } from "game/possessions";
 import { giftChoices } from "game/gift_choices";
 import { collect_gift, talk } from "game/tasks";
 import { Task } from "game/htn";
+import { newEntities } from "game/entities";
+
+it("leaves separately carried heirlooms alone while NPCs eat and haul ordinary supplies", () => {
+  const { state: s, person, tiles, step } = peopleWorld();
+  const item = createPossession(s, person, "Family sword", "heirloom");
+  const before = JSON.parse(JSON.stringify(s.ecs.possession[item]));
+  const [store, wood] = newEntities(s, [
+    { spatial: { ...s.ecs.spatial[tiles[3]] }, interior: { buildingId: tiles[3] },
+      container: { capacity: 20, amounts: { gruel: 3, wood: 0 } }, controllable: { controllerId: person } },
+    { spatial: { ...s.ecs.spatial[tiles[3]] }, good: { type: "wood", amount: 1 },
+      haulable: {}, controllable: { controllerId: person } }
+  ]);
+  s.ecs.personable[person].hunger = .95;
+  step(3);
+  expect(s.ecs.personable[person].hunger).toBeLessThan(.95);
+  expect(s.ecs.container[store].amounts.gruel).toBeLessThan(3);
+  expect(s.ecs.container[store].amounts.wood).toBe(1);
+  expect(s.ecs.good[wood]).toBeUndefined();
+  expect(s.ecs.possession[item]).toEqual(before);
+  expect(s.ecs.good[item]).toMatchObject({ type: "heirloom", amount: 1, value: 12 });
+  expect(s.ecs.haulable[item].heldBy).toBeUndefined();
+  expect(s.ecs.controllable[item].controllerId).toBe(person);
+  expect(Object.values(s.ecs.holder).some(h => h.held.includes(item))).toBe(false);
+});
 
 it("keeps unique gifts separate and preserves identity, maker, inscription and owner chain on real delivery", () => {
   const { state: s, player, person } = peopleWorld();

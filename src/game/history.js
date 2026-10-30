@@ -7,7 +7,9 @@ import { recordEvent, withEventIndex } from "game/events";
 // a distant world hex needs to continue its families while the player travels.
 export function generateHistory(state, seed) {
   const started = performance.now();
-  const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "nameable", "playable", "spatial"];
+  // Merge complete personal items created below, while the people/house filter
+  // keeps existing map goods out of the summary and leaves them in the world.
+  const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "good", "haulable", "nameable", "playable", "spatial"];
   const people = new Set(Object.keys(state.ecs.personable));
   const houses = new Set(Object.keys(state.ecs.building));
   let summary = { ecs: { nextId: state.ecs.nextId }, villages: state.villages, days: -540, peopleSeed: seed,

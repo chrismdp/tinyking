@@ -146,12 +146,11 @@ it("lets children meet between completed crop-care tasks while household fields 
   s.ecs.personable[a].age=9;s.ecs.personable[b].age=11;s.days=10/24;
   const fields=newEntities(s,[0,1].map(()=>({spatial:{...s.ecs.spatial[tiles[3]]},controllable:{controllerId:tiles[3]},farmable:{houseId:tiles[3],slots:Array.from({length:19},()=>({state:"sown",content:"grain",growth:0})),claimerId:null}})));
   s.ecs.household[tiles[3]].fields=fields;
-  const episodes=new Map(),care=[],meetAfterCare=[];
+  const episodes=new Map(),care=[];
   for(let minute=0;minute<6*60;minute++){
     step(1/60);
     for(const id of [a,b]){
       const p=s.ecs.planner[id],done=p.world.lastPlay,help=p.world.lastGardenHelp;
-      if(p.world.social?.kind=="play"&&p.task?.[0]=="tend_garden"&&!meetAfterCare.some(x=>x.id==id))meetAfterCare.push({id,day:s.days});
       if(done)episodes.set(done.started,{...done});
       if(help&&!care.some(h=>h.id==id&&h.day==help.day))care.push({id,...help});
     }
@@ -159,10 +158,33 @@ it("lets children meet between completed crop-care tasks while household fields 
   expect(episodes.size).toBeGreaterThanOrEqual(2);
   const play=[...episodes.values()].sort((a,b)=>a.started-b.started);
   expect(care.some(h=>h.day<play[0].started)).toBe(true);
-  expect(meetAfterCare.some(request=>care.some(h=>h.id==request.id&&h.day>request.day&&h.day<play[0].started))).toBe(true);
   expect(care.some(h=>h.day>play[0].ended&&h.day<play[1].started)).toBe(true);
   expect(fields.some(id=>s.ecs.farmable[id].slots.some(slot=>slot.tendedDay!==Math.floor(s.days)))).toBe(true);
   expect(Object.keys(s.ecs.good||{})).toHaveLength(0);
+});
+
+it("finishes an active real crop before an agreed play meeting, counting that work in the arrival window", () => {
+  const {state:s,a,b,tiles,step}=household();
+  s.ecs.personable[a].age=9;s.ecs.personable[b].age=11;s.days=10/24;
+  const fields=newEntities(s,[0,1].map(()=>({spatial:{...s.ecs.spatial[tiles[3]]},controllable:{controllerId:tiles[3]},farmable:{houseId:tiles[3],slots:[{state:"sown",content:"grain",growth:0}],claimerId:null}})));
+  s.ecs.household[tiles[3]].fields=fields;
+  for(let minute=0;minute<60&&!([a,b].every(id=>s.ecs.planner[id].task?.[0]=="tend_garden"));minute++)step(1/60);
+  const before=[a,b].map(id=>({id,task:[...s.ecs.planner[id].task],remaining:s.ecs.planner[id].world.workRemaining})),requested=s.days;
+  socialHour(s);
+  for(const entry of before){
+    expect(s.ecs.planner[entry.id].task).toEqual(entry.task);
+    expect(s.ecs.planner[entry.id].world.workRemaining).toBe(entry.remaining);
+    expect(s.ecs.planner[entry.id].world.social.kind).toBe("play");
+  }
+  let firstPlay;
+  for(let minute=0;minute<120&&!firstPlay;minute++){step(1/60);firstPlay=s.ecs.planner[a].world.lastPlay;}
+  expect(firstPlay).toBeDefined();
+  expect(firstPlay.ended-firstPlay.started).toBeGreaterThanOrEqual(.5/24-1e-8);
+  for(const id of [a,b]){
+    expect(s.ecs.planner[id].world.lastGardenHelp.day).toBeGreaterThan(requested);
+    expect(s.ecs.planner[id].world.lastGardenHelp.day).toBeLessThan(firstPlay.started);
+  }
+  expect(fields.every(id=>s.ecs.farmable[id].slots[0].growth>=3/24)).toBe(true);
 });
 
 it("interrupts child play for a real meal and respects a partner's captured attention", () => {

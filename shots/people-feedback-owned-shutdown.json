@@ -1,0 +1,24 @@
+{
+  "ownedBrowserCommandsStillRunning": [],
+  "savedFinalBrowserPid": 1364987,
+  "savedFinalBrowserExists": false,
+  "server": {
+    "pid": 1320356,
+    "cwd": "/home/cp/code/tinyking-people-feedback",
+    "port": 8119,
+    "command": [
+      "python3",
+      "/home/cp/code/tinyking-people-feedback/shots/continuation-server.py",
+      "/home/cp/code/tinyking-people-feedback/shots/continuation-care-dev-dist"
+    ],
+    "started": "2026-10-30T18:35:42.210355+00:00",
+    "applicationCommit": "c556ee6e1caa64ce8ffd5aba545766a866eeb3e5",
+    "acceptanceSourceCommit": "598430982c7b3bc958f784062746cc425126288f",
+    "hot": false,
+    "liveReload": false
+  },
+  "before": "State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\nLISTEN 0      5          127.0.0.1:8119      0.0.0.0:*    users:((\"python3\",pid=1320356,fd=3))\n",
+  "signal": "SIGTERM",
+  "after": "State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+  "closedAt": "2026-10-30T19:18:50.273582+00:00"
+}

@@ -1,0 +1,132 @@
+{
+  "tested-tree-f28c804.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/playtest.js",
+      "scripts/storyboard.js",
+      "src/game/compound.js",
+      "src/game/household_routines.js",
+      "src/game/people.js",
+      "src/game/person_activity.js",
+      "src/game/social_visits.js",
+      "src/game/tasks.js",
+      "test/friend_help.test.js",
+      "test/household_routines.test.js",
+      "test/people_panel.test.js",
+      "test/person_activity.test.js"
+    ],
+    "removed": [],
+    "unchanged": 220
+  },
+  "source-freeze-291afb9.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/compound.js",
+      "src/game/household_routines.js",
+      "src/game/person_activity.js",
+      "src/game/social_visits.js",
+      "src/game/tasks.js",
+      "test/friend_help.test.js",
+      "test/household_routines.test.js",
+      "test/person_activity.test.js"
+    ],
+    "removed": [],
+    "unchanged": 223
+  },
+  "source-freeze-ec9f8fc.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/compound.js",
+      "src/game/household_routines.js",
+      "src/game/social_visits.js",
+      "src/game/tasks.js",
+      "test/friend_help.test.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 225
+  },
+  "source-freeze-98181f3.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/compound.js",
+      "src/game/social_visits.js",
+      "test/friend_help.test.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 227
+  },
+  "source-freeze-d17880b.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/social_visits.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 229
+  },
+  "source-freeze.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/social_visits.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 229
+  },
+  "continuation-final-source.sha256": {
+    "changed": [
+      "docs/people-feedback.md",
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "src/game/social_visits.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 229
+  },
+  "continuation-care-source.sha256": {
+    "changed": [
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js",
+      "test/household_routines.test.js"
+    ],
+    "removed": [],
+    "unchanged": 231
+  },
+  "continuation-final-care-source.sha256": {
+    "changed": [
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js"
+    ],
+    "removed": [],
+    "unchanged": 232
+  },
+  "continuation-closeout-source.sha256": {
+    "changed": [
+      "scripts/people-feedback-browser.js",
+      "scripts/storyboard.js"
+    ],
+    "removed": [],
+    "unchanged": 232
+  },
+  "continuation-delivery-source.sha256": {
+    "changed": [
+      "scripts/storyboard.js"
+    ],
+    "removed": [],
+    "unchanged": 233
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-30T19:15:05.083058+00:00",
+  "executionSession": 82171,
+  "executionToolExitCode": 143,
+  "statusOrigin": "Originating execution tool/shell reported 143. The detached child continued to save its assertion-failure report. No observed child-process exit receipt survived; no child status is reconstructed.",
+  "savedReportFailure": "AssertionError [ERR_ASSERTION]: More than one real paired play episode completes during the ordinary day\n    at /home/cp/code/tinyking-people-feedback/scripts/people-feedback-browser.js:227:5",
+  "acceptancePass": false,
+  "childProcessExitReceipt": "unavailable",
+  "originatingShellExitCode": 143
+}

@@ -1,0 +1,95 @@
+{
+  "initialAdults": 254,
+  "initialChildren": 15,
+  "arrivalEligible4Plus": 13,
+  "arrivalEligible6Plus": 10,
+  "start": 2.7529541666666986,
+  "end": 3.7529541666667483,
+  "hours": 24.000000000001194,
+  "allSamples": {
+    "none": 2009,
+    "walk_to": 7615,
+    "wait_for": 1690,
+    "perform_subtask_in_slot": 240,
+    "eat": 760,
+    "sleep": 8890,
+    "tend_garden": 32,
+    "trade_work": 39,
+    "socialise": 565,
+    "find_next_subtask": 8,
+    "leave_edge": 6,
+    "play_together": 8,
+    "forage": 21
+  },
+  "childSamples": {
+    "none": 281,
+    "wait_for": 711,
+    "walk_to": 66,
+    "sleep": 456,
+    "tend_garden": 20,
+    "play_together": 8,
+    "eat": 39
+  },
+  "adultSamples": {
+    "none": 1728,
+    "walk_to": 7549,
+    "wait_for": 979,
+    "perform_subtask_in_slot": 240,
+    "eat": 721,
+    "sleep": 8434,
+    "tend_garden": 12,
+    "trade_work": 39,
+    "socialise": 565,
+    "find_next_subtask": 8,
+    "leave_edge": 6,
+    "play_together": 0,
+    "forage": 21
+  },
+  "distinctCompletedEpisodes": 1,
+  "completedParticipantRecords": 2,
+  "completedDurationsMinutes": [
+    30.000000000001492
+  ],
+  "completedEpisodes": [
+    {
+      "id": "social-2366",
+      "partnerId": "social-2356",
+      "started": 3.7071208333334127,
+      "ended": 3.727954166666747
+    }
+  ],
+  "careCompletionRecords": 35,
+  "careChildren": 7,
+  "verifiedGrowthTransitions": 35,
+  "updatedContactPairRecords": 39,
+  "adultSocialiseActors": 82,
+  "arrivalIdleHours": 8.099899999999971,
+  "arrivalHungerBefore": 0.7573851712880156,
+  "arrivalHungerAfter": 1.090718504621349,
+  "arrivalDisplacement": 0,
+  "explicitFoodDisplacement": 49.482481486615384,
+  "nearbyIdleHours": 2.0832999999999924,
+  "nearbyIdleDisplacement": 0,
+  "minNpcDistance": 0,
+  "playerAfter": {
+    "hunger": 0.9166666666666663,
+    "tiredness": 0.21525882113205444,
+    "dead": false
+  },
+  "observedDeaths": [
+    "social-2070"
+  ],
+  "errors": [],
+  "strictFailure": "AssertionError [ERR_ASSERTION]: More than one real paired play episode completes during the ordinary day\n    at /home/cp/code/tinyking-people-feedback/scripts/people-feedback-browser.js:227:5",
+  "childProcessExitReceipt": "unavailable",
+  "originatingShellExit": 143,
+  "unexecutedAssertionsAfterFirstFailure": [
+    "completed episode duration >= 30 game minutes",
+    "child-play-progress capture",
+    "chase displacement > 5",
+    "positive crop growth >= three hours",
+    "player alive",
+    "final zero-console-errors assertion",
+    "complete=true assignment"
+  ]
+}

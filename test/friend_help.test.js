@@ -195,3 +195,20 @@ it('gives a builder friend a separate nearby work position so both workers are v
   expect(Math.hypot(helper.x-player.x,helper.y-player.y)).toBeGreaterThan(28);
   expect(Math.hypot(helper.x-site.x,helper.y-site.y)).toBeLessThanOrEqual(50);
 });
+
+it('puts ready material help ahead of routine garden care without pretending the crop was tended', () => {
+  const w=world(),s=w.state,home=s.ecs.household[w.person].houseId;
+  const [garden]=newEntities(s,[{spatial:{...s.ecs.spatial[w.person]},backyard:{houseId:home,kind:'vegetable'},
+    farmable:{houseId:home,claimerId:null,slots:[{state:'sown',content:'grain',growth:0}]},controllable:{controllerId:home}}]);
+  s.ecs.household[home]={backyards:[garden]};
+  w.step(.05);
+  expect(s.ecs.planner[w.person].world.helpingFriend).toMatchObject({kind:'build',targetId:w.site});
+  expect(s.ecs.farmable[garden].slots[0].tendedDay).toBeUndefined();
+  let actualWork=false;
+  for(let i=0;i<60;i++){
+    w.step(1/60);
+    if(s.ecs.planner[w.person].task?.[0]=='help_friend_work'&&s.ecs.construction[w.site]?.work>0)actualWork=true;
+  }
+  expect(actualWork).toBe(true);
+  expect(s.ecs.controllable[w.person].controllerId).toBe(w.person);
+});

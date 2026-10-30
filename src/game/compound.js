@@ -71,9 +71,9 @@ export const person = () => [
     world => world.social,
     () => [["social_visit"]]
   ],
+  [world => world.friendOffer, offer => [["begin_friend_help", offer], ["walk_to", offer?.x != null ? { x: offer.x, y: offer.y } : offer?.targetId], ["help_friend_work"], ["end_friend_help"]]],
   [world => world.gardenHelp, garden => [["walk_to", garden], ["tend_garden", garden]]],
   [world => world.child, () => [["child_idle"]]],
-  [world => world.friendOffer, offer => [["begin_friend_help", offer], ["walk_to", offer?.x != null ? { x: offer.x, y: offer.y } : offer?.targetId], ["help_friend_work"], ["end_friend_help"]]],
   [
     world => time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 18,
     () => [

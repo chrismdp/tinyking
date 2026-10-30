@@ -69,7 +69,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert(Math.hypot(report.talk.record.conversation.position.x-report.talk.record.conversation.otherPosition.x,report.talk.record.conversation.position.y-report.talk.record.conversation.otherPosition.y)<12);
     assert(await page.locator(".feeling-line").isVisible());
     await shot("desktop-after-talk");
-    // Observe two fed/rested idle hours beside the person just spoken to, including any naturally passing NPC.
+    // Observe two idle hours beside the person just spoken to, including naturally passing NPCs and real needs.
     await page.evaluate(() => {
       const s=window.tinyking, player=s.ui.playerId, start=s.days, origin={...s.ecs.spatial[player]};
       window.feedbackIdle={start,origin,maxDisplacement:0,minNpcDistance:Infinity};
@@ -131,9 +131,9 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert(Math.hypot(report.visibilityJourney.arrival.position.x-report.visibilityJourney.arrival.target.x,report.visibilityJourney.arrival.position.y-report.visibilityJourney.arrival.target.y)<10);
     await page.waitForTimeout(800);await shot("desktop-arrived-at-childrens-green");
     // The preserved first observation crossed a tired daylight period: no play
-    // completed. Let the same world reach the following rested morning, using
-    // actual food/rest orders for the stationary player throughout the wait.
-    report.scheduledMorning=await page.evaluate(()=>Math.ceil(window.tinyking.days)+1+8/24);
+    // completed. Observe a full evening-to-evening day through the next natural
+    // sleep and daylight, using actual food/rest orders throughout preparation.
+    report.scheduledObservation=await page.evaluate(()=>Math.ceil(window.tinyking.days)+18/24);
     await page.evaluate(target=>{
       const s=window.tinyking;window.feedbackPreparation={start:s.days,target,care:[]};
       const watch=()=>{
@@ -145,7 +145,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         if(s.days>=target){s.ui.actions.set_speed("paused");window.feedbackPreparation.end=s.days;return;}
         requestAnimationFrame(watch);
       };requestAnimationFrame(watch);
-    },report.scheduledMorning);
+    },report.scheduledObservation);
     await page.getByRole("button",{name:"Fast speed",exact:true}).click();
     await page.waitForFunction(()=>window.feedbackPreparation.end,null,{timeout:120000});
     report.preparation=await page.evaluate(()=>window.feedbackPreparation);
@@ -219,6 +219,6 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert.equal(report.errors.length,0,report.errors.join("\n"));
     report.complete=true;
     console.log(JSON.stringify({arrivalIdle:report.arrivalIdle,idle:report.idle,conversation:report.talk.copy,biography:report.talk.bio,counts:report.observation.counts,childCounts:report.observation.childCounts,completedPlay:report.observation.play.length,completedHelp:report.observation.help.length,errors:report.errors}));
-  } catch(error){report.failure=String(error.stack||error);await shot("failure").catch(()=>{});throw error;}
+  } catch(error){report.failure=String(error.stack||error);Object.assign(report,await page.evaluate(()=>({preparation:window.feedbackPreparation,observation:window.feedbackObserve,runtime:{day:window.tinyking.days,speed:window.tinyking.game_speed}})).catch(()=>({})));await shot("failure").catch(()=>{});throw error;}
   finally{fs.writeFileSync(path.join(out,"report.json"),JSON.stringify(report,null,2));await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

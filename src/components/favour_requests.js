@@ -5,6 +5,7 @@ import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { Hex } from "game/hex";
 import { visibleFavours, favourTitle, favourQuantity, householdStore } from "game/favours";
+import { harvestCounts } from "game/harvest_task";
 
 export function RequestCard({ request: r }) {
   const s = React.useContext(GameState);
@@ -18,7 +19,8 @@ export function RequestCard({ request: r }) {
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
       {r.status == "offered" ? <button aria-label={"Accept favour: " + favourTitle(r) + " for " + giver} onClick={() => s.ui.actions.accept_favour(r.id)}>Accept</button> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
     </div>
-    {r.status == "accepted" && <small>{r.progress}/{r.quantity} {r.kind == "harvest" ? "patches harvested" : "delivered"} · {r.delivered} carried home</small>}
+    {r.kind == "harvest" && ["accepted", "completed"].includes(r.status) ? <small>{harvestCounts(s, r)}</small> :
+      r.status == "accepted" && <small>{r.progress}/{r.quantity} delivered · {r.delivered} carried home</small>}
     {r.outcome && <p role="status">{r.outcome}</p>}
   </article>;
 }

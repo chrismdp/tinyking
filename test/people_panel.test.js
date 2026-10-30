@@ -13,6 +13,48 @@ jest.mock("game/name", () => ({ name: n => n.nickname }));
 
 const render = (state, view) => renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={state}>{view}</GameState.Provider></I18n>);
 
+it.each([
+  [false, "She", "her", "her"], [true, "He", "his", "him"], [undefined, "They", "their", "them"]
+])("explains earned help in their Personal/Intimate ring with consistent pronouns (%s)", (male, pronoun, possessive, object) => {
+  const { state, player, person, sibling } = peopleWorld();
+  state.ecs.nameable[person].male = male;
+  // The player"s closer opinion alone must not promise help or reveal kin.
+  state.ecs.relationships[player].known[person] = { ring: "intimate", goodwill: 65 };
+  let html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("An impression.");
+  expect(html).not.toContain("can help");
+  expect(html).not.toContain("Alice Miller");
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain(`${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`);
+  expect(html).not.toContain("can help");
+  for (const ring of ["personal", "intimate"]) {
+    state.ecs.relationships[person].known[player] = { ring, goodwill: ring == "personal" ? 36 : 65 };
+    state.ecs.planner[person].task = ["help_friend_work"];
+    state.ecs.planner[person].world.helpingFriend = { kind: "build" };
+    const before = JSON.stringify(state);
+    html = render(state, <PersonPanel entityId={person}/>);
+    expect(html).toContain(`You are in ${possessive} ${ring == "personal" ? "Personal" : "Intimate"} ring.`);
+    expect(html).toContain(`${pronoun} can help with your building or field when free and fed.`);
+    expect(html).toContain("Deliver building materials first.");
+    expect(html).toContain(`Help comes in ${possessive} own time; you do not control ${object}.`);
+    expect(html).not.toContain("marriage");
+    expect(html).toContain("Helping build a friend&#x27;s home");
+    expect(JSON.stringify(state)).toBe(before);
+    expect(state.ecs.relationships[person].known[sibling].ring).toBe("social");
+  }
+});
+
+it.each(["dead", "child"])("does not add a promise of help to a %s Personal bond", kind => {
+  const { state, player, person } = peopleWorld();
+  state.ecs.relationships[person].known[player] = { ring: "personal", goodwill: 36 };
+  if (kind == "dead") state.ecs.personable[person].dead = true;
+  else state.ecs.personable[person].age = 12;
+  const html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("She shares her family tree and gossip.");
+  expect(html).not.toContain("can help");
+});
+
 it("keeps unknown possession makers and past owners anonymous until their names are learned", () => {
   const { state, player, person, parent, sibling } = peopleWorld();
   state.ecs.relationships[player].known[person] = { ring: "public", goodwill: 0 };

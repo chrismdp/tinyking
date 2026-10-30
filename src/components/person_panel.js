@@ -88,6 +88,10 @@ export function PersonPanel({ entityId }) {
   const home = household(state, houseId);
   const left = patienceLeft(state, player, entityId);
   const dead = ecs.personable[entityId].dead;
+  const object = pronoun == "She" ? "her" : pronoun == "He" ? "him" : "them";
+  const benefit = !dead && ecs.personable[entityId].age >= 18 && rank >= RINGS.indexOf("personal") ?
+    `${pronoun} can help with your building or field when free and fed. Deliver building materials first. Help comes in ${possessive} own time; you do not control ${object}.` :
+    `${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`;
   const queue = (key, metadata = {}) => {
     state.ui.actions.talk_to(entityId, key, metadata);
     setChooser(null);
@@ -105,7 +109,7 @@ export function PersonPanel({ entityId }) {
     <div className="person-body"><p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
       <div className="relationship"><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : pronoun == "They" ? "They trust you" : pronoun + " trusts you"}</strong><Ring ring={ring}/></div>
-        <p>{trusted ? `You are in ${possessive} ${titleCase(ring)} ring. ${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.` : `An impression. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
+        <p>{trusted ? `You are in ${possessive} ${titleCase(ring)} ring. ${benefit}` : `An impression. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
         <div className="goodwill"><span>Goodwill with {personName.split(" ")[0]}</span><span>{number(goodwill)}{next ? " / " + next : ""}</span></div>
         <div className={"meter " + ring + "-meter"} role="progressbar" aria-label={"Goodwill with " + personName} aria-valuenow={number(goodwill)} aria-valuemin={0} aria-valuemax={next || GOODWILL_STEPS[3]}><span style={{ width: Math.max(0, Math.min(100, goodwill / (next || GOODWILL_STEPS[3]) * 100)) + "%" }}/></div>
         <small>{next ? `${number(Math.max(0, next - goodwill))} more towards ${titleCase(nextRing)} · space matters too.` : "Your closest ring · space matters too."}</small>

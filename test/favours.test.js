@@ -4,6 +4,110 @@ import { updateFavours, visibleFavours, acceptFavour, finishFavour, fuelReady } 
 import { enqueueTask, cancelTask, reorderTask, readyPlayerTasks } from 'game/manager';
 import { trade_work } from 'game/tasks';
 import { HOUR } from 'game/time';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { GameState } from '../src/components/contexts';
+import { TaskPanel } from '../src/components/task_panel';
+import { do_favour } from 'game/tasks';
+
+jest.mock('components/contexts', () => require('../src/components/contexts'), { virtual: true });
+jest.mock('game/name', () => ({ name: n => n?.nickname || '?' }));
+
+const taskMarkup = s => renderToStaticMarkup(<GameState.Provider value={s}><TaskPanel/></GameState.Provider>);
+const harvestRow = s => taskMarkup(s).match(/<li class="task[^]*?<\/li>/)?.[0];
+function advanceUntil(w, condition) {
+  for (let i = 0; i < 2000 && !condition(); i++) w.step(.01);
+  expect(condition()).toBeTruthy();
+}
+
+it('does not present actual first-patch work overrun as 160% favour completion', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  const task = acceptFavour(s, r.id);
+  advanceUntil(w, () => r.working && task.workRemaining > 0);
+  const planner = s.ecs.planner[w.player];
+  // Real timed crop work with a long final frame, not an injected progress value.
+  do_favour(s, w.player, planner.world, task.workRemaining + HOUR / 8 * .6, false, r.id);
+  expect(task.progress).toBeCloseTo(1.6);
+  expect(r).toMatchObject({ progress: 1, delivered: 0, produced: 2, status: 'accepted' });
+  expect(s.ecs.farmable[w.field].slots.filter(slot => slot.state == 'harvested')).toHaveLength(1);
+  expect(harvestRow(s)).not.toContain('160%');
+  expect(harvestRow(s)).toContain('1/3 patches harvested');
+  expect(harvestRow(s)).toContain('0 crop portions carried home');
+});
+
+it('shows real patch, hand and home counts through work, partial delivery and completion', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  acceptFavour(s, r.id);
+  advanceUntil(w, () => r.working);
+  expect(harvestRow(s)).toContain('Harvesting patch 1 of 3');
+  expect(harvestRow(s)).toContain('0/3 patches harvested');
+  advanceUntil(w, () => r.cargo.some(id => s.ecs.haulable[id]?.heldBy == w.player));
+  let row = harvestRow(s);
+  for (const text of ['1/3 patches harvested', '1 crop portion in hand', '0 crop portions carried home', 'Carrying the family harvest home']) expect(row).toContain(text);
+  expect(row).not.toContain('%');
+  advanceUntil(w, () => r.delivered == 1);
+  row = harvestRow(s);
+  expect(row).toContain('1/3 patches harvested');
+  expect(row).toContain('1 crop portion carried home');
+  expect(r.status).toBe('accepted');
+  advanceUntil(w, () => r.progress == 2);
+  expect(harvestRow(s)).toContain('2/3 patches harvested');
+  expect(harvestRow(s)).toContain('2 crop portions carried home');
+  advanceUntil(w, () => r.progress == 3 && r.delivered == 5);
+  row = harvestRow(s);
+  expect(row).toContain('3/3 patches harvested');
+  expect(row).toContain('5 crop portions carried home');
+  expect(row).not.toContain('Completed');
+  expect(row).not.toContain('%');
+  advanceUntil(w, () => r.status == 'completed');
+  expect(taskMarkup(s)).toContain('Completed · +12 goodwill with the requester');
+  expect(taskMarkup(s)).toContain('6 crop portions carried home');
+  expect(s.ecs.container[w.store].amounts.grain).toBe(36);
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+});
+
+it('keeps harvest counts honest while reordered, waiting, interrupted and resumed', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  const favour = acceptFavour(s, r.id);
+  advanceUntil(w, () => r.cargo.some(id => s.ecs.haulable[id]?.heldBy == w.player));
+  const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
+  reorderTask(s, move.id, 0);
+  let html = taskMarkup(s);
+  expect(html).toContain('Harvest paused · another task comes first');
+  expect(html).toContain('1 crop portion in hand');
+  expect(html).not.toContain('Carrying the family harvest home');
+  s.ecs.container[w.store].capacity = 30;
+  readyPlayerTasks(s);
+  expect(taskMarkup(s)).toContain('Household store is full');
+  expect(taskMarkup(s)).toContain('0 crop portions carried home');
+  s.ecs.container[w.store].capacity = 100;
+  s.ecs.personable[w.player].hunger = 1.2;
+  advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'eat');
+  html = taskMarkup(s);
+  expect(html).toContain('Stopped to eat · harvest resumes afterwards');
+  expect(html).toContain('1/3 patches harvested');
+  advanceUntil(w, () => r.status == 'completed');
+  expect(s.ecs.manager[w.player].jobs).not.toContain(favour);
+  expect(taskMarkup(s)).toContain('6 crop portions carried home');
+  expect(s.ecs.container[w.store].amounts.grain).toBe(36);
+  expect(s.ecs.container[w.camp].amounts.grain).toBe(5);
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+});
+
+it('shows sleep as an interruption before returning to the unfinished harvest', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  s.events = [];
+  s.days = 20 / 24;
+  s.ecs.planner[w.player].world.days = s.days;
+  s.ecs.personable[w.player].tiredness = 1.1;
+  acceptFavour(s, r.id);
+  advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'sleep');
+  expect(taskMarkup(s)).toContain('Stopped to sleep · harvest resumes afterwards');
+  expect(taskMarkup(s)).toContain('0/3 patches harvested');
+  advanceUntil(w, () => r.working);
+  expect(harvestRow(s)).toContain('Harvesting patch 1 of 3');
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(0);
+});
 
 export function favourWorld() {
   const w = peopleWorld(), { state: s, player, person, parent, sibling, tiles } = w;

@@ -283,3 +283,12 @@ it("eats carried grain before attempting storage when hunger and a full store co
   expect(plan).toContainEqual(["eat", "grain"]);
   expect(plan.some(t => t[0] == "drop_entity_into_container")).toBe(false);
 });
+
+it("eats held food without a trip to an old cached gathering place", () => {
+  const { state, villager } = hungryVillage();
+  const w = state.ecs.planner[villager].world;
+  w.days = .4; w.feeling.hungry = true; w.holding.grain = true; w.places.meet = "far-away-green";
+  const [plan] = solve(w, [], [["person"]]);
+  expect(plan).toContainEqual(["eat", "grain"]);
+  expect(plan).not.toContainEqual(["walk_to", "meet"]);
+});

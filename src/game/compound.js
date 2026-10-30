@@ -317,7 +317,6 @@ export const find_food = () => [
     world => world.holding[good],
     () => [
       [ "set_label" ],
-      [ "move_to_place", "meet", "space" ],
       [ "set_label", "eating" ],
       [ "eat", good ]
     ]

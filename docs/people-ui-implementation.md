@@ -1,5 +1,7 @@
 # People panels and talking
 
+The follow-up [people review fixes](people-review-fixes.md) add trade/current activity, explicit gossip direction and readable gift sources. The evidence below records the earlier implementation.
+
 Selecting a villager opens the person sheet. It shows their household, learned traits, feelings, goodwill and known companions. The player keeps the existing status strip. The family tree preserves unknown branches and replaces question marks with learned names. Known cards open that person's panel.
 
 Chat, Ask about someone and Give a gift enter the personal task queue. The player walks to the person and spends game time on the visit. A gift moves one real item from the player's stores to the recipient. Conversations leave household control unchanged. Recruit no longer exists in the job data, planner, task handlers or translations. The playtest checks its absence and exercises Chat and Gift.

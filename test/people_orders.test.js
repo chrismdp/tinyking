@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { peopleWorld } from "./support/people";
 import { enqueueTask, cancelTask } from "game/manager";
 import { newEntities } from "game/entities";
+import { giftChoices } from "game/gift_choices";
+import { give } from "game/holder";
 import { TaskPanel } from "../src/components/task_panel";
 import { GameState } from "../src/components/contexts";
 import * as compound from "game/compound";
@@ -144,4 +146,51 @@ it("delivers an already held gift when its old ground position is unreachable", 
   expect(state.ecs.controllable[item].controllerId).toBe(person);
   expect(state.ecs.relationships[player].known[person]).toBeDefined();
   expect(state.ecs.relationships[person].known[player]).toBeDefined();
+});
+
+
+it.each(["held", "loose", "container", "stockpile"])("delivers exactly one real portion selected from %s choices with total ownership conserved", source => {
+  const { state, player, person, tiles, step } = peopleWorld();
+  state.ecs.interior ||= {};
+  const [supply, stockpile, foreign] = newEntities(state, [
+    { spatial: { ...state.ecs.spatial[tiles[0]] }, controllable: { controllerId: player },
+      ...(source == "container" ? { container: { amounts: { wood: 3 }, capacity: 10 } } : { good: { type: "wood", amount: 3 }, haulable: {} }) },
+    { spatial: { ...state.ecs.spatial[tiles[0]] }, holder: { held: [], capacity: 10 }, stockpile: {}, controllable: { controllerId: player } },
+    { spatial: { ...state.ecs.spatial[tiles[0]] }, container: { amounts: { wood: 7 } }, controllable: { controllerId: person } }
+  ]);
+  if (source == "held") give(state.ecs, supply, player);
+  if (source == "stockpile") give(state.ecs, supply, stockpile);
+  const total = owner => Object.entries(state.ecs.good || {}).reduce((n, [id, good]) => n + (state.ecs.controllable[id]?.controllerId == owner && good.type == "wood" ? good.amount : 0), 0) +
+    Object.entries(state.ecs.container || {}).reduce((n, [id, c]) => n + (state.ecs.controllable[id]?.controllerId == owner ? c.amounts.wood || 0 : 0), 0);
+  const choice = giftChoices(state, player).find(c => c.gift.sourceId == supply);
+  const metadata = JSON.parse(JSON.stringify(choice.gift));
+  const task = enqueueTask(state, { key: "give_gift" }, person, { gift: choice.gift });
+  for (let i = 0; i < 500 && task.progress < 1; i++) step(0.02);
+  expect(task.progress).toBe(1);
+  expect(task.gift).toEqual(metadata);
+  expect(total(player)).toBe(2);
+  expect(total(person)).toBe(8);
+  expect(state.ecs.container[foreign].amounts.wood).toBe(7);
+  expect(state.ecs.good[task.giftItem]).toMatchObject({ type: "wood", amount: 1 });
+  expect(state.ecs.controllable[task.giftItem].controllerId).toBe(person);
+});
+
+it("leaves a collected choice in hand on cancellation and waits if the chosen source disappears", () => {
+  const { state, player, person, tiles, step } = peopleWorld();
+  const [supply] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[0]] }, good: { type: "wood", amount: 2 }, haulable: {}, controllable: { controllerId: player } }]);
+  const gift = giftChoices(state, player)[0].gift;
+  const task = enqueueTask(state, { key: "give_gift" }, person, { gift });
+  step(0.02);
+  expect(task.giftItem).toBeDefined();
+  cancelTask(state, task.id);
+  expect(state.ecs.haulable[task.giftItem].heldBy).toBe(player);
+  expect(state.ecs.controllable[task.giftItem].controllerId).toBe(player);
+  expect(state.ecs.good[supply].amount).toBe(1);
+  expect(state.ecs.relationships[person].known[player]).toBeUndefined();
+  const unavailable = enqueueTask(state, { key: "give_gift" }, person, { gift });
+  state.ecs.controllable[supply].controllerId = person;
+  step(0.1);
+  expect(unavailable.waiting).toBe("Gift no longer available");
+  expect(unavailable.progress).toBe(0);
+  expect(state.ecs.good[supply].amount).toBe(1);
 });

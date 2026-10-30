@@ -1,8 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTranslate } from "react-polyglot";
+import { currentActivity } from "game/person_activity";
+import { giftChoices } from "game/gift_choices";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
-import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, giftOptions, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
+import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
 import { topController } from "game/playable";
 
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
@@ -51,6 +54,7 @@ function household(state, houseId) {
 
 export function PersonPanel({ entityId }) {
   const state = React.useContext(GameState);
+  const t = useTranslate();
   const [treeOpen, setTreeOpen] = React.useState(false);
   const [chooser, setChooser] = React.useState(null);
   const ecs = state.ecs, player = state.ui.playerId;
@@ -85,10 +89,14 @@ export function PersonPanel({ entityId }) {
     setChooser(null);
   };
   const gossip = state.knowledge?.[player]?.feelings[entityId] || {};
-  const gifts = giftOptions(state, player);
+  const gifts = giftChoices(state, player);
+  const trade = ecs.profession?.[entityId]?.trade;
+  const occupation = ecs.personable[entityId].age < 18 ? "Child" : trade ? titleCase(trade) :
+    ecs.household[houseId]?.farming ? "Farming household" : null;
+  const activity = currentActivity(ecs, entityId, t);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
-      <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}</p></div>
+      <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{occupation ? occupation + " · " : ""}{activity}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
     <div className="person-body"><p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
@@ -104,9 +112,9 @@ export function PersonPanel({ entityId }) {
       {!dead && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
       {!dead && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
-        {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(g => <button key={g.sourceId + g.type} onClick={() => queue("give_gift", { gift: g })}>{titleCase(g.type)} <small>{g.amount} in store</small></button>) : <p>You have no goods to give.</p>}</> :
+        {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
           Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{displayName(state, id)}</button>)}</div>}
-      {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{displayName(state, id)} <Ring ring={ring}/></p>)}</div>}
+      {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{displayName(state, id) + " is in " + personName + "'s " + titleCase(ring) + " ring."}</p>)}</div>}
       {state.ui.talkResult?.personId == entityId && <p className="talk-note" role="status">{state.ui.talkResult.message}</p>}
     </div>
     <footer className="person-footer"><button onClick={() => setTreeOpen(true)}>Open family tree »</button><small>{knownCount == Object.keys(tree.nodes).length ? titleCase(possessive) + " whole family tree is known." : `${knownCount} ${knownCount == 1 ? "name" : "names"} known · the rest show as ?`}</small></footer>

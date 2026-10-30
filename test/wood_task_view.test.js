@@ -24,3 +24,18 @@ it("shows the same real wood phase above the person as in the queue", () => {
   person(state, e, key => key, { realm: 0xFFFFFF });
   expect(label).toHaveBeenLastCalledWith("tasks.foraging");
 });
+
+it("labels current eating and walking rather than a stale forge plan, matching the person sheet", () => {
+  const planner = { task: ["eat", "grain"], world: { label: "at_forge", places: { meet: { id: "green", x: 0, y: 0 } } } };
+  const state = { ecs: { planner: { p: planner }, profession: { p: { trade: "smith" } }, meetingPlace: { green: { kind: "green" } } } };
+  const e = { id: "p", personable: { size: 20, body: 0x4E3F30, hair: 0 }, planner };
+  person(state, e, key => key, { realm: 0xFFFFFF });
+  expect(label).toHaveBeenLastCalledWith("tasks.eating");
+  planner.task = ["walk_to", "meet"];
+  person(state, e, key => key, { realm: 0xFFFFFF });
+  expect(label).toHaveBeenLastCalledWith("tasks.walking_to_green");
+  e.personable.dead = true;
+  state.ecs.personable = { p: e.personable };
+  person(state, e, key => key, { realm: 0xFFFFFF });
+  expect(label).toHaveBeenLastCalledWith("tasks.dead");
+});

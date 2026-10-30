@@ -7,7 +7,7 @@ import { COLOURS, ITEM_COLOURS, SELECTED } from "render/colours";
 import { treeColours, treeKind } from "render/biomes";
 import { label } from "render/labels";
 
-import { woodPhase } from "game/wood_task";
+import { currentActivity } from "game/person_activity";
 import { forageAvailable } from "game/ecology";
 
 import crops from "data/crops.json";
@@ -476,8 +476,7 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const order = e.id && e.id == state.ui?.playerId && state.ecs.manager?.[e.id]?.jobs.find(j => j.assignedId == e.id && !j.waiting);
-  const activity = (order && woodPhase(state.ecs, e.id, order)) || (e.planner?.world.label && t("tasks." + e.planner.world.label));
+  const activity = e.planner ? currentActivity(state.ecs, e.id, t) : null;
   if (activity) {
     const text = label(activity);
     text.position.y = height + 14;

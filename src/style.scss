@@ -866,9 +866,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .chooser-heading { display: flex; align-items: center; justify-content: space-between; }
   .chooser-heading button { background: transparent; padding: 0; font-size: 23px; }
   .talk-chooser > button { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 7px; text-align: left; }
+  .talk-chooser > button { gap: 10px; }
+  .talk-chooser > button > span { min-width: 0; }
+  .talk-chooser > button > span small { display: block; }
+  .talk-chooser > button > small { flex-shrink: 0; }
   .talk-chooser p { font-size: 13px; color: var(--muted); }
   .gossip { margin-top: 14px; }
-  .gossip > p:not(.label) { display: flex; justify-content: space-between; align-items: center; gap: 5px; font-size: 14px; margin: 6px 0; }
+  .gossip > p:not(.label) { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; margin: 6px 0; }
   .ring { display: inline-flex; align-items: center; gap: 6px; font: 11px/1.4 Raleway, sans-serif; border-radius: 4px; border: 1px solid currentColor; padding: 3px 7px; white-space: nowrap; }
   .ring b { font-size: 14px; line-height: 1; font-weight: 500; }
   .public { color: #d2cac4; } .social { color: var(--social); } .personal { color: #ebca7d; } .intimate { color: #ecadbd; }

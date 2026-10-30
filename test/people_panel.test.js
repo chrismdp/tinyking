@@ -1,4 +1,6 @@
 import React from "react";
+import { I18n } from "react-polyglot";
+import messages from "../src/data/messages.json";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PersonPanel, FamilyTree, layoutFamily } from "../src/components/person_panel";
 import { GameState } from "../src/components/contexts";
@@ -8,7 +10,7 @@ import { knownFamilyTree, askAbout } from "game/people";
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 
-const render = (state, view) => renderToStaticMarkup(<GameState.Provider value={state}>{view}</GameState.Provider>);
+const render = (state, view) => renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={state}>{view}</GameState.Provider></I18n>);
 
 it("shows only an impression and learned traits at Public, and the true ring at Social", () => {
   const { state, player, person, parent } = peopleWorld();
@@ -101,4 +103,62 @@ it("marks the known householder as in the family-tree mock-up", () => {
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
   const html = render(state, <FamilyTree entityId={person}/>);
   expect(html).toMatch(/aria-label="Select Edith Miller[^\"]*Householder/);
+});
+
+
+it("keeps a smith's trade visible through current work, meals, walking and rest", () => {
+  const { state, person, tiles } = peopleWorld();
+  state.ecs.profession = { [person]: { trade: "smith", workplaceId: tiles[2] } };
+  state.ecs.meetingPlace = { [tiles[4]]: { kind: "green" } };
+  const planner = state.ecs.planner[person];
+  planner.world.places.meet = { id: tiles[4], x: 0, y: 0 };
+  // Deliberately stale: never present a planned forge label as current eating/walking.
+  planner.world.label = "at_forge";
+  for (const [task, activity] of [
+    [["trade_work", tiles[2]], "At the forge"], [["eat", "grain"], "Eating"],
+    [["walk_to", "meet"], "Walking to the village green"], [["sleep"], "Sleeping"],
+    [["wait_for", 1], "Idle"], [null, "Idle"]
+  ]) {
+    planner.task = task;
+    const html = render(state, <PersonPanel entityId={person}/>);
+    expect(html).toContain("Smith · " + activity);
+    if (activity != "At the forge") expect(html).not.toContain("At the forge");
+  }
+});
+
+it("shows household farming, childhood and death without inventing a profession or live activity", () => {
+  const { state, person, tiles } = peopleWorld();
+  state.ecs.household[tiles[3]] = { farming: true };
+  state.ecs.planner[person].task = ["sleep"];
+  let html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Farming household · Sleeping");
+  expect(html).not.toContain("Farmer");
+  state.ecs.personable[person].age = 10;
+  html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Child · Sleeping");
+  expect(html).not.toContain("Farming household");
+  state.ecs.personable[person].age = 30;
+  state.ecs.profession = { [person]: { trade: "smith" } };
+  state.ecs.personable[person].dead = true;
+  html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Smith · Dead");
+  expect(html).not.toContain("Sleeping");
+  expect(html).not.toContain("Give a gift");
+});
+
+it("states the learned speaker-to-subject direction using full names and leaves all bonds untouched", () => {
+  const { state, player, person, sibling } = peopleWorld();
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16, base: 16 };
+  state.ecs.relationships[person].known[sibling] = { ring: "personal", goodwill: 36, base: 36 };
+  state.ecs.relationships[sibling].known[person] = { ring: "intimate", goodwill: 65, base: 65 };
+  state.ecs.relationships[sibling].known[player] = { ring: "public", goodwill: 0, base: 0 };
+  state.ecs.relationships[player].known[sibling] = { ring: "social", goodwill: 16, base: 16 };
+  expect(askAbout(state, player, person, sibling).ok).toBe(true);
+  // A learned report also stays distinct from a later live change in the speaker's bond.
+  state.ecs.relationships[person].known[sibling].ring = "social";
+  const before = JSON.stringify({ relationships: state.ecs.relationships, knowledge: state.knowledge, talking: state.talking });
+  const html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain("Alice Miller is in Agnes Miller&#x27;s Personal ring.");
+  expect(html).not.toContain("Agnes Miller is in Alice Miller");
+  expect(JSON.stringify({ relationships: state.ecs.relationships, knowledge: state.knowledge, talking: state.talking })).toBe(before);
 });

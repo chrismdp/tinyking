@@ -7,7 +7,7 @@ import { startIntro } from "game/intro";
 import { updateWeather } from "game/weather";
 import { cancelLocalTasksForTravel, enqueueTask, canReachTask } from "game/manager";
 import { releaseFriendWork } from "game/friend_help";
-import { heirFor, transferPossession, repairHouseholds } from "game/possessions";
+import { transferPossession, repairHouseholds } from "game/possessions";
 import { recordEvent } from "game/events";
 import { romanticInterest } from "game/social";
 import { hashUnit } from "game/math";
@@ -474,10 +474,9 @@ function ageTraveller(s, bundle, season, {
   publish(aged, s.travel);
   return aged;
 }
-function settleRoadEstate(s, trip, aged) {
+function settleRoadEstate(s, trip) {
   const j = s.travel,
     id = trip.bundle.id,
-    heir = heirFor(aged, id),
     home = j.maps[trip.from];
   references(home, j);
   const point = home.map.entrances[trip.side ?? 0]?.campPoint || Hex(home.map.playerStartTile).toPoint();
@@ -605,7 +604,7 @@ async function receiveNpcs(s, j) {
     // Social time and the real estate follow the same life-cycle as residents.
     const aged = ageTraveller(s, trip.bundle, j.season);
     if (aged.ecs.personable[id].dead) {
-      settleRoadEstate(s, trip, aged);
+      settleRoadEstate(s, trip);
       continue;
     }
     const dest = await ensureMap(s, trip.to);

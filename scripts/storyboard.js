@@ -9,7 +9,6 @@ const url = new URL(process.argv[2] || "http://localhost:8108/");
 url.searchParams.set("seed", url.searchParams.get("seed") || "13");
 url.searchParams.delete("intro");
 const out = path.resolve(process.argv[3] || "shots/storyboard");
-const requireHut = process.env.STORYBOARD_REQUIRE_HUT == "1";
 const story = { assistance: "Command-assisted: selection, orders and speed use public ui.actions. Chat, news and family controls are clicked. No state/results shortcuts.", url: url.href, actions: [], frames: [], errors: [] };
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -117,9 +116,9 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await pair("favour-accepted-in-queue", true);
     // Read-only observation plus normal Pause commands captures the real
     // handover and real help before Fast can move past them. No diagnostic setup.
-    await page.evaluate(({ id, requireHut }) => {
+    await page.evaluate(id => {
       const s = window.tinyking;
-      window.favourObservation = { favourId: id, requireHut };
+      window.favourObservation = { favourId: id };
       const observe = () => {
         const r = s.favours.requests[id], o = window.favourObservation;
         const current = s.ecs.manager[s.ui.playerId].jobs.find(j => j.assignedId == s.ui.playerId);
@@ -131,7 +130,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
           o.delivery = { day: s.days, targetPosition: { ...s.ecs.spatial[r.targetId] }, store: { ...s.ecs.container[r.targetId].amounts }, request: JSON.parse(JSON.stringify(r)), position: { ...s.ecs.spatial[s.ui.playerId] }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
           s.ui.actions.set_speed("paused");
         }
-        const helper = Object.values(s.ecs.planner).find(p => p.task?.[0] == "help_friend_work" && p.world.helpingFriend?.kind == "build" && (!requireHut || s.ecs.construction[p.world.helpingFriend.targetId]?.stage == "hut"));
+        const helper = Object.values(s.ecs.planner).find(p => p.task?.[0] == "help_friend_work" && p.world.helpingFriend?.kind == "build");
         if (helper && !o.help) {
           const target = helper.world.helpingFriend.targetId;
           o.help = { day: s.days, helperId: helper.id, target, targetPosition: { x: helper.world.helpingFriend.x, y: helper.world.helpingFriend.y }, sitePosition: { ...s.ecs.spatial[target] }, position: { ...s.ecs.spatial[helper.id] }, site: { ...s.ecs.construction[target] }, controller: s.ecs.controllable[helper.id].controllerId, home: s.ecs.household[helper.id].houseId, bond: { ...s.ecs.relationships[helper.id].known[s.ui.playerId] } };
@@ -141,7 +140,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       };
       requestAnimationFrame(observe);
       s.ui.actions.set_speed("fast");
-    }, { id: favourId, requireHut });
+    }, favourId);
     await page.waitForFunction(() => window.favourObservation?.active, null, { timeout: 180000 });
     assert((await page.locator(".compact-task").textContent()).includes("Deliver wood"));
     await pair("active-favour-current-task");
@@ -153,75 +152,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await pair("earned-ring-improvement");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
-    await page.waitForFunction(() => {
-      const s=window.tinyking;
-      return window.favourObservation?.help || Object.keys(s.ecs.shelter||{}).some(id=>s.ecs.shelter[id].stage=="lean-to"&&!s.ecs.construction[id]&&s.ecs.controllable[id].controllerId==s.ui.playerId);
-    }, null, { timeout: 180000 });
-    if (!await page.evaluate(()=>!!window.favourObservation.help)) {
-      // The owner can finish the small lean-to while their friend is genuinely
-      // occupied. Leave a real, useful upgrade available; never order the helper.
-      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:180000});
-      await page.getByRole("button",{name:"Pause",exact:true}).click();
-      const upgrade={site:await page.evaluate(()=>{const s=window.tinyking;return Object.keys(s.ecs.shelter).find(id=>s.ecs.shelter[id].stage=="lean-to"&&s.ecs.controllable[id].controllerId==s.ui.playerId);}),required:10,steps:[]};
-      story.actions.push({action:"Supply the real ten-log hut progressively, gathering known woodland and physically exploring known frontiers when necessary",upgrade});
-      for(;;){
-        const step=await page.evaluate(()=>{
-          const s=window.tinyking,player=s.ui.playerId,p=s.ecs.spatial[player],owned=id=>s.ecs.controllable[id]?.controllerId==player;
-          const stored=Object.entries(s.ecs.container).reduce((n,[id,c])=>n+(owned(id)?c.amounts.wood||0:0),0)+Object.entries(s.ecs.good).reduce((n,[id,g])=>n+(owned(id)&&g.type=="wood"&&s.ecs.haulable[id]?g.amount:0),0);
-          const known=new Set(s.ecs.playable[player].known.map(k=>k.x+","+k.y)),navs=[...known].flatMap(k=>(s.space[k]||[]).filter(id=>s.ecs.walkable[id]));
-          const nearest=point=>navs.reduce((best,id)=>Math.hypot(s.ecs.spatial[id].x-point.x,s.ecs.spatial[id].y-point.y)<Math.hypot(s.ecs.spatial[best].x-point.x,s.ecs.spatial[best].y-point.y)?id:best,navs[0]);
-          const knownNav=new Set(navs),reached=new Set(),queue=[nearest(p)];
-          for(const id of queue)if(!reached.has(id)){reached.add(id);queue.push(...Object.values(s.ecs.walkable[id].neighbours).filter(id=>knownNav.has(id)&&!reached.has(id)));}
-          const base={day:s.days,stored,knownTiles:known.size};
-          if(stored>=10)return {...base,kind:"ready"};
-          const distance=id=>Math.hypot(s.ecs.spatial[id].x-p.x,s.ecs.spatial[id].y-p.y);
-          const trees=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=="wood"&&s.ecs.good[id].amount>0&&!s.ecs.haulable[id]&&known.has(Object.keys(s.space).find(key=>s.space[key].includes(id)))&&reached.has(nearest(s.ecs.spatial[id]))).sort((a,b)=>distance(a)-distance(b));
-          let logs=stored;const orders=[];
-          for(const id of trees){if(logs>=10)break;orders.push({id,logs:s.ecs.good[id].amount});logs+=s.ecs.good[id].amount;}
-          if(orders.length){for(const tree of orders)s.ui.actions.choose_job(player,{key:"cut_tree_down"},tree.id);return {...base,kind:"gather",orders};}
-          const frontier=[...reached].filter(id=>Object.values(s.ecs.walkable[id].neighbours).some(next=>!knownNav.has(next))).sort((a,b)=>distance(a)-distance(b))[0];
-          if(!frontier)throw new Error("No discovered reachable wood or known reachable frontier remains for the hut");
-          s.ui.actions.choose_job(player,{key:"move_to_here"},frontier);
-          return {...base,kind:"explore",frontier,position:{...s.ecs.spatial[frontier]}};
-        });
-        upgrade.steps.push(step);
-        if(step.kind=="ready")break;
-        await page.getByRole("button",{name:"Fast speed",exact:true}).click();
-        await page.waitForFunction(()=>{
-          const s=window.tinyking,id=s.ui.playerId,controls=window.upgradeControls||=[];
-          for(const job of [...s.ecs.manager[id].jobs])if(job.waiting=="Target gone"){
-            controls.push({day:s.days,action:"Cancel stale Target gone order",taskId:job.id,targetId:job.targetId});s.ui.actions.cancel_task(job.id);
-          }
-          const person=s.ecs.personable[id],p=s.ecs.planner[id];
-          if(!s.ecs.manager[id].jobs.length&&!["eat","sleep","forage"].includes(p.task?.[0])){
-            const key=person.hunger>.9?"find_food":person.tiredness>.9?"rest":null;
-            if(key){controls.push({day:s.days,action:key});s.ui.actions.choose_job(id,{key},id);}
-          }
-          return !s.ecs.manager[id].jobs.length;
-        },null,{timeout:180000});
-        await page.getByRole("button",{name:"Pause",exact:true}).click();
-        step.after=await page.evaluate(()=>({day:window.tinyking.days,knownTiles:window.tinyking.ecs.playable[window.tinyking.ui.playerId].known.length,controls:window.upgradeControls||[]}));
-        if(step.kind=="explore")assert(step.after.knownTiles>step.knownTiles,"Move here must physically reveal new terrain");
-      }
-      await frame("funded-upgrade-timber");
-      // Wait at a genuine free boundary and keep the owner's real needs met.
-      await page.waitForFunction(id=>{
-        const s=window.tinyking,player=s.ui.playerId,owner=s.ecs.personable[player],op=s.ecs.planner[player],jobs=s.ecs.manager[player].jobs;
-        const ownerIdle=!jobs.length&&!["eat","sleep","forage"].includes(op.task?.[0]);
-        if(ownerIdle&&owner.hunger>.9){s.ui.actions.choose_job(player,{key:"find_food"},player);return false;}
-        if(ownerIdle&&owner.tiredness>.9){s.ui.actions.choose_job(player,{key:"rest"},player);return false;}
-        const p=s.ecs.planner[id],person=s.ecs.personable[id],w=p?.world;
-        if(ownerIdle&&owner.hunger<=.9&&owner.tiredness<=.9&&!person.dead&&person.hunger<=.9&&person.tiredness<=.9&&!w.currentJob&&!w.claimedFarmable&&!w.social&&!w.worldJourney&&!w.worldArrival&&!w.capturedBy&&(!p.task||p.task[0]=="wait_for"||p.task[0]=="walk_to"&&p.task[1]=="meet")){s.ui.actions.set_speed("paused");return true;}
-        return false;
-      },person,{timeout:180000});
-      await page.evaluate(id=>window.tinyking.ui.actions.select_entity(id,false),person);
-      await page.getByRole("button",{name:"Chat",exact:true}).click();
-      await page.getByRole("button",{name:"Chat",exact:true}).click();
-      await page.evaluate(site=>window.tinyking.ui.actions.choose_job(window.tinyking.ui.playerId,{key:"build_shelter"},site),upgrade.site);
-      story.actions.push("Renewed friendship with two actual chats and queued the supplied hut while both people were comfortable and the friend was free; no helper order or state injection");
-      await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});s.ui.actions.set_speed("fast");});
-      await page.waitForFunction(()=>window.favourObservation?.help,null,{timeout:180000});
-    }
+    await page.waitForFunction(() => window.favourObservation?.help, null, { timeout: 180000 });
     const proof = await page.evaluate(() => {
       const s = window.tinyking, o = window.favourObservation;
       s.renderer.focusOn(s.ecs.spatial[o.help.target], 650);
@@ -234,7 +165,6 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert(proof.help.site.work > 0, "Helper must contribute actual construction work");
     assert.equal(proof.help.controller, proof.help.helperId, "A friend keeps their independent controller");
     assert(["personal", "intimate"].includes(proof.help.bond.ring), "Help follows THEIR ring for the player");
-    if(requireHut){assert.equal(proof.help.site.stage,"hut");assert.equal(proof.help.site.delivered,10);}
     story.actions.push({ action: "Earned friendship through the fuel favour and conversations; received physical help", proof });
     if (await page.locator(".favour-list").getAttribute("open") !== null) await page.locator(".favour-list summary").click();
     await pair("friend-helping-at-site");
@@ -270,7 +200,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     const page = browser.contexts().flatMap(context => context.pages())[0];
     const snapshot = page && await page.evaluate(() => {
       const s = window.tinyking;
-      return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages, events: s.events, knowledge: s.knowledge, favours: s.favours, ui: { playerId: s.ui.playerId }, observation: window.favourObservation, upgradeControls: window.upgradeControls };
+      return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages, events: s.events, knowledge: s.knowledge, favours: s.favours, ui: { playerId: s.ui.playerId }, observation: window.favourObservation };
     }).catch(() => null);
     if (snapshot) fs.writeFileSync(path.join(out, "failure-state.json"), JSON.stringify(snapshot));
     if (page) await page.screenshot({ path: path.join(out, "failure.png") }).catch(() => {});

@@ -431,5 +431,5 @@ export function canDiscloseEvent(state, speaker, viewer, event) {
 
 export const RELATIONSHIP_NAMES = { public: "Acquaintance", social: "Familiar acquaintance", personal: "Friend", intimate: "Closest friend" };
 export function relationshipSentence(speaker, subject, ring, possessive = "their") {
-  return speaker + " considers " + subject + ({ public: " an acquaintance", social: " a familiar acquaintance", personal: " a friend", intimate: " one of " + possessive + " closest friends" }[ring] || " an acquaintance") + ".";
+  return speaker + (speaker == "They" ? " consider " : " considers ") + subject + ({ public: " an acquaintance", social: " a familiar acquaintance", personal: " a friend", intimate: " one of " + possessive + " closest friends" }[ring] || " an acquaintance") + ".";
 }

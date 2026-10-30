@@ -35,7 +35,7 @@ it.each([
     state.ecs.planner[person].world.helpingFriend = { kind: "build" };
     const before = JSON.stringify(state);
     html = render(state, <PersonPanel entityId={person}/>);
-    expect(html).toContain(`${pronoun} considers you ${ring == "personal" ? "a friend" : "one of " + possessive + " closest friends"}.`);
+    expect(html).toContain(`${pronoun} ${pronoun == "They" ? "consider" : "considers"} you ${ring == "personal" ? "a friend" : "one of " + possessive + " closest friends"}.`);
     expect(html).toContain(`${pronoun} can help with your building or field when free and fed.`);
     expect(html).toContain("Deliver building materials first.");
     expect(html).toContain(`Help comes in ${possessive} own time; you do not control ${object}.`);

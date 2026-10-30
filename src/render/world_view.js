@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { Hex, Grid, ALL_SIDES, HEX_SIZE } from "game/map";
+import { Hex, HEX_SIZE } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
 import { localWeather, coldEnough } from "game/weather";
@@ -14,7 +14,7 @@ import { createTerrain } from "render/terrain";
 import { createInstances } from "render/instances";
 import { villageModel, animateWorkplace } from "render/villages";
 import { createForest } from "render/forest";
-import { introActive } from "game/intro";
+import { introActive, arrivalTiles } from "game/intro";
 import { createCameraRig, arrivalShot } from "render/camera";
 import { createWeatherView } from "render/weather";
 import { weatherLight, skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
@@ -351,10 +351,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
           campSetup = models.campSetup(ground, state.intro.campPoint);
           scene.add(campSetup);
         }
-        arrivalKnown = new Set(arriving ? state.intro.tileIds.flatMap(id => {
-          const hex = Hex().fromPoint(state.ecs.spatial[id]);
-          return [hex.toString(), ...Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).map(n => n.toString())];
-        }) : []);
+        arrivalKnown = new Set(arriving ? arrivalTiles(state).map(h => h.x + "," + h.y) : []);
         showKnown();
       }
       if (campSetup) models.poseCampSetup(campSetup, state.intro);

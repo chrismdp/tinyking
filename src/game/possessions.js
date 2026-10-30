@@ -20,7 +20,8 @@ export function transferPossession(state, itemId, ownerId, reason, fromId) {
   const previous = fromId || p?.ownerId;
   if (p) {
     p.ownerId = ownerId;
-    p.carried = true;
+    // Inheritance changes legal ownership, not another person's working hands.
+    if (!state.ecs.haulable?.[itemId]?.heldBy) p.carried = true;
     p.owners.push({ personId: ownerId, day: state.days, reason });
   }
   state.ecs.controllable[itemId].controllerId = ownerId || itemId;

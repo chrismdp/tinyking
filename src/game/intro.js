@@ -16,6 +16,11 @@ const offset = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
 const tileAt = (state, p) => (state.space[Hex().fromPoint(p)] || []).find(id => state.ecs.mappable[id]);
 export const introActive = state => !!state.intro?.active;
 
+// The route and its immediate neighbours are visible throughout the opening.
+export const arrivalTiles = state => state.intro.tileIds.flatMap(id =>
+  Grid.hexagon({ center: Hex().fromPoint(state.ecs.spatial[id]), radius: 1 })
+    .map(h => ({ x: h.x, y: h.y })));
+
 export function arrivalRoute(state) {
   if (state.arrivalEntry) {
     const entry = state.arrivalEntry;
@@ -90,6 +95,14 @@ export function skipIntro(state) {
     facing: Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y) });
   state.redraws.push(campId);
   state.ui.show.speed_controls = true;
+  const playable = state.ecs.playable[state.ui.playerId];
+  const known = new Set(playable.known.map(h => h.x + "," + h.y));
+  playable.known = [...playable.known, ...arrivalTiles(state).filter(h => {
+    const key = h.x + "," + h.y;
+    if (known.has(key)) return false;
+    known.add(key);
+    return true;
+  })];
   delete state.arrivalEntry; delete state.arrivalCampId; delete state.arrivalHomeId;
 }
 

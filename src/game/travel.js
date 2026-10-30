@@ -151,11 +151,14 @@ function reconcileEstates(s, j) {
         },
         good: {
           ...map.ecs.good
+        },
+        haulable: {
+          ...map.ecs.haulable
         }
       }
     };
     for (const [item, c] of affected) {
-      for (const key of ["possession", "good", "controllable"]) if (c[key]) parcel.ecs[key][item] = c[key];
+      for (const key of ["possession", "good", "controllable", "haulable"]) if (c[key]) parcel.ecs[key][item] = c[key];
       if (dying.has(c.possession?.ownerId)) inherit(parcel, item, c.possession.ownerId);
       if (item != c.controllable?.controllerId && dying.has(c.controllable?.controllerId)) c.controllable.controllerId = successor(c.controllable.controllerId) || item;
     }
@@ -343,6 +346,11 @@ export function acceptTravel(s, tileId) {
 }
 function takeTraveller(s, id) {
   releaseLocalWork(s, id);
+  const playable = s.ecs.playable?.[id];
+  if (playable) playable.knownByMap = {
+    ...playable.knownByMap,
+    [s.map.worldKey || worldKey(s.world.home)]: playable.known
+  };
   const carried = new Set(s.ecs.holder?.[id]?.held || []);
   for (const [item, p] of Object.entries(s.ecs.possession || {})) if (p.ownerId == id && p.carried) carried.add(item);
   const ids = [id, ...carried],
@@ -369,6 +377,8 @@ function putTraveller(s, bundle, point, j) {
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (s.ecs[key] ||= {})[id] = value;
   const id = bundle.id;
   s.residents[id] = true;
+  const playable = s.ecs.playable?.[id];
+  if (playable) playable.known = playable.knownByMap?.[s.map.worldKey || worldKey(s.world.home)] || [];
   Object.assign(s.ecs.spatial[id], point);
   for (const item of Object.keys(bundle.entities).filter(i => i != id)) if (s.ecs.spatial[item]) Object.assign(s.ecs.spatial[item], point);
   if (bundle.knowledge) (s.knowledge ||= {})[id] = bundle.knowledge;
@@ -515,6 +525,10 @@ export async function completeTravel(s, order) {
     ageTraveller(s, bundle, Math.floor((departure + 3) / 3), {
       player: true
     });
+    // Keep the actual bundle visible to the same estate lifecycle as NPC cargo
+    // throughout the season and any destination generation.
+    const trip = { bundle, from, to: order.destination, side: order.side, due: departure + 3, player: true };
+    j.transit.push(trip);
     j.maps[from] = localSnapshot(s);
     publish(s, j);
     // Exactly one crossed season; the departed map is now off-screen.
@@ -525,6 +539,7 @@ export async function completeTravel(s, order) {
     });
     await ensureMap(s, order.destination);
     enterMap(s, order.destination, bundle, (order.side + 3) % 6);
+    j.transit = j.transit.filter(t => t != trip);
     j.lastJourney = {
       from,
       to: order.destination,
@@ -597,7 +612,7 @@ export function departNpc(s, id, intent, j = s.travel) {
   publish(s, j);
 }
 async function receiveNpcs(s, j) {
-  const due = j.transit.filter(t => t.due <= s.days + 1e-9),
+  const due = j.transit.filter(t => !t.player && t.due <= s.days + 1e-9),
     touched = new Map();
   for (const trip of due) {
     const id = trip.bundle.id;

@@ -1,3 +1,4 @@
+import { heirFor } from "game/possessions";
 import { knownEvents, eventSentence } from "game/events";
 import React from "react";
 import PropTypes from "prop-types";
@@ -160,9 +161,7 @@ function heirOf(state, id) {
     if (!ecs.controllable[house]) continue;
     const head = topController(ecs, house), kin = ecs.kinship[head];
     if (!kin) continue;
-    const eldest = kin.children.filter(child => !ecs.personable[child].dead)
-      .sort((a, b) => ecs.personable[b].age - ecs.personable[a].age || a.localeCompare(b))[0];
-    const heir = eldest || (kin.spouse && !ecs.personable[kin.spouse].dead ? kin.spouse : null);
+    const heir = heirFor(state, head);
     if (heir == id) return household(state, house).home;
   }
   return null;

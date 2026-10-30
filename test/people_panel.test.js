@@ -162,3 +162,17 @@ it("states the learned speaker-to-subject direction using full names and leaves 
   expect(html).not.toContain("Agnes Miller is in Alice Miller");
   expect(JSON.stringify({ relationships: state.ecs.relationships, knowledge: state.knowledge, talking: state.talking })).toBe(before);
 });
+
+it("marks the spouse as household heir before the eldest child, matching real inheritance", () => {
+  const { state, player, person, parent, tiles } = peopleWorld();
+  const spouse = "dora";
+  state.ecs.nameable[spouse] = { nickname: "Dora Taylor" };
+  state.ecs.personable[spouse] = { age: 55 };
+  state.ecs.kinship[spouse] = { parents: [], children: [], spouse: parent };
+  state.ecs.kinship[parent].spouse = spouse;
+  state.ecs.household[spouse] = { houseId: tiles[3] };
+  state.ecs.relationships[spouse] = { known: {} };
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  const html = render(state, <FamilyTree entityId={person}/>);
+  expect(html).toContain("Select Dora Taylor, 55 · Living, ◇ Heir");
+});

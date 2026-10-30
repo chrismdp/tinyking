@@ -1,4 +1,4 @@
-import { exitPoint } from "game/travel_geometry";
+import { exitPoint, tileAt } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
@@ -12,7 +12,7 @@ import * as time from "game/time";
 import { replan, Task } from "game/htn";
 import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController, householdAccess } from "game/playable";
-import { jobQueueFor, firstFreeJob } from "game/manager";
+import { jobQueueFor, firstFreeJob, cancelLocalTasksForTravel } from "game/manager";
 import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { eveningPlace } from "game/villages";
@@ -955,13 +955,18 @@ export function end_friend_help(state, actorId) { releaseFriendWork(state, actor
 export function leave_edge(state, actorId, world, dt, firstRun, tileId, journey) {
   const target=exitPoint(state,tileId),p=state.ecs.spatial[actorId];
   const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*20*60*hungerSpeed(state.ecs.personable[actorId]);
-  if(length<2) {
+  const depart=()=>{
     if(actorId==state.ui.playerId)state.pendingPlayerTravel=journey;
     else (state.pendingNpcDepartures ||= []).push({id:actorId,intent:journey});
     return Task.FINISH;
+  };
+  if(length<2 || !tileAt(state,p))return depart();
+  if(firstRun) {
+    if(actorId==state.ui.playerId)cancelLocalTasksForTravel(state,jobQueueFor(state.ecs,actorId).find(job=>job.assignedId==actorId&&job.job.key=="travel")?.id);
+    return Task.CONTINUE;
   }
   const step=Math.min(1,speed/length);p.x+=dx*step;p.y+=dy*step;
-  return Task.CONTINUE;
+  return !tileAt(state,p) || step>=1 ? depart() : Task.CONTINUE;
 }
 
 export function end_world_arrival(state, actorId, world) { delete world.worldArrival; }

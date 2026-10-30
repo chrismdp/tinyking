@@ -70,12 +70,12 @@ export function related(s, a, b) {
   return aa.has(b) || bb.has(a) || [...aa].some(id => bb.has(id));
 }
 function mutualAttraction(s, a, b) {
-  const cache = socialIndexes.get(s)?.affinity,
-    key = [a, b].sort().join(":");
-  if (cache?.has(key)) return cache.get(key);
-  const answer = disposition(s, a, b) == "love" && disposition(s, b, a) == "love" && !related(s, a, b);
-  cache?.set(key, answer);
-  return answer;
+  const index=socialIndexes.get(s)?.affinity;
+  if(index && !index.has(a))index.set(a,new Map());
+  const cache=index?.get(a);
+  if(cache?.has(b))return cache.get(b);
+  const answer=disposition(s,a,b)=="love" && disposition(s,b,a)=="love" && !related(s,a,b);
+  cache?.set(b,answer);return answer;
 }
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
@@ -546,6 +546,7 @@ export function historyStep(worldHexState, season) {
   const copy = {
     ...worldHexState,
     peopleDirectory: worldHexState.peopleDirectory,
+    eventIds: worldHexState.eventIds && { ...worldHexState.eventIds },
     ecs: Object.fromEntries(Object.entries(worldHexState.ecs).map(([key, value]) => [key, typeof value == "object" ? {
       ...value
     } : value])),

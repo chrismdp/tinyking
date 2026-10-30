@@ -130,3 +130,37 @@ excluded from household controller reassignment and grown-child settlement.
 Their destination queue starts empty. A genuine marriage removes guest status;
 a return restores the saved home/trade references. Guest access grants no title,
 recruitment or control over either family's assets.
+
+Death after a visit or a permanent marriage move also settles across maps. The
+ordinary death rule records its chosen `heirId`. Travel publishes the death and
+reconciles that estate before another community can reassign an absentee owner's
+house. Original houses, stores and uncarried possessions pass to that heir through
+the existing inheritance/provenance/event functions, once. Cargo already on a
+road keeps its identity and location when its legal owner dies. A departed family
+head leaves local working relatives under their own resident household head;
+legal ownership stays with the absent person until a real inheritance occurs.
+
+The final steps off an edge have a visible planner phase. Once a character crosses
+the navigation boundary, transfer is immediate in that simulation step. A new
+hunger/tiredness signal cannot restart pathfinding from outside the map. Normal
+needs still accrue until crossing, and cancellation remains available while the
+character is on the walkable edge.
+
+A map has a persisted monotonic `eventIds.next` sequence, independent of imported
+or replaced event arrays. Pure history steps copy that counter; live snapshots
+share the active map's counter. Global event IDs therefore cannot be reused after
+an unseen remote inheritance or local/global refresh. The directory merges each
+person's learned event IDs, and arrival/reference refresh restores them to their
+resident map. Heirs retain knowledge of their own remote inheritance.
+
+Arrival batches import legal-owner chains for real cargo, land all initial due
+travellers, then refresh each touched community's references and household once.
+They retain the start-of-step demographic/transfer boundary. Local orders or
+favours accepted during the walk out are cancelled again at the actual walkable
+edge, through the same release paths, before any borrowed crop crosses it.
+
+Reference refresh uses one multi-source two-generation family walk, rather than
+repeating the same shared ancestry for every person. A stable global event-order
+index lets each map import its learned event IDs directly in the original order.
+These are derived indexes: no resident, event, relationship, season or encounter
+is sampled, skipped or capped to reduce processing cost.

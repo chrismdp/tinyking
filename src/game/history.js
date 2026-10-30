@@ -48,6 +48,7 @@ export function generateHistory(state, seed) {
   state.ecs.nextId = summary.ecs.nextId;
   state.villages = summary.villages; state.events = summary.events; state.knowledge = summary.knowledge;
   state.social = { ...summary.social, lastSeason: 0 };
+  state.eventIds = summary.eventIds;
   // Calibrate once for the people the player actually meets. Ancestors remain
   // known records; current living opinions retain the rule-of-five quantiles.
   recalibrateRelationships(state);

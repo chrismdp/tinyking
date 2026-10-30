@@ -76,7 +76,8 @@ function eventViewers(state, villageId, family, people) {
 export function recordEvent(state, type, people, items = [], details = {}) {
   state.events ||= [];
   const villageId = (type == "visit" ? details.toVillage : null) || state.ecs.village?.[people[0]]?.villageId || null;
-  const event = { id: (state.ecs.namespace || "") + "event-" + (state.events.length + 1), type, people: [...people],
+  state.eventIds ||= { next: state.events.length };
+  const event = { id: (state.ecs.namespace || "") + "event-" + (++state.eventIds.next), type, people: [...people],
     day: state.days, season: Math.floor(state.days / 3), villageId,
     place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],

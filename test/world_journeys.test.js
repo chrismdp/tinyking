@@ -557,3 +557,209 @@ it("returns to the existing built household rather than resetting residence to t
   expect(s.map.homeId).toBe(a.house);
   expect(Object.keys(s.ecs.camp)).toEqual([camp]);
 });
+it.each([false, true])("reconciles death after a visit/marriage move across the original estate exactly once (settled=%s)", async settled => {
+  const {
+      a,
+      b
+    } = pairedWorld(),
+    s = a.s,
+    id = a.ids[1],
+    child = b.ids[1];
+  let heir = child;
+  s.ecs.kinship[id].children = [child];
+  b.s.ecs.kinship[child].parents = [id];
+  attach(s, b.s);
+  s.ecs.controllable[a.house].controllerId = id;
+  const item = createPossession(s, id, "Original estate ring");
+  s.ecs.possession[item].carried = false;
+  departNpc(s, id, {
+    to: b.s.map.worldKey,
+    side: 0
+  });
+  await stepSeason(s);
+  let dest = s.travel.maps[b.s.map.worldKey];
+  if (settled) {
+    for (let season = 0; season < 12 && !dest.ecs.kinship[id].spouse; season++) {
+      await stepSeason(s);
+      dest = s.travel.maps[b.s.map.worldKey];
+    }
+    heir = dest.ecs.kinship[id].spouse;
+    expect(heir).toBeTruthy();
+    expect(dest.ecs.kinship[heir].spouse).toBe(id);
+    expect(dest.events.some(e => e.type == "marriage" && e.people.includes(id))).toBe(true);
+    expect(dest.ecs.guest?.[id]).toBeUndefined();
+    expect(s.travel.visits[id]).toBeUndefined();
+  }
+  dest.ecs.personable[id].age = 88;
+  dest.ecs.personable[id].lifeYears = 37.25;
+  await stepSeason(s);
+  const home = s.travel.maps["5,5"];
+  expect(s.travel.people[id].personable.dead).toBe(true);
+  expect(home.ecs.controllable[a.house].controllerId).toBe(heir);
+  expect(home.ecs.possession[item].ownerId).toBe(heir);
+  expect(home.ecs.possession[item].owners.at(-1)).toMatchObject({
+    personId: heir,
+    reason: "inheritance"
+  });
+  const chain = JSON.stringify(home.ecs.possession[item].owners),
+    events = Object.values(s.travel.events).filter(e => e.type === "inheritance" && e.people[0] === id && e.items.includes(item));
+  expect(events).toHaveLength(1);
+  expect(home.ecs.controllable[item].controllerId).toBe(heir);
+  await stepSeason(s);
+  expect(JSON.stringify(home.ecs.possession[item].owners)).toBe(chain);
+  expect(Object.values(s.travel.events).filter(e => e.type === "inheritance" && e.people[0] === id && e.items.includes(item))).toHaveLength(1);
+  const heirMap = Object.values(s.travel.maps).find(m => m.residents[heir]);
+  expect(heirMap.knowledge[heir].events).toContain(events[0].id);
+});
+it("a departing family head leaves local relatives with an executable independent household planner", () => {
+  const {
+      a,
+      b
+    } = pairedWorld(),
+    s = a.s,
+    id = a.ids[1],
+    relative = a.ids[2];
+  s.ecs.controllable[relative].controllerId = id;
+  departNpc(s, id, {
+    to: b.s.map.worldKey,
+    side: 0
+  });
+  expect(s.ecs.controllable[relative].controllerId).toBe(relative);
+  const sim = createSimulation(s);
+  expect(() => sim.step(6)).not.toThrow();
+  expect(s.ecs.controllable[a.house].controllerId).toBe(id);
+});
+it("finishes the physical edge crossing before a hunger-triggered replan can pathfind from off-map", () => {
+  const {
+      a,
+      b
+    } = pairedWorld(),
+    s = a.s,
+    id = a.ids[1],
+    tile = s.map.entrances[0].tileIds[0],
+    intent = {
+      to: b.s.map.worldKey,
+      side: 0,
+      tileId: tile
+    };
+  const {
+      exitPoint,
+      tileAt
+    } = require("../src/game/travel_geometry"),
+    out = exitPoint(s, tile),
+    at = s.ecs.spatial[tile];
+  s.ecs.spatial[id] = {
+    ...s.ecs.spatial[id],
+    x: at.x + (out.x - at.x) * .9,
+    y: at.y + (out.y - at.y) * .9
+  };
+  expect(tileAt(s, s.ecs.spatial[id])).toBeUndefined();
+  const p = s.ecs.planner[id];
+  p.world.worldJourney = intent;
+  p.task = ["leave_edge", tile, intent];
+  p.plan = [];
+  s.ecs.personable[id].hunger = 1;
+  const sim = createSimulation(s);
+  expect(() => sim.step(6)).not.toThrow();
+  expect(s.travel.transit.some(t => t.bundle.id === id)).toBe(true);
+});
+it("cancels local promises added during the departure walk at the actual edge, releasing borrowed cargo before crossing", () => {
+  const {
+      a
+    } = pairedWorld(),
+    s = a.s,
+    id = a.ids[0],
+    tile = s.map.entrances[0].tileIds[0];
+  acceptTravel(s, tile);
+  const travel = s.ecs.manager[id].jobs[0];
+  travel.assignedId = id;
+  const [crop] = newEntities(s, [{
+    spatial: {
+      ...s.ecs.spatial[tile]
+    },
+    good: {
+      type: "grain",
+      amount: 1
+    },
+    haulable: {
+      heldBy: id,
+      reservedFor: id
+    },
+    controllable: {
+      controllerId: a.ids[1]
+    }
+  }]);
+  const [store] = newEntities(s, [{
+    spatial: {
+      ...s.ecs.spatial[a.house]
+    },
+    container: {
+      capacity: 100,
+      amounts: {}
+    },
+    interior: {
+      buildingId: a.house
+    },
+    controllable: {
+      controllerId: a.house
+    }
+  }]);
+  s.ecs.household[a.house].storeId = store;
+  s.ecs.farmable = {
+    [a.tiles[1]]: {
+      id: a.tiles[1],
+      houseId: a.house,
+      slots: [{
+        state: "harvestable"
+      }]
+    }
+  };
+  s.ecs.holder[id].held = [crop];
+  s.favours = {
+    nextId: 0,
+    requests: {
+      late: {
+        id: "late",
+        giverId: a.ids[1],
+        householdId: a.house,
+        targetId: a.tiles[1],
+        quantity: 1,
+        progress: 0,
+        produced: 1,
+        delivered: 0,
+        status: "accepted",
+        kind: "harvest",
+        cargo: [crop]
+      }
+    }
+  };
+  s.ecs.manager[id].jobs.push({
+    id: "late-task",
+    job: {
+      key: "favour"
+    },
+    favourId: "late"
+  });
+  Object.assign(s.ecs.spatial[id], s.ecs.spatial[tile], {
+    immovable: false
+  });
+  const p = s.ecs.planner[id];
+  p.world.currentJob = "travel";
+  p.plan = [["leave_edge", tile, travel]];
+  const sim = createSimulation(s);
+  sim.step(6);
+  expect(s.favours.requests.late.status).toBe("cancelled");
+  expect(s.ecs.haulable[crop].heldBy).toBeFalsy();
+  expect(s.ecs.controllable[crop].controllerId).toBe(a.ids[1]);
+  expect(s.ecs.spatial[crop].x).toBe(s.ecs.spatial[tile].x);
+  expect(s.ecs.spatial[crop].y).toBe(s.ecs.spatial[tile].y);
+  expect(s.ecs.manager[id].jobs.map(j => j.id)).toEqual([travel.id]);
+});
+
+it('keeps hourly weather on the global world seed after entering a separately seeded map',async()=>{
+ const {a,b}=pairedWorld(),s=a.s,id=a.ids[0];b.s.map.seed=98765;
+ acceptTravel(s,s.map.entrances[0].tileIds[0]);await completeTravel(s,s.ecs.manager[id].jobs[0]);skipIntro(s);
+ expect(s.map.seed).toBe(98765);s.days+=1/24;
+ const {updateWeather,weatherForWorld}=require('../src/game/weather');updateWeather(s);
+ expect(s.weather).toEqual(weatherForWorld(s.world,13,s.days));
+});

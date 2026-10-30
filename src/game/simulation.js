@@ -52,11 +52,11 @@ function updatePlanners(state, frameMod) {
       const person = state.ecs.personable[id];
       if (!planner.world.feeling.tired && person.tiredness > 0.9) {
         planner.world.feeling.tired = true;
-        htn.replan(planner);
+        if(planner.task?.[0] != "leave_edge") htn.replan(planner);
       }
       if (!planner.world.feeling.hungry && person.hunger > 0.9) {
         planner.world.feeling.hungry = true;
-        htn.replan(planner);
+        if(planner.task?.[0] != "leave_edge") htn.replan(planner);
       }
     }
 

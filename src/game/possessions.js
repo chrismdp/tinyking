@@ -91,6 +91,7 @@ export function die(state, id, cause = "old age") {
   if (person.deathProcessed || ecs.playable?.[id] && cause == "old age") return;
   person.dead = true; person.deathProcessed = true; person.deathCause = cause; person.died = state.days;
   const heir = heirFor(state, id);
+  person.heirId = heir;
   recordEvent(state, "death", [id], [], { cause });
   for (const itemId of Object.keys(ecs.possession || {})) if (ecs.possession[itemId].ownerId == id) {
     if (!heir) ecs.possession[itemId].estateOf = id;

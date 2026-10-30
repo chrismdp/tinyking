@@ -133,7 +133,7 @@ export function localWeather(state) {
   return h && state.weather && state.weather[keyOf(h)];
 }
 
-export function updateWeather(state, hours = 1, seed = state.map && state.map.seed) {
+export function updateWeather(state, hours = 1, seed = state.travel?.seed ?? state.map?.seed) {
   if (!state.world) return;
   state.weather = weatherForWorld(state.world, seed, state.days);
   if (state.weatherOverride) {

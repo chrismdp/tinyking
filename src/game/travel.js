@@ -5,8 +5,7 @@ import { generateMap } from "game/map";
 import { historyStep } from "game/history";
 import { startIntro } from "game/intro";
 import { updateWeather } from "game/weather";
-import { cancelTask, enqueueTask, canReachTask } from "game/manager";
-import { cancelFavour } from "game/favours";
+import { cancelLocalTasksForTravel, enqueueTask, canReachTask } from "game/manager";
 import { releaseFriendWork } from "game/friend_help";
 import { heirFor, transferPossession, repairHouseholds } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -16,7 +15,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -34,11 +33,136 @@ export function localSnapshot(s) {
 function publish(s, j) {
   freezeOpinions(s);
   for (const id of Object.keys(s.ecs.personable || {})) if (!s.residents || s.residents[id]) {
+    const existing = j.people[id];
+    j.estateDone ||= {};
+    j.pendingEstates ||= {};
+    if (s.ecs.personable[id].dead) {
+      if (!existing) j.estateDone[id] = true; // This community's prehistory already settled its own estates.
+      else if (!j.estateDone[id]) j.pendingEstates[id] = true;
+    }
     j.people[id] ||= {};
     for (const key of IDENTITY) if (s.ecs[key]?.[id]) j.people[id][key] = s.ecs[key][id];
   }
-  for (const e of s.events || []) j.events[e.id] = e;
+  if (!j.eventOrder) {
+    j.eventOrder = Object.fromEntries(Object.keys(j.events).map((id, index) => [id, index]));
+    j.nextEventOrder = Object.keys(j.events).length;
+  }
+  for (const e of s.events || []) {
+    if (!(e.id in j.events)) j.eventOrder[e.id] = j.nextEventOrder++;
+    j.events[e.id] = e;
+  }
+  j.knowledge ||= {};
+  for (const [id, known] of Object.entries(s.knowledge || {})) {
+    const previous = j.knowledge[id];
+    if (!previous) {
+      j.knowledge[id] = known;
+      continue;
+    }
+    if (previous === known) continue;
+    const seen = new Set(previous.events || []),
+      extra = (known.events || []).filter(event => !seen.has(event));
+    const events = extra.length ? [...(previous.events || []), ...extra] : previous.events;
+    j.knowledge[id] = s.residents?.[id] ? {
+      ...known,
+      events
+    } : {
+      ...previous,
+      events
+    };
+  }
   for (const [id, v] of Object.entries(s.villages || {})) if (v.houses?.length || !j.villages[id]) j.villages[id] = v;
+}
+// Called immediately after a resident death is published, before another
+// community can reassign its absentee owner's estate as an empty household.
+function reconcileEstates(s, j) {
+  const deaths = Object.keys(j.pendingEstates || {}).filter(id => !j.estateDone[id]);
+  if (!deaths.length) return;
+  const dying = new Set(deaths);
+  const succession = id => {
+    const chain = [];
+    while (id && j.people[id]?.personable.dead) {
+      const heir = j.people[id].personable.heirId ?? null;
+      chain.push({
+        from: id,
+        to: heir
+      });
+      id = heir;
+    }
+    return chain;
+  };
+  const successor = id => succession(id).at(-1)?.to ?? null;
+  const inherit = (view, item, id) => {
+    for (const {
+      from,
+      to
+    } of succession(id)) transferPossession(view, item, to, "inheritance", from);
+  };
+  for (const id of deaths) {
+    j.estateDone[id] = true;
+    delete j.pendingEstates[id];
+  }
+  for (const [person, records] of Object.entries(j.people)) if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) records.controllable = {
+    ...records.controllable,
+    controllerId: successor(records.controllable.controllerId) || person
+  };
+  // Ordinary local deaths are already settled by die(). Scan ownership once,
+  // and refresh only maps with an actual outstanding estate. Do not recopy
+  // every community's entire reference closure for every death in the batch.
+  for (const map of Object.values(j.maps)) {
+    const items = Object.entries(map.ecs.possession || {}).filter(([, p]) => dying.has(p.ownerId));
+    const assets = Object.entries(map.ecs.controllable || {}).filter(([asset, c]) => asset != c.controllerId && dying.has(c.controllerId) && (!map.ecs.personable[asset] || map.residents[asset])).map(([asset, c]) => ({
+      asset,
+      c,
+      owner: c.controllerId
+    }));
+    if (!items.length && !assets.length) continue;
+    references(map, j);
+    for (const [item, p] of items) inherit(map, item, p.ownerId);
+    const houses = {};
+    for (const {
+      asset,
+      c,
+      owner
+    } of assets) {
+      if (map.ecs.building?.[asset]) (houses[owner] ||= []).push(asset);
+      c.controllerId = successor(owner) || asset;
+    }
+    for (const [owner, ids] of Object.entries(houses)) for (const {
+      from,
+      to
+    } of succession(owner)) if (to) recordEvent(map, "inheritance", [from, to], ids);
+    repairHouseholds(map);
+    publish(map, j);
+  }
+  for (const trip of j.transit) {
+    const affected = Object.entries(trip.bundle.entities).filter(([item, c]) => dying.has(c.possession?.ownerId) || item != c.controllable?.controllerId && dying.has(c.controllable?.controllerId));
+    if (!affected.length) continue;
+    const map = j.maps[trip.from];
+    references(map, j);
+    const parcel = {
+      ...map,
+      ecs: {
+        ...map.ecs,
+        controllable: {
+          ...map.ecs.controllable
+        },
+        possession: {
+          ...map.ecs.possession
+        },
+        good: {
+          ...map.ecs.good
+        }
+      }
+    };
+    for (const [item, c] of affected) {
+      for (const key of ["possession", "good", "controllable"]) if (c[key]) parcel.ecs[key][item] = c[key];
+      if (dying.has(c.possession?.ownerId)) inherit(parcel, item, c.possession.ownerId);
+      if (item != c.controllable?.controllerId && dying.has(c.controllable?.controllerId)) c.controllable.controllerId = successor(c.controllable.controllerId) || item;
+    }
+    map.events = parcel.events;
+    map.knowledge = parcel.knowledge;
+    publish(map, j);
+  }
 }
 function references(s, j) {
   Object.defineProperty(s, "peopleDirectory", {
@@ -56,25 +180,38 @@ function references(s, j) {
     for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse, ...Object.keys(s.ecs.relationships[id]?.known || {}), ...Object.keys(s.knowledge?.[id]?.people || {})]) if (other) required.add(other);
   }
   for (const c of Object.values(s.ecs.controllable || {})) if (j.people[c.controllerId]) required.add(c.controllerId);
-  const roots = [...required];
-  // Two generations in either direction, and the siblings reached through a
-  // parent's children. Later imports always rebuild this closure.
-  for (const root of roots) {
-    const queue = [[root, 0]];
-    for (const [id, depth] of queue) if (depth < 2) {
+  // A multi-source breadth-first walk computes the same two-generation
+  // union, without revisiting every shared ancestor once per resident.
+  let frontier = [...required];
+  for (let depth = 0; depth < 2; depth++) {
+    const next = [];
+    for (const id of frontier) {
       const kin = j.people[id]?.kinship || s.ecs.kinship[id];
-      for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse]) if (other) {
+      for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse]) if (other && !required.has(other)) {
         required.add(other);
-        queue.push([other, depth + 1]);
+        next.push(other);
       }
     }
+    frontier = next;
   }
   for (const id of Object.keys(s.ecs.personable || {})) if (!s.residents[id] && !required.has(id)) for (const key of IDENTITY) delete s.ecs[key]?.[id];
   for (const id of required) if (!s.residents[id] && j.people[id]) for (const [key, value] of Object.entries(j.people[id])) (s.ecs[key] ||= {})[id] = value;
+  s.knowledge ||= {};
+  for (const id of Object.keys(s.residents)) if (j.knowledge?.[id]) {
+    const local = s.knowledge[id] || {},
+      global = j.knowledge[id],
+      seen = new Set(global.events || []);
+    s.knowledge[id] = {
+      ...global,
+      ...local,
+      events: [...(global.events || []), ...(local.events || []).filter(event => !seen.has(event))]
+    };
+  }
   // Events retain globally unique IDs. Knowledge remains with its observer.
   const learned = new Set(Object.keys(s.residents).flatMap(id => s.knowledge?.[id]?.events || []));
   const own = new Set((s.events || []).map(e => e.id));
-  s.events = [...(s.events || []), ...Object.values(j.events).filter(e => !own.has(e.id) && learned.has(e.id))];
+  const incoming = [...learned].filter(id => !own.has(id) && j.events[id]).sort((a, b) => j.eventOrder[a] - j.eventOrder[b]);
+  if (incoming.length) s.events = [...(s.events || []), ...incoming.map(id => j.events[id])];
   s.villages = {
     ...Object.fromEntries(Object.entries(j.villages).map(([id, v]) => [id, {
       ...v,
@@ -95,6 +232,7 @@ export function initialiseTravel(s, seed) {
     season,
     maps: {},
     people: {},
+    knowledge: {},
     events: {},
     villages: {},
     transit: [],
@@ -125,7 +263,7 @@ export async function ensureMap(s, key) {
   fresh.ecs.namespace = "w" + hex.x + "_" + hex.y + "-";
   const started = performance.now();
   const result = await generateMap(fresh, seed, async label => {
-    if(s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label);
+    if (s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label);
   }, {
     world: s.world,
     hex,
@@ -181,8 +319,7 @@ export function acceptTravel(s, tileId) {
   const d = destinationFor(s, tileId);
   if (!d || d.blocked || s.transition || !canReachTask(s, s.ui.playerId, tileId)) return false;
   const id = s.ui.playerId;
-  for (const job of [...s.ecs.manager[id].jobs]) cancelTask(s, job.id);
-  for (const r of Object.values(s.favours?.requests || {})) cancelFavour(s, r);
+  cancelLocalTasksForTravel(s);
   releaseLocalWork(s, id);
   s.ecs.planner[id].task = null;
   s.ecs.planner[id].plan = null;
@@ -235,7 +372,17 @@ function putTraveller(s, bundle, point, j) {
   Object.assign(s.ecs.spatial[id], point);
   for (const item of Object.keys(bundle.entities).filter(i => i != id)) if (s.ecs.spatial[item]) Object.assign(s.ecs.spatial[item], point);
   if (bundle.knowledge) (s.knowledge ||= {})[id] = bundle.knowledge;
-  if (j) references(s, j);
+  if (j) {
+    const queue = Object.keys(bundle.entities).map(id => s.ecs.controllable[id]?.controllerId).filter(Boolean),
+      seen = new Set();
+    for (const id of queue) if (!seen.has(id)) {
+      seen.add(id);
+      const records = j.people[id];
+      if (records && !s.residents[id]) for (const [key, value] of Object.entries(records)) (s.ecs[key] ||= {})[id] = value;
+      const controller = s.ecs.controllable[id]?.controllerId;
+      if (controller && controller != id) queue.push(controller);
+    }
+  }
   const old = s.ecs.planner[id],
     ordered = !!s.ecs.playable[id];
   s.ecs.planner[id] = {
@@ -271,8 +418,8 @@ export function enterMap(s, key, bundle, side) {
     ...s.world,
     home: Object.fromEntries(key.split(",").map((n, i) => [i ? "y" : "x", +n]))
   };
-  references(s, j);
   putTraveller(s, bundle, s.map.entrances[side].campPoint, j);
+  references(s, j);
   s.ecs.manager[bundle.id].jobs = [];
   s.arrivalEntry = s.map.entrances[side];
   // One camp per person and map. A return uses the same camp and its stores.
@@ -340,13 +487,8 @@ function settleRoadEstate(s, trip, aged) {
   for (const item of home.ecs.holder[id]?.held || []) if (home.ecs.haulable?.[item]) home.ecs.haulable[item].heldBy = null;
   if (home.ecs.holder[id]) home.ecs.holder[id].held = [];
   for (const item of Object.keys(trip.bundle.entities).filter(i => i != id)) if (home.ecs.possession?.[item]) home.ecs.possession[item].carried = false;
-  for (const map of Object.values(j.maps)) {
-    references(map, j);
-    for (const [item, p] of Object.entries(map.ecs.possession || {})) if (p.ownerId == id) transferPossession(map, item, heir, "inheritance", id);
-    for (const [other, c] of Object.entries(map.ecs.controllable || {})) if (c.controllerId == id && other != id) c.controllerId = heir || other;
-    repairHouseholds(map);
-    publish(map, j);
-  }
+  publish(home, j);
+  reconcileEstates(s, j);
   delete j.visits[id];
 }
 export async function completeTravel(s, order) {
@@ -364,6 +506,7 @@ export async function completeTravel(s, order) {
       fromWorld: from,
       toWorld: order.destination
     });
+    cancelLocalTasksForTravel(s);
     s.map = {
       ...s.map,
       homeId: s.ecs.household[id]?.houseId || s.map.homeId
@@ -437,6 +580,7 @@ export function departNpc(s, id, intent, j = s.travel) {
     reason: intent.returning ? "returning home" : "seeking company"
   });
   const bundle = takeTraveller(s, id);
+  repairHouseholds(s);
   bundle.from = from;
   const due = s.days + 3;
   j.transit.push({
@@ -454,12 +598,9 @@ export function departNpc(s, id, intent, j = s.travel) {
   publish(s, j);
 }
 async function receiveNpcs(s, j) {
-  const due = j.transit.filter(t => t.due <= s.days + 1e-9);
+  const due = j.transit.filter(t => t.due <= s.days + 1e-9),
+    touched = new Map();
   for (const trip of due) {
-    const dest = await ensureMap(s, trip.to);
-    references(dest, j);
-    dest.days = s.days;
-    dest.redraws ||= [];
     const id = trip.bundle.id;
     // Social time and the real estate follow the same life-cycle as residents.
     const aged = ageTraveller(s, trip.bundle, j.season);
@@ -467,6 +608,11 @@ async function receiveNpcs(s, j) {
       settleRoadEstate(s, trip, aged);
       continue;
     }
+    const dest = await ensureMap(s, trip.to);
+    dest.days = s.days;
+    dest.redraws ||= [];
+    touched.set(trip.to, dest);
+    for (const key of IDENTITY) for (const [ref, value] of Object.entries(aged.ecs[key] || {})) if (!dest.residents[ref]) (dest.ecs[key] ||= {})[ref] = value;
     const side = trip.side == null ? neighbours(s.world.hexes.find(h => worldKey(h) == trip.to)).findIndex(h => worldKey(h) == trip.from) : (trip.side + 3) % 6;
     const entry = dest.map.entrances[side];
     putTraveller(dest, trip.bundle, entry.campPoint, j);
@@ -506,7 +652,6 @@ async function receiveNpcs(s, j) {
       p.visitedWorlds = [...new Set([...(p.visitedWorlds || []), trip.to])];
     }
     if (!trip.returning) delete dest.ecs.profession?.[id];
-    repairHouseholds(dest);
     if (trip.to == j.active && !s.transition) {
       Object.assign(dest.ecs.spatial[id], dest.ecs.spatial[entry.tileIds[0]]);
       dest.ecs.planner[id].world.worldArrival = {
@@ -518,8 +663,12 @@ async function receiveNpcs(s, j) {
       fromWorld: trip.from,
       toWorld: trip.to
     });
+  }
+  for (const [key, dest] of touched) {
+    references(dest, j);
+    repairHouseholds(dest);
     publish(dest, j);
-    if (trip.to == j.active && !s.transition) {
+    if (key == j.active && !s.transition) {
       // The active snapshot is the running state; publish only simulation fields.
       for (const field of LOCAL_FIELDS) if (field != "days") s[field] = dest[field];
       s.redraws?.push(...(dest.redraws || []));
@@ -536,6 +685,7 @@ export async function advanceWorldClock(s, {
   j.days = s.days;
   j.maps[j.active] = localSnapshot(s);
   publish(s, j);
+  reconcileEstates(s, j);
   const target = Math.floor(s.days / 3);
   while (j.season < target) {
     const season = ++j.season;
@@ -558,8 +708,10 @@ export async function advanceWorldClock(s, {
         kind: "away"
       });
       publish(next, j);
+      reconcileEstates(s, j);
     }
     await receiveNpcs(s, j);
+    reconcileEstates(s, j);
     for (const {
       key,
       roster
@@ -593,5 +745,6 @@ export async function advanceWorldClock(s, {
     }
   }
   await receiveNpcs(s, j);
+  reconcileEstates(s, j);
   references(s, j);
 }

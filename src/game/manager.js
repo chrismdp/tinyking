@@ -181,3 +181,10 @@ export function deferPlayerTask(state) {
   job.waiting = job.detail = reason;
   job.failed = !job.favourId;
 }
+
+// Recheck at the edge for promises/orders added during the walk out. Keep the
+// committed journey itself; borrowed cargo is released while still on-map.
+export function cancelLocalTasksForTravel(state, keepTaskId) {
+  for(const job of [...state.ecs.manager[state.ui.playerId].jobs])if(job.id!=keepTaskId)cancelTask(state,job.id);
+  for(const request of Object.values(state.favours?.requests||{}))cancelFavour(state,request);
+}

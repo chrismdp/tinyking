@@ -966,6 +966,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .travel-offer { border-block: 1px solid #8d8268; padding: 8px 0; margin: 8px 0; }
 .travel-offer p { font-size: 14px; line-height: 1.35; margin: 8px 0; }
 .travel-offer button { min-height: 44px; min-width: 90px; margin: 4px 8px 4px 0; }
+@media (max-width: 700px), (max-height: 500px) {
+  .popper:has(.travel-offer) { z-index: 21; touch-action: pan-y; overscroll-behavior: contain; }
+  .travel-actions { position: sticky; bottom: 0; background: #453a3d; }
+}
 #game #clock button { display: block; padding: 6px 10px; min-height: 44px; margin-left: auto; color: inherit; pointer-events: auto; }
 .world-overview { position: absolute; z-index: 8; right: 12px; top: 110px; background: #e9dfc9; color: #29251f; padding: 18px; max-width: min(420px, calc(100vw - 60px)); max-height: calc(100svh - 220px); overflow: auto; border-radius: 6px; pointer-events: auto; }
 .world-overview .close { float: right; min-height: 44px; min-width: 44px; }

@@ -16,9 +16,11 @@ export function TravelOffer({
     {d.blocked ? <p role="status">{d.blocked}</p> : <>
       <p>{TRANSITION_NEEDS}</p><p>{DEPARTURE_POLICY}</p>
       {!reachable && <p role="status">There is no walkable path to this edge.</p>}
-      <button disabled={!reachable || s.worldBusy} onClick={() => s.ui.actions.travel(entityId)}>Travel</button>
     </>}
-    <button onClick={() => s.ui.actions.dismiss_travel()}>Stay here</button>
+    <div className="travel-actions">
+      {!d.blocked && <button disabled={!reachable || s.worldBusy} onClick={() => s.ui.actions.travel(entityId)}>Travel</button>}
+      <button onClick={() => s.ui.actions.dismiss_travel()}>Stay here</button>
+    </div>
   </section>;
 }
 TravelOffer.propTypes = {

@@ -221,3 +221,22 @@ it("leaves legacy survival-only actors outside family simulation without inventi
   expect(s.ecs.personable[a]).toEqual(before);
   expect(s.ecs.kinship).toBeUndefined();
 });
+
+it("counts an earlier birth before a second couple can exceed the six-resident home bound", () => {
+  const { state: s, a, b, parent, kin, tiles } = communities();
+  for (const id of [a, b, parent, kin]) {
+    s.ecs.personable[id].age = 25;
+    s.ecs.kinship[id] = { parents: [], children: [], spouse: null };
+    s.ecs.household[id].houseId = tiles[3]; s.ecs.village[id].villageId = "village";
+  }
+  for (const [x, y] of [[a, b], [parent, kin]]) { s.ecs.kinship[x].spouse = y; s.ecs.kinship[y].spouse = x; }
+  const child = "resident-child";
+  for (const key of ["personable", "personality", "kinship", "relationships", "household", "village", "planner", "manager", "controllable", "holder", "nameable", "spatial"]) s.ecs[key][child] = structuredClone(s.ecs[key][a]);
+  s.ecs.personable[child].age = 12; s.ecs.kinship[child] = { parents: [a, b], children: [], spouse: null };
+  s.ecs.kinship[a].children = [child]; s.ecs.kinship[b].children = [child];
+  // This deterministic season gives both existing, unrelated couples a birth opportunity.
+  s.days = 42; advanceSeason(s, 14);
+  const residents = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable[id] && s.ecs.household[id]?.houseId == tiles[3]);
+  expect(s.events.filter(e => e.type == "birth")).toHaveLength(1);
+  expect(residents).toHaveLength(6);
+});

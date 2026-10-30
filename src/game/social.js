@@ -296,13 +296,17 @@ export function advanceSeason(s, season, summary = false) {
     const locals = roster.filter(id => ecs.village[id]?.villageId == villageId);
     const target = (s.villages[villageId].houses?.length || 3) * 3;
     const fertility = Math.min(2, Math.max(0.2, target / Math.max(1, locals.length)));
+    const occupants = new Map();
+    for (const id of locals) { const house = ecs.household[id]?.houseId; occupants.set(house, (occupants.get(house) || 0) + 1); }
     for (const a of locals) {
       const b = ecs.kinship[a].spouse, p = ecs.personable[a];
       if (!b || a > b || !alive(s, b) || ecs.playable?.[b] || p.age < 18 || p.age > 55 || ecs.personable[b].age > 55) continue;
       const house = ecs.household[a]?.houseId;
-      if (locals.filter(id => ecs.household[id]?.houseId == house).length >= 6) continue;
+      if ((occupants.get(house) || 0) >= 6) continue;
       if (season - (p.lastBirth ?? -10000) < 4) continue;
-      if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) birth(s, a, b, season);
+      if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) {
+        birth(s, a, b, season); occupants.set(house, (occupants.get(house) || 0) + 1);
+      }
     }
   }
   repairHouseholds(s);

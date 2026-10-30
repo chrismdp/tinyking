@@ -3,8 +3,9 @@ const DAY = ["early", "mid", "late"];
 
 export const DAYS_IN_SEASON = 3;
 export const HOUR = 1 / 24;
+export const DAYS_IN_YEAR = DAYS_IN_SEASON * SEASON.length;
 
-export const year = t => Math.floor(t / (DAYS_IN_SEASON * SEASON.length)) + 1;
+export const year = t => Math.floor(t / DAYS_IN_YEAR) + 1;
 
 export const hour_of_day = t => (t % 1) * 24;
 

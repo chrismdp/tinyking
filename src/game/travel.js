@@ -1,3 +1,4 @@
+import { advanceEnvironment } from "game/environment";
 import { drift } from "game/people";
 import { householdAccess } from "game/playable";
 import { Hex } from "game/hex";
@@ -15,7 +16,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -281,6 +282,7 @@ export async function ensureMap(s, key) {
   for (let season = 1; season <= j.season; season++) {
     const next = historyStep(fresh, season);
     Object.assign(fresh, next);
+    advanceEnvironment(fresh,season*3,j.seed);
     j.historyCalls.push({
       key,
       season,
@@ -449,6 +451,7 @@ export function enterMap(s, key, bundle, side) {
     worldHex: key,
     fromWorld: bundle.from
   });
+  advanceEnvironment(s,j.days,j.seed);
   updateWeather(s, 0, j.seed);
   j.maps[key] = localSnapshot(s);
 }
@@ -572,7 +575,7 @@ function journeyIntent(s, id, key, j, season) {
   const choices = neighbours(here).map((h, side) => ({
     hex: j.world.hexes.find(n => worldKey(n) == worldKey(h)),
     side
-  })).filter(n => n.hex && !n.hex.ocean);
+  })).filter(n => n.hex && !n.hex.ocean && (!s.map.entrances || s.map.entrances[n.side]));
   const tried = s.ecs.personable[id].visitedWorlds || [];
   choices.sort((a, b) => Number(tried.includes(worldKey(a.hex))) - Number(tried.includes(worldKey(b.hex))) || hashUnit(key + ":search:" + season + ":" + a.side) - hashUnit(key + ":search:" + season + ":" + b.side));
   return choices[0] && {
@@ -713,6 +716,15 @@ export async function advanceWorldClock(s, {
       references(row.map, j);
       if (row.key == j.active && !travelling) continue; // socialHour already ran live.
       const next = historyStep(row.map, season);
+      // Snapshot records changed by hourly ecology must remain independent.
+      for (const component of ["tree","forageable","good"]) next.ecs[component] = Object.fromEntries(
+        Object.entries(next.ecs[component] || {}).map(([id,value])=>[id,{...value}]));
+      next.ecs.walkable = Object.fromEntries(Object.entries(next.ecs.walkable || {}).map(([id,value])=>[id,{...value,worn:{...value.worn}}]));
+      next.snow = {...next.snow};
+      next.space = Object.fromEntries(Object.entries(next.space).map(([key,ids])=>[key,[...ids]]));
+      next.world = {...s.world,home:Object.fromEntries(row.key.split(",").map((n,i)=>[i?"y":"x",+n]))};
+      advanceEnvironment(next,season*3,j.seed);
+      delete next.world;
       next.days = s.days;
       j.maps[row.key] = next;
       row.map = next;

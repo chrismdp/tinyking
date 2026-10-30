@@ -1,3 +1,10 @@
+import { updateRoadWear, recordRoadUse } from "game/road_wear";
+import { Hex } from "game/hex";
+import { path } from "game/pathfinding";
+import { walk_to } from "game/tasks";
+import { updateEnvironment, advanceEnvironment } from "game/environment";
+import { canPlaceField, reserveFieldPlot, reserveRoad } from "game/land_use";
+import { growingAt, frozenAt } from "game/climate";
 import { initialiseTravel, acceptTravel } from "game/travel";
 import { acceptFavour } from "game/favours";
 import { name } from "game/name";
@@ -244,7 +251,7 @@ export function World() {
         state.game_speed = "normal";
         state.days = 0.375;
 
-        const results = await generateMap(state, seed, state.ui.actions.progress_update);
+        const results = await generateMap(state, seed, state.ui.actions.progress_update, { geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
         state.map = results.map;
         state.ui.playerId = results.playerId;
         initialiseTravel(state,seed);
@@ -277,6 +284,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
+      window.tinykingGeography = { updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }
 
     (async () => {

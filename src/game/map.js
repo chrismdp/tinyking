@@ -1,3 +1,6 @@
+import { updateRoadWear } from "game/road_wear";
+import { reserveBuildingClearance, treeAllowed } from "game/tree_clearance";
+import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import SimplexNoise from "simplex-noise";
@@ -10,13 +13,14 @@ import MersenneTwister from "mersenne-twister";
 import { newEntities, entitiesInSameLocation } from "game/entities";
 import { discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
-import { createHeightField, HIGH_GROUND } from "game/height";
+
+import { HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 import { initializeEcology, generateForage } from "game/ecology";
 import { generateVillageLife } from "game/villages";
 import { updateWeather } from "game/weather";
 import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
-import { MAP_RADIUS, MAP_CENTRE, createLandField, worldPoint } from "game/world_terrain";
+import { MAP_RADIUS, MAP_CENTRE, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
 
@@ -153,13 +157,13 @@ export function generateFamilies({ state, seed, playerStartTile, founding = fals
 }
 
 async function generateTerrain(grid, world, progressUpdate) {
-  const field = createLandField(world.landSeed);
+  const field = landFieldFor(world);
   const home = homeOf(world);
   const result = {};
   for (let i = 0; i < grid.length; i++) {
     const hex = grid[i];
     const point = hex.toPoint();
-    result[hex] = { ...point, terrain: field.terrainAt(worldPoint(home, point)) };
+    result[hex] = { ...point, terrain: field.terrainAt(worldPoint(home, point)), elevation: field.elevationAt(worldPoint(home, point)) };
     if (i % UPDATE_PROGRESS_EVERY == 0) { await progressUpdate("terrain"); }
   }
   return result;
@@ -222,7 +226,7 @@ function reachableFrom(start, landscape, settlements, reach) {
 
 // NOTE: biomeAt(hex) gives the biome a hex's trees grow as. Given a start,
 // the most wooded spots it can reach are planted until it has a few trees.
-export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start }) {
+export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start, allowed = () => true }) {
   let result = [];
   const simplex = new SimplexNoise(seed);
   let generator = new MersenneTwister(seed);
@@ -252,6 +256,7 @@ export function generateTrees(seed, landscape, settlements, world_x, world_y, { 
     }
   }
 
+  result = result.filter(allowed);
   if (start) {
     result = result.filter(tree => start.distance(Hex().fromPoint(tree)) > 1);
     const reached = reachableFrom(start, landscape, settlements, START_TREE_REACH);
@@ -267,7 +272,7 @@ export function generateTrees(seed, landscape, settlements, world_x, world_y, { 
         }
       }))
       .filter(spot => reached.has(spot.hex.toString()) && start.distance(spot.hex) >= 2 &&
-        Hex().fromPoint(spot.tree).toString() == spot.hex.toString())
+        Hex().fromPoint(spot.tree).toString() == spot.hex.toString() && allowed(spot.tree))
       .sort((a, b) => b.woods - a.woods || a.x - b.x || a.y - b.y)
       .slice(0, Math.max(0, MIN_START_TREES - near))
       .forEach(spot => result.push(spot.tree));
@@ -329,13 +334,13 @@ function makeHouse(generator, settlements, grid, target, landscape) {
   };
 }
 
-async function generateSettlements(seed, grid, landscape, start, progressUpdate) {
+async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand) {
   const settlements = {};
   const villages = {};
   const generator = new MersenneTwister(seed);
   // Keep clearings inland and leave the player's starting neighbourhood alone.
-  const candidates = grid.filter(target => MAP_CENTRE.distance(target) < MAP_RADIUS - 1 &&
-    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && landscape[target].terrain == "grassland" &&
+  const candidates = grid.filter(target => MAP_CENTRE.distance(target) < MAP_RADIUS - 4 &&
+    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && mainLand.has(String(target)) && landscape[target].terrain == "grassland" && Grid.hexagon({center:target,radius:1}).every(h => landscape[h] && Math.abs(landscape[h].elevation-landscape[target].elevation) < 55) &&
     Grid.hexagon({ center: target, radius: 1 }).every(h => landscape[h] && !landscape[h].terrain.includes("water")));
   const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
     .sort((a, b) => b.rank - a.rank).map(c => c.hex);
@@ -401,15 +406,24 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   // NOTE: a new map starts with an empty space index; entity ids restart at
   // 1, so anything left from an old map would point at the wrong entities
   state.space = {};
+  state.redraws ||= [];
   state.world = options.world ? { ...options.world, home: { ...options.hex } } : generateWorld(seed);
+  if (options.geographyFixture == "mountain-pass") {
+    const centre = worldPoint(state.world.home, MAP_CENTRE.toPoint());
+    state.world.geographyFixture = {kind:"mountain-pass", ...centre};
+  }
   state.snow = {};
   state.snowRevision = 0;
+  state.environmentUpdatedAt = state.days;
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
-  const start = Hex(homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
-  const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, progressUpdate);
+  const fixtureStart = state.world.geographyFixture && grid.filter(h => MAP_CENTRE.distance(h)==MAP_RADIUS-2 &&
+    Grid.hexagon({center:h,radius:2}).every(n=>landscape[n]?.terrain=="grassland"))
+    .sort((a,b)=>a.toPoint().x-b.toPoint().x || a.y-b.y)[0];
+  const start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
+  const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world));
   // Village keys also cross maps in kinship, event and courtship records.
   if (state.ecs.namespace) {
     for (const id of Object.keys(villages)) { const v = villages[id]; delete villages[id]; v.id = state.ecs.namespace + id; villages[v.id] = v; }
@@ -423,11 +437,17 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   // renderer draws, now that the houses have settled the terrain. A tile's
   // biome (so high ground's is colder) decides how thickly trees grow on it.
   const home = homeOf(state.world);
-  const ground = createHeightField({ seed, terrainAt: key => landscape[key] && landscape[key].terrain });
+  const field = landFieldFor(state.world);
+  const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
+    terrainAt:p=>field.terrainAt(worldPoint(state.world.home,p)),
+    elevationAt:(x,y)=>field.elevationAt(worldPoint(state.world.home,{x,y}))
+  });
+  const ground = groundForState({map:{seed,geography},ecs:{mappable:landscape,spatial:landscape},space:Object.fromEntries(Object.keys(landscape).map(k=>[k,[k]]))});
   for (const key in landscape) {
     const tile = landscape[key];
-    tile.temperature = tileTemperature(home.temperature,
-      tile.terrain == "mountain" || ground.hex(tile).centre >= HIGH_GROUND);
+    if (walkable[tile.terrain] && !safeTile(ground,tile)) tile.terrain = "mountain";
+    tile.elevation = ground.hex(tile).centre;
+    tile.temperature = tileTemperature(home.temperature, tile.terrain == "mountain" || tile.elevation >= HIGH_GROUND);
   }
   let trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
     biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
@@ -462,7 +482,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
-    mappable: { terrain: tile.terrain, temperature: tile.temperature },
+    mappable: { terrain: tile.terrain, temperature: tile.temperature, climateTemperature: home.temperature, elevation: tile.elevation, ...(tile.route ? {route:tile.route} : {}) },
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },
@@ -478,9 +498,10 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   }));
 
   newEntities(state, [ ...tiles, ...houses, ...treeEntities ]);
+  updateRoadWear(state);
 
   for (const id in state.ecs.walkable) {
-    if (walkable[state.ecs.mappable[id].terrain]) {
+    if (state.ecs.walkable[id].speed > 0) {
       const hex = Hex().fromPoint(state.ecs.spatial[id]);
       const grid = Grid.hexagon({ center: hex, radius: 1 });
       grid.neighborsOf(hex, ALL_SIDES).forEach((nHex, side) => {
@@ -488,7 +509,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
           return;
         }
         const mId = state.space[nHex].filter(e => state.ecs.mappable[e])[0];
-        if (mId && walkable[state.ecs.mappable[mId].terrain]) {
+        if (mId && state.ecs.walkable[mId].speed > 0) {
           addBidirectionalLink(state.ecs, id, side, mId);
         }
       });
@@ -505,7 +526,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     seed,
     playerStartTile,
     centre: { x: MAP_CENTRE.x, y: MAP_CENTRE.y },
-    radius: MAP_RADIUS, entrances, worldKey: worldKey(state.world.home)
+    radius: MAP_RADIUS, entrances, geography, worldKey: worldKey(state.world.home)
   };
 
   generateFamilies({ state, seed, playerStartTile, founding: true });
@@ -549,8 +570,23 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     ]);
   }
 
+  for (const id in state.ecs.building) reserveBuildingClearance(state,id);
   generateVillageLife(state, seed, playerStartTile);
   giveTradeTools(state);
+  // The existing starting-wood guarantee is placed outside actual roofs and
+  // approaches after household geometry is known; clearance never yields logs.
+  for (const clearing of [start, ...Object.values(entrances).map(e=>Hex(e.hexes[2]))]) {
+    const reached = reachableFrom(clearing, landscape, settlements, 4);
+    const safe = point => treeAllowed(state,point) && !(state.space[Hex().fromPoint(point)] || []).some(id=>
+      state.ecs.mappable[id]?.villagePlot || state.ecs.farmable?.[id] || state.ecs.stockpile?.[id]);
+    const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
+      biomeAt: hex=>biomeOf(landscape[hex].temperature,home.moisture), start:clearing, allowed:safe
+    });
+    for(const tree of extra.filter(p=>reached.has(String(Hex().fromPoint(p))))) {
+      if(Object.keys(state.ecs.good).some(id=>state.ecs.good[id].type=="wood" && Math.hypot(state.ecs.spatial[id].x-tree.x,state.ecs.spatial[id].y-tree.y)<10)) continue;
+      newEntities(state,[{spatial:{...tree,immovable:true},nameable:{nickname:"Tree"},good:{type:"wood",amount:1+Math.floor(hashUnit(seed+":wood:"+tree.x+","+tree.y)*3)}}]);
+    }
+  }
   initializeEcology(state, seed);
   generateForage(state, seed, playerStartTile);
   for (const entry of Object.values(entrances)) {
@@ -561,6 +597,12 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const reached = new Set(), queue = [[entry.tileIds[2], 0]];
     for (const [id, depth] of queue) if (!reached.has(id)) { reached.add(id); if (depth < 4) for (const next of Object.values(state.ecs.walkable[id].neighbours)) queue.push([next, depth+1]); }
     const near = id => reached.has(tileAt(state, state.ecs.spatial[id]));
+    const connected = new Set(), frontier = [entry.tileIds[2]];
+    for(let i=0;i<frontier.length;i++) {
+      const id=frontier[i];if(connected.has(id))continue;connected.add(id);
+      for(const next of Object.values(state.ecs.walkable[id].neighbours)) if(!connected.has(next))frontier.push(next);
+    }
+    entry.villageReachable = Object.keys(state.ecs.building).some(id=>connected.has(tileAt(state,state.ecs.spatial[id])));
     entry.wood = Object.keys(state.ecs.tree || {}).filter(near).length;
     entry.food = Object.keys(state.ecs.forageable || {}).filter(near).length;
   }

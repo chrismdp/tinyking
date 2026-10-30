@@ -31,7 +31,8 @@ it("appends orders with favour metadata, reorders, cancels, and advances in user
   const { state, player, tiles, step } = arrival();
   const jobs = state.ecs.manager[player].jobs;
   const a = enqueueTask(state, { key: "move_to_here" }, tiles[3]);
-  const b = enqueueTask(state, { key: "create_field" }, tiles[2], { forId: "agnes", expectedGoodwill: "about +9 goodwill" });
+  // Initial plot layout: the unused end tile stays beyond the preceding transit route.
+  const b = enqueueTask(state, { key: "create_field" }, tiles[4], { forId: "agnes", expectedGoodwill: "about +9 goodwill" });
   const c = enqueueTask(state, { key: "move_to_here" }, tiles[4]);
   expect(jobs.map(j => j.id)).toEqual([a.id, b.id, c.id]);
   expect(b.forId).toBe("agnes");
@@ -309,7 +310,8 @@ it("cancels a waiting build without interrupting a later running task", () => {
   const { state, player, tiles, step } = arrival();
   const site = placeShelter(state, tiles[1]);
   const build = enqueueTask(state, { key: "build_shelter" }, site);
-  const field = enqueueTask(state, { key: "create_field" }, tiles[3]);
+  // Initial plot layout: use the end tile so the new field cannot close this narrow corridor.
+  const field = enqueueTask(state, { key: "create_field" }, tiles[4]);
   step(0.1);
   expect(build.waiting).toBe("Waiting for logs");
   const running = state.ecs.planner[player].task;

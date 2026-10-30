@@ -1,3 +1,5 @@
+import { canPlaceField, reserveFieldPlot } from "game/land_use";
+import { reserveBuildingClearance } from "game/tree_clearance";
 import { isResident } from "game/residents";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { TRIANGLES } from "game/map";
@@ -52,11 +54,15 @@ export function generateVillageLife(state, seed, start) {
       (!occupied.has(keyOf(ecs.spatial[id])) || includePlots && reserved.has(keyOf(ecs.spatial[id]))))
       .sort((a, b) => origin.distance(Hex().fromPoint(ecs.spatial[a])) - origin.distance(Hex().fromPoint(ecs.spatial[b])) || Number(a) - Number(b));
   };
-  const add = (point, villageId, components, houseId) => newEntities(state, [{
-    spatial: { x: point.x, y: point.y, immovable: true }, village: { villageId },
-    ...(houseId ? { controllable: { controllerId: houseId } } : {}),
-    ...components
-  }])[0];
+  const add = (point, villageId, components, houseId) => {
+    const [id] = newEntities(state, [{
+      spatial: { x: point.x, y: point.y, immovable: true }, village: { villageId },
+      ...(houseId ? { controllable: { controllerId: houseId } } : {}),
+      ...components
+    }]);
+    reserveBuildingClearance(state, id);
+    return id;
+  };
   const enclosure = (point, villageId, houseId, kind, halfWidth, halfDepth, count, existing) => {
     const id = existing || add(point, villageId, { nameable: { nickname: kind == "chicken" ? "Chicken coop" : kind + " pasture" } }, houseId);
     ecs.pasture ||= {};
@@ -95,7 +101,7 @@ export function generateVillageLife(state, seed, start) {
       const origin = Hex().fromPoint(ecs.spatial[houseId]);
       const adjacent = Grid.hexagon({ center: origin, radius: 1 }).neighborsOf(origin, ALL_SIDES);
       const entrance = adjacent[ecs.building[houseId].entrance]?.toString();
-      const yardTile = nearby(houseId, 1).find(id => keyOf(ecs.spatial[id]) != entrance) || nearby(houseId, 1)[0];
+      const yardTile = nearby(houseId, 1).find(id => keyOf(ecs.spatial[id]) != entrance && canPlaceField(state,id));
       // A crowded ring can share the house's tile: its rear half is still a yard.
       const yard = reserve(yardTile) || { x: ecs.spatial[houseId].x, y: ecs.spatial[houseId].y - 33 };
       const storeId = ecs.building[houseId].rooms.find(id => ecs.container[id]);
@@ -121,7 +127,7 @@ export function generateVillageLife(state, seed, start) {
         const point = { x: yard.x + 23, y: yard.y + (i ? 23 : -23) };
         const id = add(point, village.id, { nameable: { nickname: kind == "vegetable" ? "Kitchen garden" : kind }, backyard: { houseId, kind } }, houseId);
         household.backyards.push(id);
-        if (kind == "vegetable") {
+        if (kind == "vegetable" && yardTile && reserveFieldPlot(state,yardTile)) {
           (ecs.farmable ||= {})[id] = { id, houseId, claimerId: null,
             slots: Array.from({ length: 2 }, () => ({ state: "sown", content: "grain", growth: 0, updated: state.days })) };
         }
@@ -133,8 +139,10 @@ export function generateVillageLife(state, seed, start) {
       const h = ecs.household[houseId];
       const count = hashUnit(seed + ":fields:" + houseId) < 0.5 ? 1 : 2;
       for (let i = 0; i < count; i++) {
-        const point = reserve(nearby(houseId)[0]);
+        const point = reserve(nearby(houseId).find(id => canPlaceField(state,id)));
         if (!point) break;
+        const fieldTile = tileAt[keyOf(point)];
+        if (!reserveFieldPlot(state,fieldTile)) continue;
         const growth = season(state.days) == "winter" ? 0 : 1.5 + hashUnit(seed + ":crop:" + houseId + ":" + i) * 2;
         const id = add(point, village.id, {
           nameable: { nickname: "Family field" },

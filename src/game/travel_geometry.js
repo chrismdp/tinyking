@@ -1,3 +1,4 @@
+import { sharedEntrances } from "game/geography";
 import { Hex, Grid, WorldHex, WorldGrid, ALL_SIDES } from "game/hex";
 export const worldKey = h => h.x + "," + h.y;
 export const SIDE_NAMES = ["east", "south-east", "south-west", "west", "north-west", "north-east"];
@@ -44,7 +45,7 @@ export function destinationFor(s, id) {
     hex,
     key: worldKey(coordinates),
     name: hexName(coordinates),
-    blocked: !hex ? "The edge of the known world cannot be crossed." : hex.ocean ? "This neighbour is ocean. You cannot cross the sea on foot." : null
+    blocked: !hex ? "The edge of the known world cannot be crossed." : hex.ocean ? "This neighbour is ocean. You cannot cross the sea on foot." : s.map.entrances && !s.map.entrances[side] ? "There is no land route across this edge." : null
   };
 }
 export const hexName = h => "Reach " + h.x + ", " + h.y;
@@ -53,6 +54,7 @@ export const hexName = h => "Reach " + h.x + ", " + h.y;
 // a farm-sized clearing and, if necessary, a narrow path to an existing village.
 // All six are prepared before resources, so arrival direction cannot reroll a map.
 export function prepareEntrances(grid, landscape, settlements, world, centre, radius) {
+  if (world.landSeed) return sharedEntrances(landscape, world);
   const result = {},
     home = world.hexes.find(h => worldKey(h) == worldKey(world.home));
   const houses = Object.values(settlements).map(h => Hex(h));
@@ -155,6 +157,10 @@ export function prepareEntrances(grid, landscape, settlements, world, centre, ra
   return result;
 }
 export function exitPoint(s, id) {
+  // Stepped borders can offer two outside neighbours. Follow the canonical
+  // road crossing when leaving its actual entrance, rather than the other edge.
+  const entry = s.map.entrances?.[edgeSide(s, id)];
+  if (entry?.tileIds?.[0] == id) return { ...entry.start };
   const h = Hex().fromPoint(s.ecs.spatial[id]),
     at = h.toPoint(),
     centre = Hex(s.map.centre).toPoint();

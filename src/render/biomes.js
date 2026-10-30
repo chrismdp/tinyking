@@ -33,7 +33,7 @@ export const BIOME_COLOURS = Object.fromEntries(
   Object.entries(BIOME_LOOKS).map(([biome, look]) => [biome, look.ground[0]]));
 
 const SNOW = 0xE8EEF3;
-const ROCK = 0x6A5A50;
+const ROCK = 0x85898D;
 const GOLD = new THREE.Color(0xFFD27A);
 const SHADOW = new THREE.Color(0x4A3560);
 const WITHERED = new THREE.Color(0x4A2F55);
@@ -116,22 +116,21 @@ export function createGroundColours(state) {
       return target.setHex(COLOURS[terrain]);
     }
     const { biome, morality } = lookOf(state, id);
-    const look = BIOME_LOOKS[biome];
+    // Generated snowfields expose lichen ground at thaw; the snow buffer
+    // supplies seasonal white. Legacy biome fixtures retain their palette.
+    const look = BIOME_LOOKS[biome == "snowfield" && state.ecs.mappable[id].elevation != null ? "tundra" : biome];
     const blend = 0.5 + 0.5 * simplex.noise2D(x * 0.004, y * 0.004);
     const jitter = 1 + 0.035 * simplex.noise2D(x * 0.37, y * 0.37);
     colour.setHex(look.ground[0]).lerp(other.setHex(look.ground[1]), blend);
 
-    if (terrain == "mountain") {
-      // NOTE: bare rock with a little of the land's colour, snow-capped when cold
-      colour.lerp(other.setHex(ROCK), 0.72);
-      if (state.ecs.mappable[id].temperature == "cold") {
-        colour.lerp(other.setHex(SNOW), 0.78);
-      }
+    if (terrain == "mountain" || terrain == "stone" && state.ecs.mappable[id].elevation > 780) {
+      // Seasonal snow is applied by the shared terrain snow buffer.
+      colour.setHex(ROCK);
     } else if (terrain == "stone") {
       colour.lerp(other.setHex(COLOURS.stone), 0.7);
     }
     colour.multiplyScalar(jitter);
-    tintForMorality(colour, morality);
+    if (terrain != "mountain" && !(terrain == "stone" && state.ecs.mappable[id].elevation > 780)) tintForMorality(colour, morality);
     return target.copy(colour);
   };
 }

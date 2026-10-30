@@ -5,7 +5,7 @@ import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
 import { localWeather, coldEnough } from "game/weather";
 import { homeOf } from "game/overworld";
-import { createHeightField } from "game/height";
+import { groundForState } from "game/geography";
 
 import * as models from "render/models";
 import { realmColour } from "render/colours";
@@ -33,13 +33,7 @@ const NIGHT = new THREE.Color(NIGHT_TINT);
 export function createWorldView(renderer, state, { t, onSelect }) {
   const canvas = renderer.domElement;
 
-  const ground = createHeightField({
-    seed: state.map.seed,
-    terrainAt: key => {
-      const id = (state.space[key] || []).find(e => state.ecs.mappable[e]);
-      return id && state.ecs.mappable[id].terrain;
-    }
-  });
+  const ground = groundForState(state);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
@@ -328,6 +322,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   return {
     camera,
+    terrain,
     // Observer control for reproducible village inspection and captures.
     focusOn(point, distance = 1000) {
       rig.shot({ x: point.x, z: point.y, y: ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 });

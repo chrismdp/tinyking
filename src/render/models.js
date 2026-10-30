@@ -1,3 +1,4 @@
+import { roadTracks, FULL_TRACK } from "game/road_wear";
 import { visualNumber } from "render/variation";
 import * as THREE from "three";
 
@@ -14,7 +15,6 @@ import { forageAvailable } from "game/ecology";
 
 import crops from "data/crops.json";
 
-const ROUTES_TO_FULL_PATH = 100;
 const GOLDEN_RATIO = 1.618034;
 export const HIT_RADIUS = 22.5;
 
@@ -588,24 +588,56 @@ export function hexTile(ground, centre, colour) {
 
 export { hexOutline };
 
+// Clip a track to the six ground triangles. Every rendered vertex then lies
+// on the exact sampled surface, even where a mountain pass changes gradient.
+function drapedTrack(ground, centre, polygon) {
+  const offsets=Hex().corners(), vertices=[];
+  const cross=(a,b,p)=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x);
+  for(let k=0;k<6;k++) {
+    const triangle=[centre,...[offsets[k],offsets[(k+1)%6]].map(o=>({x:centre.x+o.x,y:centre.y+o.y}))];
+    let clipped=polygon;
+    const sign=Math.sign(cross(triangle[0],triangle[1],triangle[2]));
+    for(let edge=0;edge<3;edge++) {
+      const a=triangle[edge],b=triangle[(edge+1)%3],result=[];
+      for(let i=0;i<clipped.length;i++) {
+        const p=clipped[i],q=clipped[(i+1)%clipped.length],dp=cross(a,b,p)*sign,dq=cross(a,b,q)*sign;
+        if(dp>=-1e-7)result.push(p);
+        if((dp<0 && dq>0)||(dp>0 && dq<0))result.push(math.lerp(p,q,dp/(dp-dq)));
+      }
+      clipped=result;
+    }
+    const area=clipped.reduce((sum,p,i)=>{const q=clipped[(i+1)%clipped.length];return sum+p.x*q.y-q.x*p.y;},0);
+    if(area<0)clipped.reverse();
+    for(let i=1;i<clipped.length-1;i++) for(const p of [clipped[0],clipped[i+1],clipped[i]]) {
+      vertices.push(p.x,ground.heightAt(p.x,p.y)+.4,p.y);
+    }
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 export function tileOverlay(ground, ecs, id, { selected }) {
   const group = new THREE.Group();
   const centre = ecs.spatial[id];
   const corners = Hex().corners().map(c => ({ x: c.x + centre.x, y: c.y + centre.y }));
 
-  for (const key in ecs.walkable[id].worn) {
+  const tracks = roadTracks(ecs,id);
+  for (const key in tracks) {
     const [ entrance, exit ] = key.split(",").map(i => i == "C" ? "C" : +i);
-    const opacity = Math.min(1.0, ecs.walkable[id].worn[key] / ROUTES_TO_FULL_PATH);
+    const opacity = Math.round(Math.min(1, tracks[key] / FULL_TRACK) * 20) / 20;
+    if (!opacity) continue;
     const ends = side => side != "C" ? [corners[side], corners[(side + 1) % 6]] : [centre, centre];
     const [ e0, e1 ] = ends(entrance);
     const [ x0, x1 ] = ends(exit);
-    const geometry = drapedQuad(ground, [
+    const geometry = drapedTrack(ground, centre, [
       math.lerp(e0, e1, 0.25),
       math.lerp(e0, e1, 0.75),
       math.lerp(x0, x1, 0.25),
       math.lerp(x0, x1, 0.75),
-    ], 0.4);
-    group.add(new THREE.Mesh(geometry, overlay(COLOURS.dirt, Math.round(opacity * 20) / 20, 1)));
+    ]);
+    group.add(new THREE.Mesh(geometry, overlay(COLOURS.dirt, opacity, 1)));
   }
 
   if (selected) {
@@ -796,6 +828,13 @@ export function shelter(ground, state, id) {
     }
     add(new THREE.BoxGeometry(56, 4, 39), 0xAC9560, at(0, 17, 2, 0.65));
     add(new THREE.BoxGeometry(40, 3, 28), 0x6B8069, at(0, 2, 2));
+  }
+  if (stage != "house") {
+    const heights=[[-33,-27],[33,-27],[33,27],[-33,27]].map(([dx,dy])=>ground.heightAt(x+dx,y+dy));
+    const low=Math.min(...heights)-2, high=Math.max(...heights);
+    const lift=high-ground.heightAt(x,y);
+    for(const mesh of group.children) mesh.position.y+=lift;
+    add(new THREE.BoxGeometry(56,Math.max(2,high-low),44),COLOURS.wall,at(0,(high+low)/2-ground.heightAt(x,y),0));
   }
   if (site) {
     for (const [px, pz] of [[-30, -25], [30, -25], [-30, 25], [30, 25]]) {

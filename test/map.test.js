@@ -1,6 +1,7 @@
+import { groundForState } from "game/geography";
 import { createLandField, worldPoint } from "game/world_terrain";
 import { Hex, Grid, generateMap, generateTrees, MIN_START_TREES } from "game/map";
-import { createHeightField, HIGH_GROUND } from "game/height";
+import { HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, colder, BIOMES } from "game/overworld";
 
 const noProgress = async () => {};
@@ -142,10 +143,7 @@ describe("generateMap", () => {
     for (const seed of SEEDS) {
       const state = await mapFor(seed);
       const home = homeOf(state.world);
-      const ground = createHeightField({ seed, terrainAt: key => {
-        const id = (state.space[key] || []).find(e => state.ecs.mappable[e]);
-        return id && state.ecs.mappable[id].terrain;
-      }});
+      const ground = groundForState(state);
       for (const id in state.ecs.mappable) {
         const { terrain, temperature } = state.ecs.mappable[id];
         const isHigh = terrain == "mountain" || ground.hex(state.ecs.spatial[id]).centre >= HIGH_GROUND;
@@ -258,8 +256,13 @@ it("initializes all visual weather and snow afresh when a map is regenerated", a
   expect(Object.keys(state.weather)).toHaveLength(91);
   expect(state.weather.stale).toBeUndefined();
   expect(Object.keys(state.snow)).toHaveLength(1519);
-  expect(Object.values(state.snow).every(depth => depth == 0)).toBe(true);
-  expect(state.snowRevision).toBe(0);
+  expect(state.snow.stale).toBeUndefined();
+  const clean = {};
+  await regenerate(clean,13);
+  expect(state.weather).toEqual(clean.weather);
+  expect(state.snow).toEqual(clean.snow);
+  expect(state.snowRevision).toBe(clean.snowRevision);
+  expect(Object.values(state.snow).some(depth => depth > 0)).toBe(true);
 });
 
 describe("villages", () => {

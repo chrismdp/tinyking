@@ -1,3 +1,5 @@
+import { recordRoadUse } from "game/road_wear";
+import { canPlaceField, reserveFieldPlot } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
@@ -46,7 +48,7 @@ function closestNavPointTo(state, point) {
   return entities[0];
 }
 
-export function walk_to(state, actorId, world, dt, firstRun, target) {
+export function walk_to(state, actorId, world, dt, firstRun, target, { plotAccess = false } = {}) {
   const s = state.ecs.spatial[actorId];
   if (state.ecs.haulable?.[target]?.heldBy == actorId) return Task.FINISH;
 
@@ -68,11 +70,11 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
     return Task.ABORT;
   }
 
-  if (firstRun) {
-    if (!s) {
-      throw "walk to: Actor " + actorId + " has no spatial";
-    }
+  if (!s) throw "walk to: Actor " + actorId + " has no spatial";
+  const revision = state.landUseRevision || 0;
+  if (firstRun || world.routeLandUse != revision) {
     world.route = path(state, closestNavPointTo(state, s), closestNavPointTo(state, targetPoint));
+    world.routeLandUse = revision;
   }
 
   let next = world.route && world.route[0];
@@ -104,14 +106,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target) {
   const length = Math.sqrt(dx * dx + dy * dy);
 
   if (length < 10) {
-    // NOTE: Wear down the path
-    if (next.entrance != null || next.exit != null) {
-      const key = [next.entrance ?? "C", next.exit ?? "C"].sort().join();
-      if (!(key in state.ecs.walkable[next.id].worn)) {
-        state.ecs.walkable[next.id].worn[key] = 0;
-      }
-      state.ecs.walkable[next.id].worn[key] += 1;
-      state.redraws.push(next.id);
+    if (!plotAccess || next.id != closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target])) {
+      recordRoadUse(state,next.id,next.entrance,next.exit);
     }
 
     const newHex = Hex().fromPoint(state.ecs.spatial[next.id]);
@@ -245,7 +241,9 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
 }
 
 export function create_field(state, actorId, world, dt, firstRun, targetId) {
+  if (!canPlaceField(state,targetId)) return Task.ABORT;
   if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_DESIGNATE)) {
+    if (!reserveFieldPlot(state,targetId)) return Task.ABORT;
     newEntities(state, [{
       nameable: { nickname: "Field" },
       spatial: { ...state.ecs.spatial[targetId] },

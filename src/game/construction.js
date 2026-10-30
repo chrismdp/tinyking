@@ -1,3 +1,4 @@
+import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
 import { Hex } from "game/hex";
 import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
 import { topController } from "game/playable";
@@ -16,8 +17,11 @@ export const STAGES = {
 export function canPlaceShelter(state, targetId) {
   const ecs = state.ecs;
   if (ecs.construction?.[targetId]) return false;
-  if (ecs.shelter?.[targetId]) return topController(ecs, targetId) == state.ui.playerId && !!STAGES[ecs.shelter[targetId].stage].next;
-  if (ecs.mappable[targetId]?.terrain != "grassland") return false;
+  if (ecs.shelter?.[targetId]) return topController(ecs, targetId) == state.ui.playerId && !!STAGES[ecs.shelter[targetId].stage].next &&
+    canClearForBuilding(state, buildingFootprint(state, targetId), state.ui.playerId);
+  if (ecs.mappable[targetId]?.terrain != "grassland" || ecs.mappable[targetId]?.villagePlot) return false;
+  const preview = { ecs: { spatial: { site: ecs.spatial[targetId] }, shelter: { site: {} } } };
+  if (!canClearForBuilding(state, buildingFootprint(preview, "site"), state.ui.playerId)) return false;
   const hex = Hex().fromPoint(ecs.spatial[targetId]);
   const camp = Object.keys(ecs.camp || {})[0];
   if (!camp || hex.distance(Hex().fromPoint(ecs.spatial[camp])) > 3) return false;
@@ -25,7 +29,7 @@ export function canPlaceShelter(state, targetId) {
   if (!path(state, campTile, targetId)) return false;
   if (Object.keys(ecs.shelter || {}).length || Object.keys(ecs.construction || {}).length) return false;
   return !(state.space[hex] || []).some(id => id != targetId &&
-    (ecs.building[id] || ecs.camp?.[id] || ecs.farmable?.[id] || ecs.stockpile?.[id] || ecs.tree?.[id]));
+    (ecs.building[id] || ecs.camp?.[id] || ecs.farmable?.[id] || ecs.stockpile?.[id]));
 }
 
 export function placeShelter(state, targetId) {
@@ -41,6 +45,7 @@ export function placeShelter(state, targetId) {
   }
   state.ecs.construction ||= {};
   state.ecs.construction[id] = { id, stage, delivered: 0, work: 0 };
+  reserveBuildingClearance(state, id);
   state.redraws.push(id);
   return id;
 }

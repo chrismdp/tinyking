@@ -1,3 +1,4 @@
+import { frozenAt, snowlineAt, climateTile } from "game/climate";
 import SimplexNoise from "simplex-noise";
 import { WorldHex, WorldGrid, ALL_SIDES } from "game/hex";
 import { HOUR, season } from "game/time";
@@ -116,10 +117,15 @@ export function weatherForWorld(world, seed, days) {
   }));
 }
 
-// NOTE: Depth is a visual fraction (0..1), never read by walking, crops or
-// needs. High ground already has its colder temperature in mappable.
+// Depth is a visual fraction. Crops and forage use the same freezing condition.
 export function snowDepthAfter(depth, tile, weather, days, hours) {
   if (tile.terrain.includes("water")) return 0;
+  if (tile.elevation != null) {
+    const frozen = frozenAt(tile,days);
+    if (frozen && ["snow","rain"].includes(weather)) return clamp(depth + .085 * hours);
+    if (frozen) return depth;
+    return Math.max(0, depth - .09 * hours);
+  }
   const winter = season(days) == "winter";
   const summer = season(days) == "summer";
   if (weather == "snow") return clamp(depth + 0.085 * hours);
@@ -145,12 +151,19 @@ export function updateWeather(state, hours = 1, seed = state.travel?.seed ?? sta
   let changed = false;
   const here = localWeather(state);
   const home = state.world.hexes.find(h => keyOf(h) == keyOf(state.world.home));
-  const precipitation = here.type == "storm" && here.moisture >= 0.46 && coldEnough(home, state.days) ? "snow" : here.type;
+  const precipitation = here.type;
   for (const id in state.ecs.mappable) {
-    const old = state.snow[id] || 0;
-    const depth = snowDepthAfter(old, state.ecs.mappable[id], precipitation, state.days, hours);
+    const tile = state.ecs.mappable[id];
+    const old = state.snow[id] ?? (tile.elevation != null && !tile.terrain.includes("water") ?
+      clamp((tile.elevation-snowlineAt(tile,state.days))/140) : 0);
+    const cold = tile.elevation != null ? frozenAt(tile,state.days) : coldEnough(home,state.days);
+    const falling = precipitation == "storm" && here.moisture >= .46 && cold ? "snow" : precipitation;
+    const depth = snowDepthAfter(old, tile, falling, state.days, hours);
+    changed = changed || depth != (state.snow[id] || 0);
     state.snow[id] = depth;
-    changed = changed || depth != old;
   }
+  // The normal clock reports conditions where the player stands.
+  const tile = climateTile(state,state.ui?.playerId);
+  if (here.type == "rain" && tile.elevation != null && frozenAt(tile,state.days)) here.type = "snow";
   if (changed) state.snowRevision = (state.snowRevision || 0) + 1;
 }

@@ -1,3 +1,4 @@
+import { updateEnvironment } from "game/environment";
 import { stationarySupplies } from "game/stationary_care";
 import { gardenHelp } from "game/household_routines";
 import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
@@ -15,9 +16,9 @@ import { topController } from "game/playable";
 import { jobQueueFor, readyPlayerTasks, deferPlayerTask } from "game/manager";
 
 import { updateVillageLife } from "game/villages";
-import { updateEcology } from "game/ecology";
 
-import crops from "data/crops.json";
+
+
 
 export const SPEED = {
   paused: 0,
@@ -179,29 +180,13 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
           if (person.hunger > 6 + 1e-12) starve(state, id);
         }
 
-        if (state.ecs.farmable) {
-          for (const id in state.ecs.farmable) {
-            for (const slot of state.ecs.farmable[id].slots) {
-              if (slot.content && slot.state == "sown" && time.season(state.days) != "winter") {
-                state.redraws.push(id);
-
-                slot.growth = (slot.growth || 0) + time.HOUR;
-                if (slot.growth + 1e-12 >= crops[slot.content].growingTime) {
-                  slot.state = "harvestable";
-                  slot.amount = crops[slot.content].harvestableAmount;
-                }
-              }
-            }
-          }
-        }
         const nowWinter = time.season(state.days) == "winter";
         if (winter != nowWinter) {
           state.redraws.push(...Object.keys(state.ecs.forageable || {}));
           winter = nowWinter;
         }
         // Sample every crossed hour, including season boundaries.
-        updateEcology(state);
-        updateWeather(state);
+        updateEnvironment(state);
         drift(state, 1);
         socialHour(state);
         updateFavours(state);

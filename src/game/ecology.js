@@ -1,7 +1,9 @@
+import { growingAt } from "game/climate";
+import { treeAllowed } from "game/tree_clearance";
 import { Hex, Grid, HEX_SIZE } from "game/hex";
 import { newEntities } from "game/entities";
 import { biomeOf, homeOf } from "game/overworld";
-import { HOUR, season } from "game/time";
+import { HOUR } from "game/time";
 import { hashUnit } from "game/math";
 
 // Forage densities are plants per land tile. Seeding is saplings per mature tree
@@ -108,12 +110,11 @@ export function generateForage(state, seed, start = state.map && state.map.playe
   }
 }
 
-export const forageAvailable = (state, plant) => plant && plant.amount > 0 && season(state.days) != "winter";
+export const forageAvailable = (state, plant) => plant && plant.amount > 0 && growingAt(state,plant.id);
 
 export function updateEcology(state) {
-  if (season(state.days) == "winter") return;
   for (const plant of Object.values(state.ecs.forageable || {})) {
-    if (plant.amount > 0) continue;
+    if (plant.amount > 0 || !growingAt(state,plant.id)) continue;
     plant.growth += HOUR;
     if (plant.growth + 1e-12 >= BIOME_ECOLOGY[plant.biome].forageDays) {
       plant.amount = 1;
@@ -130,7 +131,7 @@ export function updateEcology(state) {
     counts[tree.biome] = (counts[tree.biome] || 0) + 1;
     if (tree.stage == "mature") {
       mature.push(id);
-    } else {
+    } else if (growingAt(state,id)) {
       tree.growth += HOUR;
       const stage = tree.growth + 1e-12 >= MATURE_AFTER ? "mature" : tree.growth + 1e-12 >= YOUNG_AFTER ? "young" : "sapling";
       if (stage != tree.stage) {
@@ -143,6 +144,7 @@ export function updateEcology(state) {
   if (!Object.keys(treeCaps).some(biome => (counts[biome] || 0) < treeCaps[biome])) return;
   for (const id of mature) {
     const tree = state.ecs.tree[id];
+    if (!growingAt(state,id)) continue;
     const rate = BIOME_ECOLOGY[tree.biome].seeding;
     tree.seeding = (tree.seeding ?? hashUnit(seed + ":seeding:" + id)) + rate * HOUR;
     if (tree.seeding < 1) continue;
@@ -153,9 +155,10 @@ export function updateEcology(state) {
     const radius = 30 + hashUnit(token + ":radius") * (TREE_SEED_REACH - 30);
     const source = state.ecs.spatial[id];
     const point = { x: source.x + Math.cos(angle) * radius, y: source.y + Math.sin(angle) * radius };
+    if (!treeAllowed(state, point)) continue;
     const hex = Hex().fromPoint(point);
     const tile = tiles[hex];
-    if (!tile || (counts[tile.biome] || 0) >= (treeCaps[tile.biome] || 0)) continue;
+    if (!tile || !growingAt(state,tile.id) || (counts[tile.biome] || 0) >= (treeCaps[tile.biome] || 0)) continue;
     const space = state.space[hex] || [];
     if (space.some(e => state.ecs.mappable?.[e]?.villagePlot || state.ecs.building?.[e] || state.ecs.camp?.[e] || state.ecs.shelter?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
     // Inspect only this tile and its six neighbours, never the whole forest.

@@ -3,7 +3,8 @@ import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
 import { eat, perform_subtask_in_slot, walk_to, chop_tree, pick_up_from_stockpile, find_place } from "game/tasks";
 import { give } from "game/holder";
-import { TRIANGLES } from "game/map";
+import { TRIANGLES, Hex, Grid, ALL_SIDES } from "game/map";
+import { addBidirectionalLink } from "game/pathfinding";
 import { HOUR } from "game/time";
 import { anyControlledAlive } from "game/playable";
 import { Task, solve } from "game/htn";
@@ -189,6 +190,16 @@ it("the player's forage order carries a portion home for winter", () => {
 
 it("winter offers no wild meals and crops keep only their growing-season progress", () => {
   const { state, villager, tiles } = hungryVillage();
+  // Initial layout: a public lane around the middle crop tile. The old row
+  // placed the only food behind a field, which through-walkers now skirt.
+  for (const h of Grid.hexagon({center:Hex(1,0),radius:1})) {
+    if (state.space[h]) continue;
+    newEntities(state,[{spatial:{...h.toPoint(),immovable:true},mappable:{terrain:"grassland"},walkable:{speed:1,worn:{},neighbours:{}}}]);
+  }
+  const tileAt=h=>state.space[h]?.find(id=>state.ecs.mappable[id]);
+  for (const h of Grid.hexagon({center:Hex(1,0),radius:1})) for(const [side,n] of Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).entries()) {
+    if(tileAt(h) && tileAt(n)) addBidirectionalLink(state.ecs,tileAt(h),side,tileAt(n));
+  }
   state.days = 9;
   state.ecs.planner[villager].world.days = 9;
   const [field, bush] = newEntities(state, [{

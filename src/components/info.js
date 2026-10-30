@@ -1,3 +1,5 @@
+import { canPlaceField } from "game/land_use";
+import { frozenAt } from "game/climate";
 import { TravelOffer } from "./travel_offer";
 import React from "react";
 import PropTypes from "prop-types";
@@ -58,6 +60,7 @@ function WorldHex({ mappable }) {
     <div className="world-hex">
       <div>{t(high ? "world.high_ground" : "world.temperature", { value: mappable.temperature })}</div>
       <div>{t("world.world_hex", home)}</div>
+      {mappable.elevation >= 260 && <div>{frozenAt(mappable,state.days) ? "Frozen highlands · a shorter growing season" : "Highland thaw · a shorter growing season"}</div>}
     </div>
   );
 }
@@ -94,7 +97,7 @@ export function Info({ entityId }) {
       };
       const result = await new Engine(rules).run(payload);
       if (!isCancelled) {
-        const offered = result.map(r => r.jobs).flat();
+        const offered = result.map(r => r.jobs).flat().filter(job => job.key != "create_field" || canPlaceField(state,entityId));
         if (canPlaceShelter(state, entityId) || (entity.construction && !payload.job_targets.includes(entityId))) offered.push({ key: "build_shelter" });
         setJobs(offered);
       }

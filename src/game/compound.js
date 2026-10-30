@@ -121,7 +121,7 @@ export const check_jobs = () => [
     entry => [
       ["take_job", entry.job.key],
       ["set_label", "create_field"],
-      ["walk_to", entry.targetId],
+      ["walk_to", entry.targetId, { plotAccess: true }],
       ["create_field", entry.targetId ],
       ["complete_job", entry.job.key]
     ]

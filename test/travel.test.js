@@ -1,6 +1,6 @@
 import { Hex, Grid, ALL_SIDES, WorldHex, WorldGrid } from "game/hex";
 import { newEntities } from "game/entities";
-import { addBidirectionalLink } from "game/pathfinding";
+import { addBidirectionalLink, path } from "game/pathfinding";
 import { peopleWorld } from "./support/people";
 import { edgeSide, destinationFor, initialiseTravel, acceptTravel, completeTravel, advanceWorldClock, localSnapshot, enterMap, freezeOpinions, prepareEntrances } from "game/travel";
 import { skipIntro, updateIntro } from "game/intro";
@@ -312,6 +312,13 @@ it("fresh destinations are deterministic per coordinates, account for elapsed se
   const sourceIds = new Set(Object.values(a.s.ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c)));
   const destIds = Object.values(x.ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c));
   expect(destIds.some(id => sourceIds.has(id))).toBe(false);
+  // A lazily generated destination must have real final-graph village access,
+  // just as the initial map does. Reuse this existing ordinary neighbour.
+  for (const entry of Object.values(x.map.entrances)) {
+    expect(entry.villageReachable).toBe(true);
+    expect(Object.keys(x.ecs.building).some(id => path(x, entry.tileIds[2],
+      x.space[Hex().fromPoint(x.ecs.spatial[id])].find(tile => x.ecs.mappable[tile])))).toBe(true);
+  }
   expect(x.map.centre).toEqual({
     x: 22,
     y: 22

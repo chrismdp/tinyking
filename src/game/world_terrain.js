@@ -29,7 +29,7 @@ export function worldPoint(worldHex, localPoint) {
 // NOTE: A single field in world coordinates, with continents a few world
 // hexes across. The extra octave roughens coasts; neither map edges nor
 // biome values enter it. Inland relief can still make lakes and mountains.
-export function createLandField(seed) {
+export function createLandField(seed, fixture) {
   const land = new SimplexNoise("land:" + seed);
   const relief = new SimplexNoise("terrain:" + seed);
   // NOTE: the two finer octaves are at map scale, so a coast wiggles across
@@ -40,8 +40,20 @@ export function createLandField(seed) {
     0.2 * land.noise2D(x * 0.0001 - 31.7, y * 0.0001 + 14.6) +
     0.06 * land.noise2D(x * 0.0007 + 5.9, y * 0.0007 - 22.4) +
     0.008 * land.noise2D(x * 0.0015 - 13.1, y * 0.0015 + 3.3);
+  const elevationAt = p => {
+    if (fixture?.kind == "mountain-pass") {
+      const x=p.x-fixture.x, y=p.y-fixture.y;
+      return 20+850*Math.exp(-((x/650)**2))*(1-.78*Math.exp(-(((y+420)/260)**2)));
+    }
+    // Broad uplands carry smaller ridges and valleys, all in world coordinates.
+    const upland = Math.max(0, relief.noise2D(p.x*.00013+8.2,p.y*.00013-4.6)+.18);
+    const ridge = Math.max(0, relief.noise2D(p.x*.00042+8.2,p.y*.00042-4.6));
+    const valley = relief.noise2D(p.x*.0009,p.y*.0009);
+    const coast = Math.min(1, Math.max(0, landAt(p)) / .16);
+    return 14 + coast * (850*upland + 1400*ridge*ridge + 65*upland*valley);
+  };
   return {
-    landAt,
+    landAt, elevationAt,
     terrainAt(p) {
       const sea = landAt(p);
       if (sea < -0.07) { return "deep water"; }
@@ -50,10 +62,14 @@ export function createLandField(seed) {
       const y = p.y / Hex().height();
       const height = 0.5 + relief.noise2D(x * 0.025, y * 0.025) * 0.65 +
         Math.max(0, relief.noise2D(x * 0.1, y * 0.1) * 1.6);
-      if (height > 1.4) { return "mountain"; }
+      const altitude = elevationAt(p);
+      const grade = Math.hypot(elevationAt({x:p.x+30,y:p.y})-elevationAt({x:p.x-30,y:p.y}),
+        elevationAt({x:p.x,y:p.y+30})-elevationAt({x:p.x,y:p.y-30})) / 60;
+      if (grade > .65) { return "mountain"; }
+      if (altitude > 780) { return "stone"; }
       // NOTE: relief makes inland lakes; near sea level the coast field alone
       // decides water, so little relief pits do not pepper the beach.
-      if (height < 0 && sea > 0.15) { return "shallow water"; }
+      if (height < 0 && sea > 0.15 && altitude < 120) { return "shallow water"; }
       if (relief.noise2D(x * 0.5, y * 0.5) > 0.85) { return "stone"; }
       return "grassland";
     }

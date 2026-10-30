@@ -2,8 +2,8 @@ import SimplexNoise from "simplex-noise";
 
 import { Hex, HEX_SIZE } from "game/hex";
 
-// NOTE: How high the land looks. This is for drawing only: nothing in the
-// game reads it, so hills never change paths, speeds or rules.
+// Shared triangulated ground for rendering, picking, navigation and grounding.
+// Generated maps supply geography corner elevations; legacy fixtures use bands.
 //
 // Heights live on hex corners, the points where up to three hexes meet. A
 // corner's height comes from simplex noise at its position (seeded from the
@@ -14,10 +14,8 @@ import { Hex, HEX_SIZE } from "game/hex";
 
 export const SEA_LEVEL = 0;
 
-// NOTE: Land whose hex centre stands at least this high counts as high
-// ground, as mountains always do: roughly the top 5% of grassland, mostly
-// foothills, where the land rises to meet a mountain.
-export const HIGH_GROUND = 35;
+// Altitude band for alpine vegetation; navigation uses the local slope.
+export const HIGH_GROUND = 260;
 
 // NOTE: Each terrain's height starts at its base and rises by up to its
 // rise with the noise. These are 70% of the first bands, which made the
@@ -53,7 +51,7 @@ function hexesAround(x, y) {
   return result;
 }
 
-export function createHeightField({ seed, terrainAt }) {
+export function createHeightField({ seed, terrainAt, elevationAt, cornerAt }) {
   const simplex = new SimplexNoise("height:" + seed);
   const corners = new Map();
   const hexes = new Map();
@@ -68,14 +66,17 @@ export function createHeightField({ seed, terrainAt }) {
       const cx = i * CORNER_STEP_X;
       const cy = j * CORNER_STEP_Y;
       const terrains = hexesAround(cx, cy).map(terrainAt);
-      let height = SEA_LEVEL;
-      if (!terrains.some(t => !t || WATER.includes(t))) {
-        const shape = terrains.map(t => TERRAIN[t] || TERRAIN.grassland);
-        const base = shape.reduce((sum, s) => sum + s.base, 0) / shape.length;
-        const rise = shape.reduce((sum, s) => sum + s.rise, 0) / shape.length;
-        const noise = 0.6 * simplex.noise2D(cx * 0.0035, cy * 0.0035) +
-          0.4 * simplex.noise2D(cx * 0.012, cy * 0.012);
-        height = SEA_LEVEL + base + rise * (noise * 0.5 + 0.5);
+      let height = cornerAt?.(cx, cy);
+      if (height == null) {
+        height = SEA_LEVEL;
+        if (!terrains.some(t => !t || WATER.includes(t))) {
+          const shape = terrains.map(t => TERRAIN[t] || TERRAIN.grassland);
+          const base = shape.reduce((sum, s) => sum + s.base, 0) / shape.length;
+          const rise = shape.reduce((sum, s) => sum + s.rise, 0) / shape.length;
+          const noise = 0.6 * simplex.noise2D(cx * 0.0035, cy * 0.0035) +
+            0.4 * simplex.noise2D(cx * 0.012, cy * 0.012);
+          height = elevationAt ? elevationAt(cx, cy) : SEA_LEVEL + base + rise * (noise * 0.5 + 0.5);
+        }
       }
       corners.set(key, height);
     }

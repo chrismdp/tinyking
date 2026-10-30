@@ -1,3 +1,4 @@
+import { fieldAtTile } from "game/land_use";
 import { Hex, HEX_SIZE } from "game/map";
 import * as math from "game/math";
 
@@ -103,7 +104,7 @@ export function path(state, start, goal) {
     for (const side in state.ecs.walkable[current].neighbours) {
       const n = state.ecs.walkable[current].neighbours[side];
       // A route never needs to loop; disconnected searches remain finite.
-      if (closed.has(String(n))) { continue; }
+      if (closed.has(String(n)) || n != goal && fieldAtTile(state,n)) { continue; }
       if (!(n in costs)) {
         const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
           0.2 : 1;

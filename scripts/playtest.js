@@ -121,7 +121,7 @@ async function opening(page) {
 async function play(page) {
   const game = (fn, arg) => page.evaluate(fn, arg);
   const speed = async n => {
-    const button = page.locator("#speed-controls button").nth(n);
+    const button = page.getByRole("button", { name: ["Pause", "Normal speed", "Fast speed"][n], exact: true });
     if (!await button.isDisabled()) await button.click();
     await page.waitForFunction(index => window.tinyking.game_speed == ["paused", "normal", "fast"][index], n);
   };

@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright-core");
 const out = path.resolve(process.argv[3] || "shots/feedback-browser");
 fs.mkdirSync(out, { recursive: true });
-const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 normal generated world. Public UI commands select, Chat, explicit Find food and speed only. State read for evidence; no injected needs, resources, relations, time or outcomes." };
+const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 normal generated world. Public UI commands select, Chat, explicit Find food, Move here and speed only. Physical exploration reveals village terrain before activity screenshots. State read for evidence; no injected needs, resources, relations, time or outcomes." };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME || "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome", args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const session = await browser.newBrowserCDPSession();
@@ -106,11 +106,31 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     }
     assert.deepEqual(await page.evaluate(()=>({day:window.tinyking.days,needs:JSON.stringify(window.tinyking.ecs.personable)})),frozen,"Debug does not advance time or needs");
     await page.setViewportSize({width:1440,height:900});
+    // Physically visit the children's fields and green. Camera-only inspection
+    // cannot reveal unexplored terrain and is not visual evidence of village life.
+    report.visibilityJourney=await page.evaluate(()=>{
+      const s=window.tinyking,children=Object.keys(s.residents).filter(id=>s.ecs.personable[id]?.age>=4&&s.ecs.personable[id].age<18&&!s.ecs.personable[id].dead);
+      const previous=children.find(id=>s.ecs.planner[id]?.world.lastPlay&&children.includes(s.ecs.planner[id].world.lastPlay.partnerId));
+      let pair=previous?[previous,s.ecs.planner[previous].world.lastPlay.partnerId]:null;
+      for(const a of pair?[]:children){const b=children.find(b=>b!=a&&s.ecs.village[a]?.villageId==s.ecs.village[b]?.villageId&&(s.ecs.household[a]?.houseId==s.ecs.household[b]?.houseId||["social","personal","intimate"].includes(s.ecs.relationships[a]?.known[b]?.ring)));if(b){pair=[a,b];break;}}
+      if(!pair)throw new Error("No natural child pair in this seed");
+      const village=s.villages[s.ecs.village[pair[0]].villageId],green=village.sharedPlaces.find(id=>s.ecs.meetingPlace[id]?.kind=="green");
+      const fields=[...new Set(pair.flatMap(id=>s.ecs.household[s.ecs.household[id].houseId]?.fields?.slice(0,1)||[]))];
+      s.ui.actions.change_visibility({selected_person:null});
+      for(const target of [...fields,green])s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},target);
+      return {pair,fields,green,start:s.days,before:{...s.ecs.spatial[s.ui.playerId]}};
+    });
+    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:120000});
+    await page.getByRole("button",{name:"Pause",exact:true}).click();
+    report.visibilityJourney.arrival=await page.evaluate(green=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[green],900);return {day:s.days,position:{...s.ecs.spatial[s.ui.playerId]},target:{...s.ecs.spatial[green]},knownTiles:s.ecs.playable[s.ui.playerId].known.length};},report.visibilityJourney.green);
+    assert(Math.hypot(report.visibilityJourney.arrival.position.x-report.visibilityJourney.arrival.target.x,report.visibilityJourney.arrival.position.y-report.visibilityJourney.arrival.target.y)<10);
+    await page.waitForTimeout(800);await shot("desktop-arrived-at-childrens-green");
     await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});window.feedbackObserve={start:s.days,counts:{},childCounts:{},actors:{},play:[],help:[],conversations:[],needsBefore:{},storesBefore:{},capturedKinds:{}};
       const o=window.feedbackObserve;for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
       for(const [id,c] of Object.entries(s.ecs.container))o.storesBefore[id]={...c.amounts};
       let last=-Infinity;const watch=()=>{if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
-        if(kind&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
+        if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
         if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);if(p.world.lastPlay?.ended>=o.start&&!o.play.some(x=>x.id==id))o.play.push({id,...p.world.lastPlay});if(p.world.lastGardenHelp?.day>=o.start&&!o.help.some(x=>x.id==id))o.help.push({id,...p.world.lastGardenHelp});}}
       if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
     await page.getByRole("button",{name:"Fast speed",exact:true}).click();
@@ -119,8 +139,11 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
       const capture=await page.evaluate(()=>window.feedbackObserve.capture);
       if(capture){
         await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.select_entity(id,false);s.renderer.focusOn(s.ecs.spatial[id],650);},capture.id);
+        await page.waitForTimeout(800);
         await shot("desktop-"+capture.kind);
         await page.setViewportSize({width:390,height:664});await shot("phone-"+capture.kind);await page.setViewportSize({width:1440,height:900});
+        await page.evaluate(()=>window.tinyking.ui.actions.change_visibility({selected_person:null}));await shot("desktop-"+capture.kind+"-world");
+        await page.setViewportSize({width:390,height:664});await shot("phone-"+capture.kind+"-world");await page.setViewportSize({width:1440,height:900});
         await page.evaluate(()=>{const s=window.tinyking;delete window.feedbackObserve.capture;s.ui.actions.change_visibility({selected_person:null});s.ui.actions.set_speed("fast");});
       }
       if(await page.evaluate(()=>!!window.feedbackObserve.end))break;
@@ -128,6 +151,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     report.observation=await page.evaluate(()=>window.feedbackObserve);
     await shot("desktop-ordinary-day");
     assert(report.observation.counts.socialise>0,"Ordinary adults hold conversations");
+    for(const kind of ["child-play","child-help","adult-conversation"])assert(report.observation.capturedKinds[kind],"Visible ordinary activity: "+kind);
     assert(report.observation.childCounts.tend_garden>0,"Children do actual household crop care");
     assert(report.observation.childCounts.play_together>0,"Children play in pairs");
     assert(report.observation.counts.perform_subtask_in_slot>0,"Real farm work remains reachable");

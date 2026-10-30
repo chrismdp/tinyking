@@ -130,18 +130,67 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     report.visibilityJourney.arrival=await page.evaluate(green=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[green],900);return {day:s.days,position:{...s.ecs.spatial[s.ui.playerId]},target:{...s.ecs.spatial[green]},knownTiles:s.ecs.playable[s.ui.playerId].known.length};},report.visibilityJourney.green);
     assert(Math.hypot(report.visibilityJourney.arrival.position.x-report.visibilityJourney.arrival.target.x,report.visibilityJourney.arrival.position.y-report.visibilityJourney.arrival.target.y)<10);
     await page.waitForTimeout(800);await shot("desktop-arrived-at-childrens-green");
+    // The preserved first observation crossed a tired daylight period: no play
+    // completed. Let the same world reach the following rested morning, using
+    // actual food/rest orders for the stationary player throughout the wait.
+    report.scheduledMorning=await page.evaluate(()=>Math.ceil(window.tinyking.days)+1+8/24);
+    await page.evaluate(target=>{
+      const s=window.tinyking;window.feedbackPreparation={start:s.days,target,care:[]};
+      const watch=()=>{
+        const id=s.ui.playerId,p=s.ecs.personable[id];
+        if(!s.ecs.manager[id].jobs.length&&!["eat","sleep","forage"].includes(s.ecs.planner[id].task?.[0])){
+          const key=p.hunger>.9?"find_food":p.tiredness>.9?"rest":null;
+          if(key){s.ui.actions.choose_job(id,{key},id);window.feedbackPreparation.care.push({day:s.days,key});}
+        }
+        if(s.days>=target){s.ui.actions.set_speed("paused");window.feedbackPreparation.end=s.days;return;}
+        requestAnimationFrame(watch);
+      };requestAnimationFrame(watch);
+    },report.scheduledMorning);
+    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.waitForFunction(()=>window.feedbackPreparation.end,null,{timeout:120000});
+    report.preparation=await page.evaluate(()=>window.feedbackPreparation);
     await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});window.feedbackObserve={start:s.days,counts:{},childCounts:{},actors:{},play:[],help:[],conversations:[],needsBefore:{},storesBefore:{},capturedKinds:{}};
-      const o=window.feedbackObserve;for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
+      const o=window.feedbackObserve;o.playProgress={};o.careProgress={};o.playerCare=[];for(const id of Object.keys(s.residents))if(s.ecs.personable[id]&&!s.ecs.personable[id].dead)o.needsBefore[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness};
       for(const [id,c] of Object.entries(s.ecs.container))o.storesBefore[id]={...c.amounts};
-      let last=-Infinity;const watch=()=>{if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
-        if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
-        if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);if(p.world.lastPlay?.ended>=o.start&&!o.play.some(x=>x.id==id&&x.ended==p.world.lastPlay.ended))o.play.push({id,...p.world.lastPlay});if(p.world.lastGardenHelp?.day>=o.start&&!o.help.some(x=>x.id==id&&x.day==p.world.lastGardenHelp.day))o.help.push({id,...p.world.lastGardenHelp});}}
-      if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
+      let last=-Infinity;const watch=()=>{
+        const player=s.ui.playerId,needs=s.ecs.personable[player];
+        if(!s.ecs.manager[player].jobs.length&&!["eat","sleep","forage"].includes(s.ecs.planner[player].task?.[0])){
+          const key=needs.hunger>.9?"find_food":needs.tiredness>.9?"rest":null;
+          if(key){s.ui.actions.choose_job(player,{key},player);o.playerCare.push({day:s.days,key});}
+        }
+        for(const id of Object.keys(s.residents)){
+          const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||!person||person.dead||id==player)continue;
+          if(person.age<18&&p.task?.[0]=="play_together"&&p.world.social?.started){
+            const v=p.world.social,k=id+":"+v.started,pos=s.ecs.spatial[id];
+            const progress=o.playProgress[k]||={id,partnerId:v.partnerId,started:v.started,first:s.days,origin:{x:pos.x,y:pos.y},maxDisplacement:0};
+            progress.last=s.days;progress.position={x:pos.x,y:pos.y};progress.maxDisplacement=Math.max(progress.maxDisplacement,Math.hypot(pos.x-progress.origin.x,pos.y-progress.origin.y));
+            const kind=!o.capturedKinds["child-play"]?"child-play":s.days-progress.first>=10/60/24&&!o.capturedKinds["child-play-progress"]?"child-play-progress":null;
+            if(kind&&s.renderer.objectOf(id)?.visible&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days,started:v.started};s.ui.actions.set_speed("paused");}
+          }
+          if(person.age<18&&p.task?.[0]=="tend_garden"){
+            const gardenId=p.task[1],farm=s.ecs.farmable[gardenId];
+            const slot=farm?.slots.findIndex(x=>x.state=="sown"&&x.tendedDay!=Math.floor(s.days));
+            if(slot>=0){const k=id+":"+gardenId+":"+slot+":"+Math.floor(s.days);o.careProgress[k]||={id,gardenId,slot,first:s.days,before:JSON.parse(JSON.stringify(farm.slots[slot]))};}
+          }
+          if(person.age<18&&p.world.lastPlay?.ended>=o.start&&!o.play.some(x=>x.id==id&&x.ended==p.world.lastPlay.ended))o.play.push({id,...p.world.lastPlay});
+          if(person.age<18&&p.world.lastGardenHelp?.day>=o.start&&!o.help.some(x=>x.id==id&&x.day==p.world.lastGardenHelp.day))o.help.push({id,...p.world.lastGardenHelp});
+        }
+        for(const progress of Object.values(o.careProgress)){
+          const slot=s.ecs.farmable[progress.gardenId]?.slots[progress.slot];
+          if(!progress.completed&&slot?.tendedBy==progress.id&&slot.tendedDay==Math.floor(progress.first)){
+            progress.completed=s.days;progress.after=JSON.parse(JSON.stringify(slot));
+          }
+        }
+        if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
+          if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
+          if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);}}
+        if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
     await page.getByRole("button",{name:"Fast speed",exact:true}).click();
     while(true){
       await page.waitForFunction(()=>window.feedbackObserve.end||window.feedbackObserve.capture,null,{timeout:120000});
       const capture=await page.evaluate(()=>window.feedbackObserve.capture);
       if(capture){
+        report.samples.push(await page.evaluate(c=>{const s=window.tinyking,id=c.id,p=s.ecs.planner[id];return {...c,person:s.ecs.personable[id].name,age:s.ecs.personable[id].age,task:p.task,position:{...s.ecs.spatial[id]},social:JSON.parse(JSON.stringify(p.world.social||null)),visible:s.renderer.objectOf(id)?.visible};},capture));
         await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.select_entity(id,false);s.renderer.focusOn(s.ecs.spatial[id],650);},capture.id);
         await page.waitForTimeout(800);
         await shot("desktop-"+capture.kind);
@@ -160,6 +209,13 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert(report.observation.childCounts.play_together>0,"Children play in pairs");
     assert(report.observation.counts.perform_subtask_in_slot>0,"Real farm work remains reachable");
     assert(report.observation.conversations.length>0,"Conversations update contact");
+    const episodes=new Set(report.observation.play.map(x=>[x.id,x.partnerId].sort().join(":")+":"+x.started));
+    assert(episodes.size>=2,"More than one real paired play episode completes during the ordinary day");
+    assert(report.observation.play.every(x=>(x.ended-x.started)*24>=.5),"Completed play lasts at least half a game hour");
+    assert(report.observation.capturedKinds["child-play-progress"],"Play stays visible after ten game minutes");
+    assert(Object.values(report.observation.playProgress).some(x=>x.maxDisplacement>5),"Children actually chase between positions");
+    assert(Object.values(report.observation.careProgress).some(x=>x.completed&&x.after.growth-x.before.growth>=3/24),"Child care physically advances a real crop by three hours");
+    assert(!report.observation.needsAfter[report.initial.player].dead,"Explicit food/rest keeps the player alive");
     assert.equal(report.errors.length,0,report.errors.join("\n"));
     report.complete=true;
     console.log(JSON.stringify({arrivalIdle:report.arrivalIdle,idle:report.idle,conversation:report.talk.copy,biography:report.talk.bio,counts:report.observation.counts,childCounts:report.observation.childCounts,completedPlay:report.observation.play.length,completedHelp:report.observation.help.length,errors:report.errors}));

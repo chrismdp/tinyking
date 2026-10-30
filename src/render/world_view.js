@@ -46,7 +46,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   sun.position.set(-0.7, 0.8, 0.45);
   scene.add(sun);
 
-  const terrain = createTerrain(state, ground);
+  let terrain = createTerrain(state, ground);
+  let geography = state.map.geography;
   scene.add(terrain.mesh);
   const forest = createForest();
   scene.add(forest.mesh);
@@ -322,7 +323,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   return {
     camera,
-    terrain,
+    get terrain() { return terrain; },
     // Observer control for reproducible village inspection and captures.
     focusOn(point, distance = 1000) {
       rig.shot({ x: point.x, z: point.y, y: ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 });
@@ -332,6 +333,15 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
       lastFrame = now;
 
+      if (geography !== state.map.geography) {
+        geography = state.map.geography;
+        scene.remove(terrain.mesh);
+        terrain.dispose();
+        terrain = createTerrain(state, ground);
+        scene.add(terrain.mesh);
+        state.redraws.push(...Object.keys(state.ecs.spatial));
+        showKnown();
+      }
       const arriving = introActive(state);
       const changedIntro = lastIntro != state.intro || wasArriving != arriving;
       if (changedIntro) {

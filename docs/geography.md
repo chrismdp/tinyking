@@ -10,12 +10,33 @@ walkable. Gentle uplands can support vegetation and settlements.
 `buildGeography(grid, landscape, settlements, entrances, anchors)` connects
 actual front-door approaches, camps and entrances through land. A least-cost
 search prefers lower elevations and smaller changes in elevation. It does not
-cross water or reserved crop plots. Road grades propagate towards low points at
-0.24 rise/run. Lateral cuttings use 0.55. House and camp pads use local altitude.
-Village sites require gentle local ground on the main land component. These
+cross water or reserved crop plots. Road triangles have at most 0.55 slope.
+Their actual centre-to-edge walking segments have at most 0.24 rise/run.
+Shared corner constraints limit road cut and fill to 55 units from natural ground.
+Infeasible connections stay absent. Steep unoccupied ground retains its natural shape.
+House pads use the local mean altitude and at most 35 units of cut or fill.
+Pads extend to the house hex corners, then blend out over 180 units.
+Village sites require gentle local ground on the main walkable land component.
+A trial pad must preserve walking on the surrounding naturally gentle ground.
+The finished shared surface must preserve this apron after road grading too. These
 values concern geometry, not population, history, expansion or region counts.
 
 Boundary corners retain the shared natural height. Pads cannot lower them.
+The previous global minimum of cutting cones lowered distant ridges while
+preserving those boundary corners. This created tall repeated triangular fins.
+The bounded corrections now affect only occupied corners and their local blend.
+Terrain, picking, walking, object grounding and snow keep the same hex triangles.
+
+Player shelter placement tests the same bounded surface before creating a site.
+It rejects steep pads, blocked approaches and changes that invalidate existing walking access.
+Successful placement updates shared heights and physical tile altitude.
+The renderer refreshes terrain, picking and grounded objects from that surface.
+Legacy simulation fixtures without geography retain their previous height bands.
+Rejected generated houses can use another eligible site within their original hamlet.
+Every alternative consumes an unused site or door approach. Optional roads never trigger global retries.
+Road reservation also checks actual hex slopes and centre-to-edge grades before writing any segment.
+Initial arrivals select a two-ring grassland camp on the finished walkable surface,
+with a reachable nearby community. This does not move explicit travel entrances.
 
 `map.geography = { version: 1, heights, routes }` stores shared-corner heights
 (keyed by rounded world-in-map x,y to 0.001) and local tile chains.

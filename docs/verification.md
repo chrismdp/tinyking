@@ -18,7 +18,9 @@ Return the worst demonstrated findings to the coordinator. Fix those before the 
 
 ## Final integration gate
 
-The coordinator reviews the implementation, every changed existing test, evidence and independent judgment. Fetch and rebase onto current `origin/main`. Run whole Jest once on the final reviewed gameplay candidate, under the shared gate lock. A real failure remains failed; fix it and rerun the checks needed to establish the final result. A runtime change after the whole gate invalidates affected evidence and may require another whole run. A pure test/driver/documentation correction does not erase valid unchanged-runtime evidence; record the old failure and new affected result separately rather than pretending the old command passed.
+The coordinator reviews the implementation, every changed existing test, evidence and independent judgment. Fetch and rebase onto current `origin/main`. Run whole Jest once on the final reviewed gameplay candidate, under the shared gate lock.
+
+A whole-suite run with failures retains its passing evidence. Fix the failures, then rerun only failed tests and tests exposed to actual risk from the fix. Runtime edits do not automatically invalidate the entire suite. Another whole run requires a concrete broad-risk reason, recorded before that run starts. A pure test/driver/documentation correction also retains valid unchanged-runtime evidence. Record the old failure and new affected result separately.
 
 For documentation or test-script-only changes, relevant lint, affected tests or the changed script and code review are sufficient when runtime/package/build configuration is unchanged. Do not spend another whole-suite run proving unchanged gameplay. Never remove meaningful assertions to qualify for that exception.
 

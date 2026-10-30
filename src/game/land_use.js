@@ -1,4 +1,5 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { groundForState, safeTile, roadStep, ROAD_CROSS_SLOPE } from "game/geography";
 
 export const roadAllowed = tile => !!tile && !tile.cropPlot && !tile.terrain.includes("water");
 export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && !tile.cropPlot &&
@@ -48,11 +49,13 @@ export function reserveFieldPlot(state, tileId) {
 export function reserveRoad(state, tileIds) {
   const { ecs } = state;
   if (tileIds.some(id => !roadAllowed(ecs.mappable[id]) || fieldAtTile(state,id))) return false;
+  const ground=state.map?.geography && groundForState(state);
+  if(ground && tileIds.some(id=>!safeTile(ground,ecs.spatial[id],ROAD_CROSS_SLOPE))) return false;
   const links=[];
   for (let i=1;i<tileIds.length;i++) {
     const a=tileIds[i-1], b=tileIds[i], h=Hex().fromPoint(ecs.spatial[a]);
     const side=Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).findIndex(n=>n.equals(Hex().fromPoint(ecs.spatial[b])));
-    if (side<0) return false;
+    if (side<0 || ground && !roadStep(ground,h,Hex().fromPoint(ecs.spatial[b]))) return false;
     links.push([a,side],[b,(side+3)%6]);
   }
   for(const [id,side] of links) {

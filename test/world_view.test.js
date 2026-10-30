@@ -53,3 +53,25 @@ it("fits the larger map and its edge wall in the whole-map view, including portr
   }
   view.dispose();
 });
+
+it("refreshes terrain, picking and cached grounding after a real pad changes shared heights",()=>{
+  const {state,renderer,grid}=fixture(), heights={};
+  state.ecs.walkable=Object.fromEntries(Object.keys(state.ecs.mappable).map(id=>[id,{worn:{}}]));
+  for(const h of grid) for(const o of Hex().corners()) {
+    const p=h.toPoint();heights[Math.round((p.x+o.x)*1000)+","+Math.round((p.y+o.y)*1000)]=480;
+  }
+  state.map.geography={version:1,heights,routes:[]};
+  const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}}), oldMesh=view.terrain.mesh;
+  const centre=Hex(state.map.centre),p=centre.toPoint(), id=state.space[centre][0];
+  const changed={...heights};
+  for(const o of Hex().corners()) changed[Math.round((p.x+o.x)*1000)+","+Math.round((p.y+o.y)*1000)]=490;
+  state.map.geography={...state.map.geography,heights:changed};
+  view.showWholeMap();view.focusOn(p,1200);view.frame();
+  expect(view.terrain.mesh).not.toBe(oldMesh);
+  expect(view.ground.hex(p).centre).toBe(490);
+  const position=view.terrain.mesh.geometry.attributes.position;
+  expect(position.getY(Object.keys(state.ecs.mappable).indexOf(id)*18)).toBe(490);
+  const screen=view.screenPosition(id);
+  expect(view.pick(screen.x,screen.y)).toBe(id);
+  view.dispose();
+});

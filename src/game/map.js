@@ -1,6 +1,6 @@
 import { updateRoadWear } from "game/road_wear";
 import { reserveBuildingClearance, treeAllowed } from "game/tree_clearance";
-import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile } from "game/geography";
+import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, suitableHouse } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import SimplexNoise from "simplex-noise";
@@ -334,13 +334,13 @@ function makeHouse(generator, settlements, grid, target, landscape) {
   };
 }
 
-async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand) {
+async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand, natural) {
   const settlements = {};
   const villages = {};
   const generator = new MersenneTwister(seed);
   // Keep clearings inland and leave the player's starting neighbourhood alone.
   const candidates = grid.filter(target => MAP_CENTRE.distance(target) < MAP_RADIUS - 4 &&
-    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && mainLand.has(String(target)) && landscape[target].terrain == "grassland" && Grid.hexagon({center:target,radius:1}).every(h => landscape[h] && Math.abs(landscape[h].elevation-landscape[target].elevation) < 55) &&
+    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && mainLand.has(String(target)) && suitableHouse(natural,target.toPoint()) && landscape[target].terrain == "grassland" && Grid.hexagon({center:target,radius:1}).every(h => landscape[h] && Math.abs(landscape[h].elevation-landscape[target].elevation) < 55) &&
     Grid.hexagon({ center: target, radius: 1 }).every(h => landscape[h] && !landscape[h].terrain.includes("water")));
   const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
     .sort((a, b) => b.rank - a.rank).map(c => c.hex);
@@ -372,6 +372,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
     for (const hex of chosen) {
       makeHouse(generator, settlements, grid, hex, landscape);
       settlements[hex].villageId = id;
+      settlements[hex].villageCentre = hex.equals(centre);
     }
     await progressUpdate("settlements");
   }
@@ -379,21 +380,20 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
   // a community destination: establish one inland village clearing, leaving
   // the continuous coastline alone. This is geography generation, not supplies
   // granted by travel, and is independent of the visitor or arrival side.
-  if (!centres.length) {
-    const centre = ranked[0] || grid.filter(h => MAP_CENTRE.distance(h) < MAP_RADIUS - 4 && start.distance(h) >= 5)
-      .sort((a,b) => MAP_CENTRE.distance(a)-MAP_CENTRE.distance(b))[0];
-    const sites = [centre, ...Grid.hexagon({ center: centre, radius: 2 }).filter(h => centre.distance(h)==2)];
+  if (!centres.length && ranked.length) {
+    const centre = ranked[0];
+    const sites = [centre, ...ranked.filter(h => h.distance(centre) <= 3)];
     const chosen = [];
     for (const site of sites) if (chosen.length<3 && chosen.every(h=>h.distance(site)>=2)) chosen.push(site);
     const id = "village-1";
     villages[id] = { id, name: prefixes[nameOffset] + suffixes[generator.random_int()%suffixes.length], centre: {x:centre.x,y:centre.y}, houses: [] };
-    for (const hex of chosen) { makeHouse(generator,settlements,grid,hex,landscape); settlements[hex].villageId=id; }
+    for (const hex of chosen) { makeHouse(generator,settlements,grid,hex,landscape); settlements[hex].villageId=id; settlements[hex].villageCentre=hex.equals(centre); }
   }
   // Keep the bedroll clearing and its farm-sized ring free of trees.
   Grid.hexagon({ center: start, radius: 1 }).forEach(hex => {
     landscape[hex].terrain = "grassland";
   });
-  return { settlements, villages };
+  return { settlements, villages, settlementSites: ranked };
 }
 
 function discoverStartingTiles(ecs, id, center) {
@@ -422,8 +422,8 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   const fixtureStart = state.world.geographyFixture && grid.filter(h => MAP_CENTRE.distance(h)==MAP_RADIUS-2 &&
     Grid.hexagon({center:h,radius:2}).every(n=>landscape[n]?.terrain=="grassland"))
     .sort((a,b)=>a.toPoint().x-b.toPoint().x || a.y-b.y)[0];
-  const start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
-  const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world));
+  let start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
+  const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world), naturalGroundFor(state.world));
   // Village keys also cross maps in kinship, event and courtship records.
   if (state.ecs.namespace) {
     for (const id of Object.keys(villages)) { const v = villages[id]; delete villages[id]; v.id = state.ecs.namespace + id; villages[v.id] = v; }
@@ -439,15 +439,37 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   const home = homeOf(state.world);
   const field = landFieldFor(state.world);
   const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
+    settlementSites,
     terrainAt:p=>field.terrainAt(worldPoint(state.world.home,p)),
     elevationAt:(x,y)=>field.elevationAt(worldPoint(state.world.home,{x,y}))
   });
+  for (const id of Object.keys(villages)) if (!Object.values(settlements).some(h => h.villageId == id)) delete villages[id];
   const ground = groundForState({map:{seed,geography},ecs:{mappable:landscape,spatial:landscape},space:Object.fromEntries(Object.keys(landscape).map(k=>[k,[k]]))});
   for (const key in landscape) {
     const tile = landscape[key];
     if (walkable[tile.terrain] && !safeTile(ground,tile)) tile.terrain = "mountain";
     tile.elevation = ground.hex(tile).centre;
     tile.temperature = tileTemperature(home.temperature, tile.terrain == "mountain" || tile.elevation >= HIGH_GROUND);
+  }
+  if (!options.world && !state.world.geographyFixture) {
+    // Choose the initial camp on the finished surface. An optional road can be
+    // absent, so the old survey coordinate is not proof of a walk to a village.
+    const components = new Map(), houses = Object.values(settlements);
+    const suitableArrival = hex => {
+      if (!Grid.hexagon({ center: hex, radius: 2 }).every(h => landscape[h]?.terrain == "grassland") ||
+        houses.some(h => hex.distance(Hex(h)) < MIN_START_SETTLEMENT_DISTANCE)) return false;
+      let reached = components.get(String(hex));
+      if (!reached) {
+        reached = reachableFrom(hex, landscape, settlements, grid.length);
+        for (const key of reached) components.set(key, reached);
+      }
+      return houses.some(h => hex.distance(Hex(h)) <= 8 && reached.has(String(
+        Grid.hexagon({ center: Hex(h), radius: 1 }).neighborsOf(Hex(h), ALL_SIDES)[h.frontDoorSide])));
+    };
+    const alternatives = grid.filter(h => MAP_CENTRE.distance(h) == MAP_RADIUS - 2)
+      .sort((a,b) => start.distance(a) - start.distance(b) || a.x-b.x || a.y-b.y);
+    const chosen = [start, ...alternatives].find(suitableArrival);
+    if (chosen) start = chosen;
   }
   let trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
     biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),

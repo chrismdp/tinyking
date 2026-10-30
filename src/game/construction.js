@@ -1,4 +1,5 @@
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
+import { groundForState, shelterSurface } from "game/geography";
 import { Hex } from "game/hex";
 import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
 import { topController } from "game/playable";
@@ -19,7 +20,8 @@ export function canPlaceShelter(state, targetId) {
   if (ecs.construction?.[targetId]) return false;
   if (ecs.shelter?.[targetId]) return topController(ecs, targetId) == state.ui.playerId && !!STAGES[ecs.shelter[targetId].stage].next &&
     canClearForBuilding(state, buildingFootprint(state, targetId), state.ui.playerId);
-  if (ecs.mappable[targetId]?.terrain != "grassland" || ecs.mappable[targetId]?.villagePlot) return false;
+  if (ecs.mappable[targetId]?.terrain != "grassland" || ecs.mappable[targetId]?.villagePlot || ecs.mappable[targetId]?.route?.length) return false;
+  if (state.map?.geography && !shelterSurface(state, ecs.spatial[targetId])) return false;
   const preview = { ecs: { spatial: { site: ecs.spatial[targetId] }, shelter: { site: {} } } };
   if (!canClearForBuilding(state, buildingFootprint(preview, "site"), state.ui.playerId)) return false;
   const hex = Hex().fromPoint(ecs.spatial[targetId]);
@@ -34,6 +36,13 @@ export function canPlaceShelter(state, targetId) {
 
 export function placeShelter(state, targetId) {
   if (!canPlaceShelter(state, targetId)) return null;
+  if (state.map?.geography && !state.ecs.shelter?.[targetId]) {
+    const geography = shelterSurface(state, state.ecs.spatial[targetId]);
+    if (!geography) return null;
+    state.map.geography = geography;
+    const ground = groundForState(state);
+    for (const id of Object.keys(state.ecs.mappable)) state.ecs.mappable[id].elevation = ground.hex(state.ecs.spatial[id]).centre;
+  }
   const stage = state.ecs.shelter?.[targetId] ? STAGES[state.ecs.shelter[targetId].stage].next : "lean-to";
   let id = targetId;
   if (!state.ecs.shelter?.[id]) {

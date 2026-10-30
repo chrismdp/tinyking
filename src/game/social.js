@@ -95,7 +95,11 @@ export function moveHouse(s, id, houseId, summary = false) {
   if (w) {
     w.places = {}; w.no_place_for = {}; delete w.social;
     s.ecs.planner[id].task = null; s.ecs.planner[id].plan = null;
-    for (const farm of Object.values(s.ecs.farmable || {})) if (farm.claimerId == id) farm.claimerId = null;
+    for (const farm of Object.values(s.ecs.farmable || {})) {
+      if (farm.claimerId == id) farm.claimerId = null;
+      for (const slot of farm.slots) if (slot.workerId == id) delete slot.workerId;
+    }
+    delete w.helpingFriend; delete w.friendOffer;
     w.claimedFarmable = null; w.currentJob = null; w.subtasks = null; w.moveHome = houseId;
     for (const bed of Object.values(s.ecs.sleepable || {})) bed.occupiers = bed.occupiers.filter(p => p != id);
     for (const manager of Object.values(s.ecs.manager || {})) for (const job of manager.jobs) if (job.assignedId == id) job.assignedId = null;
@@ -351,7 +355,7 @@ export function historyStep(worldHexState, season) {
   records("planner", p => ({ ...p, world: { ...p.world } }));
   records("manager", m => ({ ...m, jobs: m.jobs.map(j => ({ ...j })) }));
   records("sleepable", b => ({ ...b, occupiers: [...b.occupiers] }));
-  records("farmable"); records("building", b => ({ ...b, rooms: [...(b.rooms || [])] }));
+  records("farmable", f => ({ ...f, slots: f.slots.map(slot => ({ ...slot })) })); records("building", b => ({ ...b, rooms: [...(b.rooms || [])] }));
   for (const [id, k] of Object.entries(worldHexState.knowledge || {})) copy.knowledge[id] = { ...k, events: [...(k.events || [])] };
   for (const [id, v] of Object.entries(worldHexState.villages || {})) copy.villages[id] = { ...v, houses: [...(v.houses || [])] };
   copy.days = season * 3;

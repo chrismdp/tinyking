@@ -6,6 +6,7 @@ import { firstFreeJob } from "game/manager";
 const always = () => true;
 
 export const person = () => [
+  [world => world.helpingFriend, () => [["end_friend_help"], ["person"]]],
   [
     world => world.capturedAttentionOf,
     targetId => [
@@ -68,6 +69,7 @@ export const person = () => [
     world => world.social,
     () => [["social_visit"]]
   ],
+  [world => world.friendOffer, offer => [["begin_friend_help", offer], ["walk_to", offer?.x != null ? { x: offer.x, y: offer.y } : offer?.targetId], ["help_friend_work"], ["end_friend_help"]]],
   [
     world => time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 18,
     () => [
@@ -490,7 +492,7 @@ export const sow_field = (targetId, seed) => [
 ];
 
 export const work_trade = () => [[
-  world => world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
+  world => world.tradeReady !== false && world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
   job => [["walk_to", job.workplaceId], ["set_label", TRADE_LABELS[job.trade]], ["trade_work", job.workplaceId]]
 ]];
 

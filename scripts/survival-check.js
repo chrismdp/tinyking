@@ -54,7 +54,10 @@ async function run(seed) {
   assert(alive / people.length >= 0.75, "famine on seed " + seed + ": " + alive + "/" + people.length);
   assert(meals > people.length * 10, "people must actually eat");
   const hash = crypto.createHash("sha256").update(JSON.stringify({ ecs: state.ecs, days: state.days })).digest("hex");
-  return { seed, biome: homeOf(state.world).biome, alive, population: people.length, meals, winterMeals,
+  const deaths = (state.events || []).filter(e => e.type == "death" && e.day >= 0);
+  const totalPopulation = Object.values(state.ecs.personable).filter(p => !p.dead).length;
+  return { totalPopulation, starvationDeaths: deaths.filter(e => e.cause == "starvation").length,
+    oldAgeDeaths: deaths.filter(e => e.cause == "old age").length, seed, biome: homeOf(state.world).biome, alive, population: people.length, meals, winterMeals,
     maxHunger: +maxHunger.toFixed(3), winters, seconds: +((performance.now() - started) / 1000).toFixed(2), hash };
 }
 
@@ -67,8 +70,10 @@ async function run(seed) {
     console.log(JSON.stringify(report));
   }
   if (process.argv.includes("--determinism")) {
-    const again = await run(reports[0].seed);
-    assert.equal(again.hash, reports[0].hash, "same-seed simulation diverged");
-    console.log("PASS identical two-year ECS for repeated seed " + again.seed);
+    for (const report of reports) {
+      const again = await run(report.seed);
+      assert.equal(again.hash, report.hash, "same-seed simulation diverged");
+      console.log("PASS identical two-year ECS for repeated seed " + again.seed);
+    }
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });

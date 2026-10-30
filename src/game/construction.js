@@ -82,6 +82,7 @@ export function deliverShelterLog(state, actorId, world, dt, firstRun, targetId)
   const site = ecs.construction?.[targetId];
   const log = ecs.holder[actorId].held.find(id => ecs.good[id]?.type == "wood");
   if (!site || !log) return Task.ABORT;
+  if (site.delivered >= STAGES[site.stage].logs) return Task.FINISH;
   take(ecs, log);
   deleteEntity(state, log);
   site.delivered++;
@@ -98,7 +99,7 @@ export function deliverShelterLog(state, actorId, world, dt, firstRun, targetId)
 export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   const ecs = state.ecs;
   const site = ecs.construction?.[targetId];
-  if (!site) return Task.ABORT;
+  if (!site) return ecs.shelter?.[targetId]?.stage ? Task.FINISH : Task.ABORT;
   const stage = STAGES[site.stage];
   if (site.delivered < stage.logs) return Task.ABORT;
   const job = ecs.manager[topController(ecs, actorId)].jobs.find(j => j.targetId == targetId);

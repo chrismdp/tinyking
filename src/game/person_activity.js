@@ -18,6 +18,8 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable[id]?
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return t("tasks.idle");
   const [key, target, place] = task;
+  if (["walk_to", "help_friend_work"].includes(key) && world?.helpingFriend) return key == "walk_to" ? "Going to help a friend" : world.helpingFriend.kind == "build" ? "Helping build a friend's home" : "Helping in a friend's field";
+  if (key == "do_favour") return "Doing a favour";
   if (key == "walk_to" && world?.moveHome == target) return "Moving home";
   if (key == "walk_to" && world?.social?.stage == "returning" && target == world.social.homeId) return "Returning home";
   if (key == "walk_to" && (target == "socialDestination" || world?.social?.partnerId == target)) return "Travelling to visit " + personName(world.social.partnerId);

@@ -93,6 +93,9 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
   // Make crops quiet so the real planner reaches the trade after its needs.
   for (const f of Object.values(s.ecs.farmable)) for (const slot of f.slots) slot.state = "sown";
   s.ecs.personable[id].hunger = s.ecs.personable[id].tiredness = 0;
+  // Oven/forge work now needs real fuel. Supply this routine fixture's store
+  // so the existing walking, work and needs assertions still exercise work.
+  s.ecs.container[s.ecs.household[job.houseId].storeId].amounts.wood = 3;
   const sim = createSimulation(s);
   let worked = false;
   for (let i = 0; i < 500; i++) { sim.step(1); if (p.task?.[0] == "trade_work") worked = true; }

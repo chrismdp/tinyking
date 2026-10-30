@@ -941,3 +941,24 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .tree-window { height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   #game #speed-controls { z-index: 23; }
 }
+
+
+// Favours share the task sheet's scroll/phone bounds. Trees remain above it.
+.favour-list, .person-requests { border-top: 1px solid #78686b; font-size: 15px; min-height: 44px; flex-shrink: 0;
+  summary { cursor: pointer; padding: 12px 15px; min-height: 44px; box-sizing: border-box; color: #e2c879; }
+  .request-content { max-height: 240px; overflow: auto; overscroll-behavior: contain; touch-action: pan-y; }
+}
+.favour-request { padding: 12px 15px; border-top: 1px solid #65575b; background: #382f32;
+  > strong { font-size: 17px; font-weight: 500; }
+  h4 { margin: 7px 0 4px; font-size: 17px; font-weight: 500; }
+  p, small { margin: 4px 0; font-size: 14px; line-height: 1.4; color: #d2c5c2; }
+  .request-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .reward { color: #bdcfa5; }
+  .request-state { font-size: 14px; color: #e2c879; }
+  button { min-height: 44px !important; padding: 6px 16px !important; font-size: 16px !important; border: 1px solid #988487; border-radius: 4px; background: #4a3e42 !important; }
+}
+.request-note { padding: 10px 15px; margin: 0; font-size: 13px; line-height: 1.4; color: #d2c5c2; }
+@media (max-width: 700px), (max-height: 500px) {
+  .favour-list .request-content { max-height: min(210px, 35svh); }
+  #ui:has(.favour-list[open]) #task-panel .task-body { max-height: 100px; flex-shrink: 1; }
+}

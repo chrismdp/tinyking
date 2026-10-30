@@ -1,3 +1,5 @@
+import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
+import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
 import { chatTogether, canCourt } from "game/social";
@@ -295,8 +297,9 @@ export function create_subtasks(state, actorId, world, dt, firstRun, target, res
   const slots = state.ecs.farmable[targetId].slots;
   world.subtasks = triangleCenters(state.ecs.spatial[targetId])
     .map((slot, idx) => ({ ...slot, result, lose, id: targetId, idx }))
-    .filter(({ idx }) => candidates.includes(slots[idx].state))
+    .filter(({ idx }) => slots[idx] && candidates.includes(slots[idx].state) && (!slots[idx].workerId || slots[idx].workerId == actorId))
     .slice(0, MAX_SUBTASKS);
+  for (const subtask of world.subtasks) slots[subtask.idx].workerId = actorId;
 }
 
 const SUBTASK_TIMES = {
@@ -335,7 +338,8 @@ export function release_farmable(state, actorId, world, dt, firstRun, target) {
     return Task.ABORT;
   }
 
-  state.ecs.farmable[targetId].claimerId = null;
+  if (state.ecs.farmable[targetId].claimerId == actorId) state.ecs.farmable[targetId].claimerId = null;
+  for (const slot of state.ecs.farmable[targetId].slots) if (slot.workerId == actorId) delete slot.workerId;
 }
 
 export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, target, place) {
@@ -345,38 +349,39 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     return Task.ABORT;
   }
 
-  if (firstRun) {
-    const subtask = world.places[place];
+  const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
+  const request = requestForTask(state, order);
+  const assisting = request?.status == "accepted" || world.helpingFriend;
+  const subtask = world.places[place];
+  const farm = state.ecs.farmable?.[targetId], slot = farm?.slots[subtask?.idx];
+  if (!slot || (slot.workerId && slot.workerId != actorId)) return Task.ABORT;
+  const candidates = { harvested: ["harvestable"], ploughed: ["empty", "harvested", "rotten"], sown: ["ploughed"] };
+  if (!candidates[subtask.result]?.includes(slot.state)) return Task.FINISH;
+  if (assisting && math.squaredDistance(state.ecs.spatial[actorId], subtask) > 100) return Task.ABORT;
+  slot.workerId = actorId;
+  if (workComplete(state, actorId, world, dt, firstRun, SUBTASK_TIMES[subtask.result])) {
+    // Consume seed at the actual transition. A meal/replan cannot consume it
+    // twice or leave a sown slot waiting for somebody else's old plan.
     if (subtask.lose) {
-      const holder = state.ecs.holder[actorId];
-      const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == subtask.lose);
-      if (!id) {
-        console.log("PERFORM", actorId, "NO", subtask.lose, "to lose");
-        return Task.ABORT;
-      }
-      take(state.ecs, id, null);
-      deleteEntity(state, id);
+      const id = state.ecs.holder[actorId].held.find(e => state.ecs.good[e]?.type == subtask.lose && householdAccess(state.ecs, actorId, e));
+      if (!id) return Task.ABORT;
+      take(state.ecs, id); deleteEntity(state, id);
     }
-
-  }
-
-  if (workComplete(state, actorId, world, dt, firstRun, SUBTASK_TIMES[world.places[place].result])) {
-    const subtask = world.places[place];
-    if (!state.ecs.farmable[targetId]) {
-      throw "Cannot find farmable for " + targetId;
-    }
-    const slot = state.ecs.farmable[targetId].slots[subtask.idx];
     slot.state = subtask.result;
+    delete slot.workerId;
     if (subtask.result == "harvested") {
-      newEntities(state, Array.from({ length: slot.amount }, () => ({
+      const goods = newEntities(state, Array.from({ length: slot.amount }, () => ({
         spatial: { x: subtask.x, y: subtask.y, immovable: false },
-        good: { type: slot.content, amount: 1 },
-        haulable: { heldBy: null },
-        controllable: { controllerId: topController(state.ecs, actorId) }
-      }))).forEach(id => state.redraws.push(id));
-    } else if (subtask.lose) {
-      slot.content = subtask.lose;
-    }
+        good: { type: slot.content, amount: 1 }, haulable: { heldBy: null },
+        ...(assisting && farm.houseId ? { household: { houseId: farm.houseId } } : {}),
+        controllable: { controllerId: topController(state.ecs, assisting ? targetId : actorId) }
+      })));
+      state.redraws.push(...goods);
+      if (request?.status == "accepted" && request.kind == "harvest" && request.targetId == targetId) {
+        for (const id of goods) state.ecs.haulable[id].reservedFor = actorId;
+        request.progress++; request.produced += goods.length; request.cargo.push(...goods);
+      }
+    } else if (subtask.lose) slot.content = subtask.lose;
     slot.updated = state.days;
     slot.growth = 0;
     state.redraws.push(targetId);
@@ -413,7 +418,7 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
   state.redraws.push(stockpileId);
 }
 
-export function drop_entity_into_container(state, actorId, world, dt, firstRun, place, type) {
+export function drop_entity_into_container(state, actorId, world, dt, firstRun, place, type, itemId) {
   const containerId = world.places[place];
   if (!containerHasSpace(state.ecs.container[containerId])) {
     // NOTE: Someone has already taken this slot - replan
@@ -421,10 +426,10 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
     return Task.ABORT;
   }
 
-  const droppedId = state.ecs.holder[actorId].held
+  const droppedId = itemId || state.ecs.holder[actorId].held
     .find(e => state.ecs.good[e] && state.ecs.good[e].type == type);
 
-  if (!droppedId) { world.holding[type] = false; return Task.ABORT; }
+  if (!droppedId || state.ecs.haulable[droppedId]?.heldBy != actorId) { world.holding[type] = false; return Task.ABORT; }
   if (state.ecs.possession?.[droppedId]) {
     take(state.ecs, droppedId);
     state.ecs.possession[droppedId].carried = true;
@@ -571,7 +576,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
         householdAccess(state.ecs, actorId, id) &&
         state.ecs.good[id] &&
         state.ecs.good[id].type == filterParam &&
-        !state.ecs.haulable[id].heldBy);
+        !state.ecs.haulable[id].heldBy && (!state.ecs.haulable[id].reservedFor || state.ecs.haulable[id].reservedFor == actorId));
     }
     available.sort(closestSpatialTo(state, actorId));
     found_place = available[0];
@@ -653,7 +658,7 @@ export function pick_up_from_container(state, actorId, world, dt, firstRun, plac
 export function eat(state, actorId, world, dt, firstRun, thing) {
   if (firstRun) {
     const holder = state.ecs.holder[actorId];
-    const id = holder.held.find(e => state.ecs.good[e] && state.ecs.good[e].type == thing);
+    const id = holder.held.find(e => state.ecs.good[e]?.type == thing && (!state.ecs.controllable[e] || householdAccess(state.ecs, actorId, e)));
     if (!id) {
       world.holding[thing] = false;
       return Task.ABORT;
@@ -767,7 +772,11 @@ export function carry_home(state, actorId, world, dt, firstRun) {
   const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
   if (!home) return Task.FINISH;
   if (firstRun) world.carryTarget = null;
-  const held = ecs.holder[actorId].held[0];
+  // An interrupted favour can leave another household's crop in hand.
+  // Gathering carries only goods the player can actually use, keeping that
+  // borrowed cargo for its own household delivery. Unique gifts stay in hand;
+  // they can never become camp commodity amounts.
+  const held = ecs.holder[actorId].held.find(id => !ecs.possession?.[id] && householdAccess(ecs, actorId, id));
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
   const gathered = order?.gathered || world.gathered || [];
   const next = held || gathered.find(id => ecs.haulable[id] && !ecs.haulable[id].heldBy);
@@ -803,6 +812,17 @@ export function carry_home(state, actorId, world, dt, firstRun) {
 export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
   if (!state.ecs.workplace?.[workplaceId] || time.hour_of_day(state.days) >= 17 || time.hour_of_day(state.days) < 8) return Task.FINISH;
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[workplaceId]) > 12 ** 2) return Task.ABORT;
+  const w = state.ecs.workplace[workplaceId];
+  if (FUEL_TRADES[w.trade]) {
+    if (!(w.fuelHours > 0)) {
+      const store = state.ecs.container?.[householdStore(state, w.houseId)];
+      if (!(store?.amounts.wood > 0)) return Task.ABORT;
+      store.amounts.wood--; w.fuelHours = FUEL_HOURS;
+    }
+    const hours = Math.min(w.fuelHours, dt / time.HOUR * hungerSpeed(state.ecs.personable[actorId]));
+    w.fuelHours -= hours;
+    w.workHours = (w.workHours || 0) + hours;
+  }
   return workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2) ? Task.FINISH : Task.CONTINUE;
 }
 
@@ -826,3 +846,105 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
 export function arrive_home() {}
 export function return_from_visit() {}
 export function end_visit() {}
+
+
+// An accepted favour advances through ordinary walking, collection, crop work
+// and household storage. Persistent cargo IDs survive meals and reordered work.
+export function do_favour(state, actorId, world, dt, firstRun, requestId) {
+  const ecs = state.ecs, r = state.favours?.requests[requestId];
+  if (firstRun && r) r.working = false;
+  if (!r || r.status != "accepted") return Task.ABORT;
+  const gone = reasonGone(state, r);
+  if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(state, r); return Task.ABORT; }
+  const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+  const store = householdStore(state, r.householdId);
+  const walk = target => {
+    const key = typeof target == "object" ? target.x + "," + target.y : target;
+    const result = walk_to(state, actorId, world, dt, world.favourWalk != key || firstRun, target);
+    world.favourWalk = result == Task.FINISH ? null : key;
+    return result;
+  };
+  r.cargo = r.cargo.filter(id => ecs.good[id] && ecs.haulable[id]);
+  const cargo = r.cargo[0];
+  if (cargo) {
+    const holder = ecs.haulable[cargo].heldBy;
+    if (holder && holder != actorId) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    const result = walk(holder == actorId ? store : cargo);
+    if (result != Task.FINISH) return result;
+    if (!holder) {
+      if (!give(ecs, cargo, actorId)) return Task.ABORT;
+      removeFromSpace(state, cargo); state.redraws.push(cargo, actorId);
+      order.detail = "Carrying the family harvest home";
+      return Task.CONTINUE;
+    }
+    if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
+    const type = ecs.good[cargo].type, amount = ecs.good[cargo].amount;
+    world.places.favourStore = store;
+    drop_entity_into_container(state, actorId, world, dt, true, "favourStore", type, cargo);
+    world.holding[type] = ecs.holder[actorId].held.some(id => ecs.good[id]?.type == type && householdAccess(ecs, actorId, id));
+    r.cargo.shift(); r.delivered += amount;
+    if (r.kind != "harvest") r.progress += amount;
+    order.detail = `${r.progress}/${r.quantity} ${r.kind == "harvest" ? "patches harvested" : "delivered"} · ${r.delivered} carried home`;
+    order.progress = r.progress / r.quantity;
+    if (finishFavour(state, r)) return Task.FINISH;
+    return Task.CONTINUE;
+  }
+  if (finishFavour(state, r)) return Task.FINISH;
+  if (r.kind == "harvest") {
+    if (r.progress >= r.quantity) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    const farm = ecs.farmable?.[r.targetId];
+    if (!farm || claim_farmable(state, actorId, world, dt, true, r.targetId) == Task.ABORT) return Task.ABORT;
+    world.claimedFarmable = r.targetId;
+    if (r.slot == null || farm.slots[r.slot]?.state != "harvestable") {
+      r.slot = farm.slots.findIndex(slot => slot.state == "harvestable" && (!slot.workerId || slot.workerId == actorId));
+      delete order.workRemaining;
+    }
+    if (r.slot < 0) return Task.ABORT;
+    farm.slots[r.slot].workerId = actorId;
+    const point = { ...triangleCenters(ecs.spatial[r.targetId])[r.slot], idx: r.slot, id: r.targetId, result: "harvested" };
+    world.places.favourSlot = point;
+    const result = walk(point);
+    if (result != Task.FINISH) return result;
+    const work = perform_subtask_in_slot(state, actorId, world, dt, !r.working || firstRun, r.targetId, "favourSlot");
+    r.working = work == Task.CONTINUE;
+    if (work == Task.ABORT) return work;
+    if (work == Task.FINISH) {
+      r.slot = null; delete order.workRemaining;
+      release_farmable(state, actorId, world, dt, true, r.targetId); world.claimedFarmable = null;
+    }
+    return Task.CONTINUE;
+  }
+  const source = favourSource(state, r);
+  if (!source) return Task.ABORT;
+  if (ecs.haulable?.[source.sourceId]?.heldBy != actorId) {
+    const result = walk(source.sourceId);
+    if (result != Task.FINISH) return result;
+  }
+  const result = collect_gift(state, actorId, world, dt, true, source.sourceId, source.type);
+  if (result == Task.ABORT) return result;
+  r.cargo.push(order.giftItem); delete order.giftItem;
+  world.holding[source.type] = true;
+  order.detail = `Carrying ${source.type} to the household`;
+  return Task.CONTINUE;
+}
+
+export function begin_friend_help(state, actorId, world, dt, firstRun, offer) {
+  if (!friendEligible(state, actorId) || Object.keys(state.ecs.planner).some(id => id != actorId && state.ecs.planner[id].world.helpingFriend?.targetId == offer.targetId)) return Task.ABORT;
+  if (offer.kind == "field") {
+    const slot = state.ecs.farmable?.[offer.targetId]?.slots[offer.idx];
+    if (!slot || slot.workerId && slot.workerId != actorId) return Task.ABORT;
+    slot.workerId = actorId;
+  }
+}
+export function help_friend_work(state, actorId, world, dt, firstRun) {
+  const offer = world.helpingFriend;
+  if (!offer || !friendEligible(state, actorId)) { releaseFriendWork(state, actorId); return Task.ABORT; }
+  if (offer.kind == "build") {
+    if (!state.ecs.construction?.[offer.targetId]) return Task.FINISH;
+    if (math.squaredDistance(state.ecs.spatial[actorId], offer) > 100 || math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[offer.targetId]) > 50 ** 2) return Task.ABORT;
+    return work_shelter(state, actorId, world, dt, firstRun, offer.targetId);
+  }
+  world.places.friendSlot = offer;
+  return perform_subtask_in_slot(state, actorId, world, dt, firstRun, offer.targetId, "friendSlot");
+}
+export function end_friend_help(state, actorId) { releaseFriendWork(state, actorId); }

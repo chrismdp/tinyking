@@ -166,3 +166,18 @@ it("lets grown children leave crowded households for empty village homes", () =>
   expect(s.events.some(e => e.type == "move" && e.toHouse == "empty")).toBe(true);
   expect(topController(s.ecs, movers[0])).toBe(movers[0]);
 });
+
+it('keeps a claimed dying worker snapshot pure while releasing only their copied crop claims', () => {
+  const { state: s, person, player, tiles } = require('./support/people').peopleWorld();
+  s.ecs.personable[person].age = 88;
+  s.ecs.farmable = { [tiles[5]]: { id: tiles[5], claimerId: player, slots: [{ state: 'harvestable', workerId: person }, { state: 'ploughed', workerId: player }] } };
+  s.ecs.planner[person].world.helpingFriend = { kind: 'field', targetId: tiles[5], idx: 0 };
+  const before = JSON.stringify(s);
+  const after = historyStep(s, 1);
+  expect(after.ecs.personable[person].dead).toBe(true);
+  expect(after.ecs.farmable[tiles[5]].slots[0].workerId).toBeUndefined();
+  expect(after.ecs.farmable[tiles[5]].slots[1].workerId).toBe(player);
+  expect(after.ecs.farmable[tiles[5]].claimerId).toBe(player);
+  expect(after.ecs.planner[person].world.helpingFriend).toBeUndefined();
+  expect(JSON.stringify(s)).toBe(before);
+});

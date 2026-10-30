@@ -1,3 +1,5 @@
+import { updateFavours, fuelReady, requestForTask } from "game/favours";
+import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
 import { socialHour } from "game/social_visits";
 import { die } from "game/possessions";
 import * as htn from "game/htn";
@@ -36,6 +38,13 @@ function updatePlanners(state, frameMod) {
     if (state.ecs.personable[id] && state.ecs.personable[id].dead) continue;
 
     planner.world.actorId = id;
+    if (id != state.ui.playerId) {
+      if (planner.world.helpingFriend && (!friendEligible(state, id) || !friendWorkWanted(state, planner.world.helpingFriend) || planner.world.feeling.hungry || planner.world.feeling.tired)) {
+        releaseFriendWork(state, id); planner.task = null; planner.plan = null;
+      }
+      if (!planner.world.helpingFriend) planner.world.friendOffer = friendWork(state, id);
+      planner.world.tradeReady = !planner.world.profession || fuelReady(state, planner.world.profession.workplaceId);
+    }
     // Update sensors
     if (state.ecs.personable[id]) {
       const person = state.ecs.personable[id];
@@ -51,7 +60,7 @@ function updatePlanners(state, frameMod) {
 
     if (planner.world.ordered && planner.world.currentJob) {
       const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
-      if (job && !job.gatheredDone && !state.ecs.spatial[job.targetId]) deferPlayerTask(state);
+      if (job && (job.favourId ? requestForTask(state, job)?.status != "accepted" : !job.gatheredDone && !state.ecs.spatial[job.targetId])) deferPlayerTask(state);
     }
     if (planner.world.ordered && !planner.world.currentJob && planner.plan &&
       !planner.world.feeling.hungry && !planner.world.feeling.tired &&
@@ -107,6 +116,7 @@ function starve(state, id) {
 // it changes ECS state and lists changed entities in state.redraws.
 export function createSimulation(state, { onHour } = {}) {
   let hour = 0;
+  let requestsStarted = false;
   let winter = time.season(state.days) == "winter";
   if (!state.weather) updateWeather(state, 0);
 
@@ -160,6 +170,7 @@ export function createSimulation(state, { onHour } = {}) {
         updateWeather(state);
         drift(state, 1);
         socialHour(state);
+        updateFavours(state);
         if (onHour) {
           onHour();
         }
@@ -173,6 +184,7 @@ export function createSimulation(state, { onHour } = {}) {
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
       if (arriving) return;
+      if (!requestsStarted) { updateFavours(state); requestsStarted = true; }
       updatePlanners(state, frameMod);
       advanceTime(frameMod);
       if (SPEED[state.game_speed]) updateVillageLife(state);

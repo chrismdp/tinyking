@@ -115,6 +115,7 @@ export function eventSentence(state, event, displayName) {
   const village = state.villages?.[event.villageId]?.name;
   const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
   const text = {
+    favour: () => n(a) + " helped " + n(b) + " with " + ({ harvest: "the harvest", wood: "fuel for the household", food: "household food" }[event.kind] || "a favour") + " (+" + event.goodwill + " goodwill)",
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),
     death: () => n(a) + " died" + (event.cause ? " of " + event.cause : ""),

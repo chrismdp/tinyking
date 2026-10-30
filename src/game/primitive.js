@@ -149,3 +149,8 @@ export function socialise() {}
 export function arrive_home(world) { delete world.moveHome; }
 export function return_from_visit(world) { if (world.social) world.social.stage = "returning"; }
 export function end_visit(world) { delete world.social; delete world.places.socialDestination; }
+
+export function do_favour() {}
+export function begin_friend_help(world, expected, offer) { world.helpingFriend = offer; }
+export function help_friend_work() {}
+export function end_friend_help(world) { delete world.helpingFriend; delete world.friendOffer; }

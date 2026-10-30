@@ -1,3 +1,4 @@
+import { cancelFavour, requestForTask, favourWaiting } from "game/favours";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource } from "game/construction";
@@ -31,7 +32,7 @@ export const removeJob = (ecs, managerId, key, targetId) => {
 export function enqueueTask(state, job, targetId, metadata = {}) {
   const manager = state.ecs.manager[state.ui.playerId];
   const entry = { ...metadata, id: "task-" + (manager.nextTask = (manager.nextTask || 0) + 1),
-    job, targetId, progress: 0 };
+    job, targetId, progress: 0, ...(job.key == "build_shelter" ? { buildStage: state.ecs.construction?.[targetId]?.stage } : {}) };
   manager.jobs.push(entry);
   if (manager.jobs.length == 1) {
     const planner = state.ecs.planner[state.ui.playerId];
@@ -50,7 +51,9 @@ function interruptOrder(state) {
     state.ecs.planner[world.capturedAttentionOf].world.capturedBy = null;
   }
   if (world.claimedFarmable && state.ecs.farmable?.[world.claimedFarmable]) {
-    state.ecs.farmable[world.claimedFarmable].claimerId = null;
+    const farm = state.ecs.farmable[world.claimedFarmable];
+    if (farm.claimerId == id) farm.claimerId = null;
+    for (const slot of farm.slots) if (slot.workerId == id) delete slot.workerId;
   }
   world.currentJob = null;
   world.capturedAttentionOf = null;
@@ -74,6 +77,7 @@ export function cancelTask(state, taskId) {
   const index = jobs.findIndex(j => j.id == taskId);
   if (index < 0) return;
   if (jobs[index].assignedId == state.ui.playerId) interruptOrder(state);
+  cancelFavour(state, requestForTask(state, jobs[index]));
   jobs.splice(index, 1);
 }
 
@@ -105,6 +109,7 @@ export function canReachTask(state, actorId, targetId) {
 function waitingReason(state, actorId, job) {
   const ecs = state.ecs;
   const target = job.targetId;
+  if (job.favourId) return favourWaiting(state, job) || (!canReachTask(state, actorId, target) ? "No path there" : null);
   if (job.gatheredDone) {
     const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
     if (!home) return "No home for delivery";
@@ -142,6 +147,14 @@ export function readyPlayerTasks(state) {
   const id = state.ui.playerId;
   const planner = state.ecs.planner[id];
   const jobs = state.ecs.manager[id].jobs;
+  // A friend can finish while the player eats or sleeps. Retire the fulfilled
+  // order at this free boundary, rather than showing a vanished site forever.
+  for (let i = jobs.length - 1; i >= 0; i--) {
+    const job = jobs[i];
+    if (!job.assignedId && job.buildStage && !state.ecs.construction?.[job.targetId] && state.ecs.shelter?.[job.targetId]?.stage == job.buildStage) {
+      job.progress = 1; job.detail = "Finished with a friend's help"; jobs.splice(i, 1);
+    }
+  }
   for (const job of jobs) {
     const wasWaiting = job.waiting;
     const reason = waitingReason(state, id, job) || (job.failed ? job.waiting : null);
@@ -166,5 +179,5 @@ export function deferPlayerTask(state) {
   const reason = waitingReason(state, id, job) || "Can't do this yet";
   interruptOrder(state);
   job.waiting = job.detail = reason;
-  job.failed = true;
+  job.failed = !job.favourId;
 }

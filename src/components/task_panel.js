@@ -1,3 +1,6 @@
+import { RequestList } from "./favour_requests";
+import { requestForTask, favourTitle, favourQuantity } from "game/favours";
+import { displayName } from "game/knowledge";
 import React from "react";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
@@ -61,10 +64,11 @@ export function TaskPanel() {
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
       <ol className="queue">{jobs.map((job, index) => {
         const construction = ecs.construction?.[job.targetId];
-        const title = job.job.key == "build_shelter" ? "Build the " + (construction?.stage || "lean-to") : TASK_TITLES[job.job.key];
+        const request = requestForTask(state, job);
+        const title = request ? favourTitle(request) : job.job.key == "build_shelter" ? "Build the " + (construction?.stage || "lean-to") : TASK_TITLES[job.job.key];
         const active = job == current;
         const wood = active ? currentWood : woodTask(state, job, false);
-        const minutes = wood ? null : estimatedMinutes(ecs, id, job);
+        const minutes = wood || request ? null : estimatedMinutes(ecs, id, job);
         const progress = wood ? wood.progress : Math.round((job.progress || 0) * 100);
         const detail = job.detail || (construction ? `0 of ${STAGES[construction.stage].logs} logs` : job.job.key == "cut_tree_down" ? `0 of ${ecs.good?.[job.targetId]?.amount || 1} logs` : job.job.key == "forage" ? "0 of 1 meal" : "0 of 1 task");
         return <li className={"task" + (job.waiting ? " waiting" : active ? " current" : "")} key={job.id}
@@ -72,13 +76,14 @@ export function TaskPanel() {
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
           <span className={"grip" + (active ? " play" : "")} title="Drag to reorder">{job.waiting ? "⌛" : active ? "▶" : "⠿"}</span>
           <div className="task-content"><div className="task-title">{title}</div>
-            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? name(ecs.nameable[job.targetId]) : job.forId ? "For " + name(ecs.nameable[job.forId]) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && ` · ${wood ? wood.phase : `~${minutes}m`}`}</small>
+            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? name(ecs.nameable[job.targetId]) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : `~${minutes}m`}`}</small>
+            {request && <small>{favourQuantity(request)} · {request.progress}/{request.quantity} {request.kind == "harvest" ? "patches harvested" : "delivered"}</small>}
             {job.gift && <small>{job.gift.type} · 1 item</small>}
             {job.aboutId && <small>About {name(ecs.nameable[job.aboutId])}</small>}
-            {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {job.expectedGoodwill}</span>}
+            {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {typeof job.expectedGoodwill == "number" ? `+${job.expectedGoodwill} goodwill` : job.expectedGoodwill}</span>}
             {job.waiting && <small className="task-waiting">{job.detail || job.waiting}</small>}
             {active && <>{wood && !wood.detail.startsWith(wood.phase) && <small>{wood.phase}</small>}
-              <div className="task-progress"><span>{wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : ` · ~${minutes}m left`}</span></div>
+              <div className="task-progress"><span>{wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : request ? "" : ` · ~${minutes}m left`}</span></div>
               {progress != null && <div className="meter" role="progressbar" aria-label={wood?.phase || title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div>}</>}
           </div>
           <div className="task-tools">
@@ -91,7 +96,8 @@ export function TaskPanel() {
       {!jobs.length && <p className="queue-note">Choose an action on the map to add a task.</p>}
       <div className="queue-note">Drag ⠿ to reorder · × to cancel · You do each job.</div>
     </div>
+    <RequestList/>
     <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
-      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
+      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
   </aside>;
 }

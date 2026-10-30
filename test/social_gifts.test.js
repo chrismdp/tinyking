@@ -86,3 +86,35 @@ it("keeps the delivered food identity and owner in the receipt after consumption
   delete s.ecs.good[item]; delete s.ecs.controllable[item];
   expect(s.events.find(e => e.type == "gift").gifts).toContainEqual({ id: item, type: "grain", ownerId: person });
 });
+
+it('preserves a physically collected unique gift through reordered gathering and resumes the same-item delivery', () => {
+  const { state: s, player, person, tiles, step } = peopleWorld();
+  const { enqueueTask, reorderTask } = require('game/manager');
+  const item = createPossession(s, player, 'Engraved family brooch', 'heirloom');
+  s.ecs.possession[item].inscription = 'Keep this in the family';
+  const [camp, plant] = newEntities(s, [
+    { spatial: { ...s.ecs.spatial[tiles[0]] }, camp: {}, container: { capacity: 20, amounts: {} }, controllable: { controllerId: player } },
+    { spatial: { ...s.ecs.spatial[tiles[0]] }, forageable: { kind: 'berries', biome: 'grassland', amount: 2, growth: 0 } }
+  ]);
+  const choice = giftChoices(s, player).find(c => c.gift.sourceId == item).gift;
+  const gift = enqueueTask(s, { key: 'give_gift' }, person, { gift: choice });
+  for (let i=0;i<100 && !gift.giftItem;i++) step(.01);
+  expect(gift.giftItem).toBe(item);
+  expect(s.ecs.haulable[item].heldBy).toBe(player);
+  const collected = JSON.parse(JSON.stringify(s.ecs.possession[item]));
+  const good = { ...s.ecs.good[item] };
+  const gather = enqueueTask(s, { key: 'forage' }, plant); reorderTask(s, gather.id, 0);
+  for (let i=0;i<400 && s.ecs.manager[player].jobs.includes(gather);i++) step(.01);
+  expect(gather.progress).toBe(1);
+  expect(s.ecs.possession[item]).toEqual(collected);
+  expect(s.ecs.good[item]).toEqual(good);
+  expect(s.ecs.haulable[item].heldBy).toBe(player);
+  expect(s.ecs.container[camp].amounts).toEqual({ forage: 1 });
+  step(4);
+  expect(gift.progress).toBe(1);
+  expect(s.ecs.good[item]).toEqual(good);
+  expect(s.ecs.haulable[item]).toBeDefined();
+  expect(s.ecs.possession[item]).toMatchObject({ ownerId: person, maker: player, originalOwner: player, inscription: 'Keep this in the family' });
+  expect(s.ecs.possession[item].owners.slice(0,-1)).toEqual(collected.owners);
+  expect(s.ecs.possession[item].owners.at(-1)).toMatchObject({ personId: person, reason: 'gift' });
+});

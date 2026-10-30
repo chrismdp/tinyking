@@ -101,8 +101,11 @@ export function die(state, id, cause = "old age") {
   for (const [other, c] of Object.entries(ecs.controllable || {})) if (c.controllerId == id) c.controllerId = heir || other;
   ecs.controllable[id].controllerId = id;
   const planner = ecs.planner?.[id];
-  if (planner) { planner.task = null; planner.plan = null; planner.world.label = null; }
-  for (const farm of Object.values(ecs.farmable || {})) if (farm.claimerId == id) farm.claimerId = null;
+  if (planner) { planner.task = null; planner.plan = null; planner.world.label = null; delete planner.world.helpingFriend; delete planner.world.friendOffer; }
+  for (const farm of Object.values(ecs.farmable || {})) {
+    if (farm.claimerId == id) farm.claimerId = null;
+    for (const slot of farm.slots) if (slot.workerId == id) delete slot.workerId;
+  }
   for (const manager of Object.values(ecs.manager || {})) for (const job of manager.jobs) if (job.assignedId == id) job.assignedId = null;
   for (const bed of Object.values(ecs.sleepable || {})) bed.occupiers = bed.occupiers.filter(p => p != id);
   for (const other of Object.values(ecs.planner || {})) if (other.world.capturedBy == id || other.world.social?.partnerId == id) {

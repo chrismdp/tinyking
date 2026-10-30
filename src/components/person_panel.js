@@ -1,3 +1,4 @@
+import { PersonRequests } from "./favour_requests";
 import { displayName as knownDisplayName } from "game/knowledge";
 import { heirFor } from "game/possessions";
 import { knownEvents, eventSentence } from "game/events";
@@ -113,6 +114,7 @@ export function PersonPanel({ entityId }) {
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}
           {!theirPeople.length && <li><span>?</span><span className="kin">Others not yet known</span></li>}</ul></div>
       {!dead && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
+      {!dead && <PersonRequests personId={entityId}/>}
       {!dead && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
         {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => knownName(o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :

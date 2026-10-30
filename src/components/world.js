@@ -1,3 +1,4 @@
+import { acceptFavour } from "game/favours";
 import { name } from "game/name";
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
@@ -193,6 +194,7 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
+      accept_favour: id => { if (introActive(state)) return; acceptFavour(state, id); renderUI(); },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)) return;
         enqueueTask(state, { key }, personId, metadata);

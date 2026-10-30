@@ -1,5 +1,5 @@
 import { peopleWorld } from "./support/people";
-import { canCourt, marry, historyStep, eligiblePartners, moveHouse } from "game/social";
+import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason } from "game/social";
 import { socialHour } from "game/social_visits";
 import { die, repairHouseholds, createPossession } from "game/possessions";
 import { topController } from "game/playable";
@@ -211,4 +211,13 @@ it("can seek a partner even when an old family friendship has unbounded goodwill
   s.ecs.relationships[parent].known[a] = { ring: "personal", goodwill: 2000, base: 36 };
   socialHour(s);
   expect(s.ecs.planner[a].world.social.partnerId).toBe(b);
+});
+
+it("leaves legacy survival-only actors outside family simulation without inventing kin or invalid ages", () => {
+  const { state: s, a } = communities();
+  s.villages = {}; delete s.ecs.relationships; delete s.ecs.kinship; delete s.ecs.personality;
+  const before = { ...s.ecs.personable[a] }; s.days = 12;
+  advanceSeason(s, 4); socialHour(s);
+  expect(s.ecs.personable[a]).toEqual(before);
+  expect(s.ecs.kinship).toBeUndefined();
 });

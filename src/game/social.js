@@ -70,7 +70,7 @@ export function compareSocial(s, a, b, c) {
 }
 
 export function canCourt(s, a, b) {
-  return s.ecs.relationships[a]?.known[b]?.ring == "intimate" && s.ecs.relationships[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b);
+  return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b);
 }
 
 // Empty does not mean ownerless: an inherited estate may have an absentee owner.
@@ -238,7 +238,7 @@ function settleAdults(s, summary) {
 // summary encounters stand in for navigation and timed conversations.
 export function advanceSeason(s, season, summary = false) {
   s.social ||= {}; s.social.courtships ||= {}; s.social.avoidance ||= {};
-  const ecs = s.ecs, ids = living(s);
+  const ecs = s.ecs, ids = living(s).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
   for (const key of Object.keys(s.social.courtships)) {
     const [a, b] = key.split(":");
     if (!canCourt(s, a, b) || !summary && (s.social.contacts?.[key] ?? -Infinity) < s.days - 3) delete s.social.courtships[key];

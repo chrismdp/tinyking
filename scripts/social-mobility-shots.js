@@ -16,11 +16,13 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
   const travelling = load("mobility-travelling-state.json"), travellingMeta = load("mobility-travelling-meta.json");
   const visit = load("mobility-visit-state.json"), visitMeta = load("mobility-visit-meta.json");
   const move = load("mobility-move-state.json"), moveMeta = load("mobility-move-meta.json");
-  const heard = structuredClone(move), player = Object.keys(heard.ecs.playable)[0], person = moveMeta.people[0];
-  const speaker = moveMeta.people[1];
+  const movedEvent = move.events.filter(e => e.type == "move" && moveMeta.people.includes(e.people[0]) && e.fromVillage != e.toVillage && e.day == moveMeta.day).at(-1);
+  assert(movedEvent, "the wedding must include a real cross-community home move");
+  const heard = structuredClone(move), player = Object.keys(heard.ecs.playable)[0], person = movedEvent.people[0];
+  const speaker = moveMeta.people.find(id => id != person);
   heard.ecs.relationships[speaker].known[player] = { ring: "social", goodwill: 16, base: 16 };
   assert(askAbout(heard, player, speaker, person).ok);
-  evidence.person = person; evidence.speaker = speaker; evidence.visit = visitMeta; evidence.move = moveMeta;
+  evidence.person = person; evidence.speaker = speaker; evidence.visit = visitMeta; evidence.move = moveMeta; evidence.rememberedMove = movedEvent;
   const browser = await chromium.launch({ executablePath: process.env.CHROME || "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome", args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   try {
     for (const phone of [false, true]) {
@@ -84,7 +86,7 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
       await press(page.locator(".event-feed summary"));
       await install(heard, person);
       await press(page.locator(".event-feed summary"));
-      const news = page.locator(".event-entries button").filter({ hasText: "married" }).first();
+      const news = page.locator(".event-entries button").filter({ hasText: "moved to" }).first();
       await news.scrollIntoViewIfNeeded(); await press(news);
       await page.locator(".person-window").waitFor(); await layout("person-news-expanded"); await shot("remembered-move");
       await press(page.locator(".event-feed summary"));

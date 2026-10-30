@@ -17,7 +17,7 @@ async function run(seed) {
   state.map = result.map;
   state.ui.playerId = result.playerId;
   startIntro(state, { skip: true });
-  const people = Object.keys(state.ecs.personable);
+  const people = Object.keys(state.ecs.personable).filter(id => !state.ecs.personable[id].dead);
   let meals = 0;
   let winterMeals = 0;
   let maxHunger = 0;

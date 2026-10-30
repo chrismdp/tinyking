@@ -9,7 +9,8 @@
     "build": "webpack --config webpack.prod.js",
     "start": "webpack serve --config webpack.dev.js --progress",
     "playtest": "node scripts/playtest.js",
-    "survival-check": "node scripts/survival-check.js"
+    "survival-check": "node scripts/survival-check.js",
+    "storyboard": "node scripts/storyboard.js"
   },
   "jest": {
     "cacheDirectory": "<rootDir>/.cache/jest",

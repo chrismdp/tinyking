@@ -18,10 +18,10 @@ function activity(ecs, id, t, personName) {
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return null;
   const [key, target, place] = task;
-  if (key == "walk_to" && target == "sleep") return "Going to sleep";
-  if (key == "walk_to" && world?.feeling?.hungry) return "Getting food";
   if (key == "walk_to" && world?.worldArrival) return "Arriving from another community";
   if (["walk_to", "leave_edge"].includes(key) && (world?.worldJourney || keyOfTravel(ecs,id))) return "Travelling to another community";
+  if (key == "walk_to" && target == "sleep") return "Going to sleep";
+  if (key == "walk_to" && world?.feeling?.hungry) return "Getting food";
   if (["walk_to", "help_friend_work"].includes(key) && world?.helpingFriend) return key == "walk_to" ? "Going to help a friend" : world.helpingFriend.kind == "build" ? "Helping build a friend's home" : "Helping in a friend's field";
   if (["play_together", "walk_to"].includes(key) && world?.social?.kind == "play") return (key == "walk_to" ? "Meeting " : "Playing chase with ") + personName(world.social.partnerId);
   if (key == "tend_garden" || key == "walk_to" && target == world?.gardenHelp) return ecs.backyard?.[world?.gardenHelp || target]?.kind == "vegetable" ? "Tending the household garden" : "Weeding household crops";

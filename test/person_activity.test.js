@@ -82,3 +82,14 @@ it("uses player knowledge for social partner names shared by world and panel lab
   state.ecs.relationships[player].known[sibling] = { ring: "public" };
   expect(label()).toBe("Courting Alice Miller");
 });
+
+it("keeps an actual world journey or arrival readable even when the walker is hungry, and still labels a real meal", () => {
+  const { state, person } = peopleWorld(), p = state.ecs.planner[person];
+  p.world.feeling.hungry = true; p.task = ["walk_to", "border"];
+  p.world.worldJourney = { tileId: "border" };
+  expect(currentActivity(state.ecs, person, t)).toBe("Travelling to another community");
+  delete p.world.worldJourney; p.world.worldArrival = { tileId: "border" };
+  expect(currentActivity(state.ecs, person, t)).toBe("Arriving from another community");
+  p.task = ["eat", "grain"];
+  expect(currentActivity(state.ecs, person, t)).toBe("Eating");
+});

@@ -152,7 +152,51 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await pair("earned-ring-improvement");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
-    await page.waitForFunction(() => window.favourObservation?.help, null, { timeout: 180000 });
+    await page.waitForFunction(() => {
+      const s=window.tinyking;
+      return window.favourObservation?.help || Object.keys(s.ecs.shelter||{}).some(id=>s.ecs.shelter[id].stage=="lean-to"&&!s.ecs.construction[id]&&s.ecs.controllable[id].controllerId==s.ui.playerId);
+    }, null, { timeout: 180000 });
+    if (!await page.evaluate(()=>!!window.favourObservation.help)) {
+      // The owner can finish the small lean-to while their friend is genuinely
+      // occupied. Leave a real, useful upgrade available; never order the helper.
+      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:180000});
+      await page.getByRole("button",{name:"Pause",exact:true}).click();
+      const upgrade=await page.evaluate(()=>{
+        const s=window.tinyking,player=s.ui.playerId,p=s.ecs.spatial[player];
+        const site=Object.keys(s.ecs.shelter).find(id=>s.ecs.shelter[id].stage=="lean-to"&&s.ecs.controllable[id].controllerId==player);
+        const owned=id=>s.ecs.controllable[id]?.controllerId==player;
+        const stored=Object.entries(s.ecs.container).reduce((n,[id,c])=>n+(owned(id)?c.amounts.wood||0:0),0)+Object.entries(s.ecs.good).reduce((n,[id,g])=>n+(owned(id)&&g.type=="wood"&&s.ecs.haulable[id]?g.amount:0),0);
+        const known=new Set(s.ecs.playable[player].known.map(k=>k.x+","+k.y));
+        const navs=Object.keys(s.ecs.walkable),nearest=point=>navs.reduce((best,id)=>Math.hypot(s.ecs.spatial[id].x-point.x,s.ecs.spatial[id].y-point.y)<Math.hypot(s.ecs.spatial[best].x-point.x,s.ecs.spatial[best].y-point.y)?id:best,navs[0]);
+        const reached=new Set(),queue=[nearest(p)];for(const id of queue)if(!reached.has(id)){reached.add(id);queue.push(...Object.values(s.ecs.walkable[id].neighbours).filter(id=>!reached.has(id)));}
+        const trees=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=="wood"&&s.ecs.good[id].amount>0&&!s.ecs.haulable[id]&&known.has(Object.keys(s.space).find(key=>s.space[key].includes(id)))&&reached.has(nearest(s.ecs.spatial[id]))).sort((a,b)=>Math.hypot(s.ecs.spatial[a].x-p.x,s.ecs.spatial[a].y-p.y)-Math.hypot(s.ecs.spatial[b].x-p.x,s.ecs.spatial[b].y-p.y));
+        let logs=stored;const orders=[];
+        for(const id of trees){if(logs>=10)break;orders.push({id,logs:s.ecs.good[id].amount});logs+=s.ecs.good[id].amount;}
+        if(logs<10)throw new Error("The hut needs ten real reachable discovered logs");
+        for(const tree of orders)s.ui.actions.choose_job(player,{key:"cut_tree_down"},tree.id);
+        return {site,stored,required:10,orders};
+      });
+      story.actions.push({action:"Owner finished the lean-to before help; gathered actual discovered timber for the existing ten-log hut upgrade",upgrade});
+      await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:180000});
+      // Wait at a genuine free boundary and keep the owner's real needs met.
+      await page.waitForFunction(id=>{
+        const s=window.tinyking,player=s.ui.playerId,owner=s.ecs.personable[player],op=s.ecs.planner[player],jobs=s.ecs.manager[player].jobs;
+        const ownerIdle=!jobs.length&&!["eat","sleep","forage"].includes(op.task?.[0]);
+        if(ownerIdle&&owner.hunger>.9){s.ui.actions.choose_job(player,{key:"find_food"},player);return false;}
+        if(ownerIdle&&owner.tiredness>.9){s.ui.actions.choose_job(player,{key:"rest"},player);return false;}
+        const p=s.ecs.planner[id],person=s.ecs.personable[id],w=p?.world;
+        if(ownerIdle&&owner.hunger<=.9&&owner.tiredness<=.9&&!person.dead&&person.hunger<=.9&&person.tiredness<=.9&&!w.currentJob&&!w.claimedFarmable&&!w.social&&!w.worldJourney&&!w.worldArrival&&!w.capturedBy&&(!p.task||p.task[0]=="wait_for"||p.task[0]=="walk_to"&&p.task[1]=="meet")){s.ui.actions.set_speed("paused");return true;}
+        return false;
+      },person,{timeout:180000});
+      await page.evaluate(id=>window.tinyking.ui.actions.select_entity(id,false),person);
+      await page.getByRole("button",{name:"Chat",exact:true}).click();
+      await page.getByRole("button",{name:"Chat",exact:true}).click();
+      await page.evaluate(site=>window.tinyking.ui.actions.choose_job(window.tinyking.ui.playerId,{key:"build_shelter"},site),upgrade.site);
+      story.actions.push("Renewed friendship with two actual chats and queued the supplied hut while both people were comfortable and the friend was free; no helper order or state injection");
+      await page.evaluate(()=>{const s=window.tinyking;s.ui.actions.change_visibility({selected_person:null});s.ui.actions.set_speed("fast");});
+      await page.waitForFunction(()=>window.favourObservation?.help,null,{timeout:180000});
+    }
     const proof = await page.evaluate(() => {
       const s = window.tinyking, o = window.favourObservation;
       s.renderer.focusOn(s.ecs.spatial[o.help.target], 650);
@@ -175,6 +219,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     const start = await page.evaluate(() => window.tinyking.days);
     await frame("orders");
     for (let hours = 4; hours <= 24; hours += 4) {
+      await page.evaluate(()=>{const s=window.tinyking,id=s.ui.playerId,p=s.ecs.personable[id];if(!s.ecs.manager[id].jobs.length){if(p.hunger>.9)s.ui.actions.choose_job(id,{key:"find_food"},id);if(p.tiredness>.9)s.ui.actions.choose_job(id,{key:"rest"},id);}});
       await page.waitForFunction(target => window.tinyking.days >= target, start + hours / 24, { timeout: 45000 });
       await frame("day-" + hours + "h");
     }

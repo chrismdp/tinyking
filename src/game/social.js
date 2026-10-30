@@ -1,9 +1,9 @@
 import { Hex } from "game/hex";
 // No map, renderer, DOM or pathfinding imports: also runs on an unvisited world hex.
 import MersenneTwister from "mersenne-twister";
-import { addGoodwill, disposition, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift } from "game/people";
+import { addGoodwill, disposition, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift, peopleInRings, withRelationshipIndex } from "game/people";
 import { hashUnit } from "game/math";
-import { recordEvent, closeFamily } from "game/events";
+import { recordEvent, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 
 export const SOCIAL_RATES = { birthPerSeason: 0.55, oldDeathPerSeason: 0.02, courtshipSeasons: 2, childYears: 2, adultYearsPerGameYear: 2 };
@@ -90,6 +90,7 @@ export function moveHouse(s, id, houseId, summary = false) {
   if (availableHouse(s, houseId, [id])) s.ecs.controllable[houseId].controllerId = id;
   s.ecs.household[id] = { id, houseId };
   s.ecs.village[id] = { ...s.ecs.village[id], id, villageId: s.ecs.village[houseId]?.villageId || s.ecs.village[id]?.villageId };
+  invalidateEventIndex(s);
   const w = s.ecs.planner?.[id]?.world;
   if (w) {
     w.places = {}; w.no_place_for = {}; delete w.social;
@@ -176,6 +177,7 @@ export function birth(s, a, b, season) {
     holder: { held: [], capacity: 2 }, relationships: { known: {} }, manager: { jobs: [] },
     planner: { world: { no_place_for: {}, jobs: [], places: {}, feeling: {}, holding: {}, days: s.days } }
   });
+  invalidateEventIndex(s);
   for (const p of [a, b]) { ecs.kinship[p].children.push(child); ecs.personable[p].lastBirth = season; }
   for (const other of living(s)) if (other != child && ecs.village[other]?.villageId == ecs.village[child].villageId) {
     meet(s, child, other); meet(s, other, child);
@@ -237,6 +239,10 @@ function settleAdults(s, summary) {
 // Live play and summary history share every demographic transition. Only
 // summary encounters stand in for navigation and timed conversations.
 export function advanceSeason(s, season, summary = false) {
+  return withEventIndex(s, () => withRelationshipIndex(s, () => advanceSeasonRules(s, season, summary)));
+}
+
+function advanceSeasonRules(s, season, summary) {
   s.social ||= {}; s.social.courtships ||= {}; s.social.avoidance ||= {};
   const ecs = s.ecs, ids = living(s).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
   for (const key of Object.keys(s.social.courtships)) {
@@ -263,22 +269,33 @@ export function advanceSeason(s, season, summary = false) {
       if (!byVillage.has(village)) byVillage.set(village, []);
       byVillage.get(village).push(id);
     }
+    const avoiding = new Map();
+    for (const key of Object.keys(s.social.avoidance)) if (s.social.avoidance[key] > s.days) {
+      const [a, b] = key.split(":");
+      if (!avoiding.has(a)) avoiding.set(a, new Set());
+      if (!avoiding.has(b)) avoiding.set(b, new Set());
+      avoiding.get(a).add(b); avoiding.get(b).add(a);
+    }
+    // Only paired people change avoidance during this pass, and both have
+    // already left the candidate pool before their conversation starts.
     const paired = new Set();
     const order = roster.map(id => ({ id, order: roll(s, season + ":order:" + id) })).sort((a, b) => Number(singles.has(b.id)) - Number(singles.has(a.id)) || a.order - b.order).map(p => p.id);
     for (const a of order) {
       if (paired.has(a)) continue;
       const locals = byVillage.get(ecs.village[a]?.villageId) || [];
-      const friends = Object.keys(ecs.relationships[a].known).filter(id => live.has(id) && ecs.relationships[a].known[id].ring != "public");
-      const localOrFriend = new Set([...locals, ...friends]);
-      const candidates = new Set([...localOrFriend, ...(singles.has(a) ? singles : [])]);
+      const known = ecs.relationships[a].known, seekingPartner = singles.has(a);
+      const localOrFriend = new Set(locals);
+      for (const id of peopleInRings(s, a, ["social", "personal", "intimate"])) if (live.has(id)) localOrFriend.add(id);
+      const avoided = avoiding.get(a);
       let b, best = -Infinity, bestInterest = false;
-      for (const id of candidates) {
+      for (const pool of seekingPartner ? [localOrFriend, singles] : [localOrFriend]) for (const id of pool) {
+        const local = localOrFriend.has(id);
+        if (pool == singles && local) continue;
         if (id == a || paired.has(id)) continue;
-        const key = a < id ? a + ":" + id : id + ":" + a;
-        if (s.social.avoidance[key] > s.days) continue;
-        const seeking = singles.has(a) && singles.has(id) && !related(s, a, id);
-        if (!localOrFriend.has(id) && !seeking) continue;
-        const interest = seeking && mutualAttraction(s, a, id), score = ecs.relationships[a].known[id]?.goodwill || 0;
+        if (avoided?.has(id)) continue;
+        const seeking = seekingPartner && singles.has(id) && !related(s, a, id);
+        if (!local && !seeking) continue;
+        const interest = seeking && mutualAttraction(s, a, id), score = known[id]?.goodwill || 0;
         if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && id.localeCompare(b) < 0)) { b = id; best = score; bestInterest = interest; }
       }
       if (!b) continue;
@@ -288,11 +305,13 @@ export function advanceSeason(s, season, summary = false) {
     }
   }
   const used = new Set();
-  for (const a of roster) for (const b of Object.keys(ecs.relationships[a]?.known || {})) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
-    const key = a + ":" + b;
-    const started = s.social.courtships[key] ?? season;
-    s.social.courtships[key] = started;
-    if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) { used.add(a); used.add(b); }
+  for (const a of roster) {
+    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
+      const key = a + ":" + b;
+      const started = s.social.courtships[key] ?? season;
+      s.social.courtships[key] = started;
+      if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) { used.add(a); used.add(b); }
+    }
   }
   for (const villageId of Object.keys(s.villages || {})) {
     const locals = roster.filter(id => ecs.village[id]?.villageId == villageId);

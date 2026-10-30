@@ -18,6 +18,7 @@ export function learnEvent(state, viewerId, event) {
   if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
+  if (!["quarrel", "gift", "reconciliation"].includes(event.type)) return;
   const family = closeFamily(state, viewerId);
   if (event.type == "quarrel") {
     for (const actor of event.people) if (actor != viewerId && event.people.some(id => id != actor && family.includes(id))) {
@@ -27,6 +28,49 @@ export function learnEvent(state, viewerId, event) {
   if (["gift", "reconciliation"].includes(event.type) && event.people[0] != viewerId && family.includes(event.people[1])) {
     addGoodwill(state, event.people[0], viewerId, 1);
   }
+}
+
+// Listener pools belong to a synchronous transition, never to caller state.
+const eventIndexes = new WeakMap();
+export function withEventIndex(state, transition) {
+  if (eventIndexes.has(state)) return transition();
+  eventIndexes.set(state, {});
+  try { return transition(); }
+  finally { eventIndexes.delete(state); }
+}
+export function invalidateEventIndex(state) {
+  const index = eventIndexes.get(state);
+  if (index) index.people = null;
+}
+const villageKey = id => id == null ? null : String(id);
+function eventViewers(state, villageId, family, people) {
+  const index = eventIndexes.get(state);
+  if (!index) return Object.keys(state.ecs.personable || {});
+  if (!index.people) {
+    index.people = state.ecs.personable || {};
+    const keys = Object.keys(index.people);
+    index.order = new Map(keys.map((id, n) => [id, n]));
+    index.villages = new Map(); index.players = [];
+    for (const id of keys) if (!index.people[id].dead) {
+      const village = villageKey(state.ecs.village?.[id]?.villageId);
+      if (!index.villages.has(village)) index.villages.set(village, []);
+      index.villages.get(village).push(id);
+      if (state.ecs.playable?.[id]) index.players.push(id);
+    }
+  }
+  const locals = index.villages.get(villageKey(villageId)) || [], extra = new Set(index.players);
+  for (const person of family) {
+    const id = String(person);
+    if (index.people[id] && (!index.people[id].dead || people.includes(id))) extra.add(id);
+  }
+  const others = [...extra].sort((a, b) => index.order.get(a) - index.order.get(b));
+  const viewers = []; let local = 0, other = 0;
+  while (local < locals.length || other < others.length) {
+    const a = locals[local], b = others[other];
+    if (a !== undefined && (b === undefined || index.order.get(a) < index.order.get(b))) { viewers.push(a); local++; }
+    else { viewers.push(b); other++; if (a == b) local++; }
+  }
+  return viewers;
 }
 
 export function recordEvent(state, type, people, items = [], details = {}) {
@@ -40,16 +84,19 @@ export function recordEvent(state, type, people, items = [], details = {}) {
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));
-  for (const id of Object.keys(state.ecs.personable || {})) {
-    if (state.ecs.personable[id].dead && !people.includes(id)) continue;
+  const rings = ["public", "social", "personal", "intimate"];
+  const { personable, playable, spatial, village, relationships } = state.ecs;
+  for (const id of eventViewers(state, villageId, family, people)) {
+    if (personable[id].dead && !people.includes(id)) continue;
     // Players hear witnessed live news, or learn it through Ask about. No history omniscience.
-    if (state.ecs.playable?.[id] && !people.includes(id)) {
+    if (playable?.[id] && !people.includes(id)) {
       if (state.generatingHistory) continue;
-      const p = state.ecs.spatial?.[id], q = state.ecs.spatial?.[people[0]];
+      const p = spatial?.[id], q = spatial?.[people[0]];
       if (!p || !q || (p.x - q.x) ** 2 + (p.y - q.y) ** 2 > 300 ** 2) continue;
     } else if (!family.has(id)) {
-      if (state.ecs.village?.[id]?.villageId != villageId) continue;
-      const rank = Math.max(...people.map(p => ["public", "social", "personal", "intimate"].indexOf(state.ecs.relationships?.[id]?.known[p]?.ring)));
+      if (village?.[id]?.villageId != villageId) continue;
+      let rank = -Infinity;
+      for (const p of people) rank = Math.max(rank, rings.indexOf(relationships?.[id]?.known[p]?.ring));
       if (hashUnit(state.peopleSeed + ":hear:" + event.id + ":" + id) >= [0.12, 0.4, 0.75, 1][Math.max(0, rank)]) continue;
     }
     learnEvent(state, id, event);

@@ -1,7 +1,7 @@
 import { historyStep, advanceSeason } from "game/social";
 import { createPossession, repairHouseholds } from "game/possessions";
-import { recalibrateRelationships, drift } from "game/people";
-import { recordEvent } from "game/events";
+import { recalibrateRelationships, drift, withRelationshipIndex } from "game/people";
+import { recordEvent, withEventIndex } from "game/events";
 
 // Keep geography and vegetation out of seasonal copies. These records are all
 // a distant world hex needs to continue its families while the player travels.
@@ -25,11 +25,13 @@ export function generateHistory(state, seed) {
   }
   // Generation owns this detached summary. Reuse it between seasons; public
   // historyStep still copies callers' snapshots for travel/replay.
-  for (let season = -180; season < 0; season++) {
-    summary.days = season * 3;
-    drift(summary, 72);
-    advanceSeason(summary, season, true);
-  }
+  withEventIndex(summary, () => withRelationshipIndex(summary, () => {
+    for (let season = -180; season < 0; season++) {
+      summary.days = season * 3;
+      drift(summary, 72);
+      advanceSeason(summary, season, true);
+    }
+  }));
   for (const key of components) {
     state.ecs[key] ||= {};
     Object.assign(state.ecs[key], summary.ecs[key]);

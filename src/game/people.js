@@ -79,15 +79,63 @@ function writableBond(list, id) {
   if (sharedLists.has(list)) list[id] = { ...list[id] };
 }
 
+// Index only synchronous, owned transitions. Discard every index before callers
+// regain access to their mutable records; generation can own all 180 seasons.
+const relationshipScopes = new WeakMap(), relationshipIndexes = new WeakMap();
+function indexList(state, list) {
+  const scope = relationshipScopes.get(state);
+  if (scope && !scope.has(list)) { scope.add(list); relationshipIndexes.set(list, {}); }
+}
+export function withRelationshipIndex(state, transition) {
+  if (relationshipScopes.has(state)) return transition();
+  const lists = new Set(); relationshipScopes.set(state, lists);
+  for (const [id, r] of Object.entries(state.ecs.relationships || {})) if (!state.ecs.personable?.[id]?.dead) indexList(state, r.known);
+  try { return transition(); }
+  finally {
+    for (const list of lists) relationshipIndexes.delete(list);
+    relationshipScopes.delete(state);
+  }
+}
+function relationshipIndex(list) {
+  const index = relationshipIndexes.get(list);
+  if (!index || index.members) return index;
+  const keys = Object.keys(list);
+  index.order = new Map(keys.map((id, n) => [id, n]));
+  index.members = { social: new Set(), personal: new Set(), intimate: new Set() };
+  index.contacts = []; index.active = new Set();
+  for (const id of keys) {
+    const bond = list[id];
+    if (bond.ring != "public") { index.members[bond.ring].add(id); index.contacts.push(id); }
+    if ((bond.goodwill || 0) != (bond.base || 0)) index.active.add(id);
+  }
+  return index;
+}
+const inKeyOrder = (index, ids) => [...ids].sort((a, b) => index.order.get(a) - index.order.get(b));
+export function peopleInRings(state, id, rings) {
+  const list = state.ecs.relationships[id]?.known || {}, index = relationshipIndex(list);
+  if (!index) return Object.keys(list).filter(id => rings.includes(list[id].ring));
+  if (rings.length == 1) return inKeyOrder(index, index.members[rings[0]]);
+  return index.contacts.filter(id => rings.includes(list[id].ring));
+}
+
 // Only the incoming member is protected. Displacement can cascade outwards,
 // but never changes goodwill or the other person's view of this relationship.
 function moveTo(list, id, rank) {
-  const ring = RINGS[rank];
+  const ring = RINGS[rank], previous = list[id].ring, cached = relationshipIndexes.get(list);
   writableBond(list, id);
   list[id].ring = ring;
+  if (cached?.members && previous != ring) {
+    cached.members[previous]?.delete(id); cached.members[ring]?.add(id);
+    if (previous == "public") {
+      const at = cached.contacts.findIndex(other => cached.order.get(other) > cached.order.get(id));
+      cached.contacts.splice(at < 0 ? cached.contacts.length : at, 0, id);
+    } else if (ring == "public") cached.contacts.splice(cached.contacts.indexOf(id), 1);
+  }
   const cap = RING_CAPS[ring];
   if (!cap) return;
-  const members = Object.keys(list).filter(other => list[other].ring == ring);
+  const index = relationshipIndex(list);
+  if (index && index.members[ring].size <= cap) return;
+  const members = index ? inKeyOrder(index, index.members[ring]) : Object.keys(list).filter(other => list[other].ring == ring);
   if (members.length <= cap) return;
   const lowest = members.filter(other => other != id).reduce((a, b) =>
     list[a].goodwill <= list[b].goodwill ? a : b);
@@ -104,10 +152,13 @@ function goodwillRank(goodwill) {
 export function meet(state, a, b) {
   if (a == b) return;
   const list = state.ecs.relationships[a].known;
+  indexList(state, list);
   if (list[b]) return;
   const rank = disposition(state, a, b) == "love" ? 1 : 0;
   const goodwill = rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0;
   list[b] = { ring: "public", goodwill, base: goodwill };
+  const cached = relationshipIndexes.get(list);
+  if (cached) cached.members = null;
   moveTo(list, b, rank);
 }
 
@@ -118,6 +169,11 @@ export function addGoodwill(state, from, to, amount) {
   writableBond(list, from);
   const bond = list[from];
   bond.goodwill += amount;
+  const cached = relationshipIndexes.get(list);
+  if (cached?.members) {
+    if ((bond.goodwill || 0) != (bond.base || 0)) cached.active.add(from);
+    else cached.active.delete(from);
+  }
   const eligible = Math.min(goodwillRank(bond.goodwill), DISPOSITION_CAP[disposition(state, to, from)]);
   const rank = amount > 0 ? eligible : Math.min(RINGS.indexOf(bond.ring), eligible);
   moveTo(list, from, rank);
@@ -125,9 +181,11 @@ export function addGoodwill(state, from, to, amount) {
 
 export function drift(state, hours) {
   if (hours <= 0) return;
+  const people = state.ecs.personable;
   for (const [personId, { known: list }] of Object.entries(state.ecs.relationships || {})) {
-    if (state.ecs.personable?.[personId]?.dead) continue;
-    for (const id in list) {
+    if (people?.[personId]?.dead) continue;
+    const index = relationshipIndex(list);
+    for (const id of index ? inKeyOrder(index, index.active) : Object.keys(list)) {
       let bond = list[id];
       if ((bond.goodwill || 0) == (bond.base || 0)) continue;
       writableBond(list, id); bond = list[id];
@@ -136,6 +194,7 @@ export function drift(state, hours) {
       const base = bond.base || 0;
       const remaining = Math.max(0, Math.abs(bond.goodwill - base) - hours * DRIFT_PER_HOUR);
       bond.goodwill = base + (remaining ? Math.sign(bond.goodwill - base) * remaining : 0);
+      if (index && bond.goodwill == base) index.active.delete(id);
       // Decay never promotes someone displaced from a full ring.
       const rank = Math.min(RINGS.indexOf(bond.ring), goodwillRank(bond.goodwill));
       if (rank < RINGS.indexOf(bond.ring)) moveTo(list, id, rank);

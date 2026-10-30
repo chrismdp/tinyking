@@ -58,6 +58,7 @@ function updatePlanners(state, frameMod) {
       if (!planner.world.playerWorking) {
         const care = stationarySupplies(state, id);
         planner.world.careMeal = care.meal; planner.world.careBed = care.bed;
+        if (care.bed) planner.world.places.sleep = care.bed;
         planner.world.places.idleFoodSource = care.meal?.source;
         if (care.meal?.kind == "held") planner.world.holding[care.meal.type] = true;
       }

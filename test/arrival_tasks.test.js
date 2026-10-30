@@ -89,13 +89,20 @@ it("delivers logs before work, then upgrades lean-to, hut and house in the same 
   expect(world.places.sleep).toBe(site);
 });
 
-it("a hungry player forages and survives ten days from an empty camp", () => {
+it("a player follows explicit food and rest orders and survives ten days from an empty camp", () => {
   const { state, player, tiles, step } = arrival();
   newEntities(state, Array.from({ length: 12 }, (_, i) => ({
     spatial: { ...state.ecs.spatial[tiles[1 + i % 4]], immovable: true },
     forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
   })));
-  step(24 * 10);
+  // Idle need trips now require an explicit order. Keep the original ten-day
+  // survival and real-forage assertions under the player's new care controls.
+  for (let hour = 0; hour < 24 * 10; hour++) {
+    const person = state.ecs.personable[player], jobs = state.ecs.manager[player].jobs;
+    if (person.hunger > .9 && !jobs.some(j => j.job.key == "find_food")) enqueueTask(state, { key: "find_food" }, player);
+    if (person.tiredness > .9 && state.days % 1 * 24 >= 20 && !jobs.some(j => j.job.key == "rest")) enqueueTask(state, { key: "rest" }, player);
+    step(1);
+  }
   expect(state.ecs.personable[player].dead).toBeFalsy();
   expect(state.ecs.personable[player].hunger).toBeLessThan(2.5);
   expect(Object.values(state.ecs.forageable).some(p => p.amount == 0)).toBe(true);

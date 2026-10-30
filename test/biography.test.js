@@ -47,6 +47,9 @@ it("requires the actual learned inheritance event and current custody; a gift ch
   let facts = read(s, player, person);
   expect(facts[0].text).toBe("Still carries Old adze, inherited from Alice Miller.");
   expect(facts[0].itemId).toBe(item);
+  s.ecs.haulable[item].heldBy = sibling;
+  expect(read(s, player, person).some(f => f.text.startsWith("Still carries"))).toBe(false);
+  delete s.ecs.haulable[item].heldBy;
   s.ecs.possession[item].carried = false;
   expect(read(s, player, person).some(f => f.text.startsWith("Still carries"))).toBe(false);
   s.ecs.possession[item].carried = true;
@@ -67,6 +70,7 @@ it("returns two stable distinctive facts from learned evidence and does not use 
   s.knowledge[player].events = [move.id, born.id];
   const before = JSON.stringify(s), facts = read(s, player, person);
   expect(facts).toHaveLength(2);
+  expect(facts.find(f => f.eventId == move.id).text).toContain("Moved to another home");
   expect(facts.map(f => f.eventId)).not.toContain(unknown.id);
   expect(read(s, player, person)).toEqual(facts);
   expect(JSON.stringify(s)).toBe(before);

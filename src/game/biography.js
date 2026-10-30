@@ -14,7 +14,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
   const facts = [];
   for (const id of learned?.possessions || []) {
     const p = state.ecs.possession?.[id];
-    if (!p || p.ownerId != person || !p.carried || dead) continue;
+    if (!p || p.ownerId != person || !p.carried || dead || state.ecs.haulable?.[id]?.heldBy && state.ecs.haulable[id].heldBy != person) continue;
     const owner = p.owners.at(-1), from = p.owners.at(-2);
     const event = events.find(e => e.type == "inheritance" && e.people[1] == person && e.people[0] == from?.personId && e.items.includes(id) && e.day == owner.day);
     if (owner.reason == "inheritance" && from && event) facts.push({ key: id, text: "Still carries " + p.name + ", inherited from " + n(from.personId) + ".", eventId: event.id, itemId: id });
@@ -30,7 +30,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
     if (e.type == "death" && parent(a)) text = "Lost " + (state.ecs.nameable[a]?.male === undefined ? "a parent, " : state.ecs.nameable[a].male ? "their father, " : "their mother, ") + n(a) + ", in " + when(e);
     if (e.people.includes(person)) {
       if (e.type == "marriage") text = "Married " + n(other) + (village ? " in " + village : "") + " in " + when(e);
-      if (e.type == "move") text = "Moved to " + n(e.toHouse) + (village ? " in " + village : "") + " in " + when(e);
+      if (e.type == "move") text = "Moved to " + (state.ecs.nameable?.[e.toHouse] ? n(e.toHouse) : "another home") + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "world_move") text = "Settled in " + e.toWorld + " in " + when(e);
       if (e.type == "birth" && a != person) text = "Parent of " + n(a) + ", born in " + when(e);
       if (e.type == "birth" && a == person) text = "Born to " + e.people.slice(1).map(n).join(" and ") + " in " + when(e);

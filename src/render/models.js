@@ -478,7 +478,7 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => displayName(state, id)) : null;
+  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui.debug) : null;
   if (activity) {
     const text = label(activity);
     text.name = "activity";

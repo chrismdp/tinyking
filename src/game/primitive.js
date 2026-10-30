@@ -158,3 +158,6 @@ export function end_friend_help(world) { delete world.helpingFriend; delete worl
 export function leave_edge() {}
 
 export function end_world_arrival(world) { delete world.worldArrival; }
+
+export function tend_garden(world) { delete world.gardenHelp; }
+export function play_together() {}

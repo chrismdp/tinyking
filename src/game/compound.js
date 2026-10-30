@@ -1,6 +1,6 @@
+import { hashUnit } from "game/math";
 import * as time from "game/time";
 import { TRADE_LABELS } from "game/villages";
-import { hashUnit } from "game/math";
 import { firstFreeJob } from "game/manager";
 
 const always = () => true;
@@ -57,7 +57,7 @@ export const person = () => [
     () => [ [ "store_held" ] ]
   ],
   [
-    always,
+    world => !world.child,
     () => [
       [ "set_label" ],
       [ "check_jobs" ]
@@ -71,6 +71,8 @@ export const person = () => [
     world => world.social,
     () => [["social_visit"]]
   ],
+  [world => world.gardenHelp, garden => [["walk_to", garden], ["tend_garden", garden]]],
+  [world => world.child, () => [["child_idle"]]],
   [world => world.friendOffer, offer => [["begin_friend_help", offer], ["walk_to", offer?.x != null ? { x: offer.x, y: offer.y } : offer?.targetId], ["help_friend_work"], ["end_friend_help"]]],
   [
     world => time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 18,
@@ -87,15 +89,7 @@ export const person = () => [
     always,
     () => [ [ "haul", "wood" ] ]
   ],
-  [
-    world => 0.5 + hashUnit(world.actorId + ":idle:" + world.days) * 0.5,
-    delay => [
-      [ "set_label" ],
-      [ "move_to_place", "meet", "space" ],
-      [ "forget_place", "meet" ], // TODO: Idle animations
-      [ "wait_for", time.HOUR * delay ] // 30-60m
-    ]
-  ]
+  [always, () => [["idle_person"]]]
 ];
 
 export const check_jobs = () => [
@@ -499,7 +493,14 @@ export const work_trade = () => [[
 ]];
 
 export const social_visit = () => [
+  [world => world.social?.kind == "play" && world.social, visit => [["walk_to", "socialDestination"], ["play_together", visit.partnerId], ["end_visit"]]],
   [world => world.social?.stage == "returning" && world.social, visit => [["walk_to", visit.homeId], ["end_visit"]]],
   [world => world.social?.visitor && world.social, visit => [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["return_from_visit"], ["walk_to", visit.homeId], ["end_visit"]]],
   [world => world.social, visit => [["socialise", visit.partnerId], ["end_visit"]]]
 ];
+
+export const child_idle = () => [[always, () => [["wait_for", time.HOUR / 4]]]];
+export const idle_person = () => [[
+  world => 0.5 + hashUnit(world.actorId + ":idle:" + world.days) * 0.5,
+  delay => [["set_label"], ["move_to_place", "meet", "space"], ["forget_place", "meet"], ["wait_for", time.HOUR * delay]]
+]];

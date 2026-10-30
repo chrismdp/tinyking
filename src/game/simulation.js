@@ -1,3 +1,5 @@
+import { stationarySupplies } from "game/stationary_care";
+import { gardenHelp } from "game/household_routines";
 import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
 import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
@@ -35,16 +37,38 @@ function updatePlanners(state, frameMod) {
     return;
   }
 
+  const childrenByHome = new Map();
+  for (const [id, child] of Object.entries(state.ecs.personable || {})) if (!child.dead && child.age >= 6 && child.age < 18 && isResident(state, id)) {
+    const home = state.ecs.household?.[id]?.houseId;
+    if (!childrenByHome.has(home)) childrenByHome.set(home, []);
+    childrenByHome.get(home).push(id);
+  }
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];
     if (state.ecs.personable[id] && (state.ecs.personable[id].dead || !isResident(state,id))) continue;
 
     planner.world.actorId = id;
+    planner.world.stationaryPlayer = id == state.ui.playerId;
+    if (planner.world.ordered && planner.world.stationaryPlayer) {
+      const wasWorking = planner.world.playerWorking;
+      planner.world.playerWorking = !!planner.world.currentJob || readyPlayerTasks(state).length > 0;
+      if (wasWorking && !planner.world.playerWorking && !["eat", "sleep"].includes(planner.task?.[0])) {
+        planner.task = null; planner.plan = null;
+      }
+      if (!planner.world.playerWorking) {
+        const care = stationarySupplies(state, id);
+        planner.world.careMeal = care.meal; planner.world.careBed = care.bed;
+        planner.world.places.idleFoodSource = care.meal?.source;
+        if (care.meal?.kind == "held") planner.world.holding[care.meal.type] = true;
+      }
+    }
+    planner.world.child = state.ecs.personable[id]?.age < 18;
+    if (!planner.world.ordered) planner.world.gardenHelp = gardenHelp(state, id, childrenByHome);
     if (id != state.ui.playerId) {
       if (planner.world.helpingFriend && (!friendEligible(state, id) || !friendWorkWanted(state, planner.world.helpingFriend) || planner.world.feeling.hungry || planner.world.feeling.tired)) {
         releaseFriendWork(state, id); planner.task = null; planner.plan = null;
       }
-      if (!planner.world.helpingFriend) planner.world.friendOffer = friendWork(state, id);
+      if (!planner.world.helpingFriend) planner.world.friendOffer = planner.world.child ? null : friendWork(state, id);
       planner.world.tradeReady = !planner.world.profession || fuelReady(state, planner.world.profession.workplaceId);
     }
     // Update sensors

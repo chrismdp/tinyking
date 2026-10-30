@@ -976,3 +976,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .world-overview .overworld { max-width: 100%; height: auto; }
 .travel-loading { position: absolute; inset: 30% 10% auto; padding: 24px; background: #e9dfc9; color: #29251f; text-align: center; border-radius: 8px; }
 .travel-loading small { display: block; margin-top: 12px; }
+
+#speed-controls .debug-toggle { font-size: 11px; min-width: 44px; min-height: 44px; padding: 4px; }
+#speed-controls .debug-toggle[aria-pressed="true"] { outline: 2px solid #d9b86c; }
+.biography { padding: 8px 0; }
+
+.need-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.need-actions button { min-height: 44px; padding: 6px 12px; }

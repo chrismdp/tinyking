@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PersonPanel, FamilyTree, layoutFamily } from "../src/components/person_panel";
 import { GameState } from "../src/components/contexts";
 import { peopleWorld } from "./support/people";
-import { knownFamilyTree, askAbout } from "game/people";
+import { knownFamilyTree, askAbout, completeConversation } from "game/people";
 import { createPossession, transferPossession } from "game/possessions";
 
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
@@ -21,10 +21,11 @@ it.each([
   // The player"s closer opinion alone must not promise help or reveal kin.
   state.ecs.relationships[player].known[person] = { ring: "intimate", goodwill: 65 };
   let html = render(state, <PersonPanel entityId={person}/>);
-  expect(html).toContain("An impression.");
+  expect(html).toContain("You have not spoken together yet");
   expect(html).not.toContain("can help");
   expect(html).not.toContain("Alice Miller");
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  completeConversation(state, player, person);
   html = render(state, <PersonPanel entityId={person}/>);
   expect(html).toContain(`${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`);
   expect(html).not.toContain("can help");
@@ -34,7 +35,7 @@ it.each([
     state.ecs.planner[person].world.helpingFriend = { kind: "build" };
     const before = JSON.stringify(state);
     html = render(state, <PersonPanel entityId={person}/>);
-    expect(html).toContain(`You are in ${possessive} ${ring == "personal" ? "Personal" : "Intimate"} ring.`);
+    expect(html).toContain(`${pronoun} considers you ${ring == "personal" ? "a friend" : "one of " + possessive + " closest friends"}.`);
     expect(html).toContain(`${pronoun} can help with your building or field when free and fed.`);
     expect(html).toContain("Deliver building materials first.");
     expect(html).toContain(`Help comes in ${possessive} own time; you do not control ${object}.`);
@@ -50,8 +51,9 @@ it.each(["dead", "child"])("does not add a promise of help to a %s Personal bond
   state.ecs.relationships[person].known[player] = { ring: "personal", goodwill: 36 };
   if (kind == "dead") state.ecs.personable[person].dead = true;
   else state.ecs.personable[person].age = 12;
+  completeConversation(state, player, person);
   const html = render(state, <PersonPanel entityId={person}/>);
-  expect(html).toContain("She shares her family tree and gossip.");
+  expect(html).toContain(kind == "dead" ? "Their feelings are part of the past." : "She shares her family tree and gossip.");
   expect(html).not.toContain("can help");
 });
 
@@ -61,6 +63,8 @@ it("keeps unknown possession makers and past owners anonymous until their names 
   const item = createPossession(state, parent, "Miller ring");
   transferPossession(state, item, sibling, "gift");
   transferPossession(state, item, person, "inheritance");
+  // A previously disclosed item does not introduce its maker or previous owners.
+  state.knowledge[player] = { people: { [person]: { possessions: [item] } }, feelings: {}, events: [] };
   const before = JSON.stringify(state);
   const panel = () => render(state, <PersonPanel entityId={person}/>);
   const tree = render(state, <FamilyTree entityId={person}/>);
@@ -114,13 +118,16 @@ it("shows only an impression and learned traits at Public, and the true ring at 
   const { state, player, person, parent } = peopleWorld();
   const panel = () => render(state, <PersonPanel entityId={person}/>);
   let html = panel();
-  for (const text of ["Agnes Miller", "30 years · Withyford", "Miller cottage", "Traits you know", "seems polite", "Public", "An impression.", "Goodwill with Agnes", "0 / 10", "10 more towards Social", "People seen with", "Open family tree", "Chat", "Ask about someone", "Give a gift"]) expect(html).toContain(text);
+  for (const text of ["Agnes Miller", "30 years · Withyford", "Miller cottage", "Traits you know", "You have not spoken together yet", "People seen with", "Open family tree", "Chat", "Ask about someone", "Give a gift"]) expect(html).toContain(text);
   expect(html).not.toContain("Generous");
   expect(html).not.toContain("Edith Miller");
+  completeConversation(state, player, person);
+  html = panel();
+  for (const text of ["seems polite", "Acquaintance", "An impression from your conversation", "Goodwill with Agnes", "0 / 10", "10 more towards familiar acquaintance"]) expect(html).toContain(text);
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
   html = panel();
-  for (const text of ["trusts you", "Social", "family tree and gossip", "Generous", "Proud", "closest people", "Edith Miller", "16 / 30"]) expect(html).toContain(text);
-  expect(html).not.toContain("An impression.");
+  for (const text of ["considers you a familiar acquaintance", "Familiar acquaintance", "family tree and gossip", "Generous", "Proud", "closest people", "Edith Miller", "16 / 30"]) expect(html).toContain(text);
+  expect(html).not.toContain("An impression from your conversation");
   expect(knownFamilyTree(state, player, person).nodes[parent]).toBeDefined();
 });
 
@@ -215,11 +222,12 @@ it("keeps a smith's trade visible through current work, meals, walking and rest"
   for (const [task, activity] of [
     [["trade_work", tiles[2]], "At the forge"], [["eat", "grain"], "Eating"],
     [["walk_to", "meet"], "Walking to the village green"], [["sleep"], "Sleeping"],
-    [["wait_for", 1], "Idle"], [null, "Idle"]
+    [["wait_for", 1], null], [null, null]
   ]) {
     planner.task = task;
     const html = render(state, <PersonPanel entityId={person}/>);
-    expect(html).toContain("Smith · " + activity);
+    expect(html).toContain(activity ? "Smith · " + activity : "Smith");
+    if (!activity) expect(html).not.toContain("Idle");
     if (activity != "At the forge") expect(html).not.toContain("At the forge");
   }
 });
@@ -256,8 +264,8 @@ it("states the learned speaker-to-subject direction using full names and leaves 
   state.ecs.relationships[person].known[sibling].ring = "social";
   const before = JSON.stringify({ relationships: state.ecs.relationships, knowledge: state.knowledge, talking: state.talking });
   const html = render(state, <PersonPanel entityId={person}/>);
-  expect(html).toContain("Alice Miller is in Agnes Miller&#x27;s Personal ring.");
-  expect(html).not.toContain("Agnes Miller is in Alice Miller");
+  expect(html).toContain("Agnes Miller considers Alice Miller a friend.");
+  expect(html).not.toContain("Alice Miller considers Agnes Miller");
   expect(JSON.stringify({ relationships: state.ecs.relationships, knowledge: state.knowledge, talking: state.talking })).toBe(before);
 });
 

@@ -126,6 +126,9 @@ describe("knowledge", () => {
     meet(state, "1", "2");
     meet(state, "1", "3");
     meet(state, "1", "4");
+    expect(feelingHint(state, "1", "2")).toEqual({});
+    // Only these viewers have completed a conversation with person 1.
+    state.knowledge = Object.fromEntries(["2", "3", "4"].map(id => [id, { people: { "1": { conversation: { day: 0 } } } }]));
     expect(feelingHint(state, "1", "2")).toEqual({ hint: "cool" });
     expect(feelingHint(state, "1", "3")).toEqual({ hint: "polite" });
     known(state)[4].ring = "public";

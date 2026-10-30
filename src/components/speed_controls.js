@@ -26,6 +26,7 @@ export function SpeedControls() {
 
   return (<div id='speed-controls'>
     <SpeedButton icon="pause" game_speed="paused" click={set_speed}/>
+    <button className="debug-toggle" aria-label="Debug activities" aria-pressed={!!state.ui.debug} onClick={() => state.ui.actions.toggle_debug()}>Debug</button>
     <SpeedButton icon="play" game_speed="normal" click={set_speed}/>
     <SpeedButton icon="fast-forward" game_speed="fast" click={set_speed}/>
   </div>);

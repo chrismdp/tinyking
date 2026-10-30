@@ -36,7 +36,7 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   manager.jobs.push(entry);
   if (manager.jobs.length == 1) {
     const planner = state.ecs.planner[state.ui.playerId];
-    if (!["eat", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);
+    if (planner.world.stationaryPlayer && planner.task?.[0] == "wait_for" || !["eat", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);
   }
   return entry;
 }

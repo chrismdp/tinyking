@@ -154,6 +154,11 @@ export function World() {
         if ("selected_person" in action) state.ui.selected = action.selected_person;
         renderUI();
       },
+      toggle_debug: () => {
+        state.ui.debug = !state.ui.debug;
+        state.redraws.push(...Object.keys(state.ecs.personable || {}));
+        renderUI();
+      },
       set_speed: (speedClass) => {
         if (introActive(state)||state.worldBusy) return;
         state.game_speed = speedClass;

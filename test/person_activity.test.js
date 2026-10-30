@@ -16,7 +16,7 @@ it.each(TRADES)("reads %s work from the current task and profession, ignoring st
   planner.task = ["eat", "grain"];
   expect(currentActivity(state.ecs, person, t)).toBe("Eating");
   planner.task = ["walk_to", "workplace"];
-  expect(currentActivity(state.ecs, person, t)).toBe("Walking");
+  expect(currentActivity(state.ecs, person, t)).toBeNull();
 });
 
 it("uses actual farm slot work and gives no private planner facts or stale labels to idle people", () => {
@@ -27,11 +27,11 @@ it("uses actual farm slot work and gives no private planner facts or stale label
   planner.task = ["perform_subtask_in_slot", "field", "slot"];
   expect(currentActivity(state.ecs, person, t)).toBe("Harvesting");
   planner.task = ["walk_to", "slot"];
-  expect(currentActivity(state.ecs, person, t)).toBe("Walking");
+  expect(currentActivity(state.ecs, person, t)).toBe("Harvesting");
   planner.task = ["wait_for", 1];
-  expect(currentActivity(state.ecs, person, t)).toBe("Idle");
+  expect(currentActivity(state.ecs, person, t)).toBeNull();
   planner.task = null;
-  expect(currentActivity(state.ecs, person, t)).toBe("Idle");
+  expect(currentActivity(state.ecs, person, t)).toBeNull();
   state.ecs.personable[person].dead = true;
   planner.task = ["eat", "grain"];
   expect(currentActivity(state.ecs, person, t)).toBe("Dead");

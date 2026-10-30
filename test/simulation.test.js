@@ -1,3 +1,4 @@
+import * as htn from "game/htn";
 import * as time from "game/time";
 import { createSimulation, deltaTime, SPEED } from "game/simulation";
 
@@ -65,12 +66,15 @@ describe("a player villager the planner cannot plan for", () => {
   it("warns and idles instead of crashing the game", () => {
     const state = stuckState();
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    // Idle plans now always succeed; exercise the actual solver-failure fallback.
+    const solve = jest.spyOn(htn, "solve").mockReturnValue([]);
 
     expect(() => createSimulation(state).step(1)).not.toThrow();
 
     expect(warn).toHaveBeenCalled();
     expect(state.ecs.planner[1].task).toEqual(["wait_for", time.HOUR * 0.5]);
     warn.mockRestore();
+    solve.mockRestore();
   });
 });
 

@@ -121,6 +121,10 @@ export function generateVillageLife(state, seed, start) {
         const point = { x: yard.x + 23, y: yard.y + (i ? 23 : -23) };
         const id = add(point, village.id, { nameable: { nickname: kind == "vegetable" ? "Kitchen garden" : kind }, backyard: { houseId, kind } }, houseId);
         household.backyards.push(id);
+        if (kind == "vegetable") {
+          (ecs.farmable ||= {})[id] = { id, houseId, claimerId: null,
+            slots: Array.from({ length: 2 }, () => ({ state: "sown", content: "grain", growth: 0, updated: state.days })) };
+        }
         if (["chicken", "pig", "goat"].includes(kind)) enclosure(point, village.id, houseId, kind, 18, 16, kind == "chicken" ? 4 : 2, id);
       }
       householdIndex++;

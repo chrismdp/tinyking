@@ -1,3 +1,4 @@
+import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
@@ -19,7 +20,7 @@ import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
 import { workOnShelter, collectShelterLog, deliverShelterLog } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
-import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill } from "game/people";
+import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { TALK_MINUTES } from "game/player";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
@@ -757,6 +758,7 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
     }
     addGoodwill(state, actorId, personId, goodwill);
     state.redraws.push(personId, actorId, itemId);
+    completeConversation(state, actorId, personId);
     result = { ok: true };
   }
   state.ui.talkResult = { personId, message: result.message || (key == "ask_about" ? "They shared family news and their feelings." : key == "chat" ? "You spent some time together." : "They accepted your gift.") };
@@ -829,18 +831,30 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
 
 export function socialise(state, actorId, world, dt, firstRun, partnerId) {
   const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
-  if (!v || v.stage == "returning" || !other || other.stage == "returning" || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
+  if (!v || v.stage == "returning" || !other || other.stage == "returning" || other.capturedBy || state.ecs.planner[partnerId]?.world.capturedBy || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return v.visitor ? Task.FINISH : Task.CONTINUE;
   if (v.stage != "visiting") {
     v.started = other.started ?? state.days; other.started = v.started;
     v.stage = "visiting"; v.courting = canCourt(state, actorId, partnerId);
-    if (v.visitor) recordEvent(state, "visit", [actorId, partnerId], [], { fromVillage: state.ecs.village[actorId]?.villageId, toVillage: state.ecs.village[partnerId]?.villageId });
+
   }
   const conversations = Math.max(v.conversations || 0, other.conversations || 0);
   if (state.days - v.started < (conversations + 1) * 0.5 / 24) return Task.CONTINUE;
-  chatTogether(state, actorId, partnerId);
+  if (!patienceLeft(state, actorId, partnerId) || !patienceLeft(state, partnerId, actorId)) return Task.FINISH;
+  if (!chatTogether(state, actorId, partnerId)) return Task.FINISH;
+  if (!conversations) {
+    state.social.lastVisits ||= {};
+    state.social.lastVisits[[actorId, partnerId].sort().join(":")] = Math.floor(state.days);
+    const visitor = v.visitor ? actorId : partnerId, host = v.visitor ? partnerId : actorId;
+    recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId });
+  }
+  for (const [a, b] of [[actorId, partnerId], [partnerId, actorId]]) {
+    spendPatience(state, a, b); beginInteraction(state, a, b); completeConversation(state, a, b);
+  }
   v.conversations = other.conversations = conversations + 1;
-  if (v.conversations < 3) return Task.CONTINUE;
+  v.courting = other.courting = canCourt(state, actorId, partnerId);
+  // Close partners can spend longer together, within their actual daily patience.
+  if (v.conversations < (v.courting ? 5 : 3)) return Task.CONTINUE;
   return Task.FINISH;
 }
 
@@ -970,3 +984,40 @@ export function leave_edge(state, actorId, world, dt, firstRun, tileId, journey)
 }
 
 export function end_world_arrival(state, actorId, world) { delete world.worldArrival; }
+
+export function tend_garden(state, actorId, world, dt, firstRun, gardenId) {
+  const ecs = state.ecs, garden = ecs.backyard?.[gardenId], farm = ecs.farmable?.[gardenId];
+  const suitable = garden?.kind == "vegetable" || ecs.personable[actorId].age < 18 && ecs.household[ecs.household[actorId]?.houseId]?.fields?.includes(gardenId);
+  if (!suitable || !farm || farm.houseId != ecs.household[actorId]?.houseId || ecs.personable[actorId].age < 6 || time.season(state.days) == "winter" || math.squaredDistance(ecs.spatial[actorId], ecs.spatial[gardenId]) > 12 ** 2) return Task.ABORT;
+  const slot = ecs.farmable[gardenId]?.slots.find(slot => slot.state == "sown" && slot.tendedDay != Math.floor(state.days));
+  if (!slot) return Task.FINISH;
+  if (!workComplete(state, actorId, world, dt, firstRun, GARDEN_CARE_TIME)) return Task.CONTINUE;
+  slot.growth = (slot.growth || 0) + GARDEN_GROWTH;
+  slot.tendedDay = Math.floor(state.days); slot.tendedBy = actorId;
+  world.lastGardenHelp = { gardenId, day: state.days };
+  state.redraws.push(gardenId);
+  return Task.FINISH;
+}
+
+export function play_together(state, actorId, world, dt, firstRun, partnerId) {
+  const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
+  if (!v || v.kind != "play" || other?.partnerId != actorId || state.ecs.personable[partnerId]?.dead || state.ecs.personable[actorId].age >= 18 || state.ecs.personable[partnerId].age >= 18 || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
+  if (!v.started) {
+    if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return Task.CONTINUE;
+    v.started = other.started = state.days;
+  }
+  if (state.days - v.started >= time.HOUR / 2) {
+    world.lastPlay = { partnerId, started: v.started, ended: state.days };
+    state.ecs.planner[partnerId].world.lastPlay = { partnerId: actorId, started: v.started, ended: state.days };
+    if (!other.finishedPlay) chatTogether(state, actorId, partnerId);
+    v.finishedPlay = true;
+    return Task.FINISH;
+  }
+  // Chase alternates the leader between two surveyed, accessible green spaces.
+  const turn = Math.floor((state.days - v.started) / (time.HOUR / 12));
+  const point = v.playPoints[(turn + (actorId < partnerId ? 0 : 1)) % 2];
+  const phase = turn + ":" + point.x;
+  const result = walk_to(state, actorId, world, dt, v.playPhase != phase, point);
+  v.playPhase = phase;
+  return result == Task.ABORT ? Task.FINISH : Task.CONTINUE;
+}

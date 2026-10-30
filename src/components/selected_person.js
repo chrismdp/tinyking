@@ -1,3 +1,5 @@
+import { currentActivity } from "game/person_activity";
+import messages from "data/messages.json";
 import React from "react";
 import PropTypes from "prop-types";
 import { GameState } from "components/contexts";
@@ -8,12 +10,6 @@ import { PersonPanel } from "./person_panel";
 
 import { hungerStage } from "game/hunger";
 import { fullEntity } from "game/entities";
-
-const TASK_LABELS = {
-  work_shelter: "Building", build_shelter: "Building", carry_home: "Carrying goods home", walk_to: "Walking",
-  chop_tree: "Chopping wood", forage: "Foraging", sleep: "Sleeping", eat: "Eating",
-  create_field: "Clearing a field", create_stockpile: "Clearing a stockpile", wait_for: "Waiting"
-};
 
 export function SelectedPerson({ entityId }) {
   const state = React.useContext(GameState);
@@ -27,7 +23,7 @@ export function SelectedPerson({ entityId }) {
         <Name nameable={entity.nameable} clickable={true}/>
         &nbsp;<span className="knockedback">
           { entity.personable.dead && "Dead" ||
-            (entity.planner && entity.planner.task && (TASK_LABELS[entity.planner.task[0]] || "Working"))
+            currentActivity(state.ecs, entityId, key => messages.tasks[key.split(".")[1]], undefined, state.ui?.debug)
           }</span>
       </h1>
       <div className="hunger-stage">{hungerStage(entity.personable)}</div>

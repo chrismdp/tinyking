@@ -1,5 +1,5 @@
 import { isResident } from "game/residents";
-import { knownEvents, learnEvent } from "game/events";
+import { knownEvents, learnEvent, closeFamily } from "game/events";
 import { topController } from "game/playable";
 
 // Personality is separate from traits, which holds temporary physical states.
@@ -253,6 +253,7 @@ export function recalibrateRelationships(state) {
 }
 
 export function feelingHint(state, a, aboutId) {
+  if (state.ecs.personable[a]?.dead || !state.knowledge?.[aboutId]?.people?.[a]?.conversation) return {};
   const bond = state.ecs.relationships[a].known[aboutId];
   const feeling = disposition(state, a, aboutId);
   if (bond && bond.ring != "public") return { ring: bond.ring, disposition: feeling };
@@ -342,7 +343,7 @@ export function patienceLeft(state, actorId, personId) {
   return Math.max(0, DAILY_PATIENCE[ring] - used);
 }
 
-function spendPatience(state, actorId, personId) {
+export function spendPatience(state, actorId, personId) {
   if (!patienceLeft(state, actorId, personId)) return false;
   state.talking ||= {};
   state.talking[personId] ||= {};
@@ -357,6 +358,7 @@ export function chat(state, actorId, personId) {
   beginInteraction(state, actorId, personId);
   if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
   addGoodwill(state, actorId, personId, CHAT_GOODWILL);
+  completeConversation(state, actorId, personId);
   return { ok: true };
 }
 
@@ -371,7 +373,8 @@ export function askAbout(state, actorId, personId, aboutId) {
   for (const node of Object.values(knownFamilyTree(state, personId, aboutId).nodes)) {
     if (!node.unknown) learnPerson(state, actorId, node.id);
   }
-  for (const event of knownEvents(state, personId, aboutId)) learnEvent(state, actorId, event);
+  for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) learnEvent(state, actorId, event);
+  completeConversation(state, actorId, personId);
   return { ok: true, ring: bond.ring };
 }
 
@@ -402,4 +405,31 @@ export function giftOptions(state, actorId) {
     }
   }
   return options;
+}
+
+// Names, gossip and seasonal encounters do not count as a completed conversation.
+// Call only after actual timed, proximate conversation succeeds.
+export function completeConversation(state, actorId, personId) {
+  const learned = learnPerson(state, actorId, personId);
+  const a = state.ecs.spatial?.[actorId], b = state.ecs.spatial?.[personId];
+  learned.conversation = { day: state.days, ...(a && b ? { position: { x: a.x, y: a.y }, otherPosition: { x: b.x, y: b.y } } : {}) };
+  const rank = RINGS.indexOf(state.ecs.relationships[personId].known[actorId]?.ring);
+  if (rank < 1) return;
+  const family = new Set([personId, ...closeFamily(state, personId)]);
+  for (const event of knownEvents(state, personId).filter(e => e.people.some(id => family.has(id)))) {
+    if (canDiscloseEvent(state, personId, actorId, event)) learnEvent(state, actorId, event);
+  }
+  learned.possessions ||= [];
+  for (const p of Object.values(state.ecs.possession || {})) {
+    if (p.ownerId == personId && (p.kind == "tool" || rank >= 2) && !learned.possessions.includes(p.id)) learned.possessions.push(p.id);
+  }
+}
+export function canDiscloseEvent(state, speaker, viewer, event) {
+  const rank = RINGS.indexOf(state.ecs.relationships[speaker]?.known[viewer]?.ring);
+  return rank >= (["quarrel", "reconciliation", "gift", "courtship"].includes(event.type) ? 2 : 1);
+}
+
+export const RELATIONSHIP_NAMES = { public: "Acquaintance", social: "Familiar acquaintance", personal: "Friend", intimate: "Closest friend" };
+export function relationshipSentence(speaker, subject, ring, possessive = "their") {
+  return speaker + " considers " + subject + ({ public: " an acquaintance", social: " a familiar acquaintance", personal: " a friend", intimate: " one of " + possessive + " closest friends" }[ring] || " an acquaintance") + ".";
 }

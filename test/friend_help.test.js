@@ -1,3 +1,4 @@
+import { solve } from "game/htn";
 import { peopleWorld } from './support/people';
 import { newEntities } from 'game/entities';
 import { enqueueTask } from 'game/manager';
@@ -87,6 +88,8 @@ it('helps field slots with actual work and preserves the player harvest, without
   delete s.ecs.construction[w.site];
   const [field] = newEntities(s, [{ spatial: { ...s.ecs.spatial[w.tiles[5]] }, farmable: { slots: Array.from({length: 5}, () => ({ state: 'harvestable', content: 'grain', amount: 2 })), claimerId: w.player }, controllable: { controllerId: w.player } }]);
   s.ecs.planner[w.player].world.claimedFarmable = field;
+  // An actual in-progress harvest, rather than relying on autonomous player farming.
+  s.ecs.planner[w.player].plan = solve(s.ecs.planner[w.player].world, [], [["harvest_field", field], ["harvest_field", field]])[0];
   expect(friendWork(s, w.person)).toMatchObject({ kind: 'field', targetId: field });
   let helped = false;
   for (let i = 0; i < 100; i++) { w.step(.03); if (s.ecs.planner[w.person].task?.[0] == 'help_friend_work') helped = true; }

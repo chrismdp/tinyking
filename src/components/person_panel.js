@@ -1,3 +1,4 @@
+import { biography, disclosedPossessions } from "game/biography";
 import { isResident } from "game/residents";
 import { PersonRequests } from "./favour_requests";
 import { displayName as knownDisplayName } from "game/knowledge";
@@ -10,15 +11,15 @@ import { currentActivity } from "game/person_activity";
 import { giftChoices } from "game/gift_choices";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
-import { RINGS, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
+import { RINGS, RELATIONSHIP_NAMES, relationshipSentence, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
 
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
 const displayName = (state, id) => state.ecs.nameable[id] ? name(state.ecs.nameable[id]) : "?";
 const number = value => Number(value.toFixed(1));
-const SYMBOLS = { public: "○", social: "◆", personal: "■", intimate: "♥" };
+const SYMBOLS = { public: "○", social: "◆", personal: "■", intimate: "✦" };
 
 function Ring({ ring }) {
-  return <span className={"ring " + ring}><b>{SYMBOLS[ring]}</b>{titleCase(ring)}</span>;
+  return <span className={"ring " + ring}><b>{SYMBOLS[ring]}</b>{RELATIONSHIP_NAMES[ring]}</span>;
 }
 Ring.propTypes = { ring: PropTypes.string.isRequired };
 
@@ -69,6 +70,7 @@ export function PersonPanel({ entityId }) {
   if (treeOpen) return <FamilyTree entityId={entityId} onClose={() => setTreeOpen(false)} onSelect={select}/>;
   const trusted = trusts(state, entityId, player);
   const feeling = feelingHint(state, entityId, player);
+  const contacted = !!state.knowledge?.[player]?.people?.[entityId]?.conversation && !ecs.personable[entityId].dead;
   const ring = feeling.ring || "public", rank = RINGS.indexOf(ring);
   const bond = ecs.relationships[entityId].known[player];
   const goodwill = bond?.goodwill || 0, next = GOODWILL_STEPS[rank + 1];
@@ -93,7 +95,7 @@ export function PersonPanel({ entityId }) {
   const object = pronoun == "She" ? "her" : pronoun == "He" ? "him" : "them";
   const benefit = !dead && ecs.personable[entityId].age >= 18 && rank >= RINGS.indexOf("personal") ?
     `${pronoun} can help with your building or field when free and fed. Deliver building materials first. Help comes in ${possessive} own time; you do not control ${object}.` :
-    `${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`;
+    dead ? "Their feelings are part of the past." : `${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`;
   const queue = (key, metadata = {}) => {
     state.ui.actions.talk_to(entityId, key, metadata);
     setChooser(null);
@@ -103,19 +105,20 @@ export function PersonPanel({ entityId }) {
   const trade = ecs.profession?.[entityId]?.trade;
   const occupation = ecs.personable[entityId].age < 18 ? "Child" : trade ? titleCase(trade) :
     ecs.household[houseId]?.farming ? "Farming household" : null;
-  const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)));
+  const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
-      <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{occupation ? occupation + " · " : ""}{activity}</p></div>
+      <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
     <div className="person-body"><p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
-      <div className="relationship"><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : pronoun == "They" ? "They trust you" : pronoun + " trusts you"}</strong><Ring ring={ring}/></div>
-        <p>{trusted ? `You are in ${possessive} ${titleCase(ring)} ring. ${benefit}` : `An impression. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
+      <div className="biography"><p className="label">Their story</p>{biography(state, player, entityId, id => displayName(state, id)).map(f => <p key={f.key}>{f.text}</p>)}</div>
+      <div className="relationship">{contacted ? <><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : relationshipSentence(pronoun, "you", ring, possessive)}</strong><Ring ring={ring}/></div>
+        <p>{trusted ? benefit : `An impression from your conversation. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
         <div className="goodwill"><span>Goodwill with {personName.split(" ")[0]}</span><span>{number(goodwill)}{next ? " / " + next : ""}</span></div>
         <div className={"meter " + ring + "-meter"} role="progressbar" aria-label={"Goodwill with " + personName} aria-valuenow={number(goodwill)} aria-valuemin={0} aria-valuemax={next || GOODWILL_STEPS[3]}><span style={{ width: Math.max(0, Math.min(100, goodwill / (next || GOODWILL_STEPS[3]) * 100)) + "%" }}/></div>
-        <small>{next ? `${number(Math.max(0, next - goodwill))} more towards ${titleCase(nextRing)} · space matters too.` : "Your closest ring · space matters too."}</small>
-      </div>
+        <small>{next ? `${number(Math.max(0, next - goodwill))} more towards ${RELATIONSHIP_NAMES[nextRing].toLowerCase()} · space matters too.` : "One of their closest friends · space matters too."}</small>
+      </> : <p>{dead ? "Their feelings are part of the past." : "You have not spoken together yet. Their feelings about you are unknown."}</p>}</div>
       <div className="people-list"><p className="label">{trusted ? titleCase(possessive) + " closest people" : "People seen with " + (pronoun == "They" ? "them" : pronoun == "He" ? "him" : "her")}</p>
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}
           {!theirPeople.length && <li><span>?</span><span className="kin">Others not yet known</span></li>}</ul></div>
@@ -125,9 +128,9 @@ export function PersonPanel({ entityId }) {
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
         {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => knownName(o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
           Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{displayName(state, id)}</button>)}</div>}
-      {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{displayName(state, id) + " is in " + personName + "'s " + titleCase(ring) + " ring."}</p>)}</div>}
+      {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{relationshipSentence(personName, knownName(id), ring, possessive)}</p>)}</div>}
       <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => knownDisplayName(state, id, id => displayName(state, id)))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
-      <div className="possessions"><p className="label">Personal possessions</p>{Object.values(ecs.possession || {}).filter(p => p.ownerId == entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {knownName(p.maker)}. First owned by {knownName(p.originalOwner)}.</p><p>{p.owners.map(o => knownName(o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
+      <div className="possessions"><p className="label">Personal possessions</p>{disclosedPossessions(state, player, entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {knownName(p.maker)}. First owned by {knownName(p.originalOwner)}.</p><p>{p.owners.map(o => knownName(o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
       {state.ui.talkResult?.personId == entityId && <p className="talk-note" role="status">{state.ui.talkResult.message}</p>}
     </div>
     <footer className="person-footer"><button onClick={() => setTreeOpen(true)}>Open family tree »</button><small>{knownCount == Object.keys(tree.nodes).length ? titleCase(possessive) + " whole family tree is known." : `${knownCount} ${knownCount == 1 ? "name" : "names"} known · the rest show as ?`}</small></footer>

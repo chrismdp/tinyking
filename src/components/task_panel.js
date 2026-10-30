@@ -1,3 +1,5 @@
+import { currentActivity } from "game/person_activity";
+import messages from "data/messages.json";
 import { RequestList } from "./favour_requests";
 import { requestForTask, favourTitle, favourQuantity } from "game/favours";
 import { displayName } from "game/knowledge";
@@ -12,7 +14,7 @@ import { woodTask } from "game/wood_task";
 import { harvestCounts, harvestPhase } from "game/harvest_task";
 
 export const TASK_TITLES = {
-  travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
+  find_food: "Find food", rest: "Rest", travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
   chat: "Chat", ask_about: "Ask about someone", give_gift: "Give a gift",
   create_field: "Create Field", create_stockpile: "Create Stockpile"
 };
@@ -45,8 +47,10 @@ export function TaskPanel() {
   const planner = ecs.planner[id];
   const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const currentWood = current && woodTask(state, current, true);
-  const sleeping = planner.task?.[0] == "sleep" || planner.world.label == "sleeping" || planner.plan?.some(task => task[0] == "sleep");
-  const eating = !planner.world.currentJob && !sleeping && (planner.world.feeling?.hungry || ["eat", "forage"].includes(planner.task?.[0]));
+  const sleeping = planner.task?.[0] == "sleep" || planner.plan?.some(task => task[0] == "sleep");
+  const eating = !sleeping && (["eat", "forage"].includes(planner.task?.[0]) || planner.world.playerWorking && planner.world.feeling?.hungry && !planner.world.currentJob);
+  const needsAction = !current && !eating && !sleeping;
+  const activity = currentActivity(ecs, id, key => messages.tasks[key.split(".")[1]], other => displayName(state, other, other => name(ecs.nameable[other])), state.ui.debug);
   const stage = Object.values(ecs.shelter || {}).find(s => s.stage)?.stage;
   const hungry = person.hunger > 0.9;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
@@ -60,7 +64,12 @@ export function TaskPanel() {
       {hungry && <div className="hunger" aria-label={status + " — working more slowly"}>
         <div className="hunger-line"><span>{status}</span><span>Working more slowly</span></div>
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
-        {!Object.values(ecs.container || {}).some(c => c.amounts.forage || c.amounts.grain || c.amounts.gruel) && <small>You have no food. Foraging is next.</small>}
+        {needsAction && <small>You stay here. Choose Find food to go for a meal.</small>}
+      </div>}
+      {needsAction && !person.dead && (hungry || person.tiredness > .9) && <div className="need-actions" role="status">
+        {person.tiredness > .9 && <small>Tired · choose Rest to go to your bed.</small>}
+        {hungry && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
+        {person.tiredness > .9 && <button onClick={() => state.ui.actions.choose_job(id, { key: "rest" }, id)}>Rest</button>}
       </div>}
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
       <ol className="queue">{jobs.map((job, index) => {
@@ -102,6 +111,6 @@ export function TaskPanel() {
     </div>
     <RequestList/>
     <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
-      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : planner.world.label || "Ready"}</small></footer>
+      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : activity || (hungry ? "Needs food" : person.tiredness > .9 ? "Needs rest" : "Ready")}</small></footer>
   </aside>;
 }

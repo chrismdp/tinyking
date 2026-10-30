@@ -38,10 +38,23 @@ villages have different trades. There is at most one of each per village.
 Every village has a well and green. From five houses it also has a chapel and
 alehouse. Between 6pm and 9pm, the existing idle/meeting search picks a point
 on that villager's own green or outside its alehouse. The seeded choice varies
-the venue each day. Reserved gathering points spread visitors across clear
-grassland around each place. Points have 34 units of separation and leave
-houses, fields, workshops and animal pens clear. Meals and sleep still take
-precedence.
+the venue each day. A shared pool of reserved gathering points spreads visitors
+across clear grassland within 300 units of their chosen venue. Points have 34
+units of separation and leave houses, fields, workshops and animal pens clear.
+The generated points stop at 290 units, leaving room for the walker's existing
+stopping tolerance. After household plots are complete, generation checks the
+combined capacity. If fields surround the original green too closely, it chooses
+the nearest reachable unused tile with room for the population. The well stays
+by the houses, and no fields or yards move.
+Venues take turns assigning their actual visitors to the nearest free spaces;
+an augmenting path can reassign a shared space when another venue needs it.
+If the preferred venue is full, a visitor uses a remaining space at another
+local venue, still within the same distance and body clearance rules.
+This avoids reserving a whole population for each venue. The allocation is
+derived from the current living local roster, day and venues, so births, deaths
+and moves can change attendance without rebuilding population-sized point lists.
+The pool describes the available ground; changes to buildings or gathering areas
+will still need to rebuild that geometry. Meals and sleep still take precedence.
 
 Generation preserves timber within four tiles of the player's start. Fields,
 yards, shared places and pasture reserve grassland, clear their trees and keep
@@ -62,7 +75,7 @@ Ids are strings. The usual component `id` field is present.
 | `workplace[id]` | `{ houseId, trade, power }`; mills use wind |
 | `pasture[id]` | `{ houseId, kind, centre: {x,y}, halfWidth, halfDepth }`; also on backyard pens |
 | `animal[id]` | `{ houseId, pastureId, kind, phase, radius, facing }`, with moving `spatial` |
-| `meetingPlace[id]` | `{ kind: 'well' \| 'green' \| 'chapel' \| 'alehouse', gatheringPoints?: {x,y}[] }` |
+| `meetingPlace[id]` | `{ kind: 'well' \| 'green' \| 'chapel' \| 'alehouse', gatheringPoints?: {x,y}[] }`; shared candidate spaces within 300 units, nearest first |
 | `village[id]` | Existing village membership, also on new features and animals |
 | `mappable[tileId].villagePlot` | Reserved village ground, protected from vegetation |
 | `state.villages[villageId].sharedPlaces` | Array of shared-place entity ids |

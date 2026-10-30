@@ -1,7 +1,7 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { TRIANGLES } from "game/map";
-import { newEntities, deleteEntity } from "game/entities";
-import { hashUnit } from "game/math";
+import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
+import { hashUnit, squaredDistance } from "game/math";
 import { season } from "game/time";
 
 export const TRADES = ["smith", "carpenter", "weaver", "baker", "tanner", "miller"];
@@ -76,7 +76,8 @@ export function generateVillageLife(state, seed, start) {
   let householdIndex = 0;
   for (const [vi, village] of Object.values(state.villages).entries()) {
     village.sharedPlaces = [];
-    // The green shares its tile with a well; the rest remain separate places.
+    // Start beside the well; the capacity survey below can move the green
+    // to a nearby clearing after household fields and yards are complete.
     const greenPoint = reserve(nearby(village.houses[0], 4)[0]);
     const green = add(greenPoint, village.id, { nameable: { nickname: "Village green" }, meetingPlace: { kind: "green" } });
     village.sharedPlaces.push(green, add({ x: greenPoint.x - 28, y: greenPoint.y - 23 }, village.id,
@@ -149,25 +150,50 @@ export function generateVillageLife(state, seed, start) {
     return radius ? [{ ...ecs.spatial[id], radius }] : [];
   });
   const pens = Object.values(ecs.pasture);
+  const gatheringSpaces = [];
   for (const village of Object.values(state.villages)) {
-    const population = Object.keys(ecs.personable).filter(id => ecs.village[id].villageId == village.id).length;
+    const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(ecs.meetingPlace[id].kind));
     const candidates = nearby(village.houses[0], 8, true).filter(id => !fieldHexes.has(keyOf(ecs.spatial[id])))
       .flatMap(tile => [{ tile, ...ecs.spatial[tile] }, ...Array.from({ length: 6 }, (_, i) => ({ tile,
         x: ecs.spatial[tile].x + Math.cos(i * Math.PI / 3) * 34,
         y: ecs.spatial[tile].y + Math.sin(i * Math.PI / 3) * 34 }))])
-      .filter(p => !obstacles.some(o => (p.x - o.x) ** 2 + (p.y - o.y) ** 2 < o.radius ** 2) &&
+      .filter(p => !obstacles.some(o => squaredDistance(p, o) < o.radius ** 2) &&
         !pens.some(pen => Math.abs(p.x - pen.centre.x) < pen.halfWidth + 12 && Math.abs(p.y - pen.centre.y) < pen.halfDepth + 12));
-    const used = [];
-    for (const id of village.sharedPlaces.filter(id => ["green", "alehouse"].includes(ecs.meetingPlace[id].kind))) {
-      const centre = ecs.spatial[id];
-      const distance = p => (p.x - centre.x) ** 2 + (p.y - centre.y) ** 2;
-      const points = ecs.meetingPlace[id].gatheringPoints = [];
-      for (const p of candidates.slice().sort((a, b) => distance(a) - distance(b))) {
-        if (used.some(other => (p.x - other.x) ** 2 + (p.y - other.y) ** 2 < 34 ** 2)) continue;
-        points.push({ x: p.x, y: p.y }); used.push(p);
-        reserve(p.tile);
-        if (points.length == population) break;
+    // One pool of separated spaces, shared by all venues. Reserving a whole
+    // population for each venue wastes the closest spaces at the first one.
+    // Leave the walker's existing <10-unit stopping tolerance inside 300.
+    const spacesAround = centres => {
+      const distance = p => Math.min(...centres.map(c => squaredDistance(p, c)));
+      const used = [];
+      for (const p of candidates.filter(p => distance(p) < 290 ** 2 &&
+        !gatheringSpaces.some(other => squaredDistance(p, other) < 34 ** 2)).sort((a, b) => distance(a) - distance(b))) {
+        if (!used.some(other => squaredDistance(p, other) < 34 ** 2)) used.push(p);
       }
+      return used;
+    };
+    let used = spacesAround(venues.map(id => ecs.spatial[id]));
+    const population = Object.keys(ecs.personable).filter(id => ecs.village[id].villageId == village.id).length;
+    if (used.length < population) {
+      // Fields can surround the original green. Choose the nearest reachable
+      // unused tile with room for everyone, leaving all household plots intact.
+      const green = venues.find(id => ecs.meetingPlace[id].kind == "green");
+      const sites = nearby(village.houses[0], 8).sort((a, b) =>
+        squaredDistance(ecs.spatial[a], ecs.spatial[green]) - squaredDistance(ecs.spatial[b], ecs.spatial[green]));
+      for (const tile of sites) {
+        const spaces = spacesAround(venues.map(id => ecs.spatial[id == green ? tile : id]));
+        if (spaces.length < population) continue;
+        removeFromSpace(state, green);
+        Object.assign(ecs.spatial[green], { x: ecs.spatial[tile].x, y: ecs.spatial[tile].y });
+        state.space[keyOf(ecs.spatial[green])].push(green);
+        used = spaces;
+        break;
+      }
+    }
+    for (const p of used) { reserve(p.tile); gatheringSpaces.push(p); }
+    for (const id of venues) {
+      const centre = ecs.spatial[id];
+      ecs.meetingPlace[id].gatheringPoints = used.filter(p => squaredDistance(p, centre) < 290 ** 2)
+        .sort((a, b) => squaredDistance(a, centre) - squaredDistance(b, centre)).map(p => ({ x: p.x, y: p.y }));
     }
   }
   // Clear only the reserved village land, before woodland ecology is initialized.
@@ -189,12 +215,67 @@ export function updateVillageLife(state) {
   }
 }
 
+// Derived data only: roster/day/venue changes invalidate it, and a loaded or
+// replayed state computes the same assignments without serializing a cache.
+const eveningAssignments = new WeakMap();
+
 export function eveningPlace(state, actorId) {
   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
   if (!v) return null;
   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
-  const id = places[Math.floor(hashUnit(actorId + ":evening:" + Math.floor(state.days)) * places.length)];
-  const villagers = Object.keys(state.ecs.personable).filter(person => state.ecs.village[person]?.villageId == v.id);
-  const index = villagers.indexOf(actorId);
-  return { id, ...state.ecs.meetingPlace[id].gatheringPoints[index] };
+  const villagers = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead &&
+    state.ecs.village[person]?.villageId == v.id);
+  const key = JSON.stringify([Math.floor(state.days), villagers, places]);
+  const pools = places.map(id => state.ecs.meetingPlace[id].gatheringPoints);
+  let cached = eveningAssignments.get(v);
+  if (!cached || cached.key != key || pools.some((pool, i) => pool !== cached.pools[i])) {
+    const visitors = places.map(() => []);
+    for (const person of villagers) {
+      const venue = Math.floor(hashUnit(person + ":evening:" + Math.floor(state.days)) * places.length);
+      visitors[venue]?.push(person);
+    }
+    const assignments = new Map(), owners = new Map();
+    const preferences = new Map(visitors.flatMap((people, i) => people.map(person => [person, { id: places[i], points: pools[i] }])));
+    const pointKey = p => p.x + "," + p.y;
+    // Prefer an unoccupied nearby space. If a later venue has fewer options,
+    // an augmenting path can free its space without dropping either visitor.
+    const assign = (person, seen) => {
+      const { id, points } = preferences.get(person);
+      for (const p of points) if (!owners.has(pointKey(p))) {
+        owners.set(pointKey(p), person);
+        assignments.set(person, { id, ...p });
+        return true;
+      }
+      for (const p of points) {
+        const k = pointKey(p);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (assign(owners.get(k), seen)) {
+          owners.set(k, person);
+          assignments.set(person, { id, ...p });
+          return true;
+        }
+      }
+      return false;
+    };
+    // Take turns across venues so both get their nearest spaces first.
+    for (let i = 0; i < Math.max(0, ...visitors.map(people => people.length)); i++) {
+      for (const people of visitors) if (people[i]) assign(people[i], new Set());
+    }
+    // A full green can use the village's alehouse (or another local venue).
+    // Exhaust preferred-venue matching first; overflow uses remaining spaces,
+    // rather than distant ground or an absent coordinate for that visitor.
+    for (const person of villagers.filter(person => !assignments.has(person))) {
+      for (const [i, id] of places.entries()) {
+        const p = pools[i].find(p => !owners.has(pointKey(p)));
+        if (!p) continue;
+        owners.set(pointKey(p), person);
+        assignments.set(person, { id, ...p });
+        break;
+      }
+    }
+    cached = { key, pools, assignments };
+    eveningAssignments.set(v, cached);
+  }
+  return cached.assignments.get(actorId) || null;
 }

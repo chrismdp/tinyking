@@ -191,8 +191,23 @@ it("spreads evening visitors across the green so household groups do not occupy 
   }
 });
 
-it("gives evening visitors room for their bodies outside houses and animal pens", async () => {
-  const s = await world(1);
+it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
+  const s = await world(8);
+  for (const village of Object.values(s.villages)) {
+    const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
+    const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(s.ecs.meetingPlace[id].kind));
+    const spaces = new Set(venues.flatMap(id => s.ecs.meetingPlace[id].gatheringPoints.map(p => p.x + "," + p.y)));
+    expect(spaces.size).toBeGreaterThanOrEqual(visitors.length);
+    for (const id of venues) {
+      const at = Hex().fromPoint(s.ecs.spatial[id]).toString();
+      expect(s.space[at]).toContain(id);
+      expect(Object.entries(s.space).filter(([, ids]) => ids.includes(id)).map(([key]) => key)).toEqual([at]);
+    }
+  }
+});
+
+it.each([1, 8, 13, 20, 1234, 98765])("gives evening visitors room for their bodies outside houses and animal pens (seed %s)", async seed => {
+  const s = await world(seed);
   s.days = 0.8;
   for (const village of Object.values(s.villages)) {
     const visitors = Object.keys(s.ecs.personable).filter(id => s.ecs.village[id].villageId == village.id);
@@ -202,6 +217,8 @@ it("gives evening visitors room for their bodies outside houses and animal pens"
       return w.places.meet;
     });
     for (const [i, p] of places.entries()) {
+      expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true);
+      expect(s.ecs.village[p.id].villageId).toBe(village.id);
       const centre = s.ecs.spatial[p.id];
       expect(Math.hypot(p.x - centre.x, p.y - centre.y)).toBeLessThan(300);
       for (const other of places.slice(i + 1)) expect(Math.hypot(p.x - other.x, p.y - other.y)).toBeGreaterThanOrEqual(32);
@@ -211,6 +228,13 @@ it("gives evening visitors room for their bodies outside houses and animal pens"
       }
       for (const pen of Object.values(s.ecs.pasture)) {
         expect(Math.abs(p.x - pen.centre.x) >= pen.halfWidth + 12 || Math.abs(p.y - pen.centre.y) >= pen.halfDepth + 12).toBe(true);
+      }
+      for (const field of Object.keys(s.ecs.farmable)) {
+        expect(Hex().fromPoint(p).toString()).not.toBe(Hex().fromPoint(s.ecs.spatial[field]).toString());
+      }
+      for (const [id, workplace] of Object.entries(s.ecs.workplace)) {
+        const w = s.ecs.spatial[id];
+        expect(Math.hypot(p.x - w.x, p.y - w.y)).toBeGreaterThanOrEqual(workplace.trade == "miller" ? 45 : 30);
       }
     }
   }

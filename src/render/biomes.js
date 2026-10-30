@@ -1,3 +1,4 @@
+import { visualNumber } from "render/variation";
 import * as THREE from "three";
 import SimplexNoise from "simplex-noise";
 
@@ -25,7 +26,7 @@ export const BIOME_LOOKS = {
 export function treeKind({ biome, byWater }, id) {
   const look = BIOME_LOOKS[biome];
   const kinds = Object.keys(byWater && look.byWater ? look.byWater : look.trees);
-  return kinds[(+id * 7) % kinds.length];
+  return kinds[(visualNumber(id) * 7) % kinds.length];
 }
 
 export const BIOME_COLOURS = Object.fromEntries(

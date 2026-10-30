@@ -42,7 +42,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
-  const simulation = createSimulation(state, { onHour: renderUI, onTravel: () => renderMap(webgl,state,selectEntity,renderUI,t), onError: error => { console.error(error); renderUI(); } });
+  const simulation = createSimulation(state, { onHour: renderUI, onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
   let uiTime = 0;
   state.ticker.add(() => {
     if (performance.now() - uiTime > 250) { uiTime = performance.now(); renderUI(); }

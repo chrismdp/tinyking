@@ -1,3 +1,4 @@
+import { visualNumber } from "render/variation";
 import * as THREE from "three";
 
 import { Hex, HAIR, HEX_SIZE, TRIANGLES } from "game/map";
@@ -295,7 +296,7 @@ export function tree(ground, ecs, id, look) {
   const mesh = new THREE.Mesh(treeGeometry(kind, amount, look.biome, look.morality), vertexColoured);
   // NOTE: sink the trunk a little so it never floats on a slope
   mesh.position.set(x, ground.heightAt(x, y) - 2, y);
-  mesh.rotation.y = (+id * 2.399) % (Math.PI * 2);
+  mesh.rotation.y = (visualNumber(id) * 2.399) % (Math.PI * 2);
   const scale = growth && growth.stage == "sapling" ? 0.25 : growth && growth.stage == "young" ? 0.55 : 1;
   mesh.scale.setScalar(scale);
   mesh.userData.anchorHeight = TREE_SHAPES[kind].height * treeSize(amount) * scale;
@@ -331,7 +332,7 @@ export function foragePlant(ground, state, id) {
   const mesh = new THREE.Mesh(forageGeometries.get(key), vertexColoured);
   const { x, y } = state.ecs.spatial[id];
   mesh.position.set(x, ground.heightAt(x, y), y);
-  mesh.rotation.y = (+id * 2.399) % (Math.PI * 2);
+  mesh.rotation.y = (visualNumber(id) * 2.399) % (Math.PI * 2);
   mesh.userData.anchorHeight = 14;
   return mesh;
 }
@@ -572,7 +573,7 @@ export function groundItem(ground, ecs, id) {
   const { x, y } = ecs.spatial[id];
   const mesh = item(ecs.good[id].type);
   mesh.position.set(x, ground.heightAt(x, y) - 0.5, y);
-  mesh.rotation.y = (+id * 1.7) % Math.PI;
+  mesh.rotation.y = (visualNumber(id) * 1.7) % Math.PI;
   mesh.userData.anchorHeight = 8;
   return mesh;
 }

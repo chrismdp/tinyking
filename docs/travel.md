@@ -164,3 +164,10 @@ repeating the same shared ancestry for every person. A stable global event-order
 index lets each map import its learned event IDs directly in the original order.
 These are derived indexes: no resident, event, relationship, season or encounter
 is sampled, skipped or capped to reduce processing cost.
+
+Rendering samples opaque entity IDs for tree shape and object orientation without
+converting the ID to a number. Legacy numeric IDs retain their existing looks;
+namespaced vegetation and carried/ground goods have finite deterministic transforms.
+The map-transfer UI callback closes any local popup opened during the departure
+walk, as well as the original invitation. Skipping arrival cannot restore that
+old popup or leave executable old-map targets in the new map.

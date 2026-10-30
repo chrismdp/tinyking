@@ -241,7 +241,9 @@ export function advanceSeason(s, season, summary = false) {
   const ecs = s.ecs, ids = living(s).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
   for (const key of Object.keys(s.social.courtships)) {
     const [a, b] = key.split(":");
-    if (!canCourt(s, a, b) || !summary && (s.social.contacts?.[key] ?? -Infinity) < s.days - 3) delete s.social.courtships[key];
+    // Absence is already priced by drift. Keep time spent mutually Intimate;
+    // a recent real conversation is still required before a live wedding.
+    if (!canCourt(s, a, b)) delete s.social.courtships[key];
   }
   for (const id of ids) {
     const p = ecs.personable[id];

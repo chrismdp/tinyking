@@ -29,7 +29,7 @@ async function run(seed, capture) {
   fs.writeFileSync(riskFile, "");
   const count = () => Object.values(s.ecs.personable).filter(p => !p.dead).length;
   const sim = createSimulation(s, { onHour() {
-    if (Math.abs(s.days % 3) < 1e-7) food.push({ day: s.days, ...foodSummary(s) });
+    if (Math.abs(s.days / 3 - Math.round(s.days / 3)) < 1e-7) food.push({ day: s.days, ...foodSummary(s) });
     for (const id of Object.keys(s.ecs.personable)) if (!s.ecs.personable[id].dead) {
       const p = s.ecs.personable[id]; assert(Number.isFinite(p.hunger));
       if (p.hunger < previousHunger[id]) meals++;
@@ -83,7 +83,7 @@ async function run(seed, capture) {
       if (id) { fs.writeFileSync(OUT + "/eating-state.json", snapshot(s)); fs.writeFileSync(OUT + "/eating-meta.json", JSON.stringify(actorTrace(s, id))); eating = true; }
     }
     if (!twoYears && s.days >= twoYearDay - 1e-9) {
-      twoYears = { survivingOriginal: original.filter(id => !s.ecs.personable[id].dead).length, initial: original.length, population: count(), meals, actualMeals };
+      twoYears = { survivingOriginal: original.filter(id => !s.ecs.personable[id].dead).length, initial: original.length, population: count(), meals, actualMeals, food: foodSummary(s) };
       assert(twoYears.survivingOriginal / original.length >= .75, "two-year survival fell below 75%");
       console.log("TWO YEARS " + JSON.stringify({ seed, ...twoYears }));
     }

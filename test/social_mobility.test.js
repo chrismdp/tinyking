@@ -264,13 +264,17 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   expect(s.ecs.relationships[a].known[b]).toMatchObject({ ring: "social", goodwill: 16 });
   expect(canCourt(s, a, b)).toBe(false);
   const simulation = createSimulation(s), start = s.days;
-  let travelled = false, intimacy;
-  for (let i = 0; i < 24 * 240; i++) {
-    const free = Math.floor(s.days) % 3 == 0;
+  let travelled = false, intimacy, quietUntil = -Infinity;
+  for (let i = 0; i < 28 * 240; i++) {
+    const free = Math.floor(s.days) % 3 == 0 && s.days >= quietUntil;
     for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;
     simulation.step(6);
     if (s.ecs.planner[a].world.social?.stage == "outbound") travelled = true;
-    if (!intimacy && canCourt(s, a, b)) intimacy = s.days;
+    if (!intimacy && canCourt(s, a, b)) {
+      intimacy = s.days;
+      // A week without contact must not erase sustained mutual intimacy.
+      quietUntil = Math.floor(s.days) + 7;
+    }
   }
   expect(travelled).toBe(true);
   const visits = s.events.filter(e => e.type == "visit" && e.people.includes(a) && e.people.includes(b));
@@ -281,4 +285,25 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   const wedding = s.events.find(e => e.type == "marriage" && e.people.includes(a) && e.people.includes(b));
   expect(wedding).toBeDefined();
   expect(wedding.day - intimacy).toBeGreaterThanOrEqual(6);
+  const recent = visits.filter(e => e.day <= wedding.day).at(-1);
+  expect(wedding.day - recent.day).toBeLessThanOrEqual(3);
+  expect(wedding.day).toBeLessThanOrEqual(quietUntil + 6);
+});
+
+it("requires fresh contact to marry and clears courtship progress when mutual intimacy ends", () => {
+  const { state: s, a, b } = communities();
+  intimate(s, a, b);
+  const key = [a, b].sort().join(":");
+  s.social = { courtships: { [key]: 0 }, contacts: { [key]: -10 }, avoidance: {} };
+  s.days = 9; advanceSeason(s, 3);
+  expect(s.social.courtships[key]).toBe(0);
+  expect(s.ecs.kinship[a].spouse).toBeNull();
+  s.ecs.relationships[b].known[a].ring = "personal";
+  s.social.contacts[key] = 12; s.days = 12; advanceSeason(s, 4);
+  expect(s.social.courtships[key]).toBeUndefined();
+  expect(s.ecs.kinship[a].spouse).toBeNull();
+  s.ecs.relationships[b].known[a].ring = "intimate";
+  s.social.contacts[key] = 15; s.days = 15; advanceSeason(s, 5);
+  expect(s.social.courtships[key]).toBe(5);
+  expect(s.ecs.kinship[a].spouse).toBeNull();
 });

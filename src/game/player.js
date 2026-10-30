@@ -10,6 +10,7 @@ export const player = () => person().filter(([, actions]) => !actions(null).some
     [key == "person" ? "player" : key == "check_jobs" ? "player_jobs" : key, ...args])]);
 
 export const player_jobs = () => [
+  [(_, jobs) => firstFreeJob(jobs, "travel"), entry => [["take_job", "travel"], ["walk_to", entry.targetId], ["leave_edge", entry.targetId, entry]]],
   [(_, jobs) => firstFreeJob(jobs, "favour"), entry => [["take_job", "favour"], ["do_favour", entry.favourId], ["complete_job", "favour"]]],
   ...TALK_JOBS.map(key => [
     (_, jobs) => firstFreeJob(jobs, key),

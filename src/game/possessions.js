@@ -1,8 +1,9 @@
+import { entityId, isResident } from "game/residents";
 import { recordEvent, closeFamily } from "game/events";
 
 // Personal objects are separate from commodity stacks: identity is never pooled.
 export function createPossession(state, ownerId, name, kind = "heirloom") {
-  const ecs = state.ecs, id = "item-" + ecs.nextId++;
+  const ecs = state.ecs, id = entityId(ecs, "item-");
   const components = { possession: { name, kind, ownerId, maker: ownerId, originalOwner: ownerId,
     owners: [{ personId: ownerId, day: state.days, reason: "made" }] },
   good: { type: kind, amount: 1, value: kind == "tool" ? 5 : 12 },
@@ -55,7 +56,7 @@ export function repairHouseholds(state) {
     }
   }
   const residents = {};
-  for (const id of Object.keys(ecs.personable)) if (!ecs.personable[id].dead && !ecs.playable?.[id] && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
+  for (const id of Object.keys(ecs.personable)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && !ecs.playable?.[id] && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
   for (const houseId of Object.keys(ecs.building || {})) {
     if (ecs.playable?.[ecs.controllable[houseId]?.controllerId]) continue;
     const members = residents[houseId] || [];

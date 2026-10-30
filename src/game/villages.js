@@ -1,3 +1,4 @@
+import { isResident } from "game/residents";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { TRIANGLES } from "game/map";
 import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
@@ -226,7 +227,7 @@ export function eveningPlace(state, actorId) {
   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
   if (!v) return null;
   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
-  const villagers = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead &&
+  const villagers = Object.keys(state.ecs.personable).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
     state.ecs.village[person]?.villageId == v.id);
   const key = JSON.stringify([Math.floor(state.days), villagers, places]);
   const pools = places.map(id => state.ecs.meetingPlace[id].gatheringPoints);

@@ -17,6 +17,8 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable[id]?
   if (ecs.personable?.[id]?.dead) return t("tasks.dead");
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return t("tasks.idle");
+  if (world?.worldArrival) return "Arriving from another community";
+  if (world?.worldJourney || keyOfTravel(ecs,id)) return "Travelling to another community";
   const [key, target, place] = task;
   if (["walk_to", "help_friend_work"].includes(key) && world?.helpingFriend) return key == "walk_to" ? "Going to help a friend" : world.helpingFriend.kind == "build" ? "Helping build a friend's home" : "Helping in a friend's field";
   if (key == "do_favour") return "Doing a favour";
@@ -41,3 +43,5 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable[id]?
   if (key == "wait_for" && world?.capturedBy) label = "waiting_for";
   return t("tasks." + (label || "idle"));
 }
+
+const keyOfTravel = (ecs,id) => ecs.manager?.[id]?.jobs.some(j=>j.job.key=="travel"&&j.assignedId==id);

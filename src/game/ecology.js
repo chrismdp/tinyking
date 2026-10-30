@@ -65,9 +65,9 @@ function plantAt(state, point, biome, key) {
   return id;
 }
 
-export function generateForage(state, seed, start = state.map && state.map.playerStartTile) {
+export function generateForage(state, seed, start = state.map && state.map.playerStartTile, { onlyStart = false } = {}) {
   if (!state.ecology) initializeEcology(state, seed);
-  for (const [key, tile] of Object.entries(state.ecology.tiles)) {
+  for (const [key, tile] of onlyStart ? [] : Object.entries(state.ecology.tiles)) {
     if (state.ecs.mappable[tile.id].villagePlot) continue;
     if ((state.space[key] || []).some(id => state.ecs.building?.[id])) continue;
     const density = BIOME_ECOLOGY[tile.biome].forageDensity;

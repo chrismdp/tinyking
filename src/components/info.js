@@ -1,3 +1,4 @@
+import { TravelOffer } from "./travel_offer";
 import React from "react";
 import PropTypes from "prop-types";
 
@@ -120,6 +121,7 @@ export function Info({ entityId }) {
         <span className="knockedback"> #{entity.id}</span>
       </h1>)}
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
+      {entity.mappable && <TravelOffer entityId={entityId}/>}
       <TraitList traits={entity.traits}/>
       { entity.attributes && (<div>
         {

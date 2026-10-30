@@ -5,7 +5,7 @@ import { advanceSeason, eligiblePartner, romanticInterest, compareSocial } from 
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
 const idle = p => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
-  !p.world.currentJob && !p.world.social && ["wait_for", "socialise"].includes(p.task?.[0]);
+  !p.world.currentJob && !p.world.worldJourney && !p.world.social && ["wait_for", "socialise"].includes(p.task?.[0]);
 export const socialTask = p => p.task?.[0] == "socialise" || p.task?.[0] == "walk_to" &&
   ["socialDestination", p.world.social?.partnerId, p.world.social?.homeId].includes(p.task[1]);
 

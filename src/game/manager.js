@@ -8,7 +8,7 @@ import { giftOptions } from "game/people";
 
 export const firstFreeJob = (jobs, key) => jobs.find(j => !j.assignedId && !j.waiting && j.job.key == key);
 
-export const jobQueueFor = (ecs, id) => ecs.manager[topController(ecs, id)].jobs;
+export const jobQueueFor = (ecs, id) => ecs.manager[ecs.guest?.[id] ? id : topController(ecs, id)].jobs;
 
 export const pushJob = (ecs, actorId, entry) => {
   const jobs = jobQueueFor(ecs, actorId);

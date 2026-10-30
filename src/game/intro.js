@@ -17,6 +17,10 @@ const tileAt = (state, p) => (state.space[Hex().fromPoint(p)] || []).find(id => 
 export const introActive = state => !!state.intro?.active;
 
 export function arrivalRoute(state) {
+  if (state.arrivalEntry) {
+    const entry = state.arrivalEntry;
+    return { campPoint: { ...entry.campPoint }, tileIds: [...entry.tileIds], points: [entry.start, ...entry.tileIds.slice(0,-1).map(id=>({ ...state.ecs.spatial[id] })), offset(entry.campPoint,CAMP_LAYOUT.drop)] };
+  }
   const campPoint = Hex(state.map.playerStartTile).toPoint();
   const goal = tileAt(state, campPoint);
   const centre = Hex(state.map.centre);
@@ -73,17 +77,20 @@ export function startIntro(state, { skip = false } = {}) {
 export function skipIntro(state) {
   if (!introActive(state)) return;
   const intro = state.intro;
-  const [campId] = newEntities(state, [{
+  const existing = state.arrivalCampId && state.ecs.camp?.[state.arrivalCampId] ? state.arrivalCampId : null;
+  const [campId] = existing ? [existing] : newEntities(state, [{
     spatial: { ...intro.campPoint, immovable: true },
     nameable: { nickname: "Camp" }, camp: { bundle: { ...CAMP_LAYOUT.bundle } }, village: { villageId: null },
     sleepable: { capacity: 1, level: 0, occupiers: [] }, controllable: { controllerId: state.ui.playerId }
   }]);
-  state.ecs.household[state.ui.playerId] = { id: state.ui.playerId, houseId: campId };
+  state.ecs.household[state.ui.playerId] = { id: state.ui.playerId, houseId: state.arrivalHomeId || campId };
+  state.map.homeId = state.arrivalHomeId || campId;
   move(state, offset(intro.campPoint, CAMP_LAYOUT.drop));
   Object.assign(intro, { campId, active: false, elapsed: INTRO_TIMING.duration, phase: "complete", pose: "standing", putDown: 1, fire: 1, bedroll: 1,
     facing: Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y) });
   state.redraws.push(campId);
   state.ui.show.speed_controls = true;
+  delete state.arrivalEntry; delete state.arrivalCampId; delete state.arrivalHomeId;
 }
 
 export function updateIntro(state, seconds) {

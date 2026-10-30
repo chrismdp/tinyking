@@ -154,3 +154,7 @@ export function do_favour() {}
 export function begin_friend_help(world, expected, offer) { world.helpingFriend = offer; }
 export function help_friend_work() {}
 export function end_friend_help(world) { delete world.helpingFriend; delete world.friendOffer; }
+
+export function leave_edge() {}
+
+export function end_world_arrival(world) { delete world.worldArrival; }

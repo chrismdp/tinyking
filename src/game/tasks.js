@@ -1,3 +1,4 @@
+import { exitPoint } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
@@ -948,3 +949,19 @@ export function help_friend_work(state, actorId, world, dt, firstRun) {
   return perform_subtask_in_slot(state, actorId, world, dt, firstRun, offer.targetId, "friendSlot");
 }
 export function end_friend_help(state, actorId) { releaseFriendWork(state, actorId); }
+
+// The final few paces intentionally leave the navigation mesh. The preceding
+// walk_to uses the normal pathfinder; transfer happens only after crossing it.
+export function leave_edge(state, actorId, world, dt, firstRun, tileId, journey) {
+  const target=exitPoint(state,tileId),p=state.ecs.spatial[actorId];
+  const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*20*60*hungerSpeed(state.ecs.personable[actorId]);
+  if(length<2) {
+    if(actorId==state.ui.playerId)state.pendingPlayerTravel=journey;
+    else (state.pendingNpcDepartures ||= []).push({id:actorId,intent:journey});
+    return Task.FINISH;
+  }
+  const step=Math.min(1,speed/length);p.x+=dx*step;p.y+=dy*step;
+  return Task.CONTINUE;
+}
+
+export function end_world_arrival(state, actorId, world) { delete world.worldArrival; }

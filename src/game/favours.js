@@ -1,3 +1,4 @@
+import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { giftOptions, beginInteraction, addGoodwill } from "game/people";
@@ -7,7 +8,7 @@ import { take } from "game/holder";
 
 export const FUEL_TRADES = { baker: "oven", smith: "forge" };
 export const FUEL_HOURS = 4;
-const live = (s, id) => s.ecs.personable?.[id] && !s.ecs.personable[id].dead;
+const live = (s, id) => isResident(s,id) && s.ecs.personable?.[id] && !s.ecs.personable[id].dead;
 export const requestForTask = (s, task) => s.favours?.requests[task?.favourId];
 export const householdStore = (s, house) => s.ecs.household?.[house]?.storeId;
 export function fuelReady(s, workplaceId) {
@@ -96,7 +97,7 @@ export function updateFavours(s) {
     const giverId = family.includes(head) ? head : family[0]; if (!giverId) continue;
     const offer = (kind, targetId, quantity, reason, extra = {}) => {
       if (Object.values(s.favours.requests).some(r => r.householdId == house && r.kind == kind && ["offered", "accepted"].includes(r.status))) return;
-      const id = "favour-" + ++s.favours.nextId;
+      const id = (s.ecs.namespace || "") + "favour-" + ++s.favours.nextId;
       s.favours.requests[id] = { id, giverId, householdId: house, kind, reason, targetId, quantity,
         progress: 0, delivered: 0, produced: 0, goodwill: kind == "wood" ? 12 : quantity * 4,
         status: "offered", cargo: [], createdDay: s.days, ...extra };

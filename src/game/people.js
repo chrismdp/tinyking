@@ -1,3 +1,4 @@
+import { isResident } from "game/residents";
 import { knownEvents, learnEvent } from "game/events";
 import { topController } from "game/playable";
 
@@ -44,13 +45,14 @@ export function opinion(state, a, b) {
   const tastes = state.ecs.personality[a];
   const traits = state.ecs.personality[b].traits;
   return traits.reduce((score, trait) => score + (tastes.likes.includes(trait) ? 1 : 0) -
-    (tastes.dislikes.includes(trait) ? 1 : 0), 0) + pairVariation(state.peopleSeed, a, b);
+    (tastes.dislikes.includes(trait) ? 1 : 0), 0) + pairVariation(tastes.opinionSeed ?? state.peopleSeed, a, b);
 }
 
 export function disposition(state, a, b) {
   const score = opinion(state, a, b);
-  if (score < state.opinionThresholds.hate) return "hate";
-  if (score >= state.opinionThresholds.love) return "love";
+  const thresholds = state.ecs.personality[a].opinionThresholds || state.opinionThresholds;
+  if (score < thresholds.hate) return "hate";
+  if (score >= thresholds.love) return "love";
   return "like";
 }
 
@@ -183,7 +185,7 @@ export function drift(state, hours) {
   if (hours <= 0) return;
   const people = state.ecs.personable;
   for (const [personId, { known: list }] of Object.entries(state.ecs.relationships || {})) {
-    if (people?.[personId]?.dead) continue;
+    if (people?.[personId]?.dead || !isResident(state,personId)) continue;
     const index = relationshipIndex(list);
     for (const id of index ? inKeyOrder(index, index.active) : Object.keys(list)) {
       let bond = list[id];

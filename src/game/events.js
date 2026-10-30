@@ -76,7 +76,7 @@ function eventViewers(state, villageId, family, people) {
 export function recordEvent(state, type, people, items = [], details = {}) {
   state.events ||= [];
   const villageId = (type == "visit" ? details.toVillage : null) || state.ecs.village?.[people[0]]?.villageId || null;
-  const event = { id: "event-" + (state.events.length + 1), type, people: [...people],
+  const event = { id: (state.ecs.namespace || "") + "event-" + (state.events.length + 1), type, people: [...people],
     day: state.days, season: Math.floor(state.days / 3), villageId,
     place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],
@@ -115,6 +115,11 @@ export function eventSentence(state, event, displayName) {
   const village = state.villages?.[event.villageId]?.name;
   const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
   const text = {
+    departure: () => n(a) + " left for " + event.toWorld + (event.reason ? " · " + event.reason : " · one season on the road"),
+    arrival: () => n(a) + " arrived in " + event.worldHex,
+    world_visit: () => n(a) + " arrived from " + event.fromWorld + " to meet people",
+    return: () => n(a) + " returned home from " + event.fromWorld,
+    world_move: () => n(a) + " settled in " + event.toWorld + " after marrying",
     favour: () => n(a) + " helped " + n(b) + " with " + ({ harvest: "the harvest", wood: "fuel for the household", food: "household food" }[event.kind] || "a favour") + " (+" + event.goodwill + " goodwill)",
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),

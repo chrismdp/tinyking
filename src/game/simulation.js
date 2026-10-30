@@ -1,3 +1,5 @@
+import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
+import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
 import { socialHour } from "game/social_visits";
@@ -35,7 +37,7 @@ function updatePlanners(state, frameMod) {
 
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];
-    if (state.ecs.personable[id] && state.ecs.personable[id].dead) continue;
+    if (state.ecs.personable[id] && (state.ecs.personable[id].dead || !isResident(state,id))) continue;
 
     planner.world.actorId = id;
     if (id != state.ui.playerId) {
@@ -114,7 +116,13 @@ function starve(state, id) {
 
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
 // it changes ECS state and lists changed entities in state.redraws.
-export function createSimulation(state, { onHour } = {}) {
+export function createSimulation(state, { onHour, onTravel, onError } = {}) {
+  let pending = null;
+  const background = fn => {
+    state.worldBusy = true;
+    pending = fn().then(() => { state.worldBusy=false; pending=null; }).catch(error => { state.worldBusy=false; pending=null; state.travelError=String(error.stack || error); state.game_speed="paused"; if(onError) onError(error); else console.error(error); });
+    return pending;
+  };
   let hour = 0;
   let requestsStarted = false;
   let winter = time.season(state.days) == "winter";
@@ -138,7 +146,7 @@ export function createSimulation(state, { onHour } = {}) {
 
         for (const id in state.ecs.personable) {
           const person = state.ecs.personable[id];
-          if (person.dead) continue;
+          if (person.dead || !isResident(state,id)) continue;
           person.tiredness += time.HOUR;
           person.hunger += time.HOUR;
           person.starving = person.hunger > 2.5;
@@ -180,13 +188,24 @@ export function createSimulation(state, { onHour } = {}) {
   };
 
   return {
+    get pending() { return pending; },
     step(frameMod, realSeconds = frameMod / 60) {
+      if(pending || state.travelError) return pending;
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
       if (arriving) return;
       if (!requestsStarted) { updateFavours(state); requestsStarted = true; }
       updatePlanners(state, frameMod);
+      if(state.pendingPlayerTravel) {
+        const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
+        return background(async()=>{await completeTravel(state,order);if(onTravel)onTravel();});
+      }
+      for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
+      state.pendingNpcDepartures=[];
       advanceTime(frameMod);
+      if(state.travel && (state.travel.season < Math.floor(state.days/3) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
+        return background(()=>advanceWorldClock(state));
+      }
       if (SPEED[state.game_speed]) updateVillageLife(state);
     }
   };

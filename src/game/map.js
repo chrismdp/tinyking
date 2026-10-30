@@ -1,3 +1,4 @@
+import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
@@ -369,6 +370,20 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate)
     }
     await progressUpdate("settlements");
   }
+  // A coastal land hex can have no natural three-house clearing. It is still
+  // a community destination: establish one inland village clearing, leaving
+  // the continuous coastline alone. This is geography generation, not supplies
+  // granted by travel, and is independent of the visitor or arrival side.
+  if (!centres.length) {
+    const centre = ranked[0] || grid.filter(h => MAP_CENTRE.distance(h) < MAP_RADIUS - 4 && start.distance(h) >= 5)
+      .sort((a,b) => MAP_CENTRE.distance(a)-MAP_CENTRE.distance(b))[0];
+    const sites = [centre, ...Grid.hexagon({ center: centre, radius: 2 }).filter(h => centre.distance(h)==2)];
+    const chosen = [];
+    for (const site of sites) if (chosen.length<3 && chosen.every(h=>h.distance(site)>=2)) chosen.push(site);
+    const id = "village-1";
+    villages[id] = { id, name: prefixes[nameOffset] + suffixes[generator.random_int()%suffixes.length], centre: {x:centre.x,y:centre.y}, houses: [] };
+    for (const hex of chosen) { makeHouse(generator,settlements,grid,hex,landscape); settlements[hex].villageId=id; }
+  }
   // Keep the bedroll clearing and its farm-sized ring free of trees.
   Grid.hexagon({ center: start, radius: 1 }).forEach(hex => {
     landscape[hex].terrain = "grassland";
@@ -382,20 +397,26 @@ function discoverStartingTiles(ecs, id, center) {
   discoverTiles(ecs, { id, tiles });
 }
 
-export async function generateMap(state, seed, progressUpdate) {
+export async function generateMap(state, seed, progressUpdate, options = {}) {
   // NOTE: a new map starts with an empty space index; entity ids restart at
   // 1, so anything left from an old map would point at the wrong entities
   state.space = {};
-  state.world = generateWorld(seed);
+  state.world = options.world ? { ...options.world, home: { ...options.hex } } : generateWorld(seed);
   state.snow = {};
   state.snowRevision = 0;
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
   await generateEconomicValue(grid, landscape, progressUpdate);
-  const start = Hex(homeOf(state.world).start);
+  const start = Hex(homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
   const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, progressUpdate);
+  // Village keys also cross maps in kinship, event and courtship records.
+  if (state.ecs.namespace) {
+    for (const id of Object.keys(villages)) { const v = villages[id]; delete villages[id]; v.id = state.ecs.namespace + id; villages[v.id] = v; }
+    for (const house of Object.values(settlements)) house.villageId = state.ecs.namespace + house.villageId;
+  }
   state.villages = villages;
+  const entrances = prepareEntrances(grid, landscape, settlements, state.world, MAP_CENTRE, MAP_RADIUS);
 
   // NOTE: Every tile takes its world hex's temperature, but high ground is
   // a step colder. How high a tile is comes from the same height field the
@@ -408,13 +429,23 @@ export async function generateMap(state, seed, progressUpdate) {
     tile.temperature = tileTemperature(home.temperature,
       tile.terrain == "mountain" || ground.hex(tile).centre >= HIGH_GROUND);
   }
-  const trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
+  let trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
     biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
     start
   }).filter(tree => {
     const hex = Hex().fromPoint(tree);
     return landscape[hex]?.terrain == "grassland" && !settlements[hex];
   });
+  // Every pass has the same initial resource guarantees as the opening.
+  for (const entry of Object.values(entrances)) {
+    const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
+      biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture), start: Hex(entry.hexes[2])
+    });
+    const reached = reachableFrom(Hex(entry.hexes[2]), landscape, settlements, 4);
+    for (const tree of extra.filter(t => reached.has(String(Hex().fromPoint(t))) && Hex(entry.hexes[2]).distance(Hex().fromPoint(t)) >= 2)) {
+      if (!trees.some(t => Math.hypot(t.x-tree.x,t.y-tree.y)<10)) trees.push(tree);
+    }
+  }
   const generator = new MersenneTwister(seed);
 
   const houses = Object.values(settlements).map(s => {
@@ -474,7 +505,7 @@ export async function generateMap(state, seed, progressUpdate) {
     seed,
     playerStartTile,
     centre: { x: MAP_CENTRE.x, y: MAP_CENTRE.y },
-    radius: MAP_RADIUS
+    radius: MAP_RADIUS, entrances, worldKey: worldKey(state.world.home)
   };
 
   generateFamilies({ state, seed, playerStartTile, founding: true });
@@ -522,7 +553,22 @@ export async function generateMap(state, seed, progressUpdate) {
   giveTradeTools(state);
   initializeEcology(state, seed);
   generateForage(state, seed, playerStartTile);
-  updateWeather(state, 0, seed);
+  for (const entry of Object.values(entrances)) {
+    entry.tileIds = entry.hexes.map(h => tileAt(state, Hex(h).toPoint()));
+    // generateForage is idempotent only for guaranteed nearby spots; avoid
+    // rerolling the entire ecology for each pass.
+    generateForage(state, seed, entry.hexes[2], { onlyStart: true });
+    const reached = new Set(), queue = [[entry.tileIds[2], 0]];
+    for (const [id, depth] of queue) if (!reached.has(id)) { reached.add(id); if (depth < 4) for (const next of Object.values(state.ecs.walkable[id].neighbours)) queue.push([next, depth+1]); }
+    const near = id => reached.has(tileAt(state, state.ecs.spatial[id]));
+    entry.wood = Object.keys(state.ecs.tree || {}).filter(near).length;
+    entry.food = Object.keys(state.ecs.forageable || {}).filter(near).length;
+  }
+  if (options.noPlayer) {
+    for (const id of Object.keys(state.ecs.playable)) for (const component of Object.values(state.ecs)) if (component && typeof component == "object") delete component[id];
+    state.ecs.playable = {};
+  }
+  updateWeather(state, 0, options.worldSeed ?? seed);
   await progressUpdate("complete");
 
   return { playerId, map };

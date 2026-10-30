@@ -1,4 +1,4 @@
-import { historyStep, advanceSeason } from "game/social";
+import { historyStep, advanceSeason, withSocialIndex } from "game/social";
 import { createPossession, repairHouseholds } from "game/possessions";
 import { recalibrateRelationships, drift, withRelationshipIndex } from "game/people";
 import { recordEvent, withEventIndex } from "game/events";
@@ -12,7 +12,7 @@ export function generateHistory(state, seed) {
   const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "good", "haulable", "nameable", "playable", "spatial"];
   const people = new Set(Object.keys(state.ecs.personable));
   const houses = new Set(Object.keys(state.ecs.building));
-  let summary = { ecs: { nextId: state.ecs.nextId }, villages: state.villages, days: -540, peopleSeed: seed,
+  let summary = { ecs: { nextId: state.ecs.nextId, namespace: state.ecs.namespace }, villages: state.villages, days: -540, peopleSeed: seed,
     opinionThresholds: state.opinionThresholds, generatingHistory: true, events: [], knowledge: {}, social: { courtships: {}, avoidance: {} } };
   for (const key of components) summary.ecs[key] = Object.fromEntries(Object.entries(state.ecs[key] || {}).filter(([id]) => people.has(id) || houses.has(id)));
   const names = ["Silver ring", "Bronze brooch", "Carved box", "Family sword", "Psalter"];
@@ -27,13 +27,13 @@ export function generateHistory(state, seed) {
   }
   // Generation owns this detached summary. Reuse it between seasons; public
   // historyStep still copies callers' snapshots for travel/replay.
-  withEventIndex(summary, () => withRelationshipIndex(summary, () => {
+  withSocialIndex(summary, () => withEventIndex(summary, () => withRelationshipIndex(summary, () => {
     for (let season = -180; season < 0; season++) {
       summary.days = season * 3;
       drift(summary, 72);
       advanceSeason(summary, season, true);
     }
-  }));
+  })));
   for (const key of components) {
     state.ecs[key] ||= {};
     Object.assign(state.ecs[key], summary.ecs[key]);

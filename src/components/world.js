@@ -1,3 +1,4 @@
+import { initialiseTravel, acceptTravel } from "game/travel";
 import { acceptFavour } from "game/favours";
 import { name } from "game/name";
 import * as React from "react";
@@ -27,6 +28,9 @@ import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
 
 const renderMap = (webgl, state, selectEntity, renderUI, t) => {
+  state.ticker?.destroy();
+  state.ticker = createTicker();
+  state.ticker.start();
   if (state.renderer) {
     state.renderer.dispose();
   }
@@ -38,7 +42,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
-  const simulation = createSimulation(state, { onHour: renderUI });
+  const simulation = createSimulation(state, { onHour: renderUI, onTravel: () => renderMap(webgl,state,selectEntity,renderUI,t), onError: error => { console.error(error); renderUI(); } });
   let uiTime = 0;
   state.ticker.add(() => {
     if (performance.now() - uiTime > 250) { uiTime = performance.now(); renderUI(); }
@@ -90,7 +94,7 @@ export function World() {
   const t = useTranslate();
 
   const selectEntity = React.useCallback((id, touch) => {
-    if (!introActive(state) && !state.ui.show.main_menu) {
+    if (!introActive(state) && !state.worldBusy && !state.ui.show.main_menu) {
       if (state.ecs.personable[id] && id != state.ui.playerId) {
         setPopupInfo({});
         state.ui.show.selected_person = id;
@@ -151,7 +155,7 @@ export function World() {
         renderUI();
       },
       set_speed: (speedClass) => {
-        if (introActive(state)) return;
+        if (introActive(state)||state.worldBusy) return;
         state.game_speed = speedClass;
         renderUI();
       },
@@ -180,12 +184,18 @@ export function World() {
         startIntro(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" });
         renderUI();
       },
+      travel: tileId => {
+        if (introActive(state)||state.worldBusy) return;
+        if (acceptTravel(state,tileId)) { setPopupInfo({}); state.ui.show.world_overview=false; }
+        renderUI();
+      },
+      dismiss_travel: () => { setPopupInfo({}); renderUI(); },
       skip_intro: () => {
         skipIntro(state);
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        if (introActive(state)) return;
+        if (introActive(state)||state.worldBusy) return;
         if (job.key == "build_shelter") {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
@@ -194,16 +204,16 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
-      accept_favour: id => { if (introActive(state)) return; acceptFavour(state, id); renderUI(); },
+      accept_favour: id => { if (introActive(state)||state.worldBusy) return; acceptFavour(state, id); renderUI(); },
       talk_to: (personId, key, metadata) => {
-        if (introActive(state)) return;
+        if (introActive(state)||state.worldBusy) return;
         enqueueTask(state, { key }, personId, metadata);
         renderUI();
       },
-      reorder_task: (id, index) => { if (introActive(state)) return; reorderTask(state, id, index); renderUI(); },
-      cancel_task: id => { if (introActive(state)) return; cancelTask(state, id); renderUI(); },
+      reorder_task: (id, index) => { if (introActive(state)||state.worldBusy) return; reorderTask(state, id, index); renderUI(); },
+      cancel_task: id => { if (introActive(state)||state.worldBusy) return; cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
-        if (introActive(state)) return;
+        if (introActive(state)||state.worldBusy) return;
         cancelJob(state, managerId, key, targetId);
         setPopupInfo({});
         renderUI();
@@ -213,6 +223,7 @@ export function World() {
       },
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
+        state.travel=null;state.residents=null;state.worldBusy=false;state.travelError=null;state.transition=null;state.pendingPlayerTravel=null;state.pendingNpcDepartures=[];
         state.knowledge = {};
         state.talking = {};
         state.ui.talkResult = null;
@@ -231,6 +242,7 @@ export function World() {
         const results = await generateMap(state, seed, state.ui.actions.progress_update);
         state.map = results.map;
         state.ui.playerId = results.playerId;
+        initialiseTravel(state,seed);
         if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
         // Hold the new world still while the player chooses their character.

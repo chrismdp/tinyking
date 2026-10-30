@@ -1,8 +1,9 @@
+import { entityId } from "game/residents";
 import { Hex } from "game/map";
 
 export function newEntities(state, entities, prefix = "") {
   return entities.map(entity => {
-    const id = prefix + (state.ecs.nextId++);
+    const id = entityId(state.ecs, prefix);
     for (const name in entity) {
       if (!state.ecs[name]) {
         state.ecs[name] = {};

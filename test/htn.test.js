@@ -86,15 +86,13 @@ describe("HTN planning", () => {
     const [plan, world] = sut.solve(rep, [], [["find_food"]]);
 
     // NOTE: picking up the gruel happens inside the first find_food descent;
-    // the second find_food must see that held gruel and choose to eat it.
+    // the second find_food must see that held gruel and eat it at the pickup place.
     expect(plan).toEqual([
       ["find_place", "haulable_with gruel", "haulable_with_good", "gruel"],
       ["walk_to", "haulable_with gruel"],
       ["pick_up_entity_with_good", "haulable_with gruel", "gruel"],
       ["forget_place", "haulable_with gruel"],
       ["set_label"],
-      ["find_place", "meet", "space", undefined],
-      ["walk_to", "meet"],
       ["set_label", "eating"],
       ["eat", "gruel"]
     ]);

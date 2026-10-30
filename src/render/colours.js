@@ -31,5 +31,12 @@ export const SELECTED = 0xFFF2A8;
 // controller's id. None of these are red, which belongs to the player.
 const OTHER_REALMS = [ 0x3D7DD9, 0x35B5A6, 0xA45CD6, 0xE0B83A, 0x6E8BA8, 0xEDEDED ];
 
-export const realmColour = (controllerId, playerId) =>
-  controllerId == playerId ? PLAYER_REALM : OTHER_REALMS[(+controllerId || 0) % OTHER_REALMS.length];
+export function realmColour(controllerId, playerId) {
+  if (controllerId == playerId) return PLAYER_REALM;
+  let index = Number(controllerId);
+  if (!Number.isFinite(index)) {
+    index = 0;
+    for (const character of String(controllerId)) index = (Math.imul(index, 31) + character.charCodeAt(0)) >>> 0;
+  }
+  return OTHER_REALMS[index % OTHER_REALMS.length];
+}

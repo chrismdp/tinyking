@@ -27,7 +27,7 @@ it("shows the same real wood phase above the person as in the queue", () => {
 
 it("labels current eating and walking rather than a stale forge plan, matching the person sheet", () => {
   const planner = { task: ["eat", "grain"], world: { label: "at_forge", places: { meet: { id: "green", x: 0, y: 0 } } } };
-  const state = { ui: { playerId: "traveller" }, intro: { active: true },
+  const state = { ui: { playerId: "traveller" }, intro: { active: false },
     ecs: { planner: { p: planner }, profession: { p: { trade: "smith" } }, meetingPlace: { green: { kind: "green" } } } };
   const e = { id: "p", personable: { size: 20, body: 0x4E3F30, hair: 0 }, planner };
   person(state, e, key => key, { realm: 0xFFFFFF });

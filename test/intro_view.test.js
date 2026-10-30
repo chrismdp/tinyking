@@ -12,7 +12,7 @@ import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 import { CAMP_LAYOUT, INTRO_TIMING, startIntro, updateIntro, skipIntro } from "game/intro";
 
-it.each(["walking", "putting-down", "standing"])("hides only the player's activity and label marker offset during the active %s pose", pose => {
+it.each(["walking", "putting-down", "standing"])("hides player and NPC activity and label marker offsets during the active %s pose", pose => {
   const planner = { task: null, world: {} };
   const state = { ui: { playerId: "p" }, intro: { active: true, pose, elapsed: 1.4, putDown: pose == "standing" ? 1 : 0.5 },
     ecs: { good: {}, planner: { p: planner, npc: { task: ["eat", "grain"] } } } };
@@ -24,8 +24,9 @@ it.each(["walking", "putting-down", "standing"])("hides only the player's activi
   poseArrivalPerson(player, state.intro, 20);
   expect(player.getObjectByName("arrival-bundle").visible).toBe(pose != "standing");
   expect(player.getObjectByName("seated-figure")).toBeUndefined();
-  person(state, { ...e, id: "npc", planner: state.ecs.planner.npc }, x => x, { realm: 0xFFFFFF });
-  expect(label).toHaveBeenLastCalledWith("tasks.eating");
+  const npc = person(state, { ...e, id: "npc", planner: state.ecs.planner.npc }, x => x, { realm: 0xFFFFFF, selected: true });
+  expect(label).not.toHaveBeenCalled();
+  expect(npc.getObjectByName("marker").userData.bob).toBe(personHeight(20) + 16);
 });
 
 const openingView = () => {
@@ -46,28 +47,44 @@ const openingView = () => {
     planner: { task: null, world: {} }, playable: { known: grid.map(h => ({ x: h.x, y: h.y })) }, controllable: {} }]);
   state.ui.playerId = id;
   state.ecs.controllable[id].controllerId = id;
-  state.redraws.push(id);
+  const npcs = newEntities(state, [null, ["eat", "grain"], ["trade_work", "forge"]].map(task => ({
+    spatial: { x: 0, y: 0 }, personable: { size: 20, body: 0x4E3F30, hair: 0 },
+    planner: { task, world: {} }, profession: { trade: "smith" }, controllable: { controllerId: id }
+  })));
+  state.redraws.push(id, ...npcs);
   const domElement = { clientWidth: 1440, clientHeight: 900, style: {}, addEventListener() {}, removeEventListener() {} };
   const view = createWorldView({ domElement, render() {} }, state, { t: x => x, onSelect() {} });
-  return { state, view, id };
+  return { state, view, id, npcs };
 };
 
-it.each(["watch", "skip", "url"])("refreshes the existing player model on intro entry and %s handover without planner redraws", method => {
+it.each(["watch", "skip", "url"])("refreshes existing player and NPC labels on intro entry and %s handover without planner redraws", method => {
   global.window = { addEventListener() {}, removeEventListener() {} };
-  const { state, view, id } = openingView();
-  const activities = () => view.objectOf(id).children.filter(c => c.userData.activity).map(c => c.userData.activity);
+  const { state, view, id, npcs } = openingView();
+  const activities = (personId = id) => view.objectOf(personId).children.filter(c => c.userData.activity).map(c => c.userData.activity);
+  const npcActivities = [["tasks.idle"], ["tasks.eating"], ["tasks.at_forge"]];
+  const npcMarker = () => view.objectOf(npcs[1]).getObjectByName("marker").userData.bob;
   try {
+    state.ui.show.selected_person = npcs[1];
     view.frame();
     expect(activities()).toEqual(["tasks.idle"]);
+    expect(npcs.map(activities)).toEqual(npcActivities);
+    expect(npcMarker()).toBe(personHeight(20) + 32);
+    expect(state.redraws).toEqual([]);
     startIntro(state, { skip: method == "url" });
+    for (const npc of npcs) expect(state.redraws).not.toContain(npc);
     view.frame();
     if (method != "url") {
       expect(activities()).toEqual([]);
+      expect(npcs.map(activities)).toEqual([[], [], []]);
+      expect(npcMarker()).toBe(personHeight(20) + 16);
       if (method == "watch") updateIntro(state, INTRO_TIMING.duration);
       else skipIntro(state);
+      for (const npc of npcs) expect(state.redraws).not.toContain(npc);
       view.frame();
     }
     expect(activities()).toEqual(["tasks.idle"]);
+    expect(npcs.map(activities)).toEqual(npcActivities);
+    expect(npcMarker()).toBe(personHeight(20) + 32);
     expect(view.objectOf(id).getObjectByName("arrival-bundle").visible).toBe(false);
     expect(view.objectOf(id).getObjectByName("seated-figure")).toBeUndefined();
     state.ui.selected = id;

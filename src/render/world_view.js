@@ -308,7 +308,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const changedIntro = lastIntro != state.intro || wasArriving != arriving;
       if (changedIntro) {
         // Refresh cinematic label visibility even when the planner stays idle.
-        if (state.intro) state.redraws.push(state.ui.playerId);
+        if (state.intro) state.redraws.push(state.ui.playerId, ...people);
         if (campSetup) {
           scene.remove(campSetup);
           models.disposeObject(campSetup);

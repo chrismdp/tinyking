@@ -12,6 +12,19 @@ Existing sleeping, loose goods, shelter placement and camp names therefore use t
 During setup, the renderer draws temporary pieces without creating a usable camp in the game state.
 Skipping uses the same completion function as watching.
 
+During the opening, all ordinary person activity bubbles stay hidden.
+Selection markers also omit the extra height that makes room for those bubbles.
+The renderer refreshes existing player and NPC models at entry and handover, even when their planners do not request a redraw.
+After watching or skipping, ordinary activity bubbles and marker heights return.
+The HUD skip prompt remains visible during the opening.
+
+The intro review changed the earlier requirement that kept NPC bubbles visible.
+`test/intro_view.test.js` now requires hidden NPC bubbles during the opening and restored idle, eating and trade bubbles after watch and skip.
+Its existing player, marker, bundle and animation assertions remain.
+`test/wood_task_view.test.js` tests ordinary NPC activity after the opening. Its eating, walking, trade, death and wood assertions remain.
+Run `node scripts/intro-npc-label-shots.js http://localhost:8120/` against a server with hot and live reload disabled.
+The script captures desktop and phone labels through real watch and skip inputs. It only reads game state.
+
 ## Timing and entry selection
 
 The opening lasts 5.2 seconds, independent of simulation speed.

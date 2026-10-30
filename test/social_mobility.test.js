@@ -203,3 +203,12 @@ it("excludes cousins, grandparents and a married distant person without excludin
   intimate(s, a, b); intimate(s, a, kin);
   expect(canCourt(s, a, b)).toBe(false); expect(canCourt(s, a, kin)).toBe(false);
 });
+
+it("can seek a partner even when an old family friendship has unbounded goodwill", () => {
+  const { state: s, a, b, parent } = communities();
+  s.days = 18 / 24; s.opinionThresholds = { hate: -100, love: -99 };
+  s.ecs.relationships[a].known[parent] = { ring: "personal", goodwill: 2000, base: 36 };
+  s.ecs.relationships[parent].known[a] = { ring: "personal", goodwill: 2000, base: 36 };
+  socialHour(s);
+  expect(s.ecs.planner[a].world.social.partnerId).toBe(b);
+});

@@ -1,7 +1,7 @@
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { advanceSeason, eligiblePartner, socialPreference } from "game/social";
+import { advanceSeason, eligiblePartner, romanticInterest, compareSocial } from "game/social";
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
 const idle = p => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
@@ -30,6 +30,8 @@ export function socialHour(s) {
   }
   if (hour < 14 || hour >= 21) return;
   const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && idle(s.ecs.planner[id]));
+  const seekers = new Set(ids.filter(a => ids.some(b => romanticInterest(s, a, b))));
+  ids.sort((a, b) => Number(seekers.has(b)) - Number(seekers.has(a)));
   const used = new Set();
   // Allow a wish to meet a partner, or an existing relationship, to motivate travel.
   for (const a of ids) {
@@ -43,7 +45,7 @@ export function socialHour(s) {
       return (nearby || eligiblePartner(s, a, b) || bond && bond.ring != "public") &&
         !(s.social.avoidance?.[[a, b].sort().join(":")] > s.days) &&
         s.social.lastVisits?.[[a, b].sort().join(":")] != Math.floor(s.days);
-    }).sort((b, c) => socialPreference(s, a, c) - socialPreference(s, a, b) || (pa.x - s.ecs.spatial[b].x) ** 2 + (pa.y - s.ecs.spatial[b].y) ** 2 - (pa.x - s.ecs.spatial[c].x) ** 2 - (pa.y - s.ecs.spatial[c].y) ** 2 || b.localeCompare(c));
+    }).sort((b, c) => compareSocial(s, a, b, c) || (pa.x - s.ecs.spatial[b].x) ** 2 + (pa.y - s.ecs.spatial[b].y) ** 2 - (pa.x - s.ecs.spatial[c].x) ** 2 - (pa.y - s.ecs.spatial[c].y) ** 2 || b.localeCompare(c));
     const b = candidates.find(b => {
       const to = navAt(s, s.ecs.spatial[b]);
       const route = to && path(s, from, to);

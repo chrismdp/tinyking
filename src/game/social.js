@@ -64,7 +64,10 @@ export function eligiblePartner(s, a, b) {
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
-export const socialPreference = (s, a, b) => (romanticInterest(s, a, b) ? 200 : 0) + (s.ecs.relationships[a].known[b]?.goodwill || 0);
+export function compareSocial(s, a, b, c) {
+  return Number(romanticInterest(s, a, c)) - Number(romanticInterest(s, a, b)) ||
+    (s.ecs.relationships[a].known[c]?.goodwill || 0) - (s.ecs.relationships[a].known[b]?.goodwill || 0);
+}
 
 export function canCourt(s, a, b) {
   return s.ecs.relationships[a]?.known[b]?.ring == "intimate" && s.ecs.relationships[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b);
@@ -259,22 +262,22 @@ export function advanceSeason(s, season, summary = false) {
       byVillage.get(village).push(id);
     }
     const paired = new Set();
-    const order = roster.map(id => ({ id, order: roll(s, season + ":order:" + id) })).sort((a, b) => a.order - b.order).map(p => p.id);
+    const order = roster.map(id => ({ id, order: roll(s, season + ":order:" + id) })).sort((a, b) => Number(singles.has(b.id)) - Number(singles.has(a.id)) || a.order - b.order).map(p => p.id);
     for (const a of order) {
       if (paired.has(a)) continue;
       const locals = byVillage.get(ecs.village[a]?.villageId) || [];
       const friends = Object.keys(ecs.relationships[a].known).filter(id => live.has(id) && ecs.relationships[a].known[id].ring != "public");
       const localOrFriend = new Set([...locals, ...friends]);
       const candidates = new Set([...localOrFriend, ...(singles.has(a) ? singles : [])]);
-      let b, best = -Infinity;
+      let b, best = -Infinity, bestInterest = false;
       for (const id of candidates) {
         if (id == a || paired.has(id)) continue;
         const key = a < id ? a + ":" + id : id + ":" + a;
         if (s.social.avoidance[key] > s.days) continue;
         const seeking = singles.has(a) && singles.has(id) && !related(s, a, id);
         if (!localOrFriend.has(id) && !seeking) continue;
-        const score = (seeking && mutualAttraction(s, a, id) ? 200 : 0) + (ecs.relationships[a].known[id]?.goodwill || 0);
-        if (score > best || score == best && id.localeCompare(b) < 0) { b = id; best = score; }
+        const interest = seeking && mutualAttraction(s, a, id), score = ecs.relationships[a].known[id]?.goodwill || 0;
+        if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && id.localeCompare(b) < 0)) { b = id; best = score; bestInterest = interest; }
       }
       if (!b) continue;
       paired.add(a); paired.add(b);

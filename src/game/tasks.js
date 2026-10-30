@@ -1001,7 +1001,7 @@ export function tend_garden(state, actorId, world, dt, firstRun, gardenId) {
 
 export function play_together(state, actorId, world, dt, firstRun, partnerId) {
   const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
-  if (!v || v.kind != "play" || other?.partnerId != actorId || state.ecs.personable[partnerId]?.dead || state.ecs.personable[actorId].age >= 18 || state.ecs.personable[partnerId].age >= 18 || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
+  if (!v || v.kind != "play" || other?.partnerId != actorId || world.capturedBy || state.ecs.planner[partnerId]?.world.capturedBy || state.ecs.planner[partnerId]?.world.feeling.hungry || state.ecs.planner[partnerId]?.world.feeling.tired || state.ecs.personable[partnerId]?.dead || state.ecs.personable[actorId].age >= 18 || state.ecs.personable[partnerId].age >= 18 || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
   if (!v.started) {
     if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return Task.CONTINUE;
     v.started = other.started = state.days;

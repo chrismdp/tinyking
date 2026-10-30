@@ -7,7 +7,6 @@ export function gardenHelp(state, actor, childrenByHome) {
   const ecs = state.ecs, age = ecs.personable?.[actor]?.age;
   if (age < 6 || ecs.playable?.[actor] || !isResident(state, actor) || season(state.days) == "winter" || hour_of_day(state.days) < 8 || hour_of_day(state.days) >= 18) return null;
   const home = ecs.household?.[actor]?.houseId;
-  if (age < 18 && ecs.planner?.[actor]?.world.lastGardenHelp?.day >= Math.floor(state.days)) return null;
   // Leave this light household work to a comfortable older child when one is
   // available; adults keep the fields and trades moving and cover care otherwise.
   if (age >= 18 && (childrenByHome?.get(home) || []).some(id => {

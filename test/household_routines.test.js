@@ -90,3 +90,78 @@ it("a child without a vegetable garden weeds an actual sown household field, the
   step(1);
   expect(s.ecs.farmable[field].slots[0].state).toBe("empty");
 });
+
+it("lets available children complete several bounded play episodes and perform real care between them", () => {
+  const { state: s, a, b, tiles, step } = household();
+  s.ecs.personable[a].age = 9; s.ecs.personable[b].age = 11;
+  const episodes = new Map(); let field;
+  for (let minute = 0; minute < 6 * 60; minute++) {
+    step(1 / 60);
+    const done = s.ecs.planner[a].world.lastPlay;
+    if (done) episodes.set(done.ended, { ...done });
+    if (episodes.size == 1 && !field) {
+      [field] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[3]] }, controllable: { controllerId: tiles[3] },
+        farmable: { houseId: tiles[3], claimerId: null, slots: [{ state: "sown", content: "grain", growth: 0 }] } }]);
+      s.ecs.household[tiles[3]].fields = [field];
+    }
+  }
+  expect(episodes.size).toBeGreaterThanOrEqual(3);
+  for (const episode of episodes.values()) {
+    expect(episode.partnerId).toBe(b);
+    expect(episode.ended - episode.started).toBeGreaterThanOrEqual(.5 / 24 - 1e-8);
+    expect(episode.ended - episode.started).toBeLessThan(2 / 24);
+  }
+  expect([a,b]).toContain(s.ecs.farmable[field].slots[0].tendedBy);
+  const help = [a,b].map(id=>s.ecs.planner[id].world.lastGardenHelp).find(h=>h?.gardenId==field);
+  expect(help.day).toBeGreaterThan([...episodes.values()][0].ended);
+  expect(help.day).toBeLessThan([...episodes.values()].at(-1).started);
+  expect(s.ecs.farmable[field].slots[0].growth).toBeGreaterThan(3 / 24);
+});
+
+it("fits child play travel to actual terrain/time rather than excluding a reachable green beyond ten route nodes", () => {
+  const { state: s, a, b, tiles, step } = household();
+  const { Hex } = require("game/hex"), { addBidirectionalLink, path } = require("game/pathfinding");
+  const side = Object.keys(s.ecs.walkable[tiles[0]].neighbours).find(side => s.ecs.walkable[tiles[0]].neighbours[side] == tiles[1]);
+  for (let i = 6; i < 16; i++) {
+    const [tile] = newEntities(s, [{ spatial: { ...Hex(i,0).toPoint(), immovable: true }, mappable: { terrain: "grassland" }, walkable: { worn: {}, speed: 2, neighbours: {} } }]);
+    addBidirectionalLink(s.ecs, tiles.at(-1), side, tile); tiles.push(tile);
+  }
+  for (const nav of Object.values(s.ecs.walkable)) nav.speed = 2;
+  s.ecs.personable[a].age = 9; s.ecs.personable[b].age = 11;
+  s.villages.village.sharedPlaces = [tiles[14]];
+  s.ecs.meetingPlace[tiles[14]] = { kind: "green", gatheringPoints: [{...s.ecs.spatial[tiles[14]]},{...s.ecs.spatial[tiles[14]],x:s.ecs.spatial[tiles[14]].x+35}] };
+  const route = path(s,tiles[3],tiles[14]);
+  expect(route.length).toBeGreaterThan(10);
+  expect(route.reduce((n,t)=>n+1/s.ecs.walkable[t.id].speed,0)/10+.5).toBeLessThan(2);
+  s.days=10/24;
+  for(const id of [a,b]) {s.ecs.planner[id].task=["wait_for",1];s.ecs.planner[id].plan=[];}
+  socialHour(s);
+  expect(s.ecs.planner[a].world.social).toMatchObject({kind:"play",partnerId:b});
+  step(2);
+  expect(s.ecs.planner[a].world.lastPlay).toMatchObject({partnerId:b});
+});
+
+it("interrupts child play for a real meal and respects a partner's captured attention", () => {
+  const { state: s, a, b, step } = household();
+  s.ecs.personable[a].age=9;s.ecs.personable[b].age=11;
+  s.days=10/24;
+  for(const id of [a,b]) {s.ecs.planner[id].task=["wait_for",1];s.ecs.planner[id].plan=[];}
+  socialHour(s);
+  for(let i=0;i<120&&s.ecs.planner[a].task?.[0]!="play_together";i++)step(1/60);
+  expect(s.ecs.planner[a].task[0]).toBe("play_together");
+  const [grain]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},good:{type:"grain",amount:1},haulable:{},controllable:{controllerId:a}}]);
+  require("game/holder").give(s.ecs,grain,a);s.ecs.planner[a].world.holding.grain=true;s.ecs.personable[a].hunger=1.2;
+  step(1/60);
+  expect(s.ecs.planner[a].task[0]).toBe("eat");
+  expect(s.ecs.planner[b].task?.[0]).not.toBe("play_together");
+  step(1.2);
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.2);
+  expect(s.ecs.good[grain]).toBeUndefined();
+  for(let i=0;i<120&&s.ecs.planner[a].task?.[0]!="play_together";i++)step(1/60);
+  expect(s.ecs.planner[a].task[0]).toBe("play_together");
+  const previous=s.ecs.planner[a].world.lastPlay?.ended;
+  s.ecs.planner[b].world.capturedBy="someone";
+  step(1/60);
+  expect(s.ecs.planner[a].task?.[0]).not.toBe("play_together");
+  expect(s.ecs.planner[a].world.lastPlay?.ended).toBe(previous);
+});

@@ -110,9 +110,13 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     // cannot reveal unexplored terrain and is not visual evidence of village life.
     report.visibilityJourney=await page.evaluate(()=>{
       const s=window.tinyking,children=Object.keys(s.residents).filter(id=>s.ecs.personable[id]?.age>=4&&s.ecs.personable[id].age<18&&!s.ecs.personable[id].dead);
-      const previous=children.find(id=>s.ecs.planner[id]?.world.lastPlay&&children.includes(s.ecs.planner[id].world.lastPlay.partnerId));
+      const navs=Object.keys(s.ecs.walkable),nearest=point=>navs.reduce((best,id)=>Math.hypot(s.ecs.spatial[id].x-point.x,s.ecs.spatial[id].y-point.y)<Math.hypot(s.ecs.spatial[best].x-point.x,s.ecs.spatial[best].y-point.y)?id:best,navs[0]);
+      const reached=new Set(),queue=[nearest(s.ecs.spatial[s.ui.playerId])];for(const id of queue)if(!reached.has(id)){reached.add(id);queue.push(...Object.values(s.ecs.walkable[id].neighbours).filter(id=>!reached.has(id)));}
+      const greenFor=id=>s.villages[s.ecs.village[id].villageId].sharedPlaces.find(id=>s.ecs.meetingPlace[id]?.kind=="green");
+      const accessible=id=>greenFor(id)&&reached.has(nearest(s.ecs.spatial[greenFor(id)]));
+      const previous=children.find(id=>accessible(id)&&s.ecs.planner[id]?.world.lastPlay&&children.includes(s.ecs.planner[id].world.lastPlay.partnerId));
       let pair=previous?[previous,s.ecs.planner[previous].world.lastPlay.partnerId]:null;
-      for(const a of pair?[]:children){const b=children.find(b=>b!=a&&s.ecs.village[a]?.villageId==s.ecs.village[b]?.villageId&&(s.ecs.household[a]?.houseId==s.ecs.household[b]?.houseId||["social","personal","intimate"].includes(s.ecs.relationships[a]?.known[b]?.ring)));if(b){pair=[a,b];break;}}
+      for(const a of pair?[]:children.filter(accessible)){const b=children.find(b=>b!=a&&s.ecs.village[a]?.villageId==s.ecs.village[b]?.villageId&&(s.ecs.household[a]?.houseId==s.ecs.household[b]?.houseId||["social","personal","intimate"].includes(s.ecs.relationships[a]?.known[b]?.ring)));if(b){pair=[a,b];break;}}
       if(!pair)throw new Error("No natural child pair in this seed");
       const village=s.villages[s.ecs.village[pair[0]].villageId],green=village.sharedPlaces.find(id=>s.ecs.meetingPlace[id]?.kind=="green");
       const fields=[...new Set(pair.flatMap(id=>s.ecs.household[s.ecs.household[id].houseId]?.fields?.slice(0,1)||[]))];
@@ -131,7 +135,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
       for(const [id,c] of Object.entries(s.ecs.container))o.storesBefore[id]={...c.amounts};
       let last=-Infinity;const watch=()=>{if(s.days-last>=1/24/4){last=s.days;for(const id of Object.keys(s.residents)){const p=s.ecs.planner[id],person=s.ecs.personable[id];if(!p||person?.dead||!person||id==s.ui.playerId)continue;const key=p.task?.[0]||"none";o.counts[key]=(o.counts[key]||0)+1;const kind=key=="play_together"?"child-play":key=="tend_garden"&&person.age<18?"child-help":key=="socialise"?"adult-conversation":null;
         if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
-        if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);if(p.world.lastPlay?.ended>=o.start&&!o.play.some(x=>x.id==id))o.play.push({id,...p.world.lastPlay});if(p.world.lastGardenHelp?.day>=o.start&&!o.help.some(x=>x.id==id))o.help.push({id,...p.world.lastGardenHelp});}}
+        if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);if(p.world.lastPlay?.ended>=o.start&&!o.play.some(x=>x.id==id&&x.ended==p.world.lastPlay.ended))o.play.push({id,...p.world.lastPlay});if(p.world.lastGardenHelp?.day>=o.start&&!o.help.some(x=>x.id==id&&x.day==p.world.lastGardenHelp.day))o.help.push({id,...p.world.lastGardenHelp});}}
       if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
     await page.getByRole("button",{name:"Fast speed",exact:true}).click();
     while(true){

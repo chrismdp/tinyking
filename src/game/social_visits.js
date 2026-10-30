@@ -73,8 +73,8 @@ function startChildPlay(s, ids, hour) {
   if (hour < 10 || hour >= 19) return;
   const children = ids.filter(id => s.ecs.personable[id].age >= 4 && s.ecs.personable[id].age < 18);
   for (const a of children) {
-    if (s.ecs.planner[a].world.social || s.ecs.planner[a].world.lastPlay?.ended >= Math.floor(s.days)) continue;
-    const b = children.find(b => b != a && !s.ecs.planner[b].world.social && !(s.ecs.planner[b].world.lastPlay?.ended >= Math.floor(s.days)) && s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&
+    if (s.ecs.planner[a].world.social) continue;
+    const b = children.find(b => b != a && !s.ecs.planner[b].world.social && s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&
       (s.ecs.relationships[a]?.known[b]?.ring && s.ecs.relationships[a].known[b].ring != "public" || s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId) && !(s.social.avoidance?.[[a,b].sort().join(":")] > s.days));
     if (!b) continue;
     const green = s.villages?.[s.ecs.village[a]?.villageId]?.sharedPlaces?.find(id => s.ecs.meetingPlace?.[id]?.kind == "green");
@@ -82,12 +82,14 @@ function startChildPlay(s, ids, hour) {
     const pair = points.flatMap((p, i) => points.slice(i + 1).filter(q => (p.x-q.x)**2 + (p.y-q.y)**2 <= 70**2).map(q => [p,q])).find(pair => [a,b].every((id,i) => {
       const from=navAt(s,s.ecs.spatial[id]), to=navAt(s,pair[i]);
       const route=from && to && path(s,from,to);
-      return route && route.length < 10;
+      if (!route) return false;
+      const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / 10;
+      return hours + .5 < Math.min(2, 19 - hour);
     }));
     if (!pair) continue;
     for (const [id,partnerId,i] of [[a,b,0],[b,a,1]]) {
       const p=s.ecs.planner[id];
-      p.world.social={kind:"play",partnerId,stage:"outbound",expires:s.days+2/24,playPoints:pair};
+      p.world.social={kind:"play",partnerId,stage:"outbound",expires:Math.min(s.days+2/24,Math.floor(s.days)+19/24),playPoints:pair};
       p.world.places.socialDestination=pair[i]; p.task=null;p.plan=null;
     }
   }

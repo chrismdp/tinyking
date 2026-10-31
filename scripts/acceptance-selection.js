@@ -69,26 +69,34 @@ async function waitForOathReadiness(page,elder,villageId) {
   const observe=({elder,villageId})=>{
     const s=window.tinyking,actor=s.ui.playerId;
     return {day:s.days,readiness:window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness,
-      actor:s.ecs.planner[actor].world.feeling,elder:s.ecs.planner[elder].world.feeling};
+      actor:s.ecs.planner[actor].world.feeling,elder:s.ecs.planner[elder].world.feeling,
+      needs:{hunger:s.ecs.personable[actor].hunger,tiredness:s.ecs.personable[actor].tiredness}};
   };
   const initial=await page.evaluate(observe,{elder,villageId});
   if(initial.readiness.ok)return {initial,orders:[],after:initial};
-  const orders=["find_food","rest"];
-  await page.evaluate(keys=>{const s=window.tinyking;window.oathCareOrders=[];for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},orders);
-  await page.waitForFunction(({villageId,orders})=>{
+  const orders=[];
+  if(initial.actor.hungry && initial.needs.hunger>.9)orders.push("find_food");
+  if(initial.actor.tired && initial.needs.tiredness>.9)orders.push("rest");
+  await page.evaluate(keys=>{const s=window.tinyking;window.oathCareOrders=[];window.oathCareAttempted={};for(const key of keys){window.oathCareAttempted[key]=true;s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);}s.ui.actions.set_speed("fast");},orders);
+  await page.waitForFunction(({villageId})=>{
     const s=window.tinyking,actor=s.ui.playerId;
-    const pending=s.ecs.manager[actor].jobs.some(j=>orders.includes(j.job.key));
+    const pending=s.ecs.manager[actor].jobs.some(j=>["find_food","rest"].includes(j.job.key));
     if(!window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness.ok || pending) {
-      // NPC recovery can outlast the player's first meal/rest. Idle players
-      // need another explicit care order when their native flags return.
-      if(!pending)for(const [need,key] of [["hungry","find_food"],["tired","rest"]])if(s.ecs.planner[actor].world.feeling[need]) {
-        window.oathCareOrders.push({day:s.days,key});
-        s.ui.actions.choose_job(actor,{key},actor);
+      // Feelings remain latched until a native task finishes. Let recovery
+      // finish, and issue at most one order for each actual new need episode.
+      const planner=s.ecs.planner[actor],person=s.ecs.personable[actor];
+      for(const [need,amount,key] of [["hungry","hunger","find_food"],["tired","tiredness","rest"]]) {
+        if(person[amount]<=.9)delete window.oathCareAttempted[key];
+        if(!pending && !["eat","sleep","forage"].includes(planner.task?.[0]) && planner.world.feeling[need] && person[amount]>.9 && !window.oathCareAttempted[key]) {
+          window.oathCareAttempted[key]=true;
+          window.oathCareOrders.push({day:s.days,key});
+          s.ui.actions.choose_job(actor,{key},actor);
+        }
       }
       return false;
     }
     s.ui.actions.set_speed("paused");return true;
-  },{villageId,orders},{timeout:180000});
+  },{villageId},{timeout:180000});
   return {initial,orders,continuingCare:await page.evaluate(()=>window.oathCareOrders),after:await page.evaluate(observe,{elder,villageId})};
 }
 module.exports.waitForOathReadiness=waitForOathReadiness;

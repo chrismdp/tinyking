@@ -704,7 +704,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #game #selected-person h1 { font-size: 17px; }
   #game #selected-person .hunger-stage { font-size: 14px; }
   #game #selected-person .traits { display: none; }
-  .popper { position: fixed !important; transform: none !important; top: calc(80px + var(--safe-top)) !important; left: calc(10px + var(--safe-left)) !important; right: calc(10px + var(--safe-right)) !important; max-width: none !important; max-height: calc(100vh - 280px) !important; max-height: calc(100svh - 280px - var(--safe-top) - var(--safe-bottom)) !important; overflow: auto !important; }
+  .popper { position: fixed !important; transform: none !important; top: calc(160px + var(--safe-top)) !important; left: calc(10px + var(--safe-left)) !important; right: calc(10px + var(--safe-right)) !important; max-width: none !important; max-height: calc(100vh - 280px) !important; max-height: calc(100svh - 280px - var(--safe-top) - var(--safe-bottom)) !important; overflow: auto !important; }
   .popper .arrow { display: none; }
   .panel.panel-fixed {
     position: fixed;

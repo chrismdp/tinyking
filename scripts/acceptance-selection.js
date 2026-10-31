@@ -276,3 +276,5 @@ async function returnToLocalView(page) {
   await page.waitForFunction(() => !window.tinyking.renderer.overview);
 }
 module.exports.returnToLocalView = returnToLocalView;
+
+module.exports.earnTimberRights=earnTimberRights;

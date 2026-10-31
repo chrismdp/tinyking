@@ -81,3 +81,38 @@ it("includes a created camp field in the offscreen household summary", () => {
   expect(s.ecs.farmable[field].slots.every(slot=>slot.state=="sown")).toBe(true);
   expect(s.ecs.household[camp].livelihood.grainSown).toBe(19);
 });
+
+it("explains missing seed and resumes sowing when owned grain becomes available", () => {
+  const f=economy(2),{s,p,camp,tiles}=f;
+  create_field(s,p,s.ecs.planner[p].world,HOUR,true,tiles[1]);
+  const field=s.ecs.household[camp].fields[0];
+  s.ecs.farmable[field].slots=[{state:'ploughed'}];
+  s.ecs.container[camp].amounts={};
+  const order=enqueueTask(s,{key:'sow_field'},field);
+  f.step(1);
+  expect(order.waiting).toBe('Needs seed grain. Help with a harvest to earn some.');
+  s.ecs.container[camp].amounts.grain=1;
+  f.step(120);
+  expect(s.ecs.farmable[field].slots[0].state).toBe('sown');
+  expect(s.ecs.container[camp].amounts.grain).toBe(0);
+});
+
+it("harvests a newcomer crop to owned loose grain when the camp has no pantry", () => {
+  const f=economy(2),{s,p,camp,tiles}=f;
+  delete s.ecs.container[camp];
+  create_field(s,p,s.ecs.planner[p].world,HOUR,true,tiles[1]);
+  const field=s.ecs.household[camp].fields[0];
+  s.ecs.farmable[field].slots=[{state:'harvestable',content:'grain',amount:6}];
+  const order=enqueueTask(s,{key:'harvest_field'},field);
+  f.step(300);
+  expect(s.ecs.manager[p].jobs).not.toContain(order);
+  expect(s.ecs.farmable[field].slots[0].state).toBe('harvested');
+  const grain=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=='grain');
+  expect(grain).toHaveLength(6);
+  for(const id of grain) {
+    expect(s.ecs.controllable[id].controllerId).toBe(p);
+    const pos=s.ecs.spatial[id],home=s.ecs.spatial[camp];
+    expect(Math.hypot(pos.x-home.x,pos.y-home.y)).toBeLessThan(40);
+    expect(s.space[require('game/hex').Hex().fromPoint(pos)]).toContain(id);
+  }
+});

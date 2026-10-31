@@ -22,6 +22,7 @@ export function RequestCard({ request: r, personId }) {
     <p>{r.reason}</p><small>{r.kind == "harvest" ? "Family field" : fuelDelivery ? "Workshop fuel" : "Household stores"}{at && ` · tile ${at.x}, ${at.y}`}</small>
     {fuelDelivery && ["offered", "accepted"].includes(r.status) && <small>Household store is full · bring the log to the {FUEL_TRADES[s.ecs.workplace?.[r.workplaceId]?.trade]}.</small>}
     {r.kind == "harvest" && destination && <small>Deliver to household · tile {destination.x}, {destination.y}</small>}
+    {r.kind == "harvest" && <small>Keep one third of each patch as seed grain, rounded down. Carry the rest home.</small>}
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
       {r.status == "offered" ? <button disabled={!playerOrderAllowed(s,"favour")} aria-label={"Accept favour: " + favourTitle(r) + " for " + giver} onClick={() => s.ui.actions.accept_favour(r.id, giverId)}>Accept</button> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
     </div>

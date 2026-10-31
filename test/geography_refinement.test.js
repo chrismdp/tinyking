@@ -67,6 +67,7 @@ function plots() {
   for(const id of tiles) s.ecs.walkable[id].speed=.2;
   s.ecs.walkable[tile(Hex(0,0))].speed=1;
   s.ecs.spatial.walker={...Hex(-2,0).toPoint()};s.ecs.holder={walker:{held:[],capacity:10}};
+  s.ecs.household={walker:{houseId:"camp"},camp:{fields:[],backyards:[]}};
   s.ecs.controllable.walker={controllerId:"walker"};s.ecs.playable={};s.ecs.personable={walker:{hunger:0}};
   return {s,field,tiles,tile};
 }

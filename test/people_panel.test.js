@@ -375,3 +375,26 @@ it('counts only actor-known names in a trusted family tree and leaves unknown ca
   expect(html).toContain('1 of 3 names known');
   expect(html).not.toContain('Select an unknown person');
 });
+
+it.each([true,false])('reads a remote home owner and heir from its saved map (owner known=%s)', known => {
+  const {state,player,person,parent,tiles}=peopleWorld(), home=tiles[3];
+  state.ecs.nameable[home].nickname='Log cabin';
+  state.ecs.relationships[player].known[person]={ring:'public',goodwill:0};
+  if(known) state.ecs.relationships[player].known[parent]={ring:'public',goodwill:0};
+  const remote={ecs:structuredClone(state.ecs)};
+  state.travel={maps:{'0,0':remote},people:{}};
+  state.residents={[player]:true};
+  for(const id of [person,parent]) {
+    state.travel.people[id]=Object.fromEntries(Object.entries(remote.ecs).filter(([,records])=>records[id]).map(([key,records])=>[key,records[id]]));
+    for(const records of Object.values(state.ecs))if(records && typeof records=='object')delete records[id];
+  }
+  for(const records of Object.values(state.ecs))if(records && typeof records=='object')delete records[home];
+  const html=render(state,<PersonPanel entityId={person}/>);
+  expect(html).toContain(known?'Owner: Edith Miller':'Owner: an unknown person');
+  expect(html).toContain('Household heir: Agnes Miller');
+  expect(html).not.toContain('Unclaimed home');
+  expect(html).not.toContain('No living heir');
+  expect(html).not.toContain('an unknown person household');
+  if(!known) expect(html).not.toContain('Edith Miller');
+  expect(render(state,<FamilyTree entityId={person}/>)).toContain('◇ Heir');
+});

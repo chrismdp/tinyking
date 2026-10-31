@@ -20,7 +20,8 @@ export function routeBlocked(state,id,start,goal) {
   if(fieldAtTile(state,id))return true;
   const pen=enclosureAtTile(state,id);
   const owner=state.ecs.mappable?.[id]?.buildingPlot || state.ecs.pasture?.[pen]?.houseId || state.ecs.fence?.[pen]?.houseId;
-  if(pen && !owner)return true;
+  // A free-standing fence occupies part of a tile. The physical fence route
+  // skirts its boards; only a reserved household yard blocks the whole tile.
   return !!owner && owner!=propertyAtTile(state,start) && owner!=propertyAtTile(state,goal);
 }
 export function canReserveWorkYard(state,tileId,houseId) {

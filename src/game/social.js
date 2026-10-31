@@ -96,7 +96,7 @@ function mutualAttraction(s, a, b) {
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
 export function eligiblePartner(s, a, b, deliberate = false) {
-  return a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
+  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
@@ -264,7 +264,7 @@ export function marry(s, a, b, summary = false, deliberate = false) {
   // Retain previous spouses in event history; current spouse links are reciprocal.
   for (const id of [a, b]) {
     const old = s.ecs.kinship[id].spouse;
-    if (old) s.ecs.kinship[old].spouse = null;
+    if (s.ecs.kinship[old]) s.ecs.kinship[old].spouse = null;
   }
   s.ecs.kinship[a].spouse = b;
   s.ecs.kinship[b].spouse = a;
@@ -436,6 +436,33 @@ function settleAdults(s, summary) {
   }
 }
 
+// Retry mature courtships when fresh contact occurs between seasonal updates.
+function updateCourtships(s, season = Math.floor(s.days / 3), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
+  const used = new Set();
+  for (const a of roster) {
+    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
+      const key = a + ":" + b;
+      const started = s.social.courtships[key] ?? season;
+      s.social.courtships[key] = started;
+      if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) {
+        used.add(a);
+        used.add(b);
+      }
+    }
+  }
+}
+
+// Hourly contact can arrive just after a seasonal wedding check. Retry only
+// existing courtships so their original seasonal start and delay stay intact.
+export function retryCourtships(s) {
+  const season = Math.floor(s.days / 3);
+  for (const [key, started] of Object.entries(s.social?.courtships || {})) {
+    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - 3) continue;
+    const [a,b] = key.split(":");
+    marry(s,a,b);
+  }
+}
+
 // Live play and summary history share every demographic transition. Only
 // summary encounters stand in for navigation and timed conversations.
 export function advanceSeason(s, season, summary = false) {
@@ -531,18 +558,7 @@ function advanceSeasonRules(s, season, summary) {
       chatTogether(s, a, b, true, 6);
     }
   }
-  const used = new Set();
-  for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
-      const key = a + ":" + b;
-      const started = s.social.courtships[key] ?? season;
-      s.social.courtships[key] = started;
-      if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) {
-        used.add(a);
-        used.add(b);
-      }
-    }
-  }
+  updateCourtships(s,season,summary,roster);
   const birthVillages=Object.keys(s.villages || {});
   if(participants.some(id=>ecs.village[id]?.villageId==null && (ecs.building?.[ecs.household[id]?.houseId] || ecs.shelter?.[ecs.household[id]?.houseId]?.stage=="house")))birthVillages.push(null);
   for (const villageId of birthVillages) {

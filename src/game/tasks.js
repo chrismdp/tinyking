@@ -478,6 +478,14 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
       if (order?.job?.key == "harvest_field") order.gathered = [...(order.gathered || []), ...goods];
       if (farm.houseId) recordProduction(state,farm.houseId,actorId,slot.content,goods.length);
       if (request?.status == "accepted" && request.kind == "harvest" && request.targetId == targetId) {
+        // One third of a patch (rounded down) is the helper's gleaning share.
+        // Split the actual yield: only the household's remainder is favour cargo.
+        const gleaned = goods.splice(0, Math.floor(goods.length / 3));
+        for (const id of gleaned) {
+          delete state.ecs.household?.[id];
+          state.ecs.controllable[id].controllerId = actorId;
+        }
+        request.gleaned = [...(request.gleaned || []), ...gleaned];
         for (const id of goods) state.ecs.haulable[id].reservedFor = actorId;
         request.progress++; request.produced += goods.length; request.cargo.push(...goods);
       }
@@ -929,7 +937,10 @@ export function carry_home(state, actorId, world, dt, firstRun) {
       container.amounts[type] = (container.amounts[type] || 0) + 1;
       deleteEntity(state, held);
     } else {
+      removeFromSpace(state,held);
       Object.assign(ecs.spatial[held], { x: ecs.spatial[home].x + 22, y: ecs.spatial[home].y + 16 });
+      const ground=state.space[Hex().fromPoint(ecs.spatial[held])];
+      if(!ground.includes(held))ground.push(held);
       state.redraws.push(held);
     }
     world.gathered = gathered.filter(id => id != held);

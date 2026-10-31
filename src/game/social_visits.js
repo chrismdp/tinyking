@@ -3,7 +3,7 @@ import { conversationPositions } from "game/conversation";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { advanceSeason, eligiblePartner, romanticInterest, compareSocial } from "game/social";
+import { advanceSeason, retryCourtships, eligiblePartner, romanticInterest, compareSocial } from "game/social";
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
 const idle = (p, child) => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
@@ -25,6 +25,7 @@ export function socialHour(s) {
   s.social ||= { lastSeason: season, courtships: {}, avoidance: {} };
   if (s.social.lastSeason == null) s.social.lastSeason = season;
   while (s.social.lastSeason < season) advanceSeason(s, s.social.lastSeason + 1);
+  retryCourtships(s);
   const hour = (s.days % 1) * 24;
   for (const [id, p] of Object.entries(s.ecs.planner || {})) {
     const v = p.world.social;

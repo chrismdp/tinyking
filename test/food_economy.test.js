@@ -6,6 +6,7 @@ import * as tasks from "game/tasks";
 import { Task } from "game/htn";
 import { HOUR } from "game/time";
 import { completeTradeProduction } from "game/settlement_growth";
+import { advanceOffscreenNeeds } from "game/needs";
 import { settleSeason } from "game/settlement";
 import { stationarySupplies } from "game/stationary_care";
 import { collectShelterLog, deliverShelterLog, shelterLogSource } from "game/construction";
@@ -129,6 +130,7 @@ it("offscreen sowing consumes a full seed per slot and meals include bread and f
   settleSeason(s, 1, true);
   expect(s.ecs.farmable[field].slots.map(slot => slot.state)).toEqual(["empty", "empty"]);
   expect(s.ecs.household[camp].livelihood.grainSown).toBe(0);
+  advanceOffscreenNeeds(s,3);
   expect(s.ecs.household[camp].livelihood.foodConsumed).toBe(3);
   expect(s.ecs.container[camp].amounts.bread).toBe(0);
   expect(s.ecs.container[camp].amounts.flour).toBe(1);

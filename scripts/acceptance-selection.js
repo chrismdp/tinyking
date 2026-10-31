@@ -32,7 +32,19 @@ function fuelFriend(s) {
     rule: "Assisted read-only selection: nearest living adult fuel requester whose generated disposition towards the player is love (16 initial goodwill); two consenting Chats plus the real +12 fuel favour can reach Personal, allowing ordinary drift. The material-ready third Chat refreshes contact. No seed search or personality edits.",
     candidates: candidates.map(r => ({ person: r.giverId, favourId: r.id })) };
 }
-module.exports = { snapshot, shelterCandidates, fuelFriend };
+// The food-loop fix supplies fuel autonomously. Choose a real farming home
+// instead, then let its existing spring crop ripen during ordinary play.
+function harvestFriend(s) {
+  const player=s.ui.playerId,p=s.ecs.spatial[player];
+  const candidates=Object.keys(s.ecs.personable).filter(id=>id!=player && !s.ecs.personable[id].dead && s.ecs.personable[id].age>=18 && disposition(s,id,player)=="love")
+    .map(person=>({person,home:s.ecs.household[person]?.houseId}))
+    .map(c=>({...c,field:(s.ecs.household[c.home]?.fields || []).find(id=>s.ecs.farmable[id]?.slots.some(slot=>["sown","harvestable"].includes(slot.state)))}))
+    .filter(c=>c.field)
+    .sort((a,b)=>Math.hypot(s.ecs.spatial[a.person].x-p.x,s.ecs.spatial[a.person].y-p.y)-Math.hypot(s.ecs.spatial[b.person].x-p.x,s.ecs.spatial[b.person].y-p.y));
+  if(!candidates.length)throw new Error("Seed 13 has no attainable farming friend scenario");
+  return {...candidates[0],controller:s.ecs.controllable[candidates[0].person].controllerId,rule:"Read-only selection of the nearest living adult with love disposition and a real growing household field. Spring growth, conversations, harvest work and delivery run normally."};
+}
+module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend };
 
 // Explore reachable known frontiers. Selection reads no hidden tree positions.
 // The movement callback uses real map clicks in the mechanical driver.

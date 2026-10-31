@@ -148,3 +148,16 @@ it("returns the old overview driver through the visible You button before local 
   await returnToLocalView(page);expect(click).toHaveBeenCalledTimes(1);
   delete s.renderer;expect(JSON.stringify(s)).toBe(before);
 });
+
+it("chooses a real farming household for the storyboard when no fuel favour exists", () => {
+  const {state:s,player,person,parent,tiles}=peopleWorld();
+  s.opinionThresholds={hate:-100,love:-99};
+  s.favours={requests:{}};
+  s.ecs.farmable={crop:{houseId:tiles[3],slots:[{state:'sown',growth:0,content:'grain'}]}};
+  s.ecs.household[tiles[3]]={fields:['crop']};
+  s.ecs.personable[parent].dead=true;
+  const before=JSON.stringify(s);
+  const choice=require('../scripts/acceptance-selection').harvestFriend(s);
+  expect(choice).toMatchObject({person,home:tiles[3],field:'crop'});
+  expect(JSON.stringify(s)).toBe(before);
+});

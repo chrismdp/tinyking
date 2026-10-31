@@ -247,3 +247,18 @@ it("updates the existing wind buffer from a new hourly model sample and keeps la
   state.ui.mapLayers.wind=false;view.frame();expect(wind.visible).toBe(false);expect(state.weather).toBe(next);
   view.dispose();
 });
+
+it("keeps You and edge panning local until the camera zooms out", () => {
+  const {state,renderer}=fixture();state.world.landSeed="13:0";state.travel={maps:{}};
+  const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}});
+  const north=Hex(22,0).toPoint();
+  state.ecs.spatial.player={...north};
+  view.showRealm();view.recenter();view.frame();
+  expect(view.cameraDistance).toBe(1000);
+  expect(view.overview).toBe(false);
+  view.focusOn({x:north.x,y:north.y-100},1000);view.frame();
+  expect(view.overview).toBe(false);
+  view.focusOn(north,2300);view.frame();
+  expect(view.overview).toBe(true);
+  view.dispose();
+});

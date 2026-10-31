@@ -25,7 +25,7 @@ export function harvestFits(s, field, amount) {
   const ecs=s.ecs, house=ecs.farmable[field]?.houseId;
   if(!house)return true; // Legacy fields without a household retain their storage plans.
   const store=ecs.container?.[householdStore(s,house)];
-  if(!store)return false;
+  if(!store)return !!ecs.camp?.[house]; // Camp harvests are carried home as loose owned grain.
   let loose=0;
   for(const id of Object.keys(ecs.haulable || {})) {
     const good=ecs.good[id];

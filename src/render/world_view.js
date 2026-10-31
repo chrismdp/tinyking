@@ -430,7 +430,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect));
 
   const realmDistance = () => realm ? realm.fitDistance(camera.aspect,camera.fov,rig.pose.yaw,.95,Math.max(.5,(canvas.clientHeight-190)/canvas.clientHeight)) : wholeMapDistance();
-  const isOverview = () => realm && (rig.distance >= 2200 || Hex(state.map.centre).distance(Hex().fromPoint({ x:rig.pose.x, y:rig.pose.z })) > state.map.radius);
+  const isOverview = () => realm && (rig.distance >= 2200);
   const rig = createCameraRig(camera, canvas, {
     bounds: realm ? { centre: realm.layout.centre, apothem: realm.layout.radius } : { centre: middle, apothem },
     enabled: () => !introActive(state),
@@ -457,7 +457,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         const rect = canvas.getBoundingClientRect(), ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1, -(e.clientY-rect.top)/rect.height*2+1), camera);
         const selection = realmOverlay.pick(ray);
-        if (isOverview() || selection && selection.reachKey != state.world.home.x + "," + state.world.home.y) {
+        if (isOverview()) {
           if (selection) inspectRealm(state, selection.reachKey, selection.villageId);
           return;
         }

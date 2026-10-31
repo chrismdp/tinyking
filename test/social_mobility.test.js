@@ -265,7 +265,9 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   expect(canCourt(s, a, b)).toBe(false);
   const simulation = createSimulation(s), start = s.days;
   let travelled = false, intimacy, quietUntil = -Infinity;
-  for (let i = 0; i < 28 * 240; i++) {
+  // The existing wedding deadline includes the deliberate week apart. Meal
+  // and travel timing can reach Intimate late in the initial 28-day window.
+  while (s.days < (intimacy ? quietUntil + 6 : start + 28)) {
     const free = Math.floor(s.days) % 3 == 0 && s.days >= quietUntil;
     for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;
     simulation.step(6);
@@ -305,5 +307,41 @@ it("requires fresh contact to marry and clears courtship progress when mutual in
   s.ecs.relationships[b].known[a].ring = "intimate";
   s.social.contacts[key] = 15; s.days = 15; advanceSeason(s, 5);
   expect(s.social.courtships[key]).toBe(5);
+  expect(s.ecs.kinship[a].spouse).toBeNull();
+});
+
+it("marries a mature mutual Intimate couple after fresh contact between seasonal boundaries", () => {
+  const {state:s,a,b}=communities();
+  intimate(s,a,b);
+  const key=[a,b].sort().join(':');
+  s.days=9.5;
+  s.social={lastSeason:3,courtships:{[key]:0},contacts:{[key]:9.5},avoidance:{}};
+  socialHour(s);
+  expect(s.ecs.kinship[a].spouse).toBe(b);
+  expect(s.events.find(e=>e.type=='marriage'&&e.people.includes(a)&&e.people.includes(b))).toBeDefined();
+});
+
+it("does not marry a reference without a kinship record during a map rebuild", () => {
+  const {state:s,a,b}=communities();intimate(s,a,b);
+  delete s.ecs.kinship[b];
+  expect(canCourt(s,a,b)).toBe(false);
+  expect(marry(s,a,b)).toBe(false);
+});
+
+it("marries a mutual Intimate couple when an earlier spouse has only a historical reference", () => {
+  const {state:s,a,b}=communities();intimate(s,a,b);
+  s.ecs.kinship[a].spouse='unrecorded-dead-spouse';
+  expect(canCourt(s,a,b)).toBe(true);
+  expect(marry(s,a,b)).toBe(true);
+  expect(s.ecs.kinship[a].spouse).toBe(b);
+  expect(s.ecs.kinship[b].spouse).toBe(a);
+});
+
+it("hourly wedding retries leave new courtships on the existing seasonal clock", () => {
+  const {state:s,a,b}=communities();intimate(s,a,b);
+  s.days=.5;
+  s.social={lastSeason:0,courtships:{},contacts:{[[a,b].sort().join(':')]:.5},avoidance:{}};
+  socialHour(s);
+  expect(s.social.courtships).toEqual({});
   expect(s.ecs.kinship[a].spouse).toBeNull();
 });

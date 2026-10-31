@@ -78,11 +78,11 @@ async function opening(page) {
   url.searchParams.set("seed", "13");
   url.searchParams.delete("intro");
   await page.goto(url.href);
-  // B ordinary startup completed at 32.111s. Use the storyboard app-ready
-  // contract here; the retained 30s failure remains a performance finding.
-  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
+  // Shared-host measurement: merged 95a5682 was ready in 50.220s; baseline
+  // 1652843 took 51.410s. Allow startup scheduling headroom, separately from play.
+  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
   await page.getByText("Start new game", { exact: true }).click();
-  await page.waitForSelector(".character canvas");
+  await page.waitForSelector(".character canvas", { timeout: 120000 });
   await page.getByRole("button", { name: "Start game", exact: true }).click();
   await page.waitForFunction(() => window.tinyking.intro?.active);
   const start = await page.evaluate(() => {
@@ -329,12 +329,12 @@ async function play(page) {
   playURL.searchParams.set("seed", "13");
   playURL.searchParams.set("intro", "skip");
   await page.goto(playURL.href);
-  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
+  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
   if (await page.locator("#webpack-dev-server-client-overlay").count() > 0) {
     throw new Error("the dev server's error overlay is covering the game: fix the build's errors or warnings");
   }
   await page.getByText("Start new game").first().click();
-  await page.waitForSelector(".character canvas");
+  await page.waitForSelector(".character canvas", { timeout: 120000 });
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
   if (GIFT_ONLY) {
     await page.getByRole("button", { name: "Start game", exact: true }).click();
@@ -404,9 +404,9 @@ async function play(page) {
 
     // Start fresh again so the original interaction checks keep their empty camp.
     await page.goto(playURL.href);
-    await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
+    await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
     await page.getByText("Start new game").first().click();
-    await page.waitForSelector(".character canvas");
+    await page.waitForSelector(".character canvas", { timeout: 120000 });
     await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
     await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);

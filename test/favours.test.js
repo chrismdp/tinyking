@@ -696,3 +696,23 @@ it('settles already delivered harvest work even if family work fills the pantry 
   expect(s.ecs.manager[w.player].jobs).not.toContain(task);
   expect(s.ecs.container[w.store].amounts.grain).toBe(32);
 });
+
+it.each([true,false])('keeps a conserved gleaning share for a harvest helper (player=%s)', playerHelper => {
+  const w=favourWorld(),s=w.state,r=w.request('harvest');
+  for(const slot of s.ecs.farmable[w.field].slots)slot.amount=6;
+  const actor=w.player;
+  if(!playerHelper)delete s.ecs.playable[actor];
+  const task=acceptFavour(s,r.id);
+  s.ecs.manager[actor].ordered=true;
+  s.ecs.planner[actor].world.ordered=true;
+  advanceUntil(w,()=>r.progress==1);
+  const own=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=='grain'&&s.ecs.controllable[id].controllerId==actor);
+  expect(own.reduce((n,id)=>n+s.ecs.good[id].amount,0)).toBe(2);
+  expect(r.cargo).toHaveLength(4);
+  expect(r.produced).toBe(4);
+  expect(r.gleaned).toHaveLength(2);
+  expect(own.every(id=>!r.cargo.includes(id))).toBe(true);
+  expect(task.favourId).toBe(r.id);
+  const grain=Object.values(s.ecs.good).filter(g=>g.type=='grain').reduce((n,g)=>n+g.amount,0);
+  expect(grain).toBe(6);
+});

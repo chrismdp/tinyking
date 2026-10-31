@@ -3,7 +3,7 @@ import { eligiblePartner } from "game/social";
 import { canMarryPlayer, marriageReason, canInviteHome } from "game/family";
 import { VillageMembership } from "./village_customs";
 import { biography, disclosedPossessions } from "game/biography";
-import { isResident, personComponent } from "game/residents";
+import { isResident, personComponent, homeState } from "game/residents";
 import { PersonRequests } from "./favour_requests";
 import { displayName as knownDisplayName } from "game/knowledge";
 import { heirFor } from "game/possessions";
@@ -59,12 +59,11 @@ function relation(state, personId, otherId) {
   return "Known to you";
 }
 
-function household(state, houseId) {
-  const ecs = state.ecs;
+function household(state, houseId, ecs = state.ecs) {
   const head = houseId && ecs.controllable[houseId]?.controllerId;
   const ownerName = head && personComponent(state, "nameable", head) && displayName(state, head);
   const family = ownerName && ownerName != "an unknown person" ? ownerName.split(" ").slice(1).join(" ") : "";
-  const home = houseId ? displayName(state, houseId) : "No household";
+  const home = houseId ? (ecs.nameable?.[houseId] ? name(ecs.nameable[houseId]) : "Home") : "No household";
   return { home: home == "Log cabin" && family ? family + " cottage" : home,
     family: family || home.replace(/ cottage$| house$/i, "") };
 }
@@ -102,7 +101,8 @@ export function PersonPanel({ entityId }) {
   const subject = pronoun == "They" ? "They seem" : pronoun + " seems";
   const village = state.villages[personComponent(state, "village", entityId).villageId]?.name || "Stranger";
   const houseId = personComponent(state, "household", entityId)?.houseId;
-  const home = household(state, houseId);
+  const estate = homeState(state,entityId);
+  const home = household(state, houseId, estate.ecs);
   const left = patienceLeft(state, player, entityId);
   const dead = personComponent(state, "personable", entityId).dead;
   const present = isResident(state,entityId);
@@ -117,8 +117,8 @@ export function PersonPanel({ entityId }) {
   const gossip = state.knowledge?.[player]?.feelings[entityId] || {};
   const gifts = giftChoices(state, player);
   const trade = ecs.profession?.[entityId]?.trade;
-  const owner = houseId && ecs.controllable[houseId]?.controllerId;
-  const successor = owner && personComponent(state, "personable", owner) ? heirFor(state,owner) : null;
+  const owner = houseId && estate.ecs.controllable[houseId]?.controllerId;
+  const successor = owner && personComponent(state, "personable", owner) ? heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner) : null;
   const occupation = personComponent(state, "personable", entityId).age < 18 ? "Child" : trade ? titleCase(trade) :
     personComponent(state, "household", houseId)?.farming ? "Farming household" : null;
   const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
@@ -194,13 +194,13 @@ export function layoutFamily({ rootId, nodes }) {
 }
 
 function heirOf(state, id) {
-  const ecs = state.ecs;
-  for (const house of new Set([...Object.keys(ecs.building||{}),...Object.values(ecs.household).map(h => h.houseId)])) {
+  const estate = homeState(state,id), ecs = estate.ecs;
+  for (const house of new Set([...Object.keys(ecs.building||{}),...Object.values(ecs.household || {}).map(h => h.houseId)])) {
     if (!ecs.controllable[house]) continue;
     const head = ecs.controllable[house].controllerId, kin = personComponent(state, "kinship", head);
     if (!kin) continue;
-    const heir = heirFor(state, head);
-    if (heir == id) return household(state, house).home;
+    const heir = heirFor({...state,ecs,residents:estate.residents}, head);
+    if (heir == id) return household(state, house, ecs).home;
   }
   return null;
 }
@@ -222,6 +222,8 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   }, [entityId]);
   const close = onClose || (() => state.ui.actions.change_visibility({ selected_person: null }));
   const select = onSelect || (id => state.ui.actions.select_entity(id, false));
+  const estate = homeState(state,entityId), owner = estate.ecs.controllable[personComponent(state,"household",entityId)?.houseId]?.controllerId;
+  const heir = owner && heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner);
   const nodes = Object.values(tree.nodes), personName = tree.nodes[tree.rootId].unknown ? "an unknown person" : displayName(state, entityId);
   const unions = new Map();
   for (const node of nodes) if (node.parents.length) {
@@ -231,7 +233,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   }
   return <Sheet label={"The family of " + personName} onClose={close} className="tree-window">
     <header className="people-header"><h3>The family of {personName}</h3><span className="count">{nodes.filter(n => !n.unknown).length} of {nodes.length} names known</span><button className="sheet-close" aria-label="Close family tree" onClick={close}>×</button></header>
-    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",state.ecs.controllable[personComponent(state, "household", entityId)?.houseId]?.controllerId],["Heir",heirFor(state,state.ecs.controllable[personComponent(state, "household", entityId)?.houseId]?.controllerId)]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
+    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",owner],["Heir",heir]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
     <WeddingNotice/>
     <div className="tree-scroll" ref={scroll} tabIndex={0} aria-label="Scroll family tree"><svg className="family-tree" width={width} height={height} role="group" aria-label={"The family of " + personName}>
       <g className="kinline">{nodes.filter(n => n.spouse && n.id < n.spouse).map(n => {

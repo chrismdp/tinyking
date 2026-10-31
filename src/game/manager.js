@@ -129,6 +129,11 @@ function waitingReason(state, actorId, job) {
     return favourWaiting(state, job) || (!canReachTask(state, actorId, request?.kind == "wood" ? favourReceiver(state, request) : target) ? "No path there" : null);
   }
   if (["plough_field","sow_field","tend_field","harvest_field"].includes(job.job.key) && !ownsField(state,actorId,target))return "This is not your household's field";
+  if (job.job.key == "sow_field" && ecs.farmable[target]?.slots.some(slot=>slot.state=="ploughed")) {
+    const seed = Object.keys(ecs.good || {}).some(id=>ecs.good[id].type=="grain" && ecs.good[id].amount>=1 && householdAccess(ecs,actorId,id)) ||
+      Object.keys(ecs.container || {}).some(id=>ecs.container[id].amounts.grain>=1 && householdAccess(ecs,actorId,id));
+    if(!seed)return "Needs seed grain. Help with a harvest to earn some.";
+  }
   if (job.gatheredDone) {
     const home = deliveryHome(state,actorId);
     if (!home) return "No home for delivery";

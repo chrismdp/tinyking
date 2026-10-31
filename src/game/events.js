@@ -89,6 +89,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   const { personable, playable, spatial, village, relationships } = state.ecs;
   for (const id of eventViewers(state, villageId, family, people)) {
     if (personable[id].dead && !people.includes(id)) continue;
+    if (details.audienceIds) { if (details.audienceIds.includes(id)) learnEvent(state, id, event); continue; }
     // Players hear witnessed live news, or learn it through Ask about. No history omniscience.
     if (playable?.[id] && !people.includes(id)) {
       if (state.generatingHistory) continue;
@@ -127,6 +128,11 @@ export function eventSentence(state, event, displayName) {
     world_visit: () => n(a) + " arrived from " + event.fromWorld + " to meet people",
     return: () => n(a) + " returned home from " + event.fromWorld,
     world_move: () => n(a) + " settled in " + event.toWorld + " after marrying",
+    commons_cut: () => n(a) + " cut common woodland without permission",
+    commons_warning: () => n(a) + " warned " + n(b) + " about cutting village commons (−" + event.loss + " goodwill)",
+    commons_report: () => n(a) + " reported the cutting to elder " + n(b) + " (−" + event.loss + " goodwill)",
+    village_oath: () => n(a) + " swore the local oath with elder " + n(b),
+    village_leave: () => n(a) + " left the village before elder " + n(b),
     favour: () => n(a) + " helped " + n(b) + " with " + ({ harvest: "the harvest", wood: "fuel for the household", food: "household food" }[event.kind] || "a favour") + " (+" + event.goodwill + " goodwill)",
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),

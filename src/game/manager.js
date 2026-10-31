@@ -118,7 +118,7 @@ function waitingReason(state, actorId, job) {
   }
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (["chat", "ask_about", "give_gift"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift", "village_oath", "village_leave"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if (job.job.key == "give_gift") {
     const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
       giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);

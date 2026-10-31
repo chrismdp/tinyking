@@ -73,3 +73,14 @@ it("keeps an unintroduced queued chat target anonymous until actual timed speech
   require("game/tasks").talk(state,player,state.ecs.planner[player].world,1/24,true,person,"chat");
   expect(render()).toContain("Agnes Miller");
 });
+
+it("shows death without work, food, rest or queue instructions even with stale planner activity", () => {
+  const state = { ui: { playerId: "p", actions: {} }, ecs: {
+    manager: { p: { jobs: [] } }, personable: { p: { dead: true, hunger: 6, tiredness: 2 } },
+    nameable: { p: { nickname: "Will" } }, spatial: {},
+    planner: { p: { world: { playerWorking: true, feeling: { hungry: true } }, task: ["eat"] } }
+  } };
+  const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+  expect(html).toContain("Dead");
+  for (const instruction of ["Working more slowly", "Find food", "Rest", "Stopped to eat", "resume", "Needs food", "Needs rest", "Choose an action", "You do each job"]) expect(html).not.toContain(instruction);
+});

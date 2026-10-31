@@ -1,4 +1,5 @@
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
+import { ResourceRights } from "./village_customs";
 import { canPlaceField } from "game/land_use";
 import { frozenAt } from "game/climate";
 import { TravelOffer } from "./travel_offer";
@@ -143,6 +144,7 @@ export function Info({ entityId }) {
       </div>}
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       {entity.mappable && <TravelOffer entityId={entityId}/>}
+      <ResourceRights entityId={entityId}/>
       <TraitList traits={entity.traits}/>
       { entity.attributes && (<div>
         {

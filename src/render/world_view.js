@@ -1,5 +1,7 @@
 import { villageArea } from "game/settlement_details";
 import { label } from "render/labels";
+import { commonBoundary } from "render/customs_bounds";
+import { resourcePermission } from "game/village_customs";
 import { occupiedHomes } from "game/home";
 import { displayName } from "game/knowledge";
 import { fenceFootprints, fenceRevision } from "game/fences";
@@ -112,6 +114,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let knownCount = -1;
   let revealAll = false;
   let selected = [];
+  let commonsOutline = null;
+  let commonsRevision = null;
   let arrivalKnown = new Set();
   let lastIntro = null;
   let wasArriving = false;
@@ -503,12 +507,18 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         showKnown();
       }
       if (campSetup) models.poseCampSetup(campSetup, state.intro);
-      if (refreshKnown()) {
+      const knownChanged = refreshKnown();
+      if (knownChanged) {
         showKnown();
       }
 
       const nowSelected = currentSelection();
-      if (nowSelected.join() != selected.join()) {
+      if (knownChanged || nowSelected.join() != selected.join() || commonsRevision != state.landUseRevision) {
+        commonsRevision = state.landUseRevision;
+        if (commonsOutline) { scene.remove(commonsOutline); models.disposeObject(commonsOutline); commonsOutline = null; }
+        const tree = nowSelected.find(id => state.ecs.tree?.[id] || state.ecs.good?.[id]?.type == "wood" && !state.ecs.haulable?.[id]);
+        const permission = tree && resourcePermission(state, state.ui.playerId, tree);
+        if (permission?.kind == "common") { commonsOutline = commonBoundary(state, ground, permission.villageId, isKnown); scene.add(commonsOutline); }
         state.redraws.push(...selected, ...nowSelected);
         selected = nowSelected;
       }
@@ -615,6 +625,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     dispose() {
       rig.dispose();
       if (campSetup) models.disposeObject(campSetup);
+      if (commonsOutline) models.disposeObject(commonsOutline);
       for (const id in objects) {
         remove(id);
       }

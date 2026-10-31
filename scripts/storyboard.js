@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright-core");
 const assert = require("node:assert/strict");
-const { snapshot, shelterCandidates, fuelFriend } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, fuelFriend, discoverTimber } = require("./acceptance-selection");
 const url = new URL(process.argv[2] || "http://localhost:8108/");
 url.searchParams.set("seed", "13");
 url.searchParams.delete("intro");
@@ -98,6 +98,8 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.locator(".person-requests summary").click(); await pair("request-discovery");
     story.actions.push({ action: "Completed initial conversations", bond: await page.evaluate(id => window.tinyking.ecs.relationships[id].known[window.tinyking.ui.playerId], person) });
 
+    const exploration = await discoverTimber(page, 5);
+    story.actions.push({ action: "Walked to known eastern edge tiles and discovered real unclaimed woodland", exploration });
     const sites = shelterCandidates(await snapshot(page), selection.home);
     story.actions.push({ action: "Choose the legal camp shelter site nearest the earned friend household", site: sites[0], home: selection.home,
       positions: await page.evaluate(({ site, home }) => ({ site: window.tinyking.ecs.spatial[site], home: window.tinyking.ecs.spatial[home] }), { site: sites[0], home: selection.home }),
@@ -107,7 +109,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       const s = window.tinyking, p = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
       const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
       const candidates = Object.keys(s.ecs.good).filter(id => s.ecs.good[id].type == "wood" && s.ecs.good[id].amount > 0 && !s.ecs.haulable?.[id] &&
-        known.has(Object.keys(s.space).find(key => s.space[key].includes(id)))).sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y));
+        known.has(Object.keys(s.space).find(key => s.space[key].includes(id))) && window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted).sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y));
       const trees = []; let logs = 0;
       for (const id of candidates) { trees.push(id); logs += s.ecs.good[id].amount; if (logs >= 5) break; }
       if (logs < 5) throw new Error("Need five real discovered logs: four for the lean-to and one for the favour");

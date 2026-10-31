@@ -17,7 +17,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -676,7 +676,8 @@ async function receiveNpcs(s, j) {
           houseId: dest.ecs.household[host].houseId
         };
         dest.ecs.village[id] = {
-          ...dest.ecs.village[host],
+          ...dest.ecs.village[id],
+          villageId: dest.ecs.village[host]?.villageId,
           id
         };
       }

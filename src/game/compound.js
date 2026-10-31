@@ -52,6 +52,7 @@ export const person = () => [
       [ "find_food" ]
     ]
   ],
+  [world => world.customsVisit, () => [["customs_visit"]]],
   [
     always,
     () => [ [ "store_held" ] ]

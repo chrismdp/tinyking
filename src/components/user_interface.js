@@ -39,6 +39,7 @@ export function UserInterface() {
   return (
     <div id="ui" className={state.renderer?.overview ? "realm-inspecting" : ""}>
       {show.clock && <Clock/>}
+      {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}
       {state.ui?.successionMessage && <aside className="succession-message" role="status"><button aria-label="Dismiss succession message" onClick={()=>{state.ui.successionMessage=null;state.ui.actions.end_turn();}}>×</button>{state.ui.successionMessage}</aside>}
       {!state.ui?.familyPersonId && <WeddingNotice/>}
       <CustomsEncounter/>

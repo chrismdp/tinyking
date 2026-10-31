@@ -64,7 +64,7 @@ async function start(page, skip = false, record = false) {
       };
     });
   }, CAPTURES);
-  await page.locator(".panel .close").first().click();
+  await page.getByRole("button", { name: "Start game", exact: true }).click();
 }
 
 async function campState(page) {

@@ -80,7 +80,7 @@ async function observe(page) {
         // Let initial terrain and shader work settle in character setup.
         await page.waitForTimeout(2000);
         await observe(page);
-        await page.locator(".panel .close").first().click();
+        await page.getByRole("button", { name: "Start game", exact: true }).click();
         const prefix = `fix-${device}-${method}`;
         if (method != "url") {
           await page.waitForFunction(() => window.tinyking.intro?.active && window.tinyking.intro.elapsed >= 1.2);

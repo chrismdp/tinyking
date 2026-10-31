@@ -20,7 +20,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     await page.goto((process.argv[2] || "http://localhost:8119/") + "?seed=13");
     await page.getByText("Start new game", { exact: true }).click({ timeout: 60000 });
     await page.locator(".character canvas").waitFor();
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.waitForFunction(() => window.tinyking.intro?.active);
     await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 30000 });
     await page.getByRole("button", { name: "Pause", exact: true }).click();

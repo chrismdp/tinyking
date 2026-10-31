@@ -32,7 +32,7 @@ export function Window({ windowId, x, y, children }) {
     <div className='desktop'>
       <Draggable nodeRef={panel} handle=".handle" bounds="parent" {...attrs}>
         <div ref={panel} className={`panel scrollable${fixed ? " panel-fixed" : ""}`} style={{ "--window-y": fixed ? "0px" : `${y}px` }}>
-          <button aria-label="Close window" onClick={close} className='close'><FontAwesomeIcon icon="times"/></button>
+          <button aria-label="Close window" disabled={windowId === "mapgen" && !!state.generating} onClick={close} className='close'><FontAwesomeIcon icon="times"/></button>
           {children}
         </div>
       </Draggable>

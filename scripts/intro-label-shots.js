@@ -64,7 +64,7 @@ async function start(page, method) {
       };
     });
   }, { captures: CAPTURES, method });
-  await page.locator(".panel .close").first().click();
+  await page.getByRole("button", { name: "Start game", exact: true }).click();
   if (method == "click") await page.mouse.click(195, 300);
   if (method == "touch") await page.touchscreen.tap(195, 300);
   if (method == "escape") await page.keyboard.press("Escape");

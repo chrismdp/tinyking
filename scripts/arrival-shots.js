@@ -67,7 +67,7 @@ async function snapshots() {
     await page.getByText("Start new game").first().click();
     await page.waitForSelector(".character canvas");
     await page.screenshot({ path: path.join(SHOTS, phone ? "phone-new-game.png" : "desktop-new-game.png") });
-    await page.locator(".panel .close").click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.locator("#speed-controls button").first().click();
     for (const [label, snapshot] of Object.entries(shots)) {
       await page.evaluate(({ snapshot, player }) => {

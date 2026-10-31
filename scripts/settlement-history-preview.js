@@ -1,3 +1,4 @@
+/* global require */
 // Builder preview only. Revealed discovery and camera framing are labelled.
 // This does not repeat the independent mechanical or storyboard acceptance.
 const fs=require("fs"),path=require("path");
@@ -26,7 +27,7 @@ const record={url,initialFixture:isFixture?"prosperity":null,purpose:"Ordinary s
     await page.getByText("Start new game",{exact:true}).waitFor({timeout:60000});
     await page.getByText("Start new game",{exact:true}).click();
     await page.locator(".character canvas").waitFor();
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.waitForFunction(()=>window.tinyking?.renderer && !window.tinyking.intro?.active);
     record.elapsedToReadyMs=Date.now()-navigationStart;
     if(profile) {

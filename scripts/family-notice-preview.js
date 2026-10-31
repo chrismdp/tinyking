@@ -19,7 +19,7 @@ const url=process.argv[2]||"http://127.0.0.1:8128/";
     const page=await context.newPage();
     page.on("pageerror",e=>report.errors.push(e.stack||String(e)));
     page.on("console",m=>{if(m.type()=="error"&&!m.location().url.endsWith("favicon.ico"))report.errors.push(m.text());});
-    await page.goto(url+"?seed=13&intro=skip");await page.getByText("Start new game",{exact:true}).waitFor({timeout:60000});await page.getByText("Start new game",{exact:true}).tap();await page.locator(".character canvas").waitFor();await page.locator(".panel .close").tap();
+    await page.goto(url+"?seed=13&intro=skip");await page.getByText("Start new game",{exact:true}).waitFor({timeout:60000});await page.getByText("Start new game",{exact:true}).tap();await page.locator(".character canvas").waitFor();await page.getByRole("button", { name: "Start game", exact: true }).tap();
     await page.waitForFunction(()=>window.tinyking?.intro?.active===false);
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     if(process.argv.includes("--discovery"))try {report.exploration={assistance:"Ordinary command-assisted frontier exploration before any presentation fixture",steps:await discoverTimber(page,5)};} catch(e) {report.explorationFailure=String(e);console.error("Separate discovery check:",e.message);}

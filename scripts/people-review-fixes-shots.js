@@ -182,7 +182,7 @@ async function run(browser, phone, data) {
     await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
     await click(page.getByText("Start new game", { exact: true }));
     await page.waitForSelector(".character canvas");
-    await click(phone ? page.getByRole("button", { name: "Start game", exact: true }) : page.locator(".panel .close").first());
+    await click(phone ? page.getByRole("button", { name: "Start game", exact: true }) : page.getByRole("button", { name: "Start game", exact: true }));
     await page.waitForFunction(() => window.tinyking.ui.show.speed_controls);
     await speed(0);
     for (const [phase, expected] of [["forge", "At the forge"], ["eating", "Eating"], ["walking", "Walking to the village green"]]) {

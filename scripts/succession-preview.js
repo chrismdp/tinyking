@@ -16,7 +16,7 @@ const url=process.argv[2]||"http://localhost:8116/";
     const page=await browser.newPage({viewport:{width:1440,height:900}});
     page.on("pageerror",e=>report.errors.push(e.stack||String(e)));
     page.on("console",m=>{if(m.type()=="error"&&!m.location().url.endsWith("favicon.ico"))report.errors.push(m.text());});
-    await page.goto(url+"?seed=13&intro=skip");await page.getByText("Start new game",{exact:true}).click();await page.locator(".character canvas").waitFor();await page.locator(".panel .close").click();
+    await page.goto(url+"?seed=13&intro=skip");await page.getByText("Start new game",{exact:true}).click();await page.locator(".character canvas").waitFor();await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.waitForFunction(()=>window.tinyking?.intro?.active===false);
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     const data=await page.evaluate(()=>JSON.parse(JSON.stringify({ecs:window.tinyking.ecs,map:window.tinyking.map,space:window.tinyking.space,villages:window.tinyking.villages,peopleSeed:window.tinyking.peopleSeed,opinionThresholds:window.tinyking.opinionThresholds,ui:{playerId:window.tinyking.ui.playerId}})));

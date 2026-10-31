@@ -1,3 +1,6 @@
+import { openCharacter, closeCharacter, startGame } from "game/new_game";
+import { connectSaveWorker, createAutosave, bindAutosave } from "game/autosave";
+import { replaceGame } from "game/save_game";
 import { habitatAt, localHabitat, climateAt } from "game/biome_field";
 import { foundHousehold } from "game/family";
 import { expandedFootprint, expansionFits } from "game/settlement_growth";
@@ -26,7 +29,7 @@ import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
 
-import { startIntro, skipIntro, introActive } from "game/intro";
+import { skipIntro, introActive } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
@@ -39,13 +42,16 @@ import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
 
-const renderMap = (webgl, state, selectEntity, renderUI, t) => {
+const releaseMap = state => {
   state.ticker?.destroy();
+  state.renderer?.dispose();
+  state.renderer = null;
+};
+
+const renderMap = (webgl, state, selectEntity, renderUI, t) => {
+  releaseMap(state);
   state.ticker = createTicker();
   state.ticker.start();
-  if (state.renderer) {
-    state.renderer.dispose();
-  }
 
   // NOTE: draw everything on the first frame
   state.redraws = Object.keys(state.ecs.spatial);
@@ -54,7 +60,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
-  const simulation = createSimulation(state, { onHour: renderUI, onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
+  const simulation = createSimulation(state, { onHour: renderUI, onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
   let uiTime = 0;
   state.ticker.add(() => {
     if (performance.now() - uiTime > 250) { uiTime = performance.now(); renderUI(); }
@@ -69,6 +75,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
     const now = performance.now();
     simulation.step(frameMod, (now - simulationTime) / 1000);
     simulationTime = now;
+    state.persistence.flush();
   });
 
   state.ticker.add(() => state.renderer.frame());
@@ -160,6 +167,8 @@ export function World() {
   }, [state, popupInfo]);
 
   React.useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("seed");
+    const initialSeed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
     const webgl = new THREE.WebGLRenderer({ antialias: true });
     webgl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     webgl.setSize(window.innerWidth, window.innerHeight);
@@ -189,27 +198,45 @@ export function World() {
       },
       close_window: (id) => {
         if (id == "mapgen") {
-          state.game_speed = "normal";
-          state.ui.actions.start_game();
+          closeCharacter(state);
+          renderUI();
+          return;
         }
         delete state.ui.show[id];
         renderUI();
       },
-      custom_game: () => {
-        state.game_speed = "paused";
-        state.ui.show.main_menu = false;
-        state.ui.show.mapgen = true;
+      custom_game: async () => {
+        if (state.generating) return;
+        openCharacter(state);
+        if (!state.map || state.ecs.playable?.[state.ui.playerId]?.arrivedAt != null) await state.ui.actions.generate_map(initialSeed);
         renderUI();
       },
       start_game: () => {
-        state.ui.show.main_menu = false;
-        // TODO: Re-do the tutorial when there's more to show
-        state.ui.show.tutorial = false;
-        state.ui.show.clock = true;
-        state.ui.show.speed_controls = true;
-        state.game_speed = "normal";
-        setPopupInfo({});
-        startIntro(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" });
+        if (startGame(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" })) {
+          setPopupInfo({});
+          state.persistence.request();
+          renderUI();
+        }
+      },
+      continue_game: async () => {
+        if (state.generating) return;
+        state.generating = true;
+        renderUI();
+        try {
+          const data = await state.persistence.load();
+          if (!data) return;
+          releaseMap(state);
+          replaceGame(state, data);
+          state.worldBusy = false;
+          state.transition = null;
+          state.persistence.error = null;
+          state.ui.show.main_menu = false;
+          state.ui.show.mapgen = false;
+          setPopupInfo({});
+          renderMap(webgl, state, selectEntity, renderUI, t);
+        } catch (error) {
+          state.persistence.error = "Could not continue: " + error.message;
+        } finally { state.generating = false; }
         renderUI();
       },
       travel: tileId => {
@@ -272,18 +299,14 @@ export function World() {
         selectEntity(id, touch);
       },
       generate_map: async (seed) => {
-        state.ecs = { nextId: 1 };
-        state.travel=null;state.residents=null;state.worldBusy=false;state.travelError=null;state.transition=null;state.pendingPlayerTravel=null;state.pendingNpcDepartures=[];
-        state.customs = null; state.ui.resourceOrder = null; state.ui.customsResult = null;
-        state.knowledge = {};
-        state.talking = {};
-        state.ui.talkResult = null;
-        state.ui.familyPersonId = null;
-        state.ui.show.selected_person = null;
-        state.intro = null;
-        if (state.ticker) {
-          state.ticker.destroy();
-        }
+        if (state.generating) return;
+        state.generating = true;
+        releaseMap(state);
+        const show = { clock: true, main_menu: state.ui.show.main_menu, mapgen: state.ui.show.mapgen };
+        replaceGame(state, { ecs: { nextId: 1 }, intro: null, days: .375, game_speed: "paused", ui: { show, progress: { count: 0 } } });
+        state.worldBusy = false;
+        state.transition = null;
+        setPopupInfo({});
         state.ticker = createTicker();
         state.ticker.start();
 
@@ -297,6 +320,7 @@ export function World() {
         initialiseTravel(state,seed);
         if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
+        state.generating = false;
         // Hold the new world still while the player chooses their character.
         if (state.ui.show.main_menu || state.ui.show.mapgen) state.game_speed = "paused";
         renderMap(webgl, state, selectEntity, renderUI, t);
@@ -311,6 +335,10 @@ export function World() {
       }
     } };
 
+    let saveClient;
+    const connection = Promise.resolve().then(connectSaveWorker).then(client => { saveClient = client; });
+    state.persistence = createAutosave(state, (...args) => saveClient ? saveClient(...args) : connection.then(() => saveClient(...args)), renderUI);
+    const unbindAutosave = bindAutosave(state.persistence, window, document);
     containingDiv.current.appendChild(webgl.domElement);
 
     window.onresize = () => {
@@ -331,10 +359,16 @@ export function World() {
 
     (async () => {
       // NOTE: ?seed=1234 in the address plays that seed, to look at a world again
-      const requested = new URLSearchParams(window.location.search).get("seed");
-      const seed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
-      await state.ui.actions.generate_map(seed);
+      await state.persistence.inspect();
+      if (!state.persistence.hasSave && !state.persistence.error) await state.ui.actions.generate_map(initialSeed);
     })();
+    return () => {
+      unbindAutosave();
+      releaseMap(state);
+      webgl.dispose();
+      webgl.domElement.remove();
+      window.onresize = null;
+    };
   }, [renderUI, state, selectEntity, t]);
 
   return (

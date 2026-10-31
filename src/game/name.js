@@ -8,6 +8,7 @@ function bias(g, n) {
 }
 
 export function firstName(nameable) {
+  if (nameable.firstName) return nameable.firstName;
   const generator = new MersenneTwister(nameable.seed);
   return nameable.male ?
     male_names[bias(generator, male_names.length)] :
@@ -21,6 +22,7 @@ const SYLLABLES = [
 ];
 
 export function familyName(nameable) {
+  if (nameable.familyName) return nameable.familyName;
   const generator = new MersenneTwister(nameable.familySeed);
   const middle = generator.random_int() % 2;
   return SYLLABLES[0][generator.random_int() % SYLLABLES[0].length] +

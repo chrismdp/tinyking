@@ -41,7 +41,7 @@ const SHOTS = path.resolve(__dirname, "../shots");
       await page.waitForTimeout(8000);
       await page.getByText("Start new game").first().click();
       await page.waitForSelector(".character canvas");
-      await page.locator(".panel .close").click();
+      await page.getByRole("button", { name: "Start game", exact: true }).click();
       await page.locator("#speed-controls button").first().click();
       await page.evaluate(({ snapshot, player }) => {
         const s = window.tinyking;

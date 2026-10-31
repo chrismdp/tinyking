@@ -71,7 +71,7 @@ async function fixtures() {
       await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 30000 });
       await page.getByText("Start new game", { exact: true }).click();
       await page.waitForSelector(".character canvas");
-      await page.locator(".panel .close").click();
+      await page.getByRole("button", { name: "Start game", exact: true }).click();
       await page.waitForFunction(() => window.tinyking.ui.show.speed_controls);
       await page.waitForTimeout(8000);
       const install = async (snapshot, selected = person) => {

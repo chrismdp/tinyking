@@ -677,7 +677,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   overflow: auto;
   touch-action: pan-y;
 }
-.mobile-start { display: none; }
+.mobile-start { display: block; position: sticky; bottom: 0; width: 100%; min-height: 44px; margin-top: 12px; font-size: 18px; }
 .panel .character canvas { max-width: 100%; height: auto !important; }
 .panel .row button { min-height: 44px; height: auto; min-width: 44px; font-size: 16px; }
 .panel .row input { min-height: 38px; font-size: 16px; min-width: 0; flex: 1 1 80px; }
@@ -725,7 +725,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
     max-height: 25svh;
   }
   .custom-game h2 { margin: 10px 0; }
-  .mobile-start { display: block; position: sticky; bottom: 0; width: 100%; min-height: 44px; margin-top: 12px; font-size: 18px; }
   #game #main-menu { height: auto; min-height: 0; margin: 10px; overflow: auto; touch-action: pan-y; }
   #game #main-menu .header { font-size: 5vh; font-size: clamp(1.5rem, 5svh, 1.75rem); }
   #game #main-menu menu { font-size: 20px; }
@@ -1113,3 +1112,28 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #game #camera-actions { z-index: 24; }
   #game #opening-guidance { top: calc(155px + var(--safe-top)); }
 }
+
+// Landscape encounters use the height beside the hint. Header, scrolling
+// conversation and family footer stay inside the same bounded sheet.
+@media (orientation: landscape) and (max-height: 500px) {
+  #ui .person-window, #ui:has(#opening-guidance) .person-window {
+    top: var(--safe-top);
+    left: auto;
+    right: var(--safe-right);
+    width: 60%;
+  }
+  #ui:has(.person-window) #opening-guidance {
+    left: calc(12px + var(--safe-left));
+    transform: none;
+    width: calc(40% - 24px - var(--safe-left));
+  }
+  #ui:has(.person-window) #task-panel { visibility: hidden; }
+  #ui:has(.person-window) #realm-controls #camera-actions {
+    left: calc(12px + var(--safe-left));
+    right: auto;
+    top: calc(12px + var(--safe-top));
+  }
+}
+#save-status { position: absolute; bottom: 12px; left: 12px; max-width: min(420px, calc(100% - 36px)); background: #453a3d; padding: 10px; pointer-events: auto; z-index: 30; }
+#main-menu .save-message { font-size: 16px; line-height: 1.4; max-width: 450px; margin: 12px auto; }
+#main-menu menu button { font: inherit; min-height: 44px; }

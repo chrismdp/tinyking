@@ -20,3 +20,9 @@ it("offers an explicit start button and named settings tabs on a phone", () => {
     expect(html).toContain(`aria-label="${label}"`);
   }
 });
+
+it("disables the explicit start while world generation is in progress", () => {
+  const state = { map: {}, generating: true, ui: { actions: {} }, ecs: {} };
+  const html = renderToStaticMarkup(<GameState.Provider value={state}><CustomGame/></GameState.Provider>);
+  expect(html).toMatch(/<button[^>]*class="mobile-start"[^>]*disabled=""[^>]*>Start game<\/button>/);
+});

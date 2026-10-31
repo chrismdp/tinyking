@@ -717,19 +717,22 @@ it.each([true,false])('keeps a conserved gleaning share for a harvest helper (pl
   expect(grain).toBe(6);
 });
 
-it('a queued handover conversation frees the household crop before the accepted harvest starts', () => {
+it.each([1,6])('a queued handover frees the household crop before accepted harvest (frame=%s)', frame => {
   const w=favourWorld(),s=w.state,r=w.request('harvest'),person=w.person;
   // INITIAL autonomous worker holding the field; its long current wait makes
   // the release through actual conversation observable within a short window.
   s.ecs.planner[person]={id:person,task:['wait_for',3],plan:[['person']],world:{places:{},no_place_for:{},feeling:{},holding:{},claimedFarmable:w.field,wait_until:s.days+3,days:s.days}};
   s.ecs.farmable[w.field].claimerId=person;
   const favour=acceptFavour(s,r.id);
-  w.step(.05);
+  const simulation=require('game/simulation').createSimulation(s);
+  for(let i=0;i<3;i++)simulation.step(frame);
   expect(r.progress).toBe(0);
   expect(favour.waiting).toBe('Waiting for the family to finish this patch');
   const visit=enqueueTask(s,{key:'chat'},person);
   reorderTask(s,visit.id,0);
-  advanceUntil(w,()=>r.progress>0);
+  const deadline=s.days+4*HOUR;
+  while(r.progress==0 && s.days<deadline)simulation.step(frame);
+  expect(r.progress).toBeGreaterThan(0);
   expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
   expect(r.produced).toBe(2);
 });

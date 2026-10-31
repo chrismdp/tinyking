@@ -20,6 +20,7 @@ const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView } = require("./acceptance-selection");
 const { designationTerrain } = require("./designation-selection");
+const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
 
@@ -147,37 +148,7 @@ async function play(page) {
   // projected from the game, then kept only if the renderer's own raycast
   // finds the entity there, so a tree or villager standing in front of it
   // does not get the click. The click itself still goes through the page.
-  const clickPointFor = id => game(id => {
-    const s = window.tinyking;
-    const at = s.ecs.spatial[id];
-    if (!at) {
-      return null;
-    }
-    const camera = s.renderer.camera;
-    const canvas = document.querySelector("#world canvas");
-    const project = (x, y, z) => {
-      const v = camera.matrixWorldInverse.elements;
-      const p = camera.projectionMatrix.elements;
-      const e = [x, y, z, 1];
-      const view = [0, 1, 2, 3].map(r => v[r] * e[0] + v[4 + r] * e[1] + v[8 + r] * e[2] + v[12 + r] * e[3]);
-      const clip = [0, 1, 2, 3].map(r => p[r] * view[0] + p[4 + r] * view[1] + p[8 + r] * view[2] + p[12 + r] * view[3]);
-      return { x: (clip[0] / clip[3] + 1) / 2 * canvas.clientWidth, y: (1 - clip[1] / clip[3]) / 2 * canvas.clientHeight };
-    };
-    const ground = s.renderer.ground;
-    let points;
-    if (s.ecs.mappable[id]) {
-      // NOTE: the centre, then halfway out towards each corner
-      points = [[0, 0], [30, 0], [15, 26], [-15, 26], [-30, 0], [-15, -26], [15, -26]]
-        .map(([dx, dy]) => project(at.x + dx, ground.heightAt(at.x + dx, at.y + dy) + 0.5, at.y + dy));
-    } else {
-      const object = s.renderer.objectOf(id);
-      const top = object ? object.userData.anchorHeight || 10 : 10;
-      points = [0.6, 0.3, 0.9].map(f => project(at.x, ground.heightAt(at.x, at.y) + top * f, at.y));
-    }
-    return points
-      .filter(p => p.x > 20 && p.x < canvas.clientWidth - 20 && p.y > 20 && p.y < canvas.clientHeight - 120)
-      .find(p => s.renderer.pick(p.x, p.y) == id && document.elementFromPoint(p.x, p.y) == canvas) || null;
-  }, id);
+  const clickPointFor = id => game(browserClickPoint, id);
 
   const selectByClick = async id => {
     const at = await clickPointFor(id);
@@ -243,6 +214,13 @@ async function play(page) {
       await page.mouse.move(800 + dx, 550 + dy, { steps: 8 });
       await page.mouse.up();
       await page.waitForTimeout(100);
+    }
+    // A covered trunk can become visible from another side. Turn through the
+    // four sides with the normal orbit gesture; every hit still uses pick().
+    for(let side=0;side<4 && !await clickPointFor(id);side++) {
+      await page.mouse.move(800,350);await page.mouse.down({button:"right"});
+      await page.mouse.move(800+Math.PI/2/.006,350,{steps:8});
+      await page.mouse.up({button:"right"});await page.waitForTimeout(100);
     }
   };
 

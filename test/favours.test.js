@@ -1,3 +1,4 @@
+import { Task } from "game/htn";
 import { peopleWorld } from './support/people';
 import { newEntities, deleteEntity } from 'game/entities';
 import { updateFavours, visibleFavours, acceptFavour, finishFavour, fuelReady } from 'game/favours';
@@ -749,4 +750,18 @@ it('delivers already cut crop while a family worker holds the field claim', () =
   expect(s.ecs.farmable[w.field].claimerId).toBe(w.person);
   expect(s.ecs.container[w.store].amounts.grain).toBe(31);
   expect(r.receipts[0]).toMatchObject({amount:1,targetId:w.store});
+});
+
+it('keeps a started harvest favour available while its helper carries grain home', () => {
+  const w=favourWorld(),s=w.state,r=w.request('harvest');
+  acceptFavour(s,r.id);
+  advanceUntil(w,()=>r.progress==1);
+  const tasks=require('game/tasks'),other={places:{},no_place_for:{}};
+  expect(tasks.find_place(s,w.person,other,0,true,'crop','farmable_slot_with',['harvestable'])).toBe(Task.ABORT);
+  expect(tasks.claim_farmable(s,w.person,other,0,true,w.field)).toBe(Task.ABORT);
+  expect(s.ecs.farmable[w.field].claimerId).not.toBe(w.person);
+  advanceUntil(w,()=>r.status=='completed');
+  expect(r.progress).toBe(3);
+  expect(tasks.claim_farmable(s,w.person,other,0,true,w.field)).not.toBe(Task.ABORT);
+  expect(s.ecs.farmable[w.field].claimerId).toBe(w.person);
 });

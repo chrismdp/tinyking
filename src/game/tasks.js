@@ -405,6 +405,8 @@ const SUBTASK_TIMES = {
   "harvested": time.HOUR / 8
 };
 
+const harvestReserved = (state, actorId, targetId) => Object.values(state.favours?.requests || {}).some(r => r.kind == "harvest" && r.status == "accepted" && r.targetId == targetId && r.actorId != actorId && r.progress > 0 && r.progress < r.quantity);
+
 export function claim_farmable(state, actorId, world, dt, firstRun, target) {
   const targetId = world.places[target] || target;
   if (!targetId) {
@@ -415,6 +417,10 @@ export function claim_farmable(state, actorId, world, dt, firstRun, target) {
   if (!state.ecs.farmable[targetId]) {
     return Task.ABORT;
   }
+
+  // Once help has started, retain the requested patches during its delivery
+  // trips. Family workers can resume after the quota, cancellation or expiry.
+  if (harvestReserved(state, actorId, targetId)) return Task.ABORT;
 
   if (state.ecs.farmable[targetId].claimerId &&
     state.ecs.farmable[targetId].claimerId != actorId) {
@@ -696,6 +702,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       available = Object.keys(state.ecs.farmable).filter(id =>
         (!state.ecs.farmable[id].claimerId || state.ecs.farmable[id].claimerId == actorId) &&
         householdAccess(state.ecs, actorId, id) &&
+        !harvestReserved(state, actorId, id) &&
         state.ecs.farmable[id].slots.some(s => filterParam.includes(s.state) && (s.state != "harvestable" || harvestFits(state,id,s.amount))));
     }
     available.sort(closestSpatialTo(state, actorId));

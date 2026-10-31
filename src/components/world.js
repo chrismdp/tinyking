@@ -140,9 +140,18 @@ export function World() {
 
       popper.current = instance;
       // Info's asynchronous job offers can change the popup's dimensions.
-      const observer = new ResizeObserver(() => instance.update());
+      // Defer Popper's layout writes until ResizeObserver delivery has ended.
+      let pendingFrame = null;
+      const observer = new ResizeObserver(() => {
+        if (pendingFrame !== null) return;
+        pendingFrame = requestAnimationFrame(() => {
+          pendingFrame = null;
+          instance.update();
+        });
+      });
       observer.observe(popperElement.current);
       return () => {
+        if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
         observer.disconnect();
         instance.destroy();
         popper.current = null;

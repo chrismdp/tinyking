@@ -334,6 +334,8 @@ export function generateVillageLife(state, seed, start) {
         Object.assign(ecs.spatial[green], { x: ecs.spatial[tile].x, y: ecs.spatial[tile].y });
         state.space[keyOf(ecs.spatial[green])].push(green);
         reserve(tile);reserveBuildingClearance(state,green);
+        state.redraws.push(green);
+        state.landUseRevision=(state.landUseRevision || 0)+1;
         if(village.origin) {
           const move={day:state.days,placeId:green,fromHex,toHex:keyOf(ecs.spatial[green]),reason:"more public gathering space"};
           (village.greenMoves ||= []).push(move);

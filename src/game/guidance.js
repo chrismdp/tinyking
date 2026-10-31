@@ -41,7 +41,7 @@ export function openingGuidance(state) {
 
 export const PEOPLE_GOALS = {
   trust: "You earned someone's trust in your arrival village.",
-  story: "You learned an identified family's story.",
+  story: "You learned a family's story.",
   help: "A friend contributed to your work without being asked.",
   wedding: "You witnessed another couple's live wedding."
 };

@@ -18,7 +18,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
-const { snapshot, shelterCandidates, discoverTimber, returnToLocalView } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView } = require("./acceptance-selection");
 const { designationTerrain } = require("./designation-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
@@ -444,6 +444,18 @@ async function play(page) {
     check("clicking a villager selects it", selected, selected ? { selected } : misses);
     await shot("selected.png");
     await closePopup();
+
+    // Seed 13 has only one legal unclaimed plot in the starting discovery.
+    // Timber can already be plentiful there, so its survey need not earn the
+    // common rights required by the two separate designation checks below.
+    if ((await designationTerrain(page, true)).length < 2) {
+      const [survey] = await discoverTimber(page, 0);
+      const common = survey.commonWoodland[0];
+      if (!common) throw new Error("No discovered common woodland for designation rights");
+      const rights = await earnTimberRights(page, common);
+      fs.writeFileSync(path.join(SHOTS, "designation-rights.json"), JSON.stringify(rights, null, 2));
+      await closePopup();
+    }
 
     // Prepare two real designation sites only if standing trees block them.
     // Selection reads known terrain; every removal is an explicit native job.

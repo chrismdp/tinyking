@@ -1,9 +1,19 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { groundForState, safeTile, roadStep, ROAD_CROSS_SLOPE } from "game/geography";
 
-export const roadAllowed = tile => !!tile && !tile.cropPlot && !tile.terrain.includes("water");
+export const roadAllowed = tile => !!tile && !tile.cropPlot && !tile.buildingPlot && !tile.terrain.includes("water");
 export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && !tile.cropPlot &&
-  !tile.route?.length && !Object.values(worn).some(n => n > 0);
+  !tile.buildingPlot && !tile.route?.length && !Object.values(worn).some(n => n > 0);
+
+export const transitBlocked = (state,id) => !!state.ecs.mappable?.[id]?.buildingPlot || fieldAtTile(state,id);
+export function reserveWorkYard(state,tileId,houseId) {
+  const tile=state.ecs.mappable[tileId],walk=state.ecs.walkable[tileId];
+  if(tile?.buildingPlot)return tile.buildingPlot==houseId;
+  if(!plotAllowed(tile,walk?.worn) || walk?.trackReserved)return false;
+  tile.buildingPlot=houseId;
+  state.landUseRevision=(state.landUseRevision || 0)+1;
+  return true;
+}
 
 export function fieldAtTile(state, tileId) {
   if (!state.ecs.farmable && !state.ecs.mappable?.[tileId]?.cropPlot) return false;

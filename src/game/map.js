@@ -2,6 +2,7 @@ import { treeAllowed } from "game/tree_clearance";
 import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, suitableHouse } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
+import { reserveFoundingFields } from "game/settlement";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
 import { HEX_SIZE, Hex, Grid, ALL_SIDES } from "game/hex";
@@ -565,6 +566,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const tile=tileAt(state,site.point);
     for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(state.ecs,tile,side);
   }
+  reserveFoundingFields(state);
   generateFamilies({ state, seed, playerStartTile, founding: true });
   initializeEcology(state,seed);
   generateHistory(state, seed, options.routeHistory || []);

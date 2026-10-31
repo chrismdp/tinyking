@@ -1,11 +1,11 @@
 import { FUEL_TRADES, FUEL_HOURS } from "game/favours";
 import MersenneTwister from "mersenne-twister";
-import { Hex, ALL_SIDES } from "game/hex";
+import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities, deleteEntity } from "game/entities";
 import { generatePerson, TRIANGLES } from "game/map";
-import { generateVillageLife } from "game/villages";
+import { generateVillageLife, settlementLayoutInputs } from "game/villages";
 import { path, removeBidirectionalLink } from "game/pathfinding";
-import { reserveRoad } from "game/land_use";
+import { reserveRoad, canPlaceField, reserveFieldPlot } from "game/land_use";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
 import { groundForState, safeTile, shelterSurface } from "game/geography";
 import { topController } from "game/playable";
@@ -21,6 +21,38 @@ import crops from "data/crops.json";
 
 export const HOUSE_TIMBER = 12;
 const at = (s,point) => routeTile(s,point);
+function reserveSiteField(s,site,pads,owner) {
+  const e=s.ecs,origin=at(s,site.point),door=e.walkable[origin].neighbours[site.entrance];
+  if(!door)return null;
+  const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point));
+  const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>padHexes.every(p=>p.distance(h)>=2) &&
+    (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
+    Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2))
+    .map(h=>at(s,h.toPoint())).filter(id=>id && canPlaceField(s,id) && !(s.space[Hex().fromPoint(e.spatial[id])] || []).some(tree=>e.good?.[tree]?.type=="wood" && !e.haulable?.[tree] && e.controllable?.[tree] && topController(e,tree)!=owner))
+    .sort((a,b)=>home.distance(Hex().fromPoint(e.spatial[a]))-home.distance(Hex().fromPoint(e.spatial[b])) || String(a).localeCompare(String(b),undefined,{numeric:true}));
+  const padTiles=new Set(pads.map(p=>at(s,p.point)));
+  for(const tile of candidates) {
+    const survey={...s,ecs:{...e,mappable:{...e.mappable,[tile]:{...e.mappable[tile],cropPlot:true}}}};
+    for(const access of Object.values(e.walkable[tile].neighbours).filter(id=>!padTiles.has(id) && !e.mappable[id].cropPlot && !e.mappable[id].buildingPlot)) {
+      const route=path(survey,door,access);
+      if(!route)continue;
+      const tiles=[origin,...route.map(p=>p.id)];
+      if(reserveRoad(s,tiles) && reserveFieldPlot(s,tile))return {tile,accessTileId:access,route:tiles};
+    }
+  }
+  return null;
+}
+export function reserveFoundingFields(s) {
+  const sites=Object.values(s.settlement.sites).flat(),now=s.days;
+  for(const site of sites)for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(s.ecs,at(s,site.point),side);
+  s.days=-543;
+  try {
+    for(const site of sites) {
+      site.field=reserveSiteField(s,site,sites,null);
+      if(!site.field)throw new Error("Surveyed household lacks accessible cultivable land at "+Hex().fromPoint(site.point));
+    }
+  } finally {s.days=now;}
+}
 const historicalSurfacePlans=new WeakMap();
 function planSurface(s,point) {
   if(!s.generatingHistory)return shelterSurface(s,point);
@@ -77,6 +109,11 @@ export function constructHome(s, villageId, people, options={}) {
       if(!siteAvailable(s,trial,villageId,people))continue;
       surface=planSurface(s,trial.point);
       if(!surface)continue;
+      const preview={...s,map:{...s.map,geography:surface},redraws:[],ecs:{...e,
+        mappable:Object.fromEntries(Object.entries(e.mappable).map(([id,t])=>[id,{...t,route:t.route && [...t.route]}])),
+        walkable:Object.fromEntries(Object.entries(e.walkable).map(([id,w])=>[id,{...w,neighbours:id==tile?{[trial.entrance]:w.neighbours[trial.entrance]}:w.neighbours}]))}};
+      trial.field=reserveSiteField(preview,trial,[...Object.values(s.settlement.sites).flat(),trial],topController(e,people[0]));
+      if(!trial.field)continue;
       site=trial;sites.push(site);break;
     }
   }
@@ -87,6 +124,7 @@ export function constructHome(s, villageId, people, options={}) {
     s.map={...s.map,geography:surface};
     const ground=groundForState(s);
     for(const tile of Object.keys(e.mappable))e.mappable[tile].elevation=ground.hex(e.spatial[tile]).centre;
+    if(site.field && (!reserveRoad(s,site.field.route) || !reserveFieldPlot(s,site.field.tile)))throw new Error("Validated household field reservation changed during construction");
   }
   const fundingHouse=e.household?.[people[0]]?.houseId;
   if(options.timber==null)consumeStored(s,fundingHouse,"wood",HOUSE_TIMBER);
@@ -105,6 +143,7 @@ export function constructHome(s, villageId, people, options={}) {
   const [bed,store]=newEntities(s,[{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},sleepable:{capacity:6,level:1,occupiers:[]}},{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},container:{capacity:200,amounts:starting}}]);
   if(options.timber!=null) {funding.amounts={}; delete e.container[people[0]];}
   e.building[house].rooms=[bed,store];e.household[house].storeId=store;
+  if(site.field)e.household[house].fieldReservation=site.field;
   e.household[house].estateAccount={initial:{...starting},produced:{},consumed:{}};
   village.houses.push(house);
   if(options.timber!=null)for(const person of people) {e.household[person]={id:person,houseId:house,since:s.days};e.village[person]={id:person,villageId};}
@@ -266,8 +305,8 @@ export function settleSeason(s,season,summary=false) {
     flushJourneys(s);
   }
   // Retry unfinished initial estates when actual work has supplied materials.
-  const changedSpace=!s.generatingHistory || s.settlement.layoutTriedRevision!==s.landUseRevision;
-  if(s.settlement.estatesInitialized && Object.values(s.villages).some(v=>changedSpace && v.houses.some(id=>!s.ecs.household[id].fields.length) ||
+  const changedInputs=!s.generatingHistory || s.settlement.layoutInputs!==settlementLayoutInputs(s);
+  if(s.settlement.estatesInitialized && changedInputs && Object.values(s.villages).some(v=>v.houses.some(id=>!s.ecs.household[id].fields.length) ||
     v.houses.filter(id=>s.ecs.household[id].trade).length<Math.min(6,Math.max(0,v.houses.length-2)) &&
     v.houses.some(id=>!s.ecs.household[id].trade && (residents.get(id) || []).some(p=>s.ecs.personable[p].age>=18) && s.ecs.container[s.ecs.household[id].storeId].amounts.wood>=4) ||
     v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind)) &&

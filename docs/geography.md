@@ -196,3 +196,7 @@ Rear wings preserve the original door and its corridor. Their actual rendered
 roof bounds stay within the reservation. Field, road, ownership and existing
 building conflicts prevent expansion. Future trees use the same persisted
 reservation. Terrain and shared crossing API signatures remain unchanged.
+
+## Household work-yard reservations
+
+Settlement growth adds `reserveWorkYard(state, tileId, houseId)` and `transitBlocked(state, tileId)` to `land_use.js`. Existing field APIs retain their meaning. A work-yard reservation requires unclaimed, unworn, unrouted land and stores its household in `mappable.buildingPlot`. `reserveRoad` and `canPlaceField` reject that space. Navigation permits a yard as its actual origin/destination, while excluding it from through journeys. Wear rejects private interior work endpoints just as it rejects crop work. Existing public roads, wear, altitude, climate and tree-clearance envelopes are preserved.

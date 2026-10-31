@@ -4,7 +4,7 @@ import { Hex } from "game/hex";
 function world() {
   return { ui: { playerId: "p" }, villages: { v: { name: "Withyford", centre: { x: 6, y: 0 }, houses: ["house"] } },
     ecs: { spatial: { camp: Hex(0, 0).toPoint(), home: Hex(1, 0).toPoint(), house: Hex(6, 0).toPoint() },
-      camp: { camp: {} }, shelter: {}, controllable: { home: { controllerId: "p" }, p: { controllerId: "p" } },
+      camp: { camp: {} }, shelter: {}, controllable: { camp: { controllerId: "p" }, home: { controllerId: "p" }, p: { controllerId: "p" } },
       mappable: {}, tree: {}, farmable: {} }, space: {} };
 }
 

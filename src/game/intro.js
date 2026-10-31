@@ -1,3 +1,4 @@
+import { goalEvidence } from "game/guidance";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 
@@ -69,6 +70,7 @@ function along(points, t) {
 }
 
 export function startIntro(state, { skip = false } = {}) {
+  goalEvidence(state,state.ui.playerId);
   const route = arrivalRoute(state);
   state.intro = { ...route, active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
   state.ui.selected = null;
@@ -96,6 +98,7 @@ export function skipIntro(state) {
   state.redraws.push(campId);
   state.ui.show.speed_controls = true;
   const playable = state.ecs.playable[state.ui.playerId];
+  playable.arrivedAt ??= state.days;
   const known = new Set(playable.known.map(h => h.x + "," + h.y));
   playable.known = [...playable.known, ...arrivalTiles(state).filter(h => {
     const key = h.x + "," + h.y;

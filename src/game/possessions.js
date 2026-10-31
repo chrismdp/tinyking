@@ -1,5 +1,7 @@
 import { entityId, isResident } from "game/residents";
-import { recordEvent, closeFamily } from "game/events";
+import { cancelFavour } from "game/favours";
+import { Hex } from "game/hex";
+import { recordEvent } from "game/events";
 
 // Personal objects are separate from commodity stacks: identity is never pooled.
 export function createPossession(state, ownerId, name, kind = "heirloom") {
@@ -29,20 +31,25 @@ export function transferPossession(state, itemId, ownerId, reason, fromId) {
 }
 
 export function heirFor(state, id) {
-  const ecs = state.ecs, kin = ecs.kinship?.[id];
+  const ecs = state.ecs;
+  const directory=state.peopleDirectory || state.travel?.people;
+  const records = p => state.residents?.[p] || !directory?.[p] ?
+    {personable:ecs.personable[p],kinship:ecs.kinship?.[p]} : directory[p];
+  const kin = records(id)?.kinship;
   if (!kin) return null;
-  const alive = p => p && p != id && ecs.personable[p] && !ecs.personable[p].dead && !ecs.playable?.[p];
+  const alive = p => p && p != id && records(p)?.personable && !records(p).personable.dead;
+  const oldest = ids => ids.filter(alive).sort((a,b) => records(b).personable.age-records(a).personable.age || a.localeCompare(b))[0];
   if (alive(kin.spouse)) return kin.spouse;
-  const oldest = ids => ids.filter(alive).sort((a, b) => ecs.personable[b].age - ecs.personable[a].age || a.localeCompare(b))[0];
   const child = oldest(kin.children);
   if (child) return child;
   const seen = new Set([id]), queue = [id];
   while (queue.length) {
-    const layer = queue.splice(0).flatMap(p => closeFamily(state, p)).filter(p => !seen.has(p));
-    for (const p of layer) seen.add(p);
-    const nearest = oldest(layer);
-    if (nearest) return nearest;
-    queue.push(...layer);
+    const layer = [...new Set(queue.splice(0).flatMap(p => {
+      const k=records(p)?.kinship;
+      return k ? [k.spouse,...k.parents,...k.children,...k.parents.flatMap(parent=>records(parent)?.kinship?.children||[])] : [];
+    }).filter(p=>p && !seen.has(p)))];
+    for(const p of layer) seen.add(p);
+    const nearest=oldest(layer);if(nearest)return nearest;queue.push(...layer);
   }
   return null;
 }
@@ -57,21 +64,21 @@ export function repairHouseholds(state) {
     }
   }
   const residents = {};
-  for (const id of Object.keys(ecs.personable)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && !ecs.playable?.[id] && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
+  for (const id of Object.keys(ecs.personable)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
   for (const houseId of Object.keys(ecs.building || {})) {
-    if (ecs.playable?.[ecs.controllable[houseId]?.controllerId]) continue;
     const members = residents[houseId] || [];
     const old = ecs.controllable[houseId]?.controllerId;
-    const head = members.includes(old) ? old : members.sort((a, b) => ecs.personable[b].age - ecs.personable[a].age || a.localeCompare(b))[0];
+    const working = members.filter(id=>!ecs.playable?.[id]);
+    const head = members.includes(old) ? old : (working.length ? working : members).sort((a, b) => ecs.personable[b].age - ecs.personable[a].age || a.localeCompare(b))[0];
     if (!ecs.controllable[houseId]) continue;
     // Legal ownership survives an owner's move. Residence determines working
     // permissions separately, so an inherited house cannot annex another home.
     if (!ecs.personable[old] || ecs.personable[old].dead) ecs.controllable[houseId].controllerId = head || houseId;
-    for (const id of members) ecs.controllable[id].controllerId = head;
+    for (const id of members) ecs.controllable[id].controllerId = ecs.playable?.[id] ? id : head;
     const household = ecs.household?.[houseId];
     if (household?.trade) {
       const previous = Object.keys(ecs.profession || {}).find(id => ecs.profession[id].houseId == houseId);
-      const worker = members.includes(previous) && ecs.personable[previous].age >= 18 ? previous : members.find(id => ecs.personable[id].age >= 18);
+      const worker = members.includes(previous) && ecs.personable[previous].age >= 18 ? previous : members.find(id => ecs.personable[id].age >= 18 && !ecs.playable?.[id]);
       for (const id of Object.keys(ecs.profession || {})) if (ecs.profession[id].houseId == houseId && id != worker) {
         delete ecs.profession[id];
         if (ecs.planner?.[id]) delete ecs.planner[id].world.profession;
@@ -82,17 +89,23 @@ export function repairHouseholds(state) {
       }
     }
     for (const room of ecs.building[houseId].rooms || []) {
-      if (ecs.sleepable?.[room]) ecs.sleepable[room].capacity = Math.max(6, members.length);
+      if (ecs.sleepable?.[room]) ecs.sleepable[room].capacity = Math.max(ecs.sleepable[room].capacity, 6, members.length);
     }
   }
 }
 
 export function die(state, id, cause = "old age") {
   const ecs = state.ecs, person = ecs.personable[id];
-  if (person.deathProcessed || ecs.playable?.[id] && cause == "old age") return;
+  if (person.deathProcessed) return;
   person.dead = true; person.deathProcessed = true; person.deathCause = cause; person.died = state.days;
   const heir = heirFor(state, id);
   person.heirId = heir;
+  if (heir && !ecs.personable[heir]) for (const [key,value] of Object.entries((state.peopleDirectory || state.travel?.people)?.[heir] || {})) (ecs[key] ||= {})[heir]=value;
+  if (id == state.ui?.playerId) {
+    for (const r of Object.values(state.favours?.requests || {})) if (!r.actorId || r.actorId == id) cancelFavour(state,r);
+    delete state.pendingPlayerTravel;
+  }
+  if (ecs.manager?.[id]?.ordered) ecs.manager[id].jobs=[];
   recordEvent(state, "death", [id], [], { cause });
   for (const itemId of Object.keys(ecs.possession || {})) if (ecs.possession[itemId].ownerId == id) {
     if (!heir) ecs.possession[itemId].estateOf = id;
@@ -114,6 +127,14 @@ export function die(state, id, cause = "old age") {
   for (const other of Object.values(ecs.planner || {})) if (other.world.capturedBy == id || other.world.social?.partnerId == id) {
     delete other.world.social; other.world.capturedBy = null; other.task = null; other.plan = null;
   }
+  for (const item of ecs.holder?.[id]?.held || []) if (ecs.haulable?.[item]) {
+    ecs.haulable[item].heldBy=null;
+    if(ecs.spatial?.[item])Object.assign(ecs.spatial[item],ecs.spatial[id],{id:item});
+    const space=state.space?.[Hex().fromPoint(ecs.spatial[id])];
+    if(space && !space.includes(item))space.push(item);
+    state.redraws?.push(item);
+  }
+  if (ecs.holder?.[id]) ecs.holder[id].held=[];
   repairHouseholds(state);
   state.redraws?.push(id);
 }

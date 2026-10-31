@@ -1,8 +1,8 @@
 import { person, check_jobs } from "game/compound";
 import { firstFreeJob } from "game/manager";
 
-export const TALK_JOBS = ["chat", "ask_about", "give_gift"];
-export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10 };
+export const TALK_JOBS = ["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"];
+export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 };
 
 // Keep the villager survival routines, with orders scoped to this character.
 export const player = () => [
@@ -11,7 +11,7 @@ export const player = () => [
   ...person().filter(([, actions]) => !actions(null).some(task => ["store_held", "farm", "work_trade", "haul", "idle_person", "social_visit", "tend_garden", "child_idle", "begin_friend_help", "arrive_home"].includes(task[0])))
     .map(([condition, actions]) => {
       const need = actions(null).some(task => ["find_food", "go_to_sleep"].includes(task[0]));
-      return [world => (!need || !world.stationaryPlayer || world.playerWorking) && condition(world), value => actions(value).map(([key, ...args]) =>
+      return [world => (!need || !world.stationaryPlayer || world.playerWorking) && (actions(null).some(task => task[0] == "check_jobs") || condition(world)), value => actions(value).map(([key, ...args]) =>
         [key == "person" ? "player" : key == "check_jobs" ? "player_jobs" : key, ...args])];
     }),
   [() => true, () => [["wait_for", 1 / 48]]]
@@ -27,6 +27,7 @@ export const stationary_needs = () => [
 ];
 
 export const player_jobs = () => [
+  [(_,jobs)=>firstFreeJob(jobs,"tend_garden"),entry=>[["take_job","tend_garden"],["walk_to",entry.targetId],["tend_garden",entry.targetId],["complete_job","tend_garden"]]],
   [(_, jobs) => firstFreeJob(jobs, "find_food"), () => [["take_job", "find_food"], ["ordered_meal"], ["complete_job", "find_food"]]],
   [(_, jobs) => firstFreeJob(jobs, "rest"), () => [["take_job", "rest"], ["move_to_place", "sleep", "allows_sleep"], ["sleep"], ["complete_job", "rest"]]],
   [(_, jobs) => firstFreeJob(jobs, "travel"), entry => [["take_job", "travel"], ["walk_to", entry.targetId], ["leave_edge", entry.targetId, entry]]],

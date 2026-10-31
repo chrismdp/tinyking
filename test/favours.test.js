@@ -418,3 +418,15 @@ it('learns the visible requesters name through existing knowledge without meetin
   expect(s.ecs.relationships[w.player].known[w.person]).toBeUndefined();
   expect(require('game/knowledge').displayName(s, w.person, () => 'Agnes Miller')).toBe('Agnes Miller');
 });
+
+it('refuses minor favour acceptance before introduction, status, queue or rewards change', () => {
+  const w = favourWorld(), s = w.state, r = w.request('wood');
+  s.ecs.personable[w.player].age = 10;
+  const before = JSON.stringify({ request: r, knowledge: s.knowledge, relationships: s.ecs.relationships, jobs: s.ecs.manager[w.player].jobs });
+  expect(acceptFavour(s, r.id)).toBeNull();
+  expect(JSON.stringify({ request: r, knowledge: s.knowledge, relationships: s.ecs.relationships, jobs: s.ecs.manager[w.player].jobs })).toBe(before);
+  s.ecs.personable[w.player].age = 24;
+  const task = acceptFavour(s, r.id);
+  expect(task).toMatchObject({ favourId: r.id, forId: r.giverId });
+  expect(r).toMatchObject({ status: 'accepted', taskId: task.id, actorId: w.player });
+});

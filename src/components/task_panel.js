@@ -1,3 +1,7 @@
+import { canFoundHousehold } from "game/family";
+import { heirFor } from "game/possessions";
+import { gardenHelp } from "game/household_routines";
+import { peopleGoals } from "game/guidance";
 import { HUMAN_SPEED } from "game/locomotion";
 import { currentActivity } from "game/person_activity";
 import messages from "data/messages.json";
@@ -16,7 +20,7 @@ import { harvestCounts, harvestPhase } from "game/harvest_task";
 
 export const TASK_TITLES = {
   find_food: "Find food", rest: "Rest", travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
-  chat: "Chat", ask_about: "Ask about someone", give_gift: "Give a gift",
+  chat: "Chat", court: "Court", marry: "Ask to marry", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
   create_field: "Create Field", create_stockpile: "Create Stockpile"
 };
 
@@ -27,7 +31,7 @@ function estimatedMinutes(ecs, playerId, job) {
   const site = ecs.construction?.[job.targetId];
   const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
-      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10 }[job.job.key] || 0) * (1 - (job.progress || 0));
+      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 }[job.job.key] || 0) * (1 - (job.progress || 0));
   return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
 }
 
@@ -52,16 +56,20 @@ export function TaskPanel() {
   const eating = !sleeping && (["eat", "forage"].includes(planner.task?.[0]) || planner.world.playerWorking && planner.world.feeling?.hungry && !planner.world.currentJob);
   const needsAction = !current && !eating && !sleeping;
   const activity = currentActivity(ecs, id, key => messages.tasks[key.split(".")[1]], other => displayName(state, other, other => name(ecs.nameable[other])), state.ui.debug);
-  const stage = Object.values(ecs.shelter || {}).find(s => s.stage)?.stage;
+  const homeId=ecs.household?.[id]?.houseId;
+  const stage = ecs.shelter?.[homeId]?.stage;
+  const goals=peopleGoals(state);
+  const garden=person.age<18 && gardenHelp(state,id,null,true);
   const hungry = person.hunger > 0.9;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
-  const location = stage ? (stage == "lean-to" ? "Lean-to" : stage == "hut" ? "Hut" : "House") : "Camp at the edge";
+  const location = stage ? (stage == "lean-to" ? "Lean-to" : stage == "hut" ? "Hut" : "House") : ecs.building?.[homeId] ? "Family household" : "Camp at the edge";
   return <aside id="task-panel" className={collapsed ? "collapsed" : ""} aria-label="Your task list">
     <header>
       <h3>Your tasks</h3><span className="micro">{jobs.length} IN QUEUE</span>
       <button aria-label={collapsed ? "Expand task list" : "Collapse task list"} onClick={() => setCollapsed(!collapsed)}>{collapsed ? "+" : "−"}</button>
     </header>
     <div className="task-body">
+      {person.pendingJourney && <p className="queue-note">Journey to {person.pendingJourney.to} paused when you took control. Choose Travel to depart again.</p>}
       {hungry && <div className="hunger" aria-label={status + " — working more slowly"}>
         <div className="hunger-line"><span>{status}</span><span>Working more slowly</span></div>
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
@@ -73,6 +81,7 @@ export function TaskPanel() {
         {person.tiredness > .9 && <button onClick={() => state.ui.actions.choose_job(id, { key: "rest" }, id)}>Rest</button>}
       </div>}
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
+      {garden && <button onClick={()=>state.ui.actions.choose_job(id,{key:"tend_garden"},garden)}>Help at home</button>}
       <ol className="queue">{jobs.map((job, index) => {
         const construction = ecs.construction?.[job.targetId];
         const request = requestForTask(state, job);
@@ -89,7 +98,7 @@ export function TaskPanel() {
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
           <span className={"grip" + (active ? " play" : "")} title="Drag to reorder">{job.waiting ? "⌛" : active ? "▶" : "⠿"}</span>
           <div className="task-content"><div className="task-title">{title}</div>
-            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? displayName(state, job.targetId, id => name(ecs.nameable[id])) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
+            <small>{["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) ? displayName(state, job.targetId, id => name(ecs.nameable[id])) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
             {request && <small>{harvest ? harvestCounts(state, request) : `${favourQuantity(request)} · ${request.progress}/${request.quantity} delivered`}</small>}
             {job.gift && <small>{job.gift.type} · 1 item</small>}
             {job.aboutId && <small>About {displayName(state, job.aboutId, id => name(ecs.nameable[id]))}</small>}
@@ -110,8 +119,11 @@ export function TaskPanel() {
       {!jobs.length && <p className="queue-note">Choose an action on the map to add a task.</p>}
       <div className="queue-note">Drag ⠿ to reorder · × to cancel · You do each job.</div>
     </div>
+    {canFoundHousehold(state) && <button onClick={()=>state.ui.actions.found_household()}>Found a household</button>}
+    <button className="your-family" onClick={()=>state.ui.actions.show_family(id)}>Your family</button>
+    <details className="people-goals"><summary>Life here · {goals.completed.length}/4</summary><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</details>
     <RequestList/>
-    <footer><strong>{name(ecs.nameable[id])}</strong><small>You · Stranger · {location}</small>
+    <footer><strong>{name(ecs.nameable[id])}</strong><small>Owner: {ecs.controllable?.[homeId]?.controllerId && ecs.personable[ecs.controllable[homeId].controllerId] ? displayName(state,ecs.controllable[homeId].controllerId,other=>name(ecs.nameable[other])) : "No owned household"}</small><small>Your heir: {heirFor(state,id) ? displayName(state,heirFor(state,id),other=>name(ecs.nameable[other])) : "No living heir"}</small><small>You · {!ecs.kinship?.[id] ? "Stranger" : person.age < 18 ? "Child" : ecs.kinship[id].spouse && !ecs.personable[ecs.kinship[id].spouse]?.dead ? "Married" : "Unmarried"} · {location}</small>
       <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : activity || (hungry ? "Needs food" : person.tiredness > .9 ? "Needs rest" : "Ready")}</small></footer>
   </aside>;
 }

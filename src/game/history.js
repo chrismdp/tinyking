@@ -10,7 +10,7 @@ export function generateHistory(state, seed) {
   // Merge complete personal items created below, while the people/house filter
   // keeps existing map goods out of the summary and leaves them in the world.
   const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "good", "haulable", "nameable", "playable", "spatial"];
-  const people = new Set(Object.keys(state.ecs.personable));
+  const people = new Set(Object.keys(state.ecs.personable).filter(id => !state.ecs.playable?.[id]));
   const houses = new Set(Object.keys(state.ecs.building));
   let summary = { ecs: { nextId: state.ecs.nextId, namespace: state.ecs.namespace }, villages: state.villages, days: -540, peopleSeed: seed,
     opinionThresholds: state.opinionThresholds, generatingHistory: true, events: [], knowledge: {}, social: { courtships: {}, avoidance: {} } };

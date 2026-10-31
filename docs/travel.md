@@ -113,15 +113,14 @@ This is a finite radius-five world. No boats connect islands. An island can stil
 run out of unrelated mutually compatible adults; random tastes, kin saturation,
 ring slots, age and actual consent can prevent marriage even when raw unrelated
 candidates exist. Journeys offer opportunities, not guaranteed population growth.
-There are no quests, boats, costs, travel inventory or succession features here.
+There are no quests, boats, travel costs or separate travel inventory. [Family and succession](design.md#marriage-ownership-and-succession) extends the shared lifecycle and persistent maps.
 
 Transit also applies one season of the traveller's outgoing goodwill drift;
 incoming relationships drift in the communities where their observers remain.
-An NPC ages once on the road. A road death runs the existing death/heir rules on
+Each traveller, including the player, ages once on the road. A road death runs the existing death/heir rules on
 the real bundle with remote kin references, retains death/inheritance news and
 places the actual inherited objects in the departed reach's estate. It does not
-arrive a living replacement or silently lose the heirloom. Player ageing and
-succession remain outside this feature. Arrival rebuilds the planner's holding
+arrive a living replacement or silently lose the heirloom. A road death can trigger player succession after its actual estate is settled. Arrival rebuilds the planner's holding
 flags from actual accessible commodity cargo, leaving unique possessions intact.
 
 Temporary accommodation is marked `ecs.guest`: the visitor can use the host's

@@ -6,3 +6,19 @@ export function displayName(state, id, resolve = state.personName) {
   const known = !ecs.personable?.[id] || id == viewer || ecs.relationships?.[viewer]?.known[id] || state.knowledge?.[viewer]?.people?.[id];
   return known && ecs.nameable?.[id] ? resolve?.(id) || ecs.nameable[id].nickname || "an unknown person" : "an unknown person";
 }
+
+// NPC conversations already have dated, canonical contact records. On taking
+// control, remember only this person's own conversations, never another actor's.
+// Persist them with the person so travel does not lose that spoken history.
+export function rememberOwnConversations(state, actorId) {
+  for (const [key, day] of Object.entries(state.social?.contacts || {})) {
+    const pair=key.split(":");
+    if (!pair.includes(actorId)) continue;
+    const other=pair.find(id=>id!=actorId);
+    if (!other) continue;
+    state.knowledge ||= {};
+    const knowledge=state.knowledge[actorId] ||= {people:{},feelings:{}};
+    const learned=(knowledge.people ||= {})[other] ||= {traits:[]};
+    learned.conversation ||= {day};
+  }
+}

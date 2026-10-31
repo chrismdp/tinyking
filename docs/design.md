@@ -1,379 +1,98 @@
 # Tiny King: game design
 
-Status: draft, 29 October 2026. Nothing below is built yet unless it says so.
+Status: phase one, 31 October 2026. This describes the implemented game. The separate [phase-two proposal](phase-two.md) remains a design only. Quests remain deferred.
 
-## The pitch
+## A life among people
 
-You arrive at the edge of a world hex as a stranger with a camp and nothing else: no house and no followers. You gather wood and food yourself to build a home and plant a field. The people who live there already have villages, homes and families, and they go about their own lives. You earn your place by helping them and getting to know them. You marry into a family, inherit or found a village, and pass it to your children. Over generations a stranger's line becomes a tiny kingdom.
+You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and forty-five years of history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
 
-The game is open-ended. Nobody wins; the story just keeps going.
+The game aims to make these activities enjoyable:
 
-What the player should enjoy:
+- Watch villagers work, visit, court, marry and raise children.
+- Learn named families' stories through conversations and remembered possessions.
+- Earn help and make a home through relationships.
+- Follow a family across generations in a persistent world.
 
-- watching a small civilisation live its own life
-- families meeting, marrying and growing
-- a story that comes out of the people, not a script
+## The world and time
 
-## The world
+Each local map is a world hex. Temperature, moisture, morality, elevation and continuous coastlines shape its terrain. Nine temperature/moisture combinations produce the biomes. Neighbouring world hexes differ by at most one category on each climate axis. [Geography](geography.md) describes terrain, passes, paths and placement rules.
 
-**World hex.** One playable map is a world hex: a large hexagon made of small hexes. A world hex has three values, each on a three-step scale:
+Trees regrow through seasonal saplings near existing woods. Biomes set density and growth. Winter pauses growth. Fields use real crop patches, seasonal growth, household permissions and harvested grain. Weather follows the world pressure model. Rain, snow, wind and storms affect the presentation. They do not introduce injury, warmth or storm damage.
 
-- morality: good, neutral or evil
-- temperature: hot, temperate or cold
-- moisture: wet, normal or dry
+A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
 
-**The world.** World hexes sit in a larger grid. Neighbouring world hexes differ by at most one step on each axis, so hot never borders cold and good never borders evil.
+## People and history
 
-**Travelling between world hexes.**
+Each person has a stable identity, parents, spouse, children, developmental age, personality and directional relationships. Dead people remain historical records. Families own houses, fields, stores, trades, animals, tools and keepsakes. Items retain the identities of their makers and earlier owners. [People](people.md), [social life](social.md) and [village life](villages.md) describe these systems.
 
-- **Leaving:** click a hex on the map's edge, and you're offered travel to the neighbouring world hex on that side. If that neighbour is ocean, you can't go.
-- **The journey takes one season.** Your character walks off the edge, a season passes, and you arrive at the facing edge of the new map and make camp there, as in the opening. What you built in the old world hex stays yours.
-- **History moves on while you travel:** one season is one step of history (see "History before you arrive"). The world hex you left goes on living in summary while you're away.
-- **A world hex you've never visited** gets its own generated people and history the first time you arrive. Generation is deterministic per seed and world hex.
+Generated history contains only the existing residents. The newly created stranger does not age, marry, die, meet villagers or inherit property during those forty-five years. Their lifecycle starts at arrival. After arrival, their actual person ages in live play and on the road. Reference-only people do not take a second local seasonal update.
 
-**How the world is made.**
+Children reach developmental age 18 in two game years. Adults then gain two displayed years per game year. Old-age deaths use the shared seasonal probability from age 60 and the final age-88 boundary. Starvation can also kill a person after prolonged neglect.
 
-- **Smooth regions from noise.** Each axis comes from its own simplex noise field across the world, cut into three steps. The scale is set so that neighbouring world hexes share a value about two times in three, which gives broad regions rather than speckle.
-- **Latitude.** North and south are colder: temperature is a band that is cold at the poles and hot at the equator, plus noise.
-- **Land and sea** come from one continuous noise field across the whole world, forming seas and continents, so coastlines run on across world-hex borders. A map has sea on the sides that face ocean and land running off the edge on the sides that face land.
-- **Ocean world hexes** still carry morality, temperature and moisture, so the one-step rule holds between lands on either side of a sea. For now they are shown as plain ocean.
+NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and two seasons of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
 
-**Biomes.** Temperature and moisture together give nine biomes:
+## Relationships and disclosure
 
-|           | dry    | normal    | wet             |
-|-----------|--------|-----------|-----------------|
-| hot       | desert | savanna   | jungle          |
-| temperate | steppe | grassland | marsh           |
-| cold      | tundra | taiga     | bog / snowfield |
+Relationships are one-way. Each observer has their own goodwill and limited slots:
 
-**Elevation.** High ground is one step colder than the world hex around it, so a temperate world hex has snowy, pine-covered high ground.
+| Ring | Slots | Goodwill | Effect |
+| --- | --- | --- | --- |
+| Public | Unlimited | 0 | Basic contact and trade |
+| Social | 10 | 10 | Family disclosure and gossip |
+| Personal | 6 | 30 | Unsolicited physical friend help |
+| Intimate | 2 | 60 | Possible marriage with mutual consent |
 
-For now, biomes change only how the map looks. (Being built on the `world-hex` branch.)
+Traits and tastes set directional dispositions. Hate permits Public, liking permits Personal, and love permits Intimate. Goodwill never changes those tastes. Ring displacement and drift still apply. A player can feel differently from the person they court.
 
-**Morality is a spectrum, and it changes how people behave.** Underneath the three bands (good, neutral, evil), a world hex's morality is a continuous value.
+Selecting a stranger does not introduce them. Names, biographies, events and possession stories use the current actor's actual knowledge. Completed conversations record spoken contact. A queued, unreachable or refused visit does not. An identified family story requires actual disclosure, rather than an anonymous tree or access to global history.
 
-- In a good world hex, people trust strangers sooner and help each other more.
-- In an evil one, trust comes slowly and help is grudging.
+The family tree shows known people and connected unknown relatives. Its cards retain readable sizes. The viewport scrolls and can centre on the selected person, owner or heir when they are in the known tree. Household owner and heir text follows the real inheritance function and the current actor's knowledge.
 
-Morality isn't fixed. When you behave badly (harming people, breaking your word), it drifts towards evil. When you help others, it drifts towards good, gradually making the place better as a whole. The change ripples to neighbouring world hexes, so the one-step rule always holds.
+## Orders, needs and help
 
-## Trees and wood
+Orders belong to the current player. They use the same planner as village work. The task panel supports ordering, cancellation, waiting reasons and progress from real work. A building without materials waits. It never gathers wood automatically.
 
-Wood builds houses, so how many trees a biome has decides how hard a start there is. Each biome sets the kind of tree and how dense they grow. Every tree still gives wood.
+An idle player stays where left. They can eat accessible food or rest in an available bed at that position. They do not walk away to seek care while idle. Find food and Rest are explicit orders. Running orders retain automatic meals and sleep, then resume. Hunger slows work, so manual idle care remains a deliberate part of play.
 
-| Biome | Trees | Density | Regrowth |
-|---|---|---|---|
-| Jungle | broad, round canopy | very dense | fast |
-| Taiga | pines | dense | medium |
-| Grassland | mixed woods | patches | medium |
-| Marsh | willows | scattered | medium |
-| Savanna | flat-topped acacias | sparse, lone trees | slow |
-| Steppe | scrub | sparse | slow |
-| Bog / snowfield | stunted pines | sparse | very slow |
-| Tundra | dwarf shrubs | almost none | very slow |
-| Desert | palms near water, cacti elsewhere | almost none | almost none |
+Playable children keep explicit movement, conversation, gifts, Find food, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
 
-- **High ground:** trees follow the one-step-colder rule, so hills carry pines.
-- **Evil world hexes:** the trees there are dark and withered.
-- **Hard and easy starts:** a desert or tundra start is hard, because wood is scarce and you depend on villagers who have some. A jungle start has plenty of wood, but you have to clear land before you can farm. (Being built on the `world-hex` branch.)
+Favours come from actual household harvest, food or fuel needs. Acceptance queues physical work and delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
 
-**Regrowth.** Today trees never grow back, so chopping strips a map bare in time. That needs fixing now, because the game uses up wood. Trees regrow at a rate set by the biome:
-
-- New saplings appear near existing trees, so woods spread from their edges and a bare plain stays bare.
-- A sapling becomes a young tree and then a mature one over a few seasons. Only mature trees give full wood.
-- Nothing grows in winter.
-- Growth stops at the biome's natural density, so a jungle refills its gaps quickly and a desert barely changes.
-
-**Planting (later).** You, or anyone, can take on a "plant saplings" task to start a wood where none would grow on its own.
-
-## Food and survival
-
-Survival is the smallest version that works. It exists so that time matters: doing someone's harvest means not feeding yourself.
-
-- **Hunger has effects, in stages.** Hungry: you work more slowly. Starving: you're weak, and people find you harder to warm to. Death comes only after days of neglect.
-- **Winter is the test.** Nothing grows, and foraging gives little, so what you've stored decides how winter goes. A lord who feeds their people through a hard winter keeps their loyalty.
-- **Villagers live under the same rules.** A family running short asks for help, which creates favours. A famine year makes the whole village anxious.
-- **Tiredness** stays as it is.
-- **Left out for now:** thirst, health, injury and warmth. Warmth is the most likely to come back later, if winter turns out too easy, because cold places would then need firewood.
-
-Today hunger and tiredness rise and the planner sends people to eat and sleep, but going without has no consequences. The hunger stages and winter are new.
-
-## Weather
-
-Weather comes from a simple pressure model run across the world hexes, so it's driven by the biomes rather than rolled at random.
-
-**Pressure.** Each world hex has an air pressure:
-
-- Its baseline comes from its biome. Cold is high pressure; hot is low. Ocean world hexes swing more than land ones.
-- The season shifts it: winter raises pressure over land, summer lowers it.
-- Slow-moving weather systems (a drifting noise field) roll across the world from west to east, so a storm can be seen coming from a neighbour.
-
-**Wind** blows from high pressure to low, between neighbouring world hexes. Its strength is the pressure difference.
-
-**One weather per world hex.** At any moment a world hex has a single weather: clear, cloudy, rain, snow or storm. The pressure model decides it, and the whole map shows it. Low pressure is unsettled (cloud, rain, snow, storms); high pressure is settled and clear.
-
-**Rain and snow.** Moist air comes from oceans, and wet biomes, and travels on the wind. When it reaches low pressure or rises over high ground, it falls. On tiles cold enough (cold biome, high ground, or winter), it falls as snow.
-
-**Snow lies on the ground.** It builds up on each tile while it snows there, and turns the ground white. It melts when the tile warms up, so it lasts all year on cold high ground and comes and goes in temperate winters.
-
-**Storms.** Fast pressure changes bring windstorms, and they are fiercest on open plains: grassland, steppe and savanna. Trees bend, dust and leaves blow, and the sky darkens.
-
-**What you see.** Falling rain and snow, snow cover on the ground, clouds dimming the light, and trees swaying with the wind. The clock shows the current weather.
-
-**What it changes.** For now, nothing in play: it's looks only, like biomes were at first. Later candidates are rain watering crops, snow slowing walking, and storms damaging fields or roofs. Each of those gets added only when it makes a decision more interesting.
-
-## People and families
-
-Everyone belongs to a family, and families live in villages: clusters of houses. Children stay children for a couple of game years, then grow up, so families and marriages move quickly enough to watch. Each person has parents, a spouse and children where they apply. Today's code generates families per house (`generateFamily` in `src/game/map.js`) but doesn't record who is related to whom. That record comes first, because almost everything below depends on it.
-
-Villagers keep running their own lives through the existing HTN planner: work, eat, sleep, farm, haul. The planner stays as it is. Relationships add new options to it; they don't replace it.
-
-## Villages that look lived in
-
-Villages are generated with the trappings of real households, in the spirit of Manor Lords' burgage plots: each house sits on its own plot, with a backyard that says what the family does.
-
-- **Farms.** Most families farm: fields beside the village that the family works through the seasons, sown, tended and harvested. They already exist in the code as farmable fields.
-- **Backyards:** vegetable gardens, chicken coops, a goat or pig pen, beehives.
-- **Animals.** Sheep and cows graze in fenced pastures, and chickens and pigs stay near their household. They move about and belong to a family.
-- **Trades.** Some households have a trade with its own building and daily work: smith (forge), carpenter, weaver, baker (oven), tanner, miller. A trade shapes who a person is: what they do all day, which favours they ask for, what they can give or make, and who comes to their door.
-- **Shared places:** a well, a green or meeting place where people gather in the evening, and in bigger villages a shrine or chapel and an alehouse.
-
-For now, trades and animals give villages their look and give villagers their daily routines. A full economy of goods, trade and prices waits until it's needed.
-
-## Villagers have their own social life
-
-The point of the game is watching people live. Villagers act on the rings and goodwill among themselves, not just towards you:
-
-- **Visiting and chatting:** people visit those they're close to, chat at the well and on the green, and goodwill between them grows or fades.
-- **Courting and marrying:** unmarried adults who reach Intimate with each other court and marry, and set up a household together.
-- **Families grow:** children are born, grow up in a couple of game years, and leave home. The old die.
-- **Quarrels:** people who dislike each other avoid each other, argue and gossip.
-
-All of this shows on screen, so you can watch it happen: who walks to whose house, who sits together on the green, and a wedding when it happens.
-
-## Relationships: the four rings
-
-This is the proxemics model from Sol Trader (blog, April 2015). Each person has a limited number of slots at each level of closeness to other people, the player included. The rings are one-way: see the rule of five below.
-
-| Ring     | Slots | What it gives the player                                                              |
-|----------|-------|---------------------------------------------------------------------------------------|
-| Public   | many  | They'll trade, and let you do jobs for them.                                           |
-| Social   | 5–10  | They gossip about people they know, and you learn their whole family tree.             |
-| Personal | 4–6   | They help you: building your house, working your fields, siding with you.              |
-| Intimate | 1–2   | Marriage becomes possible.                                                             |
-
-The slots are limited, so someone new moving closer can push someone else further out. Jealousy and rivals come out of this without extra rules. Relationships you neglect slowly drift outwards.
-
-**Goodwill** moves you inwards. You earn it mainly by doing jobs for people, and also by chatting, gifts, and helping people they care about. Doing harm to someone loses goodwill with them and with the people close to them.
-
-## You do the work yourself
-
-You start alone, and nobody works for you. You direct your own character from a **task list**: the jobs you have agreed to do for others, plus your own work. Your character walks there and does each task. There's no doing it from a distance, and while you're busy for one person, you aren't helping another.
-
-**Your own work: from a camp to a farm.**
-
-1. **Camp.** You start with a campfire and a bedroll at the edge of the map. It's somewhere to sleep, with nothing stored.
-2. **Gather.** Chop wood in the woods, forage for berries and roots, and carry it all back to the camp. Felling trees and hauling already exist.
-3. **Build.** Wood becomes a house in stages: a lean-to, then a hut, then a proper house. Each stage takes wood and time, and more hands make it faster.
-4. **Farm.** Clear and plant your own field, then sow and harvest it. All of this already exists.
-
-Food is the pressure. Foraging only just keeps you fed, so time spent on other people's jobs is time not spent feeding yourself. That trade-off is the game's first real decision.
-
-**How you control your character.** You give your character orders the way you give orders now, and each order goes onto your task list. Your character works through the list, running on the same planner as everyone else.
-
-**Other people's jobs: favours.** When villagers want help (with the harvest, fetching wood, mending a fence), their requests appear as a list of favours. You choose which to accept, and accepted favours join your task list. You earn goodwill by doing them. The job queue and the planner's job handling already exist; what changes is who posts the jobs and who takes them.
-
-Once you are in someone's Personal ring, they put "help my friend" high in their own priorities, so they turn up to help with your house and field. Their loyalty shows in what they actually do, through the planner.
-
-## Who helps you, and why
-
-People help you for one of three reasons, and each works differently.
-
-**Because they care.** Kin and friends in your Personal ring help for free. They expect help back, though: if you ignore their harvest, they drift outwards. Medieval villages ran on this kind of exchange; neighbours came for each other's harvests ("boon work").
-
-**Because you pay them.** You hire hands with food or goods. It's quick and doesn't need a friendship, but it's a contract, not a bond:
-
-- While someone works for you for pay, they can't come closer than Social.
-- Offering pay to someone who already helps you out of care insults them, and they drop a ring. Paying for what was given freely spoils it, which is a real effect in people.
-- Hired hands stop when the pay stops.
-
-**Because they swore to you.** Someone in your Personal ring who lives on land you hold can swear fealty: a public oath, which was how medieval bonds of service worked. The oath runs both ways:
-
-- They share your job queue. When you set yourself a task ("I'm going to clear that field"), a sworn follower can take it and do it for you. There are no separate duties to track.
-- You owe them protection, food in a hard winter, and fair judgement in their quarrels.
-- If you break your side, the oath breaks, and everyone close to them hears about it.
-
-## The feudal ladder
-
-The existing code already models "who answers to whom": each person has a controller (`controllable.controllerId`), and `topController` walks up the chain. That is a feudal hierarchy, so it can carry this ladder directly:
-
-1. **Stranger:** a camp and nothing else.
-2. **Head of a family:** your own house, and a spouse or children living in it.
-3. **Lord of a hamlet:** a few households living on your land and sworn to you.
-4. **Lord of a town:** a larger settlement, with hamlet lords sworn to you.
-5. **Tiny King:** town lords swear fealty to you.
-
-You climb a rung by marriage, inheritance, or gathering people who swear to you. Each rung adds a layer of people who answer to you, and those layers are exactly what the controller chain already records.
-
-**Land is divided into fixed areas, as in Crusader Kings III.** The areas are drawn when the map is generated, using nested hexes where seven of each size make the next:
-
-| Area | Made of | Small hexes |
-|---|---|---|
-| Household | 1 hex | 1 |
-| Hamlet | a flower of 7 hexes (one hex and its six neighbours) | 7 |
-| Town | 7 hamlets | 49 |
-| Kingdom | 7 towns | 343 |
-
-A world hex is about 400 small hexes, so one kingdom roughly fills one world hex. Seven-hex flowers tile the map exactly. Groups of seven flowers don't make a perfect larger hexagon, so town borders come out slightly ragged, which suits medieval estates.
-
-**Each area is a title**, and a title exists whether or not anyone holds it. Every hamlet, town and kingdom has a name, and "who holds this?" always has an answer, even if the answer is nobody.
-
-- You hold a hamlet when you live in it and its households are sworn to you.
-- You hold a town when most of its seven hamlets are held by you or by lords sworn to you.
-- Titles pass by inheritance, and you can grant a hamlet you hold to a sworn follower, who becomes its lord under you.
-- Villages are generated inside these areas, so the first villagers already hold hamlets. Taking one over by marriage then works naturally.
-- An overlay shows the borders and who holds each title.
-
-**Lords control marriages.** When a lord dies and the heir is a child, the liege (the lord above) becomes the child's guardian and decides who the heir marries. Historically this was how land changed hands. In the game, marrying heirs within your realm becomes the main political tool.
-
-## The rule of five
-
-Of every five people you meet, one will love you, three will like you, and one will hate you, whatever you do.
-
-- **The one who loves you** warms to you quickly, starts at Social, and can reach Intimate.
-- **The three who like you** start at Public. How close they get depends on what you do: help them, and they move in; neglect them, and they drift out. This middle group is where most of the game is played.
-- **The one who hates you** never gets past Public. They take your help without thanks, speak badly of you to the people close to them, and side against you.
-
-Who lands in which fifth isn't random, and it isn't mutual either. Every person has **traits** (what they are: hard-working, generous, proud, pious) and **tastes** (what they like and dislike in others). How much A likes B depends on B's traits measured against A's tastes, so A and B can feel quite differently about each other. Thresholds are set once, when the world is generated, so that across everyone, one in five opinions is love, three are liking, and one is hate. Your character has traits and tastes like everyone else, so a different character wins over different people.
-
-**Relationships are one-way.** Each person keeps their own list of the people they know, with a ring and goodwill for each. A can have B in their Personal ring while B has A only at Social. Unrequited love, a friend who's fonder of you than you are of them, and a rival who doesn't know they're a rival all come from this.
-
-What depends on which direction:
-
-- **Help** follows *their* ring for you: they help you if you're in their Personal ring.
-- **Marriage** needs both directions to reach Intimate.
-- **Gossip** carries the speaker's own view of the person they're talking about.
-- **Reading people.** You don't see exactly how someone feels about you. At Public you only see a hint (polite, warm, cool). As they trust you more, you see the truth. Gossip can let it slip, for example "she's sweet on you".
-
-Haters matter through the family tree too. If the father of the woman you want to marry is in your bottom fifth, he is a real obstacle.
-
-## History before you arrive
-
-Like Sol Trader, the world has a past. History runs in steps of **one season**. Each step applies the same social rules that run during play, in summary, without walking or drawing: people court, marry, have children, quarrel, fall out, move to another village, and die. Each of these is recorded as an **event**, with the people involved, a date and a place.
-
-- **At world generation:** the history step runs for two generations' worth of seasons, so the world arrives with a past.
-- **While you travel:** a journey takes one season, so the history step runs once for every world hex you're not in. Places you left keep changing without you.
-
-- **People remember what they know.** Each person knows the events in their own life and their family's, and some of their neighbours'. What they know shapes their opinions of others, and you learn it by talking and asking about people. Gossip is passing events on.
-- **Things are handed down.** Possessions pass from the dead to their heirs, so objects carry their history: "the hammer her grandfather forged", "the ring from his mother's first marriage". A keepsake's story is part of what you learn about a family, and it's a reason for quests: a lost heirloom, a disputed inheritance.
-- **Families have a past.** The family tree you see in play is the result of this history, not a random draw, and old quarrels and old loves still matter.
-
-## Possessions
-
-People and households own things, and what they own matters to how they feel and what they ask for:
-
-- **Land and buildings:** the house, fields, trade buildings and pastures, held by a household.
-- **Animals:** each animal belongs to a household.
-- **Stores:** food, wood and goods in a household's store.
-- **Tools and keepsakes:** a smith's hammer, a weaver's loom, a family heirloom handed down the generations.
-
-Possessions are inherited when someone dies, can be given as gifts, lent and borrowed, or stolen. A gift chosen for someone's tastes means more than one that isn't.
-
-## Quests grow out of people's lives
-
-Quests follow the approach of Sol Trader's missions. There's no quest board. A quest is a favour that comes out of a villager's own planning: when what they want is easiest got by asking someone, they ask. Nothing is rolled at random.
-
-- **What starts one:** the giver's real situation:
-  - relationships: who they love, hate, miss or are estranged from;
-  - possessions: what they have, lack, lost or covet;
-  - traits: a generous person shares, a proud one won't ask a sibling directly, a greedy one hoards.
-  
-  A quest about a secret only exists if the secret really does.
-- **Trust gates what you're offered:** strangers ask small things, and close friends ask personal ones. The gate is the giver's own ring for you, which is one-way.
-- **Who it touches:** a quest changes goodwill between the people involved, not just towards you. Helping a sister reconcile with her brother can bring them closer. Exposing a hoarder makes an enemy, while the hungry families remember who helped.
-- **Quests serve the design goals.** They push you into the life of the place: meeting families, learning their stories, carrying things between villages, travelling to other world hexes, being trusted, marrying in and taking on land.
-- **Avoid Sol Trader's rough edges:**
-  - an offer lapses when its reason does;
-  - things carried are real possessions;
-  - rewards come from what the giver actually has: food, goods, help, an introduction, or goodwill.
-
-Candidate quests to start from:
-- **Families:** find the missing cousin, winter reunion, mend a family rift.
-- **Food and possessions:** food for distant kin, expose a grain hoard.
-- **Local help:** harvest before frost, fuel for the widow, shelter an outcast.
-- **Feelings and duty:** quiet courtship gift, witness a broken oath.
-
-## Knowledge
-
-You start knowing only what you can see. As people trust you more, they tell you more:
-
-- **Public:** names and where people live.
-- **Social:** the person's whole family tree, plus gossip: who they know, how they feel about them, where someone was last seen.
-- **Personal:** private matters, such as feuds, debts and who is courting whom.
-
-**Family tree view.** Each person you know has a family tree. It fills in as you learn more, and the parts you don't know yet are shown as unknown, not hidden. The tree is the main way to see the social map: who is married to whom, who will inherit, and who could marry your children.
-
-Conversations follow Sol Trader's patience rule: each conversation has limited patience, and closer friends have more of it. Talking is a set of actions (chat, ask about someone, offer help, give a gift), not written dialogue. The rings and gossip carry the story, so the game doesn't need a large amount of written content.
+A fed, rested Personal friend can contribute real work to a funded building or an owned field. The friend keeps their home, belongings, controller and priorities. There is no Recruit action. Household access follows actual residence. Legal ownership, residence, social trust and person-scoped local rights remain separate. Succession does not copy a predecessor's oaths, discoveries, goodwill or community permissions onto another person.
 
 ## Marriage, ownership and succession
 
-**Who owns a village.** Each village has an owner, the head of the family that founded it or inherited it. Ownership passes by inheritance: to a spouse or the eldest child, under one simple rule for now. The code's existing control hierarchy (`controllable.controllerId`, `topController`) already describes "who answers to whom" and can carry this.
+The player deliberately chooses Court or Ask to marry in a person's panel. Each action queues a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat also increases the player's own regard. Ordinary play can therefore reach mutual Intimate with a compatible person.
 
-**Marriage** needs a person in your Intimate ring, and the wedding joins two families. Marrying the heir of a village is the main way to come to own it. Marriage also brings the other family's goodwill: your in-laws start out closer to you.
+Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
 
-**Succession.** You play a character, not a dynasty. When your character dies, you continue as their heir, keeping what the family owns and the relationships the heir has made. If you die with no heir, you start again as a new stranger arriving in the same world. Everything you built stays: the village, the people who knew you and the stories they tell.
+A successful wedding records marriage, memories and a visible celebration notice. It introduces the spouses through actual dialogue. Their close relatives gain six directional goodwill in each direction, subject to existing dispositions and ring limits. Marriage changes neither traits nor tastes. Mutual NPC courtship still waits two seasons. The deliberate player proposal uses its own timed visit instead of an automatic seasonal wedding.
 
-**Founding.** Alternatively, you can build your own house and gather a following (people in your Personal ring) into a new village that you own.
+Household formation reuses the NPC function. A couple and dependent children join a family home with room, use an available home, or wait for housing. Homes with a living unrelated owner cannot be taken. Existing buildings, stores, fields, trades, animals and keepsakes survive moves. Marrying an heir gives a future family inheritance path. It does not take a living householder's land.
 
-## What this asks of the existing code
+One inheritance rule applies to assets, visible heir labels and gameplay succession: living spouse, then eldest living child, then the oldest living person in the nearest kinship layer. Age ties use stable identity order. Children, including minors, remain eligible. A living player can inherit from an NPC.
 
-- **Family relationships:** parent, spouse and child links per person. New, and needed first.
-- **Per-person relationship lists with the four rings and goodwill:** new.
-- **Jobs posted by villagers and taken by the player:** reuses the job queue (`manager.js`) and the `check_jobs` task.
-- **Ageing, death, births and marriage over time:** the code already has days, seasons and the `dead` flag; births and ageing are new.
-- **Recruiting:** the one-click Recruit order is removed. People help you because of where you sit in their rings, and sworn followers share your job queue.
-- **Start:** today the player starts in the middle with a house. In this design they start at a camp at the map edge.
-- **A task list for the player's character:** new. It can reuse the job queue, scoped to one person.
-- **Foraging, and building in stages from wood:** new. Felling trees, hauling, fields and stockpiles already exist.
-- **Personality traits and tastes:** new. The existing `traits` component holds temporary states (hungry, cold, planted), not personality, so personality is a separate addition.
-- **One-way relationship lists per person:** new, with the rule-of-five thresholds set at world generation.
+On death, possessions retain their identities and append inheritance provenance. Death, inheritance and gameplay succession produce social events. Dead actors lose active work and cannot finish a gift, promise or asynchronous departure. Their unfinished favours cancel without rewards. Borrowed harvest returns to the ground under its actual ownership. Heirs keep their own belongings and outstanding personal orders. Their former autonomous walks, visits and play stop when control changes.
 
-## Build order
+The successor keeps their existing appearance, age, personality, needs, kin, relationships, household, knowledge, custody and position. The controls, camera, selected person, inventory and task panel follow them. A successor in another visited world hex activates that existing map after normal calendar catch-up. Control transfer adds no journey season. Pending road commitments are retained as a visible paused journey when a traveller becomes the player.
 
-Weather, biomes, building stages and the world map are good enough for now. The people come next.
+With no living heir, a deterministic new stranger arrives through the existing two-hex camp sequence in the same world. They have a new identity and tastes, no family estate and no followers. Old villages, buildings, ownership, people and stories remain. Shelter limits and camp lookup use the current owner. Another family's camp keeps its bed when the stranger builds.
 
-1. **Villages come alive:** households with farms, backyards, animals and trades, and villagers' own social life (visiting, courting, marrying, children growing up), all shown on screen. Two generations of history are simulated at world generation, with possessions handed down.
-2. **The relationship game for the player:** talking (chat, ask about someone, offer help, give a gift), favours, goodwill through the rings, the person panel and the family tree from the mock-ups, and friends helping you build. Your character feeds themself.
-3. **Goals and quests.** Early goals are about people, not buildings: "someone in Bramblefield trusts you", "learn a family's story", "someone helps you without being asked", "you're invited to a wedding". After that, quests grow out of people's lives, using Sol Trader's mission approach, and send you to other villages and world hexes.
+A completed player-owned house can found a small village. Willing unmarried adult friends with mutual Personal regard can accept a timed invitation to join its household, subject to room. They keep their own possessions and old legal property. Founding adds no titles, feudal wage system, guardian or political hierarchy.
 
-## First prototype: the arrival
+## Small optional people goals
 
-The smallest version that tests whether this is fun:
+The task panel contains one next hint and a collapsed list of completed milestones. Each actor earns their own evidence:
 
-1. Start at a camp at the edge of the map, with no house.
-2. A task list for your character. You chop wood, forage, and build a lean-to and then a hut.
-3. Two or three villages of related families, with the relationships recorded.
-4. The four rings and goodwill, with the ring shown on a person when you select them. The rule of five decides each person's starting ring and how close they can get.
-5. Villagers post two kinds of job: help with the harvest, and fetch wood. You accept a job, do it, and earn goodwill.
-6. Reaching Social shows that person's family tree.
-7. Reaching Personal makes them come and help with your house.
-8. Hunger with stages, so time spent helping others costs you something.
-9. Trees regrow at the biome's rate, so wood isn't used up for good.
+- Someone in the nearest village at arrival trusts them after actual conversation.
+- A speaker discloses an identifiable event from a family's life.
+- A friend physically contributes to their work without a request.
+- They witness a live wedding between other people.
 
-Marriage, succession, gossip, sworn followers and travel between world hexes come after this, and only if the arrival is fun.
+These records travel with the person. Old history, an anonymous family tree, a queued action or someone else's global event does not complete them. An heir and a new stranger keep their own evidence. The game does not force a friendship or wedding to complete a goal.
 
-## Decided
+## Deferred work
 
-- **No winning.** The game is open-ended.
-- **Start alone.**
-- **Goodwill replaces recruiting.** There's no Recruit button. People help because they care about you, because you pay them, or because they swore to you.
-- **You don't manage your own food.** Your character feeds themself between tasks, as villagers do. Food matters between people instead: favours from families running short, gifts, being invited to eat, and sharing in a hard winter.
-- **You gather, tasks don't.** A task that needs materials you don't have waits, and your character moves on to the next task. It resumes by itself once you've brought the materials home. Nothing fetches on your behalf, because choosing how to spend your time is the game.
-- **Orders.** You give your character orders as now, and they form a task list. Favours appear as requests you can accept onto that list.
-- **Sworn followers share your job queue.** No detailed feudal duties.
-- **Children grow up after a couple of game years.**
-- **Land is divided into fixed areas** (nested hexes: hamlet of 7, town of 49, kingdom of 343), each one a title, as in Crusader Kings III.
-- **Dying with no heir** means starting again as a new stranger in the same world.
-- **Morality is a spectrum.** It changes trust and helpfulness, and your behaviour moves it.
-- **The rule of five comes from traits and tastes, and relationships are one-way.**
-- **Morality changes spread.** When your behaviour moves a world hex's morality, any neighbour now more than one step away is pulled along to within one step. That can pull its own neighbours in turn, so the change ripples outwards until the one-step rule holds everywhere again. What you do in one place gradually shifts the world around it.
+Quests remain a design, with no board, fabricated giver, errands, rewards or mission chains. A future quest must arise from an actual person's situation, knowledge and possessions. It must lapse when its reason disappears. Existing physical favours are the limited implemented help system.
+
+Paid labour, political fealty, nested land titles, guardians controlling marriages, castles, noble recognition, coronation and kingship are deferred. The [phase-two proposal](phase-two.md) preserves the political direction without authorising implementation. Phase one remains an open-ended game about individual people and their families.

@@ -1,3 +1,5 @@
+import { goalEvidence } from "game/guidance";
+import { isResident } from "game/residents";
 import { addGoodwill } from "game/people";
 import { hashUnit } from "game/math";
 
@@ -101,6 +103,10 @@ export function recordEvent(state, type, people, items = [], details = {}) {
       if (hashUnit(state.peopleSeed + ":hear:" + event.id + ":" + id) >= [0.12, 0.4, 0.75, 1][Math.max(0, rank)]) continue;
     }
     learnEvent(state, id, event);
+    if(type=="marriage" && !state.generatingHistory && !state.summarisingHistory && !people.includes(id) && isResident(state,id)) {
+      const p=spatial?.[id],q=spatial?.[people[0]];
+      if(p && q && (p.x-q.x)**2+(p.y-q.y)**2<=300**2)goalEvidence(state,id).earned.wedding ||= {eventId:event.id,day:state.days};
+    }
   }
   return event;
 }
@@ -130,6 +136,10 @@ export function eventSentence(state, event, displayName) {
     quarrel: () => n(a) + " quarrelled with " + n(b),
     reconciliation: () => n(a) + " made peace with " + n(b),
     gift: () => n(a) + " gave " + (item || "a gift") + " to " + n(b),
+    settlement: () => n(a)+" founded a household in "+(village||"a new village"),
+    household_join: () => n(a)+" joined the household of "+n(b),
+    succession: () => event.newStranger ? n(b)+" arrived after the death of "+n(a) : n(b)+" succeeded "+n(a),
+    celebration: () => n(a)+" and "+n(b)+" celebrated their wedding",
     inheritance: () => n(b) + " inherited " + (item || "the household") + " from " + n(a)
   }[event.type];
   return (text ? text() : event.type) + " in the " + when + ".";

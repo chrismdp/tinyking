@@ -1,10 +1,16 @@
 import { cancelFavour, requestForTask, favourWaiting } from "game/favours";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { STAGES, shelterLogSource } from "game/construction";
+import { STAGES, shelterLogSource, deliveryHome } from "game/construction";
 import { forageAvailable } from "game/ecology";
 import { topController } from "game/playable";
 import { giftOptions } from "game/people";
+
+export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel"];
+export function playerOrderAllowed(state, key) {
+  const p = state.ecs.personable[state.ui.playerId];
+  return p && !p.dead && ((p.age ?? 18) >= 18 || CHILD_ORDERS.includes(key));
+}
 
 export const firstFreeJob = (jobs, key) => jobs.find(j => !j.assignedId && !j.waiting && j.job.key == key);
 
@@ -30,6 +36,7 @@ export const removeJob = (ecs, managerId, key, targetId) => {
 
 // Player orders use stable ids, including duplicate orders and future favours.
 export function enqueueTask(state, job, targetId, metadata = {}) {
+  if (!playerOrderAllowed(state, job.key)) return null;
   const manager = state.ecs.manager[state.ui.playerId];
   const entry = { ...metadata, id: "task-" + (manager.nextTask = (manager.nextTask || 0) + 1),
     job, targetId, progress: 0, ...(job.key == "build_shelter" ? { buildStage: state.ecs.construction?.[targetId]?.stage } : {}) };
@@ -109,16 +116,17 @@ export function canReachTask(state, actorId, targetId) {
 function waitingReason(state, actorId, job) {
   const ecs = state.ecs;
   const target = job.targetId;
+  if (!playerOrderAllowed(state,job.job.key)) return "This character cannot do adult work";
   if (job.favourId) return favourWaiting(state, job) || (!canReachTask(state, actorId, target) ? "No path there" : null);
   if (job.gatheredDone) {
-    const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
+    const home = deliveryHome(state,actorId);
     if (!home) return "No home for delivery";
     const next = (job.gathered || []).find(id => ecs.haulable[id] && !ecs.haulable[id].heldBy);
     return !canReachTask(state, actorId, home) || (next && !canReachTask(state, actorId, next)) ? "No path there" : null;
   }
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (["chat", "ask_about", "give_gift"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if (job.job.key == "give_gift") {
     const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
       giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);

@@ -3,9 +3,9 @@ import { isResident } from "game/residents";
 
 // Gardens use the same crops, seasonal growth and harvest goods as fields.
 // A short care visit adds real growth once per day, never creates a commodity.
-export function gardenHelp(state, actor, childrenByHome) {
+export function gardenHelp(state, actor, childrenByHome, explicit = false) {
   const ecs = state.ecs, age = ecs.personable?.[actor]?.age;
-  if (age < 6 || ecs.playable?.[actor] || !isResident(state, actor) || season(state.days) == "winter" || hour_of_day(state.days) < 8 || hour_of_day(state.days) >= 18) return null;
+  if (age < 6 || !explicit && ecs.playable?.[actor] || !isResident(state, actor) || season(state.days) == "winter" || hour_of_day(state.days) < 8 || hour_of_day(state.days) >= 18) return null;
   const home = ecs.household?.[actor]?.houseId;
   // Leave this light household work to a comfortable older child when one is
   // available; adults keep the fields and trades moving and cover care otherwise.

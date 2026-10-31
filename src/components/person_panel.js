@@ -1,3 +1,5 @@
+import { eligiblePartner } from "game/social";
+import { canMarryPlayer, marriageReason, canInviteHome } from "game/family";
 import { biography, disclosedPossessions } from "game/biography";
 import { isResident } from "game/residents";
 import { PersonRequests } from "./favour_requests";
@@ -104,6 +106,8 @@ export function PersonPanel({ entityId }) {
   const gossip = state.knowledge?.[player]?.feelings[entityId] || {};
   const gifts = giftChoices(state, player);
   const trade = ecs.profession?.[entityId]?.trade;
+  const owner = houseId && ecs.controllable[houseId]?.controllerId;
+  const successor = owner && ecs.personable[owner] ? heirFor(state,owner) : null;
   const occupation = ecs.personable[entityId].age < 18 ? "Child" : trade ? titleCase(trade) :
     ecs.household[houseId]?.farming ? "Farming household" : null;
   const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
@@ -111,8 +115,19 @@ export function PersonPanel({ entityId }) {
     <header className="people-header"><div><h3>{personName}</h3>
       <p className="person-meta">{identified ? <>{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
-    <div className="person-body"><p className="label">Traits you know</p>
+    {state.ui.talkResult?.personId == entityId && <p className="talk-result" role="status">{state.ui.talkResult.message}</p>}
+    <div className="person-body">
+      {!dead && ecs.kinship[player]?.spouse == entityId && <p className="talk-note">You are married.</p>}
+      {!dead && present && entityId != player && ecs.kinship[player]?.spouse != entityId && ecs.personable[player].age >= 18 && <div className="court-actions" aria-label="Courtship"><button disabled={!left || !eligiblePartner(state,player,entityId,true)} onClick={() => queue("court")}>Court</button><button disabled={!left || !canMarryPlayer(state,player,entityId)} onClick={() => queue("marry")}>Ask to marry</button></div>}
+      {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
+      {!dead && present && entityId != player && ecs.kinship[player]?.spouse != entityId && ecs.personable[player].age>=18 && <p className="talk-note">{marriageReason(state,player,entityId) || "You both feel close enough. Visit to ask and join a family home."}</p>}
+      {!dead && present && canInviteHome(state,player,entityId) && <button onClick={()=>queue("invite_home")}>Invite to your household</button>}
+      {!dead && present && entityId != player && ecs.personable[player].age < 18 && ecs.personable[entityId].age < 18 && <button disabled={!left} onClick={() => queue("play")}>Play together</button>}
+      {!dead && present && ecs.personable[player].age >= 18 && <PersonRequests personId={entityId}/>}
+      {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
+      <p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
+      {identified && <div className="family-status"><p className="label">Household and inheritance</p><p>Owner: {owner && ecs.personable[owner] ? knownName(owner) : "Unclaimed home"}</p><p>Household heir: {successor ? knownName(successor) + (ecs.personable[successor]?.age < 18 ? " · Child" : "") : "No living heir"}</p><small>Spouse, then eldest living child, then nearest kin.</small></div>}
       <div className="biography"><p className="label">Their story</p>{biography(state, player, entityId, id => displayName(state, id)).map(f => <p key={f.key}>{f.text}</p>)}</div>
       <div className="relationship">{contacted ? <><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : relationshipSentence(pronoun, "you", ring, possessive)}</strong><Ring ring={ring}/></div>
         <p>{trusted ? benefit : `An impression from your conversation. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
@@ -123,16 +138,13 @@ export function PersonPanel({ entityId }) {
       <div className="people-list"><p className="label">{trusted ? titleCase(possessive) + " closest people" : "People seen with " + (pronoun == "They" ? "them" : pronoun == "He" ? "him" : "her")}</p>
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}
           {!theirPeople.length && <li><span>?</span><span className="kin">Others not yet known</span></li>}</ul></div>
-      {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
-      {!dead && present && <PersonRequests personId={entityId}/>}
-      {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
         {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => knownName(o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
           Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{knownName(id)}</button>)}</div>}
       {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{relationshipSentence(personName, knownName(id), ring, possessive)}</p>)}</div>}
       <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => knownDisplayName(state, id, id => displayName(state, id)))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
       <div className="possessions"><p className="label">Personal possessions</p>{disclosedPossessions(state, player, entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {knownName(p.maker)}. First owned by {knownName(p.originalOwner)}.</p><p>{p.owners.map(o => knownName(o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
-      {state.ui.talkResult?.personId == entityId && <p className="talk-note" role="status">{state.ui.talkResult.message}</p>}
+
     </div>
     <footer className="person-footer"><button onClick={() => setTreeOpen(true)}>Open family tree »</button><small>{knownCount == Object.keys(tree.nodes).length ? titleCase(possessive) + " whole family tree is known." : `${knownCount} ${knownCount == 1 ? "name" : "names"} known · the rest show as ?`}</small></footer>
   </Sheet>;
@@ -170,7 +182,7 @@ export function layoutFamily({ rootId, nodes }) {
 
 function heirOf(state, id) {
   const ecs = state.ecs;
-  for (const house of new Set(Object.values(ecs.household).map(h => h.houseId))) {
+  for (const house of new Set([...Object.keys(ecs.building||{}),...Object.values(ecs.household).map(h => h.houseId)])) {
     if (!ecs.controllable[house]) continue;
     const head = ecs.controllable[house].controllerId, kin = ecs.kinship[head];
     if (!kin) continue;
@@ -185,13 +197,14 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   const scroll = React.useRef(null);
   const tree = knownFamilyTree(state, state.ui.playerId, entityId);
   const { positions, width, height } = layoutFamily(tree);
-  React.useEffect(() => {
-    if (scroll.current) {
-      const at = positions[tree.rootId];
-      scroll.current.scrollLeft = at.x - scroll.current.clientWidth / 2 + 82;
-      scroll.current.scrollTop = at.y - scroll.current.clientHeight / 2 + 41;
-    }
-  // Centre the subject on opening; retain the player's scroll position afterwards.
+  React.useLayoutEffect(() => {
+    const el=scroll.current;
+    if(!el)return;
+    const centre=()=>{const at=positions[tree.rootId];el.scrollLeft=at.x-el.clientWidth/2+82;el.scrollTop=at.y-el.clientHeight/2+48;};
+    centre();
+    const observer=new ResizeObserver(centre);observer.observe(el);
+    return ()=>observer.disconnect();
+  // Centre on opening and viewport changes, preserving manual scrolling between them.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityId]);
   const close = onClose || (() => state.ui.actions.change_visibility({ selected_person: null }));
@@ -205,7 +218,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   }
   return <Sheet label={"The family of " + personName} onClose={close} className="tree-window">
     <header className="people-header"><h3>The family of {personName}</h3><span className="count">{nodes.filter(n => !n.unknown).length} of {nodes.length} names known</span><button className="sheet-close" aria-label="Close family tree" onClick={close}>×</button></header>
-    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span></div>
+    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",state.ecs.controllable[state.ecs.household[entityId]?.houseId]?.controllerId],["Heir",heirFor(state,state.ecs.controllable[state.ecs.household[entityId]?.houseId]?.controllerId)]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
     <div className="tree-scroll" ref={scroll} tabIndex={0} aria-label="Scroll family tree"><svg className="family-tree" width={width} height={height} role="group" aria-label={"The family of " + personName}>
       <g className="kinline">{nodes.filter(n => n.spouse && n.id < n.spouse).map(n => {
         const a = positions[n.id], b = positions[n.spouse];
@@ -228,17 +241,17 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
         const person = !node.unknown && state.ecs.personable[node.id];
         const dead = person?.dead, heir = person && heirOf(state, node.id);
         const label = node.unknown ? "?" : (dead ? "† " : "") + displayName(state, node.id);
-        const meta = node.unknown ? "Not yet known" : dead ? "Died aged " + node.age : node.age + " · " + (node.age >= 18 && !node.spouse ? "Unmarried adult" : node.age < 18 ? "Child" : "Living");
+        const meta = node.unknown ? "Not yet known" : dead ? "Died aged " + node.age : node.age + " · " + (node.age >= 18 && (!node.spouse || state.ecs.personable[node.spouse]?.dead) ? "Unmarried adult" : node.age < 18 ? "Child" : "Living");
         const houseId = person && state.ecs.household[node.id]?.houseId;
         const householder = !dead && houseId && state.ecs.controllable[houseId]?.controllerId == node.id;
-        const tag = heir ? "◇ Heir · " + heir : node.id == tree.rootId ? "Selected person" : householder ? "Householder" : "";
+        const tag = [node.id == tree.rootId && "Selected person", householder && "Householder", heir && "◇ Heir · " + heir].filter(Boolean).join(" · ");
         return <g key={node.id} className={"node" + (node.unknown ? " unknown" : "") + (dead ? " dead" : "") + (node.id == tree.rootId ? " selected" : "")}
           transform={`translate(${x} ${y})`} role={node.unknown ? "img" : "button"} tabIndex={node.unknown ? undefined : 0}
           aria-label={node.unknown ? "Unknown relative" : "Select " + label + ", " + meta + (tag ? ", " + tag : "")}
           onClick={node.unknown ? undefined : () => select(node.id)} onKeyDown={node.unknown ? undefined : e => { if (e.key == "Enter" || e.key == " ") { e.preventDefault(); select(node.id); } }}>
-          <title>{label + ". " + meta}</title><rect className="card" width={164} height={82} rx={4}/>
+          <title>{label + ". " + meta}</title><rect className="card" width={164} height={96} rx={4}/>
           {node.unknown ? <><text className="question" x={82} y={30} textAnchor="middle">?</text><text className="node-meta" x={82} y={53} textAnchor="middle">Not yet known</text></> :
-            <><text className="node-name" x={10} y={25}>{label.length > 21 ? label.slice(0, 20) + "…" : label}</text><text className="node-meta" x={10} y={46}>{meta}</text><text className="node-tag" x={10} y={65}>{tag}</text></>}
+            <><text className="node-name" x={10} y={25}>{label.length > 21 ? label.slice(0, 20) + "…" : label}</text><text className="node-meta" x={10} y={46}>{meta}</text><text className="node-tag" x={10} y={65}>{node.id == tree.rootId ? "Selected person" : householder ? "Householder" : ""}</text><text className="node-tag" x={10} y={83}>{heir ? "◇ Heir · " + heir : householder && node.id == tree.rootId ? "Householder" : ""}</text></>}
         </g>;
       })}
     </svg></div>

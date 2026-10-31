@@ -15,6 +15,16 @@ export const STAGES = {
   house: { logs: 20, hours: 10, capacity: 40 }
 };
 
+export function localHome(state, actorId) {
+  const ecs=state.ecs,home=ecs.household?.[actorId]?.houseId;
+  if(home && ecs.spatial[home] && (ecs.building?.[home] || ecs.camp?.[home] || ecs.shelter?.[home]?.stage))return home;
+  return [...Object.keys(ecs.shelter||{}).filter(id=>ecs.shelter[id].stage),...Object.keys(ecs.camp||{})]
+    .find(id=>ecs.controllable[id] && topController(ecs,id)==actorId);
+}
+export function deliveryHome(state,actorId) {
+  const home=localHome(state,actorId);
+  return state.ecs.building?.[home]?.rooms?.find(id=>state.ecs.container?.[id]) || home;
+}
 export function canPlaceShelter(state, targetId) {
   const ecs = state.ecs;
   if (ecs.construction?.[targetId]) return false;
@@ -25,11 +35,11 @@ export function canPlaceShelter(state, targetId) {
   const preview = { ecs: { spatial: { site: ecs.spatial[targetId] }, shelter: { site: {} } } };
   if (!canClearForBuilding(state, buildingFootprint(preview, "site"), state.ui.playerId)) return false;
   const hex = Hex().fromPoint(ecs.spatial[targetId]);
-  const camp = Object.keys(ecs.camp || {})[0];
+  const camp = Object.keys(ecs.camp || {}).find(id=>topController(ecs,id)==state.ui.playerId);
   if (!camp || hex.distance(Hex().fromPoint(ecs.spatial[camp])) > 3) return false;
   const campTile = state.space[Hex().fromPoint(ecs.spatial[camp])].find(id => ecs.mappable[id]);
   if (!path(state, campTile, targetId)) return false;
-  if (Object.keys(ecs.shelter || {}).length || Object.keys(ecs.construction || {}).length) return false;
+  if ([...Object.keys(ecs.shelter || {}),...Object.keys(ecs.construction || {})].some(id=>topController(ecs,id)==state.ui.playerId)) return false;
   return !(state.space[hex] || []).some(id => id != targetId &&
     (ecs.building[id] || ecs.camp?.[id] || ecs.farmable?.[id] || ecs.stockpile?.[id]));
 }
@@ -125,12 +135,17 @@ export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   if (site.work + 1e-9 < stage.hours) return Task.CONTINUE;
   ecs.shelter[targetId].stage = site.stage;
   ecs.nameable[targetId].nickname = site.stage == "lean-to" ? "Lean-to" : site.stage == "hut" ? "Hut" : "House";
-  ecs.sleepable[targetId] = { id: targetId, capacity: 1, level: 1, occupiers: [] };
+  ecs.sleepable[targetId] = { id: targetId, capacity: site.stage == "house" ? 6 : 1, level: 1, occupiers: [] };
   ecs.container[targetId] = { id: targetId, capacity: stage.capacity, amounts: ecs.container[targetId]?.amounts || {} };
   ecs.household ||= {};
   const owner = topController(ecs, targetId);
   ecs.household[owner] = { id: owner, houseId: targetId };
-  for (const camp of Object.keys(ecs.camp || {})) ecs.sleepable[camp].capacity = 0;
+  for (const camp of Object.keys(ecs.camp || {})) if(topController(ecs,camp)==owner)ecs.sleepable[camp].capacity = 0;
+  if(site.stage=="house") {
+    (ecs.building ||= {})[targetId]={id:targetId,rooms:[],entrance:0};
+    (ecs.village ||= {})[targetId] ||= {id:targetId,villageId:null};
+    ecs.household[targetId] ||= {id:targetId,fields:[],backyards:[]};
+  }
   delete ecs.planner[owner].world.places.sleep;
   delete ecs.construction[targetId];
   state.redraws.push(targetId);

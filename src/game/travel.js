@@ -1,5 +1,4 @@
 import { advanceEnvironment } from "game/environment";
-import { drift } from "game/people";
 import { householdAccess } from "game/playable";
 import { Hex } from "game/hex";
 import { generateMap } from "game/map";
@@ -322,8 +321,9 @@ export function releaseLocalWork(s, id) {
 }
 export function acceptTravel(s, tileId) {
   const d = destinationFor(s, tileId);
-  if (!d || d.blocked || s.transition || !canReachTask(s, s.ui.playerId, tileId)) return false;
+  if (s.ecs.personable[s.ui.playerId]?.dead || !d || d.blocked || s.transition || !canReachTask(s, s.ui.playerId, tileId)) return false;
   const id = s.ui.playerId;
+  delete s.ecs.personable[id].pendingJourney;
   cancelLocalTasksForTravel(s);
   releaseLocalWork(s, id);
   s.ecs.planner[id].task = null;
@@ -349,6 +349,7 @@ export function acceptTravel(s, tileId) {
 function takeTraveller(s, id) {
   releaseLocalWork(s, id);
   const playable = s.ecs.playable?.[id];
+  if (playable) playable.homesByMap={...playable.homesByMap,[s.map.worldKey || worldKey(s.world.home)]:s.ecs.household?.[id]?.houseId};
   if (playable) playable.knownByMap = {
     ...playable.knownByMap,
     [s.map.worldKey || worldKey(s.world.home)]: playable.known
@@ -436,7 +437,8 @@ export function enterMap(s, key, bundle, side) {
   s.arrivalEntry = s.map.entrances[side];
   // One camp per person and map. A return uses the same camp and its stores.
   s.arrivalCampId = Object.keys(s.ecs.camp || {}).find(id => s.ecs.controllable[id]?.controllerId == bundle.id);
-  s.arrivalHomeId = s.map.homeId;
+  const remembered=s.ecs.playable[bundle.id]?.homesByMap?.[key];
+  s.arrivalHomeId = remembered && s.ecs.spatial[remembered] ? remembered : null;
   s.map = {
     ...s.map,
     playerStartTile: {
@@ -446,6 +448,7 @@ export function enterMap(s, key, bundle, side) {
   s.intro = null;
   startIntro(s);
   s.ui.show.selected_person = null;
+  s.ui.familyPersonId = null;
   s.ui.selected = null;
   recordEvent(s, "arrival", [bundle.id], [], {
     worldHex: key,
@@ -455,9 +458,7 @@ export function enterMap(s, key, bundle, side) {
   updateWeather(s, 0, j.seed);
   j.maps[key] = localSnapshot(s);
 }
-function ageTraveller(s, bundle, season, {
-  player = false
-} = {}) {
+function ageTraveller(s, bundle, season) {
   const transit = {
     ecs: {
       nextId: 1,
@@ -480,8 +481,7 @@ function ageTraveller(s, bundle, season, {
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (transit.ecs[key] ||= {})[id] = clone(value);
   references(transit, s.travel);
   if (bundle.knowledge) transit.knowledge[bundle.id] = clone(bundle.knowledge);
-  const aged = player ? transit : historyStep(transit, season);
-  if (player) drift(aged, 72);
+  const aged = historyStep(transit, season);
   for (const [id, components] of Object.entries(bundle.entities)) for (const key of Object.keys(components)) if (aged.ecs[key]?.[id]) components[key] = aged.ecs[key][id];
   bundle.knowledge = aged.knowledge[bundle.id];
   publish(aged, s.travel);
@@ -540,6 +540,12 @@ export async function completeTravel(s, order) {
     await advanceWorldClock(s, {
       travelling: true
     });
+    if(bundle.entities[id].personable.dead) {
+      settleRoadEstate(s,trip);
+      activateResidentMap(s,from);
+      j.transit=j.transit.filter(t=>t!=trip);
+      return;
+    }
     await ensureMap(s, order.destination);
     enterMap(s, order.destination, bundle, (order.side + 3) % 6);
     j.transit = j.transit.filter(t => t != trip);
@@ -584,6 +590,7 @@ function journeyIntent(s, id, key, j, season) {
   };
 }
 export function departNpc(s, id, intent, j = s.travel) {
+  if(s.ecs.personable[id]?.dead)return false;
   const from = s.map.worldKey || j.active,
     home = j.visits[id];
   const saved = {
@@ -773,4 +780,34 @@ export async function advanceWorldClock(s, {
   await receiveNpcs(s, j);
   reconcileEstates(s, j);
   references(s, j);
+}
+
+// A control handover activates an existing community in place. It is not travel:
+// no entry route, transit bundle, relocation or additional seasonal step.
+export function activateResidentMap(s, key) {
+  const j=s.travel;
+  j.maps[j.active]=localSnapshot(s);
+  const map=j.maps[key];
+  for(const field of LOCAL_FIELDS)delete s[field];
+  Object.assign(s,map);
+  s.days=j.days;
+  j.active=key;
+  s.world={...s.world,home:Object.fromEntries(key.split(",").map((n,i)=>[i?"y":"x",+n]))};
+  references(s,j);
+  s.redraws=Object.keys(s.ecs.spatial);
+  updateWeather(s,0,j.seed);
+}
+export async function returnSuccessorFromRoad(s,id) {
+  const j=s.travel,trip=j.transit.find(t=>t.bundle.id==id);
+  if(!trip)return null;
+  const home=j.maps[trip.from];
+  references(home,j);
+  const original=trip.bundle.entities[id].spatial;
+  const onMap=(home.space[Hex().fromPoint(original)]||[]).some(tile=>home.ecs.walkable[tile]);
+  const point=onMap ? original : home.ecs.spatial[home.map.entrances[trip.side ?? 0].tileIds[0]];
+  putTraveller(home,trip.bundle,point,j);
+  home.ecs.personable[id].pendingJourney={to:trip.to,due:trip.due,reason:trip.reason||"visit"};
+  j.transit=j.transit.filter(t=>t!=trip);
+  publish(home,j);
+  return trip.from;
 }

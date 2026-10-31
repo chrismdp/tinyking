@@ -7,6 +7,7 @@ import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
 import { socialHour } from "game/social_visits";
+import { resolveSuccession } from "game/succession";
 import { die } from "game/possessions";
 import * as htn from "game/htn";
 import { introActive, updateIntro } from "game/intro";
@@ -32,6 +33,10 @@ const DAYS = 86400;
 
 export const deltaTime = (frameMod, speed) => frameMod * SECONDS_PER_FRAME * (speed || 0) / DAYS;
 
+const playerDied = state => {
+  const id=state.ui?.playerId;
+  return state.ecs.playable?.[id]?.arrivedAt != null && state.ecs.personable?.[id]?.dead && state.ecs.personable[id].deathProcessed;
+};
 const IDLE_PLAN = () => [["wait_for", time.HOUR * 0.5]];
 
 function updatePlanners(state, frameMod) {
@@ -212,6 +217,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
     get pending() { return pending; },
     step(frameMod, realSeconds = frameMod / 60) {
       if(pending || state.travelError) return pending;
+      if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
       if (arriving) return;
@@ -219,11 +225,12 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
       updatePlanners(state, frameMod);
       if(state.pendingPlayerTravel) {
         const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
-        return background(async()=>{await completeTravel(state,order);if(onTravel)onTravel();});
+        return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
       }
       for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
       state.pendingNpcDepartures=[];
       advanceTime(frameMod);
+      if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
       if(state.travel && (state.travel.season < Math.floor(state.days/3) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
         return background(()=>advanceWorldClock(state));
       }

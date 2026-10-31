@@ -2,7 +2,7 @@ import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { giftOptions, beginInteraction, addGoodwill } from "game/people";
-import { enqueueTask } from "game/manager";
+import { enqueueTask, playerOrderAllowed } from "game/manager";
 import { recordEvent } from "game/events";
 import { take } from "game/holder";
 
@@ -134,17 +134,19 @@ export function visibleFavours(s, personId) {
   return Object.values(s.favours?.requests || {}).filter(r => learned.has(r.id) && (!personId || r.giverId == personId || s.ecs.household?.[personId]?.houseId == r.householdId));
 }
 export function acceptFavour(s, id) {
+  if (!playerOrderAllowed(s,"favour")) return null;
   updateFavours(s);
   const r = s.favours?.requests[id];
   if (!r || r.status != "offered" || !visibleFavours(s).includes(r)) return null;
-  beginInteraction(s, s.ui.playerId, r.giverId);
-  r.status = "accepted"; r.acceptedDay = s.days;
   const task = enqueueTask(s, { key: "favour" }, r.targetId, { favourId: id, forId: r.giverId, expectedGoodwill: r.goodwill });
+  if (!task) return null;
+  beginInteraction(s, s.ui.playerId, r.giverId);
+  r.status = "accepted"; r.acceptedDay = s.days; r.actorId = s.ui.playerId;
   r.taskId = task.id;
   return task;
 }
 export function finishFavour(s, r) {
-  if (!r || r.status != "accepted" || r.progress < r.quantity || r.cargo.length || r.delivered < r.produced) return false;
+  if (!r || r.actorId && r.actorId != s.ui.playerId || s.ecs.personable[s.ui.playerId]?.dead || r.status != "accepted" || r.progress < r.quantity || r.cargo.length || r.delivered < r.produced) return false;
   r.status = "completed"; r.completedDay = s.days;
   r.outcome = `Completed · +${r.goodwill} goodwill with the requester`;
   addGoodwill(s, s.ui.playerId, r.giverId, r.goodwill);

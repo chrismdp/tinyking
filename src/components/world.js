@@ -1,3 +1,4 @@
+import { foundHousehold } from "game/family";
 import { updateRoadWear, recordRoadUse } from "game/road_wear";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -20,7 +21,7 @@ import * as THREE from "three";
 import { useTranslate } from "react-polyglot";
 
 import { generateMap } from "game/map";
-import { anyControlledAlive } from "game/playable";
+
 import { startIntro, skipIntro, introActive } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
@@ -28,7 +29,7 @@ import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
-import { enqueueTask, reorderTask, cancelTask, cancelJob } from "game/manager";
+import { playerOrderAllowed, enqueueTask, reorderTask, cancelTask, cancelJob } from "game/manager";
 
 import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
@@ -147,15 +148,6 @@ export function World() {
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
       end_turn: async () => {
-        // TODO: move to realtime check
-        if (!anyControlledAlive(state.ecs, state.ui.playerId)) {
-          state.ui.show.game_over = true;
-          const value = { s: 0 };
-          new TWEEN.Tween(value)
-            .to({ s: -1 }, 2500)
-            .onUpdate(() => state.renderer.setDesaturation(-value.s))
-            .start();
-        }
         renderUI();
       },
       change_visibility: action => {
@@ -213,7 +205,7 @@ export function World() {
         renderUI();
       },
       choose_job: (playerId, job, targetId) => {
-        if (introActive(state)||state.worldBusy) return;
+        if (introActive(state)||state.worldBusy || !playerOrderAllowed(state,job.key)) return;
         if (job.key == "build_shelter") {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
@@ -223,6 +215,8 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
+      show_family: id => {state.ui.familyPersonId=id;renderUI();},
+      found_household: () => {if(introActive(state)||state.worldBusy)return;foundHousehold(state);renderUI();},
       accept_favour: id => { if (introActive(state)||state.worldBusy) return; state.renderer?.resumeFollow(); acceptFavour(state, id); renderUI(); },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)||state.worldBusy) return;
@@ -247,6 +241,7 @@ export function World() {
         state.knowledge = {};
         state.talking = {};
         state.ui.talkResult = null;
+        state.ui.familyPersonId = null;
         state.ui.show.selected_person = null;
         state.intro = null;
         if (state.ticker) {

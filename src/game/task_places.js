@@ -9,7 +9,7 @@ export function taskPlace(state, targetId) {
   const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage &&
     topController(ecs, id) == state.ui.playerId);
   if (home && at.distance(Hex().fromPoint(ecs.spatial[home])) <= 1) return "by your " + ecs.shelter[home].stage;
-  const camp = Object.keys(ecs.camp || {})[0];
+  const camp = Object.keys(ecs.camp || {}).find(id => ecs.controllable?.[id] && topController(ecs,id)==state.ui.playerId);
   const from = camp && Hex().fromPoint(ecs.spatial[camp]);
   if (from && at.distance(from) <= 1) return "at camp";
   const villages = Object.values(state.villages || {}).map(v => ({ ...v, distance: at.distance(Hex(v.centre)) }))

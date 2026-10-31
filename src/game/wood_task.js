@@ -1,3 +1,4 @@
+import { deliveryHome } from "game/construction";
 import { HUMAN_SPEED } from "game/locomotion";
 import { Hex, HEX_SIZE } from "game/hex";
 import { path } from "game/pathfinding";
@@ -57,7 +58,7 @@ export function woodTask(state, job, active) {
     const total = job.gatheredTotal;
     const delivered = total == null ? null : total - remaining.length;
     const held = (ecs.holder?.[id]?.held || []).find(log => remaining.includes(log));
-    const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
+    const home = deliveryHome(state,id);
     const target = held ? home : remaining.find(log => ecs.haulable?.[log] && !ecs.haulable[log].heldBy);
     const minutes = active && target ? routeMinutes(state, id, target) : null;
     const next = remaining.length > 1 ? " · more wood to collect" : "";

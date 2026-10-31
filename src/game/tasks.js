@@ -1,4 +1,5 @@
 import { speechPosition, SPEECH_REACH } from "game/conversation";
+import { goalEvidence } from "game/guidance";
 import { HUMAN_SPEED } from "game/locomotion";
 import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
 import { leaveHome, enterHome, actualHome, nightTime } from "game/home";
@@ -24,9 +25,10 @@ import { containerHasSpace } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
-import { workOnShelter, collectShelterLog, deliverShelterLog } from "game/construction";
+import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
+import { familyConversation } from "game/family";
 import { TALK_MINUTES } from "game/player";
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
@@ -751,6 +753,7 @@ export function release_attention(state, actorId, world, dt, firstRun, targetId)
 
 export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type) {
   const ecs = state.ecs;
+  if (ecs.personable[actorId]?.dead) return Task.ABORT;
   const available = giftOptions(state, actorId).find(g => g.sourceId == sourceId && g.type == type);
   const personal = ecs.possession?.[sourceId];
   const held = ecs.haulable?.[sourceId]?.heldBy == actorId;
@@ -781,7 +784,7 @@ export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type
 
 export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId) {
   const ecs = state.ecs;
-  if (!ecs.personable[personId] || ecs.personable[personId].dead) return Task.ABORT;
+  if (ecs.personable[actorId]?.dead || !ecs.personable[personId] || ecs.personable[personId].dead) return Task.ABORT;
   if (ecs.interior?.[personId]?.buildingId != ecs.interior?.[actorId]?.buildingId) return Task.ABORT;
   // Attention asks the other planner to wait. If they were already walking,
   // finish approaching their current position before spending conversation time.
@@ -791,6 +794,7 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
   if (key == "give_gift" && !fenceHandoffClear(state, ecs.spatial[actorId], ecs.spatial[personId])) return Task.ABORT;
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
+  if (["court", "marry", "play", "invite_home"].includes(key)) result = familyConversation(state,actorId,personId,key);
   if (key == "chat") result = chat(state, actorId, personId);
   if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
   if (key == "give_gift") {
@@ -825,7 +829,7 @@ export const deliver_log = deliverShelterLog;
 export function carry_home(state, actorId, world, dt, firstRun) {
   if (!world.ordered) return Task.FINISH;
   const ecs = state.ecs;
-  const home = Object.keys(ecs.shelter || {}).find(id => ecs.shelter[id].stage) || Object.keys(ecs.camp || {})[0];
+  const home = deliveryHome(state,actorId);
   if (!home) return Task.FINISH;
   if (firstRun) world.carryTarget = null;
   // An interrupted favour can leave another household's crop in hand.
@@ -1010,10 +1014,16 @@ export function help_friend_work(state, actorId, world, dt, firstRun) {
   if (offer.kind == "build") {
     if (!state.ecs.construction?.[offer.targetId]) return Task.FINISH;
     if (math.squaredDistance(state.ecs.spatial[actorId], offer) > 100 || math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[offer.targetId]) > 50 ** 2) return Task.ABORT;
-    return work_shelter(state, actorId, world, dt, firstRun, offer.targetId);
+    const before=state.ecs.construction[offer.targetId].work;
+    const result=work_shelter(state, actorId, world, dt, firstRun, offer.targetId);
+    if(dt>0 && (state.ecs.construction[offer.targetId]?.work>before || result==Task.FINISH))goalEvidence(state,state.ui.playerId).earned.help ||= {helperId:actorId,targetId:offer.targetId,day:state.days};
+    return result;
   }
   world.places.friendSlot = offer;
-  return perform_subtask_in_slot(state, actorId, world, dt, firstRun, offer.targetId, "friendSlot");
+  const before=state.ecs.farmable?.[offer.targetId]?.slots[offer.idx]?.state;
+  const result=perform_subtask_in_slot(state, actorId, world, dt, firstRun, offer.targetId, "friendSlot");
+  if(result==Task.FINISH && state.ecs.farmable[offer.targetId].slots[offer.idx].state!=before)goalEvidence(state,state.ui.playerId).earned.help ||= {helperId:actorId,targetId:offer.targetId,day:state.days};
+  return result;
 }
 export function end_friend_help(state, actorId) { releaseFriendWork(state, actorId); }
 

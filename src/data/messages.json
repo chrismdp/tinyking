@@ -151,7 +151,11 @@
     "weaving": "Weaving",
     "baking": "Baking",
     "tanning": "Tanning hides",
-    "milling": "Milling grain"
+    "milling": "Milling grain",
+    "court": "Courting",
+    "marry": "Discussing marriage",
+    "play": "Playing together",
+    "invite_home": "Inviting a friend home"
   },
   "rooms": {
     "sleeping_quarters": {

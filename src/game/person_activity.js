@@ -38,7 +38,7 @@ function activity(ecs, id, t, personName) {
   if (key == "walk_to") {
     if (world?.places?.[target]?.result) return t("tasks." + (FARM_LABELS[world.places[target].result] || "harvest_field"));
     const order = Object.values(ecs.manager || {}).flatMap(m => m.jobs).find(j => j.assignedId == id);
-    const purpose = { chat: "Going to talk", ask_about: "Going to ask for family news", give_gift: "Taking a gift", move_to_here: "Going where you asked", build_shelter: "Going to build", create_field: "Going to clear a field", create_stockpile: "Going to clear storage", forage: "Going to forage", find_food: "Getting food", rest: "Going to rest" }[order?.job.key];
+    const purpose = { court: "Going to court", marry: "Going to ask about marriage", play: "Going to play", invite_home: "Visiting a friend about your household", chat: "Going to talk", ask_about: "Going to ask for family news", give_gift: "Taking a gift", move_to_here: "Going where you asked", build_shelter: "Going to build", create_field: "Going to clear a field", create_stockpile: "Going to clear storage", forage: "Going to forage", find_food: "Getting food", rest: "Going to rest" }[order?.job.key];
     if (purpose) return purpose;
   }
   if (key == "wait_for" && world?.capturedBy) return "Waiting to talk";

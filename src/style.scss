@@ -923,7 +923,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   button { display: block; text-align: left; width: 100%; background: transparent; color: inherit; border: 0; border-top: 1px solid #625c4c; padding: 8px 2px; cursor: pointer; font: inherit; }
 }
 // Keep the full tree clear without losing the news disclosure or entry scroll.
-#ui:has(.tree-window) .event-feed { visibility: hidden; }
+
 .heard-events, .possessions { margin-top: 15px; p { line-height: 1.45; } summary { cursor: pointer; } }
 @media(max-width: 600px) { .event-feed { right: 8px; bottom: 60px; width: 215px; font-size: 11px; } .people-sheet { z-index: 20; } }
 
@@ -1007,7 +1007,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 
 // Keep opening guidance below the clock and above a phone encounter sheet.
 @media (max-width: 700px), (max-height: 500px) {
-  #ui:has(#opening-guidance) .people-sheet {
+  #ui:has(#opening-guidance) .person-window {
     top: calc(202px + var(--safe-top));
     max-height: calc(100svh - 276px - var(--safe-top) - var(--safe-bottom));
   }
@@ -1015,4 +1015,50 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 @media (min-width: 701px) and (min-height: 501px) {
   #ui:has(.person-window) #opening-guidance { left: calc(774px + var(--safe-left)); transform: none; width: min(430px, calc(100% - 800px)); }
   #ui:has(.tree-window) #opening-guidance { display: none; }
+}
+
+// The tree owns a bounded viewport. Its SVG retains its real dimensions, so
+// centering operates on scroll content rather than a squeezed flex item.
+.tree-window { height: calc(100svh - 90px - var(--safe-top) - var(--safe-bottom)); overflow: hidden; }
+.tree-scroll { flex: 1 1 0; width: 100%; min-height: 120px; }
+.family-tree { max-width: none; flex-shrink: 0; }
+.tree-centres, .court-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.tree-centres button { font-size: 13px; padding: 5px 10px; }
+.court-actions { margin: 12px 0; }
+.court-actions small { flex-basis: 100%; }
+.family-status { margin: 12px 0; padding: 10px; border: 1px solid #78686b; }
+.people-goals { padding: 8px 15px; font-size: 13px; border-top: 1px solid #78686b; }
+.people-goals summary { min-height: 44px; cursor: pointer; }
+.succession-message { position: absolute; top: 65px; left: 10px; right: 10px; max-width: 420px; padding: 12px; background: #453a3d; color: #f7f1e7; border: 1px solid #e2c879; z-index: 24; pointer-events: auto; }
+.succession-message button { min-height: 44px; float: right; }
+@media (max-width: 800px), (max-height: 500px) {
+  .tree-window { top: var(--safe-top); left: var(--safe-left); height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); max-height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
+  .tree-toolbar { gap: 5px; }
+  .tree-toolbar > span { display: none; }
+  .tree-legend { font-size: 11px; }
+}
+
+#ui:has(.tree-window) #opening-guidance { display: none; }
+.person-window { display: flex; flex-direction: column; overflow: hidden; }
+.person-window .person-body { overflow: auto; min-height: 0; overscroll-behavior: contain; }
+.person-window .people-header, .person-footer, .talk-result { flex-shrink: 0; }
+.talk-result { padding: 9px 15px; color: #f7f1e7; background: #334a36; font-size: 14px; }
+@media (max-width: 700px), (max-height: 500px) {
+  .person-window { bottom: calc(74px + var(--news-space) + var(--safe-bottom)); max-height: none; }
+  #ui:has(#opening-guidance) .person-window { max-height: none; bottom: calc(74px + var(--news-space) + var(--safe-bottom)); }
+  .person-window .people-header { padding: 8px 12px; }
+  .person-window h3 { font-size: 24px; }
+  .person-window .person-meta { font-size: 12px; line-height: 1.3; }
+  .person-window .person-body { padding: 10px 12px; flex: 1 1 0; }
+  .person-footer { padding: 6px 12px; }
+  .talk-result { font-size: 13px; padding: 6px 12px; }
+}
+
+@media (max-width: 700px), (max-height: 500px) {
+  .person-window .court-actions { margin: 0 0 6px; }
+  .person-window .talk-actions { margin-top: 0; }
+}
+
+@media (max-width: 700px), (max-height: 500px) {
+  #task-panel.collapsed > .your-family, #task-panel.collapsed > .people-goals { display: none; }
 }

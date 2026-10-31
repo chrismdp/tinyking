@@ -89,3 +89,9 @@ Each hidden relative has `{ id: "unknown-N", name: "unknown", unknown: true }`, 
 All nodes retain their kin links through these aliases, so unknown branches stay connected.
 Hidden nodes expose no age or original entity id.
 Both knowledge functions leave state unchanged.
+
+## Player families
+
+The [phase-one design](design.md#marriage-ownership-and-succession) describes deliberate courtship, marriage, births and player succession. The same `heirFor` function supplies visible heirs and actual inheritance. Control transfer keeps the successor's records. Initial history excludes the new stranger. Automatic NPC matchmaking still excludes the player.
+
+`playable.arrivedAt` records the real arrival handover. Only an arrived playable actor participates in seasonal ageing and births. NPC people always use their shared lifecycle. This keeps pre-arrival strangers and legacy NPC-only placeholder players outside that lifecycle without altering NPC matchmaking. A controlled NPC heir starts playable participation immediately.

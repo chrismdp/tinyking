@@ -60,3 +60,10 @@ it("reserves real roads only on gentle hexes and contour links without changing 
   const steep=siteFixture(.8);
   expect(reserveRoad(steep.s,[steep.site,steep.s.space[Hex(5,6)][0]])).toBe(false);
 });
+
+it("accepts projected road slopes at the limit despite floating point roundoff, while rejecting steeper ground",()=>{
+  const {safeTile,ROAD_CROSS_SLOPE}=require("game/geography");
+  const p=Hex(5,5).toPoint();
+  expect(safeTile({slopeAt:()=>({dx:ROAD_CROSS_SLOPE+4e-14,dy:0})},p,ROAD_CROSS_SLOPE)).toBe(true);
+  expect(safeTile({slopeAt:()=>({dx:ROAD_CROSS_SLOPE+1e-5,dy:0})},p,ROAD_CROSS_SLOPE)).toBe(false);
+});

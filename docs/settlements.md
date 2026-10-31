@@ -37,3 +37,11 @@ The founding survey now reserves one accessible field for each proposed househol
 Actual work yards use `reserveWorkYard` from `land_use.js`. It accepts only unclaimed, unworn ground and records the household. `transitBlocked` combines cultivated fields with these private building plots. Paths can begin or end in a yard, but public journeys go around it. Private work endpoints do not acquire transit wear; the actual approach journey still uses the real wear API. Existing public traffic is never erased to create expansion space.
 
 During prehistory, a failed layout is retried when spatial revision, actual adult availability or construction affordability changes. The affordability flags use the existing four/eight timber costs. Live seasons retain their normal checks. This skips identical failed proposals without changing dates, costs or successful transitions.
+
+The founding survey reserves each house's adjacent rear yard before it allocates
+fields. These reservations protect the pad, its single door and the public lanes.
+Construction transfers the yard reservation to the real household. A later home
+plans its yard, field and lane on a detached proposal before it spends timber.
+A failed proposal changes no existing property or public road. Kitchen crops
+use the native field reservation. Other private work space uses the yard API.
+Trees remain on unused land until an actual footprint or cultivation needs it.

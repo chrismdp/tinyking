@@ -1,3 +1,4 @@
+import { reserveWorkYard } from "game/land_use";
 import { containerItemCount } from "game/container";
 import { Hex } from "game/hex";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
@@ -67,11 +68,13 @@ export function footprintsOverlap(a,b) {
     return Math.max(...ap)>Math.min(...bp) && Math.max(...bp)>Math.min(...ap);
   }));
 }
-export function expansionFits(s,id,footprint) {
+export function expansionFits(s,id,footprint,plots=[]) {
   const e=s.ecs, current=buildingFootprint(s,id);
   const extra=footprint.halfDepth*2-current.halfDepth*2;
   const addition={...current,...pointAt(current,0,-current.halfDepth-extra/2),halfWidth:e.building?.[id]?32.5:19,halfDepth:extra/2};
   if (!footprint || !canClearForBuilding(s,footprint,e.controllable?.[id] ? topController(e,id) : null)) return false;
+  const house=e.workplace?.[id]?.houseId || e.meetingPlace?.[id]?.houseId || id;
+  let proposal;
   const near = Object.keys(e.spatial).filter(other=>other!=id && Math.hypot(e.spatial[other].x-footprint.x,e.spatial[other].y-footprint.y)<250);
   for(const other of near) {
     const f=e.treeClearance?.[other] || buildingFootprint(s,other);
@@ -85,13 +88,17 @@ export function expansionFits(s,id,footprint) {
     const p=pointAt(addition,x,y), hex=Hex().fromPoint(p);
     const tile=(s.space[hex] || []).find(t=>e.mappable?.[t]);
     if(!tile || !e.walkable[tile]?.speed)return false;
-    const house=e.workplace?.[id]?.houseId || e.meetingPlace?.[id]?.houseId || id;
     if(Object.values(e.household || {}).some(h=>h.id!=house && h.plot?.hexes.includes(String(hex))))return false;
     // A kitchen garden and its adjacent station share a yard tile. Its real
     // rectangle was checked above; a whole cultivated field still excludes us.
     const ownYard=String(hex)==String(Hex().fromPoint(current)) && (s.space[hex] || []).filter(other=>e.farmable?.[other]).every(other=>e.backyard?.[other] && e.backyard[other].houseId==(e.workplace?.[id]?.houseId || id));
     if(e.mappable[tile].cropPlot && !ownYard)return false;
-    if(String(hex)!=String(Hex().fromPoint(current)) && (e.mappable[tile].route?.length || e.walkable[tile].trackReserved))return false;
+    if(String(hex)!=String(Hex().fromPoint(current))) {
+      proposal ||= {...s,ecs:{...e,mappable:{...e.mappable}}};
+      proposal.ecs.mappable[tile]={...proposal.ecs.mappable[tile]};
+      if(!reserveWorkYard(proposal,tile,house))return false;
+      if(!plots.includes(tile))plots.push(tile);
+    }
   }
   return true;
 }
@@ -114,7 +121,15 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
     if(!next || g.supportedSeasons<next.seasons)continue;
     if(!(store?.amounts.wood>=next.timber)) {g.waiting="Needs "+next.timber+" stored timber";continue;}
     const f=expandedFootprint(s,id,g.stage+1);
-    if(!expansionFits(s,id,f)){g.waiting="Needs clear space behind the building";continue;}
+    const plots=[];
+    if(!expansionFits(s,id,f,plots)){g.waiting="Needs clear space behind the building";continue;}
+    for(const tile of plots)reserveWorkYard(s,tile,house);
+    const household=e.household?.[house];
+    if(household?.plot)for(const tile of plots) {
+      const key=String(Hex().fromPoint(e.spatial[tile]));
+      if(!household.plot.hexes.includes(key))household.plot.hexes.push(key);
+      if(!household.workYardTiles.includes(tile))household.workYardTiles.push(tile);
+    }
     consumeStored(s,house,"wood",next.timber);
     g.stage++; g.supportedSeasons=0; delete g.waiting;
     g.additions.push({stage:g.stage,name:next.name,day:s.days,timber:next.timber,storeId:store.id,occupants:[...occupants],production:output,meetings:use});

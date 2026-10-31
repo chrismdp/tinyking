@@ -169,6 +169,9 @@ it("plans a grown home's safe surface once and applies that same plan after payi
 it("does not repeat a failed historical field layout until its real spatial inputs change",()=>{
   const {s,house}=fixture();
   s.generatingHistory=true;s.settlement.estatesInitialized=true;
+  // A legacy incomplete estate has no recorded field proposal. Test its
+  // unchanged-input retry policy without removing a constructed crop entity.
+  delete s.ecs.household[house].fieldReservation;
   for(const tile of Object.values(s.ecs.mappable))tile.route=[0,1,2,3,4,5];
   const layout=jest.spyOn(villages,"generateVillageLife");
   try {
@@ -235,4 +238,15 @@ it("collects needed timber before optional harvest fills the household store",()
   expect(s.ecs.good[tree]).toBeUndefined();
   expect(s.ecs.farmable[field].slots[0].state).toBe("harvestable");
   expect(Object.values(store.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(20);
+});
+
+it("requires a real field before spending a new household's construction timber",()=>{
+  const {s,house,people}=fixture(),store=s.ecs.container[s.ecs.household[house].storeId];
+  expect(s.ecs.household[house].fieldReservation).toBeDefined();
+  store.amounts.wood=40;
+  for(const tile of Object.values(s.ecs.mappable))tile.terrain="stone";
+  s.settlement.sites.v[1].point=Hex(7,4).toPoint();
+  expect(constructHome(s,"v",people)).toBeNull();
+  expect(store.amounts.wood).toBe(40);
+  expect(s.villages.v.houses).toEqual([house]);
 });

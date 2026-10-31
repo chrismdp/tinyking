@@ -55,3 +55,12 @@ it("handles an unknown household without inventing a person or a village", () =>
   expect(html).not.toContain("Agnes Miller");
   expect(html).not.toContain("Wrong village");
 });
+
+it("describes a fully expanded pub as complete",()=>{
+  const s=household();
+  s.ecs.meetingPlace={pub:{kind:"alehouse",houseId:"house"}};
+  s.ecs.growth={pub:{builtDay:-12,stage:2,supportedSeasons:12,additions:[]}};
+  const html=render(s,"pub");
+  expect(html).toContain("Both additions are complete.");
+  expect(html).not.toContain("towards the next addition");
+});

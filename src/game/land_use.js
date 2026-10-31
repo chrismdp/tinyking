@@ -6,11 +6,19 @@ export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && 
   !tile.buildingPlot && !tile.route?.length && !Object.values(worn).some(n => n > 0);
 
 export const transitBlocked = (state,id) => !!state.ecs.mappable?.[id]?.buildingPlot || fieldAtTile(state,id);
-export function reserveWorkYard(state,tileId,houseId) {
+export function canReserveWorkYard(state,tileId,houseId) {
   const tile=state.ecs.mappable[tileId],walk=state.ecs.walkable[tileId];
-  if(tile?.buildingPlot)return tile.buildingPlot==houseId;
-  if(!plotAllowed(tile,walk?.worn) || walk?.trackReserved)return false;
-  tile.buildingPlot=houseId;
+  if(!tile || !walk || fieldAtTile(state,tileId))return false;
+  if(tile.buildingPlot)return tile.buildingPlot==houseId;
+  const occupied=(state.space[Hex().fromPoint(state.ecs.spatial[tileId])] || []).some(id=>
+    state.ecs.building?.[id] || state.ecs.camp?.[id] || state.ecs.stockpile?.[id] || state.ecs.meetingPlace?.[id] ||
+    state.ecs.pasture?.[id] || state.ecs.workplace?.[id] && state.ecs.workplace[id].houseId!=houseId);
+  return !occupied && plotAllowed(tile,walk?.worn) && !walk?.trackReserved && preservesPublicAccess(state,tileId,houseId);
+}
+export function reserveWorkYard(state,tileId,houseId) {
+  if(!canReserveWorkYard(state,tileId,houseId))return false;
+  if(state.ecs.mappable[tileId].buildingPlot==houseId)return true;
+  state.ecs.mappable[tileId].buildingPlot=houseId;
   state.landUseRevision=(state.landUseRevision || 0)+1;
   return true;
 }
@@ -26,21 +34,43 @@ export function canPlaceField(state, tileId) {
   if (!plotAllowed(ecs.mappable?.[tileId], ecs.walkable?.[tileId]?.worn) || ecs.walkable?.[tileId]?.trackReserved || fieldAtTile(state,tileId)) return false;
   const at = Hex().fromPoint(ecs.spatial[tileId]);
   if ((state.space[at] || []).some(id => ecs.building?.[id] || ecs.camp?.[id] || ecs.stockpile?.[id])) return false;
-  // Preserve access around neighbouring plots and doors; fields cannot close a
-  // one-tile neck. Future organic builders can use this same reservation rule.
-  const adjacent = Object.values(ecs.walkable?.[tileId]?.neighbours || {});
-  if (adjacent.some(id => fieldAtTile(state,id) && !Object.values(ecs.walkable[id].neighbours)
-    .some(n => String(n)!=String(tileId) && !fieldAtTile(state,n)))) return false;
-  const neighbours = adjacent.filter(id => !fieldAtTile(state,id));
-  if (!neighbours.length) return false;
-  const remaining = new Set(neighbours.map(String));
-  const reached = new Set(), queue = [neighbours[0]];
-  for (let i=0; i<queue.length; i++) {
+  return preservesPublicAccess(state,tileId);
+}
+
+// Removing a public tile must leave its public neighbours connected and every
+// neighbouring work endpoint with an exit. Private property can have connected
+// interior tiles, but cannot serve as the public bypass around another plot.
+function preservesPublicAccess(state,tileId,houseId) {
+  const {ecs}=state;
+  const adjacent=Object.values(ecs.walkable?.[tileId]?.neighbours || {});
+  const publicTile=id=>String(id)!=String(tileId) && !transitBlocked(state,id);
+  const neighbours=adjacent.filter(publicTile);
+  if(!neighbours.length)return false;
+  for(const id of adjacent.filter(id=>transitBlocked(state,id))) {
+    if(fieldAtTile(state,id)) {
+      if(!Object.values(ecs.walkable[id].neighbours).some(publicTile))return false;
+    } else {
+      const owner=ecs.mappable[id].buildingPlot;
+      if(owner==houseId)continue;
+      const seen=new Set(),queue=[id];let exit=false;
+      for(let i=0;i<queue.length && !exit;i++) {
+        const next=queue[i];
+        if(seen.has(next))continue;
+        seen.add(next);
+        for(const n of Object.values(ecs.walkable[next].neighbours)) {
+          if(publicTile(n)){exit=true;break;}
+          if(String(n)!=String(tileId) && !fieldAtTile(state,n) && ecs.mappable[n].buildingPlot==owner && !seen.has(n))queue.push(n);
+        }
+      }
+      if(!exit)return false;
+    }
+  }
+  const remaining=new Set(neighbours.map(String)),reached=new Set(),queue=[neighbours[0]];
+  for(let i=0;i<queue.length;i++) {
     const id=queue[i];
-    if (String(id)==String(tileId) || reached.has(String(id)) || fieldAtTile(state,id)) continue;
-    reached.add(String(id));
-    remaining.delete(String(id));
-    if (!remaining.size) return true;
+    if(!publicTile(id) || reached.has(String(id)))continue;
+    reached.add(String(id));remaining.delete(String(id));
+    if(!remaining.size)return true;
     queue.push(...Object.values(ecs.walkable[id].neighbours).filter(n=>!reached.has(String(n))));
   }
   return false;

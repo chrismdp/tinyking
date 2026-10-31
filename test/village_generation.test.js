@@ -63,3 +63,13 @@ it("keeps the garden and fields beside an accessible work station with actual ro
   expect(expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1))).toBe(true);
   for(const tile of h.workYardTiles)expect(s.ecs.mappable[tile].cropPlot).not.toBe(true);
 });
+
+it("clears actual green and well footprints and keeps them out of crops and private yards",()=>{
+  const s=viableVillage(5);
+  for(const id of s.villages.v.sharedPlaces.filter(id=>["green","well"].includes(s.ecs.meetingPlace[id].kind))) {
+    const tile=s.space[Hex().fromPoint(s.ecs.spatial[id])].find(t=>s.ecs.mappable[t]);
+    expect(s.ecs.mappable[tile].cropPlot).not.toBe(true);
+    expect(s.ecs.mappable[tile].buildingPlot).toBeUndefined();
+    expect(s.ecs.treeClearance[id]).toBeDefined();
+  }
+});

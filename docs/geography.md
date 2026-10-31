@@ -200,3 +200,23 @@ reservation. Terrain and shared crossing API signatures remain unchanged.
 ## Household work-yard reservations
 
 Settlement growth adds `reserveWorkYard(state, tileId, houseId)` and `transitBlocked(state, tileId)` to `land_use.js`. Existing field APIs retain their meaning. A work-yard reservation requires unclaimed, unworn, unrouted land and stores its household in `mappable.buildingPlot`. `reserveRoad` and `canPlaceField` reject that space. Navigation permits a yard as its actual origin/destination, while excluding it from through journeys. Wear rejects private interior work endpoints just as it rejects crop work. Existing public roads, wear, altitude, climate and tree-clearance envelopes are preserved.
+
+A field or yard reservation must preserve the public component around it.
+Existing fields must retain a public access neighbour. Existing private work
+areas must retain an exit. Tiles of the same property can connect internally.
+`canReserveWorkYard(state, tileId, houseId)` checks these rules without mutation.
+`reserveWorkYard` applies them before it records ownership. Both reject existing
+roads, worn reservations, crops and occupied public places. Expansion checks
+and reserves its new private tiles through this same API before it spends wood.
+
+`path` allows connected private tiles only when their property contains the
+journey's start or destination. Crop tiles remain endpoints only. Local walker
+or fence detours must follow these same restrictions after integration. Use
+`transitBlocked` for public travel. For property entry or exit, allow only the
+endpoint property's interior, and continue to exclude crop interiors. Continue
+to call `recordRoadUse` for actual steps. It rejects private and crop work space.
+
+`safeTile` uses the same `1e-8` numerical tolerance as `roadStep`. This accepts
+roundoff at a projected limit without changing the road slope or grade limits.
+Greens and wells now use actual footprint clearance, including mature crowns.
+They have no artificial door corridor. Unbuilt reserved land retains woodland.

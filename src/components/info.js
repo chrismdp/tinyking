@@ -138,7 +138,7 @@ export function Info({ entityId }) {
       {growth && (entity.building || entity.workplace || entity.meetingPlace?.kind=="alehouse") && <div className="building-history">
         <p>Built {historicalDate(growth.builtDay)}{growth.construction ? " using "+growth.construction.timber+" timber" : ""} · {growth.stage ? "Expanded stage "+growth.stage : "Original building"}</p>
         {growth.additions.map(a=><p key={a.stage}>{a.name}: {historicalDate(a.day)} · {a.timber} timber from its household store.</p>)}
-        <p>{entity.meetingPlace?.kind=="alehouse" ? "Regular visitors" : "Residents, productive work and food reserves"}: {growth.supportedSeasons} seasons towards the next addition{growth.waiting ? " · "+growth.waiting : ""}.</p>
+        <p>{growth.stage>=2 ? "Both additions are complete." : <>{entity.meetingPlace?.kind=="alehouse" ? "Regular visitors" : "Residents, productive work and food reserves"}: {growth.supportedSeasons} seasons towards the next addition{growth.waiting ? " · "+growth.waiting : ""}.</>}</p>
       </div>}
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       {entity.mappable && <TravelOffer entityId={entityId}/>}

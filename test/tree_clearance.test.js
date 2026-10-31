@@ -60,3 +60,14 @@ it("replaces an actual expansion footprint, clears its crown fringe, and preserv
   expect(state.ecs.good[log].amount).toBe(1); expect(state.ecs.tree[woodland]).toBeDefined();
   expect(treeAllowed(state,{x:p.x+110,y:p.y})).toBe(false);
 });
+
+it.each(["green","well"])("keeps mature crowns out of the actual %s while retaining woodland beyond its footprint",kind=>{
+  const {state,tiles}=rowOfTiles(8),p=state.ecs.spatial[tiles[3]];
+  const [id]=newEntities(state,[{spatial:{...p,immovable:true},meetingPlace:{kind}}]);
+  const near=tree(state,{x:p.x+55,y:p.y}),far=tree(state,{x:p.x+160,y:p.y});
+  expect(reserveBuildingClearance(state,id)).toContain(near);
+  expect(state.ecs.good[near]).toBeUndefined();
+  expect(state.ecs.tree[far]).toBeDefined();
+  expect(treeAllowed(state,{x:p.x+55,y:p.y})).toBe(false);
+  expect(treeAllowed(state,{x:p.x+160,y:p.y})).toBe(true);
+});

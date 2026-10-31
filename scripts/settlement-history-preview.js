@@ -73,6 +73,8 @@ const record={url,initialFixture:isFixture?"prosperity":null,purpose:"Ordinary s
       await page.screenshot({path:path.join(out,kind+"-desktop.png")});record.frames.push(kind+"-desktop.png");
       await page.setViewportSize({width:390,height:664});
       await page.waitForTimeout(300);
+      await page.evaluate(id=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[id],900);},id);
+      await page.waitForTimeout(300);
       await page.screenshot({path:path.join(out,kind+"-phone.png")});record.frames.push(kind+"-phone.png");
     }
     if(record.errors.length)throw new Error(record.errors.join("\n"));

@@ -1,4 +1,4 @@
-import { transitBlocked } from "game/land_use";
+import { transitBlocked, fieldAtTile } from "game/land_use";
 import { Hex, HEX_SIZE } from "game/map";
 import * as math from "game/math";
 
@@ -82,6 +82,9 @@ class Frontier {
 }
 
 export function path(state, start, goal) {
+  // Actual entry/exit may cross a connected interior of the endpoint property.
+  // Public-to-public trips cannot acquire that permission from a passing tile.
+  const properties=new Set([start,goal].map(id=>state.ecs.mappable?.[id]?.buildingPlot).filter(Boolean));
   const openSet = new Frontier();
   const closed = new Set();
   const cameFrom = {};
@@ -104,7 +107,7 @@ export function path(state, start, goal) {
     for (const side in state.ecs.walkable[current].neighbours) {
       const n = state.ecs.walkable[current].neighbours[side];
       // A route never needs to loop; disconnected searches remain finite.
-      if (closed.has(String(n)) || n != goal && transitBlocked(state,n)) { continue; }
+      if (closed.has(String(n)) || n != goal && transitBlocked(state,n) && (fieldAtTile(state,n) || !properties.has(state.ecs.mappable?.[n]?.buildingPlot))) { continue; }
       if (!(n in costs)) {
         const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
           0.2 : 1;

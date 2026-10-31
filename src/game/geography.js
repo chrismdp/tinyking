@@ -412,5 +412,5 @@ export function groundForState(state) {
 }
 export function safeTile(ground, p, limit=MAX_WALK_SLOPE) {
   const corners=Hex().corners();
-  return corners.every((o,k)=>{const next=corners[(k+1)%6];const {dx,dy}=ground.slopeAt(p.x+(o.x+next.x)*.25,p.y+(o.y+next.y)*.25);return Math.hypot(dx,dy)<=limit;});
+  return corners.every((o,k)=>{const next=corners[(k+1)%6];const {dx,dy}=ground.slopeAt(p.x+(o.x+next.x)*.25,p.y+(o.y+next.y)*.25);return Math.hypot(dx,dy)<=limit+1e-8;});
 }

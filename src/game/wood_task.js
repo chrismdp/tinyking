@@ -2,7 +2,7 @@ import { deliveryHome } from "game/construction";
 import { HUMAN_SPEED } from "game/locomotion";
 import { Hex, HEX_SIZE } from "game/hex";
 import { path } from "game/pathfinding";
-import { hungerSpeed } from "game/hunger";
+import { careSpeed } from "game/hunger";
 
 // Estimate only the current journey, using walk_to's route, side midpoints,
 // terrain speed and actual load. Further collection trips are labelled separately.
@@ -30,7 +30,7 @@ function routeMinutes(state, playerId, targetId) {
       to = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     }
     minutes += Math.hypot(to.x - from.x, to.y - from.y) /
-      (HUMAN_SPEED * HEX_SIZE * (ecs.walkable[step.id].speed || 1) * load * hungerSpeed(ecs.personable[playerId])) * 60;
+      (HUMAN_SPEED * HEX_SIZE * (ecs.walkable[step.id].speed || 1) * load * careSpeed(ecs.personable[playerId])) * 60;
     from = to;
   }
   return Math.max(1, Math.ceil(minutes));
@@ -67,7 +67,7 @@ export function woodTask(state, job, active) {
       time: minutes == null ? "" : `~${minutes}m ${held ? "to home" : "to wood"}${held ? next : " · delivery follows"}` };
   }
   if (phase == "Chopping") {
-    const minutes = job.workRemaining == null ? null : Math.max(1, Math.ceil(job.workRemaining * 1440 / hungerSpeed(ecs.personable[id])));
+    const minutes = job.workRemaining == null ? null : Math.max(1, Math.ceil(job.workRemaining * 1440 / careSpeed(ecs.personable[id])));
     return { phase, detail: `Chopping${job.detail ? " · " + job.detail : ""} · delivery follows`, progress: Math.round((job.progress || 0) * 100),
       time: minutes == null ? "" : `~${minutes}m chopping left`, progressLabel: " chopped" };
   }

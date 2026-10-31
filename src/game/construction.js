@@ -11,7 +11,7 @@ import { topController } from "game/playable";
 import { take, give } from "game/holder";
 import { HOUR } from "game/time";
 import { path } from "game/pathfinding";
-import { hungerSpeed } from "game/hunger";
+import { careSpeed } from "game/hunger";
 import { Task } from "game/htn";
 
 export const STAGES = {
@@ -133,7 +133,7 @@ export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   const stage = STAGES[site.stage];
   if (site.delivered < stage.logs) return Task.ABORT;
   const job = ecs.manager[topController(ecs, actorId)].jobs.find(j => j.targetId == targetId);
-  site.work += dt / HOUR * hungerSpeed(ecs.personable[actorId]);
+  site.work += dt / HOUR * careSpeed(ecs.personable[actorId]);
   if (job) {
     job.detail = "Building";
     job.progress = (site.delivered / stage.logs + Math.min(1, site.work / stage.hours)) / 2;

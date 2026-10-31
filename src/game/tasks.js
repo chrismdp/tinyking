@@ -29,14 +29,14 @@ import { promisedGift, canReachTask, jobQueueFor, firstFreeJob, cancelLocalTasks
 import { containerHasSpace, containerItemCount } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { eveningPlace } from "game/villages";
-import { hungerSpeed } from "game/hunger";
-
-export const GLEANING_SHARE = 0.05;
+import { careSpeed } from "game/hunger";
 import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, localHome } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { familyConversation } from "game/family";
 import { TALK_MINUTES } from "game/player";
+
+export const GLEANING_SHARE = 0.05;
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
@@ -164,7 +164,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   const weightCost = state.ecs.holder[actorId].held
     .map(id => state.ecs.haulable[id].speedModifier || 1)
     .reduce((result, x) => result * x, 1);
-  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost * weightCost * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
+  const speed = dt * 24 * baseHumanSpeed * HEX_SIZE * terrainCost * weightCost * careSpeed(state.ecs.personable && state.ecs.personable[actorId]);
   let dx = targetPoint.x - s.x;
   let dy = targetPoint.y - s.y;
   const length = Math.sqrt(dx * dx + dy * dy);
@@ -267,12 +267,12 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   return Task.FINISH;
 }
 
-// Timed work consumes effort, so a hunger change takes effect mid-task too.
+// Timed work consumes effort, so changes in hunger or tiredness take effect mid-task too.
 function workComplete(state, actorId, world, dt, firstRun, duration) {
   if (firstRun) world.workRemaining = duration;
   const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
   if (firstRun && order && order.workRemaining != null) world.workRemaining = order.workRemaining;
-  world.workRemaining -= dt * hungerSpeed(state.ecs.personable && state.ecs.personable[actorId]);
+  world.workRemaining -= dt * careSpeed(state.ecs.personable && state.ecs.personable[actorId]);
   if (order) {
     order.workRemaining = Math.max(0, world.workRemaining);
     order.progress = Math.max(0, 1 - world.workRemaining / duration);
@@ -970,7 +970,7 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
       if (!consumeStored(state, w.houseId, "wood", 1, householdStore(state, w.houseId))) return Task.ABORT;
       w.fuelHours = FUEL_HOURS;
     }
-    const hours = Math.min(w.fuelHours, dt / time.HOUR * hungerSpeed(state.ecs.personable[actorId]));
+    const hours = Math.min(w.fuelHours, dt / time.HOUR * careSpeed(state.ecs.personable[actorId]));
     w.fuelHours -= hours;
     w.workHours = (w.workHours || 0) + hours;
   }
@@ -1146,7 +1146,7 @@ export function end_friend_help(state, actorId) { releaseFriendWork(state, actor
 // walk_to uses the normal pathfinder; transfer happens only after crossing it.
 export function leave_edge(state, actorId, world, dt, firstRun, tileId, journey) {
   const target=exitPoint(state,tileId),p=state.ecs.spatial[actorId];
-  const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*HUMAN_SPEED*60*hungerSpeed(state.ecs.personable[actorId]);
+  const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*HUMAN_SPEED*60*careSpeed(state.ecs.personable[actorId]);
   const depart=()=>{
     if(actorId==state.ui.playerId)state.pendingPlayerTravel=journey;
     else (state.pendingNpcDepartures ||= []).push({id:actorId,intent:journey});

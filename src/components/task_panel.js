@@ -12,7 +12,7 @@ import { displayName } from "game/knowledge";
 import React from "react";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
-import { hungerSpeed } from "game/hunger";
+import { careSpeed, tirednessSpeed } from "game/hunger";
 import { HEX_SIZE } from "game/hex";
 import { STAGES } from "game/construction";
 import { taskPlace } from "game/task_places";
@@ -37,7 +37,7 @@ function estimatedMinutes(ecs, playerId, job) {
   const work = patches != null ? patches * (job.job.key=="sow_field"?2.5:7.5) : site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
       ({ tend_field: 15, cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30, village_oath: 5, village_leave: 5 }[job.job.key] || 0) * (1 - (job.progress || 0));
-  return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
+  return Math.max(1, Math.ceil((walking + work) / careSpeed(ecs.personable[playerId])));
 }
 
 export function TaskPanel() {
@@ -71,6 +71,7 @@ export function TaskPanel() {
   const goals=peopleGoals(state);
   const garden=person.age<18 && gardenHelp(state,id,null,true);
   const hungry = person.hunger > 0.9;
+  const tired = tirednessSpeed(person) < 1;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
   const member = Object.values(state.villages || {}).some(v => membership(state, id, v.id));
   const location = stage ? (stage == "lean-to" ? "Lean-to" : stage == "hut" ? "Hut" : "House") : ecs.building?.[homeId] ? "Family household" : "Camp at the edge";
@@ -86,9 +87,10 @@ export function TaskPanel() {
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
         {needsAction && <small>You stay here. Choose Find food to go for a meal.</small>}
       </div>}
-      {needsAction && !person.dead && (hungry || person.tiredness > .9) && <div className="need-actions" role="status">
+      {tired && <div className="hunger tiredness" role="status">Tired: working slowly</div>}
+      {((needsAction && hungry) || (!sleeping && person.tiredness > .9)) && <div className="need-actions" role="status">
         {person.tiredness > .9 && <small>Tired · choose Rest to go to your bed.</small>}
-        {hungry && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
+        {needsAction && hungry && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
         {person.tiredness > .9 && <button onClick={() => state.ui.actions.choose_job(id, { key: "rest" }, id)}>Rest</button>}
       </div>}
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
@@ -136,6 +138,6 @@ export function TaskPanel() {
     <details className="people-goals"><summary>Life here · {goals.completed.length}/4</summary><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</details>
     <RequestList/>
     <footer><strong>{displayName(state, id, id => name(ecs.nameable[id]))}</strong><small>Owner: {ecs.controllable?.[homeId]?.controllerId && ecs.personable[ecs.controllable[homeId].controllerId] ? displayName(state,ecs.controllable[homeId].controllerId,other=>name(ecs.nameable[other])) : "No owned household"}</small><small>Your heir: {heirFor(state,id) ? displayName(state,heirFor(state,id),other=>name(ecs.nameable[other])) : "No living heir"}</small><small>You · {member ? "Village member" : "Stranger"} · {location}</small><small>Family · {!ecs.kinship?.[id] ? "Stranger" : person.age < 18 ? "Child" : ecs.kinship[id].spouse && !ecs.personable[ecs.kinship[id].spouse]?.dead ? "Married" : "Unmarried"}</small>
-      <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : activity || (hungry ? "Needs food" : person.tiredness > .9 ? "Needs rest" : "Ready")}</small></footer>
+      <small className="compact-task">{status}{tired && " · Tired: working slowly"} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : activity || (hungry ? "Needs food" : person.tiredness > .9 ? "Needs rest" : "Ready")}</small></footer>
   </aside>;
 }

@@ -7,6 +7,7 @@ import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
 import { createSimulation } from "game/simulation";
 import { placeShelter } from "game/construction";
+import { woodTask } from "game/wood_task";
 
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
@@ -36,6 +37,25 @@ function arrival() {
   };
   return { state, player, camp, tree, bush, tiles, until, planner: state.ecs.planner[player] };
 }
+
+it("uses combined hunger and tiredness for chopping and loaded delivery estimates", () => {
+  const { state, player, camp, tiles, planner } = arrival();
+  planner.task = ["chop_tree"];
+  const job = { job: { key: "cut_tree_down" }, workRemaining: 1 / 48 };
+  expect(woodTask(state, job, true).time).toBe("~30m chopping left");
+  Object.assign(state.ecs.personable[player], { hunger: 1, tiredness: 2 });
+  expect(woodTask(state, job, true).time).toBe("~63m chopping left");
+  const [log] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[8]] }, good: { type: "wood", amount: 1 }, haulable: { heldBy: player, speedModifier: .75 } }]);
+  state.ecs.holder[player].held = [log];
+  Object.assign(state.ecs.spatial[player], state.ecs.spatial[tiles[8]]);
+  Object.assign(job, { gatheredDone: true, gathered: [log], gatheredTotal: 1 });
+  planner.world.carryTarget = camp;
+  const slow = +woodTask(state, job, true).time.match(/~(\d+)m/)[1];
+  Object.assign(state.ecs.personable[player], { hunger: 0, tiredness: 0 });
+  const normal = +woodTask(state, job, true).time.match(/~(\d+)m/)[1];
+  expect(slow).toBeGreaterThan(normal * 2);
+  expect(slow).toBeLessThanOrEqual(normal / .48 + 1);
+});
 
 it("renders the actual chop, collection, return journeys and delivered counts until the completed order disappears", () => {
   const { state, player, tree, until, planner } = arrival();

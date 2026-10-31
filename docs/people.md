@@ -95,3 +95,13 @@ Both knowledge functions leave state unchanged.
 The [phase-one design](design.md#marriage-ownership-and-succession) describes deliberate courtship, marriage, births and player succession. The same `heirFor` function supplies visible heirs and actual inheritance. Control transfer keeps the successor's records. Initial history excludes the new stranger. Automatic NPC matchmaking still excludes the player.
 
 `playable.arrivedAt` records the real arrival handover. Only an arrived playable actor participates in seasonal ageing and births. NPC people always use their shared lifecycle. This keeps pre-arrival strangers and legacy NPC-only placeholder players outside that lifecycle without altering NPC matchmaking. A controlled NPC heir starts playable participation immediately.
+
+## Hunger, tiredness and speed
+
+`personable.tiredness` rises by one per game day. The planner requests sleep above 0.9. Movement and work keep their normal speed through 1.2, then fall to 80% above 1.2 and 60% above 1.8. These strict thresholds allow the first day of conversations and building before sleep. A missed night causes slower movement and work the next day.
+
+`careSpeed(person)` multiplies the hunger and tiredness factors. Walking, timed work, construction, trade fuel use, the final steps off-map and task estimates use this shared factor. Hunger keeps its existing thresholds and factors. A hungry, tired person therefore feels both penalties.
+
+Sleep reduces tiredness and restores speed as it crosses the thresholds. The arrival camp bedroll, accessible beds and completed shelters all permit the existing sleep task. The bedroll has no recovery penalty. A completed shelter disables its owner's camp sleeping place. With no accessible sleeping place, the planner cannot find a bed and tiredness keeps rising.
+
+The task panel shows “Tired: working slowly” beside hunger and offers the existing Rest order during work or idle time. Offscreen residents keep the shared needs clock. Their existing home sleep restores tiredness when the home has sleeping capacity. Without it, exhaustion persists into live play. Seasonal summaries do not simulate walking speed or hunger-based work rates, so this change adds no separate summary work rule.

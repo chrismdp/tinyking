@@ -84,3 +84,21 @@ it("shows death without work, food, rest or queue instructions even with stale p
   expect(html).toContain("Dead");
   for (const instruction of ["Working more slowly", "Find food", "Rest", "Stopped to eat", "resume", "Needs food", "Needs rest", "Choose an action", "You do each job"]) expect(html).not.toContain(instruction);
 });
+
+it("explains tired slowdown next to hunger during active work and keeps Rest visible", () => {
+  const state = { ui: { playerId: "p", actions: {} }, ecs: {
+    manager: { p: { jobs: [{ id: "build", job: { key: "build_shelter" }, targetId: "site", assignedId: "p" }] } },
+    personable: { p: { hunger: 1, tiredness: 1.3 } }, nameable: { p: { nickname: "Will" } },
+    spatial: {}, planner: { p: { world: {}, task: ["work_shelter", "site"] } },
+    construction: { site: { stage: "lean-to", delivered: 4, work: 0 } }
+  } };
+  const render = () => renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+  expect(render()).toContain("Hungry");
+  expect(render()).toContain("Tired: working slowly");
+  expect(render()).toMatch(/<button[^>]*>Rest<\/button>/);
+  // Two hours of building / (.8 hunger * .8 tiredness) = 188 rounded minutes.
+  expect(render()).toContain("~188m left");
+  state.ecs.personable.p.tiredness = 0;
+  expect(render()).not.toContain("Tired: working slowly");
+  expect(render()).toContain("~150m left");
+});

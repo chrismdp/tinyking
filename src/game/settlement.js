@@ -119,7 +119,9 @@ export function reserveFoundingFields(s) {
   s.days=-543;
   try {
     for(const site of sites)site.yard=reserveSiteYard(s,site,sites);
-    for(const site of sites) {
+    for(const site of [...sites]) {
+      const villageId=Object.keys(s.settlement.sites).find(id=>s.settlement.sites[id].includes(site));
+      if(!villageId)continue;
       site.field=reserveSiteField(s,site,sites,null);
       if(!site.yard || !site.field) {
         // No people, buildings or costs exist yet. Release only this rejected
@@ -135,7 +137,22 @@ export function reserveFoundingFields(s) {
           site.field=null;
         }
         const planned=newSitePlan(s,Object.keys(s.settlement.sites).find(id=>s.settlement.sites[id].includes(site)),sites.filter(p=>p!=site),[],site.point);
-        if(!planned)throw new Error("Surveyed household lacks accessible cultivable land at "+old);
+        if(!planned) {
+          // Native uninhabited-terrain policy: these are survey opportunities,
+          // not residents, buildings or paid construction. Keep viable hamlets.
+          const remaining=s.settlement.sites[villageId].filter(other=>other!=site);
+          const rejected=remaining.length<3?[site,...remaining]:[site];
+          for(const proposal of rejected) {
+            if(proposal.usedBy || proposal.householdEstablished)throw new Error("Cannot reject an established household");
+            for(const id of Object.keys(s.ecs.mappable))if(s.ecs.mappable[id].buildingPlot==proposal.yardOwner)delete s.ecs.mappable[id].buildingPlot;
+            if(proposal.field && !(s.space[Hex().fromPoint(s.ecs.spatial[proposal.field.tile])] || []).some(id=>s.ecs.farmable?.[id]))delete s.ecs.mappable[proposal.field.tile].cropPlot;
+            (s.settlement.rejectedSites ||= []).push({point:{...proposal.point},establishSeason:proposal.establishSeason,reason:"No feasible house, work yard and accessible field proposal"});
+            sites.splice(sites.indexOf(proposal),1);
+            s.settlement.sites[villageId].splice(s.settlement.sites[villageId].indexOf(proposal),1);
+          }
+          if(!s.settlement.sites[villageId].length){delete s.settlement.sites[villageId];delete s.villages[villageId];}
+          continue;
+        }
         Object.assign(site,planned.site);
         applySitePlan(s,site,planned.surface);delete site.unsurveyed;
         if(!reserveWorkYard(s,site.yardTiles || [site.yard],site.yardOwner))throw new Error("Validated founding yard changed during reservation");
@@ -449,6 +466,12 @@ export function settleSeason(s,season,summary=false) {
     v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind)) &&
     v.houses.some(id=>s.ecs.container[s.ecs.household[id].storeId].amounts.wood>=8)))generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   growBuildings(s,season,residents);
+  const crowded=Object.values(s.villages).some(v=>{
+    const points=v.sharedPlaces.filter(id=>["green","alehouse"].includes(s.ecs.meetingPlace[id].kind)).flatMap(id=>s.ecs.meetingPlace[id].gatheringPoints || []);
+    const population=v.houses.reduce((n,h)=>n+(residents.get(h) || []).length,0);
+    return new Set(points.map(p=>p.x+":"+p.y)).size<population;
+  });
+  if(crowded)generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   s.settlement.lastSeason=season;
   repairHouseholds(s);
 }

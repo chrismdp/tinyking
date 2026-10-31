@@ -119,6 +119,7 @@ export function eventSentence(state, event, displayName) {
     building_built: () => n(a)+" built a "+event.kind+" using "+event.timber+" timber",
     founding: () => n(a)+" and "+n(b)+" founded "+(village || "a settlement")+" beside an accessible route",
     household_arrival: () => n(a)+" established a household in "+(village || "a settlement"),
+    green_moved: () => "The community moved its green for more gathering space",
     house_built: () => n(a)+" built a household home using "+event.timber+" timber",
     expansion: () => n(a)+" added a "+event.addition+" using "+event.timber+" timber",
     departure: () => n(a) + " left for " + event.toWorld + (event.reason ? " · " + event.reason : " · one season on the road"),

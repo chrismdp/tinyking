@@ -73,3 +73,14 @@ from neighbouring tile speed. Reassignment can release that proposal's unused
 field reservation when no real crop exists. It preserves roads and actual farms.
 Additional fields exclude both real houses and still-unbuilt house pads as
 access endpoints. A farm approach cannot become a future house interior.
+
+A genuinely infeasible unestablished opportunity can be rejected. No incoming
+family or construction stock exists for that proposal. If fewer than three
+viable proposals remain, native uninhabited-terrain policy leaves that prospective
+hamlet unestablished. Actual people, buildings, farms and public roads stay intact.
+
+A growing community can move its green to reachable public gathering ground.
+`origin.centreHex` and the founding day retain the original location and date.
+`greenMoves` and `green_moved` events record each actual date, old site and new
+site. The old well stays at the founding centre. The new green receives native
+footprint clearance, and its spatial index and current inspection show the move.

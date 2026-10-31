@@ -558,8 +558,6 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     village.access={kind:transitHexes.length?"regional route":"local route",crossings:Object.values(entrances).map(e=>e.key),distanceToTransit:transitHexes.length?access(first):null};
     village.sharedPlaces = [];
   }
-  const prosperityVillage=options.settlementFixture=="prosperity" && Object.values(villages).find(v=>state.settlement.sites[v.id].length>=5);
-  if(prosperityVillage)for(const site of state.settlement.sites[prosperityVillage.id])site.establishSeason=-1;
   // Prospective pads reserve one approach. History cannot route a through
   // connection across a house site and later construct across that road.
   for(const site of Object.values(state.settlement.sites).flat())site.navigationLinks={...state.ecs.walkable[tileAt(state,site.point)].neighbours};
@@ -568,6 +566,8 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(state.ecs,tile,side);
   }
   reserveFoundingFields(state);
+  const prosperityVillage=options.settlementFixture=="prosperity" && Object.values(villages).find(v=>state.settlement.sites[v.id].length>=5);
+  if(prosperityVillage)for(const site of state.settlement.sites[prosperityVillage.id])site.establishSeason=-1;
   generateFamilies({ state, seed, playerStartTile, founding: true });
   initializeEcology(state,seed);
   generateHistory(state, seed, options.routeHistory || []);

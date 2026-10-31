@@ -15,7 +15,15 @@ it("constructs the village from one actual household, with later dated homes and
     expect(v.origin.day).toBe(founding.day);
     expect(v.origin.reason).toMatch(/route|junction|crossing/);
     const green = v.sharedPlaces.find(id => s.ecs.meetingPlace[id].kind == "green");
-    expect(Hex().fromPoint(s.ecs.spatial[green]).toString()).toBe(v.origin.centreHex);
+    let centre=v.origin.centreHex;
+    for(const move of v.greenMoves || []) {
+      expect(move.fromHex).toBe(centre);
+      expect(move.day).toBeGreaterThanOrEqual(v.origin.day);
+      expect(s.events.some(e=>e.type=="green_moved" && e.items.includes(green) && e.day==move.day && e.fromHex==move.fromHex && e.toHex==move.toHex)).toBe(true);
+      centre=move.toHex;
+    }
+    expect(Hex().fromPoint(s.ecs.spatial[green]).toString()).toBe(centre);
+    expect(s.space[centre]).toContain(green);
     const built = v.houses.map(id => s.ecs.growth[id].builtDay);
     expect(Math.min(...built)).toBe(founding.day);
     expect(new Set(built).size).toBeGreaterThan(1);

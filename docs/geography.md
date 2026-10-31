@@ -257,3 +257,12 @@ avoids those opportunities. It can leave an infeasible optional connection absen
 Each opportunity becomes a site's preferred `yardPoint`. The later land-use
 check still decides whether that yard is actually private and accessible.
 This changes no road slope, grade, earthwork limit or existing visited map.
+
+`canReserveWorkYard` and `reserveWorkYard` also accept an array of tile IDs.
+The array is one connected property parcel. Validation checks the whole parcel
+before mutation, including public connectivity and existing field/work exits.
+This permits a genuine property endpoint without leaving an artificial public
+fragment inside its work area. Existing callers that pass one tile are unchanged.
+Organic yards use actual roof and garden footprints and the existing household
+land reach. Their closest reachable viable space can stand across a public lane.
+House pads, public roads, crops and camps cannot become private work ground.

@@ -6,7 +6,7 @@ import { constructHome, reserveFoundingFields } from "game/settlement";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 
-function viableVillage(count,beforeSurvey=()=>{}) {
+function viableVillage(count,beforeSurvey=()=>{},build=true) {
   const centre=Hex(10,10), hexes=Grid.hexagon({center:centre,radius:8});
   const s={ecs:{nextId:1,building:{},personable:{},household:{},controllable:{},village:{},playable:{},container:{},good:{},farmable:{},pasture:{},profession:{},planner:{}},space:{},redraws:[],events:[],days:0,peopleSeed:13,opinionThresholds:{hate:-100,love:100},map:{seed:13,centre:{x:10,y:10},radius:8,worldKey:"fixture",entrances:{},playerStartTile:{x:0,y:0},geography:{version:1,heights:{},routes:[]}},villages:{v:{id:"v",name:"Initial viable village",centre:{x:10,y:10},houses:[],sharedPlaces:[]}},settlement:{version:1,sites:{v:[]},journeys:[],appliedJourneys:{}}};
   for(const h of hexes)for(const corner of Hex().corners()) {
@@ -20,6 +20,7 @@ function viableVillage(count,beforeSurvey=()=>{}) {
   expect(sites).toHaveLength(count);
   s.settlement.sites.v=sites.map(h=>({point:h.toPoint(),entrance:1,establishSeason:0}));
   beforeSurvey(s);
+  if(!build)return s;
   reserveFoundingFields(s);
   expect(Object.keys(s.ecs.building)).toHaveLength(0);
   expect(Object.keys(s.ecs.personable)).toHaveLength(0);
@@ -116,6 +117,8 @@ it("reassigns a genuinely inaccessible proposal before people, preserving public
       absent={side:sides[0],id:state.ecs.walkable[originalPad].neighbours[sides[0]]};
       remaining={side:sides[1],id:state.ecs.walkable[originalPad].neighbours[sides[1]]};
       removeBidirectionalLink(state.ecs,originalPad,absent.side);
+      // This valid public edge cannot become a replacement pad or private yard.
+      expect(original(state,[originalPad,remaining.id])).toBe(true);
     });
     expect(s.villages.v.houses).toHaveLength(3);
     expect(Object.keys(s.ecs.personable)).toHaveLength(6);
@@ -157,4 +160,41 @@ it("keeps an approved house pad when its real work yard must stand across an exi
   expect(Hex().fromPoint(original).distance(yard)).toBeLessThanOrEqual(5);
   const origin=s.space[Hex().fromPoint(original)].find(id=>s.ecs.mappable[id]),end=s.space[yard].find(id=>s.ecs.mappable[id]);
   expect(require("game/pathfinding").path(s,origin,end)).not.toBeNull();
+});
+
+it("rejects an unestablished infeasible hamlet without dropping a person or consuming unrelated stock",()=>{
+  const s=viableVillage(3,()=>{},false);
+  const [person]=newEntities(s,[{personable:{age:30},playable:{},controllable:{controllerId:"self"},container:{capacity:100,amounts:{wood:37,grain:42}}}]);
+  const before=structuredClone({person:s.ecs.personable[person],store:s.ecs.container[person]});
+  const impossible=jest.spyOn(landUse,"reserveWorkYard").mockReturnValue(false);
+  try {
+    expect(()=>reserveFoundingFields(s)).not.toThrow();
+    expect(s.villages).toEqual({});
+    expect(s.settlement.rejectedSites).toHaveLength(3);
+    expect(Object.keys(s.ecs.building)).toHaveLength(0);
+    expect(Object.keys(s.ecs.personable)).toEqual([person]);
+    expect(s.ecs.personable[person]).toEqual(before.person);
+    expect(s.ecs.container[person]).toEqual(before.store);
+    expect(s.events).toEqual([]);
+  } finally {impossible.mockRestore();}
+});
+
+it("dates a real green relocation while retaining its founding site and enough separated public places",()=>{
+  const s=viableVillage(3),v=s.villages.v,green=v.sharedPlaces.find(id=>s.ecs.meetingPlace[id].kind=="green"),from=String(Hex().fromPoint(s.ecs.spatial[green]));
+  // Declared initial community around the actually built fixture green.
+  v.origin={day:0,centreHex:from,people:Object.keys(s.ecs.personable).slice(0,2),houseId:v.houses[0]};
+  const capacity=s.ecs.meetingPlace[green].gatheringPoints.length;
+  const current=Object.keys(s.ecs.personable).length;
+  newEntities(s,Array.from({length:capacity-current+1},()=>({spatial:{...s.ecs.spatial[v.houses[0]]},personable:{age:19},household:{houseId:v.houses[0]},village:{villageId:"v"}})));
+  s.days=3;generateVillageLife(s,13,s.map.playerStartTile);
+  expect(v.origin.centreHex).toBe(from);
+  expect(v.origin.day).toBe(0);
+  expect(v.greenMoves).toHaveLength(1);
+  expect(v.greenMoves[0]).toMatchObject({day:3,fromHex:from,toHex:String(Hex().fromPoint(s.ecs.spatial[green]))});
+  expect(s.events.some(e=>e.type=="green_moved" && e.day==3 && e.items.includes(green))).toBe(true);
+  expect(s.space[from]).not.toContain(green);
+  expect(s.space[v.greenMoves[0].toHex]).toContain(green);
+  const visitors=Object.keys(s.ecs.personable),places=visitors.map(id=>require("game/villages").eveningPlace(s,id));
+  expect(places.every(p=>p.id==green)).toBe(true);
+  for(const [i,p] of places.entries())for(const q of places.slice(i+1))expect(Math.hypot(p.x-q.x,p.y-q.y)).toBeGreaterThanOrEqual(32);
 });

@@ -132,6 +132,7 @@ export function Info({ entityId }) {
         {entity.meetingPlace?.kind=="green" && <>
           <p>Founded {historicalDate(origin.day)} by a household of {origin.people.length}: {origin.reason}.</p>
           <p>Centre household: {centre.name}.</p>
+          {!!village.greenMoves?.length && <p>The green moved {historicalDate(village.greenMoves.at(-1).day)} for more gathering space. The founding well remains at the original centre.</p>}
           <p>Grey main connections, brown local tracks. The outline shows the village homes, plots and access.</p>
         </>}
       </div>}

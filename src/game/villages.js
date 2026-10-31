@@ -293,7 +293,7 @@ export function generateVillageLife(state, seed, start) {
     };
     let used = spacesAround(venues.map(id => ecs.spatial[id]));
     const population = Object.keys(ecs.personable).filter(id => !ecs.personable[id].dead && ecs.village[id].villageId == village.id).length;
-    if (used.length < population && !village.origin) {
+    if (used.length < population) {
       // Fields can surround the original green. Choose the nearest reachable
       // unused tile with room for everyone, leaving all household plots intact.
       const green = venues.find(id => ecs.meetingPlace[id].kind == "green");
@@ -302,9 +302,20 @@ export function generateVillageLife(state, seed, start) {
       for (const tile of sites) {
         const spaces = spacesAround(venues.map(id => ecs.spatial[id == green ? tile : id]));
         if (spaces.length < population) continue;
+        const point=ecs.spatial[tile],owner=topController(ecs,green);
+        const footprint=buildingFootprint(proposal(state,point,{meetingPlace:{kind:"green"}},village.houses[0]),proposalId);
+        if(!canClearForBuilding(state,footprint,owner))continue;
+        const fromHex=keyOf(ecs.spatial[green]);
         removeFromSpace(state, green);
         Object.assign(ecs.spatial[green], { x: ecs.spatial[tile].x, y: ecs.spatial[tile].y });
         state.space[keyOf(ecs.spatial[green])].push(green);
+        reserve(tile);reserveBuildingClearance(state,green);
+        if(village.origin) {
+          const move={day:state.days,placeId:green,fromHex,toHex:keyOf(ecs.spatial[green]),reason:"more public gathering space"};
+          (village.greenMoves ||= []).push(move);
+          const head=ecs.controllable[ecs.controllable[green].controllerId]?.controllerId;
+          recordEvent(state,"green_moved",head?[head]:[],[green],{...move,villageId:village.id});
+        }
         used = spaces;
         break;
       }
@@ -317,7 +328,8 @@ export function generateVillageLife(state, seed, start) {
     }
   }
   const cultivated = new Set([...Object.keys(ecs.farmable || {}), ...Object.keys(ecs.backyard || {}), ...Object.keys(ecs.pasture || {}), ...Object.keys(ecs.meetingPlace || {}).filter(id=>["green","well"].includes(ecs.meetingPlace[id].kind))].map(id => keyOf(ecs.spatial[id])));
-  for (const id of Object.keys(ecs.good || {})) if (ecs.good[id].type == "wood" && !ecs.haulable?.[id] && cultivated.has(keyOf(ecs.spatial[id]))) deleteEntity(state, id);
+  for (const id of new Set([...Object.keys(ecs.good || {}),...Object.keys(ecs.forageable || {})])) if (
+    (ecs.good?.[id]?.type == "wood" && !ecs.haulable?.[id] || ecs.forageable?.[id] && !ecs.controllable?.[id]) && cultivated.has(keyOf(ecs.spatial[id]))) deleteEntity(state, id);
   if(state.settlement) {
     state.settlement.estatesInitialized=true;
     state.settlement.layoutTriedRevision=state.landUseRevision;

@@ -97,7 +97,7 @@ export function generateVillageLife(state, seed, start) {
     const survey={...state,ecs:{...ecs,mappable:{...ecs.mappable,...blocked}}};
     for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id))) {
       const route=path(survey,origin,lane);
-      if(route && reserveRoad(state,route.map(p=>p.id)))return lane;
+      if(route && reserveRoad(state,route.slice(1).map(p=>p.id)))return lane;
     }
     return null;
   };

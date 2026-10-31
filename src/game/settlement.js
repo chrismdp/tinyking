@@ -36,7 +36,7 @@ function reserveSiteField(s,site,pads,owner) {
     for(const access of Object.values(e.walkable[tile].neighbours).filter(id=>!padTiles.has(id) && !e.mappable[id].cropPlot && !e.mappable[id].buildingPlot)) {
       const route=path(survey,door,access);
       if(!route)continue;
-      const tiles=[origin,...route.map(p=>p.id)];
+      const tiles=route.map(p=>p.id);
       if(reserveRoad(s,tiles) && reserveFieldPlot(s,tile))return {tile,accessTileId:access,route:tiles};
     }
   }

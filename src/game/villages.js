@@ -113,7 +113,8 @@ export function generateVillageLife(state, seed, start) {
     }
     return null;
   };
-  const canCultivate = (tile,house) => canPlaceField(state,tile) && !(state.space[keyOf(ecs.spatial[tile])] || []).some(id=>ecs.good?.[id]?.type=="wood" && !ecs.haulable?.[id] && ecs.controllable?.[id] && topController(ecs,id)!=topController(ecs,house));
+  const clearableWood = (tile,house) => !(state.space[keyOf(ecs.spatial[tile])] || []).some(id=>ecs.good?.[id]?.type=="wood" && !ecs.haulable?.[id] && ecs.controllable?.[id] && topController(ecs,id)!=topController(ecs,house));
+  const canCultivate = (tile,house) => canPlaceField(state,tile) && clearableWood(tile,house);
   const enclosure = (point, villageId, houseId, kind, halfWidth, halfDepth, count, existing) => {
     const id = existing || add(point, villageId, { nameable: { nickname: kind == "chicken" ? "Chicken coop" : kind + " pasture" } }, houseId);
     ecs.pasture ||= {};
@@ -197,7 +198,7 @@ export function generateVillageLife(state, seed, start) {
           // A second actual garden is optional. Its whole footprint fits one
           // adjacent hex and must preserve public routes and existing farms.
           const extra=Grid.hexagon({center:Hex().fromPoint(yard),radius:1}).neighborsOf(Hex().fromPoint(yard),ALL_SIDES)
-            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && canReserveWorkYard(state,tile,houseId));
+            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && clearableWood(tile,houseId) && canReserveWorkYard(state,tile,houseId));
           if(!extra)continue;
           reserveWorkYard(state,extra,houseId);reserve(extra);workYardTiles.push(extra);
           household.plot.hexes.push(keyOf(ecs.spatial[extra]));point=ecs.spatial[extra];

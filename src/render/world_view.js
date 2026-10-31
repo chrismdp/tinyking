@@ -91,12 +91,12 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       name.visible=isKnown(p) && !introActive(state);
     }
     const villageId=state.ecs.village?.[state.ui.selected]?.villageId;
-    const key=villageId+":"+state.landUseRevision;
+    const key=[villageId,state.landUseRevision,state.ui.playerId,knownCount,revealAll,[...arrivalKnown].join("|")].join(":");
     if(key!=areaKey) {
       if(areaOutline) {settlementOverlay.remove(areaOutline);models.disposeObject(areaOutline);}
       areaOutline=null;areaKey=key;
       if(villageId && state.villages?.[villageId]?.origin) {
-        areaOutline=new THREE.Group();
+        areaOutline=new THREE.Group();areaOutline.name="village-area";
         for(const hex of villageArea(state,villageId)) {
           const h=Hex(...hex.split(",").map(Number)), p=h.toPoint();
           if(isKnown(p))areaOutline.add(models.hexOutline(ground,p,0xDFCA83));

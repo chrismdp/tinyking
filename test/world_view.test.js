@@ -40,6 +40,20 @@ const fixture = () => {
 beforeEach(() => { global.window = { addEventListener() {}, removeEventListener() {} }; });
 afterEach(() => { delete global.window; });
 
+it("refreshes a selected village area as discovery, current actor and reveal mode change",()=>{
+  const {state,renderer}=fixture(),centre=Hex(state.map.centre),next=Hex(centre.x+1,centre.y);
+  state.ecs.spatial.site=centre.toPoint();state.ecs.village={site:{villageId:"v"}};
+  state.villages={v:{id:"v",houses:["site"],sharedPlaces:[],origin:{day:0}}};state.ui.selected="site";
+  const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}});
+  const count=()=>{view.frame();return renderer.render.mock.calls.at(-1)[0].getObjectByName("village-area").children.length;};
+  expect(count()).toBe(0);
+  state.ecs.playable.player.known.push({x:centre.x,y:centre.y});expect(count()).toBe(1);
+  state.ecs.playable.player.known.push({x:next.x,y:next.y});expect(count()).toBe(2);
+  state.ecs.playable.other={known:[{x:next.x,y:next.y}]};state.ui.playerId="other";expect(count()).toBe(1);
+  view.showWholeMap();expect(count()).toBe(7);
+  view.dispose();
+});
+
 it("fits the larger map and its edge wall in the whole-map view, including portrait windows", () => {
   const { state, renderer, grid } = fixture();
   const view = createWorldView(renderer, state, { t: x => x, onSelect() {} });

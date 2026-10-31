@@ -7,7 +7,7 @@ import { constructHome, reserveFoundingFields } from "game/settlement";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 
-function viableVillage(count,beforeSurvey=()=>{},build=true) {
+function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{}) {
   const centre=Hex(10,10), hexes=Grid.hexagon({center:centre,radius:8});
   const s={ecs:{nextId:1,building:{},personable:{},household:{},controllable:{},village:{},playable:{},container:{},good:{},farmable:{},pasture:{},profession:{},planner:{}},space:{},redraws:[],events:[],days:0,peopleSeed:13,opinionThresholds:{hate:-100,love:100},map:{seed:13,centre:{x:10,y:10},radius:8,worldKey:"fixture",entrances:{},playerStartTile:{x:0,y:0},geography:{version:1,heights:{},routes:[]}},villages:{v:{id:"v",name:"Initial viable village",centre:{x:10,y:10},houses:[],sharedPlaces:[]}},settlement:{version:1,sites:{v:[]},journeys:[],appliedJourneys:{}}};
   for(const h of hexes)for(const corner of Hex().corners()) {
@@ -31,6 +31,7 @@ function viableVillage(count,beforeSurvey=()=>{},build=true) {
     // Real initial construction budget: 12 home + 4 workshop + 8 venue.
     expect(constructHome(s,"v",people,{founding:i==0,timber:24})).toBeTruthy();
   }
+  beforeLife(s);
   generateVillageLife(s,13,s.map.playerStartTile);
   return s;
 }
@@ -81,6 +82,28 @@ it("reserves full native station and garden footprints without taking hypothetic
     const roof=buildingFootprint({ecs:{spatial:{station:site.yardPoint},workplace:{station:{}}}},"station");
     expect(roof.halfWidth).toBe(31);expect(roof.halfDepth).toBe(45);
     for(const x of [-31,31])for(const y of [-45,45])expect(Hex().fromPoint({x:roof.x+x,y:roof.y+y}).toString()).toBe(Hex().fromPoint(site.yardPoint).toString());
+  }
+});
+
+it("preserves another owner's standing timber when an optional second garden has no permitted parcel",()=>{
+  const protectedTrees=[];
+  const s=viableVillage(5,()=>{},true,state=>{
+    const [owner]=newEntities(state,[{controllable:{},personable:{age:40}}]);state.ecs.controllable[owner].controllerId=owner;
+    for(const site of state.settlement.sites.v) {
+      const centre=Hex().fromPoint(site.yardPoint);
+      for(const hex of Grid.hexagon({center:centre,radius:1}).neighborsOf(centre,ALL_SIDES)) {
+        const tile=state.space[hex]?.find(id=>state.ecs.mappable[id]);
+        if(!tile || !landUse.canReserveWorkYard(state,tile,site.usedBy) || state.ecs.mappable[tile].buildingPlot)continue;
+        protectedTrees.push(...newEntities(state,[{spatial:{...hex.toPoint(),immovable:true},tree:{stage:"mature"},good:{type:"wood",amount:1},controllable:{controllerId:owner}}]));
+      }
+    }
+  });
+  expect(protectedTrees.length).toBeGreaterThan(0);
+  for(const id of protectedTrees) {
+    expect(s.ecs.good[id]).toMatchObject({type:"wood",amount:1});
+    expect(s.ecs.tree[id]).toBeDefined();
+    const hex=Hex().fromPoint(s.ecs.spatial[id]).toString();
+    expect(Object.keys(s.ecs.backyard).some(g=>Hex().fromPoint(s.ecs.spatial[g]).toString()==hex)).toBe(false);
   }
 });
 

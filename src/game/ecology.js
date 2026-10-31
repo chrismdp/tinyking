@@ -1,7 +1,7 @@
 import { chooseBiome, mixValue } from "game/biome_field";
 import { growingAt } from "game/climate";
 import { treeAllowed } from "game/tree_clearance";
-import { Hex, Grid, HEX_SIZE } from "game/hex";
+import { Hex, Grid, HEX_SIZE, hexAtPoint } from "game/hex";
 import { newEntities } from "game/entities";
 import { biomeOf, homeOf } from "game/overworld";
 import { HOUR } from "game/time";
@@ -148,7 +148,7 @@ export function updateEcology(state) {
   for (const id of mature) {
     const tree = state.ecs.tree[id];
     if (!growingAt(state,id)) continue;
-    const sourceTile=tiles[Hex().fromPoint(state.ecs.spatial[id])];
+    const sourceTile=tiles[hexAtPoint(state.ecs.spatial[id])];
     const rate = sourceTile?.biomeMix ? mixValue(sourceTile.biomeMix,BIOME_ECOLOGY,"seeding") : BIOME_ECOLOGY[tree.biome].seeding;
     tree.seeding = (tree.seeding ?? hashUnit(seed + ":seeding:" + id)) + rate * HOUR;
     if (tree.seeding < 1) continue;

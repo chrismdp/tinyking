@@ -87,11 +87,14 @@ export function expansionFits(s,id,footprint,plots=[]) {
   }
   // The existing door spur ends at the house. New body space must stay off
   // other public road tiles and all crop plots, including its own family's.
+  // The nine footprint samples share these inputs. Collect them for this
+  // proposal only: household plots can change before the next call.
+  const otherPlots = new Set(Object.values(e.household || {}).filter(h=>h.id!=house).flatMap(h=>h.plot?.hexes || []));
   for(const x of [-addition.halfWidth,0,addition.halfWidth]) for(const y of [-addition.halfDepth,0,addition.halfDepth]) {
     const p=pointAt(addition,x,y), hex=Hex().fromPoint(p);
     const tile=(s.space[hex] || []).find(t=>e.mappable?.[t]);
     if(!tile || !e.walkable[tile]?.speed)return false;
-    if(Object.values(e.household || {}).some(h=>h.id!=house && h.plot?.hexes.includes(String(hex))))return false;
+    if(otherPlots.has(String(hex)))return false;
     // A kitchen garden and its adjacent station share a yard tile. Its real
     // rectangle was checked above; a whole cultivated field still excludes us.
     const ownYard=String(hex)==String(Hex().fromPoint(current)) && (s.space[hex] || []).filter(other=>e.farmable?.[other]).every(other=>e.backyard?.[other] && e.backyard[other].houseId==(e.workplace?.[id]?.houseId || id));

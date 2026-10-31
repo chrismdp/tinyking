@@ -29,8 +29,8 @@ export function connectSaveWorker() {
 export function createAutosave(state, client, changed = () => {}) {
   let requested = false, pending = null;
   const status = { ready: false, hasSave: false, error: null, lastSave: null };
-  const flush = () => {
-    if (!requested || pending || state.generating || state.worldBusy || state.transition) return pending;
+  const flush = (final = false) => {
+    if (!requested || pending && !final || state.generating || state.worldBusy || state.transition) return pending;
     requested = false;
     if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) return null;
     const started = performance.now();
@@ -39,19 +39,19 @@ export function createAutosave(state, client, changed = () => {}) {
     // in the worker while the next simulation/render frame continues.
     const saving = client("save", gameData(state));
     const snapshotMilliseconds = performance.now() - started;
-    pending = saving.then(result => {
+    const current = saving.then(result => {
       status.hasSave = true;
       status.error = null;
       status.lastSave = { ...result, snapshotMilliseconds, totalMilliseconds: performance.now() - started, day };
     }).catch(error => { status.error = "Could not save: " + error.message; }).finally(() => {
-      pending = null;
       changed();
-      flush();
+      if (pending === current) { pending = null; flush(); }
     });
+    pending = current;
     return pending;
   };
   return Object.assign(status, {
-    request() { requested = true; return flush(); },
+    request(final = false) { requested = true; return flush(final); },
     flush,
     async inspect() {
       try { status.hasSave = await client("inspect"); }
@@ -64,7 +64,7 @@ export function createAutosave(state, client, changed = () => {}) {
 }
 
 export function bindAutosave(persistence, page, document) {
-  const hide = () => { persistence.request(); };
+  const hide = () => { persistence.request(true); };
   const visibility = () => { if (document.visibilityState === "hidden") hide(); };
   page.addEventListener("pagehide", hide);
   document.addEventListener("visibilitychange", visibility);

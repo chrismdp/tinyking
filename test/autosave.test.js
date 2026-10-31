@@ -57,3 +57,24 @@ it("saves a started life during its opening before the camp is created", async (
   await createAutosave(state, client).request();
   expect(client).toHaveBeenCalledWith("save", expect.objectContaining({ intro: state.intro }));
 });
+it("submits the last pagehide snapshot even while an older save is pending", async () => {
+  const state = { days: 1, ecs: { playable: { p: {} } }, ui: { playerId: "p", show: {} } };
+  const finish = [];
+  const client = jest.fn(() => new Promise(resolve => finish.push(resolve)));
+  const persistence = createAutosave(state, client);
+  const first = persistence.request();
+  state.days = 1.1;
+  const page = new EventTarget(), doc = new EventTarget();
+  const unbind = bindAutosave(persistence, page, doc);
+  page.dispatchEvent(new Event("pagehide"));
+  expect(client).toHaveBeenCalledTimes(2);
+  expect(client.mock.calls[0][1].days).toBe(1);
+  expect(client.mock.calls[1][1].days).toBe(1.1);
+  const last = persistence.flush();
+  finish[0]({ bytes: 1 });
+  await first;
+  finish[1]({ bytes: 2 });
+  await last;
+  expect(persistence.lastSave.day).toBe(1.1);
+  unbind();
+});

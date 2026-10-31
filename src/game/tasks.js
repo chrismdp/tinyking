@@ -1,3 +1,4 @@
+import { recordProduction, recordMeetingUse, completeTradeProduction } from "game/settlement_growth";
 import { resourcePermission, observeChop, customsVisitTarget, arriveCustoms, customsVisitFailed, openOath } from "game/village_customs";
 import { speechPosition, SPEECH_REACH } from "game/conversation";
 import { goalEvidence } from "game/guidance";
@@ -5,7 +6,7 @@ import { HUMAN_SPEED } from "game/locomotion";
 import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
 import { leaveHome, enterHome, actualHome, nightTime } from "game/home";
 import { recordRoadUse } from "game/road_wear";
-import { canPlaceField, reserveFieldPlot, fieldAtTile } from "game/land_use";
+import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
@@ -119,7 +120,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
       for (let i=0; i<=count; i++) {
         const point = math.lerp(a,b,i/count);
         const tile = (state.space[Hex().fromPoint(point)] || []).find(id=>state.ecs.walkable[id]);
-        if (!tile || tile != startTile && tile != goalTile && fieldAtTile(state,tile)) return false;
+        if (!tile || routeBlocked(state,tile,startTile,goalTile)) return false;
         if (previous && previous != tile && !Object.values(state.ecs.walkable[previous].neighbours).includes(tile)) return false;
         previous = tile;
       }
@@ -178,6 +179,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
     delete world.fenceWaypoints;
 
     if (!("exit" in next)) {
+      if(target=="meet" && world.target?.id)recordMeetingUse(state,world.target.id,actorId);
       return Task.FINISH;
     }
   } else {
@@ -432,6 +434,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
         controllable: { controllerId: topController(state.ecs, assisting ? targetId : actorId) }
       })));
       state.redraws.push(...goods);
+      if (farm.houseId) recordProduction(state,farm.houseId,actorId,slot.content,goods.length);
       if (request?.status == "accepted" && request.kind == "harvest" && request.targetId == targetId) {
         for (const id of goods) state.ecs.haulable[id].reservedFor = actorId;
         request.progress++; request.produced += goods.length; request.cargo.push(...goods);
@@ -892,7 +895,9 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
     w.fuelHours -= hours;
     w.workHours = (w.workHours || 0) + hours;
   }
-  return workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2) ? Task.FINISH : Task.CONTINUE;
+  if (!workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2)) return Task.CONTINUE;
+  completeTradeProduction(state,workplaceId,actorId);
+  return Task.FINISH;
 }
 
 export function socialise(state, actorId, world, dt, firstRun, partnerId) {

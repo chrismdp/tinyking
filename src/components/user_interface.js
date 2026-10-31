@@ -1,3 +1,4 @@
+import { WeddingNotice } from "./wedding_notice";
 import { CustomsEncounter } from "./village_customs";
 import { openingGuidance, dismissGuidance } from "game/guidance";
 import { EventFeed } from "./event_feed";
@@ -38,7 +39,7 @@ export function UserInterface() {
     <div id="ui">
       {show.clock && <Clock/>}
       {state.ui?.successionMessage && <aside className="succession-message" role="status"><button aria-label="Dismiss succession message" onClick={()=>{state.ui.successionMessage=null;state.ui.actions.end_turn();}}>×</button>{state.ui.successionMessage}</aside>}
-      {state.wedding?.until > state.days && <aside className="succession-message" role="status">A wedding! The couple celebrates with their families.</aside>}
+      {!state.ui?.familyPersonId && <WeddingNotice/>}
       <CustomsEncounter/>
       {state.travelError && <div className="travel-loading" role="alert">Travel stopped: {state.travelError}</div>}
       {show.world_overview && <React.Suspense fallback={null}><TravelOverview/></React.Suspense>}

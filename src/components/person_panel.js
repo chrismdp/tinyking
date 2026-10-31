@@ -1,3 +1,4 @@
+import { WeddingNotice } from "./wedding_notice";
 import { eligiblePartner } from "game/social";
 import { canMarryPlayer, marriageReason, canInviteHome } from "game/family";
 import { VillageMembership } from "./village_customs";
@@ -221,6 +222,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   return <Sheet label={"The family of " + personName} onClose={close} className="tree-window">
     <header className="people-header"><h3>The family of {personName}</h3><span className="count">{nodes.filter(n => !n.unknown).length} of {nodes.length} names known</span><button className="sheet-close" aria-label="Close family tree" onClick={close}>×</button></header>
     <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",state.ecs.controllable[state.ecs.household[entityId]?.houseId]?.controllerId],["Heir",heirFor(state,state.ecs.controllable[state.ecs.household[entityId]?.houseId]?.controllerId)]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
+    <WeddingNotice/>
     <div className="tree-scroll" ref={scroll} tabIndex={0} aria-label="Scroll family tree"><svg className="family-tree" width={width} height={height} role="group" aria-label={"The family of " + personName}>
       <g className="kinline">{nodes.filter(n => n.spouse && n.id < n.spouse).map(n => {
         const a = positions[n.id], b = positions[n.spouse];

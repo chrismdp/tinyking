@@ -1,5 +1,5 @@
 import { newEntities } from "game/entities";
-import { generateMap, generateFamilies, Hex, TRIANGLES } from "game/map";
+import { generateMap, generateFamilies, Hex } from "game/map";
 import { disposition, RING_CAPS } from "game/people";
 import { historyStep } from "game/social";
 const generate = async seed => {
@@ -37,10 +37,14 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   expect(counts.love / n).toBeCloseTo(0.2, 2);
   for (const v of Object.values(s.villages)) { expect(v.houses.length).toBeGreaterThanOrEqual(3); expect(v.houses.length).toBeLessThanOrEqual(8); }
   for (const v of Object.values(s.villages)) for (const house of v.houses) {
-    const residents = living.filter(id => s.ecs.household[id]?.houseId == house).length;
     const store = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
-    expect(s.ecs.container[store].amounts.gruel).toBe(Math.max(1, residents));
-    expect(s.ecs.container[store].amounts.grain).toBe(Math.max(1, residents) * TRIANGLES.length);
+    const stock=s.ecs.container[store],account=s.ecs.household[house].estateAccount;
+    expect(account).toBeDefined();
+    expect(Object.values(stock.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(stock.capacity);
+    for(const type of new Set([...Object.keys(account.initial),...Object.keys(account.produced),...Object.keys(account.consumed)])) {
+      expect(stock.amounts[type] || 0).toBeGreaterThanOrEqual(0);
+      expect(stock.amounts[type] || 0).toBeCloseTo((account.initial[type] || 0)+(account.produced[type] || 0)-(account.consumed[type] || 0),8);
+    }
   }
 });
 

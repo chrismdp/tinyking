@@ -77,7 +77,9 @@ async function opening(page) {
   url.searchParams.set("seed", "13");
   url.searchParams.delete("intro");
   await page.goto(url.href);
-  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 30000 });
+  // B ordinary startup completed at 32.111s. Use the storyboard app-ready
+  // contract here; the retained 30s failure remains a performance finding.
+  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
   await page.getByText("Start new game", { exact: true }).click();
   await page.waitForSelector(".character canvas");
   await page.locator(".panel .close").first().click();

@@ -347,10 +347,10 @@ const windowPane = shared(new THREE.BoxGeometry(8, 9, 1));
 
 export function building(ground, state, id, options) {
   const { x, y } = state.ecs.spatial[id];
-  return house(ground, x, y, state.ecs.building[id].entrance, options);
+  return house(ground, x, y, state.ecs.building[id].entrance, { ...options, growthStage:state.ecs.growth?.[id]?.stage || 0 });
 }
 
-export function house(ground, x, y, entrance, { playerOwned, selected }) {
+export function house(ground, x, y, entrance, { playerOwned, selected, growthStage = 0 }) {
   const w = HEX_SIZE * 1.35;
   const d = w / GOLDEN_RATIO;
   const wall = 26;
@@ -382,6 +382,16 @@ export function house(ground, x, y, entrance, { playerOwned, selected }) {
       matrix: at(0, high + wall + roof / 2, 0, 0, 0, 0, w + 10, roof, d + 10) },
     { geometry: new THREE.BoxGeometry(w * 0.3, 16, 2), colour: COLOURS.door, matrix: at(0, doorGround + 8, d / 2 + 0.5) },
   ];
+  if (growthStage) {
+    const depth=growthStage==1?12:30, width=w*.7, annexDepth=depth+6, z=-(30.1+depth/2-3);
+    const corners=[[-width/2,z-annexDepth/2],[width/2,z-annexDepth/2],[-width/2,z+annexDepth/2],[width/2,z+annexDepth/2]]
+      .map(([lx,lz])=>new THREE.Vector3(lx,0,lz).applyAxisAngle(UP,angle));
+    const annexHigh=Math.max(...corners.map(p=>ground.heightAt(x+p.x,y+p.z)));
+    const annexLow=Math.min(...corners.map(p=>ground.heightAt(x+p.x,y+p.z)))-3;
+    parts.push({geometry:new THREE.BoxGeometry(width,annexHigh+18-annexLow,annexDepth),colour:COLOURS.wall,matrix:at(0,(annexHigh+18+annexLow)/2,z)},
+      {geometry:squarePyramid(),colour:COLOURS.roof,matrix:at(0,annexHigh+24,z,0,0,0,width+8,12,annexDepth)});
+    if(growthStage==2)parts.push({geometry:new THREE.BoxGeometry(12,8,1),colour:COLOURS.door,matrix:at(0,annexHigh+10,-30.1-depth+.6)});
+  }
   if (playerOwned) {
     parts.push(
       { geometry: new THREE.CylinderGeometry(0.8, 0.8, 26, 4), colour: COLOURS.door, matrix: at(w * 0.3, high + wall + 13, 0) },
@@ -441,6 +451,7 @@ export const personHeight = size => size * 0.55 + size * 0.36 * 2 + size * 0.55;
 
 export function person(state, e, t, { realm, selected }) {
   const size = e.personable.size;
+  const isPlayer = e.id != null && state.ui?.playerId != null && e.id == state.ui.playerId;
   const group = new THREE.Group();
 
   const figure = new THREE.Group();
@@ -448,7 +459,7 @@ export function person(state, e, t, { realm, selected }) {
   const standing = new THREE.Mesh(personGeometry(size, e.personable.body, HAIR[e.personable.hair]), vertexColoured);
   standing.name = "standing-figure";
   figure.add(standing);
-  if (state.intro && e.id == state.ui.playerId) {
+  if (state.intro && isPlayer) {
     figure.rotation.y = state.intro.facing || 0;
     const bundle = arrivalBundle();
     bundle.visible = false;
@@ -468,7 +479,7 @@ export function person(state, e, t, { realm, selected }) {
     ring.scale.set(1.3, 1, 1.3);
   }
   group.add(ring);
-  if (e.id == state.ui.playerId) {
+  if (isPlayer) {
     const controlled = new THREE.Mesh(ringGeometry(size * 1.65), shared(new THREE.MeshBasicMaterial({ color: 0xFFE29A, depthTest: false })));
     controlled.name = "controlled-ring"; controlled.position.y = 1; controlled.renderOrder = 4;
     group.add(controlled);
@@ -491,11 +502,11 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? headActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui.debug) : null;
+  const activity = e.planner && !introActive(state) ? headActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui?.debug) : null;
   const knownName = displayName(state, e.id);
   const hasName = knownName != "an unknown person";
   if (hasName) {
-    const text = label((e.id == state.ui.playerId ? "You · " : "") + knownName, { height: 18, fontSize: 13, colour: e.id == state.ui.playerId ? "#ffe29a" : "white" });
+    const text = label((isPlayer ? "You · " : "") + knownName, { height: 18, fontSize: 13, colour: isPlayer ? "#ffe29a" : "white" });
     text.userData.nameAspect = text.scale.x / text.scale.y;
     text.name = "person-name"; text.position.y = height + 14; group.add(text);
   }
@@ -657,7 +668,7 @@ export function tileOverlay(ground, ecs, id, { selected }) {
       math.lerp(x0, x1, 0.25),
       math.lerp(x0, x1, 0.75),
     ]);
-    group.add(new THREE.Mesh(geometry, overlay(COLOURS.dirt, opacity, 1)));
+    group.add(new THREE.Mesh(geometry, overlay(ecs.mappable[id].roadRoles?.[key]?.role=="main" ? 0x8B8D88 : COLOURS.dirt, opacity, 1)));
   }
 
   if (selected) {

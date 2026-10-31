@@ -7,6 +7,8 @@ import { generateMap } from "game/map";
 import { path, addBidirectionalLink } from "game/pathfinding";
 import { walk_to } from "game/tasks";
 import { treeAllowed } from "game/tree_clearance";
+import { WEAR_LIFETIME } from "game/road_wear";
+import { transitBlocked } from "game/land_use";
 
 it("chooses the same physical shared crossing from either side, independent of request order", () => {
   const w = generateWorld(13), before = JSON.stringify(w);
@@ -53,6 +55,8 @@ it("builds a broad house-scale mountain with a navigable graded road through its
   const geo = buildGeography(grid, landscape, {}, {}, [west, east]);
   const s = { map: { seed: 13, geography: geo }, ecs: { mappable: {}, spatial: {}, walkable: {} }, space: {} };
   grid.forEach((h, i) => { const id=String(i); s.ecs.mappable[id]=landscape[h]; s.ecs.spatial[id]=h.toPoint(); s.ecs.walkable[id]={speed:landscape[h].terrain=="grassland"?1:0,worn:{},neighbours:{}}; s.space[h]=[id]; });
+  // The untravelled foundation reserves geometry without inventing use.
+  for (const walk of Object.values(s.ecs.walkable)) expect(walk.worn).toEqual({});
   const ground = groundForState(s);
   const road = geo.routes[0];
   expect(road.length).toBeGreaterThan(30);
@@ -76,7 +80,7 @@ it("builds a broad house-scale mountain with a navigable graded road through its
   }
 });
 
-it("generated roads connect real doors and travel entrances, remain lazy, and do not claim historical wear", async () => {
+it("generated roads connect real doors and travel entrances, remain lazy, and retain only recorded historical wear", async () => {
   const s = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} } };
   const r = await generateMap(s,13,async()=>{}); s.map=r.map; s.ui.playerId=r.playerId;
   const ground=groundForState(s);
@@ -89,10 +93,36 @@ it("generated roads connect real doors and travel entrances, remain lazy, and do
     expect(Math.hypot(departure.x-entry.start.x,departure.y-entry.start.y)).toBeLessThan(1e-6);
     expect(Object.keys(s.ecs.building).some(h => path(s,entry.tileIds[2],s.space[Hex().fromPoint(s.ecs.spatial[h])].find(id=>s.ecs.mappable[id])))).toBe(true);
   }
+  const provenance=new Map();
+  for(const trip of s.settlement.journeys) {
+    expect(trip.day).toBeLessThanOrEqual(s.days);
+    expect(trip.count).toBeGreaterThan(0);
+    expect(trip.people.length).toBeGreaterThan(0);
+    for(const person of trip.people)expect(s.ecs.personable[person]).toBeDefined();
+    for(const step of trip.steps)if(step.entrance!=null || step.exit!=null) {
+      const key=[step.entrance ?? "C",step.exit ?? "C"].sort().join(",");
+      const legs=provenance.get(step.id+":"+key) || [];
+      legs.push(trip.day,...(trip.returnDay!=null?[trip.returnDay]:[]));
+      provenance.set(step.id+":"+key,legs);
+    }
+  }
+  let travelled=0,untravelled=0;
   for (const id in s.ecs.mappable) {
-    expect(s.ecs.walkable[id].worn).toEqual({});
+    const worn=s.ecs.walkable[id].worn;
+    if(!Object.keys(worn).length)untravelled++;
+    for(const [key,value]of Object.entries(worn)) {
+      const legs=provenance.get(id+":"+key);
+      expect(legs).toBeDefined();
+      if(value>0) {
+        travelled++;
+        expect(legs.some(day=>day>s.days-WEAR_LIFETIME && day<=s.days)).toBe(true);
+        expect(transitBlocked(s,id)).toBe(false);
+      }
+    }
     if (s.ecs.mappable[id].route?.length) expect(s.ecs.walkable[id].speed).toBeGreaterThan(0);
   }
+  expect(travelled).toBeGreaterThan(0);
+  expect(untravelled).toBeGreaterThan(0);
   for (const house in s.ecs.building) {
     const p=s.ecs.spatial[house], hs=ground.hex(p).corners;
     expect(Math.max(...hs)-Math.min(...hs)).toBeLessThan(25);

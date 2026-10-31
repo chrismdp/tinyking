@@ -120,10 +120,14 @@ it("lets available children complete several bounded play episodes and perform r
 
 it("fits child play travel to actual terrain/time rather than excluding a reachable green beyond ten route nodes", () => {
   const { state: s, a, b, tiles, step } = household();
-  const { Hex } = require("game/hex"), { addBidirectionalLink, path } = require("game/pathfinding");
-  const side = Object.keys(s.ecs.walkable[tiles[0]].neighbours).find(side => s.ecs.walkable[tiles[0]].neighbours[side] == tiles[1]);
+  const { Hex, Grid, ALL_SIDES } = require("game/hex"), { addBidirectionalLink, path } = require("game/pathfinding");
   for (let i = 6; i < 16; i++) {
     const [tile] = newEntities(s, [{ spatial: { ...Hex(i,0).toPoint(), immovable: true }, mappable: { terrain: "grassland" }, walkable: { worn: {}, speed: 2, neighbours: {} } }]);
+    // INITIAL graph links must match each actual hex edge. Offset rows
+    // alternate sides; repeating the first edge made later segments invalid.
+    const previous=Hex().fromPoint(s.ecs.spatial[tiles.at(-1)]);
+    const side=Grid.hexagon({center:previous,radius:1}).neighborsOf(previous,ALL_SIDES).findIndex(h=>h.equals(Hex(i,0)));
+    expect(side).toBeGreaterThanOrEqual(0);
     addBidirectionalLink(s.ecs, tiles.at(-1), side, tile); tiles.push(tile);
   }
   for (const nav of Object.values(s.ecs.walkable)) nav.speed = 2;

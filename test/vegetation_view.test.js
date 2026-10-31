@@ -62,3 +62,11 @@ it("offers a forage order on a full plant, and no order on a picked plant", asyn
   expect(jobs(await new Engine(rules).run(payload(1)))).toContain("forage");
   expect(jobs(await new Engine(rules).run(payload(0)))).not.toContain("forage");
 });
+
+it("marks only a defined current actor as controlled, including standalone rendering with no UI",()=>{
+  const e={personable:{size:20,hair:0,body:0x553322}};
+  for(const s of [{ecs:{}},{ecs:{},ui:{}},{ecs:{},ui:{playerId:"p"}}])expect(person(s,e,x=>x,{realm:0x333333}).getObjectByName("controlled-ring")).toBeUndefined();
+  const own=person({ecs:{},ui:{playerId:"p"}},{...e,id:"p"},x=>x,{realm:0x333333});
+  expect(own.getObjectByName("controlled-ring").material.color.getHex()).toBe(0xFFE29A);
+  expect(person({ecs:{},ui:{playerId:"p"}},{...e,id:"npc"},x=>x,{realm:0x333333}).getObjectByName("controlled-ring")).toBeUndefined();
+});

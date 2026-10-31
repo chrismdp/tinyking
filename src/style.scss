@@ -1031,6 +1031,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .people-goals summary { min-height: 44px; cursor: pointer; }
 .succession-message { position: absolute; top: 65px; left: 10px; right: 10px; max-width: 420px; padding: 12px; background: #453a3d; color: #f7f1e7; border: 1px solid #e2c879; z-index: 24; pointer-events: auto; }
 .succession-message button { min-height: 44px; float: right; }
+#ui:has(.tree-window) > .wedding-message { display: none; }
+.tree-window .wedding-message { position: static; flex-shrink: 0; max-width: none; margin: 0 10px 8px; }
 @media (max-width: 800px), (max-height: 500px) {
   .tree-window { top: var(--safe-top); left: var(--safe-left); height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); max-height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   .tree-toolbar { gap: 5px; }

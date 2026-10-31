@@ -35,7 +35,9 @@ it("a distant low pad cannot cut the seed13 ridge beside its preserved shared bo
 
 it.each([13,1,20])("normal seed %s occupied hexes keep level house pads and gentle road triangles at local altitude", async seed => {
   const s = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} } };
-  s.map = (await generateMap(s, seed, async () => {})).map;
+  const generated = await generateMap(s, seed, async () => {});
+  expect(generated.map).toBe(s.map);
+  s.map = generated.map;
   const ground = groundForState(s), field = createLandField(s.world.landSeed);
   const natural=createHeightField({seed:0,
     terrainAt:k=>field.terrainAt(worldPoint(s.world.home,Hex(...k.split(",").map(Number)).toPoint())),

@@ -1,3 +1,6 @@
+import { householdStore } from "game/favours";
+import { growthRecord } from "game/settlement_growth";
+import { recordEvent } from "game/events";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
 import { groundForState, shelterSurface } from "game/geography";
 import { Hex } from "game/hex";
@@ -23,7 +26,7 @@ export function localHome(state, actorId) {
 }
 export function deliveryHome(state,actorId) {
   const home=localHome(state,actorId);
-  return state.ecs.building?.[home]?.rooms?.find(id=>state.ecs.container?.[id]) || home;
+  return householdStore(state,home) || home;
 }
 export function canPlaceShelter(state, targetId) {
   const ecs = state.ecs;
@@ -145,6 +148,9 @@ export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
     (ecs.building ||= {})[targetId]={id:targetId,rooms:[],entrance:0};
     (ecs.village ||= {})[targetId] ||= {id:targetId,villageId:null};
     ecs.household[targetId] ||= {id:targetId,fields:[],backyards:[]};
+    ecs.household[targetId].storeId = householdStore(state,targetId);
+    growthRecord(state,targetId).construction = {timber:stage.logs,workHours:stage.hours};
+    recordEvent(state,"house_built",[owner],[targetId],{houseId:targetId,timber:stage.logs,reason:"completed player construction"});
   }
   delete ecs.planner[owner].world.places.sleep;
   delete ecs.construction[targetId];

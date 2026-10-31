@@ -63,6 +63,8 @@ export function repairHouseholds(state) {
       (ecs.controllable ||= {})[id] = { id, controllerId: asset.houseId };
     }
   }
+  const bedNeeds = {};
+  for(const id of Object.keys(ecs.personable))if(isResident(state,id) && !ecs.personable[id].dead && ecs.household?.[id]?.houseId)bedNeeds[ecs.household[id].houseId]=(bedNeeds[ecs.household[id].houseId] || 0)+1;
   const residents = {};
   for (const id of Object.keys(ecs.personable)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
   for (const houseId of Object.keys(ecs.building || {})) {
@@ -89,7 +91,7 @@ export function repairHouseholds(state) {
       }
     }
     for (const room of ecs.building[houseId].rooms || []) {
-      if (ecs.sleepable?.[room]) ecs.sleepable[room].capacity = Math.max(ecs.sleepable[room].capacity, 6, members.length);
+      if (ecs.sleepable?.[room]) ecs.sleepable[room].capacity = Math.max(6, members.length, bedNeeds[houseId] || 0, ecs.sleepable[room].capacity || 0);
     }
   }
 }

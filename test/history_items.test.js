@@ -5,6 +5,7 @@ import { giftOptions } from "game/people";
 import { giftChoices } from "game/gift_choices";
 import { collect_gift, talk } from "game/tasks";
 import { Task } from "game/htn";
+import { newEntities } from "game/entities";
 
 const maps = {};
 const generate = async seed => {
@@ -28,7 +29,9 @@ it.each([13, 20, 1234, 98765])("materialises every living owner's historical hei
     expect(s.ecs.controllable[p.id]).toEqual({ id: p.id, controllerId: p.ownerId });
     expect(p.carried).toBe(true);
     expect(p.maker).toBe(p.originalOwner);
-    expect(p.owners[0]).toEqual({ personId: p.originalOwner, day: -540, reason: "made" });
+    const founding=s.events.find(e=>e.type=="founding" && e.people.includes(p.originalOwner));
+    expect(founding).toBeDefined();
+    expect(p.owners[0]).toEqual({ personId: p.originalOwner, day: founding.day, reason: "made" });
     expect(p.owners.at(-1).personId).toBe(p.ownerId);
     expect(giftOptions(s, p.ownerId).filter(g => g.sourceId == p.id)).toHaveLength(1);
     expect(giftChoices(s, p.ownerId).filter(c => c.gift.sourceId == p.id)).toHaveLength(1);
@@ -39,22 +42,27 @@ it.each([13, 20, 1234, 98765])("materialises every living owner's historical hei
   expect(JSON.stringify(s)).toBe(before);
 });
 
-it("retains generated components and map goods across the detached history boundary", async () => {
+it("retains complete personal objects and unrelated owned loose goods through physical history", async () => {
   const originalHistory = history.generateHistory, originalCreate = possessions.createPossession;
   const created = {};
   const createSpy = jest.spyOn(possessions, "createPossession").mockImplementation((s, ...args) => {
     const id = originalCreate(s, ...args);
     if (s.generatingHistory) {
       created[id] = structuredClone(Object.fromEntries(["good", "haulable", "spatial", "nameable"].map(key => [key, s.ecs[key][id]])));
-      // Summary item records contain no terrain or commodity goods.
-      expect(Object.keys(s.ecs.good).every(item => s.ecs.possession[item])).toBe(true);
+      expect(s.ecs.good[id].type).toBe("heirloom");
+      expect(s.ecs.good[id].amount).toBe(1);
+      expect(s.ecs.haulable[id]).toBeDefined();
     }
     return id;
   });
   const historySpy = jest.spyOn(history, "generateHistory").mockImplementation((s, seed) => {
-    const before = structuredClone({ good: s.ecs.good, haulable: s.ecs.haulable, container: s.ecs.container });
+    const player=Object.keys(s.ecs.playable)[0];
+    const [loose,store]=newEntities(s,[{spatial:{...s.ecs.spatial[player],immovable:true},good:{type:"wood",amount:3},haulable:{},controllable:{controllerId:player}},{spatial:{...s.ecs.spatial[player]},container:{capacity:12,amounts:{grain:7}},controllable:{controllerId:player}}]);
+    const before = structuredClone({good:s.ecs.good[loose],haulable:s.ecs.haulable[loose],controllable:s.ecs.controllable[loose],container:s.ecs.container[store]});
     originalHistory(s, seed);
-    for (const key of ["good", "haulable", "container"]) for (const [id, value] of Object.entries(before[key] || {})) expect(s.ecs[key][id]).toEqual(value);
+    for(const key of ["good","haulable","controllable"])expect(s.ecs[key][loose]).toEqual(before[key]);
+    expect(s.ecs.container[store]).toEqual(before.container);
+    expect(Object.values(s.space).flat().filter(id=>id==loose)).toHaveLength(1);
     for (const [id, components] of Object.entries(created)) for (const [key, value] of Object.entries(components)) expect(s.ecs[key][id]).toEqual(value);
   });
   try {

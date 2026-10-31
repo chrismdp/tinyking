@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright-core");
 const assert = require("node:assert/strict");
-const { snapshot, shelterCandidates, fuelFriend, discoverTimber } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, fuelFriend, discoverTimber, assertFamilySurfaceClear } = require("./acceptance-selection");
 const url = new URL(process.argv[2] || "http://localhost:8108/");
 url.searchParams.set("seed", "13");
 url.searchParams.delete("intro");
@@ -46,7 +46,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       }
       if (label == "request-discovery") await page.locator(".person-requests .favour-request").first().scrollIntoViewIfNeeded();
       if (label == "family-preserved") {
-        assert.equal(await page.locator(".event-feed").isVisible(), false, "News must not cover the family tree");
+        await assertFamilySurfaceClear(page);
         for (const [label, speed] of [["Normal speed", "normal"], ["Fast speed", "fast"], ["Pause", "paused"]]) {
           const rect = await page.getByRole("button", { name: label, exact: true }).boundingBox();
           await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: rect.x + rect.width/2, y: rect.y + rect.height/2 }] });
@@ -99,7 +99,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     story.actions.push({ action: "Completed initial conversations", bond: await page.evaluate(id => window.tinyking.ecs.relationships[id].known[window.tinyking.ui.playerId], person) });
 
     const exploration = await discoverTimber(page, 5);
-    story.actions.push({ action: "Walked to known eastern edge tiles and discovered real unclaimed woodland", exploration });
+    story.actions.push({ action: "Located real permitted standing wood through existing discovery and local customs", exploration });
     const sites = shelterCandidates(await snapshot(page), selection.home);
     story.actions.push({ action: "Choose the legal camp shelter site nearest the earned friend household", site: sites[0], home: selection.home,
       positions: await page.evaluate(({ site, home }) => ({ site: window.tinyking.ecs.spatial[site], home: window.tinyking.ecs.spatial[home] }), { site: sites[0], home: selection.home }),
@@ -294,13 +294,13 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.locator(".event-feed summary").click(); await frame("news");
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await page.getByRole("button", { name: "Open family tree »" }).click();
-    assert.equal(await page.locator(".event-feed").isVisible(), false, "News must not cover the family tree");
+    await assertFamilySurfaceClear(page);
     for (const [label, speed] of [["Normal speed", "normal"], ["Fast speed", "fast"], ["Pause", "paused"]]) {
       await page.getByRole("button", { name: label, exact: true }).click();
       await page.waitForFunction(value => window.tinyking.game_speed == value, speed);
     }
     await pair("family-preserved");
-    story.actions.push("Expanded news stayed behind the tree; desktop clicks and phone touch events operated Normal, Fast and Pause");
+    story.actions.push("News and notices left visible family cards and controls clear; desktop clicks and phone touch events operated Normal, Fast and Pause");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.select_entity(s.ui.playerId, false); s.renderer.focusOn(s.ecs.spatial[s.ui.playerId], 650); });
     await frame("player");
     assert.equal(story.errors.length, 0, story.errors.join("\n"));

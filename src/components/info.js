@@ -1,3 +1,5 @@
+import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
+import { EXPANSIONS } from "game/settlement_growth";
 import { ResourceRights } from "./village_customs";
 import { canPlaceField } from "game/land_use";
 import { frozenAt } from "game/climate";
@@ -81,7 +83,10 @@ export function Info({ entityId }) {
   const title = entity.mappable ? t("terrain." + entity.mappable.terrain) : (entity.nameable ? (<Name nameable={entity.nameable} clickable={false}/>) : "Information");
   const houseId = (entity.animal || entity.farmable || entity.workplace || entity.backyard || entity.pasture)?.houseId;
   const ownerId = houseId && state.ecs.controllable?.[houseId]?.controllerId;
-  const village = houseId && state.villages?.[state.ecs.village?.[houseId]?.villageId];
+  const villageId=houseId ? state.ecs.village?.[houseId]?.villageId : state.ecs.village?.[entityId]?.villageId;
+  const village = state.villages?.[villageId];
+  const origin=village?.origin, growth=state.ecs.growth?.[entityId], centre=centreHousehold(state,villageId);
+  const nextAddition=growth && EXPANSIONS[growth.stage];
 
   const [jobs, setJobs] = React.useState([]);
 
@@ -124,6 +129,22 @@ export function Info({ entityId }) {
       {title && (<h1 className="capitalise handle">{title}
         <span className="knockedback"> #{entity.id}</span>
       </h1>)}
+      {state.settlement?.fixture && state.settlement.fixture.villageId==villageId && <p className="settlement-fixture">{state.settlement.fixture.label}: {state.settlement.fixture.stocks}</p>}
+      {origin && <div className="settlement-history">
+        <p><strong>{village.name}</strong> · {village.houses.length} homes · {villageArea(state,villageId).length} plots and access tiles</p>
+        {entity.meetingPlace?.kind=="green" && <>
+          <p>Founded {historicalDate(origin.day)} by a household of {origin.people.length}: {origin.reason}.</p>
+          <p>Centre household: {centre.name}.</p>
+          {!!village.greenMoves?.length && <p>The green moved {historicalDate(village.greenMoves.at(-1).day)} for more gathering space. The founding well remains at the original centre.</p>}
+          <p>Grey main connections, brown local tracks. The outline shows the village homes, plots and access.</p>
+        </>}
+      </div>}
+      {growth && (entity.building || entity.workplace || entity.meetingPlace?.kind=="alehouse") && <div className="building-history">
+        <p>Built {historicalDate(growth.builtDay)}{growth.construction ? " using "+growth.construction.timber+" timber" : ""} · {growth.stage ? "Expanded stage "+growth.stage : "Original building"}</p>
+        {growth.additions.map(a=><p key={a.stage}>{a.name}: {historicalDate(a.day)} · {a.timber} timber from its household store.</p>)}
+        <p>{growth.stage>=2 ? "Both additions are complete." : <>{entity.meetingPlace?.kind=="alehouse" ? "Regular visitors" : "Residents, productive work and food reserves"}: {growth.supportedSeasons} seasons towards the next addition{growth.waiting ? " · "+growth.waiting : ""}.</>}</p>
+        {nextAddition && <p>Next addition needs {nextAddition.seasons} consecutive seasons of support, {nextAddition.timber} stored timber and clear space behind the building.</p>}
+      </div>}
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       {entity.mappable && <TravelOffer entityId={entityId}/>}
       <ResourceRights entityId={entityId}/>

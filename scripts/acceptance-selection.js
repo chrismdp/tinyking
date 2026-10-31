@@ -33,37 +33,140 @@ function fuelFriend(s) {
 }
 module.exports = { snapshot, shelterCandidates, fuelFriend };
 
-// Seed 13 has unclaimed woodland beyond the camp's eastern fog. Walk to a
-// currently known edge tile, never reveal terrain or order an undiscovered tree.
-// The mechanical driver supplies real map clicks; the storyboard uses ui.actions.
-async function discoverTimber(page, required, move) {
-  const steps = [];
-  for (let step = 0; step < 3; step++) {
-    const view = await page.evaluate(() => {
-      const s = window.tinyking, e = s.ecs, g = window.tinykingGeography;
-      const known = new Set(e.playable[s.ui.playerId].known.map(h => h.x + "," + h.y));
-      const camp = e.spatial[Object.keys(e.camp)[0]];
-      const trees = Object.keys(e.tree).filter(id => e.good[id]?.amount > 0 &&
-        known.has(String(g.Hex().fromPoint(e.spatial[id]))) && window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted);
-      const edge = Object.keys(e.walkable).filter(id => e.walkable[id].speed > 0 &&
-        known.has(String(g.Hex().fromPoint(e.spatial[id]))) && Math.abs(e.spatial[id].y - camp.y) < 300 &&
-        e.spatial[id].x > camp.x && e.spatial[id].x < camp.x + 850)
-        .sort((a,b) => e.spatial[b].x - e.spatial[a].x || Math.abs(e.spatial[a].y - camp.y) - Math.abs(e.spatial[b].y - camp.y))[0];
-      return { day: s.days, trees, logs: trees.reduce((n,id) => n + e.good[id].amount, 0), edge, known: known.size,
-        position: { ...e.spatial[s.ui.playerId] } };
-    });
+// Explore reachable known frontiers. Selection reads no hidden tree positions.
+// The movement callback uses real map clicks in the mechanical driver.
+function timberSurvey(visited) {
+  const s=window.tinyking,e=s.ecs,g=window.tinykingGeography,actor=s.ui.playerId;
+  const known=new Set(e.playable[actor].known.map(h=>h.x+","+h.y));
+  const key=id=>String(g.Hex().fromPoint(e.spatial[id]));
+  const start=(s.space[key(actor)] || []).find(id=>e.mappable[id]);
+  const knownPath=id=>g.path(s,start,id,(a,b)=>known.has(key(b)));
+  const visibleTrees=Object.keys(e.good).filter(id=>e.good[id].type=="wood" && e.good[id].amount>0 && !e.haulable?.[id] && known.has(key(id)))
+    .filter(id=>{const tile=(s.space[key(id)] || []).find(t=>e.mappable[t]);return tile && knownPath(tile);});
+  const trees=visibleTrees.filter(id=>window.tinykingCustoms.resourcePermission(s,actor,id).permitted);
+  const commonWoodland={};
+  for(const tree of visibleTrees) {
+    const permission=window.tinykingCustoms.resourcePermission(s,actor,tree);
+    if(permission.kind=="common" && !permission.permitted) {
+      const group=commonWoodland[permission.villageId] ||= {villageId:permission.villageId,trees:[],logs:0};
+      group.trees.push(tree);group.logs+=e.good[tree].amount;
+    }
+  }
+  const directions=[[1,0,-1],[1,-1,0],[0,-1,1],[-1,0,1],[-1,1,0],[0,1,-1]];
+  const centre=g.Hex(s.map.centre),radius=s.map.radius;
+  const frontiers=Object.keys(e.mappable).filter(id=>e.walkable[id]?.speed>0 && known.has(key(id)) && !visited.includes(id)).map(id=>{
+    const h=g.Hex().fromPoint(e.spatial[id]);
+    const unseen=directions.map(([q,r,t])=>g.Hex({q:h.q+q,r:h.r+r,s:h.s+t})).filter(n=>centre.distance(n)<=radius && !known.has(String(n))).length;
+    return {id,unseen,permitted:window.tinykingCustoms.resourcePermission(s,actor,id).permitted,distance:Math.hypot(e.spatial[id].x-e.spatial[actor].x,e.spatial[id].y-e.spatial[actor].y)};
+  }).filter(f=>f.unseen && f.distance>10).sort((a,b)=>Number(b.permitted)-Number(a.permitted) || a.distance-b.distance || b.unseen-a.unseen || a.id.localeCompare(b.id));
+  const frontier=frontiers.find(f=>knownPath(f.id));
+  return {day:s.days,trees,logs:trees.reduce((n,id)=>n+e.good[id].amount,0),commonWoodland:Object.values(commonWoodland),edge:frontier?.id,frontierPermitted:frontier?.permitted,known:known.size,position:{...e.spatial[actor]},needs:{hunger:e.personable[actor].hunger,tiredness:e.personable[actor].tiredness}};
+}
+// Existing local customs provide a legal route when discovered trees are held
+// in common. Every visit, Chat, care order and oath runs through the real UI.
+async function earnTimberRights(page,common) {
+  await page.evaluate(id=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[id],650);s.ui.actions.select_entity(id,false);},common.trees[0]);
+  await page.getByRole("button",{name:"Meet the elder",exact:true}).click();
+  const elder=await page.evaluate(v=>window.tinykingCustoms.villageElder(window.tinyking,v),common.villageId);
+  const result={villageId:common.villageId,elderId:elder,chats:[],initial:await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation};},elder)};
+  for(;;) {
+    const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0};},{elder,villageId:common.villageId});
+    if(status.eligible.ok)break;
+    const chat=page.getByRole("button",{name:"Chat",exact:true});
+    if(!await chat.isEnabled()) {
+      // A real night and ordinary care restore the existing daily patience.
+      await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
+      await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),status.day,{timeout:180000});
+      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+      continue;
+    }
+    await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat"&&j.targetId==id);},elder,{timeout:180000});
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+    const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation,result:s.ui.talkResult};},elder);
+    result.chats.push(earned);
+    if(!earned.contact || earned.contact.day<status.day || !(earned.bond?.goodwill>status.goodwill))throw new Error("The actual elder conversation did not earn further trust: "+JSON.stringify(result));
+  }
+  await page.getByText("Rights and obligations",{exact:true}).click();
+  await page.getByRole("button",{name:"Discuss the local oath",exact:true}).click();
+  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+  try {
+    // Pause only when the real planner opens the dialogue, before Fast can
+    // carry needs beyond the normal conversation window between UI renders.
+    await page.waitForFunction(()=>{const s=window.tinyking;if(s.customs?.dialogue?.kind!="oath")return false;s.ui.actions.set_speed("paused");return true;},null,{timeout:180000});
+    await page.getByRole("dialog",{name:"Local oath",exact:true}).waitFor();
+  } catch(error) {
+    result.blocked=await page.evaluate(({elder,villageId})=>{
+      const s=window.tinyking,e=s.ecs,actor=s.ui.playerId;
+      const person=id=>({id,position:e.spatial[id],interior:e.interior?.[id],needs:e.personable[id],planner:e.planner[id],lastTalk:s.knowledge?.[id]?.people});
+      return {day:s.days,speed:s.game_speed,actor:person(actor),elder:person(elder),jobs:e.manager[actor].jobs,
+        contact:s.knowledge?.[actor]?.people?.[elder]?.conversation,canonicalContact:s.social?.contacts?.[[actor,elder].sort().join(":")],
+        customs:s.customs,eligibility:window.tinykingCustoms.oathEligibility(s,actor,villageId),talkResult:s.ui.talkResult};
+    },{elder,villageId:common.villageId});
+    throw new Error("Actual local oath dialogue was not reached: "+error.message+" · "+JSON.stringify(result));
+  }
+  await page.getByRole("button",{name:"Swear the local oath",exact:true}).click();
+  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+  result.earned=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,membership:window.tinykingCustoms.membership(s,s.ui.playerId,v),event:s.events.filter(e=>e.type=="village_oath"&&e.people[0]==s.ui.playerId&&e.villageId==v).at(-1)};},common.villageId);
+  if(result.earned.membership!=="oath" || !result.earned.event)throw new Error("The local oath was not earned: "+JSON.stringify(result));
+  return result;
+}
+async function discoverTimber(page,required,move) {
+  const steps=[],visited=[],started=await page.evaluate(()=>window.tinyking.days);
+  // One bounded ordinary exploration window; a failed search remains a failure.
+  for(let step=0;step<8;step++) {
+    const view=await page.evaluate(timberSurvey,visited);
     steps.push(view);
-    if (view.logs >= required) return steps;
-    if (!view.edge || step == 2) throw new Error("Exploration did not discover " + required + " real permitted logs: " + JSON.stringify(steps));
-    if (move) await move(view.edge);
-    else await page.evaluate(id => {
-      const s = window.tinyking;
-      s.ui.actions.choose_job(s.ui.playerId, { key: "move_to_here" }, id);
-    }, view.edge);
-    await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
-    await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "move_to_here"), null, { timeout: 180000 });
-    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
-    console.log("EXPLORE actual Move here to known eastern edge " + view.edge + "; before " + view.logs + " permitted logs");
+    if(view.logs>=required)return steps;
+    const common=view.commonWoodland.find(group=>group.logs>=required);
+    if(common) {
+      view.oath=await earnTimberRights(page,common);
+      const permitted=await page.evaluate(timberSurvey,visited);steps.push(permitted);
+      if(permitted.logs<required)throw new Error("The earned oath did not provide the required real permitted timber: "+JSON.stringify(steps));
+      return steps;
+    }
+    if(!view.edge || view.day-started>=1 || step==7)throw new Error("Exploration did not discover "+required+" real permitted reachable logs: "+JSON.stringify(steps));
+    visited.push(view.edge);
+    if(view.needs.hunger>.9 || view.needs.tiredness>.9) {
+      const care=[];
+      if(view.needs.hunger>.9)care.push("find_food");
+      if(view.needs.tiredness>.9)care.push("rest");
+      await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},care);
+      await page.waitForFunction(keys=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>keys.includes(j.job.key));},care,{timeout:180000});
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+      view.care=care;
+    }
+    if(move)await move(view.edge);
+    else await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},id);},view.edge);
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="move_to_here");},null,{timeout:180000});
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+    console.log("EXPLORE actual Move here to reachable known frontier "+view.edge+"; before "+view.logs+" permitted logs");
   }
 }
-module.exports.discoverTimber = discoverTimber;
+module.exports.discoverTimber=discoverTimber;
+
+// Measure the actual bounded family surface. News can remain visible when its
+// rectangle and transient notices leave cards and controls clear.
+async function assertFamilySurfaceClear(page) {
+  const result=await page.evaluate(()=>{
+    const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+    const visible=e=>e && getComputedStyle(e).display!="none" && e.getBoundingClientRect().width>0 && e.getBoundingClientRect().height>0;
+    const overlap=(a,b)=>a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y;
+    const scroll=document.querySelector(".tree-scroll"),area=rect(scroll);
+    const blockers=[...document.querySelectorAll(".event-feed,.wedding-message")].filter(visible).map(rect);
+    const cards=[...scroll.querySelectorAll(".node")].map(rect).map(r=>{
+      const x=Math.max(r.x,area.x),y=Math.max(r.y,area.y);
+      return {x,y,width:Math.min(r.x+r.width,area.x+area.width)-x,height:Math.min(r.y+r.height,area.y+area.height)-y};
+    }).filter(r=>r.width>0 && r.height>0);
+    const controls=[...document.querySelectorAll(".tree-centres button,#speed-controls button")].map(e=>{
+      const r=rect(e),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+      return {label:e.getAttribute("aria-label") || e.textContent,rect:r,unobscured:e==hit || e.contains(hit),disabled:e.disabled};
+    });
+    return {cards,controls,blockers,clear:cards.length>0 && cards.every(c=>blockers.every(b=>!overlap(c,b))) && controls.every(c=>c.unobscured && blockers.every(b=>!overlap(c.rect,b)))};
+  });
+  require("node:assert/strict")(result.clear,"News and notices must leave visible family cards and actual controls unobscured: "+JSON.stringify(result));
+  return result;
+}
+module.exports.assertFamilySurfaceClear=assertFamilySurfaceClear;

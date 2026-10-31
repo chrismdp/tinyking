@@ -10,7 +10,11 @@ export const FUEL_TRADES = { baker: "oven", smith: "forge" };
 export const FUEL_HOURS = 4;
 const live = (s, id) => isResident(s,id) && s.ecs.personable?.[id] && !s.ecs.personable[id].dead;
 export const requestForTask = (s, task) => s.favours?.requests[task?.favourId];
-export const householdStore = (s, house) => s.ecs.household?.[house]?.storeId;
+// A household's estate can use a room store or the completed shelter itself.
+// Resolve only this home: a shared legal owner does not merge family stocks.
+export const householdStore = (s, house) => s.ecs.household?.[house]?.storeId ||
+  s.ecs.building?.[house]?.rooms?.find(id => s.ecs.container?.[id]) ||
+  (s.ecs.container?.[house] ? house : undefined);
 export function fuelReady(s, workplaceId) {
   const w = s.ecs.workplace?.[workplaceId];
   return !!w && (!FUEL_TRADES[w.trade] || w.fuelHours > 0 || s.ecs.container?.[householdStore(s, w.houseId)]?.amounts.wood > 0);

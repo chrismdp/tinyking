@@ -14,7 +14,9 @@ A separate Codex worker receives the same frozen candidate, in its own worktree 
 
 Keep source frozen. Label initial fixtures, use actual UI/actions/simulation for outcomes, and preserve failed attempts and actual process receipts. Distinguish a driver or environment error from an application defect. Do not extend calendars, hunt rare seeds or run optional audit batches to force success. An unproved observation remains unproved.
 
-Return the worst demonstrated findings to the coordinator. Fix those before the next feature. Recheck the affected behaviour and anything genuinely invalidated; do not restart every check for an unrelated edit.
+An explicitly authorised next build can run alongside independent review of an immutable candidate. Use separate worktrees and keep each browser on its frozen source. The coordinator carries demonstrated parent fixes into the dependent branch at a safe boundary. Fix those findings before acceptance or merge of the dependent result.
+
+Return the worst demonstrated findings to the coordinator. Recheck the affected behaviour and anything genuinely invalidated; do not restart every check for an unrelated edit.
 
 ## Final integration gate
 

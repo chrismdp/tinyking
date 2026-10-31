@@ -70,9 +70,9 @@ The existing travel/return system uses these exact edge/camp entities. NPC trip
 choices also require an existing local entrance. Roads draw through
 `mappable.route` (a set of tile sides) using the existing dirt-track geometry.
 `walkable.worn` starts empty and retains the existing live walking behaviour.
-No pre-arrival history claims journeys or road wear. Historical settlement
-construction, prosperity expansion and journey-derived historical wear are a
-separate feature.
+The terrain survey reserves topology without claiming journeys.
+`docs/settlements.md` describes the seasonal construction and actual journey
+records that now earn historical wear. The border contract remains unchanged.
 
 ## Building and tree clearance
 
@@ -167,8 +167,8 @@ progress. The existing mountain-pass URL remains available for pass acceptance.
 `road_wear.js` uses twice this value for full wear to fade. Each tile records
 `wearUpdatedAt`. Repeated updates at the same day do not apply decay again.
 `recordRoadUse(state, tileId, entrance, exit, amount=1)` records actual traffic.
-It replenishes that track and rejects crop plots. No initial wear claims past
-journeys.
+It replenishes that track and rejects crop plots. The settlement history calls this function with recorded journey dates and
+counts. The terrain survey itself claims no traffic.
 
 Fixed route sides remain physical reservations and connections. Their separate
 `routeWear` starts as a fresh constructed surface and then fades. The renderer
@@ -180,6 +180,45 @@ uses the same hourly environment update and preserves tile timestamps. Map
 activation does not reset them. The development API also exposes
 `updateRoadWear` and `recordRoadUse` for a small elapsed-time acceptance setup.
 
+
+## Settlement growth integration
+
+Settlement sites retain the supplied bounded pads and door approaches. New
+household fields call `reserveFieldPlot` and reserve a reachable lane beside the
+plot. Historical use calls `recordRoadUse` through the journey ledger. Its initial
+wear cursor starts before prehistory, so abandoned historical tracks also fade.
+No activation call resets that cursor. Main-route roles come from actual
+inter-village or border journeys, excluding the door endpoints. They affect the
+grey colour. Other tracks retain brown. Both use the same fading wear.
+
+Growth passes an explicit expanded footprint to `reserveBuildingClearance`.
+Rear wings preserve the original door and its corridor. Their actual rendered
+roof bounds stay within the reservation. Field, road, ownership and existing
+building conflicts prevent expansion. Future trees use the same persisted
+reservation. Terrain and shared crossing API signatures remain unchanged.
+
+## Household work-yard reservations
+
+Settlement growth adds `reserveWorkYard(state, tileId, houseId)` and `transitBlocked(state, tileId)` to `land_use.js`. Existing field APIs retain their meaning. A work-yard reservation requires unclaimed, unworn, unrouted land and stores its household in `mappable.buildingPlot`. `reserveRoad` and `canPlaceField` reject that space. Navigation permits a yard as its actual origin/destination, while excluding it from through journeys. Wear rejects private interior work endpoints just as it rejects crop work. Existing public roads, wear, altitude, climate and tree-clearance envelopes are preserved.
+
+A field or yard reservation must preserve the public component around it.
+Existing fields must retain a public access neighbour. Existing private work
+areas must retain an exit. Tiles of the same property can connect internally.
+`canReserveWorkYard(state, tileId, houseId)` checks these rules without mutation.
+`reserveWorkYard` applies them before it records ownership. Both reject existing
+roads, worn reservations, crops and occupied public places. Expansion checks
+and reserves its new private tiles through this same API before it spends wood.
+
+`path` allows connected private tiles only when their property contains the
+journey's start or destination. Crop tiles remain endpoints only. `routeBlocked(state, tileId, start, goal)` shares this rule between the path
+search and actual local fence detours. `transitBlocked` reports public blockers.
+A detour cannot cross crop interiors or another property's private space. Continue
+to call `recordRoadUse` for actual steps. It rejects private and crop work space.
+
+`safeTile` uses the same `1e-8` numerical tolerance as `roadStep`. This accepts
+roundoff at a projected limit without changing the road slope or grade limits.
+Greens and wells now use actual footprint clearance, including mature crowns.
+They have no artificial door corridor. Unbuilt reserved land retains woodland.
 ## Fences and gates
 
 `fences.js` defines the boards and their walking clearance. `fenceFootprints(state)`
@@ -202,3 +241,28 @@ and optional `pasture.gateHalfWidth`. Use `ecs.spatial[id]` for position.
 The older animal `centre` field does not override the physical fence position.
 An optional `ecs.fence[id]` with those dimensions reserves the same geometry
 for a future fenced plot. Unfenced crop plots retain the shared field rules above.
+
+`reserveFieldLane(state, tileIds)` reserves a real public walking approach.
+It checks existing navigation links and excludes crops and private yards.
+It changes no height, road route or wear. Its `mappable.fieldLane` marker keeps
+later crops and private additions out. An engineered road still uses the native
+slope and grade checks. Field metadata records `accessKind: "road" | "foot"`.
+The field's `accessTileId` must remain reachable through native walking rules.
+A crop edge does not require an engineered road where walking land is viable.
+
+Organic settlement surveys pass `reserveHouseYards: true` to `buildGeography`.
+Before optional road routes exist, the survey picks distinct walkable yard
+opportunities outside fixed doors, camps and crossings. The existing route search
+avoids those opportunities. It can leave an infeasible optional connection absent.
+Each opportunity becomes a site's preferred `yardPoint`. The later land-use
+check still decides whether that yard is actually private and accessible.
+This changes no road slope, grade, earthwork limit or existing visited map.
+
+`canReserveWorkYard` and `reserveWorkYard` also accept an array of tile IDs.
+The array is one connected property parcel. Validation checks the whole parcel
+before mutation, including public connectivity and existing field/work exits.
+This permits a genuine property endpoint without leaving an artificial public
+fragment inside its work area. Existing callers that pass one tile are unchanged.
+Organic yards use actual roof and garden footprints and the existing household
+land reach. Their closest reachable viable space can stand across a public lane.
+House pads, public roads, crops and camps cannot become private work ground.

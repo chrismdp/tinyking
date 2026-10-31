@@ -28,7 +28,7 @@ export function fenceRoute(state, start, end, footprints = fenceFootprints(state
   const fences = footprints.filter(f => f.x+f.halfWidth+margin >= Math.min(start.x,end.x)-100 &&
     f.x-f.halfWidth-margin <= Math.max(start.x,end.x)+100 &&
     f.y+f.halfDepth+margin >= Math.min(start.y,end.y)-100 && f.y-f.halfDepth-margin <= Math.max(start.y,end.y)+100);
-  if (!fences.length) return [end];
+  if (!fences.length) return canWalk(start,end) ? [end] : null;
   const access = new Set(fences.filter(f=>inside(start,f)||inside(end,f)).map(f=>f.id));
   const clear = (a,b) => canWalk(a,b) && fences.every(f => {
     const w=f.halfWidth+margin,d=f.halfDepth+margin;

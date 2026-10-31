@@ -1,3 +1,7 @@
+import { updateEcology } from "game/ecology";
+import { HOUR } from "game/time";
+import { reconcileRouteHistory } from "game/settlement_routes";
+import { updateRoadWear } from "game/road_wear";
 import { historyStep, advanceSeason, withSocialIndex } from "game/social";
 import { createPossession, repairHouseholds } from "game/possessions";
 import { recalibrateRelationships, drift, withRelationshipIndex } from "game/people";
@@ -5,7 +9,8 @@ import { recordEvent, withEventIndex } from "game/events";
 
 // Keep geography and vegetation out of seasonal copies. These records are all
 // a distant world hex needs to continue its families while the player travels.
-export function generateHistory(state, seed) {
+export function generateHistory(state, seed, routeHistory = []) {
+  if (state.settlement) return generateSettlementHistory(state, seed, routeHistory);
   const started = performance.now();
   // Merge complete personal items created below, while the people/house filter
   // keeps existing map goods out of the summary and leaves them in the world.
@@ -63,3 +68,40 @@ export function giveTradeTools(state) {
 }
 
 export { historyStep };
+
+function generateSettlementHistory(state, seed, routeHistory) {
+  const started = performance.now(), now = state.days;
+  state.peopleSeed = seed;
+  state.generatingHistory = true;
+  state.opinionThresholds = { hate: -0.8, love: 0.8 };
+  state.events = []; state.knowledge = {}; state.social = { lastSeason: -181, courtships: {}, avoidance: {} };
+  withSocialIndex(state, () => withEventIndex(state, () => withRelationshipIndex(state, () => {
+    for (let season=-180; season<0; season++) {
+      state.days = season*3;
+      advanceHistoricalWoodland(state,state.days);
+      drift(state,72);
+      advanceSeason(state,season,true);
+    }
+  })));
+  for (const p of Object.values(state.ecs.personable)) if (p.dead) p.historical=true;
+  delete state.generatingHistory;
+  state.days = now;
+  advanceHistoricalWoodland(state,now);
+  reconcileRouteHistory(state,routeHistory);
+  updateRoadWear(state);
+  state.social.lastSeason=0;
+  state.settlement.lastSeason=0;
+  recalibrateRelationships(state);repairHouseholds(state);
+  Object.defineProperty(state,"historyGenerationMs",{value:performance.now()-started,writable:true,configurable:true,enumerable:false});
+}
+
+// Reuse the real woodland update at real hours. This runs only in prehistory;
+// live and offscreen woodland keep the existing environment cursor.
+export function advanceHistoricalWoodland(state,end) {
+  if(!state.ecology)return;
+  const now=state.days, from=state.ecology.historyUpdatedAt ?? -543;
+  for(let at=from+HOUR;at<=end+1e-9;at+=HOUR) {
+    state.days=at;updateEcology(state);state.ecology.historyUpdatedAt=at;
+  }
+  state.days=now;
+}

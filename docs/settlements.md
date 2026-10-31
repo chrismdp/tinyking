@@ -1,0 +1,94 @@
+# Settlement history
+
+The terrain survey reserves feasible house pads and door spurs. These are construction opportunities, not houses or past journeys. The oldest founding household enters at the start of the existing 45-year history. Other founding groups enter later. Each group starts as an adult pair with a recorded incoming inventory. They consume twelve timber to construct their first home. Later arrivals establish households at two-season intervals. Births, marriages, inheritance and movement keep the existing social rules.
+
+The actual green and well establish the centre when the first household builds. The origin record names that household, date and reason. Homes follow the surveyed access lanes. House identity, rooms, owner and stored goods persist after construction. Agricultural plots use `reserveFieldPlot`. Engineered connections use `reserveRoad`. Natural public field approaches use `reserveFieldLane`. Roofs and extensions use `reserveBuildingClearance`. Standing timber outside actual construction and cultivated plots remains.
+
+`settlement.js` runs the same seasonal construction and expansion transition in history, live play and offscreen catch-up. `settlement.lastSeason`, `preparedSeason` and `social.lastSeason` prevent duplicate transitions. Live production comes from completed crop or trade work. Summary seasons use actual household fields, available seed and altitude-dependent growing hours. Harvest creates grain, sowing consumes grain, and household meals consume available food. A timber collection consumes one reachable unowned tree and records its outward and return journey. Arrival timber near the player and border camps remains available.
+
+Carpenters consume timber to produce planks. Bakers and millers consume grain to produce bread or flour. Other trades record completed services without creating raw materials. No prices or wages exist. Construction uses stored timber. Four consecutive supported seasons allow a rear work bay. Four further supported seasons allow a longer rear wing. Both stages consume timber and reserve the expanded footprint. Occupancy, fresh production and food reserves support homes and workshops. Recorded attendance supports an alehouse. Empty, unproductive, poor or spatially blocked buildings remain small.
+
+# Route history
+
+Every journey records its people, reason, dates, traversal count and tile chain. Summary trips stand in for actual household timber collection, evening meetings and visits. Adults also make return trips to a shared crossing to seek company. They do not claim a meeting with an unknown neighbour or invent a migration origin. Live NPC departures retain the existing traveller identity and estate lifecycle. Their offscreen walking legs use the same wear function.
+
+`recordJourney` calls `recordRoadUse` for each traversal. Seasonal batches apply the legs in date order. Wear uses the existing two-year decay. Map activation never refreshes a surface. Reservations persist after the visible track fades. Inter-village and border journeys identify the interior of a main connection. These segments appear grey. Door spurs and local footpaths remain brown.
+
+The first generated community seals the prehistory of each shared border. Its recorded crossing journeys become the border ledger. This makes first observation the boundary for historical reconciliation. A neighbour remains absent from `travel.maps` until required. Before its first view, it replays the known crossing-to-camp legs in date order through the wear API. It imports references to the same people. It does not create residents, age people or invent their current location. Its own prehistory does not add retrospective outbound journeys across an already sealed border. Other borders can establish their own ledgers. This policy is deterministic for a given travel history. It deliberately does not promise generation-order-independent social histories. Already observed roads and people are never rewritten by a later neighbour generation.
+
+# Inspection and acceptance
+
+Inspect the green for the founding date, household, reason and route counts. Inspect a house, workshop or alehouse for construction and addition dates, material costs and current support. Learned event text uses the existing news and biography disclosure rules. An unknown owner stays unknown.
+
+The development URL `/?seed=13&intro=skip&settlement=prosperity` creates a labelled initial setup. One surveyed village begins in the last historical season. Its households and buildings still pass through real construction. The trade household starts with 80 timber and 60 grain. A separate pub household starts with 40 timber and 60 grain. A comparison household starts with no timber and 24 grain. The setup assigns no expansion stage, production total, attendance or supported season. The fixture record identifies the actual buildings. Its inventory is initial data and appears in the household account.
+
+For independent acceptance, inspect `tinyking.settlement.fixture` for those IDs. Advance the running simulation through seasons and keep the stocked trade household working. Actual work and attendance must precede expansion. The pub depends on real visitors. The comparison home needs both support and materials. The first extension requires four supported seasons. The second requires four further supported seasons. Spatial conflicts can prevent either stage. Inspect the waiting reason instead of changing an outcome. The ordinary URL remains `/?seed=13&intro=skip`.
+
+Summary stores retain an `estateAccount`: initial stock, produced goods and consumed goods. Capacity limits deposits. A crop that cannot enter the store remains uncollected. New sowing consumes actual seed. Summary production uses the preceding period's established residents. Newborns and people who just moved do not make journeys before their birth or move. Live and offscreen crop growth remains with the hourly environment update. Prehistory alone summarises growing hours from physical altitude. This avoids applying offscreen crop growth twice.
+
+Historical woodland also uses the existing hourly ecology update. Saplings mature and seed on the actual highland calendar. The history cursor applies each hour once. Building and crop clearance therefore cannot exhaust a forest for 45 years while preventing its existing regrowth rules. The initial ecology retains the natural biome density. Live and offscreen updates keep their normal environment cursor.
+
+The prosperity setup also gives the observing player 48 carried gruel and 24 grain. These are actual initial container goods. Normal need actions consume them. This keeps a stationary observer fed during the seasonal check. The ordinary opening receives no extra supplies.
+
+The development API exposes the existing `createSimulation`. An acceptance driver can stop `tinyking.ticker`, create a simulation from that same state and advance `step(6)` until the required calendar boundary. Await returned promises when world travel is pending. These steps run real needs, walking, crops, trade work, meetings and social seasons. They do not set production or growth counters. Use the running UI clock when a driver is unnecessary. Independent acceptance owns the extended seasonal observation.
+
+The founding survey now reserves one accessible field for each proposed household before history starts. These are spatial reservations, with no people, crops or buildings instantiated. Real crop slots and seed costs begin when that household actually constructs. A grown home's proposal must also reserve an accessible field before spending construction materials. The supplied field/road APIs validate these reservations; no existing public road is removed.
+
+Actual work yards use `reserveWorkYard` from `land_use.js`. It accepts only unclaimed, unworn ground and records the household. `transitBlocked` combines cultivated fields with these private building plots. Paths can begin or end in a yard, but public journeys go around it. Private work endpoints do not acquire transit wear; the actual approach journey still uses the real wear API. Existing public traffic is never erased to create expansion space.
+
+During prehistory, a failed layout is retried when spatial revision, actual adult availability or construction affordability changes. The affordability flags use the existing four/eight timber costs. Live seasons retain their normal checks. This skips identical failed proposals without changing dates, costs or successful transitions.
+
+The founding survey reserves each house's reachable work parcel before it allocates
+fields. The parcel covers the actual station and gardens. It can stand across a
+public lane within household land reach. These reservations protect the pad, its
+single door and the public lanes.
+Construction transfers the yard reservation to the real household. A later home
+plans its yard, field and lane on a detached proposal before it spends timber.
+A failed proposal changes no existing property or public road. Kitchen crops
+use the native field reservation. Other private work space uses the yard API.
+Trees remain on unused land until an actual footprint or cultivation needs it.
+
+The survey protects adjacent yard opportunities before optional roads are planned.
+Required work space and fields take priority over optional annexes. The native
+station footprint keeps its full 31-by-45 half extents. Its position is aligned
+within the reserved hex using the native roof and first-bay dimensions. Both
+fit fully inside that same private work tile. One actual garden stands on an adjacent reserved hex.
+A second garden needs a separate valid reservation. Neither its size nor the
+station roof shrinks to fit. Hypothetical wings reserve no land. A real supported,
+paid addition validates and reserves its full footprint through the native API.
+Fields still prefer ground outside the station's compact rear opportunity.
+
+Summary timber collection reuses one seasonal list of physical tree coordinates.
+Each household rechecks that its selected tree still exists before collection.
+The list preserves native tree order, camp margins, reach, loads and journey dates.
+Tile lookup caches only coordinate conversion. It reads current space and crop
+membership on every call, including after movement or direct legacy-state edits.
+
+Field access first searches a feasible road contour through the native geometry
+checks. If no engineered route exists, a real walking lane can provide access.
+The walking lane reserves public space without grading or claiming past use.
+Only a genuinely infeasible house/yard/field proposal requires reassignment.
+That reassignment precedes people and costs, stays within the original hamlet,
+and preserves public reservations and every other proposed pad. Later homes
+use the same finite local survey and the same native surface and land APIs.
+
+Before trimming proposed doors, the map saves each pad's native navigation links.
+A rejected proposal restores only those saved links. It does not infer links
+from neighbouring tile speed. Reassignment can release that proposal's unused
+field reservation when no real crop exists. It preserves roads and actual farms.
+Additional fields exclude both real houses and still-unbuilt house pads as
+access endpoints. A farm approach cannot become a future house interior.
+
+A genuinely infeasible unestablished opportunity can be rejected. No incoming
+family or construction stock exists for that proposal. If fewer than three
+viable proposals remain, native uninhabited-terrain policy leaves that prospective
+hamlet unestablished. Actual people, buildings, farms and public roads stay intact.
+
+A growing community can move its green to reachable public gathering ground.
+`origin.centreHex` and the founding day retain the original location and date.
+`greenMoves` and `green_moved` events record each actual date, old site and new
+site. The old well stays at the founding centre. The new green receives native
+footprint clearance, and its spatial index and current inspection show the move.
+
+Yard varieties advance across actual existing estates. A later household does
+not restart the first garden kind merely because it arrived in a new layout phase.

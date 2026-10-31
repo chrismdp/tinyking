@@ -10,10 +10,11 @@ export function ResourceRights({ entityId }) {
   const s=React.useContext(GameState),e=s.ecs;
   if(!e.tree?.[entityId] && !(e.good?.[entityId]?.type=="wood" && !e.haulable?.[entityId]))return null;
   const p=resourcePermission(s,s.ui.playerId,entityId);
+  const elder=p.kind=="common" && villageElder(s,p.villageId);
   return <aside className="resource-rights" aria-label="Resource rights">
     <strong>{p.kind=="common" ? `${s.villages[p.villageId]?.name} · Common woodland` : p.kind=="private" ? "Private household tree" : "Unclaimed woodland"}</strong>
     <p>{p.permitted ? "You may cut this tree." : p.kind=="common" ? "You need the village’s leave to cut here. Cutting without it can cost goodwill." : "You do not have this household's permission."}</p>
-    {p.kind=="common" && <><small>Gold lines mark the village commons. Household plots and owned trees stay private. Unclaimed woodland is free to use.</small>{!p.permitted && <p>Speak with the elder about joining this village.</p>}</>}
+    {p.kind=="common" && <><small>Gold lines mark the village commons. Household plots and owned trees stay private. Unclaimed woodland is free to use.</small>{!p.permitted && <><p>Speak with the elder about joining this village.</p>{elder && <button onClick={()=>s.ui.actions.select_entity(elder,false)}>Meet the elder</button>}</>}</>}
   </aside>;
 }
 ResourceRights.propTypes={entityId:PropTypes.string.isRequired};

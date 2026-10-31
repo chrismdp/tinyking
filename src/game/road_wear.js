@@ -1,5 +1,5 @@
 import { DAYS_IN_YEAR } from "game/time";
-import { fieldAtTile } from "game/land_use";
+import { transitBlocked } from "game/land_use";
 
 export const FULL_TRACK = 100;
 export const WEAR_LIFETIME = 2 * DAYS_IN_YEAR;
@@ -32,7 +32,7 @@ export function updateRoadWear(state) {
 
 // Actual use, including later recorded traffic, replenishes a specific track.
 export function recordRoadUse(state, id, entrance, exit, amount = 1) {
-  if (fieldAtTile(state,id) || entrance == null && exit == null) return false;
+  if (transitBlocked(state,id) || entrance == null && exit == null) return false;
   decayTile(state,id);
   const walk=state.ecs.walkable[id], key=[entrance ?? "C",exit ?? "C"].sort().join(",");
   walk.worn[key]=Math.min(FULL_TRACK,(walk.worn[key] || 0)+amount);

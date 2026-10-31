@@ -306,7 +306,7 @@ describe("villages", () => {
 it("provides a bed for every member of the larger households", async () => {
   const state = await mapFor(1234);
   for (const id in state.ecs.building) {
-    const occupants = Object.values(state.ecs.household).filter(h => h.houseId == id).length;
+    const occupants = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead && (!state.residents || state.residents[person]) && state.ecs.household[person]?.houseId == id).length;
     const beds = state.ecs.building[id].rooms.reduce((n, room) => n + (state.ecs.sleepable[room]?.capacity || 0), 0);
     expect(beds).toBeGreaterThanOrEqual(occupants);
   }

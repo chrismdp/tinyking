@@ -1,4 +1,6 @@
 import { foundHousehold } from "game/family";
+import { expandedFootprint, expansionFits } from "game/settlement_growth";
+import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
 import { resourcePermission, answerCustoms, commonLand, villageElder, membership, oathEligibility } from "game/village_customs";
 import { updateRoadWear, recordRoadUse } from "game/road_wear";
 import { Hex } from "game/hex";
@@ -274,7 +276,7 @@ export function World() {
         state.game_speed = "normal";
         state.days = 0.375;
 
-        const results = await generateMap(state, seed, state.ui.actions.progress_update, { geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
+        const results = await generateMap(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
         state.map = results.map;
         state.ui.playerId = results.playerId;
         initialiseTravel(state,seed);
@@ -307,6 +309,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
+      window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }

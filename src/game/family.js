@@ -58,10 +58,13 @@ export function foundHousehold(s) {
   if(!canFoundHousehold(s))return false;
   const a=s.ui.playerId,house=s.ecs.household[a].houseId,id=entityId(s.ecs,"village-");
   const centre=Hex().fromPoint(s.ecs.spatial[house]);
-  s.villages[id]={id,name:"Newstead",centre:{x:centre.x,y:centre.y},houses:[house],sharedPlaces:[],founderId:a};
+  const reason="an existing householder founded a village";
+  s.villages[id]={id,name:"Newstead",centre:{x:centre.x,y:centre.y},houses:[house],sharedPlaces:[],founderId:a,
+    origin:{day:s.days,people:[a],houseId:house,reason,centreHex:String(centre)}};
+  if(s.settlement)s.settlement.layoutDirty=true;
   s.ecs.village[house]={...s.ecs.village[house],id:house,villageId:id};
   for(const person of Object.keys(s.ecs.personable))if(s.ecs.household[person]?.houseId==house)s.ecs.village[person]={...s.ecs.village[person],id:person,villageId:id};
-  recordEvent(s,"settlement",[a],[house],{villageId:id});return true;
+  recordEvent(s,"settlement",[a],[house],{villageId:id,reason});return true;
 }
 export function canInviteHome(s,a,b) {
   const house=s.ecs.household?.[a]?.houseId;

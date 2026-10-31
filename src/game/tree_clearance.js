@@ -14,11 +14,13 @@ export function buildingFootprint(state, id) {
   if (e.building?.[id] || e.shelter?.[id]) size = HOUSE;
   else if (kind == "alehouse") size = { halfWidth: 30, halfDepth: 34 };
   else if (kind == "chapel") size = { halfWidth: 26, halfDepth: 26 };
+  else if (kind == "green") size = { halfWidth: 40, halfDepth: 20 };
+  else if (kind == "well") size = { halfWidth: 14, halfDepth: 14 };
   else if (e.workplace?.[id]) size = { halfWidth: 31, halfDepth: 45 };
   else return null;
   return { x: p.x, y: p.y, ...size, angle: e.building?.[id] ? -2 * Math.PI * (e.building[id].entrance - 1) / 6 : 0,
     // A body-width approach from the rendered door to the next tile.
-    door: { halfWidth: 15, from: size.halfDepth, to: 108 } };
+    door: ["green","well"].includes(kind) ? { halfWidth: 0, from: 0, to: 0 } : { halfWidth: 15, from: size.halfDepth, to: 108 } };
 }
 function intersects(p, f, radius = MATURE_CANOPY_RADIUS) {
   const dx=p.x-f.x, dy=p.y-f.y, c=Math.cos(f.angle), s=Math.sin(f.angle);

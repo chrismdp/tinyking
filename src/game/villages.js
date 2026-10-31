@@ -1,11 +1,15 @@
-import { canPlaceField, reserveFieldPlot } from "game/land_use";
-import { reserveBuildingClearance } from "game/tree_clearance";
+import { householdStore } from "game/favours";
+import { topController } from "game/playable";
+import { recordEvent } from "game/events";
+import { growthRecord, consumeStored, expansionFits, expandedFootprint, householdRoster } from "game/settlement_growth";
+import { path } from "game/pathfinding";
+import { canPlaceField, reserveFieldPlot, reserveRoad, reserveWorkYard, canReserveWorkYard, reserveFieldLane } from "game/land_use";
+import { reserveBuildingClearance, buildingFootprint, canClearForBuilding } from "game/tree_clearance";
 import { isResident } from "game/residents";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { TRIANGLES } from "game/map";
 import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
 import { hashUnit, squaredDistance } from "game/math";
-import { season } from "game/time";
 
 export const TRADES = ["smith", "carpenter", "weaver", "baker", "tanner", "miller"];
 export const TRADE_LABELS = {
@@ -14,13 +18,45 @@ export const TRADE_LABELS = {
 };
 const BACKYARDS = ["vegetable", "chicken", "pig", "goat", "beehives"];
 const keyOf = p => Hex().fromPoint(p).toString();
+const proposalId="~settlement-proposal";
+function proposal(state,point,components,house) {
+  const e=state.ecs;
+  return {...state,ecs:{...e,spatial:{...e.spatial,[proposalId]:point},
+    controllable:{...e.controllable,[proposalId]:{controllerId:house}},
+    ...Object.fromEntries(Object.entries(components).map(([kind,record])=>[kind,{...e[kind],[proposalId]:record}]))}};
+}
+// Align the full native roof and first bay inside one actual work hex.
+// The feasible interval comes from the sloping front edge and flat rear edge.
+export function workStationPoint(point) {
+  const proposal={ecs:{spatial:{station:point},workplace:{station:{}}}};
+  const roof=buildingFootprint(proposal,"station"),bay=expandedFootprint(proposal,"station",1);
+  const corners=Hex().corners(),edge=Math.max(...corners.map(p=>p.y)),right=Math.max(...corners.map(p=>p.x));
+  const front=(right-roof.halfWidth)*edge/(right/2);
+  const low=roof.halfDepth+2*(bay.halfDepth-roof.halfDepth)-edge,high=front-roof.halfDepth;
+  return {x:point.x,y:point.y+(low+high)/2};
+}
+// Tile coverage of the actual station's rear wing, without clearing trees.
+export function workBayTiles(state,point,stationOffset=-10) {
+  const keys=new Set();
+  for(const x of [stationOffset-19,stationOffset,stationOffset+19])for(const y of [-45,-57,-75])keys.add(keyOf({x:point.x+x,y:point.y+y}));
+  keys.delete(keyOf(point));
+  return [...keys].map(key=>(state.space[key] || []).find(id=>state.ecs.mappable[id]));
+}
+export function settlementLayoutInputs(state) {
+  const residents=householdRoster(state);
+  return JSON.stringify([state.landUseRevision,Object.values(state.villages).map(v=>[v.id,v.houses.map(id=>{
+    const wood=state.ecs.container[householdStore(state,id)].amounts.wood || 0;
+    return [id,wood>=4,wood>=8,(residents.get(id) || []).some(p=>state.ecs.personable[p].age>=18)];
+  }),v.sharedPlaces])]);
+}
 
 // Reserve whole tiles for fields and yards. The house entrance stays open;
 // props use the adjoining yard, leaving the house and its door legible.
 export function generateVillageLife(state, seed, start) {
   const ecs = state.ecs;
   state.redraws ||= [];
-  const occupied = new Set(Object.keys(ecs.building).map(id => keyOf(ecs.spatial[id])));
+  const housePads=new Set([...Object.keys(ecs.building).map(id=>keyOf(ecs.spatial[id])),...Object.values(state.settlement?.sites || {}).flat().map(site=>keyOf(site.point))]);
+  const occupied = new Set([...housePads,...Object.keys(ecs.mappable).filter(id=>ecs.mappable[id].villagePlot).map(id=>keyOf(ecs.spatial[id]))]);
   for (const hex of Grid.hexagon({ center: Hex(start), radius: 1 })) occupied.add(hex.toString());
   // Village clearings must preserve the reachable timber promised at arrival.
   for (const id in ecs.good) if (ecs.good[id].type == "wood" &&
@@ -28,6 +64,7 @@ export function generateVillageLife(state, seed, start) {
   const land = Object.keys(ecs.mappable).filter(id => ecs.mappable[id].terrain == "grassland");
   const tileAt = Object.fromEntries(land.map(id => [keyOf(ecs.spatial[id]), id]));
   const reserved = new Set();
+  const rearOpportunities=new Set(Object.values(state.settlement?.sites || {}).flat().flatMap(site=>site.rearOpportunity || []));
   const reserve = id => {
     if (!id) return null;
     const key = keyOf(ecs.spatial[id]);
@@ -37,7 +74,7 @@ export function generateVillageLife(state, seed, start) {
     return ecs.spatial[id];
   };
   // Search through the actual navigation graph, so a nearby field is reachable.
-  const nearby = (house, reach = 5, includePlots = false) => {
+  const nearby = (house, reach = 5, includePlots = false, includeOccupied = false) => {
     const origin = Hex().fromPoint(ecs.spatial[house]);
     const tile = tileAt[origin];
     const reached = new Set();
@@ -47,11 +84,11 @@ export function generateVillageLife(state, seed, start) {
       if (!id || reached.has(id)) continue;
       reached.add(id);
       for (const n of Object.values(ecs.walkable[id].neighbours)) {
-        if (origin.distance(Hex().fromPoint(ecs.spatial[n])) <= reach && !reached.has(n)) queue.push(n);
+        if (!ecs.mappable[n].cropPlot && !ecs.mappable[n].buildingPlot && origin.distance(Hex().fromPoint(ecs.spatial[n])) <= reach && !reached.has(n)) queue.push(n);
       }
     }
     return [...reached].filter(id => ecs.mappable[id].terrain == "grassland" &&
-      (!occupied.has(keyOf(ecs.spatial[id])) || includePlots && reserved.has(keyOf(ecs.spatial[id]))))
+      (includeOccupied || !occupied.has(keyOf(ecs.spatial[id])) || includePlots && reserved.has(keyOf(ecs.spatial[id]))))
       .sort((a, b) => origin.distance(Hex().fromPoint(ecs.spatial[a])) - origin.distance(Hex().fromPoint(ecs.spatial[b])) || Number(a) - Number(b));
   };
   const add = (point, villageId, components, houseId) => {
@@ -61,8 +98,35 @@ export function generateVillageLife(state, seed, start) {
       ...components
     }]);
     reserveBuildingClearance(state, id);
+    if(components.workplace || components.meetingPlace?.kind=="alehouse") {
+      const g=growthRecord(state,id);
+      g.construction={timber:components.workplace?4:8,storeId:ecs.household[houseId]?.storeId};
+      const owner=ecs.controllable[houseId]?.controllerId;
+      if(state.settlement && ecs.personable?.[owner])recordEvent(state,"building_built",[owner],[id],{buildingId:id,kind:components.workplace?.trade || "alehouse",timber:g.construction.timber});
+    }
     return id;
   };
+  const seedSlot = house => {
+    const planted=!state.settlement || consumeStored(state,house,"grain",1);
+    return {state:planted?"sown":"empty",content:planted?"grain":null,growth:0,updated:state.days};
+  };
+  const fieldAccess = (house,tile) => {
+    const origin=tileAt[keyOf(ecs.spatial[house])];
+    const workYards=new Set(Object.values(ecs.household).flatMap(h=>h.workYardTiles || []));
+    const blocked=Object.fromEntries([...workYards,tile].map(id=>[id,{...ecs.mappable[id],cropPlot:true}]));
+    const survey={...state,ecs:{...ecs,mappable:{...ecs.mappable,...blocked}}};
+    for(const keepRear of [true,false])for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id) && !housePads.has(keyOf(ecs.spatial[id])))) {
+      const route=path(survey,origin,lane,(a,b)=>!keepRear || !rearOpportunities.has(b));
+      if(route) {
+        const tiles=route.slice(1).map(p=>p.id);
+        const kind=reserveRoad(state,tiles)?"road":reserveFieldLane(state,tiles)?"foot":null;
+        if(kind)return {tile:lane,kind};
+      }
+    }
+    return null;
+  };
+  const clearableWood = (tile,house) => !(state.space[keyOf(ecs.spatial[tile])] || []).some(id=>ecs.good?.[id]?.type=="wood" && !ecs.haulable?.[id] && ecs.controllable?.[id] && topController(ecs,id)!=topController(ecs,house));
+  const canCultivate = (tile,house) => canPlaceField(state,tile) && clearableWood(tile,house);
   const enclosure = (point, villageId, houseId, kind, halfWidth, halfDepth, count, existing) => {
     const id = existing || add(point, villageId, { nameable: { nickname: kind == "chicken" ? "Chicken coop" : kind + " pasture" } }, houseId);
     ecs.pasture ||= {};
@@ -81,95 +145,160 @@ export function generateVillageLife(state, seed, start) {
     return id;
   };
 
-  let householdIndex = 0;
+  let householdIndex = Object.values(ecs.household).filter(h=>h.plot).length;
   for (const [vi, village] of Object.values(state.villages).entries()) {
-    village.sharedPlaces = [];
+    if (!village.houses.length) continue;
+    village.sharedPlaces ||= [];
     // Start beside the well; the capacity survey below can move the green
     // to a nearby clearing after household fields and yards are complete.
-    const greenPoint = reserve(nearby(village.houses[0], 4)[0]);
-    const green = add(greenPoint, village.id, { nameable: { nickname: "Village green" }, meetingPlace: { kind: "green" } });
-    village.sharedPlaces.push(green, add({ x: greenPoint.x - 28, y: greenPoint.y - 23 }, village.id,
-      { nameable: { nickname: "Well" }, meetingPlace: { kind: "well" } }));
+    if (!village.sharedPlaces.length) {
+      const candidates = nearby(village.houses[0], 4).filter(tile=>{
+        const p=ecs.spatial[tile],owner=topController(ecs,village.houses[0]);
+        return [[p,"green"],[{x:p.x-28,y:p.y-23},"well"]].every(([point,kind])=>canClearForBuilding(state,buildingFootprint(proposal(state,point,{meetingPlace:{kind}},village.houses[0]),proposalId),owner));
+      });
+      const greenTile = candidates.find(id => ecs.mappable[id].settlementTransit) || candidates.find(id => ecs.mappable[id].route?.length) || candidates[0];
+      const greenPoint = reserve(greenTile);
+      if (!greenPoint) continue;
+      const green = add(greenPoint, village.id, { nameable: { nickname: "Village green" }, meetingPlace: { kind: "green" } }, village.houses[0]);
+      village.sharedPlaces.push(green, add({ x: greenPoint.x - 28, y: greenPoint.y - 23 }, village.id,
+        { nameable: { nickname: "Well" }, meetingPlace: { kind: "well" } }, village.houses[0]));
+      if (village.origin) village.origin.centreHex ||= keyOf(greenPoint);
+    }
     if (village.houses.length >= 5) for (const kind of ["chapel", "alehouse"]) {
-      const point = reserve(nearby(village.houses[0], 4)[0]);
-      village.sharedPlaces.push(add(point, village.id, { nameable: { nickname: kind == "chapel" ? "Chapel" : "Alehouse" }, meetingPlace: { kind } }));
+      if (village.sharedPlaces.some(id => ecs.meetingPlace[id].kind == kind)) continue;
+      const host = village.houses.find(id => (ecs.container[ecs.household[id]?.storeId]?.amounts.wood || 0) >= 8);
+      const point = nearby(village.houses[0], 4).filter(id=>!ecs.mappable[id].route?.length && !ecs.walkable[id].trackReserved).map(id => ecs.spatial[id]).find(p => !Object.keys(ecs.building).some(id => squaredDistance(p,ecs.spatial[id]) < 100 ** 2) && canClearForBuilding(state,buildingFootprint(proposal(state,p,{meetingPlace:{kind}},host),proposalId),host?topController(ecs,host):null));
+      if (!point || state.settlement && !host) continue;
+      if (host) consumeStored(state,host,"wood",8);
+      reserve(tileAt[keyOf(point)]);
+      const id = add(point, village.id, { nameable: { nickname: kind == "chapel" ? "Chapel" : "Alehouse" }, meetingPlace: { kind, houseId:host, builtDay:state.days } }, host);
+      village.sharedPlaces.push(id);
     }
     // First allocate every yard; fields must not take another family's backyard.
     const inhabited = village.houses.filter(house => Object.keys(ecs.personable).some(id =>
       !ecs.personable[id].dead && ecs.personable[id].age >= 18 && ecs.household[id]?.houseId == house));
     for (const houseId of village.houses) {
+      if (ecs.household[houseId]?.plot) continue;
       const origin = Hex().fromPoint(ecs.spatial[houseId]);
       const adjacent = Grid.hexagon({ center: origin, radius: 1 }).neighborsOf(origin, ALL_SIDES);
       const entrance = adjacent[ecs.building[houseId].entrance]?.toString();
-      const yardTile = nearby(houseId, 1).find(id => keyOf(ecs.spatial[id]) != entrance && canPlaceField(state,id));
-      // A crowded ring can share the house's tile: its rear half is still a yard.
+      const yardCandidates=ecs.household[houseId]?.yardReservation ? [ecs.household[houseId].yardReservation] :
+        nearby(houseId,1).filter(id=>keyOf(ecs.spatial[id])!=entrance && canCultivate(id,houseId));
+      const rearTiles = tile => workBayTiles(state,ecs.spatial[tile]);
+      const freeRear = tile => tile && !occupied.has(keyOf(ecs.spatial[tile])) && !ecs.mappable[tile].route?.length && !ecs.mappable[tile].cropPlot && !ecs.walkable[tile].trackReserved && canReserveWorkYard(state,tile,houseId);
+      const stationFits=tile=>{
+        const p=ecs.spatial[tile],preview=proposal(state,{x:p.x-10,y:p.y},{workplace:{houseId}},houseId);
+        return expansionFits(preview,proposalId,expandedFootprint(preview,proposalId,2));
+      };
+      const yardTile=yardCandidates.find(id=>rearTiles(id).every(freeRear) && stationFits(id)) || yardCandidates.find(stationFits) || yardCandidates[0];
+      const compact=ecs.household[houseId]?.gardenPoint;
+      const workYardTiles=[...new Set([...(ecs.household[houseId]?.workYardReservation || []),
+        ...(!compact && yardTile?rearTiles(yardTile).filter(freeRear).filter(tile=>reserveWorkYard(state,tile,houseId)):[])])];
       const yard = reserve(yardTile) || { x: ecs.spatial[houseId].x, y: ecs.spatial[houseId].y - 33 };
-      const storeId = ecs.building[houseId].rooms.find(id => ecs.container[id]);
-      const household = { id: houseId, farming: true, fields: [], backyards: [], storeId,
-        plot: { hexes: [...new Set([origin.toString(), keyOf(yard)])] } };
+      // The actual household yard leaves room behind its work station. Trees
+      // outside the current roof remain until a paid extension needs clearance.
+      for(const tile of workYardTiles)reserve(tile);
+      const storeId = householdStore(state,houseId);
+      const household = { ...ecs.household[houseId], id: houseId, farming: true, fields: [], backyards: [], storeId,
+        workYardTiles, yardPoint: { x: yard.x, y: yard.y }, plot: { hexes: [...new Set([origin.toString(), keyOf(yard), ...workYardTiles.map(id=>keyOf(ecs.spatial[id]))])] } };
       ecs.household[houseId] = household;
-      const h = inhabited.indexOf(houseId);
-      if (h >= 0 && h < Math.min(6, village.houses.length - 2)) {
-        household.trade = TRADES[(h + vi) % TRADES.length];
-        const point = { x: yard.x - 22, y: yard.y };
-        household.workplaceId = add(point, village.id, {
-          nameable: { nickname: household.trade == "smith" ? "Forge" : household.trade + " workshop" },
-          workplace: { houseId, trade: household.trade, power: household.trade == "miller" ? "wind" : null }
-        }, houseId);
-        const worker = Object.keys(ecs.personable).find(id => ecs.household[id]?.houseId == houseId && !ecs.personable[id].dead && ecs.personable[id].age >= 18);
-        ecs.profession ||= {};
-        if (worker) ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
-        if (worker) ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
-      }
       const kinds = [BACKYARDS[householdIndex % BACKYARDS.length]];
       if (hashUnit(seed + ":backyard:" + houseId) < 0.6) kinds.push(BACKYARDS[(householdIndex + 2) % BACKYARDS.length]);
       for (const [i, kind] of kinds.entries()) {
-        const point = { x: yard.x + 23, y: yard.y + (i ? 23 : -23) };
+        let point = compact && !i ? compact : { x: yard.x + 43, y: yard.y + (i ? 23 : -23) };
+        if(compact && i) {
+          // A second actual garden is optional. Its whole footprint fits one
+          // adjacent hex and must preserve public routes and existing farms.
+          const extra=Grid.hexagon({center:Hex().fromPoint(yard),radius:1}).neighborsOf(Hex().fromPoint(yard),ALL_SIDES)
+            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && !rearOpportunities.has(tile) && clearableWood(tile,houseId) && canReserveWorkYard(state,tile,houseId));
+          if(!extra)continue;
+          reserveWorkYard(state,extra,houseId);reserve(extra);workYardTiles.push(extra);
+          household.plot.hexes.push(keyOf(ecs.spatial[extra]));point=ecs.spatial[extra];
+        }
         const id = add(point, village.id, { nameable: { nickname: kind == "vegetable" ? "Kitchen garden" : kind }, backyard: { houseId, kind } }, houseId);
         household.backyards.push(id);
-        if (kind == "vegetable" && yardTile && reserveFieldPlot(state,yardTile)) {
-          (ecs.farmable ||= {})[id] = { id, houseId, claimerId: null,
-            slots: Array.from({ length: 2 }, () => ({ state: "sown", content: "grain", growth: 0, updated: state.days })) };
+        const gardenTile=compact?tileAt[keyOf(point)]:yardTile;
+        if (kind == "vegetable" && gardenTile) {
+          // Convert this household's unused private plot to its real kitchen crop.
+          if(ecs.mappable[gardenTile].buildingPlot==houseId)delete ecs.mappable[gardenTile].buildingPlot;
+          if(reserveFieldPlot(state,gardenTile))
+            (ecs.farmable ||= {})[id] = { id, houseId, claimerId: null,
+              slots: Array.from({ length: 2 }, () => seedSlot(houseId)) };
         }
         if (["chicken", "pig", "goat"].includes(kind)) enclosure(point, village.id, houseId, kind, 18, 16, kind == "chicken" ? 4 : 2, id);
       }
+      household.workYardTiles=workYardTiles.filter(tile=>!ecs.mappable[tile].cropPlot);
+      for(const tile of [...household.workYardTiles,yardTile].filter(Boolean))reserveWorkYard(state,tile,houseId);
       householdIndex++;
+    }
+    const targetTrades=Math.min(6,Math.max(0,village.houses.length-2));
+    const establishedTrades=new Set(village.houses.map(id=>ecs.household[id]?.trade).filter(Boolean));
+    for (const houseId of inhabited) {
+      if(establishedTrades.size>=targetTrades)break;
+      const household = ecs.household[houseId], storeId = household.storeId;
+      if (household.trade || state.settlement && ecs.container[storeId].amounts.wood < 4) continue;
+      const yard = household.yardPoint;
+      const point = household.stationPoint || { x: yard.x - 10, y: yard.y };
+      if(!canClearForBuilding(state,buildingFootprint(proposal(state,point,{workplace:{houseId}},houseId),proposalId),topController(ecs,houseId)))continue;
+      if (state.settlement) consumeStored(state,houseId,"wood",4);
+      household.trade = [...TRADES.slice(vi%TRADES.length),...TRADES.slice(0,vi%TRADES.length)].find(trade=>!establishedTrades.has(trade));
+      establishedTrades.add(household.trade);
+      household.workplaceId = add(point, village.id, {
+        nameable: { nickname: household.trade == "smith" ? "Forge" : household.trade + " workshop" },
+        workplace: { houseId, trade: household.trade, power: household.trade == "miller" ? "wind" : null, builtDay: state.days }
+      }, houseId);
+      const worker = Object.keys(ecs.personable).find(id => ecs.household[id]?.houseId == houseId && !ecs.personable[id].dead && ecs.personable[id].age >= 18);
+      ecs.profession ||= {};
+      if (worker) ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
+      if (worker && ecs.planner?.[worker]) ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
     }
     for (const houseId of village.houses) {
       const h = ecs.household[houseId];
       const count = hashUnit(seed + ":fields:" + houseId) < 0.5 ? 1 : 2;
-      for (let i = 0; i < count; i++) {
-        const point = reserve(nearby(houseId).find(id => canPlaceField(state,id)));
-        if (!point) break;
-        const fieldTile = tileAt[keyOf(point)];
-        if (!reserveFieldPlot(state,fieldTile)) continue;
-        const growth = season(state.days) == "winter" ? 0 : 1.5 + hashUnit(seed + ":crop:" + houseId + ":" + i) * 2;
+      if(!h.fields.length && h.fieldReservation) {
+        const f=h.fieldReservation,point=reserve(f.tile);
+        const id=add(point,village.id,{nameable:{nickname:"Family field"},farmable:{houseId,accessTileId:f.accessTileId,accessKind:f.kind || "road",claimerId:null,slots:TRIANGLES.map(()=>seedSlot(houseId))}},houseId);
+        h.fields.push(id);h.plot.hexes.push(keyOf(point));delete h.fieldReservation;
+      }
+      for (let i = h.fields.length; i < count; i++) {
+        let fieldTile,accessTileId,accessKind;
+        for(const candidate of nearby(houseId).filter(id=>canCultivate(id,houseId)).sort((a,b)=>Number(rearOpportunities.has(a))-Number(rearOpportunities.has(b)))) {
+          const access=fieldAccess(houseId,candidate);
+          if(!access || !reserveFieldPlot(state,candidate))continue;
+          fieldTile=candidate;accessTileId=access.tile;accessKind=access.kind;break;
+        }
+        if(!fieldTile)break;
+        const point=reserve(fieldTile);
         const id = add(point, village.id, {
           nameable: { nickname: "Family field" },
-          farmable: { houseId, claimerId: null, slots: TRIANGLES.map(() => ({ state: "sown", content: "grain", growth, updated: state.days - growth })) }
+          farmable: { houseId, accessTileId, accessKind, claimerId: null, slots: TRIANGLES.map(() => seedSlot(houseId)) }
         }, houseId);
         h.fields.push(id);
         h.plot.hexes.push(keyOf(point));
       }
     }
     // A modest flock on grassland, where there is room beyond the yards.
-    const pasturePoint = reserve(nearby(village.houses[0])[0]);
-    if (pasturePoint) enclosure(pasturePoint, village.id, village.houses[0], vi % 2 ? "cow" : "sheep", 39, 34, vi % 2 ? 3 : 5);
+    const pasturePoint = Object.values(ecs.pasture || {}).some(p => p.sharedVillage == village.id) ? null : reserve(nearby(village.houses[0]).find(tile=>canCultivate(tile,village.houses[0])));
+    if (pasturePoint) {
+      const id = enclosure(pasturePoint, village.id, village.houses[0], vi % 2 ? "cow" : "sheep", 39, 34, vi % 2 ? 3 : 5);
+      ecs.pasture[id].sharedVillage = village.id;
+    }
   }
   // A crowded village needs more than the centre of a single tile. Allocate
   // body-sized spaces after all household plots, keeping doors and pens clear.
-  const fieldHexes = new Set(Object.keys(ecs.farmable).map(id => keyOf(ecs.spatial[id])));
+  const fieldHexes = new Set(Object.keys(ecs.farmable || {}).map(id => keyOf(ecs.spatial[id])));
   const obstacles = Object.keys(ecs.spatial).flatMap(id => {
     const kind = ecs.meetingPlace?.[id]?.kind;
     const radius = ecs.building[id] || kind == "chapel" ? 55 : kind == "alehouse" ? 45 :
       ecs.workplace?.[id]?.trade == "miller" ? 45 : ecs.workplace?.[id] || ecs.backyard?.[id] ? 30 : kind == "well" ? 28 : 0;
     return radius ? [{ ...ecs.spatial[id], radius }] : [];
   });
-  const pens = Object.values(ecs.pasture);
+  const pens = Object.values(ecs.pasture || {});
   const gatheringSpaces = [];
   for (const village of Object.values(state.villages)) {
+    if (!village.houses.length) continue;
     const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(ecs.meetingPlace[id].kind));
-    const candidates = nearby(village.houses[0], 8, true).filter(id => !fieldHexes.has(keyOf(ecs.spatial[id])))
+    const candidates = nearby(village.houses[0],8,false,true).filter(id => !fieldHexes.has(keyOf(ecs.spatial[id])))
       .flatMap(tile => [{ tile, ...ecs.spatial[tile] }, ...Array.from({ length: 6 }, (_, i) => ({ tile,
         x: ecs.spatial[tile].x + Math.cos(i * Math.PI / 3) * 34,
         y: ecs.spatial[tile].y + Math.sin(i * Math.PI / 3) * 34 }))])
@@ -198,22 +327,43 @@ export function generateVillageLife(state, seed, start) {
       for (const tile of sites) {
         const spaces = spacesAround(venues.map(id => ecs.spatial[id == green ? tile : id]));
         if (spaces.length < population) continue;
+        const point=ecs.spatial[tile],owner=topController(ecs,green);
+        const footprint=buildingFootprint(proposal(state,point,{meetingPlace:{kind:"green"}},village.houses[0]),proposalId);
+        if(!canClearForBuilding(state,footprint,owner))continue;
+        const fromHex=keyOf(ecs.spatial[green]);
         removeFromSpace(state, green);
         Object.assign(ecs.spatial[green], { x: ecs.spatial[tile].x, y: ecs.spatial[tile].y });
         state.space[keyOf(ecs.spatial[green])].push(green);
+        reserve(tile);reserveBuildingClearance(state,green);
+        state.redraws.push(green);
+        state.landUseRevision=(state.landUseRevision || 0)+1;
+        if(village.origin) {
+          const move={day:state.days,placeId:green,fromHex,toHex:keyOf(ecs.spatial[green]),reason:"more public gathering space"};
+          (village.greenMoves ||= []).push(move);
+          const head=ecs.controllable[ecs.controllable[green].controllerId]?.controllerId;
+          const locals=Object.keys(ecs.personable).filter(id=>isResident(state,id) && !ecs.personable[id].dead && ecs.village[id]?.villageId==village.id);
+          const actor=locals.find(id=>id==head) || locals.find(id=>ecs.personable[id].age>=18) || locals[0];
+          recordEvent(state,"green_moved",actor?[actor]:[],[green],{...move,villageId:village.id});
+        }
         used = spaces;
         break;
       }
     }
-    for (const p of used) { reserve(p.tile); gatheringSpaces.push(p); }
+    for (const p of used) { gatheringSpaces.push(p); }
     for (const id of venues) {
       const centre = ecs.spatial[id];
       ecs.meetingPlace[id].gatheringPoints = used.filter(p => squaredDistance(p, centre) < 290 ** 2)
         .sort((a, b) => squaredDistance(a, centre) - squaredDistance(b, centre)).map(p => ({ x: p.x, y: p.y }));
     }
   }
-  // Clear only the reserved village land, before woodland ecology is initialized.
-  for (const id of Object.keys(ecs.good)) if (ecs.good[id].type == "wood" && reserved.has(keyOf(ecs.spatial[id]))) deleteEntity(state, id);
+  const cultivated = new Set([...Object.keys(ecs.farmable || {}), ...Object.keys(ecs.backyard || {}), ...Object.keys(ecs.pasture || {}), ...Object.keys(ecs.meetingPlace || {}).filter(id=>["green","well"].includes(ecs.meetingPlace[id].kind))].map(id => keyOf(ecs.spatial[id])));
+  for (const id of new Set([...Object.keys(ecs.good || {}),...Object.keys(ecs.forageable || {})])) if (
+    (ecs.good?.[id]?.type == "wood" && !ecs.haulable?.[id] || ecs.forageable?.[id] && !ecs.controllable?.[id]) && cultivated.has(keyOf(ecs.spatial[id]))) deleteEntity(state, id);
+  if(state.settlement) {
+    state.settlement.estatesInitialized=true;
+    state.settlement.layoutTriedRevision=state.landUseRevision;
+    state.settlement.layoutInputs=settlementLayoutInputs(state);
+  }
 }
 
 // A bounded, smooth orbit with a slow changing radius. It is a function of game

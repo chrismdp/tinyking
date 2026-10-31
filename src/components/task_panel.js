@@ -47,6 +47,11 @@ export function TaskPanel() {
   const id = state.ui.playerId;
   const jobs = ecs.manager[id].jobs;
   const person = ecs.personable[id];
+  if (person.dead) return <aside id="task-panel" aria-label="Your task list">
+    <header><h3>Your tasks</h3></header>
+    <p role="status">Dead · Your tasks have ended.</p>
+    <footer><strong>{name(ecs.nameable[id])}</strong></footer>
+  </aside>;
   const planner = ecs.planner[id];
   const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const currentWood = current && woodTask(state, current, true);
@@ -99,6 +104,7 @@ export function TaskPanel() {
             {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {typeof job.expectedGoodwill == "number" ? `+${job.expectedGoodwill} goodwill` : job.expectedGoodwill}</span>}
             {harvest && <small className={job.waiting ? "task-waiting" : undefined}>{harvestPhase(state, job, request, active)}</small>}
             {job.waiting && !harvest && <small className="task-waiting">{job.detail || job.waiting}</small>}
+            {job.waiting == "Waiting for logs" && <small>For more wood, choose Move here at the edge of visible land. Explore beyond the gold village boundary. Select an unclaimed tree and choose Cut down. Carry the logs home.</small>}
             {active && !harvest && <>{wood && !wood.detail.startsWith(wood.phase) && <small>{wood.phase}</small>}
               <div className="task-progress"><span>{travelling ? "Walking to the edge · one season on the road" : wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : request || travelling ? "" : ` · ~${minutes}m left`}</span></div>
               {progress != null && <div className="meter" role="progressbar" aria-label={wood?.phase || title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div>}</>}

@@ -1,3 +1,4 @@
+jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
@@ -268,4 +269,50 @@ it("routes towards the offender's new position rather than completing contact at
   const d=s.customs.dialogue,a=s.ecs.spatial[w.player],b=s.ecs.spatial[d.speakerId];
   expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeLessThanOrEqual(70);
   expect(s.knowledge?.[w.player]?.people?.[d.speakerId]?.conversation).toBeUndefined();
+});
+
+it("gives honest elder progress and daily Chat routes without promising a stocked household favour",()=>{
+  const w=world(),s=w.state;
+  const reason=oathEligibility(s,w.player,"village").reason;
+  expect(reason).toContain("0.0 / 10 goodwill");
+  expect(reason).toContain("Chat");
+  expect(reason).toContain("when offered");
+  expect(reason).toContain("daily");
+});
+
+it("shows the elder's actual request and conversation availability without granting either",()=>{
+  const React=require("react"),{renderToStaticMarkup}=require("react-dom/server");
+  const {GameState}=require("../src/components/contexts");
+  const {VillageMembership}=require("../src/components/village_customs");
+  const w=world(),s=w.state;
+  s.ui.actions={};
+  const render=()=>renderToStaticMarkup(<GameState.Provider value={s}><VillageMembership personId={w.parent}/></GameState.Provider>);
+  expect(render()).toContain("This household offers no favours just now.");
+  expect(render()).toContain("2 conversations left today.");
+  s.talking={[w.parent]:{[w.player]:{day:Math.floor(s.days),used:2}}};
+  expect(render()).toContain("No conversations left today.");
+  expect(oathEligibility(s,w.player,"village").ok).toBe(false);
+});
+
+it("keeps goodwill below the oath threshold visibly below 10",()=>{
+  const w=world(),s=w.state;
+  s.ecs.relationships[w.parent].known[w.player]={ring:"public",goodwill:9.975};
+  expect(oathEligibility(s,w.player,"village")).toMatchObject({ok:false});
+  expect(oathEligibility(s,w.player,"village").reason).toContain("9.9 / 10 goodwill");
+});
+
+it("removes joining advice from permitted common trees and names tomorrow's Chat reset",()=>{
+  const React=require("react"),{renderToStaticMarkup}=require("react-dom/server");
+  const {GameState}=require("../src/components/contexts");
+  const {ResourceRights,VillageMembership}=require("../src/components/village_customs");
+  const w=world(),s=w.state;
+  s.ui.actions={};
+  const render=child=>renderToStaticMarkup(<GameState.Provider value={s}>{child}</GameState.Provider>);
+  expect(render(<ResourceRights entityId={w.tree}/>)).toContain("Speak with the elder about joining");
+  s.ecs.village[w.player].memberships={village:{day:s.days}};
+  expect(render(<ResourceRights entityId={w.tree}/>)).toContain("You may cut this tree.");
+  expect(render(<ResourceRights entityId={w.tree}/>)).not.toContain("Speak with the elder about joining");
+  delete s.ecs.village[w.player].memberships;
+  s.talking={[w.parent]:{[w.player]:{day:Math.floor(s.days),used:2}}};
+  expect(render(<VillageMembership personId={w.parent}/>)).toContain("Return tomorrow for another Chat.");
 });

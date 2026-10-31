@@ -18,7 +18,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
-const { snapshot, shelterCandidates } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, discoverTimber } = require("./acceptance-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
 
@@ -375,8 +375,14 @@ async function play(page) {
     await speed(FAST);
     await page.waitForFunction(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0]?.waiting == "Waiting for logs");
     await speed(PAUSE);
+    const exploration = await discoverTimber(page, 4, async id => {
+      await panTo(id);
+      if (!await orderOn([id], "Move here")) throw new Error("Could not walk to the known woodland edge");
+      await closePopup();
+    });
+    fs.writeFileSync(path.join(SHOTS, "first-timber-exploration.json"), JSON.stringify(exploration, null, 2));
     let firstTimber = 0;
-    for (const id of fresh.trees) {
+    for (const id of (await targets()).trees) {
       if (firstTimber >= 4) break;
       await panTo(id);
       if (await orderOn([id], "Cut down")) firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id);
@@ -569,6 +575,12 @@ async function play(page) {
   await speed(PAUSE);
   await closePopup();
   let woodQueued = 0;
+  const exploration = await discoverTimber(page, 5, async id => {
+    await panTo(id);
+    if (!await orderOn([id], "Move here")) throw new Error("Could not walk to the known woodland edge");
+    await closePopup();
+  });
+  fs.writeFileSync(path.join(SHOTS, "later-timber-exploration.json"), JSON.stringify(exploration, null, 2));
   const buildTargets = await targets();
   for (const id of buildTargets.trees) {
     if (woodQueued >= 5) break;

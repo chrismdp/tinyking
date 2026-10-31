@@ -78,7 +78,10 @@ export function oathEligibility(s,actorId,villageId) {
   if(!alive(s,actorId)||s.ecs.personable[actorId].age<ADULT_AGE)reason="Only a living adult may take the oath.";
   else if(!elder)reason="There is no resident elder to receive the oath.";
   else if(house && s.ecs.village?.[house]?.villageId && s.ecs.village[house].villageId!=villageId)reason="Your household belongs to another village. Make your own home here first.";
-  else if(!s.knowledge?.[actorId]?.people?.[elder]?.conversation || (s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0)<OATH_TRUST)reason="Speak with the elder and earn 10 goodwill with them. Chats, gifts and real favours build trust; unclaimed wood is free.";
+  else if(!s.knowledge?.[actorId]?.people?.[elder]?.conversation || (s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0)<OATH_TRUST) {
+    const goodwill=s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0;
+    reason=`${(Math.floor(goodwill*10)/10).toFixed(1)} / ${OATH_TRUST} goodwill with the elder. Complete a Chat and earn their trust. Chat has a daily limit. Gifts help according to their tastes. Do favours when offered. Unclaimed woodland is free to use.`;
+  }
   return {ok:!reason,reason,elderId:elder};
 }
 const customs = s => s.customs ||= {incidents:[],next:0};
@@ -155,10 +158,10 @@ export function answerCustoms(s,choice) {
     i.warnedDay=s.days;i.status="report";i.witnessId=d.speakerId;
     stopForbiddenCutting(s,d.actorId);
     recordEvent(s,"commons_warning",[d.speakerId,d.actorId],[],{villageId:d.villageId,loss:i.loss,response:choice,audienceIds:[d.speakerId,d.actorId]});
-    s.ui.customsResult={speakerId:d.speakerId,message:`Goodwill −${i.loss} with the witness. The elder will hear when they meet. Help each person with favours to make amends. They will remember what happened.`};
+    s.ui.customsResult={speakerId:d.speakerId,message:`Goodwill −${i.loss} with the witness. The elder will hear when they meet. Rebuild trust with each person through Chats, gifts and favours when offered. They will remember what happened.`};
     if(villageElder(s,i.villageId)==d.speakerId){
       i.status="done";i.reportedTo=d.speakerId;
-      s.ui.customsResult.message=`Goodwill −${i.loss} with the elder, who witnessed your cutting. Help them with favours to make amends. They will remember what happened.`;
+      s.ui.customsResult.message=`Goodwill −${i.loss} with the elder, who witnessed your cutting. Rebuild trust through Chats, gifts and favours when offered. They will remember what happened.`;
     }
   } else {
     if(!["accept","decline","leave"].includes(choice))return false;

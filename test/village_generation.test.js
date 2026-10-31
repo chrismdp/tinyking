@@ -231,7 +231,10 @@ it("dates a real green relocation while retaining its founding site and enough s
   s.ecs.personable[v.origin.people[0]].dead=true;
   const current=Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead).length;
   newEntities(s,Array.from({length:capacity-current+1},()=>({spatial:{...s.ecs.spatial[v.houses[0]]},personable:{age:19},household:{houseId:v.houses[0]},village:{villageId:"v"}})));
+  const revision=s.landUseRevision;s.redraws=[];
   s.days=3;generateVillageLife(s,13,s.map.playerStartTile);
+  expect(s.redraws).toContain(green);
+  expect(s.landUseRevision).toBeGreaterThan(revision);
   expect(v.origin.centreHex).toBe(from);
   expect(v.origin.day).toBe(0);
   expect(v.greenMoves).toHaveLength(1);

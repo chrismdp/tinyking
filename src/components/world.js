@@ -122,26 +122,31 @@ export function World() {
   }, [state, setPopupInfo, renderUI]);
 
   React.useEffect(() => {
+    // NOTE: the renderer highlights whatever the popup is showing
+    if (state.ui) {
+      state.ui.selected = popupInfo.id || state.ui.show.selected_person;
+    }
     if (popupInfo.id) {
-      if (popper.current) popper.current.destroy();
-      popper.current = createPopper(virtualReference.current, popperElement.current, {
+      const point = state.renderer.screenPosition(popupInfo.id);
+      virtualReference.current.set(point.x, point.y);
+      const instance = createPopper(virtualReference.current, popperElement.current, {
         placement: (popupInfo.touch ? "top" : "bottom-start"),
         modifiers: [
           { name: "arrow", options: { element: arrowElement.current } },
           { name: "offset", options: { offset: [-15, 20] } },
-          { name: "preventOverflow" },
+          { name: "preventOverflow", options: { altAxis: true, padding: 10 } },
         ]
       });
 
-      const point = state.renderer.screenPosition(popupInfo.id);
-      virtualReference.current.set(point.x, point.y);
-    } else {
-      if (popper.current) popper.current.destroy();
-      popper.current = null;
-    }
-    // NOTE: the renderer highlights whatever the popup is showing
-    if (state.ui) {
-      state.ui.selected = popupInfo.id || state.ui.show.selected_person;
+      popper.current = instance;
+      // Info's asynchronous job offers can change the popup's dimensions.
+      const observer = new ResizeObserver(() => instance.update());
+      observer.observe(popperElement.current);
+      return () => {
+        observer.disconnect();
+        instance.destroy();
+        popper.current = null;
+      };
     }
   }, [state, popupInfo]);
 

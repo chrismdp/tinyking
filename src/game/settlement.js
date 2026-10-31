@@ -127,7 +127,7 @@ export function reserveFoundingFields(s) {
         // No people, buildings or costs exist yet. Release only this rejected
         // proposal's private ground; public routes and all other plans remain.
         for(const tile of Object.keys(s.ecs.mappable))if(s.ecs.mappable[tile].buildingPlot==site.yardOwner)delete s.ecs.mappable[tile].buildingPlot;
-        const old=Hex().fromPoint(site.point),tile=at(s,site.point);
+        const tile=at(s,site.point);
         for(const [side,n] of Object.entries(site.navigationLinks))if(!sites.some(other=>other!=site && at(s,other.point)==n))addBidirectionalLink(s.ecs,tile,Number(side),n);
         if(site.field) {
           // This is an unused survey reservation, with no crop, owner or seed
@@ -466,7 +466,7 @@ export function settleSeason(s,season,summary=false) {
     v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind)) &&
     v.houses.some(id=>s.ecs.container[s.ecs.household[id].storeId].amounts.wood>=8)))generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   growBuildings(s,season,residents);
-  const crowded=Object.values(s.villages).some(v=>{
+  const crowded=s.settlement.estatesInitialized && Object.values(s.villages).some(v=>{
     const points=v.sharedPlaces.filter(id=>["green","alehouse"].includes(s.ecs.meetingPlace[id].kind)).flatMap(id=>s.ecs.meetingPlace[id].gatheringPoints || []);
     const population=v.houses.reduce((n,h)=>n+(residents.get(h) || []).length,0);
     return new Set(points.map(p=>p.x+":"+p.y)).size<population;

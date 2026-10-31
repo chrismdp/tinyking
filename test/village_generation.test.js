@@ -184,7 +184,8 @@ it("dates a real green relocation while retaining its founding site and enough s
   // Declared initial community around the actually built fixture green.
   v.origin={day:0,centreHex:from,people:Object.keys(s.ecs.personable).slice(0,2),houseId:v.houses[0]};
   const capacity=s.ecs.meetingPlace[green].gatheringPoints.length;
-  const current=Object.keys(s.ecs.personable).length;
+  s.ecs.personable[v.origin.people[0]].dead=true;
+  const current=Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead).length;
   newEntities(s,Array.from({length:capacity-current+1},()=>({spatial:{...s.ecs.spatial[v.houses[0]]},personable:{age:19},household:{houseId:v.houses[0]},village:{villageId:"v"}})));
   s.days=3;generateVillageLife(s,13,s.map.playerStartTile);
   expect(v.origin.centreHex).toBe(from);
@@ -194,7 +195,8 @@ it("dates a real green relocation while retaining its founding site and enough s
   expect(s.events.some(e=>e.type=="green_moved" && e.day==3 && e.items.includes(green))).toBe(true);
   expect(s.space[from]).not.toContain(green);
   expect(s.space[v.greenMoves[0].toHex]).toContain(green);
-  const visitors=Object.keys(s.ecs.personable),places=visitors.map(id=>require("game/villages").eveningPlace(s,id));
+  expect(s.events.filter(e=>e.type=="green_moved").every(e=>e.people.every(id=>!s.ecs.personable[id].dead))).toBe(true);
+  const visitors=Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead),places=visitors.map(id=>require("game/villages").eveningPlace(s,id));
   expect(places.every(p=>p.id==green)).toBe(true);
   for(const [i,p] of places.entries())for(const q of places.slice(i+1))expect(Math.hypot(p.x-q.x,p.y-q.y)).toBeGreaterThanOrEqual(32);
 });

@@ -314,7 +314,9 @@ export function generateVillageLife(state, seed, start) {
           const move={day:state.days,placeId:green,fromHex,toHex:keyOf(ecs.spatial[green]),reason:"more public gathering space"};
           (village.greenMoves ||= []).push(move);
           const head=ecs.controllable[ecs.controllable[green].controllerId]?.controllerId;
-          recordEvent(state,"green_moved",head?[head]:[],[green],{...move,villageId:village.id});
+          const locals=Object.keys(ecs.personable).filter(id=>isResident(state,id) && !ecs.personable[id].dead && ecs.village[id]?.villageId==village.id);
+          const actor=locals.find(id=>id==head) || locals.find(id=>ecs.personable[id].age>=18) || locals[0];
+          recordEvent(state,"green_moved",actor?[actor]:[],[green],{...move,villageId:village.id});
         }
         used = spaces;
         break;

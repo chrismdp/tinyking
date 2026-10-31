@@ -72,8 +72,19 @@ export function villageElder(s,villageId) {
   if(v.elderId && eligible(v.elderId))return v.elderId;
   return Object.keys(s.ecs.personable || {}).filter(eligible).sort((a,b)=>s.ecs.personable[b].age-s.ecs.personable[a].age || a.localeCompare(b))[0] || null;
 }
+export function oathReadiness(s,actorId,speakerId) {
+  // Needs are latched by the native planner sensors and cleared by actual
+  // meals/sleep. Use that same contract as dialogueValid, without a new cutoff.
+  for(const [id,who] of [[actorId,"You need"],[speakerId,"The elder needs"]]) {
+    const feeling=s.ecs.planner[id]?.world.feeling;
+    const needs=[feeling?.hungry && "food",feeling?.tired && "rest"].filter(Boolean);
+    if(needs.length)return {ok:false,reason:`${who} ${needs.join(" and ")} before this conversation. ${id==actorId ? "Choose Find food or Rest as needed" : "Let the elder eat and rest"}, then try again.`};
+  }
+  return {ok:true};
+}
 export function oathEligibility(s,actorId,villageId) {
   const elder=villageElder(s,villageId),house=s.ecs.household?.[actorId]?.houseId;
+  const readiness=oathReadiness(s,actorId,elder);
   let reason;
   if(!alive(s,actorId)||s.ecs.personable[actorId].age<ADULT_AGE)reason="Only a living adult may take the oath.";
   else if(!elder)reason="There is no resident elder to receive the oath.";
@@ -82,7 +93,8 @@ export function oathEligibility(s,actorId,villageId) {
     const goodwill=s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0;
     reason=`${(Math.floor(goodwill*10)/10).toFixed(1)} / ${OATH_TRUST} goodwill with the elder. Complete a Chat and earn their trust. Chat has a daily limit. Gifts help according to their tastes. Do favours when offered. Unclaimed woodland is free to use.`;
   }
-  return {ok:!reason,reason,elderId:elder};
+  else if(!readiness.ok)reason=readiness.reason;
+  return {ok:!reason,reason,elderId:elder,readiness};
 }
 const customs = s => s.customs ||= {incidents:[],next:0};
 export function observeChop(s,actorId,targetId,order) {
@@ -124,9 +136,13 @@ function closeDialogue(s) {
 }
 export function dialogueValid(s,d=s.customs?.dialogue) {
   return !!d && alive(s,d.actorId) && localAdult(s,d.speakerId,d.villageId) && distance(s,d.actorId,d.speakerId)<=SPEECH_REACH &&
-    !s.ecs.planner[d.speakerId]?.world.feeling.hungry && !s.ecs.planner[d.speakerId]?.world.feeling.tired &&
-    !s.ecs.planner[d.actorId]?.world.feeling.hungry && !s.ecs.planner[d.actorId]?.world.feeling.tired &&
+    oathReadiness(s,d.actorId,d.speakerId).ok &&
     (d.kind=="warning" || villageElder(s,d.villageId)==d.speakerId);
+}
+function explainReadiness(s,d) {
+  if(!d || d.kind=="warning")return;
+  const readiness=oathReadiness(s,d.actorId,d.speakerId);
+  if(!readiness.ok)s.ui.customsResult={speakerId:d.speakerId,message:readiness.reason};
 }
 function holdDialogue(s,d) {
   customs(s).dialogue=d;
@@ -138,6 +154,8 @@ export function openOath(s,actorId,speakerId,leave=false) {
   if(villageElder(s,villageId)!=speakerId || distance(s,actorId,speakerId)>SPEECH_REACH)return {ok:false,message:"Speak with the current elder in person."};
   const eligibility=leave ? {ok:!!membership(s,actorId,villageId),reason:"You are not a member here."} : oathEligibility(s,actorId,villageId);
   if(!eligibility.ok)return {ok:false,message:eligibility.reason};
+  const readiness=oathReadiness(s,actorId,speakerId);
+  if(!readiness.ok)return {ok:false,message:readiness.reason};
   if(s.customs?.dialogue)return {ok:false,message:"Finish the current conversation first."};
   holdDialogue(s,{kind:leave?"leave":"oath",actorId,speakerId,villageId});
   return {ok:true,message:"The elder explains your rights and obligations."};
@@ -147,7 +165,7 @@ export function warningConsequences(s,incident) {
   return {witness:repeat?REPEAT_LOSS:WARNING_LOSS,elder:repeat?REPEAT_ELDER_LOSS:ELDER_LOSS};
 }
 export function answerCustoms(s,choice) {
-  const d=s.customs?.dialogue;if(!dialogueValid(s,d)){closeDialogue(s);return false;}
+  const d=s.customs?.dialogue;if(!dialogueValid(s,d)){explainReadiness(s,d);closeDialogue(s);return false;}
   if(!["acknowledge","refuse","accept","decline","leave"].includes(choice))return false;
   const c=customs(s),i=c.incidents.find(i=>i.id==d.incidentId);
   if(d.kind=="warning") {
@@ -183,6 +201,7 @@ export function updateCustoms(s) {
   if(c.dialogue && !dialogueValid(s)) {
     const i=c.incidents.find(i=>i.id==c.dialogue.incidentId);
     if(i)i.status="queued";
+    explainReadiness(s,c.dialogue);
     closeDialogue(s);
   }
   for(const i of c.incidents) {

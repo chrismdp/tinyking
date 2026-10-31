@@ -5,6 +5,7 @@ require("./game-register");
 const { canPlaceShelter } = require("../src/game/construction");
 const { Hex } = require("../src/game/hex");
 const { disposition } = require("../src/game/people");
+const { OATH_TRUST } = require("../src/game/village_customs");
 
 const snapshot = page => page.evaluate(() => {
   const s = window.tinyking;
@@ -62,16 +63,37 @@ function timberSurvey(visited) {
   const frontier=frontiers.find(f=>knownPath(f.id));
   return {day:s.days,trees,logs:trees.reduce((n,id)=>n+e.good[id].amount,0),commonWoodland:Object.values(commonWoodland),edge:frontier?.id,frontierPermitted:frontier?.permitted,known:known.size,position:{...e.spatial[actor]},needs:{hunger:e.personable[actor].hunger,tiredness:e.personable[actor].tiredness}};
 }
+// Wait for actual planner recovery. Ordinary player care gives the NPC time
+// to follow their own meal/sleep plan; no needs or outcomes are assigned.
+async function waitForOathReadiness(page,elder,villageId) {
+  const observe=({elder,villageId})=>{
+    const s=window.tinyking,actor=s.ui.playerId;
+    return {day:s.days,readiness:window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness,
+      actor:s.ecs.planner[actor].world.feeling,elder:s.ecs.planner[elder].world.feeling};
+  };
+  const initial=await page.evaluate(observe,{elder,villageId});
+  if(initial.readiness.ok)return {initial,orders:[],after:initial};
+  const orders=["find_food","rest"];
+  await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},orders);
+  await page.waitForFunction(({villageId,orders})=>{
+    const s=window.tinyking,actor=s.ui.playerId;
+    if(!window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness.ok || s.ecs.manager[actor].jobs.some(j=>orders.includes(j.job.key)))return false;
+    s.ui.actions.set_speed("paused");return true;
+  },{villageId,orders},{timeout:180000});
+  return {initial,orders,after:await page.evaluate(observe,{elder,villageId})};
+}
+module.exports.waitForOathReadiness=waitForOathReadiness;
+
 // Existing local customs provide a legal route when discovered trees are held
 // in common. Every visit, Chat, care order and oath runs through the real UI.
 async function earnTimberRights(page,common) {
   await page.evaluate(id=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[id],650);s.ui.actions.select_entity(id,false);},common.trees[0]);
   await page.getByRole("button",{name:"Meet the elder",exact:true}).click();
   const elder=await page.evaluate(v=>window.tinykingCustoms.villageElder(window.tinyking,v),common.villageId);
-  const result={villageId:common.villageId,elderId:elder,chats:[],initial:await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation};},elder)};
+  const result={villageId:common.villageId,elderId:elder,chats:[],readiness:[],refusals:[],initial:await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation};},elder)};
   for(;;) {
-    const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0};},{elder,villageId:common.villageId});
-    if(status.eligible.ok)break;
+    const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0,contact:s.knowledge?.[s.ui.playerId]?.people?.[elder]?.conversation};},{elder,villageId:common.villageId});
+    if(status.contact && status.goodwill>=OATH_TRUST)break;
     const chat=page.getByRole("button",{name:"Chat",exact:true});
     if(!await chat.isEnabled()) {
       // A real night and ordinary care restore the existing daily patience.
@@ -88,14 +110,31 @@ async function earnTimberRights(page,common) {
     result.chats.push(earned);
     if(!earned.contact || earned.contact.day<status.day || !(earned.bond?.goodwill>status.goodwill))throw new Error("The actual elder conversation did not earn further trust: "+JSON.stringify(result));
   }
-  await page.getByText("Rights and obligations",{exact:true}).click();
-  await page.getByRole("button",{name:"Discuss the local oath",exact:true}).click();
-  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
   try {
-    // Pause only when the real planner opens the dialogue, before Fast can
-    // carry needs beyond the normal conversation window between UI renders.
-    await page.waitForFunction(()=>{const s=window.tinyking;if(s.customs?.dialogue?.kind!="oath")return false;s.ui.actions.set_speed("paused");return true;},null,{timeout:180000});
+    await page.getByText("Rights and obligations",{exact:true}).click();
+    // A queued approach can outlast readiness. Permit one explicit care and
+    // re-request after a native needs refusal, preserving that refusal below.
+    for(let attempt=0;attempt<2;attempt++) {
+      result.readiness.push(await waitForOathReadiness(page,elder,common.villageId));
+      await page.getByRole("button",{name:"Discuss the local oath",exact:true}).click();
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+      await page.waitForFunction(id=>{
+        const s=window.tinyking;
+        const opened=s.customs?.dialogue?.kind=="oath" && s.customs.dialogue.speakerId==id;
+        if(opened && !window.tinykingCustoms.oathEligibility(s,s.ui.playerId,s.customs.dialogue.villageId).readiness.ok)return false;
+        if(!opened && s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="village_oath" && j.targetId==id))return false;
+        s.ui.actions.set_speed("paused");return true;
+      },elder,{timeout:180000});
+      const outcome=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,opened:s.customs?.dialogue?.kind=="oath",eligibility:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,v),talkResult:s.ui.talkResult};},common.villageId);
+      if(outcome.opened)break;
+      result.refusals.push(outcome);
+      if(attempt || outcome.eligibility.readiness.ok)throw new Error("The actual oath approach ended without a ready dialogue");
+    }
     await page.getByRole("dialog",{name:"Local oath",exact:true}).waitFor();
+    await page.getByRole("button",{name:"Swear the local oath",exact:true}).click();
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+    result.earned=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,membership:window.tinykingCustoms.membership(s,s.ui.playerId,v),event:s.events.filter(e=>e.type=="village_oath"&&e.people[0]==s.ui.playerId&&e.villageId==v).at(-1)};},common.villageId);
+    if(result.earned.membership!=="oath" || !result.earned.event)throw new Error("The local oath was not earned: "+JSON.stringify(result));
   } catch(error) {
     result.blocked=await page.evaluate(({elder,villageId})=>{
       const s=window.tinyking,e=s.ecs,actor=s.ui.playerId;
@@ -106,10 +145,6 @@ async function earnTimberRights(page,common) {
     },{elder,villageId:common.villageId});
     throw new Error("Actual local oath dialogue was not reached: "+error.message+" · "+JSON.stringify(result));
   }
-  await page.getByRole("button",{name:"Swear the local oath",exact:true}).click();
-  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-  result.earned=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,membership:window.tinykingCustoms.membership(s,s.ui.playerId,v),event:s.events.filter(e=>e.type=="village_oath"&&e.people[0]==s.ui.playerId&&e.villageId==v).at(-1)};},common.villageId);
-  if(result.earned.membership!=="oath" || !result.earned.event)throw new Error("The local oath was not earned: "+JSON.stringify(result));
   return result;
 }
 async function discoverTimber(page,required,move) {

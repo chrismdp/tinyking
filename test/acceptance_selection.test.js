@@ -1,9 +1,11 @@
 jest.mock("../scripts/game-register",()=>({}));
-import { discoverTimber } from "../scripts/acceptance-selection";
+import { discoverTimber, waitForOathReadiness } from "../scripts/acceptance-selection";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { resourcePermission } from "game/village_customs";
+import { resourcePermission, oathEligibility } from "game/village_customs";
 import { community } from "./support/travel";
+import { peopleWorld } from "./support/people";
+import { enqueueTask } from "game/manager";
 import { newEntities } from "game/entities";
 
 function view() {
@@ -69,4 +71,67 @@ it("discovers native starting wood that has a standing wood good without a growt
   s.ecs.tree={};
   const steps=await discoverTimber(page,5);
   expect(steps[0].trees).toEqual([tree]);expect(steps[0].logs).toBe(5);
+});
+
+function oathCareWorld(unready) {
+  const w=peopleWorld(),s=w.state,actor=w.player,elder=w.parent;
+  // INITIAL night, real beds and a carried meal. Trust/contact are old fixture
+  // facts; only native orders and NPC planning may produce recovery below.
+  s.days=.9;
+  const [house,playerBed,elderBed,meal]=newEntities(s,[
+    {spatial:{...s.ecs.spatial[elder]},building:{rooms:[]},household:{},village:{villageId:"village"},controllable:{controllerId:elder}},
+    {spatial:{...s.ecs.spatial[actor]},sleepable:{capacity:1,occupiers:[]},controllable:{controllerId:actor}},
+    {spatial:{...s.ecs.spatial[elder]},sleepable:{capacity:1,occupiers:[]},controllable:{controllerId:elder}},
+    {spatial:{...s.ecs.spatial[actor]},good:{type:"forage",amount:1},haulable:{heldBy:actor},controllable:{controllerId:actor}}
+  ]);
+  Object.assign(s.villages.village,{id:"village",houses:[house],sharedPlaces:[]});
+  for(const id of [w.person,elder,w.sibling])s.ecs.household[id].houseId=house;
+  s.ecs.household[actor]={houseId:null};s.ecs.village[actor]={villageId:null};
+  s.ecs.holder[actor].held=[meal];
+  s.ecs.planner[actor].world.places.sleep=playerBed;
+  s.ecs.planner[elder].world.places.sleep=elderBed;
+  for(const id of [actor,w.person,elder,w.sibling]) {
+    s.ecs.planner[id].world.days=s.days;
+    s.ecs.planner[id].world.feeling={hungry:unready && id==actor,tired:unready && [actor,elder].includes(id)};
+    s.ecs.personable[id].hunger=unready && id==actor?1:0;
+    s.ecs.personable[id].tiredness=unready && [actor,elder].includes(id)?1:0;
+    if(![actor,elder].includes(id)){s.ecs.planner[id].task=["wait_for",1];s.ecs.planner[id].plan=[];}
+  }
+  s.ecs.relationships[elder].known[actor]={ring:"social",goodwill:12};
+  s.knowledge={[actor]:{people:{[elder]:{traits:[],conversation:{day:-1}}},feelings:{}}};
+  s.game_speed="paused";
+  const orders=[];
+  s.ui.actions={choose_job:(id,job,target)=>{expect(id).toBe(actor);orders.push(job.key);enqueueTask(s,job,target);},set_speed:speed=>{s.game_speed=speed;}};
+  global.window={tinyking:s,tinykingCustoms:{oathEligibility}};
+  const page={
+    evaluate:async(fn,arg)=>JSON.parse(JSON.stringify(fn(arg) ?? null)),
+    waitForFunction:async(fn,arg)=>{
+      for(let minute=0;minute<24*60;minute++) {
+        if(fn(arg))return;
+        w.step(1/60);
+      }
+      throw new Error("Native care did not make both parties ready within the fixture night");
+    }
+  };
+  return {s,actor,elder,meal,orders,page};
+}
+
+it("lets actual NPC sleep and ordinary player food/rest recover oath readiness without granting contact or rights",async()=>{
+  const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
+  const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
+  const result=await waitForOathReadiness(page,elder,"village");
+  expect(result.initial.readiness.ok).toBe(false);expect(result.after.readiness.ok).toBe(true);
+  expect(orders).toEqual(["find_food","rest"]);
+  expect(s.ecs.good[meal]).toBeUndefined();
+  expect(s.ecs.personable[elder].tiredness).toBeLessThan(.2);
+  expect(s.ecs.personable[actor].tiredness).toBeLessThan(.2);
+  expect(s.ecs.planner[elder].world.feeling.tired).toBe(false);
+  expect(s.game_speed).toBe("paused");expect(s.ecs.manager[actor].jobs).toEqual([]);
+  expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
+});
+
+it("leaves ready parties and their supplies alone before the real oath request",async()=>{
+  const {s,elder,orders,page}=oathCareWorld(false),before=JSON.stringify(s);
+  expect((await waitForOathReadiness(page,elder,"village")).orders).toEqual([]);
+  expect(orders).toEqual([]);expect(JSON.stringify(s)).toBe(before);
 });

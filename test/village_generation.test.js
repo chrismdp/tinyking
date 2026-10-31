@@ -1,12 +1,12 @@
 import * as landUse from "game/land_use";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
-import { addBidirectionalLink } from "game/pathfinding";
+import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 import { constructHome, reserveFoundingFields } from "game/settlement";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 
-function viableVillage(count) {
+function viableVillage(count,beforeSurvey=()=>{}) {
   const centre=Hex(10,10), hexes=Grid.hexagon({center:centre,radius:8});
   const s={ecs:{nextId:1,building:{},personable:{},household:{},controllable:{},village:{},playable:{},container:{},good:{},farmable:{},pasture:{},profession:{},planner:{}},space:{},redraws:[],events:[],days:0,peopleSeed:13,opinionThresholds:{hate:-100,love:100},map:{seed:13,centre:{x:10,y:10},radius:8,worldKey:"fixture",entrances:{},playerStartTile:{x:0,y:0},geography:{version:1,heights:{},routes:[]}},villages:{v:{id:"v",name:"Initial viable village",centre:{x:10,y:10},houses:[],sharedPlaces:[]}},settlement:{version:1,sites:{v:[]},journeys:[],appliedJourneys:{}}};
   for(const h of hexes)for(const corner of Hex().corners()) {
@@ -19,6 +19,7 @@ function viableVillage(count) {
   for(const h of Grid.hexagon({center:centre,radius:3}).sort((a,b)=>centre.distance(b)-centre.distance(a) || a.x-b.x || a.y-b.y))if(sites.length<count && sites.every(other=>other.distance(h)>=2))sites.push(h);
   expect(sites).toHaveLength(count);
   s.settlement.sites.v=sites.map(h=>({point:h.toPoint(),entrance:1,establishSeason:0}));
+  beforeSurvey(s);
   reserveFoundingFields(s);
   expect(Object.keys(s.ecs.building)).toHaveLength(0);
   expect(Object.keys(s.ecs.personable)).toHaveLength(0);
@@ -95,7 +96,7 @@ it("keeps every real field accessible when engineered road reservation is infeas
 });
 
 it("reassigns a genuinely inaccessible proposal before people, preserving public reservations and construction costs",()=>{
-  const original=landUse.reserveRoad,originalFoot=landUse.reserveFieldLane;let blockedDoor,oldRoad;
+  const original=landUse.reserveRoad,originalFoot=landUse.reserveFieldLane;let blockedDoor,oldRoad,originalPad,absent,remaining;
   const road=jest.spyOn(landUse,"reserveRoad").mockImplementation((s,tiles)=>{
     if(!blockedDoor) {
       expect(Object.keys(s.ecs.personable)).toHaveLength(0);
@@ -108,11 +109,36 @@ it("reassigns a genuinely inaccessible proposal before people, preserving public
   });
   const foot=jest.spyOn(landUse,"reserveFieldLane").mockImplementation((s,tiles)=>tiles[0]==blockedDoor?false:originalFoot(s,tiles));
   try {
-    const s=viableVillage(3);
+    const s=viableVillage(3,state=>{
+      const site=state.settlement.sites.v[0];
+      originalPad=state.space[Hex().fromPoint(site.point)].find(id=>state.ecs.mappable[id]);
+      const sides=Object.keys(state.ecs.walkable[originalPad].neighbours).map(Number).filter(side=>side!=site.entrance);
+      absent={side:sides[0],id:state.ecs.walkable[originalPad].neighbours[sides[0]]};
+      remaining={side:sides[1],id:state.ecs.walkable[originalPad].neighbours[sides[1]]};
+      removeBidirectionalLink(state.ecs,originalPad,absent.side);
+    });
     expect(s.villages.v.houses).toHaveLength(3);
     expect(Object.keys(s.ecs.personable)).toHaveLength(6);
+    expect(s.ecs.walkable[originalPad].neighbours[remaining.side]).toBe(remaining.id);
+    expect(s.ecs.walkable[originalPad].neighbours[absent.side]).toBeUndefined();
+    expect(Object.values(s.ecs.walkable[absent.id].neighbours)).not.toContain(originalPad);
     expect(s.ecs.mappable[blockedDoor].route).toEqual(expect.arrayContaining(oldRoad));
     expect(s.settlement.sites.v.every(site=>site.field && site.yard && site.usedBy)).toBe(true);
     for(const id of s.villages.v.houses)expect(s.ecs.growth[id].construction.timber).toBe(12);
   } finally {road.mockRestore();foot.mockRestore();}
+});
+
+it("releases only an infeasible opportunity's unused field proposal when reassigning its house pad",()=>{
+  const original=landUse.reserveWorkYard;let rejected;
+  const yards=jest.spyOn(landUse,"reserveWorkYard").mockImplementation((s,tile,owner)=>{
+    rejected ||= owner;
+    return owner==rejected?false:original(s,tile,owner);
+  });
+  try {
+    const s=viableVillage(3);
+    expect(s.villages.v.houses).toHaveLength(3);
+    for(const tile of Object.keys(s.ecs.mappable).filter(id=>s.ecs.mappable[id].cropPlot)) {
+      expect((s.space[Hex().fromPoint(s.ecs.spatial[tile])] || []).some(id=>s.ecs.farmable[id])).toBe(true);
+    }
+  } finally {yards.mockRestore();}
 });

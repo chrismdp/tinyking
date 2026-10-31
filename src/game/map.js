@@ -562,6 +562,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   if(prosperityVillage)for(const site of state.settlement.sites[prosperityVillage.id])site.establishSeason=-1;
   // Prospective pads reserve one approach. History cannot route a through
   // connection across a house site and later construct across that road.
+  for(const site of Object.values(state.settlement.sites).flat())site.navigationLinks={...state.ecs.walkable[tileAt(state,site.point)].neighbours};
   for(const site of Object.values(state.settlement.sites).flat()) {
     const tile=tileAt(state,site.point);
     for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(state.ecs,tile,side);

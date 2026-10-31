@@ -64,3 +64,10 @@ Only a genuinely infeasible house/yard/field proposal requires reassignment.
 That reassignment precedes people and costs, stays within the original hamlet,
 and preserves public reservations and every other proposed pad. Later homes
 use the same finite local survey and the same native surface and land APIs.
+
+Before trimming proposed doors, the map saves each pad's native navigation links.
+A rejected proposal restores only those saved links. It does not infer links
+from neighbouring tile speed. Reassignment can release that proposal's unused
+field reservation when no real crop exists. It preserves roads and actual farms.
+Additional fields exclude both real houses and still-unbuilt house pads as
+access endpoints. A farm approach cannot become a future house interior.

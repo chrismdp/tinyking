@@ -44,7 +44,8 @@ export function settlementLayoutInputs(state) {
 export function generateVillageLife(state, seed, start) {
   const ecs = state.ecs;
   state.redraws ||= [];
-  const occupied = new Set([...Object.keys(ecs.building).map(id => keyOf(ecs.spatial[id])), ...Object.keys(ecs.mappable).filter(id => ecs.mappable[id].villagePlot).map(id => keyOf(ecs.spatial[id])), ...Object.values(state.settlement?.sites || {}).flat().map(site => keyOf(site.point))]);
+  const housePads=new Set([...Object.keys(ecs.building).map(id=>keyOf(ecs.spatial[id])),...Object.values(state.settlement?.sites || {}).flat().map(site=>keyOf(site.point))]);
+  const occupied = new Set([...housePads,...Object.keys(ecs.mappable).filter(id=>ecs.mappable[id].villagePlot).map(id=>keyOf(ecs.spatial[id]))]);
   for (const hex of Grid.hexagon({ center: Hex(start), radius: 1 })) occupied.add(hex.toString());
   // Village clearings must preserve the reachable timber promised at arrival.
   for (const id in ecs.good) if (ecs.good[id].type == "wood" &&
@@ -102,7 +103,7 @@ export function generateVillageLife(state, seed, start) {
     const workYards=new Set(Object.values(ecs.household).flatMap(h=>h.workYardTiles || []));
     const blocked=Object.fromEntries([...workYards,tile].map(id=>[id,{...ecs.mappable[id],cropPlot:true}]));
     const survey={...state,ecs:{...ecs,mappable:{...ecs.mappable,...blocked}}};
-    for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id) && !(state.space[keyOf(ecs.spatial[id])] || []).some(e=>ecs.building[e]))) {
+    for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id) && !housePads.has(keyOf(ecs.spatial[id])))) {
       const route=path(survey,origin,lane);
       if(route) {
         const tiles=route.slice(1).map(p=>p.id);

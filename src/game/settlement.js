@@ -70,6 +70,7 @@ function reserveSiteYard(s,site,pads) {
 }
 export function reserveFoundingFields(s) {
   const sites=Object.values(s.settlement.sites).flat(),now=s.days;
+  for(const site of sites)site.navigationLinks ||= {...s.ecs.walkable[at(s,site.point)].neighbours};
   for(const site of sites)for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(s.ecs,at(s,site.point),side);
   s.days=-543;
   try {
@@ -81,10 +82,14 @@ export function reserveFoundingFields(s) {
         // proposal's private ground; public routes and all other plans remain.
         for(const tile of Object.keys(s.ecs.mappable))if(s.ecs.mappable[tile].buildingPlot==site.yardOwner)delete s.ecs.mappable[tile].buildingPlot;
         const old=Hex().fromPoint(site.point),tile=at(s,site.point);
-        Grid.hexagon({center:old,radius:1}).neighborsOf(old,ALL_SIDES).forEach((h,side)=>{
-          const n=at(s,h.toPoint());
-          if(n && s.ecs.walkable[n].speed>0 && !sites.some(other=>other!=site && Hex().fromPoint(other.point).equals(h)))addBidirectionalLink(s.ecs,tile,side,n);
-        });
+        for(const [side,n] of Object.entries(site.navigationLinks))if(!sites.some(other=>other!=site && at(s,other.point)==n))addBidirectionalLink(s.ecs,tile,Number(side),n);
+        if(site.field) {
+          // This is an unused survey reservation, with no crop, owner or seed
+          // expenditure yet. Its land can itself become the replacement pad.
+          const field=site.field.tile;
+          if(!(s.space[Hex().fromPoint(s.ecs.spatial[field])] || []).some(id=>s.ecs.farmable?.[id]))delete s.ecs.mappable[field].cropPlot;
+          site.field=null;
+        }
         const planned=newSitePlan(s,Object.keys(s.settlement.sites).find(id=>s.settlement.sites[id].includes(site)),sites.filter(p=>p!=site),[],site.point);
         if(!planned)throw new Error("Surveyed household lacks accessible cultivable land at "+old);
         Object.assign(site,planned.site);
@@ -145,7 +150,7 @@ function newSitePlan(s,villageId,pads,people=[],near) {
     const entrances=Object.keys(e.walkable[tile].neighbours).map(Number).sort((a,b)=>Number(b==preferred)-Number(a==preferred) || a-b);
     let surface;
     for(const entrance of entrances) {
-      const trial={point:{x:e.spatial[tile].x,y:e.spatial[tile].y},entrance,unsurveyed:true};
+      const trial={point:{x:e.spatial[tile].x,y:e.spatial[tile].y},entrance,unsurveyed:true,navigationLinks:{...e.walkable[tile].neighbours}};
       if(!siteAvailable(s,trial,villageId,people,pads))continue;
       surface ??= planSurface(s,trial.point,pads);
       if(!surface)break;

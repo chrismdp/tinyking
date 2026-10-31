@@ -107,6 +107,9 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert(sites.length, "A feasible camp shelter site is required");
     const materials = await page.evaluate(tile => {
       const s = window.tinyking, p = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
+      // Placement clears its real footprint without yielding timber. Select
+      // the five standing logs afterwards, so none is a cleared-away tree.
+      s.ui.actions.choose_job(s.ui.playerId, { key: "build_shelter" }, tile);
       const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
       const candidates = Object.keys(s.ecs.good).filter(id => s.ecs.good[id].type == "wood" && s.ecs.good[id].amount > 0 && !s.ecs.haulable?.[id] &&
         known.has(Object.keys(s.space).find(key => s.space[key].includes(id))) && window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted).sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y));
@@ -114,7 +117,6 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       for (const id of candidates) { trees.push(id); logs += s.ecs.good[id].amount; if (logs >= 5) break; }
       if (logs < 5) throw new Error("Need five real discovered logs: four for the lean-to and one for the favour");
       s.ui.actions.choose_job(s.ui.playerId, { key: "cut_tree_down" }, trees[0]);
-      s.ui.actions.choose_job(s.ui.playerId, { key: "build_shelter" }, tile);
       for (const tree of trees.slice(1)) s.ui.actions.choose_job(s.ui.playerId, { key: "cut_tree_down" }, tree);
       if (!s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "build_shelter")) throw new Error("The lean-to order was not queued");
       s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("paused");

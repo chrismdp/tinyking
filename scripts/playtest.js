@@ -415,6 +415,16 @@ async function play(page) {
     await page.mouse.wheel(0, 915);
     await page.waitForTimeout(500);
 
+    // The fresh world has its own local rights. Earn legal timber access
+    // before the original cutting-menu and gathered-item gift checks.
+    const interactionTimber = await discoverTimber(page, 5, async id => {
+      await panTo(id);
+      if (!await orderOn([id], "Move here")) throw new Error("Could not walk to the known woodland edge");
+      await closePopup();
+    });
+    fs.writeFileSync(path.join(SHOTS, "interaction-timber-exploration.json"), JSON.stringify(interactionTimber, null, 2));
+    await closePopup();
+
     // --- Select a villager by clicking it (paused, so they hold still) --------------
     const villagers = await game(() => {
       const s = window.tinyking;

@@ -74,13 +74,22 @@ async function waitForOathReadiness(page,elder,villageId) {
   const initial=await page.evaluate(observe,{elder,villageId});
   if(initial.readiness.ok)return {initial,orders:[],after:initial};
   const orders=["find_food","rest"];
-  await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},orders);
+  await page.evaluate(keys=>{const s=window.tinyking;window.oathCareOrders=[];for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},orders);
   await page.waitForFunction(({villageId,orders})=>{
     const s=window.tinyking,actor=s.ui.playerId;
-    if(!window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness.ok || s.ecs.manager[actor].jobs.some(j=>orders.includes(j.job.key)))return false;
+    const pending=s.ecs.manager[actor].jobs.some(j=>orders.includes(j.job.key));
+    if(!window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness.ok || pending) {
+      // NPC recovery can outlast the player's first meal/rest. Idle players
+      // need another explicit care order when their native flags return.
+      if(!pending)for(const [need,key] of [["hungry","find_food"],["tired","rest"]])if(s.ecs.planner[actor].world.feeling[need]) {
+        window.oathCareOrders.push({day:s.days,key});
+        s.ui.actions.choose_job(actor,{key},actor);
+      }
+      return false;
+    }
     s.ui.actions.set_speed("paused");return true;
   },{villageId,orders},{timeout:180000});
-  return {initial,orders,after:await page.evaluate(observe,{elder,villageId})};
+  return {initial,orders,continuingCare:await page.evaluate(()=>window.oathCareOrders),after:await page.evaluate(observe,{elder,villageId})};
 }
 module.exports.waitForOathReadiness=waitForOathReadiness;
 
@@ -91,31 +100,37 @@ async function earnTimberRights(page,common) {
   await page.getByRole("button",{name:"Meet the elder",exact:true}).click();
   const elder=await page.evaluate(v=>window.tinykingCustoms.villageElder(window.tinyking,v),common.villageId);
   const result={villageId:common.villageId,elderId:elder,chats:[],readiness:[],refusals:[],initial:await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation};},elder)};
-  for(;;) {
-    const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0,contact:s.knowledge?.[s.ui.playerId]?.people?.[elder]?.conversation};},{elder,villageId:common.villageId});
-    if(status.contact && status.goodwill>=OATH_TRUST)break;
-    const chat=page.getByRole("button",{name:"Chat",exact:true});
-    if(!await chat.isEnabled()) {
-      // A real night and ordinary care restore the existing daily patience.
-      await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
-      await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),status.day,{timeout:180000});
-      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
+  const earnTrust=async()=>{
+    for(;;) {
+      const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0,contact:s.knowledge?.[s.ui.playerId]?.people?.[elder]?.conversation};},{elder,villageId:common.villageId});
+      if(status.contact && status.goodwill>=OATH_TRUST)break;
+      const chat=page.getByRole("button",{name:"Chat",exact:true});
+      if(!await chat.isEnabled()) {
+        // A real night and ordinary care restore the existing daily patience.
+        await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
+        await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),status.day,{timeout:180000});
+        await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
+        await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+        continue;
+      }
+      await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+      await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat"&&j.targetId==id);},elder,{timeout:180000});
       await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-      continue;
+      const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation,result:s.ui.talkResult};},elder);
+      result.chats.push(earned);
+      if(!earned.contact || earned.contact.day<status.day || !(earned.bond?.goodwill>status.goodwill))throw new Error("The actual elder conversation did not earn further trust: "+JSON.stringify(result));
     }
-    await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
-    await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat"&&j.targetId==id);},elder,{timeout:180000});
-    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-    const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation,result:s.ui.talkResult};},elder);
-    result.chats.push(earned);
-    if(!earned.contact || earned.contact.day<status.day || !(earned.bond?.goodwill>status.goodwill))throw new Error("The actual elder conversation did not earn further trust: "+JSON.stringify(result));
-  }
+  };
+  await earnTrust();
   try {
     await page.getByText("Rights and obligations",{exact:true}).click();
     // A queued approach can outlast readiness. Permit one explicit care and
     // re-request after a native needs refusal, preserving that refusal below.
     for(let attempt=0;attempt<2;attempt++) {
       result.readiness.push(await waitForOathReadiness(page,elder,common.villageId));
+      // Necessary care can outlast the goodwill margin. Earn any missing
+      // trust through the same real Chat path before discussing the oath.
+      await earnTrust();
       await page.getByRole("button",{name:"Discuss the local oath",exact:true}).click();
       await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
       await page.waitForFunction(id=>{
@@ -128,7 +143,8 @@ async function earnTimberRights(page,common) {
       const outcome=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,opened:s.customs?.dialogue?.kind=="oath",eligibility:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,v),talkResult:s.ui.talkResult};},common.villageId);
       if(outcome.opened)break;
       result.refusals.push(outcome);
-      if(attempt || outcome.eligibility.readiness.ok)throw new Error("The actual oath approach ended without a ready dialogue");
+      const needsRefusal=/^(You need|The elder needs) (food|rest|food and rest) before this conversation\./.test(outcome.talkResult?.message || "");
+      if(attempt || outcome.eligibility.readiness.ok && !needsRefusal)throw new Error("The actual oath approach ended without a ready dialogue");
     }
     await page.getByRole("dialog",{name:"Local oath",exact:true}).waitFor();
     await page.getByRole("button",{name:"Swear the local oath",exact:true}).click();

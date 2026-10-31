@@ -16,6 +16,8 @@ import { FUEL_TRADES, FUEL_HOURS, fuelReady, householdStore, favourReceiver, fav
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
+import { openChat } from "game/chat";
+import { snapshotActivity } from "game/chat_facts";
 import { chatTogether, canCourt } from "game/social";
 import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
@@ -32,7 +34,7 @@ import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
 import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, localHome } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
-import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
+import { beginInteraction, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { familyConversation } from "game/family";
 import { TALK_MINUTES } from "game/player";
 
@@ -808,6 +810,8 @@ export function get_attention(state, actorId, world, dt, firstRun, targetId) {
   if (!target) {
     throw "Cannot get_attention for non-planner " + targetId;
   }
+  if (state.ecs.manager?.[actorId]?.jobs.some(j => j.job.key == "chat" && j.targetId == targetId)) world.chatActivity = snapshotActivity(state, targetId);
+  if (target.world.feeling?.hungry || target.world.feeling?.tired || target.world.capturedBy && target.world.capturedBy != actorId) return Task.CONTINUE;
   replan(target);
   target.world.capturedBy = actorId;
 }
@@ -867,6 +871,14 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
   if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > reach ** 2) return Task.ABORT;
   // Recheck the physical handoff on every work tick, including completion.
   if (key == "give_gift" && !fenceHandoffClear(state, ecs.spatial[actorId], ecs.spatial[personId])) return Task.ABORT;
+  if (key == "chat" && actorId != state.ui.playerId) { beginInteraction(state,actorId,personId); completeConversation(state,actorId,personId,false); return Task.FINISH; }
+  if (key == "chat") {
+    if (world.chatOpened && state.chat?.active) return Task.CONTINUE;
+    if (world.chatOpened) { delete world.chatOpened; delete world.chatActivity; return Task.FINISH; }
+    if (openChat(state, actorId, personId)) { world.chatOpened = true; return Task.CONTINUE; }
+    state.ui.talkResult = { personId, message: "They need a rest before talking. Try another neighbour." };
+    return Task.FINISH;
+  }
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
   if (["court", "marry", "play", "invite_home"].includes(key)) result = familyConversation(state,actorId,personId,key);
@@ -874,7 +886,6 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
     result = openOath(state, actorId, personId, key == "village_leave");
     if (result.ok) return Task.CONTINUE;
   }
-  if (key == "chat") result = chat(state, actorId, personId);
   if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
   if (key == "give_gift") {
     const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
@@ -986,7 +997,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
     state.social.lastVisits ||= {};
     state.social.lastVisits[[actorId, partnerId].sort().join(":")] = Math.floor(state.days);
     const visitor = v.visitor ? actorId : partnerId, host = v.visitor ? partnerId : actorId;
-    recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId });
+    recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId, conversations: 1, courting: !!v.courting });
   }
   for (const [a, b] of [[actorId, partnerId], [partnerId, actorId]]) {
     spendPatience(state, a, b); beginInteraction(state, a, b); completeConversation(state, a, b);

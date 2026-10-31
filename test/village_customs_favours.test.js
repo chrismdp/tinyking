@@ -25,7 +25,10 @@ it("lets a met adult ask for a real shared household need, with the normal rewar
   const w=householdNeed(),s=w.state,r=w.request;
   expect(r.giverId).toBe(w.parent);
   expect(canRequestForHousehold(s,r,w.person)).toBe(false);
-  enqueueTask(s,{key:"chat"},w.person);until(w,()=>!!s.knowledge?.[w.player]?.people?.[w.person]?.conversation);
+  enqueueTask(s,{key:"chat"},w.person);until(w,()=>!!s.chat?.active);
+  // Contact and the offer now require a player line in the paused chat.
+  const chat=require("game/chat");chat.chooseLine(s,chat.chatChoices(s).find(l=>l.family=="introduction").key);chat.closeChat(s);
+  expect(s.knowledge[w.player].people[w.person].conversation).toBeDefined();
   // A real prior directional loss, repaired by real fuel delivery.
   addGoodwill(s,w.player,w.person,-3);
   const before=s.ecs.relationships[w.person].known[w.player].goodwill;
@@ -43,6 +46,7 @@ it("rejects a child, stranger, remote reference or unrelated household as the re
   const w=householdNeed(),s=w.state,r=w.request;
   expect(acceptFavour(s,r.id,w.person)).toBe(null);
   s.knowledge[w.player].people[w.person]={conversation:{day:s.days}};
+  s.knowledge[w.player].favours=[r.id];s.knowledge[w.player].offers={[r.id]:{speakerId:w.person,day:s.days}};
   s.ecs.personable[w.person].age=12;
   expect(acceptFavour(s,r.id,w.person)).toBe(null);
   s.ecs.personable[w.person].age=30;s.residents={[w.player]:true,[w.parent]:true};

@@ -1,8 +1,9 @@
+import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
 import { RealmControls } from "./realm_controls";
 import { WeddingNotice } from "./wedding_notice";
 import { CustomsEncounter } from "./village_customs";
-import { openingGuidance, dismissGuidance } from "game/guidance";
+import { openingGuidance } from "game/guidance";
 import { EventFeed } from "./event_feed";
 import React from "react";
 
@@ -26,10 +27,9 @@ const FamilyTree = React.lazy(()=>import("./person_panel").then(module=>({defaul
 
 function OpeningGuidance() {
   const state = React.useContext(GameState);
-  const [, refresh] = React.useState(0);
   const hint = openingGuidance(state);
   if (!hint) return null;
-  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span><button aria-label="Dismiss getting started hint" onClick={() => { dismissGuidance(state); refresh(n => n + 1); }}>×</button></aside>;
+  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span>{hint.action && <button onClick={() => hint.speed ? state.ui.actions.set_speed(hint.speed) : hint.job ? state.ui.actions.choose_job(hint.actorId,{key:hint.job},hint.actorId) : state.ui.actions.talk_to(hint.targetId,"chat")}>{hint.action}</button>}</aside>;
 }
 
 export function UserInterface() {
@@ -39,6 +39,7 @@ export function UserInterface() {
   if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
     <div id="ui" className={state.renderer?.overview ? "realm-inspecting" : ""}>
+      {state.chat?.active && <ChatPanel/>}
       {show.clock && <Clock/>}
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}
       {state.ui?.successionMessage && <aside className="succession-message" role="status"><button aria-label="Dismiss succession message" onClick={()=>{state.ui.successionMessage=null;state.ui.actions.end_turn();}}>×</button>{state.ui.successionMessage}</aside>}

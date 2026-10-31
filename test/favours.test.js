@@ -109,7 +109,7 @@ it('shows sleep as an interruption before returning to the unfinished harvest', 
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(0);
 });
 
-export function favourWorld() {
+export function favourWorld(spoken = true) {
   const w = peopleWorld(), { state: s, player, person, parent, sibling, tiles } = w;
   const [house, store, workplace, field, camp] = newEntities(s, [
     { spatial: { ...s.ecs.spatial[tiles[3]] }, building: {}, household: { fields: [], farming: true }, controllable: { controllerId: person } },
@@ -127,6 +127,13 @@ export function favourWorld() {
   s.ecs.spatial[player] = { ...s.ecs.spatial[tiles[2]] };
   s.ecs.playable[player].known = tiles.map(id => require('game/hex').Hex().fromPoint(s.ecs.spatial[id]));
   updateFavours(s);
+  // Physical-delivery fixtures start after a real spoken offer. Discovery is
+  // tested separately below; proximity alone no longer teaches requests.
+  if (spoken) {
+    s.knowledge[player].people[person] = { traits: [], conversation: { day: s.days } };
+    s.knowledge[player].favours = Object.keys(s.favours.requests);
+    s.knowledge[player].offers = Object.fromEntries(Object.keys(s.favours.requests).map(id => [id, { speakerId: person, day: s.days }]));
+  }
   return { ...w, house, store, workplace, field, camp, request: kind => Object.values(s.favours.requests).find(r => r.kind == kind && r.status == 'offered') };
 }
 
@@ -164,7 +171,8 @@ it('keeps undiscovered needs private, including known people in unseen household
   expect(visibleFavours(s)).toEqual([]);
   s.ecs.spatial[w.player] = { ...s.ecs.spatial[w.person] };
   updateFavours(s);
-  expect(visibleFavours(s).length).toBe(2);
+  expect(visibleFavours(s)).toEqual([]);
+  expect(Object.keys(s.knowledge[w.player].noticedNeeds)).toHaveLength(2);
 });
 
 it('explicitly accepts once, joins the ordered queue, reorders and cancels without reward', () => {
@@ -269,7 +277,9 @@ it('resumes after a meal, and cancellation leaves collected goods without goodwi
   expect(task.progress).toBe(1);
   // A separate accepted request cannot refund goods or claim completion on cancel.
   s.ecs.workplace[w.workplace].fuelHours = 0; s.ecs.container[w.store].amounts.wood = 0;
-  updateFavours(s); const next = w.request('wood'), queued = acceptFavour(s, next.id);
+  updateFavours(s); const next = w.request('wood');
+  s.knowledge[w.player].favours.push(next.id); s.knowledge[w.player].offers[next.id] = { speakerId: w.person, day: s.days };
+  const queued = acceptFavour(s, next.id);
   for (let i = 0; i < 200 && !next.cargo.length; i++) w.step(.02);
   const item = next.cargo[0]; cancelTask(s, queued.id);
   expect(s.ecs.haulable[item].heldBy).toBe(w.player);
@@ -280,7 +290,8 @@ it('resumes after a meal, and cancellation leaves collected goods without goodwi
 it('delivers food from genuine player ownership and rechecks a vanished cargo instead of crediting it', () => {
   const w = favourWorld(), s = w.state;
   s.ecs.container[w.store].amounts.grain = 0; updateFavours(s);
-  const r = w.request('food'); acceptFavour(s, r.id);
+  const r = w.request('food');
+  s.knowledge[w.player].favours.push(r.id); s.knowledge[w.player].offers[r.id] = { speakerId: w.person, day: s.days }; acceptFavour(s, r.id, w.person);
   w.step(6);
   expect(r.status).toBe('completed');
   expect(r.delivered).toBe(3);
@@ -410,13 +421,14 @@ it('preserves family cargo when reordering an explicit gathering task ahead of i
   cancelTask(s, favour.id);
 });
 
-it('learns the visible requesters name through existing knowledge without meeting them or revealing relatives', () => {
-  const w = favourWorld(), s = w.state;
-  expect(s.knowledge[w.player].people[w.person]).toEqual({ traits: [] });
+it('overhears an anonymous need without learning the requester or revealing relatives', () => {
+  const w = favourWorld(false), s = w.state;
+  expect(s.knowledge[w.player].people[w.person]).toBeUndefined();
   expect(s.knowledge[w.player].people[w.parent]).toBeUndefined();
   expect(s.knowledge[w.player].people[w.sibling]).toBeUndefined();
   expect(s.ecs.relationships[w.player].known[w.person]).toBeUndefined();
-  expect(require('game/knowledge').displayName(s, w.person, () => 'Agnes Miller')).toBe('Agnes Miller');
+  expect(require('game/knowledge').displayName(s, w.person, () => 'Agnes Miller')).toBe('an unknown person');
+  expect(s.knowledge[w.player].noticedNeeds[w.person + ':wood'].kind).toBe('wood');
 });
 
 it('refuses minor favour acceptance before introduction, status, queue or rewards change', () => {
@@ -632,7 +644,9 @@ it.each(['food', 'wood'])('rejects %s drawn from the receiving household, includ
   s.ecs.container[w.camp].amounts = {};
   s.ecs.container[w.store].amounts = { grain: 3 };
   updateFavours(s);
-  const r = w.request(kind), task = acceptFavour(s, r.id);
+  const r = w.request(kind);
+  s.knowledge[w.player].favours.push(r.id); s.knowledge[w.player].offers[r.id] = { speakerId: w.person, day: s.days };
+  const task = acceptFavour(s, r.id, w.person);
   const type = kind == 'food' ? 'grain' : 'wood';
   if (kind == 'wood') s.ecs.container[w.store].amounts.wood = 1;
   expect(require('game/favours').favourSource(s, r)).toBeUndefined();
@@ -653,7 +667,8 @@ it('can import genuine outside food into a shared household without recycling it
   s.ecs.controllable[w.store].controllerId = w.house;
   s.ecs.container[w.store].amounts.grain = 3;
   updateFavours(s);
-  const r = w.request('food'); acceptFavour(s, r.id);
+  const r = w.request('food');
+  s.knowledge[w.player].favours.push(r.id); s.knowledge[w.player].offers[r.id] = { speakerId: w.person, day: s.days }; acceptFavour(s, r.id, w.person);
   w.step(6);
   expect(r.status).toBe('completed');
   expect(s.ecs.container[w.store].amounts.grain).toBe(6);
@@ -731,7 +746,17 @@ it.each([1,6])('a queued handover frees the household crop before accepted harve
   const visit=enqueueTask(s,{key:'chat'},person);
   reorderTask(s,visit.id,0);
   const deadline=s.days+4*HOUR;
-  while(r.progress==0 && s.days<deadline)simulation.step(frame);
+  // A player Chat now pauses at contact. Answer and leave through the real
+  // conversation rules before physical harvest work can resume.
+  while(r.progress==0 && s.days<deadline) {
+    simulation.step(frame);
+    if(s.chat?.active) {
+      const chat=require("game/chat");
+      const line=chat.chatChoices(s).find(l=>chat.previewLine(s,l).fits);
+      if(line)chat.chooseLine(s,line.key);
+      chat.closeChat(s);
+    }
+  }
   expect(r.progress).toBeGreaterThan(0);
   expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
   expect(r.produced).toBe(2);

@@ -2,19 +2,18 @@ import { peopleWorld } from "./support/people";
 import { chat, askAbout, giftGoodwill, knownFamilyTree, patienceLeft, giftOptions } from "game/people";
 import { newEntities } from "game/entities";
 
-it("first chat meets in both directions, earns goodwill, and respects daily patience", () => {
+// v1 replaces the flat +2 and daily Chat allowance with pop scoring and slots.
+// The observable paused panel and two-way pops are covered in chat.test.js.
+it("contact bookkeeping introduces both people without a flat reward or daily Chat charge", () => {
   const { state, player, person } = peopleWorld();
   expect(state.ecs.relationships[player].known).toEqual({});
   expect(chat(state, player, person).ok).toBe(true);
   expect(state.ecs.relationships[player].known[person]).toBeDefined();
-  expect(state.ecs.relationships[person].known[player].goodwill).toBe(2);
-  expect(chat(state, player, person).ok).toBe(true);
-  expect(chat(state, player, person)).toEqual({ ok: false, message: "They've had enough of talking for today" });
-  expect(state.ecs.relationships[person].known[player].goodwill).toBe(4);
-  state.days++;
+  expect(state.ecs.relationships[person].known[player].goodwill).toBe(0);
+  expect(state.knowledge[player].people[person].conversation).toBeDefined();
+  chat(state, player, person);
+  expect(state.ecs.relationships[person].known[player].goodwill).toBe(0);
   expect(patienceLeft(state, player, person)).toBe(2);
-  state.ecs.relationships[person].known[player].ring = "social";
-  expect(patienceLeft(state, player, person)).toBe(4);
 });
 
 it("ask about is gated by the speaker's Social ring and fills unknown family names without meeting them", () => {

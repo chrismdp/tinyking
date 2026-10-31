@@ -16,7 +16,9 @@ it("recognises identified family disclosure, never an anonymous tree or global h
   recordEvent(s,"birth",[person,parent],[],{day:-9});
   expect(peopleGoals(s).completed).not.toContain("story");
   s.ecs.relationships[person].known[player]={ring:"social",goodwill:16,base:16};
-  chat(s,player,person);expect(peopleGoals(s).completed).toContain("story");
+  chat(s,player,person);expect(peopleGoals(s).completed).not.toContain("story");
+  // A greeting/contact no longer grants a family story; actual disclosure does.
+  askAbout(s,player,person,parent);expect(peopleGoals(s).completed).toContain("story");
   const f=peopleWorld();f.state.ecs.relationships[f.person].known[f.player]={ring:"social",goodwill:16,base:16};
   const e=recordEvent(f.state,"birth",[f.person,f.parent]);f.state.knowledge[f.player]={events:[e.id],people:{},feelings:{}};
   expect(peopleGoals(f.state).completed).not.toContain("story");

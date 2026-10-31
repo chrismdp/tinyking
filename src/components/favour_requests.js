@@ -24,7 +24,7 @@ export function RequestCard({ request: r, personId }) {
     {r.kind == "harvest" && destination && <small>Deliver to household · tile {destination.x}, {destination.y}</small>}
     {r.kind == "harvest" && <small>Keep one third of each patch as seed grain, rounded down. Carry the rest home.</small>}
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
-      {r.status == "offered" ? <button disabled={!playerOrderAllowed(s,"favour")} aria-label={"Accept favour: " + favourTitle(r) + " for " + giver} onClick={() => s.ui.actions.accept_favour(r.id, giverId)}>Accept</button> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
+      {r.status == "offered" ? <span>Discuss this in Chat</span> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
     </div>
     {r.kind == "harvest" && ["accepted", "completed"].includes(r.status) ? <small>{harvestCounts(s, r)}</small> :
       r.status == "accepted" && <small>{r.progress}/{r.quantity} delivered · {r.delivered} carried home</small>}
@@ -36,7 +36,7 @@ RequestCard.propTypes = { request: PropTypes.object.isRequired, personId: PropTy
 
 function Requests({ requests, personId }) {
   return <div className="request-content">{requests.length ? requests.map(r => <RequestCard key={r.id} request={r} personId={personId}/>) : <p className="request-note">No requests just now. Meet people nearby.</p>}
-    <p className="request-note">Accept adds a favour to your queue. Goodwill comes when the work is done.</p></div>;
+    <p className="request-note">Accepting a spoken chat offer adds a favour to your queue. Goodwill comes when the work is done.</p></div>;
 }
 Requests.propTypes = { requests: PropTypes.array.isRequired, personId: PropTypes.string };
 export function RequestList() {

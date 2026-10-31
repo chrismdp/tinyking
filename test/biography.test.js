@@ -1,6 +1,6 @@
 import { peopleWorld } from "./support/people";
 import { biography } from "game/biography";
-import { chat, askAbout } from "game/people";
+import { beginInteraction, askAbout } from "game/people";
 import { recordEvent, learnEvent } from "game/events";
 import { createPossession, transferPossession } from "game/possessions";
 const read = (s, viewer, person) => biography(s, viewer, person, id => s.ecs.nameable[id]?.nickname);
@@ -10,7 +10,9 @@ it("does not disclose a private quarrel at acquaintance trust, and learns it at 
   const event = recordEvent(s, "quarrel", [person, sibling]);
   s.knowledge[player] = { people: {}, feelings: {}, events: [] };
   s.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
-  chat(s, player, person);
+  // Biography consumes disclosed evidence; Chat v1 no longer bulk discloses.
+  beginInteraction(s, player, person);
+  askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   expect(s.knowledge[player].events).not.toContain(event.id);
   expect(JSON.stringify(read(s, player, person))).not.toContain("Fell out");
   s.ecs.relationships[person].known[player].ring = "personal";
@@ -28,7 +30,9 @@ it("uses learned parent loss without claiming care; keeps the exact date after k
   s.ecs.household[sibling].houseId = tiles[5];
   s.knowledge[player] = { people: {}, feelings: {}, events: [] };
   s.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
-  chat(s, player, person);
+  // Biography consumes disclosed evidence; Chat v1 no longer bulk discloses.
+  beginInteraction(s, player, person);
+  askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   const facts = read(s, player, person);
   expect(facts).toContainEqual({ key: death.id, text: "Lost their mother, Edith Miller, in winter of year -1.", eventId: death.id });
   expect(JSON.stringify(facts)).not.toMatch(/raised|looked after/);
@@ -43,7 +47,9 @@ it("requires the actual learned inheritance event and current custody; a gift ch
   transferPossession(s, item, sibling, "gift");
   transferPossession(s, item, person, "inheritance");
   s.ecs.relationships[person].known[player] = { ring: "personal", goodwill: 36 };
-  chat(s, player, person);
+  // Biography consumes disclosed evidence; Chat v1 no longer bulk discloses.
+  beginInteraction(s, player, person);
+  askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   let facts = read(s, player, person);
   expect(facts[0].text).toBe("Still carries Old adze, inherited from Alice Miller.");
   expect(facts[0].itemId).toBe(item);
@@ -81,7 +87,9 @@ it("does not turn a learned remote ring inheritance into a household when its it
   const item = createPossession(s, parent, "Remote ring");
   transferPossession(s, item, person, "inheritance");
   s.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
-  chat(s, player, person);
+  // Biography consumes disclosed evidence; Chat v1 no longer bulk discloses.
+  beginInteraction(s, player, person);
+  askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   delete s.ecs.possession[item];
   const facts = read(s, player, person);
   expect(facts.some(f => f.text == "Inherited property from Edith Miller in spring of year 1.")).toBe(true);

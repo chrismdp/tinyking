@@ -136,9 +136,11 @@ function updatePlannerFrame(state, frameMod) {
       }
     }
     // Process tasks
+    if (state.chat?.active) return;
     const dt = deltaTime(frameMod, SPEED[state.game_speed]);
     if (planner.task) {
       htn.runTask(state, planner, dt, false);
+      if(state.chat?.active)return;
     }
     while (!planner.world.customsHold && !planner.task && planner.plan) {
       if (planner.plan.length > 0) {
@@ -214,7 +216,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
   return {
     get pending() { return pending; },
     step(frameMod, realSeconds = frameMod / 60) {
-      if(pending || state.travelError) return pending;
+      if(pending || state.travelError || state.chat?.active) return pending;
       if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
@@ -222,6 +224,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
       if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
       updateCustoms(state);
       updatePlanners(state, frameMod);
+      if (state.chat?.active) { if(onHour) onHour(); return; }
       // All edge completions belong to the map where planners just ran.
       for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
       state.pendingNpcDepartures=[];

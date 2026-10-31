@@ -167,9 +167,10 @@ it("does not complete a blocked approach or a report from a dead witness",()=>{
 });
 it("receives and declines an oath through a real visit, then swears and leaves explicitly",()=>{
   const w=world(),s=w.state;
-  // Earn trust through real chat actions; no final relationship injection.
-  const { chat }=require("game/people");
-  for(let day=0;day<3;day++) {s.days=day+.4;chat(s,w.player,w.parent);chat(s,w.player,w.parent);}
+  // Oath fixture: a completed contact and earned trust. Interactive pop
+  // scoring replaces the old six flat-reward Chat calls (chat.test.js).
+  const people=require("game/people");
+  people.chat(s,w.player,w.parent);people.addGoodwill(s,w.player,w.parent,12);
   expect(oathEligibility(s,w.player,"village").ok).toBe(true);
   enqueueTask(s,{key:"village_oath"},w.parent);
   until(w,()=>s.customs?.dialogue?.kind=="oath");
@@ -204,6 +205,9 @@ it("preserves factual warning history when a real accepted harvest favour restor
   const r=Object.values(s.favours.requests).find(r=>r.kind=="harvest");
   expect(r.giverId).toBe(w.person);
   const before=s.ecs.relationships[w.person].known[w.player].goodwill;
+  // The warning established contact; the subsequent favour needs its own
+  // spoken offer before acceptance in v1.
+  s.knowledge[w.player].favours=[r.id];s.knowledge[w.player].offers={[r.id]:{speakerId:w.person,day:s.days}};
   acceptFavour(s,r.id);until(w,()=>r.status=="completed");
   expect(s.ecs.container[store].amounts.grain).toBe(32);
   expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeGreaterThan(before+r.goodwill-.2);
@@ -238,8 +242,8 @@ it("rechecks private tree permission in the actual work task",()=>{
 it("blocks an oath from a distance, rechecks trust on acceptance, and cancels on elder departure",()=>{
   const w=world(),s=w.state,{openOath}=require("game/village_customs");
   expect(openOath(s,w.player,w.parent).ok).toBe(false);
-  const {chat}=require("game/people");
-  for(let day=0;day<3;day++){s.days=day+.4;chat(s,w.player,w.parent);chat(s,w.player,w.parent);}
+  const people=require("game/people");
+  people.chat(s,w.player,w.parent);people.addGoodwill(s,w.player,w.parent,12);
   enqueueTask(s,{key:"village_oath"},w.parent);until(w,()=>s.customs?.dialogue?.kind=="oath");
   s.ecs.relationships[w.parent].known[w.player].goodwill=0;
   expect(answerCustoms(s,"accept")).toBe(false);

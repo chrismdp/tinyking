@@ -1,3 +1,4 @@
+import { chooseLine, closeChat, selectChatSubject } from "game/chat";
 import { PanelBoundary } from "./panel_boundary";
 import { personComponent } from "game/residents";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
@@ -16,7 +17,6 @@ import { updateEnvironment, advanceEnvironment } from "game/environment";
 import { canPlaceField, reserveFieldPlot, reserveRoad } from "game/land_use";
 import { growingAt, frozenAt } from "game/climate";
 import { initialiseTravel, acceptTravel } from "game/travel";
-import { acceptFavour } from "game/favours";
 import { name } from "game/name";
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
@@ -194,7 +194,7 @@ export function World() {
         renderUI();
       },
       set_speed: (speedClass) => {
-        if (introActive(state)||state.worldBusy) return;
+        if (introActive(state)||state.worldBusy||state.chat?.active) return;
         state.game_speed = speedClass;
         renderUI();
       },
@@ -282,11 +282,14 @@ export function World() {
       dismiss_resource_order: () => { delete state.ui.resourceOrder; renderUI(); },
       answer_customs: choice => { answerCustoms(state, choice); renderUI(); },
       dismiss_customs: () => { delete state.ui.customsResult; renderUI(); },
-      accept_favour: (id, personId) => { if (introActive(state)||state.worldBusy || !playerOrderAllowed(state,"favour")) return; state.renderer?.resumeFollow(); acceptFavour(state, id, personId); renderUI(); },
+      choose_chat_line: key => { chooseLine(state,key); renderUI(); },
+      close_chat: () => { closeChat(state); renderUI(); },
+      chat_focus: focus => { if(state.chat?.active) state.chat.active.focus=focus; renderUI(); },
+      chat_subject: id => { selectChatSubject(state,id); renderUI(); },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)||state.worldBusy) return;
         state.renderer?.resumeFollow();
-        enqueueTask(state, { key }, personId, metadata);
+        enqueueTask(state, { key: key == "ask_about" ? "chat" : key }, personId, metadata);
         renderUI();
       },
       reorder_task: (id, index) => { if (introActive(state)||state.worldBusy) return; reorderTask(state, id, index); renderUI(); },

@@ -991,7 +991,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   font-size: clamp(18px, 2.3vw, 24px); line-height: 1.35; text-align: center;
 }
 #opening-guidance {
-  position: absolute; top: calc(53px + var(--safe-top)); left: 50%; transform: translateX(-50%);
+  position: absolute; top: calc(104px + var(--safe-top)); left: 50%; transform: translateX(-50%);
   width: min(430px, calc(100% - 24px)); box-sizing: border-box; display: flex; gap: 8px; align-items: center;
   padding: 8px 12px; border-radius: 8px; background: rgba(35,38,30,.88); font-size: 16px;
   pointer-events: auto;
@@ -1004,3 +1004,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   small { font-size: 12px; }
 }
 @media (max-width: 700px), (max-height: 500px) { #camera-actions { left: calc(12px + var(--safe-left)); } #camera-actions small { display: none; } }
+
+// Keep opening guidance below the clock and above a phone encounter sheet.
+@media (max-width: 700px), (max-height: 500px) {
+  #ui:has(#opening-guidance) .people-sheet {
+    top: calc(202px + var(--safe-top));
+    max-height: calc(100svh - 276px - var(--safe-top) - var(--safe-bottom));
+  }
+}
+@media (min-width: 701px) and (min-height: 501px) {
+  #ui:has(.person-window) #opening-guidance { left: calc(774px + var(--safe-left)); transform: none; width: min(430px, calc(100% - 800px)); }
+  #ui:has(.tree-window) #opening-guidance { display: none; }
+}

@@ -245,12 +245,28 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const showActivities = () => {
     const overlaps = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
     const activities = [];
+    // Sprites face the camera: stack them along screen-up, not world-up.
+    // World-up foreshortens at local camera angles and makes a bubble collide
+    // with its own name, especially when the name has a minimum pixel size.
+    const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+    const pixelSize = object => {
+      const at = object.position.clone().add(new THREE.Vector3(0, object.userData.anchorHeight + 14, 0));
+      const depth = -at.applyMatrix4(camera.matrixWorldInverse).z;
+      return depth * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, canvas.clientHeight);
+    };
     const roofs = Object.entries(objects).filter(([id,object]) => object.visible &&
       (state.ecs.building[id] || state.ecs.shelter?.[id]?.stage == "house" || ["alehouse","chapel"].includes(state.ecs.meetingPlace?.[id]?.kind)))
       .map(([,object]) => { object.updateMatrixWorld(true); const part=object.children[0]; return part?.isMesh ? part : part?.children[0]; }).filter(mesh=>mesh?.isMesh);
     for (const id of people) {
       const object=objects[id];
       object.userData.labelVisible=object.visible && personLabelVisible(camera,object.position,object.userData.anchorHeight,roofs,labelRay);
+      const activity = object.getObjectByName("activity");
+      if (activity) {
+        const aspect = activity.scale.x / activity.scale.y;
+        const height = rig.distance <= 2400 ? Math.max(15, pixelSize(object) * 20) : 15;
+        activity.scale.set(height * aspect, height, 1);
+        activity.position.set(0, object.userData.anchorHeight + 14, 0);
+      }
       for (const key of ["person-name","activity"]) {
         const text=object.getObjectByName(key);if(text)text.visible=object.userData.labelVisible;
       }
@@ -260,7 +276,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     for (const id of [...people].sort()) {
       const object = objects[id], text = object.getObjectByName("person-name");
       if (!text || !object.userData.labelVisible) continue;
-      text.position.y = object.userData.anchorHeight + 14;
+      text.position.set(0, object.userData.anchorHeight + 14, 0);
       object.updateMatrixWorld(true);
       const depth = -text.getWorldPosition(new THREE.Vector3()).applyMatrix4(camera.matrixWorldInverse).z;
       const pixelHeight = depth * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, canvas.clientHeight);
@@ -274,11 +290,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         const w = text.scale.x * camera.projectionMatrix.elements[0] / depth / 2, h = text.scale.y * camera.projectionMatrix.elements[5] / depth / 2;
         bounds = [centre.x-w,centre.y-h,centre.x+w,centre.y+h];
         if (!nameBounds.some(other=>overlaps(bounds,other))) break;
-        text.position.y += height + 3;
+        text.position.addScaledVector(up, height + pixelHeight * 3);
       }
       nameBounds.push(bounds);
       const activity = object.getObjectByName("activity");
-      if (activity) activity.position.y = text.position.y + height / 2 + activity.scale.y / 2 + 3;
+      if (activity) activity.position.copy(text.position).addScaledVector(up, height / 2 + activity.scale.y / 2 + pixelHeight * 3);
     }
     for (const id of people) {
       const object = objects[id], text = object.getObjectByName("activity");

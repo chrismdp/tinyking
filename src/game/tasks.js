@@ -1,6 +1,6 @@
 import { speechPosition, SPEECH_REACH } from "game/conversation";
 import { HUMAN_SPEED } from "game/locomotion";
-import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint } from "game/fences";
+import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
 import { leaveHome, enterHome, actualHome, nightTime } from "game/home";
 import { recordRoadUse } from "game/road_wear";
 import { canPlaceField, reserveFieldPlot, fieldAtTile } from "game/land_use";
@@ -52,7 +52,7 @@ function closestNavPointTo(state, point) {
   return entities[0];
 }
 
-export function walk_to(state, actorId, world, dt, firstRun, target, { plotAccess = false } = {}) {
+export function walk_to(state, actorId, world, dt, firstRun, target, { plotAccess = false, handoff = false } = {}) {
   const s = state.ecs.spatial[actorId];
   if (state.ecs.haulable?.[target]?.heldBy == actorId) return Task.FINISH;
 
@@ -69,7 +69,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   } else {
     targetPoint = state.ecs.spatial[world.target];
   }
-  if (state.ecs.personable?.[world.target] && world.capturedAttentionOf == world.target) {
+  if (!handoff && state.ecs.personable?.[world.target] && world.capturedAttentionOf == world.target) {
     if (firstRun || world.speechTarget != world.target) {
       world.speechPoint = speechPosition(state,actorId,world.target);
       world.speechTarget = world.target;
@@ -782,10 +782,13 @@ export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type
 export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId) {
   const ecs = state.ecs;
   if (!ecs.personable[personId] || ecs.personable[personId].dead) return Task.ABORT;
-  if (ecs.interior?.[personId] && ecs.interior[actorId]?.buildingId != ecs.interior[personId].buildingId) return Task.ABORT;
+  if (ecs.interior?.[personId]?.buildingId != ecs.interior?.[actorId]?.buildingId) return Task.ABORT;
   // Attention asks the other planner to wait. If they were already walking,
   // finish approaching their current position before spending conversation time.
-  if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > SPEECH_REACH ** 2) return Task.ABORT;
+  const reach = key == "give_gift" ? 10 : SPEECH_REACH;
+  if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > reach ** 2) return Task.ABORT;
+  // Recheck the physical handoff on every work tick, including completion.
+  if (key == "give_gift" && !fenceHandoffClear(state, ecs.spatial[actorId], ecs.spatial[personId])) return Task.ABORT;
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
   if (key == "chat") result = chat(state, actorId, personId);

@@ -11,13 +11,14 @@ const snapshot = page => page.evaluate(() => {
   return { ecs: s.ecs, space: s.space, map: s.map, ui: { playerId: s.ui.playerId },
     favours: s.favours, knowledge: s.knowledge, peopleSeed: s.peopleSeed, opinionThresholds: s.opinionThresholds };
 });
-function shelterCandidates(s) {
+function shelterCandidates(s, nearId) {
   const camp = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
+  const near = s.ecs.spatial[nearId] || camp;
   const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
   return Object.keys(s.ecs.mappable).filter(id => known.has(String(Hex().fromPoint(s.ecs.spatial[id]))))
     .filter(id => Hex().fromPoint(camp).distance(Hex().fromPoint(s.ecs.spatial[id])) <= 3)
     .filter(id => canPlaceShelter(s, id))
-    .sort((a, b) => Math.hypot(s.ecs.spatial[a].x - camp.x, s.ecs.spatial[a].y - camp.y) - Math.hypot(s.ecs.spatial[b].x - camp.x, s.ecs.spatial[b].y - camp.y));
+    .sort((a, b) => Math.hypot(s.ecs.spatial[a].x - near.x, s.ecs.spatial[a].y - near.y) - Math.hypot(s.ecs.spatial[b].x - near.x, s.ecs.spatial[b].y - near.y));
 }
 function fuelFriend(s) {
   const player = s.ui.playerId, p = s.ecs.spatial[player];

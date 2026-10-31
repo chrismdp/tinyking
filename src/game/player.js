@@ -38,7 +38,7 @@ export const player_jobs = () => [
         ...(entry.gift.possession?.carried ? [] : [["walk_to", entry.gift.sourceId]]), ["collect_gift", entry.gift.sourceId, entry.gift.type]
       ] : [];
       return [["take_job", key], ...gift, ["get_attention", entry.targetId],
-        ["walk_to", entry.targetId], ["set_label", key],
+        ["walk_to", entry.targetId, { handoff: key == "give_gift" }], ["set_label", key],
         ["talk", entry.targetId, key, entry.aboutId, entry.gift?.type],
         ["release_attention", entry.targetId], ["complete_job", key]];
     }

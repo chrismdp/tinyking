@@ -118,12 +118,12 @@ it("shows only an impression and learned traits at Public, and the true ring at 
   const { state, player, person, parent } = peopleWorld();
   const panel = () => render(state, <PersonPanel entityId={person}/>);
   let html = panel();
-  for (const text of ["Agnes Miller", "30 years · Withyford", "Miller cottage", "Traits you know", "You have not spoken together yet", "People seen with", "Open family tree", "Chat", "Ask about someone", "Give a gift"]) expect(html).toContain(text);
+  for (const text of ["an unknown person", "Identity and household not yet known", "Traits you know", "You have not spoken together yet", "People seen with", "Open family tree", "Chat", "Ask about someone", "Give a gift"]) expect(html).toContain(text);
   expect(html).not.toContain("Generous");
   expect(html).not.toContain("Edith Miller");
   completeConversation(state, player, person);
   html = panel();
-  for (const text of ["seems polite", "Acquaintance", "An impression from your conversation", "Goodwill with Agnes", "0 / 10", "10 more towards familiar acquaintance"]) expect(html).toContain(text);
+  for (const text of ["Agnes Miller", "30 years · Withyford", "Miller cottage", "seems polite", "Acquaintance", "An impression from your conversation", "Goodwill with Agnes", "0 / 10", "10 more towards familiar acquaintance"]) expect(html).toContain(text);
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
   html = panel();
   for (const text of ["considers you a familiar acquaintance", "Familiar acquaintance", "family tree and gossip", "Generous", "Proud", "closest people", "Edith Miller", "16 / 30"]) expect(html).toContain(text);
@@ -164,7 +164,8 @@ it("lays out large families without card overlap and keeps spouses on the same r
 });
 
 it("uses household family names and the correct object pronoun in the public panel", () => {
-  const { state, person, parent, tiles } = peopleWorld();
+  const { state, player, person, parent, tiles } = peopleWorld();
+  state.ecs.relationships[player].known[person] = { ring: "public", goodwill: 0 };
   state.ecs.nameable[person].male = true;
   state.ecs.nameable[tiles[3]].nickname = "Log cabin";
   state.ecs.nameable[parent].nickname = "Edith Miller";
@@ -293,4 +294,32 @@ it("does not reveal an unknown social partner in a selected person's activity", 
   state.ecs.relationships[player].known[sibling] = { ring: "public", goodwill: 0 };
   html = render(state, <PersonPanel entityId={person}/>);
   expect(html).toContain("Courting Alice Miller");
+});
+
+it("keeps unintroduced inspection anonymous and pure across the sheet, tree and actor switches", () => {
+  const { state, player, person, sibling } = peopleWorld();
+  state.ui.show = { selected_person: person };
+  state.ecs.planner[person].task = ["chop_tree"];
+  const before = JSON.stringify(state);
+  const panel = () => render(state, <PersonPanel entityId={person}/>);
+  let html = panel();
+  for (const text of ["Agnes", "Miller", "Withyford"]) expect(html).not.toContain(text);
+  for (const text of ["an unknown person", "Felling trees", ">Chat</button>", "Give a gift", "Offer help"]) expect(html).toContain(text);
+  expect(render(state, <FamilyTree entityId={person}/>)).not.toContain("Agnes Miller");
+  expect(JSON.stringify(state)).toBe(before);
+  state.ecs.relationships[player].known[person] = { ring: "public", goodwill: 0 };
+  html = panel();
+  expect(html).toContain("Agnes Miller"); expect(html).toContain("Withyford");
+  expect(html).toContain("You have not spoken together yet");
+  state.ui.playerId = sibling;
+  expect(panel()).not.toContain("Agnes Miller");
+  state.ui.playerId = person;
+  expect(panel()).toContain("Agnes Miller");
+  state.ui.playerId = player;
+  delete state.ecs.relationships[player].known[person];
+  state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  // Genuine speech earns the existing family disclosure, including identities.
+  completeConversation(state, player, person);
+  expect(panel()).toContain("Agnes Miller");
+  expect(render(state, <FamilyTree entityId={person}/>)).toContain("Edith Miller");
 });

@@ -20,6 +20,7 @@ const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates } = require("./acceptance-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
+const GIFT_ONLY = process.argv.includes("--gift-only");
 
 const BASE_URL = process.argv[2] || "http://localhost:8080/";
 const SECONDS = +(process.argv[3] || 60);
@@ -52,7 +53,7 @@ const check = (name, ok, detail) => {
   });
 
   try {
-    if (!TARGETED) await opening(page);
+    if (!TARGETED && !GIFT_ONLY) await opening(page);
     await play(page);
   } catch (e) {
     console.error(e.stack);
@@ -280,6 +281,47 @@ async function play(page) {
     }, build);
   };
 
+  // Shared by the complete playtest and the bounded gift closeout. Keep the
+  // original receipt/ownership and <=10 physical-handoff assertion intact.
+  const giveGift = async () => {
+    // Choose an actual gathered item. The planner fetches and delivers it.
+    await speed(PAUSE);
+    await closePopup();
+    const giftPerson = await orderOn((await targets()).person, "Give a gift");
+    if (!giftPerson) throw new Error("No visible person available for a gift");
+    const giftButton = page.locator(".talk-chooser > button").first();
+    await giftButton.waitFor({ timeout: WAIT });
+    await giftButton.click();
+    check("Gift chooser queues a real item for delivery", (await queued()).includes("give_gift"));
+    const giftTask = await game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.find(j => j.job.key == "give_gift").id);
+    await page.evaluate(({ personId, taskId }) => {
+      const s = window.tinyking;
+      let itemId;
+      window.giftDelivery = new Promise(resolve => {
+        const watch = () => {
+          const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
+          itemId = job?.giftItem || itemId;
+          if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
+          // Read the actual handover, before either character's next walking
+          // task. A requestAnimationFrame observer can run several steps later.
+            const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
+            const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
+            const delivered = receipt?.gifts.find(g => g.id == itemId);
+            resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
+              personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
+          } else requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+      });
+    }, { personId: giftPerson, taskId: giftTask });
+    await closePopup();
+    await speed(FAST);
+    await page.waitForFunction(() => window.tinyking.ui.talkResult?.message == "They accepted your gift.", null, { timeout: 180000 });
+    const delivery = await page.evaluate(() => window.giftDelivery);
+    await speed(PAUSE);
+    check("the player walks over and gives the gift", delivery.itemId && delivery.owner == giftPerson && delivery.distance <= 10, delivery);
+  };
+
   // --- Start a game ---------------------------------------------------------------
   const playURL = new URL(BASE_URL);
   playURL.searchParams.set("seed", "13");
@@ -292,6 +334,21 @@ async function play(page) {
   await page.getByText("Start new game").first().click();
   await page.waitForSelector(".character canvas");
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
+  if (GIFT_ONLY) {
+    await page.locator(".panel .close").first().click();
+    await speed(PAUSE);
+    const tree = (await targets()).trees[0];
+    if (!tree) throw new Error("No discovered timber for ordinary gift preparation");
+    await panTo(tree);
+    if (!await orderOn([tree], "Cut down")) throw new Error("Could not queue real timber gathering");
+    console.log("SETUP gift-only: actual Cut down order, no injected inventory or contact");
+    await closePopup(); await speed(FAST);
+    await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
+    await speed(PAUSE);
+    await giveGift();
+    await shot("gift-close-handoff.png");
+    return;
+  }
   let fieldTile, stockpileTile;
   if (!TARGETED) {
     await shot("new-game.png");
@@ -485,42 +542,7 @@ async function play(page) {
     (outcome.treeGone || outcome.treeWaiting), outcome);
     check("at least one of those orders is done", outcome.fields + outcome.stockpiles > 0 || outcome.chatted || outcome.treeGone, outcome);
 
-    // Choose an actual gathered item. The planner fetches and delivers it.
-    await speed(PAUSE);
-    await closePopup();
-    const giftPerson = await orderOn((await targets()).person, "Give a gift");
-    if (!giftPerson) throw new Error("No visible person available for a gift");
-    const giftButton = page.locator(".talk-chooser > button").first();
-    await giftButton.waitFor({ timeout: WAIT });
-    await giftButton.click();
-    check("Gift chooser queues a real item for delivery", (await queued()).includes("give_gift"));
-    const giftTask = await game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.find(j => j.job.key == "give_gift").id);
-    await page.evaluate(({ personId, taskId }) => {
-      const s = window.tinyking;
-      let itemId;
-      window.giftDelivery = new Promise(resolve => {
-        const watch = () => {
-          const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
-          itemId = job?.giftItem || itemId;
-          if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
-          // Read the actual handover, before either character's next walking
-          // task. A requestAnimationFrame observer can run several steps later.
-            const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
-            const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
-            const delivered = receipt?.gifts.find(g => g.id == itemId);
-            resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
-              personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
-          } else requestAnimationFrame(watch);
-        };
-        requestAnimationFrame(watch);
-      });
-    }, { personId: giftPerson, taskId: giftTask });
-    await closePopup();
-    await speed(FAST);
-    await page.waitForFunction(() => window.tinyking.ui.talkResult?.message == "They accepted your gift.", null, { timeout: 180000 });
-    const delivery = await page.evaluate(() => window.giftDelivery);
-    await speed(PAUSE);
-    check("the player walks over and gives the gift", delivery.itemId && delivery.owner == giftPerson && delivery.distance <= 10, delivery);
+    await giveGift();
 
   } else {
     await page.locator(".panel .close").first().click();

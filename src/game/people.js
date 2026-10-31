@@ -282,7 +282,7 @@ export function knownFamilyTree(state, viewerId, personId) {
   const trusted = viewerId == personId || (trust && RINGS.indexOf(trust.ring) >= 1);
   const known = state.ecs.relationships[viewerId].known;
   const learned = state.knowledge?.[viewerId]?.people || {};
-  const visible = id => trusted || id == personId || id == viewerId || !!known[id] || !!learned[id];
+  const visible = id => trusted || id == viewerId || !!known[id] || !!learned[id];
   let nextUnknown = 0;
   const aliases = Object.fromEntries([...selected].map(id => [id, visible(id) ? id : "unknown-" + (++nextUnknown)]));
   const nodes = {};
@@ -297,7 +297,7 @@ export function knownFamilyTree(state, viewerId, personId) {
       siblings: links(siblingsOf(state, id))
     };
   }
-  return { rootId: personId, nodes };
+  return { rootId: aliases[personId], nodes };
 }
 
 export const CHAT_GOODWILL = 2;

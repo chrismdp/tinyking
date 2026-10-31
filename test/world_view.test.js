@@ -1,6 +1,13 @@
 // NOTE: Three is ESM; use Node's native require(esm) outside Jest's CJS loader.
 jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() + "/node_modules/three/build/three.module.js"));
 
+jest.mock("render/labels", () => ({ label: (text, options = {}) => {
+  const THREE = require("three"), sprite = new THREE.Sprite(new THREE.SpriteMaterial());
+  const height = options.height || 15;
+  sprite.scale.set(text.length * height * .6, height, 1);
+  return sprite;
+} }));
+
 import * as THREE from "three";
 import { Hex, Grid } from "game/hex";
 import { createWorldView } from "render/world_view";
@@ -20,13 +27,14 @@ const fixture = () => {
     state.ecs.mappable[id] = { terrain: "grassland" };
     state.space[h] = [id];
   });
+  const events = {};
   const domElement = {
     clientWidth: 1280, clientHeight: 800, style: {},
-    addEventListener() {}, removeEventListener() {},
+    addEventListener(key, fn) { events[key] = fn; }, removeEventListener() {},
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 800 })
   };
   const renderer = { domElement, render: jest.fn(), setSize() {} };
-  return { state, renderer, grid };
+  return { state, renderer, grid, events };
 };
 
 beforeEach(() => { global.window = { addEventListener() {}, removeEventListener() {} }; });
@@ -86,4 +94,48 @@ it("hides overhead labels when a real house blocks the person, and restores them
   expect(personLabelVisible(camera,new THREE.Vector3(100,0,0),36,[roof])).toBe(true);
   expect(personLabelVisible(camera,new THREE.Vector3(0,0,150),36,[roof])).toBe(true);
   roof.geometry.dispose();roof.material.dispose();
+});
+
+it.each([[390, 664], [1280, 800]])("projects a known name and real activity into separate readable screen lanes at %sx%s", (width, height) => {
+  const { state, renderer, events } = fixture();
+  const p = state.map.centre.toPoint();
+  state.ecs.spatial.player = { ...p, id: "player" };
+  state.ecs.personable.player = { size: 20, body: 0x998877, hair: 1 };
+  state.redraws.push("player");
+  state.ecs.controllable = { player: { controllerId: "player" } };
+  state.ecs.nameable = { player: { nickname: "Will Ashdown" } };
+  state.ecs.planner = { player: { task: ["chop_tree"], world: { feeling: {} } } };
+  renderer.domElement.clientWidth = width; renderer.domElement.clientHeight = height;
+  const view = createWorldView(renderer, state, { t: () => "Chopping", onSelect() {} });
+  view.showWholeMap(); view.focusOn(p, 1300);
+  for (const angle of [0, 1.239, 2.5]) {
+    // Exercise the real frame/layout at local camera angles, with actual sprites.
+    events.wheel({ deltaX: angle / .005, deltaY: 0, preventDefault() {} });
+    view.frame();
+    const scene = renderer.render.mock.calls.at(-1)[0];
+    const object = scene.children.find(o => o.userData.entityId == "player");
+    const name = object.getObjectByName("person-name"), activity = object.getObjectByName("activity");
+    expect(name.visible).toBe(true); expect(activity.visible).toBe(true);
+    const bounds = sprite => {
+      const point = sprite.getWorldPosition(new THREE.Vector3());
+      const depth = -point.clone().applyMatrix4(view.camera.matrixWorldInverse).z;
+      const centre = point.project(view.camera);
+      return { y: (1-centre.y)*height/2, h: sprite.scale.y*view.camera.projectionMatrix.elements[5]/depth*height/2 };
+    };
+    const n = bounds(name), a = bounds(activity);
+    expect(n.h).toBeGreaterThanOrEqual(19.9); expect(a.h).toBeGreaterThanOrEqual(19.9);
+    expect(a.y+a.h/2).toBeLessThan(n.y-n.h/2-1);
+
+  }
+  state.ui.debug = true;
+  state.ecs.planner.player.task = ["wait_for", 1];
+  state.redraws.push("player"); view.frame();
+  const object = renderer.render.mock.calls.at(-1)[0].children.find(o => o.userData.entityId == "player");
+  expect(object.getObjectByName("person-name").visible).toBe(true);
+  expect(object.getObjectByName("activity").visible).toBe(true);
+  state.ui.debug = false; state.redraws.push("player"); view.frame();
+  const idle = renderer.render.mock.calls.at(-1)[0].children.find(o => o.userData.entityId == "player");
+  expect(idle.getObjectByName("person-name").visible).toBe(true);
+  expect(idle.getObjectByName("activity")).toBeUndefined();
+  view.dispose();
 });

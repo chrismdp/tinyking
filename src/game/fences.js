@@ -72,3 +72,15 @@ export function fenceRoute(state, start, end, footprints = fenceFootprints(state
 export function clearFencePoint(point, footprints) {
   return footprints.every(f => Math.abs(point.x-f.x) >= f.halfWidth+FENCE_CLEARANCE || Math.abs(point.y-f.y) >= f.halfDepth+FENCE_CLEARANCE);
 }
+
+// Handoffs must not cross the actual boards, even when both people stand
+// inside the walking route's five-unit clearance margin.
+export function fenceHandoffClear(state, a, b) {
+  return fenceFootprints(state).every(f => fenceSegments(f).every(([p, q]) => {
+    const axis = p.x == q.x ? "x" : "y", along = axis == "x" ? "y" : "x";
+    const delta = b[axis] - a[axis];
+    if (!delta) return a[axis] != p[axis] || Math.max(a[along], b[along]) < Math.min(p[along], q[along]) || Math.min(a[along], b[along]) > Math.max(p[along], q[along]);
+    const t = (p[axis] - a[axis]) / delta, at = a[along] + t * (b[along] - a[along]);
+    return t < 0 || t > 1 || at < Math.min(p[along], q[along]) || at > Math.max(p[along], q[along]);
+  }));
+}

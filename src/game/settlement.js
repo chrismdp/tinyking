@@ -3,7 +3,7 @@ import MersenneTwister from "mersenne-twister";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities, deleteEntity } from "game/entities";
 import { generatePerson, TRIANGLES } from "game/map";
-import { generateVillageLife, settlementLayoutInputs } from "game/villages";
+import { generateVillageLife, settlementLayoutInputs, workBayTiles } from "game/villages";
 import { path, removeBidirectionalLink } from "game/pathfinding";
 import { reserveRoad, canPlaceField, reserveFieldPlot, reserveWorkYard } from "game/land_use";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
@@ -50,11 +50,16 @@ function reservationPreview(s) {
 function reserveSiteYard(s,site,pads) {
   const padTiles=new Set(pads.map(p=>at(s,p.point))),home=Hex().fromPoint(site.point);
   site.yardOwner="site:"+at(s,site.point);
-  return Grid.hexagon({center:home,radius:1}).neighborsOf(home,ALL_SIDES)
+  const yard=Grid.hexagon({center:home,radius:1}).neighborsOf(home,ALL_SIDES)
     .filter((h,side)=>side!=site.entrance &&
       (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
       Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2)).map(h=>at(s,h.toPoint())).filter(id=>id && !padTiles.has(id))
     .find(id=>reserveWorkYard(s,id,site.yardOwner));
+  site.workYardTiles=yard ? workBayTiles(s,s.ecs.spatial[yard]).filter(id=>id && !padTiles.has(id) &&
+    (!s.map.playerStartTile || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(s.map.playerStartTile))>2) &&
+    Object.values(s.map.entrances || {}).every(e=>!e.hexes || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(e.hexes[2]))>2))
+    .filter(id=>reserveWorkYard(s,id,site.yardOwner)) : [];
+  return yard;
 }
 export function reserveFoundingFields(s) {
   const sites=Object.values(s.settlement.sites).flat(),now=s.days;
@@ -150,7 +155,7 @@ export function constructHome(s, villageId, people, options={}) {
     const ground=groundForState(s);
     for(const tile of Object.keys(e.mappable))e.mappable[tile].elevation=ground.hex(e.spatial[tile]).centre;
   }
-  if(!e.mappable[site.yard]?.buildingPlot && !reserveWorkYard(s,site.yard,site.yardOwner))throw new Error("Validated household yard reservation changed during construction");
+  for(const tile of [site.yard,...(site.workYardTiles || [])])if(!reserveWorkYard(s,tile,site.yardOwner))throw new Error("Validated household yard reservation changed during construction");
   if(!e.mappable[site.field.tile].cropPlot && (!reserveRoad(s,site.field.route) || !reserveFieldPlot(s,site.field.tile)))throw new Error("Validated household field reservation changed during construction");
   const fundingHouse=e.household?.[people[0]]?.houseId;
   if(options.timber==null)consumeStored(s,fundingHouse,"wood",HOUSE_TIMBER);
@@ -165,8 +170,9 @@ export function constructHome(s, villageId, people, options={}) {
   const [house]=newEntities(s,[{spatial:{...site.point,immovable:true},nameable:{nickname:options.founding?"Founder's cottage":"Family cottage"},building:{entrance:site.entrance,rooms:[]},household:{farming:false,fields:[],backyards:[]},controllable:{controllerId:people[0]},village:{villageId}}]);
   site.usedBy=house;
   if(site.yard) {
-    e.mappable[site.yard].buildingPlot=house;
+    for(const tile of [site.yard,...(site.workYardTiles || [])])e.mappable[tile].buildingPlot=house;
     e.household[house].yardReservation=site.yard;
+    e.household[house].workYardReservation=site.workYardTiles || [];
   }
   s.settlement.layoutDirty=true;
   s.landUseRevision=(s.landUseRevision || 0)+1;
@@ -234,7 +240,7 @@ export function prepareSettlementSeason(s,season) {
   if(changed) {generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);delete s.settlement.layoutDirty;}
 }
 
-function summariseLivelihood(s,house,season,residents) {
+function summariseLivelihood(s,house,season,residents,woodland) {
   const e=s.ecs,h=e.household[house],occupants=(residents.get(house) || []).filter(id=>!e.guest?.[id] && (e.personable[id].born ?? -Infinity)<=s.days-DAYS_IN_SEASON && (e.household[id].since ?? -Infinity)<=s.days-DAYS_IN_SEASON),adults=occupants.filter(id=>e.personable[id].age>=19);
   if(!h?.storeId || !adults.length)return;
   const store=e.container[h.storeId], amounts=store.amounts, worker=adults[0];
@@ -243,10 +249,9 @@ function summariseLivelihood(s,house,season,residents) {
   // One fuel/construction collection per household per season is a journey,
   // never a fresh supply or village-wide woodland clearing.
   if((amounts.wood || 0)<HOUSE_TIMBER+10) {
-    const tree=Object.keys(e.good || {}).find(id=>e.good[id].type=="wood" && !e.haulable?.[id] && !e.controllable?.[id] && e.good[id].amount>0 && Hex().fromPoint(e.spatial[id]).distance(Hex().fromPoint(e.spatial[house]))<=5 &&
-      Hex().fromPoint(e.spatial[id]).distance(Hex(s.map.playerStartTile))>4 &&
-      Object.values(s.map.entrances).every(entry=>Hex().fromPoint(e.spatial[id]).distance(Hex(entry.hexes[2]))>4) &&
-      path(s,at(s,e.spatial[house]),at(s,e.spatial[id])));
+    const home=Hex().fromPoint(e.spatial[house]);
+    const tree=woodland.find(({id,hex})=>e.good[id] && home.distance(hex)<=5 &&
+      path(s,at(s,e.spatial[house]),at(s,e.spatial[id])))?.id;
     if(tree) {
       const trips=Math.ceil(e.good[tree].amount/(e.holder?.[worker]?.capacity || 2));
       const journey=recordJourney(s,{key:"timber:"+house+":"+season,people:[worker],from:at(s,e.spatial[house]),to:at(s,e.spatial[tree]),reason:"household timber",day:s.days-.75,returnDay:s.days-.5,count:trips});
@@ -329,7 +334,13 @@ export function settleSeason(s,season,summary=false) {
   const residents=householdRoster(s);
   if(summary) {
     s.settlement.summarising=true;
-    for(const house of Object.keys(s.ecs.building || {}))if(growthRecord(s,house).builtDay<s.days)summariseLivelihood(s,house,season,residents);
+    // Trees cannot appear during this household phase. Reuse their physical
+    // coordinates and protected-camp checks, then recheck each real entity:
+    // an earlier household can already have collected and deleted that tree.
+    const start=Hex(s.map.playerStartTile),camps=Object.values(s.map.entrances).map(e=>Hex(e.hexes[2]));
+    const woodland=Object.keys(s.ecs.good || {}).filter(id=>s.ecs.good[id].type=="wood" && !s.ecs.haulable?.[id] && !s.ecs.controllable?.[id] && s.ecs.good[id].amount>0)
+      .map(id=>({id,hex:Hex().fromPoint(s.ecs.spatial[id])})).filter(({hex})=>hex.distance(start)>4 && camps.every(camp=>hex.distance(camp)>4));
+    for(const house of Object.keys(s.ecs.building || {}))if(growthRecord(s,house).builtDay<s.days)summariseLivelihood(s,house,season,residents,woodland);
     summariseJourneys(s,season,residents);
     delete s.settlement.summarising;
     flushJourneys(s);

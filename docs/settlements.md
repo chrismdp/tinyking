@@ -45,3 +45,14 @@ plans its yard, field and lane on a detached proposal before it spends timber.
 A failed proposal changes no existing property or public road. Kitchen crops
 use the native field reservation. Other private work space uses the yard API.
 Trees remain on unused land until an actual footprint or cultivation needs it.
+
+The compact station rear reservation also precedes field allocation. It uses
+the same wing tile coverage as village layout. Each tile still needs a valid
+private reservation. A road or public neck prevents that reservation. The survey
+clears no trees for these future bays. A real paid addition clears its footprint.
+
+Summary timber collection reuses one seasonal list of physical tree coordinates.
+Each household rechecks that its selected tree still exists before collection.
+The list preserves native tree order, camp margins, reach, loads and journey dates.
+Tile lookup caches only coordinate conversion. It reads current space and crop
+membership on every call, including after movement or direct legacy-state edits.

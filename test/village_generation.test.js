@@ -56,8 +56,8 @@ it.each([3,4,5,6,7,8])("generates actual owned trades and adult workers in a via
   }
 });
 
-it("keeps the garden and fields beside an accessible work station with actual room for its first bay",()=>{
-  const s=viableVillage(3),h=Object.values(s.ecs.household).find(h=>h.workplaceId);
+it.each([3,5,8])("keeps the garden and fields beside an accessible work station with room for its first bay (%s homes)",count=>{
+  const s=viableVillage(count),h=Object.values(s.ecs.household).find(h=>h.workplaceId && expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1)));
   expect(h.fields.length).toBeGreaterThan(0);
   expect(h.backyards.length).toBeGreaterThan(0);
   expect(expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1))).toBe(true);

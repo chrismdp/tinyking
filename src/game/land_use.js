@@ -31,11 +31,24 @@ export function reserveWorkYard(state,tileId,houseId) {
   return true;
 }
 
+const tileHexes=new WeakMap();
+// Cache only coordinate conversion. Contents, ownership and crop reservations
+// are read afresh, including direct edits in legacy states and test fixtures.
+export function tileContents(state,tileId) {
+  const point=state.ecs.spatial[tileId];
+  if(!point)return [];
+  let cached=tileHexes.get(point);
+  if(!cached || cached.x!=point.x || cached.y!=point.y) {
+    cached={x:point.x,y:point.y,hex:Hex().fromPoint(point)};
+    tileHexes.set(point,cached);
+  }
+  return state.space?.[cached.hex] || [];
+}
 export function fieldAtTile(state, tileId) {
   if (!state.ecs.farmable && !state.ecs.mappable?.[tileId]?.cropPlot) return false;
   const point = state.ecs.spatial[tileId];
   return !!state.ecs.mappable?.[tileId]?.cropPlot || !!(point &&
-    (state.space?.[Hex().fromPoint(point)] || []).some(id => state.ecs.farmable?.[id]));
+    tileContents(state,tileId).some(id => state.ecs.farmable?.[id]));
 }
 export function canPlaceField(state, tileId) {
   const { ecs } = state;

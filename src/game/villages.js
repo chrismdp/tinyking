@@ -24,6 +24,13 @@ function proposal(state,point,components,house) {
     controllable:{...e.controllable,[proposalId]:{controllerId:house}},
     ...Object.fromEntries(Object.entries(components).map(([kind,record])=>[kind,{...e[kind],[proposalId]:record}]))}};
 }
+// Tile coverage of the actual station's rear wing, without clearing trees.
+export function workBayTiles(state,point) {
+  const keys=new Set();
+  for(const x of [-29,-10,9])for(const y of [-45,-57,-75])keys.add(keyOf({x:point.x+x,y:point.y+y}));
+  keys.delete(keyOf(point));
+  return [...keys].map(key=>(state.space[key] || []).find(id=>state.ecs.mappable[id]));
+}
 export function settlementLayoutInputs(state) {
   const residents=householdRoster(state);
   return JSON.stringify([state.landUseRevision,Object.values(state.villages).map(v=>[v.id,v.houses.map(id=>{
@@ -159,19 +166,15 @@ export function generateVillageLife(state, seed, start) {
       const entrance = adjacent[ecs.building[houseId].entrance]?.toString();
       const yardCandidates=ecs.household[houseId].yardReservation ? [ecs.household[houseId].yardReservation] :
         nearby(houseId,1).filter(id=>keyOf(ecs.spatial[id])!=entrance && canCultivate(id,houseId));
-      const rearTiles = tile => {
-        const p=ecs.spatial[tile], keys=new Set();
-        for(const x of [-29,-10,9])for(const y of [-45,-57,-75])keys.add(keyOf({x:p.x+x,y:p.y+y}));
-        keys.delete(keyOf(p));
-        return [...keys].map(key=>tileAt[key]);
-      };
+      const rearTiles = tile => workBayTiles(state,ecs.spatial[tile]);
       const freeRear = tile => tile && !occupied.has(keyOf(ecs.spatial[tile])) && !ecs.mappable[tile].route?.length && !ecs.mappable[tile].cropPlot && !ecs.walkable[tile].trackReserved && canReserveWorkYard(state,tile,houseId);
       const stationFits=tile=>{
         const p=ecs.spatial[tile],preview=proposal(state,{x:p.x-10,y:p.y},{workplace:{houseId}},houseId);
         return expansionFits(preview,proposalId,expandedFootprint(preview,proposalId,2));
       };
       const yardTile=yardCandidates.find(id=>rearTiles(id).every(freeRear) && stationFits(id)) || yardCandidates.find(stationFits) || yardCandidates[0];
-      const workYardTiles=yardTile?rearTiles(yardTile).filter(freeRear).filter(tile=>reserveWorkYard(state,tile,houseId)):[];
+      const workYardTiles=[...new Set([...(ecs.household[houseId].workYardReservation || []),
+        ...(yardTile?rearTiles(yardTile).filter(freeRear).filter(tile=>reserveWorkYard(state,tile,houseId)):[])])];
       const yard = reserve(yardTile) || { x: ecs.spatial[houseId].x, y: ecs.spatial[houseId].y - 33 };
       // The actual household yard leaves room behind its work station. Trees
       // outside the current roof remain until a paid extension needs clearance.

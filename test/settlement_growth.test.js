@@ -250,3 +250,18 @@ it("requires a real field before spending a new household's construction timber"
   expect(store.amounts.wood).toBe(40);
   expect(s.villages.v.houses).toEqual([house]);
 });
+
+it("cannot collect the same physical timber twice across households in one summary season",()=>{
+  const {s,house}=fixture();
+  const people=newEntities(s,[0,1].map(()=>({spatial:{...Hex(6,4).toPoint()},personable:{age:30},household:{},controllable:{}})));
+  for(const id of people)s.ecs.controllable[id].controllerId=id;
+  const other=constructHome(s,"v",people,{timber:20});
+  expect(other).toBeTruthy();
+  for(const home of [house,other])s.ecs.container[s.ecs.household[home].storeId].amounts={wood:0,grain:60};
+  const [tree]=newEntities(s,[{spatial:{...Hex(6,5).toPoint(),immovable:true},good:{type:"wood",amount:3}}]);
+  s.days=3;settleSeason(s,1,true);
+  const wood=[house,other].reduce((n,home)=>n+(s.ecs.container[s.ecs.household[home].storeId].amounts.wood || 0),0);
+  expect(wood).toBe(3);
+  expect(s.ecs.good[tree]).toBeUndefined();
+  expect(s.settlement.journeys.filter(j=>j.reason=="household timber")).toHaveLength(1);
+});

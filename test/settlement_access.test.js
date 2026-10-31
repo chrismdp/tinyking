@@ -4,7 +4,7 @@ import { Task } from "game/htn";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 import { path, addBidirectionalLink } from "game/pathfinding";
-import { reserveWorkYard, reserveRoad, canPlaceField } from "game/land_use";
+import { reserveWorkYard, reserveRoad, canPlaceField, fieldAtTile } from "game/land_use";
 import { recordRoadUse } from "game/road_wear";
 
 it("reserves an actual work yard for its household, keeping public journeys and fields outside it",()=>{
@@ -87,4 +87,21 @@ it.each([false,true])("walks into and out of connected private work space withou
   expect(walk(tiles[4])).toBe(Task.ABORT);
   s.ecs.mappable[tiles[2]].cropPlot=true;
   expect(walk(tiles[3])).toBe(Task.ABORT);
+});
+
+it("reads live crop membership after cached tile lookup, replacement and coordinate changes",()=>{
+  const {state:s,tiles}=rowOfTiles(2),p=s.ecs.spatial[tiles[0]];
+  expect(fieldAtTile(s,tiles[0])).toBe(false);
+  const [farm]=newEntities(s,[{spatial:{...p,immovable:true},farmable:{slots:[]}}]);
+  expect(fieldAtTile(s,tiles[0])).toBe(true);
+  delete s.ecs.farmable[farm];
+  expect(fieldAtTile(s,tiles[0])).toBe(false);
+  s.ecs.farmable[farm]={slots:[]};
+  const original={...p};
+  Object.assign(p,s.ecs.spatial[tiles[1]]);
+  expect(fieldAtTile(s,tiles[0])).toBe(false);
+  Object.assign(p,original);
+  expect(fieldAtTile(s,tiles[0])).toBe(true);
+  s.space={...s.space,[Hex().fromPoint(p)]:[tiles[0]]};
+  expect(fieldAtTile(s,tiles[0])).toBe(false);
 });

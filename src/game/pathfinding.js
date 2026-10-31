@@ -1,5 +1,5 @@
-import { routeBlocked } from "game/land_use";
-import { Hex, HEX_SIZE } from "game/map";
+import { routeBlocked, tileContents } from "game/land_use";
+import { HEX_SIZE } from "game/map";
 import * as math from "game/math";
 
 function opposite(side) {
@@ -106,7 +106,7 @@ export function path(state, start, goal) {
       // A route never needs to loop; disconnected searches remain finite.
       if (closed.has(String(n)) || routeBlocked(state,n,start,goal)) { continue; }
       if (!(n in costs)) {
-        const otherPenalty = state.space[Hex().fromPoint(state.ecs.spatial[n])].length > 1 ?
+        const otherPenalty = tileContents(state,n).length > 1 ?
           0.2 : 1;
         // Wear discounts at most half a grassland edge. Unbounded rewards
         // made costs negative and sent hungry people on map-wide detours.

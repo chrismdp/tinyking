@@ -38,8 +38,10 @@ Actual work yards use `reserveWorkYard` from `land_use.js`. It accepts only uncl
 
 During prehistory, a failed layout is retried when spatial revision, actual adult availability or construction affordability changes. The affordability flags use the existing four/eight timber costs. Live seasons retain their normal checks. This skips identical failed proposals without changing dates, costs or successful transitions.
 
-The founding survey reserves each house's adjacent rear yard before it allocates
-fields. These reservations protect the pad, its single door and the public lanes.
+The founding survey reserves each house's reachable work parcel before it allocates
+fields. The parcel covers the actual station and gardens. It can stand across a
+public lane within household land reach. These reservations protect the pad, its
+single door and the public lanes.
 Construction transfers the yard reservation to the real household. A later home
 plans its yard, field and lane on a detached proposal before it spends timber.
 A failed proposal changes no existing property or public road. Kitchen crops

@@ -13,7 +13,7 @@ const record={url,initialFixture:isFixture?"prosperity":null,purpose:"Ordinary s
   fs.writeFileSync(path.join(out,"browser-pids.json"),JSON.stringify({driver:process.pid,children:fs.readFileSync(`/proc/${process.pid}/task/${process.pid}/children`,"utf8").trim()}));
   if(isFixture)record.purpose="Labelled initial prosperity setup. Initial stocks and founding schedule only. Discovery revealed and camera framed for inspection. Actual work, attendance and seasonal expansion remain for independent acceptance.";
   const page=await browser.newPage({viewport:{width:1440,height:900}});
-  const profile=!isFixture && await page.context().newCDPSession(page);
+  const profile=process.env.STARTUP_PROFILE=="1" && !isFixture && await page.context().newCDPSession(page);
   let profileStopped=false;
   if(profile) {
     await profile.send("Profiler.enable");

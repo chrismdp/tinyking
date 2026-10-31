@@ -264,9 +264,30 @@ it("lights an actually occupied completed player house at night and clears its w
   try {
     view.frame();
     expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(true);
+    expect(view.metrics.nightLights.pools).toBe(1);
+    expect(view.objectOf(home).getObjectByName("home-windows").children.every(p => p.material.transparent)).toBe(true);
     state.days=12/24;view.frame();
     expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(false);
     state.days=23/24;delete state.ecs.interior[id];view.frame();
     expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(false);
   } finally {view.dispose();delete global.window;}
+});
+
+it("updates a bounded fire-light pool through world-view rebuilds and the day/night cycle", () => {
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  const { state, view, id } = openingView();
+  const camps = newEntities(state, Array.from({ length: 6 }, (_, i) => ({
+    spatial: { x: i * 15, y: 0, immovable: true }, camp: {}, controllable: { controllerId: id }
+  })));
+  state.days = 23 / 24; state.redraws.push(...camps);
+  try {
+    view.frame();
+    expect(view.metrics.nightLights).toMatchObject({ pointLights: 2, maxPointLights: 2, pools: 6 });
+    state.redraws.push(...camps); view.frame();
+    expect(view.metrics.nightLights).toMatchObject({ pointLights: 2, pools: 6 });
+    state.days = 19 / 24; view.frame();
+    expect(view.metrics.nightLights.pointLights).toBe(2);
+    state.days = 12 / 24; view.frame();
+    expect(view.metrics.nightLights.pointLights).toBe(0);
+  } finally { view.dispose(); delete global.window; }
 });

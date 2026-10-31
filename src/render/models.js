@@ -343,7 +343,7 @@ export function foragePlant(ground, state, id) {
 // NOTE: a unit pyramid on a square base lined up with the axes, so it can be
 // stretched to fit the walls
 const squarePyramid = () => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4);
-const windowGlass = shared(new THREE.MeshBasicMaterial({ color: 0xFFCA79 }));
+const windowGlass = shared(new THREE.MeshBasicMaterial({ color: 0xFFCA79, transparent: true, depthWrite: false }));
 const windowPane = shared(new THREE.BoxGeometry(8, 9, 1));
 
 export function building(ground, state, id, options) {
@@ -882,7 +882,10 @@ export function shelter(ground, state, id) {
   return group;
 }
 
-export function animateHome(model, occupied) {
+export function animateHome(model, occupied, strength = 1) {
   const windows = model.getObjectByName("home-windows");
-  if (windows) windows.visible = occupied;
+  if (windows) {
+    windows.visible = occupied;
+    for (const pane of windows.children) pane.material.opacity = strength;
+  }
 }

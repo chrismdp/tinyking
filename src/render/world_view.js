@@ -5,7 +5,7 @@ import { villageArea } from "game/settlement_details";
 import { label } from "render/labels";
 import { commonBoundary } from "render/customs_bounds";
 import { resourcePermission } from "game/village_customs";
-import { occupiedHomes } from "game/home";
+import { createNightLights } from "render/night_lights";
 import { displayName } from "game/knowledge";
 import { fenceFootprints, fenceRevision } from "game/fences";
 import * as THREE from "three";
@@ -87,6 +87,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   scene.add(forest.mesh);
   const weatherView = createWeatherView(ground);
   scene.add(weatherView.mesh);
+  const nightLights = createNightLights(ground);
+  scene.add(nightLights.mesh);
 
   const instances = createInstances();
   scene.add(instances.mesh);
@@ -173,6 +175,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     .filter(id => id);
 
   const remove = id => {
+    nightLights.remove(id);
     forest.remove(id);
     instances.remove(id);
     if (objects[id]) {
@@ -250,6 +253,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       object.visible = isKnown(state.ecs.spatial[id]);
     }
     objects[id] = object;
+    nightLights.add(id, object);
     if ((state.ecs.good[id] && state.ecs.good[id].type == "wood" && !(state.ecs.haulable && state.ecs.haulable[id])) || state.ecs.forageable && state.ecs.forageable[id]) {
       forest.add(id, object);
     } else if (state.ecs.farmable?.[id] && !selected.includes(id) || state.ecs.backyard?.[id] || state.ecs.workplace?.[id] || state.ecs.meetingPlace?.[id] || state.ecs.pasture?.[id] || state.ecs.animal?.[id]) {
@@ -389,6 +393,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     sun.intensity = SUN * (1 - night * 1.2) * cloud.sun;
     hemisphere.color.copy(tint);
     hemisphere.intensity = SKY * (1 - night * 0.9) * cloud.sky;
+    return 1 - overviewLight;
   };
 
   const pickables = () => [settlementOverlay, terrain.mesh, forest.mesh, instances.mesh, ...Object.entries(objects)
@@ -493,7 +498,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let reportView = true;
   const viewMetrics = () => ({ distance:rig.distance, pose:rig.pose, level:overviewLevel(rig.distance), render:{...renderer.info?.render}, memory:{...renderer.info?.memory}, programs:renderer.info?.programs?.length,
     terrainTriangles:realm?.triangles, terrainBuildMs:realm?.constructionMs, days:state.days, active:state.travel?.active, maps:Object.keys(state.travel?.maps || {}).length, directory:Object.keys(state.travel?.people || {}).length,
-    residents:Object.values(state.residents || {}).filter(Boolean).length, position:{...state.ecs.spatial[state.ui.playerId]}, jobs:state.ecs.manager?.[state.ui.playerId]?.jobs.length });
+    residents:Object.values(state.residents || {}).filter(Boolean).length, position:{...state.ecs.spatial[state.ui.playerId]}, jobs:state.ecs.manager?.[state.ui.playerId]?.jobs.length, nightLights:nightLights.metrics });
   const fitMap = () => {
     camera.far = Math.max(12000, wholeMapDistance() * 2);
     camera.updateProjectionMatrix();
@@ -559,12 +564,14 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         // Refresh cinematic label visibility even when the planner stays idle.
         if (state.intro) state.redraws.push(state.ui.playerId, ...people);
         if (campSetup) {
+          nightLights.remove("arrival-camp");
           scene.remove(campSetup);
           models.disposeObject(campSetup);
           campSetup = null;
         }
         if (arriving) {
           campSetup = models.campSetup(ground, state.intro.campPoint);
+          nightLights.add("arrival-camp", campSetup);
           scene.add(campSetup);
         }
         arrivalKnown = new Set(arriving ? arrivalTiles(state).map(h => h.x + "," + h.y) : []);
@@ -616,8 +623,6 @@ export function createWorldView(renderer, state, { t, onSelect }) {
           animateWorkplace(state, id, objects[id], now / 1000);
           if (objects[id].getObjectByName("smoke")) instances.invalidate(id);
         }
-        const occupied = occupiedHomes(state);
-        for (const id of new Set([...Object.keys(state.ecs.building),...Object.keys(state.ecs.shelter || {})])) if (objects[id]) models.animateHome(objects[id],occupied.has(id));
         instances.update();
       }
 
@@ -635,7 +640,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         }
       }
 
-      light();
+      const localLight = light();
       if (state.intro && (arriving || changedIntro)) {
         const target = arrivalShot(state.intro, state.ecs.spatial[state.ui.playerId], state.intro.campPoint, camera.aspect, ground.heightAt);
         if (!shot || changedIntro) shot = target;
@@ -669,6 +674,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
           ["grassland","steppe","savanna"].includes(habitat?.biome || homeOf(state.world).biome),
           habitat?frozenAt(habitat,state.days):coldEnough(homeOf(state.world),state.days));
       }
+      nightLights.update(state, { x:rig.pose.x, y:rig.pose.z }, now / 1000, lod.props ? localLight : 0);
       renderer.render(scene, camera);
       if (realm && reportView) { performance.mark?.("tinyking-map-view",{detail:viewMetrics()}); reportView=false; }
     },
@@ -725,6 +731,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       forest.dispose();
       instances.dispose();
       weatherView.dispose();
+      nightLights.dispose();
       if (realm) { realm.dispose(); realmOverlay.dispose(); sea.geometry.dispose(); sea.material.dispose(); }
       for (const name of villageLabels.values()) { settlementOverlay.remove(name); models.disposeObject(name); }
       villageLabels.clear();

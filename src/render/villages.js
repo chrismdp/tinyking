@@ -119,6 +119,7 @@ export function villageModel(ground, state, id) {
   if (enclosure) { enclosure.position.sub(group.position); group.add(enclosure); }
   if (["smith", "baker"].includes(kind)) {
     const smoke = new THREE.Group(); smoke.name = "smoke";
+    smoke.userData.hearth = new THREE.Vector3(kind == "smith" ? -7 : 0, kind == "smith" ? 8 : 11, kind == "smith" ? -11.5 : -3);
     smoke.position.set(-9, kind == "smith" ? 39 : 42, -24);
     for (let i = 0; i < 3; i++) smoke.add(new THREE.Mesh(smokeGeometry, smokeMaterial));
     smoke.visible = false;

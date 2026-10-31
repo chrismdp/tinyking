@@ -148,11 +148,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   const length = Math.sqrt(dx * dx + dy * dy);
 
   if (length < 10 && !detouring) {
-    // A meal interruption does not turn the actor's partly designated plot
-    // into a public track and invalidate their unfinished work on return.
-    const designation = actorId == state.ui.playerId && state.ecs.manager?.[actorId]?.jobs.some(job =>
-      job.job.key == "create_field" && job.targetId == next.id && job.workRemaining != null);
-    if (!designation && (!plotAccess || next.id != closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target]))) {
+    if (!plotAccess || next.id != closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target])) {
       recordRoadUse(state,next.id,next.entrance,next.exit);
     }
 

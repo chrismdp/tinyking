@@ -202,7 +202,3 @@ and optional `pasture.gateHalfWidth`. Use `ecs.spatial[id]` for position.
 The older animal `centre` field does not override the physical fence position.
 An optional `ecs.fence[id]` with those dimensions reserves the same geometry
 for a future fenced plot. Unfenced crop plots retain the shared field rules above.
-
-A controlled actor's departures and returns to a partly designated field count
-as work traffic. This includes a meal interruption. They do not reserve a public
-track on that unfinished work site. Other traffic keeps its existing wear rules.

@@ -135,6 +135,15 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     favourId=await page.evaluate(home=>Object.values(window.tinyking.favours.requests).find(r=>r.householdId==home && r.kind=="harvest" && r.status=="offered")?.id,selection.home);
     assert(favourId,"The selected real spring crop must produce an offered harvest favour");
     await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.select_entity(id,false);},person);
+    // The householder can already be working this crop. Queue an actual
+    // handover Chat before the favour so its normal replan releases the claim;
+    // the accepted help follows that visit before the worker resumes farming.
+    await page.getByRole("button",{name:"Chat",exact:true}).click();
+    const handoverDay=await page.evaluate(()=>{
+      const s=window.tinyking,jobs=s.ecs.manager[s.ui.playerId].jobs;
+      const visit=jobs.filter(j=>j.job.key=="chat").at(-1);
+      s.ui.actions.reorder_task(visit.id,0);return s.days;
+    });
     await page.locator(".person-requests summary").click();
     const card = page.locator(`.person-requests .favour-request.offered[data-favour-id="${favourId}"]`);
     await card.getByRole("button", { name: /Accept favour:/ }).click();
@@ -199,6 +208,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       s.ui.actions.set_speed("fast");
     }, favourId);
     await page.waitForFunction(() => window.favourObservation?.active, null, { timeout: 180000 });
+    assert(await page.evaluate(({person,day})=>window.tinyking.knowledge[window.tinyking.ui.playerId].people[person].conversation.day>=day,{person,day:handoverDay}),"The handover must complete a real conversation before harvest work");
     assert((await page.locator(".compact-task").textContent()).includes("Help with the harvest"));
     await pair("active-favour-current-task");
     await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
@@ -215,7 +225,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       const s = window.tinyking, id = s.ui.playerId, build = s.ecs.manager[id].jobs.find(j => j.job.key == "build_shelter");
       const target = build.targetId, before = { day: s.days, needs: { ...s.ecs.personable[id] }, site: { ...s.ecs.construction[target] } };
       // Cancel the order, not its real frame/materials, while taking care and
-      // visiting. Resume this same funded frame after a successful third Chat.
+      // visiting. Resume this same funded frame after a successful material-ready Chat.
       s.ui.actions.cancel_task(build.id);
       s.ui.actions.choose_job(id, { key: "find_food" }, id);
       const visit = s.ecs.household[person].houseId;
@@ -266,7 +276,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       const s = window.tinyking, target = window.favourObservation.materialReady.target;
       s.ui.actions.choose_job(s.ui.playerId, { key: "build_shelter" }, target);
     });
-    story.actions.push({ action: "Completed the actual third Chat before resuming the same four-log frame", chat: await page.evaluate(() => window.favourObservation.chat) });
+    story.actions.push({ action: "Completed the actual material-ready Chat before resuming the same four-log frame", chat: await page.evaluate(() => window.favourObservation.chat) });
     await pair("material-ready-chat-before-build");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
     await page.waitForFunction(() => window.favourObservation?.help, null, { timeout: 180000 });
@@ -283,7 +293,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert.equal(proof.delivery.request.goodwill, 12);
     assert.equal(proof.help.site.stage, "lean-to");
     assert.equal(proof.help.site.delivered, 4);
-    assert.equal(proof.chat.result.message, "You spent some time together.", "The third Chat must complete with consent");
+    assert.equal(proof.chat.result.message, "You spent some time together.", "The material-ready Chat must complete with consent");
     assert.equal(proof.helperWalk.helperId, person);
     assert.equal(proof.help.helperId, person);
     assert(Math.hypot(proof.help.position.x - proof.helperWalk.position.x, proof.help.position.y - proof.helperWalk.position.y) > 0, "The earned friend must actually walk to help");
@@ -324,9 +334,9 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await frame("player");
     assert.equal(story.errors.length, 0, story.errors.join("\n"));
     story.complete = true;
-    story.assistance += " Shared helper setup used the nearest legal camp site, ordinary Cancel/Resume of its funded frame, actual self-care and a physical visit after the friend's independent care before the third Chat. Existing helper, material, consent, receipt and family assertions stayed.";
+    story.assistance += " Shared helper setup used the nearest legal camp site, ordinary Cancel/Resume of its funded frame, actual self-care and a physical visit after the friend's independent care before the material-ready Chat. Existing helper, material, consent, receipt and family assertions stayed.";
     if (CLOSEOUT) story.assistance += " Closeout omitted only the unrelated 24-hour observation.";
-    story.assistance += " Assisted selection used the nearest generated adult farming household member with love disposition towards the player. The helper retained its exact initial controller and household. Two conversations and a real harvest delivery earned Personal; a third consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
+    story.assistance += " Assisted selection used the nearest generated adult farming household member with love disposition towards the player. The helper retained its exact initial controller and household. Two conversations and a real harvest delivery earned Personal; a material-ready consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
     console.log("PASS real favour accepted, physically delivered once and rewarded; earned Personal friend walked and worked; storyboard complete; no console errors");
   } catch (error) {
     story.failure = String(error);

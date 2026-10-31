@@ -716,3 +716,20 @@ it.each([true,false])('keeps a conserved gleaning share for a harvest helper (pl
   const grain=Object.values(s.ecs.good).filter(g=>g.type=='grain').reduce((n,g)=>n+g.amount,0);
   expect(grain).toBe(6);
 });
+
+it('a queued handover conversation frees the household crop before the accepted harvest starts', () => {
+  const w=favourWorld(),s=w.state,r=w.request('harvest'),person=w.person;
+  // INITIAL autonomous worker holding the field; its long current wait makes
+  // the release through actual conversation observable within a short window.
+  s.ecs.planner[person]={id:person,task:['wait_for',3],plan:[['person']],world:{places:{},no_place_for:{},feeling:{},holding:{},claimedFarmable:w.field,wait_until:s.days+3,days:s.days}};
+  s.ecs.farmable[w.field].claimerId=person;
+  const favour=acceptFavour(s,r.id);
+  w.step(.05);
+  expect(r.progress).toBe(0);
+  expect(favour.waiting).toBe('Waiting for the family to finish this patch');
+  const visit=enqueueTask(s,{key:'chat'},person);
+  reorderTask(s,visit.id,0);
+  advanceUntil(w,()=>r.progress>0);
+  expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
+  expect(r.produced).toBe(2);
+});

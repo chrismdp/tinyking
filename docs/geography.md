@@ -41,8 +41,9 @@ not enter the land average a second time. Entirely unsampled sea uses wet supply
 wet, normal and dry categories use thresholds 0.68 and 0.42. The existing repair
 then limits neighbouring climate categories to one step. Temperature and morality
 retain their seeded fields. `world.prevailingWind` stores the annual direction.
-The summary grid is temporary. No detailed maps or histories are generated for it.
-Normal frames read the stored categories and do not repeat the moisture pass.
+`world.climate.moisture` retains the small numeric grid and its wind orientation.
+No detailed maps or histories are generated for it. Normal frames never repeat
+the moisture transport pass.
 
 This follows the small wind-ordered transport idea in
 [Mapgen4 rainfall](https://simblob.blogspot.com/2018/09/mapgen4-rainfall.html).
@@ -50,6 +51,39 @@ It is a climate approximation, without measured rainfall units, seasonal wind
 reversals or fluid dynamics. The actual hourly pressure gradient still supplies
 weather wind. Weather continues to use the regional moisture categories. Storms
 do not change a biome instantly.
+
+## Continuous habitats
+
+`biome_field.js` samples climate in canonical world coordinates. Bilinear sampling
+blends the four nearest moisture grid values. Temperature uses the existing
+seeded noise and latitude field before category thresholds or neighbour repair.
+The inverse of `worldPoint` supplies those original temperature coordinates.
+A point has the same climate whichever reach is active.
+
+Sea-level warmth ranges from zero to one. Altitude lowers habitat warmth by
+one unit per 1,400 height units. Linear weights blend neighbouring temperature
+and moisture bands into up to four named biomes. Moisture band centres are
+0.25, 0.55 and 0.85. These indices are game climate values, not physical degrees
+or measured rainfall. The model has no soil, runoff or seasonal moisture budget.
+
+Generation stores each finished tile's climate and mixture. Later building pads
+refresh habitat where altitude changes. Detailed and coarse ground use the same
+palette at physical coordinates. Generated ground
+has no regional morality tint. Tree establishment and forage density blend the
+habitat profiles. Deterministic draws select individual plant types. Real trees
+retain wood, clearance, ownership and the existing per-species woodland capacity.
+Woodland noise also uses canonical coordinates, so its patches cross reach edges.
+Regrowth uses local habitat and the existing seasonal rules. No visual forest
+substitutes for resource entities.
+
+The seasonal snowline interpolates between the existing temperature bands using
+sea-level warmth. Physical altitude then decides freezing for crops, forage and
+snow. Both terrain views use that climate. The active coarse surface reads actual
+local snow accumulation. Remote coarse terrain uses seasonal cover because no
+local weather history exists there. Precipitation near the camera uses that
+point's freezing condition. Hourly pressure, wind and storms retain their rules.
+Named climate categories remain supported for small legacy fixtures.
+
 `buildGeography(grid, landscape, settlements, entrances, anchors)` connects
 actual front-door approaches, camps and entrances through land. A least-cost
 search prefers lower elevations and smaller changes in elevation. It does not

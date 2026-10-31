@@ -140,3 +140,21 @@ it.each(["camp", "shelter"])("keeps regrowing trees out of the player's %s", com
   hours(state, 48);
   expect(Object.keys(state.ecs.tree)).toEqual([mature]);
 });
+
+it("seeds real mixed-habitat species and forage deterministically, retaining their own yield/regrowth rules",()=>{
+  const setup=()=>{
+    const {state,tiles}=wood("jungle",false);
+    for(const id of tiles)state.ecs.mappable[id].biomeMix={jungle:.5,desert:.5};
+    delete state.ecs.tree;
+    initializeEcology(state,13);generateForage(state,13,null);
+    return state;
+  };
+  const a=setup(),b=setup();
+  expect(a.ecs.forageable).toEqual(b.ecs.forageable);
+  expect(Object.values(a.ecs.forageable).length).toBeGreaterThan(0);
+  expect(Object.values(a.ecs.forageable).every(p=>["jungle","desert"].includes(p.biome))).toBe(true);
+  expect(new Set(Object.values(a.ecs.tree).map(t=>t.biome)).size).toBeGreaterThan(1);
+  expect(Object.values(a.ecs.tree).every(t=>a.ecs.good[t.id]?.type=="wood")).toBe(true);
+  hours(a,24);hours(b,24);
+  expect(a.ecs.tree).toEqual(b.ecs.tree);
+});

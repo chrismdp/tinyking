@@ -6,7 +6,8 @@ import crops from "data/crops.json";
 // Altitude is physical ground height; biome temperature remains a visual/ecology band.
 export function snowlineAt(tile, days) {
   const warmth = Math.sin(2 * Math.PI * (days - DAYS_IN_SEASON / 2) / (4 * DAYS_IN_SEASON));
-  const base = { hot: 780, temperate: 480, cold: 230 }[tile.climateTemperature || tile.temperature || "temperate"];
+  const w=tile.climateWarmth;
+  const base = Number.isFinite(w) ? (w<.5 ? 230+500*w : 480+600*(w-.5)) : { hot: 780, temperate: 480, cold: 230 }[tile.climateTemperature || tile.temperature || "temperate"];
   return base + 450 * warmth;
 }
 export const frozenAt = (tile, days) => tile.elevation != null ? tile.elevation >= snowlineAt(tile, days) :

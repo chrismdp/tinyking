@@ -15,9 +15,21 @@ The game aims to make these activities enjoyable:
 
 ## The world and time
 
-Each local map is a world hex. Temperature, moisture, morality, elevation and continuous coastlines shape its terrain. Nine temperature/moisture combinations produce the biomes. Long mountain belts, secondary ridges and lowland envelopes share one world-coordinate height field. Annual moisture moves along a seeded prevailing wind, with coastal supply and drier rain shadows. Neighbouring world hexes differ by at most one category on each climate axis. [Geography](geography.md) describes terrain, passes, paths and placement rules.
+Each local map is a world hex for travel and administration. Its edges do not
+bound its habitat. Temperature, annual moisture and altitude form one continuous
+landscape. The nine named biomes blend across and within reaches. Long mountain
+belts, secondary ridges and lowlands share one world-coordinate height field.
+Annual moisture moves along a seeded prevailing wind, with coastal supply and
+drier rain shadows. Reach climate labels summarise these conditions.
+[Geography](geography.md) describes terrain, habitats, passes, paths and placement.
 
-Trees regrow through seasonal saplings near existing woods. Biomes set density and growth. Winter pauses growth. Fields use real crop patches, seasonal growth, household permissions and harvested grain. Weather follows the world pressure model. Rain, snow, wind and storms affect the presentation. They do not introduce injury, warmth or storm damage.
+Trees and forage use each tile's habitat mixture for species and density.
+Individual plants retain a definite type and its growth rules. Trees regrow
+through seasonal saplings near existing woods. Winter pauses growth. Fields use
+real crop patches, seasonal growth, household permissions and harvested grain.
+Local temperature and altitude control freezing, snow and crop growth. Weather
+retains the hourly pressure model. Rain, snow, wind and storms affect presentation.
+They do not introduce injury, warmth or storm damage.
 
 A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
 

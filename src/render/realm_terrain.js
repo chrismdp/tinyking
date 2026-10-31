@@ -4,8 +4,10 @@ import { MAP_CENTRE, MAP_RADIUS, createLandField, worldPoint } from "game/world_
 import { createHeightField } from "game/height";
 import { snowlineAt } from "game/climate";
 import { reachKey } from "game/realm_map";
-import { BIOME_COLOURS } from "render/biomes";
+import { habitatColour } from "render/biomes";
+import { habitatAt } from "game/biome_field";
 
+const terrainKey = p => String(Hex().fromPoint({x:Math.round(p.x*1000)/1000,y:Math.round(p.y*1000)/1000}));
 const pointKey = p => Math.round(p.x * 1000) + "," + Math.round(p.y * 1000);
 const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
 const localCentre = MAP_CENTRE.toPoint();
@@ -81,12 +83,18 @@ export function createRealmTerrain(state, ground) {
   const material = new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
   let mesh;
   const colour = new THREE.Color(), snow = new THREE.Color(0xE8EEF3);
-  const shadeFor = (h,p,height) => {
-    const terrain = terrainAt(String(Hex().fromPoint(global(p))));
-    if (terrain.includes("water")) return colour.setHex(terrain == "deep water" ? 0x2F4999 : 0x3F6FAE);
-    const rocky = terrain == "mountain" || height > 780;
-    colour.setHex(rocky ? 0x85898D : (BIOME_COLOURS[h.biome == "snowfield" ? "tundra" : h.biome] || 0x86C35F));
-    return colour.lerp(snow, Math.max(0,Math.min(1,(height-snowlineAt(h,state.days))/140)));
+  const shadeFor = sample => {
+    const {habitat,terrain,base,p,elevation}=sample;
+    if(terrain.includes("water"))return colour.copy(base);
+    const id=(state.space?.[String(Hex().fromPoint(p))] || []).find(id=>state.ecs.mappable[id]);
+    const depth=id && state.snow?.[id]!=null ? state.snow[id] : Math.max(0,Math.min(1,(elevation-snowlineAt(habitat,state.days))/140));
+    return colour.copy(base).lerp(snow,depth);
+  };
+  const sampleAt = (h,p,elevation) => {
+    const point=global(p),terrain=terrainAt(terrainKey(point));
+    const habitat=habitatAt(state.world,point,elevation) || {...h,elevation};
+    const base=habitatColour(habitat,terrain,point);
+    return {p,elevation,habitat,terrain,base};
   };
   const triangle = (a,b,c,h) => {
     // Force upward winding for every band, independently of perimeter order.
@@ -96,8 +104,8 @@ export function createRealmTerrain(state, ground) {
       let index=vertices.get(key);
       if(index==null) {
         index=samples.length;vertices.set(key,index);
-        const elevation=sampleHeight(p),rgb=shadeFor(h,p,elevation);
-        samples.push({h,p,elevation});
+        const elevation=sampleHeight(p),sample=sampleAt(h,p,elevation),rgb=shadeFor(sample);
+        samples.push(sample);
         positions.push(p.x,elevation-.12,p.y);colours.push(rgb.r,rgb.g,rgb.b);
       }
       indices.push(index);
@@ -171,11 +179,14 @@ export function createRealmTerrain(state, ground) {
         const key=pointKey(p),height=ground.heightAt(p.x,p.y);
         shared.set(key,height);geometryHeights.set(key,height);
       }
-      for (const {chunk} of chunks) {
+      for (const {chunk,samples} of chunks) {
         const geometry=chunk.geometry, array=geometry.attributes.position;
         for(let i=0;i<array.count;i++) {
           const x=array.getX(i),y=array.getZ(i);
-          if(Hex(MAP_CENTRE).distance(Hex().fromPoint({x,y}))<=MAP_RADIUS || shared.has(pointKey({x,y})))array.setY(i,sampleHeight({x,y})-.12);
+          if(Hex(MAP_CENTRE).distance(Hex().fromPoint({x,y}))<=MAP_RADIUS || shared.has(pointKey({x,y}))) {
+            const elevation=sampleHeight({x,y});array.setY(i,elevation-.12);
+            if(elevation!==samples[i].elevation)samples[i]=sampleAt({}, {x,y},elevation);
+          }
         }
         array.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();geometry.computeBoundingBox();
       }
@@ -183,7 +194,7 @@ export function createRealmTerrain(state, ground) {
     refreshSnow() {
       for(const {chunk,samples} of chunks) {
         const geometry=chunk.geometry, array=geometry.attributes.color.array;
-        samples.forEach(({h,p,elevation},i)=>{const rgb=shadeFor(h,p,elevation);array.set([rgb.r,rgb.g,rgb.b],i*3);});
+        samples.forEach((sample,i)=>{const rgb=shadeFor(sample);array.set([rgb.r,rgb.g,rgb.b],i*3);});
         geometry.attributes.color.needsUpdate=true;
       }
     },

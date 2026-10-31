@@ -1,3 +1,4 @@
+import { habitatAt, localHabitat, climateAt } from "game/biome_field";
 import { foundHousehold } from "game/family";
 import { expandedFootprint, expansionFits } from "game/settlement_growth";
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
@@ -311,7 +312,7 @@ export function World() {
       window.tinyking = state;
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
-      window.tinykingGeography = { updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
+      window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }
 
     (async () => {

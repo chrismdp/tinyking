@@ -1,3 +1,4 @@
+import { climateSummary } from "game/biome_field";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 import { villageArea } from "game/settlement_details";
@@ -44,6 +45,6 @@ export function reachFacts(s, h) {
   const key = reachKey(h);
   return { key, name: "Reach " + h.x + ", " + h.y, current: key == reachKey(s.world.home),
     visited: key == reachKey(s.world.home) || !!s.travel?.maps?.[key],
-    terrain: h.ocean ? "Ocean" : h.biome, temperature: h.temperature, moisture: h.moisture,
+    terrain: h.ocean ? "Ocean" : climateSummary(h), temperature: h.temperature, moisture: h.moisture,
     weather: s.weather?.[key], communities: knownCommunities(s, key) };
 }

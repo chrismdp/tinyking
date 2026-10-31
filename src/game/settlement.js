@@ -1,3 +1,4 @@
+import { setTileElevation } from "game/biome_field";
 import { FUEL_TRADES, FUEL_HOURS } from "game/favours";
 import MersenneTwister from "mersenne-twister";
 import { Hex, Grid, ALL_SIDES, hexAtPoint, hexDistance } from "game/hex";
@@ -239,7 +240,7 @@ function newSitePlan(s,villageId,pads,people=[],near) {
 function applySitePlan(s,site,surface) {
   s.map={...s.map,geography:surface};
   const ground=groundForState(s),tile=at(s,site.point);
-  for(const id of Object.keys(s.ecs.mappable))s.ecs.mappable[id].elevation=ground.hex(s.ecs.spatial[id]).centre;
+  for(const id of Object.keys(s.ecs.mappable))setTileElevation(s,id,ground.hex(s.ecs.spatial[id]).centre);
   for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(s.ecs,tile,side);
   if(!(reserveRoad(s,[tile,s.ecs.walkable[tile].neighbours[site.entrance]]) || reserveFieldLane(s,[tile,s.ecs.walkable[tile].neighbours[site.entrance]])))throw new Error("Validated house approach changed during construction");
 }

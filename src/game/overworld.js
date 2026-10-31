@@ -5,9 +5,9 @@ import { annualClimate } from "game/annual_moisture";
 import { createLandField, surveyWorld } from "game/world_terrain";
 
 // NOTE: The world is a hexagon of world hexes, and the map the game is
-// played on is one of them. Each world hex has one value on each of three
-// axes, and its temperature and moisture make its biome. Climate feeds the
-// existing vegetation, crops, snow and hourly weather conventions.
+// played on is one of them. Categories summarise reaches for legacy/debug
+// and hourly weather. The retained climate grid and continuous temperature
+// field supply physical habitat through biome_field.js.
 
 export const AXES = {
   morality: ["good", "neutral", "evil"],
@@ -119,7 +119,7 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
   }
   hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
   const world = { radius, centre: { x: centre.x, y: centre.y }, hexes };
-  return { ...surveyed, ...world, prevailingWind:climate.wind };
+  return { ...surveyed, ...world, prevailingWind:climate.wind, climate:{seed,moisture:climate.grid} };
 }
 
 export const homeOf = world => world.hexes.find(h => h.x == world.home.x && h.y == world.home.y);

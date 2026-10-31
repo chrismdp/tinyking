@@ -1,3 +1,4 @@
+import { worldPoint } from "game/world_terrain";
 import { visualNumber } from "render/variation";
 import * as THREE from "three";
 import SimplexNoise from "simplex-noise";
@@ -85,9 +86,7 @@ const byWater = (state, id) => {
     (state.space[n.toString()] || []).some(e => state.ecs.mappable[e] && WATER.includes(state.ecs.mappable[e].terrain)));
 };
 
-// NOTE: What a tile looks like: its own temperature (high ground is
-// colder) with its world hex's moisture and morality, and whether it is by
-// water.
+// Stored physical habitat, with named regional categories for old fixtures.
 export function lookOf(state, id) {
   const home = homeOf(state.world);
   const tile = state.ecs.mappable[id];
@@ -95,42 +94,45 @@ export function lookOf(state, id) {
     return { biome: home.biome, morality: home.morality, byWater: false };
   }
   return {
-    biome: biomeOf(tile.temperature || home.temperature, home.moisture),
-    morality: home.morality,
+    biome: tile.biome || biomeOf(tile.temperature || home.temperature, home.moisture),
+    biomeMix:tile.biomeMix,
+    morality: tile.biomeMix ? "neutral" : home.morality,
     byWater: byWater(state, id)
   };
 }
 
-// NOTE: Gives each tile its ground colour. Tiles are blended between the
-// biome's two shades by slow noise, so neighbours mostly agree, with a
-// little brightness of their own so each hex still reads as a hex.
+// Shared physical ground palette for detailed and coarse terrain. Snow is a
+// separate seasonal cover; thawed snowfield habitat exposes tundra ground.
+const paletteA=new THREE.Color(),paletteB=new THREE.Color();
+export function habitatColour(habitat, terrain, p, target=new THREE.Color()) {
+  if(WATER.includes(terrain))return target.setHex(COLOURS[terrain]);
+  const mix=habitat.biomeMix || {[habitat.biome || "grassland"]:1};
+  const blend=.5+.5*Math.sin(p.x*.004+Math.sin(p.y*.004));
+  target.setRGB(0,0,0);
+  const a=paletteA,b=paletteB;
+  for(const biome in mix) {
+    const look=BIOME_LOOKS[biome=="snowfield" && habitat.elevation!=null?"tundra":biome];
+    a.setHex(look.ground[0]).lerp(b.setHex(look.ground[1]),blend);
+    target.r+=a.r*mix[biome];target.g+=a.g*mix[biome];target.b+=a.b*mix[biome];
+  }
+  if(terrain=="mountain" || terrain=="stone" && habitat.elevation>780)return target.setHex(ROCK);
+  if(terrain=="stone")target.lerp(a.setHex(COLOURS.stone),.7);
+  return target;
+}
+
 export function createGroundColours(state) {
   const simplex = new SimplexNoise("ground:" + state.map.seed);
-  const colour = new THREE.Color();
-  const other = new THREE.Color();
-
   return (id, target = new THREE.Color()) => {
-    const { terrain } = state.ecs.mappable[id];
-    const { x, y } = state.ecs.spatial[id];
-    if (WATER.includes(terrain)) {
-      return target.setHex(COLOURS[terrain]);
+    const tile=state.ecs.mappable[id],p=state.ecs.spatial[id];
+    if(WATER.includes(tile.terrain))return target.setHex(COLOURS[tile.terrain]);
+    const look=lookOf(state,id);
+    habitatColour({...look,elevation:tile.elevation},tile.terrain,state.world.climate?worldPoint(state.world.home,p):p,target);
+    // Legacy named fixtures retain their morality. Generated landscape has
+    // no reach-shaped tint; fine facets come from the existing terrain mesh.
+    if(!tile.biomeMix) {
+      target.multiplyScalar(1+.035*simplex.noise2D(p.x*.37,p.y*.37));
+      if(tile.terrain!="mountain" && !(tile.terrain=="stone" && tile.elevation>780))tintForMorality(target,look.morality);
     }
-    const { biome, morality } = lookOf(state, id);
-    // Generated snowfields expose lichen ground at thaw; the snow buffer
-    // supplies seasonal white. Legacy biome fixtures retain their palette.
-    const look = BIOME_LOOKS[biome == "snowfield" && state.ecs.mappable[id].elevation != null ? "tundra" : biome];
-    const blend = 0.5 + 0.5 * simplex.noise2D(x * 0.004, y * 0.004);
-    const jitter = 1 + 0.035 * simplex.noise2D(x * 0.37, y * 0.37);
-    colour.setHex(look.ground[0]).lerp(other.setHex(look.ground[1]), blend);
-
-    if (terrain == "mountain" || terrain == "stone" && state.ecs.mappable[id].elevation > 780) {
-      // Seasonal snow is applied by the shared terrain snow buffer.
-      colour.setHex(ROCK);
-    } else if (terrain == "stone") {
-      colour.lerp(other.setHex(COLOURS.stone), 0.7);
-    }
-    colour.multiplyScalar(jitter);
-    if (terrain != "mountain" && !(terrain == "stone" && state.ecs.mappable[id].elevation > 780)) tintForMorality(colour, morality);
-    return target.copy(colour);
+    return target;
   };
 }

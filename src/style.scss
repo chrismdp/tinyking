@@ -1087,9 +1087,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .map-layers label { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px; cursor: pointer; }
   .map-layers input { width: 20px; height: 20px; accent-color: #dbc380; }
   .reach-facts { position: relative; padding: 12px; max-height: min(370px,calc(100dvh - 330px)); overflow-y: auto; font-size: 16px; }
-  .reach-facts h3 { margin: 0 30px 6px 0; font-size: 19px; }
+  .reach-facts h3 { margin: 0 44px 6px 0; font-size: 19px; }
   .reach-facts p { margin: 6px 0; line-height: 1.3; }
-  .reach-facts .close { position: absolute; top: 0; right: 0; min-width: 44px; min-height: 44px; color: #ffe29a; background: transparent; border: 0; }
+  .reach-facts .close { margin: 0; position: absolute; top: 0; right: 0; min-width: 44px; min-height: 44px; color: #ffe29a; background: transparent; border: 0; }
   .community-facts { border-top: 1px solid #72694f; margin-top: 10px; padding-top: 8px; }
 }
 @media (max-width: 700px), (max-height: 500px) {

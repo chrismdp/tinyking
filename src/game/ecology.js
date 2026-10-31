@@ -1,3 +1,4 @@
+import { chooseBiome, mixValue } from "game/biome_field";
 import { growingAt } from "game/climate";
 import { treeAllowed } from "game/tree_clearance";
 import { Hex, Grid, HEX_SIZE } from "game/hex";
@@ -37,14 +38,14 @@ export function initializeEcology(state, seed = state.map && state.map.seed || 0
     if (tile.terrain != "grassland") continue;
     const biome = tileBiome(state, tile);
     const hex = Hex().fromPoint(state.ecs.spatial[id]);
-    tiles[hex] = { id, biome };
+    tiles[hex] = { id, biome, ...(tile.biomeMix?{biomeMix:tile.biomeMix}:{}) };
   }
   const counts = {};
   state.ecs.tree = state.ecs.tree || {};
   for (const id in state.ecs.good) {
     if (state.ecs.good[id].type != "wood" || state.ecs.haulable && state.ecs.haulable[id]) continue;
     const tile = tiles[Hex().fromPoint(state.ecs.spatial[id])];
-    const biome = tile ? tile.biome : "grassland";
+    const biome = tile ? chooseBiome(tile.biomeMix || {[tile.biome]:1},hashUnit(seed+":species:"+id)) : "grassland";
     if (!state.ecs.tree[id]) state.ecs.tree[id] = {
       id, stage: "mature", growth: MATURE_AFTER, fullLogs: state.ecs.good[id].amount, biome
     };
@@ -56,7 +57,8 @@ export function initializeEcology(state, seed = state.map && state.map.seed || 0
   state.ecology = { seed, tiles, treeCaps: counts };
 }
 
-function plantAt(state, point, biome, key) {
+function plantAt(state, point, habitat, key) {
+  const biome=typeof habitat=="string"?habitat:chooseBiome(habitat,hashUnit(key+":species"));
   const profile = BIOME_ECOLOGY[biome];
   const kind = hashUnit(key + ":kind") < profile.berries ? "berries" : "roots";
   const [id] = newEntities(state, [{
@@ -72,13 +74,13 @@ export function generateForage(state, seed, start = state.map && state.map.playe
   for (const [key, tile] of onlyStart ? [] : Object.entries(state.ecology.tiles)) {
     if (state.ecs.mappable[tile.id].villagePlot) continue;
     if ((state.space[key] || []).some(id => state.ecs.building?.[id])) continue;
-    const density = BIOME_ECOLOGY[tile.biome].forageDensity;
+    const density = tile.biomeMix ? mixValue(tile.biomeMix,BIOME_ECOLOGY,"forageDensity") : BIOME_ECOLOGY[tile.biome].forageDensity;
     const count = Math.floor(density) + (hashUnit(seed + ":forage:" + key) < density % 1 ? 1 : 0);
     const centre = state.ecs.spatial[tile.id];
     for (let i = 0; i < count; i++) {
       const token = seed + ":forage:" + key + ":" + i;
       plantAt(state, { x: centre.x + (hashUnit(token + ":x") - 0.5) * 55,
-        y: centre.y + (hashUnit(token + ":y") - 0.5) * 55 }, tile.biome, token);
+        y: centre.y + (hashUnit(token + ":y") - 0.5) * 55 }, tile.biomeMix || tile.biome, token);
     }
   }
   // Like starting wood, food must be reachable even in the sparsest biome.
@@ -104,7 +106,7 @@ export function generateForage(state, seed, start = state.map && state.map.playe
       if (near >= 3) break;
       const p = state.ecs.spatial[id];
       const tile = state.ecology.tiles[Hex().fromPoint(p)];
-      plantAt(state, { x: p.x + 22, y: p.y - 18 }, tile.biome, seed + ":start:" + id);
+      plantAt(state, { x: p.x + 22, y: p.y - 18 }, tile.biomeMix || tile.biome, seed + ":start:" + id);
       near++;
     }
   }
@@ -146,7 +148,8 @@ export function updateEcology(state) {
   for (const id of mature) {
     const tree = state.ecs.tree[id];
     if (!growingAt(state,id)) continue;
-    const rate = BIOME_ECOLOGY[tree.biome].seeding;
+    const sourceTile=tiles[Hex().fromPoint(state.ecs.spatial[id])];
+    const rate = sourceTile?.biomeMix ? mixValue(sourceTile.biomeMix,BIOME_ECOLOGY,"seeding") : BIOME_ECOLOGY[tree.biome].seeding;
     tree.seeding = (tree.seeding ?? hashUnit(seed + ":seeding:" + id)) + rate * HOUR;
     if (tree.seeding < 1) continue;
     tree.seeding -= 1;
@@ -159,7 +162,9 @@ export function updateEcology(state) {
     if (!treeAllowed(state, point)) continue;
     const hex = Hex().fromPoint(point);
     const tile = tiles[hex];
-    if (!tile || !growingAt(state,tile.id) || (counts[tile.biome] || 0) >= (treeCaps[tile.biome] || 0)) continue;
+    if (!tile || !growingAt(state,tile.id)) continue;
+    const biome=tile.biomeMix?chooseBiome(tile.biomeMix,hashUnit(token+":species")):tile.biome;
+    if((counts[biome] || 0)>=(treeCaps[biome] || 0))continue;
     const space = state.space[hex] || [];
     if (space.some(e => state.ecs.mappable?.[e]?.villagePlot || state.ecs.building?.[e] || state.ecs.camp?.[e] || state.ecs.shelter?.[e] || state.ecs.farmable && state.ecs.farmable[e] || state.ecs.stockpile && state.ecs.stockpile[e])) continue;
     // Inspect only this tile and its six neighbours, never the whole forest.
@@ -172,10 +177,10 @@ export function updateEcology(state) {
     const fullLogs = 2 + Math.floor(hashUnit(token + ":logs") * 2);
     const ids = newEntities(state, [{
       spatial: { ...point, immovable: true }, nameable: { nickname: "Tree" },
-      tree: { biome: tile.biome, stage: "sapling", growth: 0, fullLogs },
+      tree: { biome, stage: "sapling", growth: 0, fullLogs },
       good: { type: "wood", amount: 0 }
     }]);
     state.redraws.push(...ids);
-    counts[tile.biome] = (counts[tile.biome] || 0) + 1;
+    counts[biome] = (counts[biome] || 0) + 1;
   }
 }

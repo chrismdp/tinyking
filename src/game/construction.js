@@ -1,3 +1,4 @@
+import { setTileElevation } from "game/biome_field";
 import { householdStore } from "game/favours";
 import { growthRecord } from "game/settlement_growth";
 import { recordEvent } from "game/events";
@@ -54,7 +55,7 @@ export function placeShelter(state, targetId) {
     if (!geography) return null;
     state.map.geography = geography;
     const ground = groundForState(state);
-    for (const id of Object.keys(state.ecs.mappable)) state.ecs.mappable[id].elevation = ground.hex(state.ecs.spatial[id]).centre;
+    for (const id of Object.keys(state.ecs.mappable)) setTileElevation(state,id,ground.hex(state.ecs.spatial[id]).centre);
   }
   const stage = state.ecs.shelter?.[targetId] ? STAGES[state.ecs.shelter[targetId].stage].next : "lean-to";
   let id = targetId;

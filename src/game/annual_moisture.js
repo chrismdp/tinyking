@@ -23,7 +23,7 @@ export function moistureSweep(row) {
 
 // A wind-aligned terrain summary grid, extended upwind beyond the realm.
 // It reads no map/ECS/history. One pass is then averaged over each reach;
-// callers store those summaries on world.hexes, never compute them in frame().
+// callers retain this small grid as well as summaries, never sweep in frame().
 export function annualClimate(hexes, field, seed) {
   const direction = new SimplexNoise("prevailing:" + seed).noise2D(17.3,-9.1) * Math.PI;
   const wind = {x:Math.cos(direction),y:Math.sin(direction)};
@@ -35,31 +35,37 @@ export function annualClimate(hexes, field, seed) {
   const u1 = Math.ceil((Math.max(...sites.map(s=>s.p.u))+margin)/STEP);
   const v0 = Math.floor((Math.min(...sites.map(s=>s.p.v))-margin)/STEP);
   const v1 = Math.ceil((Math.max(...sites.map(s=>s.p.v))+margin)/STEP);
-  const summaries = new Map();
+  const width=u1-u0+1, height=v1-v0+1;
+  const grid={wind,u0,v0,width,height,step:STEP,values:Array(width*height)};
   for(let v=v0;v<=v1;v++) {
     const row=[];
     for(let u=u0;u<=u1;u++) {
       const p=xy(u*STEP,v*STEP), water=field.landAt(p)<0;
       row.push({water,height:water?0:field.elevationAt(p)});
     }
-    moistureSweep(row).forEach((sample,i)=>summaries.set((u0+i)+","+v,sample.moisture));
+    moistureSweep(row).forEach((sample,i)=>grid.values[(v-v0)*width+i]=sample.moisture);
   }
-  // Bilinear lookup keeps a sub-grid shift from jumping the regional average.
-  const sample = (u,v) => {
-    const x=u/STEP,y=v/STEP,i=Math.floor(x),j=Math.floor(y),a=x-i,b=y-j;
-    const at=(i,j)=>summaries.get(i+","+j);
-    return (1-b)*((1-a)*at(i,j)+a*at(i+1,j))+b*((1-a)*at(i,j+1)+a*at(i+1,j+1));
-  };
-  return { wind, hexes:sites.map(({h,p})=>{
+  return { wind, grid, hexes:sites.map(({h,p})=>{
     let total=0, count=0;
     // Nine terrain-only samples cover the interior of a reach, rather than
     // assigning an entire mountain belt from the height of one centre point.
     for(const du of [-1200,0,1200])for(const dv of [-1200,0,1200]) {
       if(field.landAt(xy(p.u+du,p.v+dv))<0)continue;
-      total+=sample(p.u+du,p.v+dv);count++;
+      total+=annualMoistureAt(grid,xy(p.u+du,p.v+dv));count++;
     }
     // Water already replenishes transport. Do not average saturated sea into
     // the land biome a second time, especially on a narrow leeward coast.
     return {...h,annualMoisture:count?total/count:1};
   }) };
+}
+
+// Constant-time bilinear lookup; edge clamping also covers ordinary legacy
+// callers sampling just outside the surveyed finite realm.
+export function annualMoistureAt(grid, p) {
+  const {wind,u0,v0,width,height,step,values}=grid;
+  const x=Math.max(0,Math.min(width-1,(p.x*wind.x+p.y*wind.y)/step-u0));
+  const y=Math.max(0,Math.min(height-1,(-p.x*wind.y+p.y*wind.x)/step-v0));
+  const i=Math.min(width-2,Math.floor(x)),j=Math.min(height-2,Math.floor(y)),a=x-i,b=y-j;
+  const at=(i,j)=>values[j*width+i];
+  return (1-b)*((1-a)*at(i,j)+a*at(i+1,j))+b*((1-a)*at(i,j+1)+a*at(i+1,j+1));
 }

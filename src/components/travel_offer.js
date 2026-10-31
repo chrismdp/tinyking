@@ -1,3 +1,4 @@
+import { climateSummary } from "game/biome_field";
 import React from "react";
 import PropTypes from "prop-types";
 import { GameState } from "./contexts";
@@ -11,7 +12,7 @@ export function TravelOffer({
   if (!d) return null;
   const reachable = canReachTask(s, s.ui.playerId, entityId);
   return <section className="travel-offer" aria-label="Travel to a neighbouring world hex">
-    <h3>{d.name} · {d.hex?.ocean ? "ocean" : d.hex?.biome || "world boundary"}</h3>
+    <h3>{d.name} · {d.hex ? climateSummary(d.hex) : "world boundary"}</h3>
     <p>{SIDE_NAMES[d.side]} edge → arrive at the {SIDE_NAMES[d.arrivalSide]} edge.</p>
     {d.blocked ? <p role="status">{d.blocked}</p> : <>
       <p>{TRANSITION_NEEDS}</p><p>{DEPARTURE_POLICY}</p>

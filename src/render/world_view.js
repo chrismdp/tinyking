@@ -13,6 +13,8 @@ import * as THREE from "three";
 import { Hex, HEX_SIZE } from "game/map";
 import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
+import { frozenAt } from "game/climate";
+import { localHabitat } from "game/biome_field";
 import { localWeather, coldEnough } from "game/weather";
 import { homeOf } from "game/overworld";
 import { groundForState } from "game/geography";
@@ -198,7 +200,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
     // NOTE: Must come _after_ haulable as otherwise logs would be rendered as trees!
     if (ecs.good[id] && ecs.good[id].type == "wood") {
-      return models.tree(ground, ecs, id, lookAt(ecs.spatial[id]));
+      return models.tree(ground, ecs, id, {...lookAt(ecs.spatial[id]),...(ecs.tree?.[id]?.biome?{biome:ecs.tree[id].biome}:{})});
     }
     if (ecs.forageable && ecs.forageable[id]) {
       return models.foragePlant(ground, state, id);
@@ -486,7 +488,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let besidePanel = false;
   let wasOverview = false;
   let fittedRealm = false;
-  let snowDay = Math.floor(state.days);
+  let weatherHabitat=null,weatherPoint=null;
+  let snowDay = Math.floor(state.days), realmSnowRevision=state.snowRevision;
   let reportView = true;
   const viewMetrics = () => ({ distance:rig.distance, pose:rig.pose, level:overviewLevel(rig.distance), render:{...renderer.info?.render}, memory:{...renderer.info?.memory}, programs:renderer.info?.programs?.length,
     terrainTriangles:realm?.triangles, terrainBuildMs:realm?.constructionMs, days:state.days, active:state.travel?.active, maps:Object.keys(state.travel?.maps || {}).length, directory:Object.keys(state.travel?.people || {}).length,
@@ -534,7 +537,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         scene.remove(terrain.mesh);
         terrain.dispose();
         terrain = createTerrain(state, ground);
-        if (realm) { terrain.mesh.children.forEach(child => { child.visible = false; }); realm.refreshGround(); }
+        if (realm) { terrain.mesh.children.forEach(child => { child.visible = false; }); realm.refreshGround(); realm.refreshSnow(); }
         scene.add(terrain.mesh);
         state.redraws.push(...Object.keys(state.ecs.spatial));
         showKnown();
@@ -649,15 +652,23 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         if (overview && !wasOverview) { state.ui.actions?.dismiss_travel?.(); if(state.ui.show)state.ui.show.selected_person = null; state.ui.selected = null; }
         wasOverview = overview;
         const day = Math.floor(state.days);
-        if (day != snowDay) { realm.refreshSnow(); snowDay = day; }
+        if (day != snowDay || realmSnowRevision!=state.snowRevision) { realm.refreshSnow(); snowDay = day; realmSnowRevision=state.snowRevision; }
         realmOverlay.update(camera,canvas,{...overviewLevel(rig.distance),overview});
       }
       lastIntro = state.intro;
       wasArriving = arriving;
       weatherView.mesh.visible = !realm || rig.distance < 6500;
-      if (weatherView.mesh.visible) weatherView.update(weather, camera, now / 1000,
-        ["grassland", "steppe", "savanna"].includes(homeOf(state.world).biome),
-        coldEnough(homeOf(state.world), state.days));
+      if (weatherView.mesh.visible) {
+        const pose=rig.pose,point={x:pose.x,y:pose.z};
+        const elevation=ground.heightAt(point.x,point.y);
+        if(!weatherPoint || point.x!==weatherPoint.x || point.y!==weatherPoint.y || elevation!==weatherPoint.elevation) {
+          weatherPoint={...point,elevation};weatherHabitat=localHabitat(state.world,point,elevation);
+        }
+        const habitat=weatherHabitat;
+        weatherView.update(weather,camera,now/1000,
+          ["grassland","steppe","savanna"].includes(habitat?.biome || homeOf(state.world).biome),
+          habitat?frozenAt(habitat,state.days):coldEnough(homeOf(state.world),state.days));
+      }
       renderer.render(scene, camera);
       if (realm && reportView) { performance.mark?.("tinyking-map-view",{detail:viewMetrics()}); reportView=false; }
     },

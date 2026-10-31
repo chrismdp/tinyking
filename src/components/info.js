@@ -58,9 +58,10 @@ function WorldHex({ mappable }) {
   const state = React.useContext(GameState);
   const t = useTranslate();
   const home = homeOf(state.world);
-  const high = mappable.temperature != home.temperature;
+  const high = mappable.elevation >= 260;
   return (
     <div className="world-hex">
+      {mappable.biome && <div>{mappable.biomeMix ? mappable.biome+" mix" : mappable.biome}</div>}
       <div>{t(high ? "world.high_ground" : "world.temperature", { value: mappable.temperature })}</div>
       <div>{t("world.world_hex", home)}</div>
       {mappable.elevation >= 260 && <div>{frozenAt(mappable,state.days) ? "Frozen highlands · a shorter growing season" : "Highland thaw · a shorter growing season"}</div>}

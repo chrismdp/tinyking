@@ -97,3 +97,16 @@ it("shows snow rather than rain in a wet winter storm over a cold world hex", ()
   expect(view.mesh.children.find(child => child.name == "rain").visible).toBe(false);
   view.dispose();
 });
+
+it("uses physical local coldness to turn regional rain into snow and regional snow into rain",()=>{
+  const view=createWeatherView(),camera=new THREE.PerspectiveCamera();
+  camera.position.set(0,700,700);camera.lookAt(0,0,0);
+  const weather={wind:{x:1,y:0,strength:.4}};
+  view.update({...weather,type:"rain"},camera,1,false,true);
+  expect(view.mesh.children.find(c=>c.name=="snow").visible).toBe(true);
+  expect(view.mesh.children.find(c=>c.name=="rain").visible).toBe(false);
+  view.update({...weather,type:"snow"},camera,2,false,false);
+  expect(view.mesh.children.find(c=>c.name=="snow").visible).toBe(false);
+  expect(view.mesh.children.find(c=>c.name=="rain").visible).toBe(true);
+  view.dispose();
+});

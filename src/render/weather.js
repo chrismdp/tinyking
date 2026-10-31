@@ -72,11 +72,11 @@ export function createWeatherView(ground = { heightAt: () => 0 }) {
   const dust = make("dust", 160);
   return {
     mesh,
-    update(weather, camera, seconds, plains, cold = false) {
+    update(weather, camera, seconds, plains, cold = weather?.type == "snow") {
       const type = weather && weather.type;
       const wetStorm = type == "storm" && (weather.moisture === undefined || weather.moisture >= 0.46);
-      rain.visible = type == "rain" || (wetStorm && !cold);
-      snow.visible = type == "snow" || (wetStorm && cold);
+      rain.visible = (["rain","snow"].includes(type) || wetStorm) && !cold;
+      snow.visible = (["rain","snow"].includes(type) || wetStorm) && cold;
       dust.visible = type == "storm" && plains;
       if (!rain.visible && !snow.visible && !dust.visible) return;
       camera.getWorldDirection(direction);

@@ -1,8 +1,9 @@
 import { groundForState } from "game/geography";
 import { createLandField, worldPoint } from "game/world_terrain";
 import { Hex, Grid, generateMap, generateTrees, MIN_START_TREES } from "game/map";
-import { HIGH_GROUND } from "game/height";
-import { generateWorld, homeOf, colder, BIOMES } from "game/overworld";
+import { ALL_SIDES } from "game/hex";
+import { habitatAt } from "game/biome_field";
+import { generateWorld, homeOf, BIOMES } from "game/overworld";
 
 const noProgress = async () => {};
 
@@ -137,24 +138,60 @@ describe("generateMap", () => {
     }
   });
 
-  it("makes high ground one step colder than the world hex, down to cold, and the rest the world hex's temperature", async () => {
-    let high = 0;
-    let colderThanHome = 0;
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      const home = homeOf(state.world);
-      const ground = groundForState(state);
-      for (const id in state.ecs.mappable) {
-        const { terrain, temperature } = state.ecs.mappable[id];
-        const isHigh = terrain == "mountain" || ground.hex(state.ecs.spatial[id]).centre >= HIGH_GROUND;
-        expect([id, temperature]).toEqual([id, isHigh ? colder(home.temperature) : home.temperature]);
-        high += isHigh ? 1 : 0;
-        colderThanHome += temperature != home.temperature ? 1 : 0;
+  it("samples actual physical tile positions continuously and keeps alpine ground colder", async () => {
+    let high=0,colder=0;
+    for(const seed of [13,20]) {
+      const state=await mapFor(seed),ground=groundForState(state),values=[];
+      for(const id in state.ecs.mappable) {
+        const tile=state.ecs.mappable[id],point=state.ecs.spatial[id];
+        const elevation=ground.hex(point).centre;
+        const expected=habitatAt(state.world,worldPoint(state.world.home,point),elevation);
+        expect(tile.elevation).toBeCloseTo(elevation,10);
+        expect(tile.climateWarmth).toBeCloseTo(expected.climateWarmth,12);
+        expect(tile.moistureValue).toBeCloseTo(expected.moistureValue,12);
+        expect(tile.biomeMix).toEqual(expected.biomeMix);
+        expect(tile.temperature).toBe(expected.temperature);
+        values.push(tile.warmth);
+        high+=elevation>=260?1:0;
+        colder+=tile.warmth<tile.climateWarmth?1:0;
       }
+      expect(Math.max(...values)-Math.min(...values)).toBeGreaterThan(.05);
+      // Reuse these ordinary maps for the unchanged native geometry/resource
+      // limits, rather than generating another pair only for this correction.
+      const field=createLandField(state.world.landSeed);
+      for(const id of Object.keys(state.ecs.building)) {
+        const p=state.ecs.spatial[id],pad=ground.hex(p).corners;
+        expect(Math.max(...pad)-Math.min(...pad)).toBeLessThan(1e-6);
+        expect(Math.abs(ground.hex(p).centre-field.elevationAt(worldPoint(state.world.home,p)))).toBeLessThan(35);
+      }
+      let roads=0;
+      for(const id in state.ecs.mappable) {
+        const tile=state.ecs.mappable[id],p=state.ecs.spatial[id];
+        if(state.ecs.farmable[id])expect(tile.route?.length || 0).toBe(0);
+        if(!tile.route?.length)continue;
+        roads++;
+        const corners=Hex().corners();
+        for(let k=0;k<6;k++) {
+          const a=corners[k],b=corners[(k+1)%6],slope=ground.slopeAt(p.x+(a.x+b.x)/4,p.y+(a.y+b.y)/4);
+          expect(Math.hypot(slope.dx,slope.dy)).toBeLessThanOrEqual(.55+1e-6);
+        }
+        const hex=Hex().fromPoint(p),neighbours=Grid.hexagon({center:hex,radius:1}).neighborsOf(hex,ALL_SIDES);
+        for(const side of tile.route) {
+          const n=neighbours[side].toPoint(),dx=n.x-p.x,dy=n.y-p.y,slope=ground.slopeAt(p.x+dx/4,p.y+dy/4);
+          expect(Math.abs((slope.dx*dx+slope.dy*dy)/Math.hypot(dx,dy))).toBeLessThanOrEqual(.24+1e-6);
+        }
+      }
+      expect(roads).toBeGreaterThan(20);
+      const tileAt=p=>(state.space[Hex().fromPoint(p)] || []).find(id=>state.ecs.mappable[id]);
+      const start=tileAt(Hex(state.map.playerStartTile).toPoint()),reached=new Set([start]);let frontier=[start];
+      for(let d=0;d<5;d++) {
+        frontier=frontier.flatMap(id=>Object.values(state.ecs.walkable[id].neighbours)).filter(id=>!reached.has(id));
+        frontier.forEach(id=>reached.add(id));
+      }
+      expect(Object.keys(state.ecs.tree).filter(id=>state.ecs.good[id].amount>0 && reached.has(tileAt(state.ecs.spatial[id]))).length).toBeGreaterThanOrEqual(MIN_START_TREES);
+      expect(Object.keys(state.ecs.forageable).filter(id=>reached.has(tileAt(state.ecs.spatial[id]))).length).toBeGreaterThanOrEqual(3);
     }
-    // NOTE: so the rule is actually exercised
-    expect(high).toBeGreaterThan(20);
-    expect(colderThanHome).toBeGreaterThan(0);
+    expect(high).toBeGreaterThan(20);expect(colder).toBeGreaterThan(0);
   });
 
   it("leaves walking speed to the terrain alone, whatever the world hex", async () => {

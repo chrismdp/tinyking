@@ -50,3 +50,10 @@ The camera adjusts its depth range with zoom so that low coasts remain distinct
 from the surrounding sea. Close views retain local clipping and terrain clearance.
 
 The old SVG overview remains in new-game and debug seed/climate previews.
+
+Ground colours follow continuous temperature, moisture and altitude at each
+physical point. Reach labels such as “grassland mix” describe a climate summary.
+They do not mark an abrupt habitat boundary. Detailed tiles use the same habitat
+palette, and individual trees retain their actual species. Both scales share
+the seasonal snowline. The active coarse surface reads local snow accumulation.
+Remote cover remains a seasonal estimate until a detailed map exists.

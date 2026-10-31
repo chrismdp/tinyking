@@ -15,6 +15,7 @@ import { discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
 import { HIGH_GROUND } from "game/height";
+import { localHabitat, woodsAt } from "game/biome_field";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 import { initializeEcology, generateForage } from "game/ecology";
 import { generateVillageLife } from "game/villages";
@@ -189,6 +190,21 @@ const TREE_DENSITY = {
   desert: { cutoff: 0.4, keep: 0.02 },
 };
 
+// Blend actual establishment probabilities, including a narrow soft forest
+// edge. Named fixtures retain their original exact density convention.
+export function treeProbability(woods, habitat) {
+  if(typeof habitat == "string") {
+    const {cutoff,keep}=TREE_DENSITY[habitat];
+    return woods>cutoff?keep:0;
+  }
+  let probability=0;
+  for(const biome in habitat) {
+    const {cutoff,keep}=TREE_DENSITY[biome];
+    probability+=habitat[biome]*keep*Math.max(0,Math.min(1,(woods-cutoff+.1)/.2));
+  }
+  return probability;
+}
+
 // NOTE: Whatever the biome, a few trees always grow on land the start can
 // walk to within this many hexes, so there is wood to be had.
 export const MIN_START_TREES = 6;
@@ -227,7 +243,7 @@ function reachableFrom(start, landscape, settlements, reach) {
 
 // NOTE: biomeAt(hex) gives the biome a hex's trees grow as. Given a start,
 // the most wooded spots it can reach are planted until it has a few trees.
-export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start, allowed = () => true }) {
+export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start, allowed = () => true, world }) {
   let result = [];
   const simplex = new SimplexNoise(seed);
   let generator = new MersenneTwister(seed);
@@ -240,11 +256,11 @@ export function generateTrees(seed, landscape, settlements, world_x, world_y, { 
 
       const hex = Hex().fromPoint(x, y);
       if (hex && landscape[hex] && landscape[hex].terrain == "grassland" && !settlements[hex]) {
-        const woods = Math.min(simplex.noise2D(x * 0.001, y * 0.001), 0.6) +
-          (simplex.noise2D(x * 0.01, y * 0.01) * 0.3) +
-          (simplex.noise2D(x * 0.02, y * 0.02) * 0.0);
-        const { cutoff, keep } = TREE_DENSITY[biomeAt(hex)];
-        const grows = woods > cutoff && (keep >= 1 || hashUnit(seed + ":" + sx + "," + sy) < keep);
+        const point=world?.climate?worldPoint(world.home,{x,y}):null;
+        const woods = point ? woodsAt(world,point) : Math.min(simplex.noise2D(x*.001,y*.001),.6)+simplex.noise2D(x*.01,y*.01)*.3;
+        const habitat=biomeAt(hex);
+        const probability=treeProbability(woods,habitat);
+        const grows = probability>=1 || hashUnit(point ? world.climate.seed+":"+Math.round(point.x*1000)+","+Math.round(point.y*1000) : seed+":"+sx+","+sy)<probability;
         if (grows) {
           result.push({
             x: x + generator.random_int() % (GRID_STEP * 0.5) - GRID_STEP * 0.5,
@@ -433,10 +449,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   state.villages = villages;
   const entrances = prepareEntrances(grid, landscape, settlements, state.world, MAP_CENTRE, MAP_RADIUS);
 
-  // NOTE: Every tile takes its world hex's temperature, but high ground is
-  // a step colder. How high a tile is comes from the same height field the
-  // renderer draws, now that the houses have settled the terrain. A tile's
-  // biome (so high ground's is colder) decides how thickly trees grow on it.
+  // Store physical habitat once per tile after the finished surface is known.
   const home = homeOf(state.world);
   const field = landFieldFor(state.world);
   const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
@@ -450,7 +463,9 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const tile = landscape[key];
     if (walkable[tile.terrain] && !safeTile(ground,tile)) tile.terrain = "mountain";
     tile.elevation = ground.hex(tile).centre;
-    tile.temperature = tileTemperature(home.temperature, tile.terrain == "mountain" || tile.elevation >= HIGH_GROUND);
+    const habitat=localHabitat(state.world,tile,tile.elevation);
+    if(habitat)Object.assign(tile,habitat);
+    else tile.temperature=tileTemperature(home.temperature,tile.terrain=="mountain" || tile.elevation>=HIGH_GROUND);
   }
   if (!options.world && !state.world.geographyFixture) {
     // Choose the initial camp on the finished surface. An optional road can be
@@ -473,7 +488,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     if (chosen) start = chosen;
   }
   let trees = generateTrees(seed, landscape, {}, grid.pointWidth(), grid.pointHeight(), {
-    biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
+    world:state.world, biomeAt: hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture),
     start
   }).filter(tree => {
     const hex = Hex().fromPoint(tree);
@@ -482,7 +497,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   // Every pass has the same initial resource guarantees as the opening.
   for (const entry of Object.values(entrances)) {
     const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
-      biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture), start: Hex(entry.hexes[2])
+      world:state.world, biomeAt: hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start: Hex(entry.hexes[2])
     });
     const reached = reachableFrom(Hex(entry.hexes[2]), landscape, settlements, 4);
     for (const tree of extra.filter(t => reached.has(String(Hex().fromPoint(t))) && Hex(entry.hexes[2]).distance(Hex().fromPoint(t)) >= 2)) {
@@ -494,7 +509,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
     spatial: { x: tile.x, y: tile.y, immovable: true },
-    mappable: { terrain: tile.terrain, temperature: tile.temperature, climateTemperature: home.temperature, elevation: tile.elevation, ...(tile.route ? {route:tile.route} : {}) },
+    mappable: { terrain: tile.terrain, temperature: tile.temperature, climateTemperature: home.temperature, climateWarmth:tile.climateWarmth, moistureValue:tile.moistureValue, warmth:tile.warmth, biomeMix:tile.biomeMix, biome:tile.biome, elevation: tile.elevation, ...(tile.route ? {route:tile.route} : {}) },
     traits: { values: {} },
     valuable: { value: tile.economic_value },
     walkable: { worn: {}, speed: walkable[tile.terrain], neighbours: {} },
@@ -604,7 +619,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const safe = point => treeAllowed(state,point) && !(state.space[Hex().fromPoint(point)] || []).some(id=>
       state.ecs.mappable[id]?.villagePlot || state.ecs.farmable?.[id] || state.ecs.stockpile?.[id]);
     const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
-      biomeAt: hex=>biomeOf(landscape[hex].temperature,home.moisture), start:clearing, allowed:safe
+      world:state.world, biomeAt: hex=>landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start:clearing, allowed:safe
     });
     for(const tree of extra.filter(p=>reached.has(String(Hex().fromPoint(p))))) {
       if(Object.keys(state.ecs.good).some(id=>state.ecs.good[id].type=="wood" && Math.hypot(state.ecs.spatial[id].x-tree.x,state.ecs.spatial[id].y-tree.y)<10)) continue;

@@ -316,7 +316,7 @@ it("replays generation and moving animals exactly for the same seed", async () =
 it("keeps wild plants and woodland out of cultivated plots and tree crowns clear of real roofs and doors", async () => {
   const s = await world(20);
   // A reserved future work yard does not authorise blanket woodland clearing.
-  const tiles = new Set([...Object.keys(s.ecs.farmable),...Object.keys(s.ecs.backyard),...Object.keys(s.ecs.pasture)].map(id => Hex().fromPoint(s.ecs.spatial[id]).toString()));
+  const tiles = new Set([...Object.keys(s.ecs.farmable),...Object.keys(s.ecs.backyard),...Object.keys(s.ecs.pasture),...Object.keys(s.ecs.meetingPlace).filter(id=>["green","well"].includes(s.ecs.meetingPlace[id].kind))].map(id => Hex().fromPoint(s.ecs.spatial[id]).toString()));
   expect(tiles.size).toBeGreaterThan(0);
   for (const id of [...Object.keys(s.ecs.tree), ...Object.keys(s.ecs.forageable)]) {
     expect(tiles.has(Hex().fromPoint(s.ecs.spatial[id]).toString())).toBe(false);

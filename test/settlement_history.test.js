@@ -1,3 +1,4 @@
+import { path } from "game/pathfinding";
 import { generateMap, Hex } from "game/map";
 import { recordJourney, reconcileRouteHistory } from "game/settlement_routes";
 import { recordRoadUse, updateRoadWear, WEAR_LIFETIME } from "game/road_wear";
@@ -45,7 +46,10 @@ it("constructs the village from one actual household, with later dated homes and
       const access=s.ecs.farmable[field].accessTileId;
       expect(access).toBeDefined();
       expect(s.ecs.mappable[access].cropPlot).not.toBe(true);
-      expect(s.ecs.mappable[access].route.length).toBeGreaterThan(0);
+      const origin=s.space[Hex().fromPoint(s.ecs.spatial[h.id])].find(id=>s.ecs.mappable[id]);
+      expect(path(s,origin,access)).not.toBeNull();
+      if(s.ecs.farmable[field].accessKind=="foot")expect(s.ecs.mappable[access].fieldLane).toBe(true);
+      else expect(s.ecs.mappable[access].route.length).toBeGreaterThan(0);
     }
   }
   expect(s.settlement.journeys.some(j => j.reason == "visiting household" && j.people.length)).toBe(true);

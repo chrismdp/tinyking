@@ -241,3 +241,11 @@ and optional `pasture.gateHalfWidth`. Use `ecs.spatial[id]` for position.
 The older animal `centre` field does not override the physical fence position.
 An optional `ecs.fence[id]` with those dimensions reserves the same geometry
 for a future fenced plot. Unfenced crop plots retain the shared field rules above.
+
+`reserveFieldLane(state, tileIds)` reserves a real public walking approach.
+It checks existing navigation links and excludes crops and private yards.
+It changes no height, road route or wear. Its `mappable.fieldLane` marker keeps
+later crops and private additions out. An engineered road still uses the native
+slope and grade checks. Field metadata records `accessKind: "road" | "foot"`.
+The field's `accessTileId` must remain reachable through native walking rules.
+A crop edge does not require an engineered road where walking land is viable.

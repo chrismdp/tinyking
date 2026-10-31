@@ -2,7 +2,7 @@
 
 The terrain survey reserves feasible house pads and door spurs. These are construction opportunities, not houses or past journeys. The oldest founding household enters at the start of the existing 45-year history. Other founding groups enter later. Each group starts as an adult pair with a recorded incoming inventory. They consume twelve timber to construct their first home. Later arrivals establish households at two-season intervals. Births, marriages, inheritance and movement keep the existing social rules.
 
-The actual green and well establish the centre when the first household builds. The origin record names that household, date and reason. Homes follow the surveyed access lanes. House identity, rooms, owner and stored goods persist after construction. Agricultural plots use `reserveFieldPlot`. New connections use `reserveRoad`. Roofs and extensions use `reserveBuildingClearance`. Standing timber outside actual construction and cultivated plots remains.
+The actual green and well establish the centre when the first household builds. The origin record names that household, date and reason. Homes follow the surveyed access lanes. House identity, rooms, owner and stored goods persist after construction. Agricultural plots use `reserveFieldPlot`. Engineered connections use `reserveRoad`. Natural public field approaches use `reserveFieldLane`. Roofs and extensions use `reserveBuildingClearance`. Standing timber outside actual construction and cultivated plots remains.
 
 `settlement.js` runs the same seasonal construction and expansion transition in history, live play and offscreen catch-up. `settlement.lastSeason`, `preparedSeason` and `social.lastSeason` prevent duplicate transitions. Live production comes from completed crop or trade work. Summary seasons use actual household fields, available seed and altitude-dependent growing hours. Harvest creates grain, sowing consumes grain, and household meals consume available food. A timber collection consumes one reachable unowned tree and records its outward and return journey. Arrival timber near the player and border camps remains available.
 
@@ -56,3 +56,11 @@ Each household rechecks that its selected tree still exists before collection.
 The list preserves native tree order, camp margins, reach, loads and journey dates.
 Tile lookup caches only coordinate conversion. It reads current space and crop
 membership on every call, including after movement or direct legacy-state edits.
+
+Field access first searches a feasible road contour through the native geometry
+checks. If no engineered route exists, a real walking lane can provide access.
+The walking lane reserves public space without grading or claiming past use.
+Only a genuinely infeasible house/yard/field proposal requires reassignment.
+That reassignment precedes people and costs, stays within the original hamlet,
+and preserves public reservations and every other proposed pad. Later homes
+use the same finite local survey and the same native surface and land APIs.

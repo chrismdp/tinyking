@@ -3,7 +3,7 @@ import { newEntities } from "game/entities";
 import { addBidirectionalLink } from "game/pathfinding";
 import { groundForState } from "game/geography";
 import { canPlaceShelter, placeShelter } from "game/construction";
-import { reserveRoad } from "game/land_use";
+import { reserveRoad, reserveFieldLane, reserveWorkYard, canPlaceField } from "game/land_use";
 
 function siteFixture(slope) {
   const centre=Hex(5,5), origin=centre.toPoint();
@@ -66,4 +66,16 @@ it("accepts projected road slopes at the limit despite floating point roundoff, 
   const p=Hex(5,5).toPoint();
   expect(safeTile({slopeAt:()=>({dx:ROAD_CROSS_SLOPE+4e-14,dy:0})},p,ROAD_CROSS_SLOPE)).toBe(true);
   expect(safeTile({slopeAt:()=>({dx:ROAD_CROSS_SLOPE+1e-5,dy:0})},p,ROAD_CROSS_SLOPE)).toBe(false);
+});
+
+it("reserves a genuine walking field lane on a grade that cannot support an engineered road",()=>{
+  const {s,site}=siteFixture(.3),tile=s.space[Hex(6,5)][0],before={...s.map.geography.heights};
+  expect(reserveRoad(s,[site,tile])).toBe(false);
+  expect(reserveFieldLane(s,[site,tile])).toBe(true);
+  expect(s.ecs.mappable[tile].route).toBeUndefined();
+  expect(s.ecs.walkable[tile].worn).toEqual({});
+  expect(s.ecs.mappable[tile].fieldLane).toBe(true);
+  expect(reserveWorkYard(s,tile,"house")).toBe(false);
+  expect(canPlaceField(s,tile)).toBe(false);
+  expect(s.map.geography.heights).toEqual(before);
 });

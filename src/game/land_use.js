@@ -3,7 +3,7 @@ import { groundForState, safeTile, roadStep, ROAD_CROSS_SLOPE } from "game/geogr
 
 export const roadAllowed = tile => !!tile && !tile.cropPlot && !tile.buildingPlot && !tile.terrain.includes("water");
 export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && !tile.cropPlot &&
-  !tile.buildingPlot && !tile.route?.length && !Object.values(worn).some(n => n > 0);
+  !tile.buildingPlot && !tile.fieldLane && !tile.route?.length && !Object.values(worn).some(n => n > 0);
 
 export const transitBlocked = (state,id) => !!state.ecs.mappable?.[id]?.buildingPlot || fieldAtTile(state,id);
 // Endpoint crops permit work access. Connected private space permits actual
@@ -103,6 +103,18 @@ export function reserveFieldPlot(state, tileId) {
   if (!canPlaceField(state,tileId)) return false;
   state.ecs.mappable[tileId].cropPlot = true;
   state.landUseRevision = (state.landUseRevision || 0) + 1;
+  return true;
+}
+
+// A public walking approach need not meet engineered-road grades. Reserve its
+// actual navigation chain without grading, painting or claiming past journeys.
+export function reserveFieldLane(state,tileIds) {
+  const e=state.ecs;
+  if(tileIds.some(id=>!e.walkable[id]?.speed || !roadAllowed(e.mappable[id]) || fieldAtTile(state,id)))return false;
+  if(tileIds.slice(1).some((id,i)=>!Object.values(e.walkable[tileIds[i]].neighbours).includes(id)))return false;
+  let changed=false;
+  for(const id of tileIds)if(!e.mappable[id].fieldLane){e.mappable[id].fieldLane=true;changed=true;}
+  if(changed)state.landUseRevision=(state.landUseRevision || 0)+1;
   return true;
 }
 

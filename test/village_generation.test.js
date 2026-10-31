@@ -1,3 +1,4 @@
+import * as landUse from "game/land_use";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 import { addBidirectionalLink } from "game/pathfinding";
@@ -72,4 +73,46 @@ it("clears actual green and well footprints and keeps them out of crops and priv
     expect(s.ecs.mappable[tile].buildingPlot).toBeUndefined();
     expect(s.ecs.treeClearance[id]).toBeDefined();
   }
+});
+
+it("keeps every real field accessible when engineered road reservation is infeasible",()=>{
+  const road=jest.spyOn(landUse,"reserveRoad").mockReturnValue(false);
+  try {
+    const s=viableVillage(3);
+    expect(s.villages.v.houses).toHaveLength(3);
+    expect(Object.keys(s.ecs.personable)).toHaveLength(6);
+    for(const id of s.villages.v.houses) {
+      expect(s.ecs.growth[id].construction.timber).toBe(12);
+      for(const field of s.ecs.household[id].fields) {
+        const f=s.ecs.farmable[field];
+        expect(f.accessKind).toBe("foot");
+        expect(s.ecs.mappable[f.accessTileId].fieldLane).toBe(true);
+        const origin=s.space[Hex().fromPoint(s.ecs.spatial[id])].find(t=>s.ecs.mappable[t]);
+        expect(require("game/pathfinding").path(s,origin,f.accessTileId)).not.toBeNull();
+      }
+    }
+  } finally {road.mockRestore();}
+});
+
+it("reassigns a genuinely inaccessible proposal before people, preserving public reservations and construction costs",()=>{
+  const original=landUse.reserveRoad,originalFoot=landUse.reserveFieldLane;let blockedDoor,oldRoad;
+  const road=jest.spyOn(landUse,"reserveRoad").mockImplementation((s,tiles)=>{
+    if(!blockedDoor) {
+      expect(Object.keys(s.ecs.personable)).toHaveLength(0);
+      expect(Object.keys(s.ecs.building)).toHaveLength(0);
+      blockedDoor=tiles[0];
+      expect(Object.values(s.ecs.walkable[blockedDoor].neighbours).some(n=>original(s,[blockedDoor,n]))).toBe(true);
+      oldRoad=[...s.ecs.mappable[blockedDoor].route];
+    }
+    return tiles[0]==blockedDoor?false:original(s,tiles);
+  });
+  const foot=jest.spyOn(landUse,"reserveFieldLane").mockImplementation((s,tiles)=>tiles[0]==blockedDoor?false:originalFoot(s,tiles));
+  try {
+    const s=viableVillage(3);
+    expect(s.villages.v.houses).toHaveLength(3);
+    expect(Object.keys(s.ecs.personable)).toHaveLength(6);
+    expect(s.ecs.mappable[blockedDoor].route).toEqual(expect.arrayContaining(oldRoad));
+    expect(s.settlement.sites.v.every(site=>site.field && site.yard && site.usedBy)).toBe(true);
+    for(const id of s.villages.v.houses)expect(s.ecs.growth[id].construction.timber).toBe(12);
+  } finally {road.mockRestore();foot.mockRestore();}
 });

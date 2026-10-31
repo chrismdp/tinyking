@@ -18,6 +18,8 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
+const { snapshot, shelterCandidates } = require("./acceptance-selection");
+const TARGETED = process.argv.includes("--acceptance-fixes");
 
 const BASE_URL = process.argv[2] || "http://localhost:8080/";
 const SECONDS = +(process.argv[3] || 60);
@@ -50,7 +52,7 @@ const check = (name, ok, detail) => {
   });
 
   try {
-    await opening(page);
+    if (!TARGETED) await opening(page);
     await play(page);
   } catch (e) {
     console.error(e.stack);
@@ -64,6 +66,7 @@ const check = (name, ok, detail) => {
     check("the playtest ran to the end", false, String(e.message || e).split("\n")[0]);
   }
   check("no console errors", report.errors.length == 0, report.errors);
+  fs.writeFileSync(path.join(SHOTS, "playtest-report.json"), JSON.stringify(report, null, 2));
   await browser.close();
   process.exit(report.checks.every(c => c.ok) ? 0 : 1);
 })().catch(e => { console.error(e); process.exit(2); });
@@ -193,12 +196,14 @@ async function play(page) {
     if (miss) {
       return miss;
     }
-    try {
-      await page.getByRole("button", { name: button, exact: true }).waitFor({ timeout: WAIT });
-    } catch (error) {
+    // Info computes jobs asynchronously. Wait for a populated popup once,
+    // then inspect the actual offered actions without a 10s missing-action wait.
+    await page.locator(".job-list button, .person-window button").first().waitFor({ timeout: WAIT });
+    await page.waitForTimeout(100);
+    if (!await page.getByRole("button", { name: button, exact: true }).isVisible()) {
       const offered = await page.locator(".job-list button").allInnerTexts();
       await closePopup();
-      return "popup offers " + JSON.stringify(offered) + ": " + error.message.split("\n")[0];
+      return "popup offers " + JSON.stringify(offered);
     }
     return null;
   };
@@ -244,36 +249,36 @@ async function play(page) {
   //   move    - any walkable known tile a little way off
   //   empty   - grassland hexes with nothing else on them (fields and stockpiles need one)
   //   trees   - standing trees on known land
-  const targets = () => game(() => {
-    const s = window.tinyking;
-    const p = s.ecs.spatial[s.ui.playerId];
-    const distance = id => Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y);
-    const nearest = ids => ids.sort((a, b) => distance(a) - distance(b));
-    const drawn = id => s.renderer.objectOf(id) && s.renderer.objectOf(id).visible;
-    const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
-    const camp = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
-    const tileIn = hex => s.space[hex].find(id => s.ecs.mappable[id]);
-    const knownHexes = Object.keys(s.space).filter(hex => known.has(hex) && tileIn(hex));
-    return {
-      person: nearest(Object.keys(s.ecs.personable)
-        .filter(id => id != s.ui.playerId && s.ecs.controllable[id].controllerId != s.ui.playerId)
-        .filter(id => !s.ecs.personable[id].dead && drawn(id))),
-      move: nearest(knownHexes
-        .filter(hex => !s.space[hex].some(id => s.ecs.building[id]))
-        .map(tileIn)
-        .filter(id => s.ecs.walkable[id].speed > 0 && distance(id) > 150)),
-      empty: nearest(knownHexes
-        .filter(hex => s.space[hex].length == 1)
-        .map(tileIn)
-        .filter(id => s.ecs.mappable[id].terrain == "grassland")),
-      build: nearest(knownHexes.filter(hex => s.space[hex].length == 1).map(tileIn)
-        .filter(id => s.ecs.mappable[id].terrain == "grassland" &&
-          Math.hypot(s.ecs.spatial[id].x - camp.x, s.ecs.spatial[id].y - camp.y) < 260)),
-      trees: nearest(Object.keys(s.ecs.good)
-        .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
-        .filter(drawn))
-    };
-  });
+  const targets = async () => {
+    const build = shelterCandidates(await snapshot(page));
+    return game(build => {
+      const s = window.tinyking;
+      const p = s.ecs.spatial[s.ui.playerId];
+      const distance = id => Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y);
+      const nearest = ids => ids.sort((a, b) => distance(a) - distance(b));
+      const drawn = id => s.renderer.objectOf(id) && s.renderer.objectOf(id).visible;
+      const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
+      const tileIn = hex => s.space[hex].find(id => s.ecs.mappable[id]);
+      const knownHexes = Object.keys(s.space).filter(hex => known.has(hex) && tileIn(hex));
+      return {
+        person: nearest(Object.keys(s.ecs.personable)
+          .filter(id => id != s.ui.playerId && s.ecs.controllable[id].controllerId != s.ui.playerId)
+          .filter(id => !s.ecs.personable[id].dead && drawn(id))),
+        move: nearest(knownHexes
+          .filter(hex => !s.space[hex].some(id => s.ecs.building[id]))
+          .map(tileIn)
+          .filter(id => s.ecs.walkable[id].speed > 0 && distance(id) > 150)),
+        empty: nearest(knownHexes
+          .filter(hex => s.space[hex].length == 1)
+          .map(tileIn)
+          .filter(id => s.ecs.mappable[id].terrain == "grassland")),
+        build,
+        trees: nearest(Object.keys(s.ecs.good)
+          .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
+          .filter(drawn))
+      };
+    }, build);
+  };
 
   // --- Start a game ---------------------------------------------------------------
   const playURL = new URL(BASE_URL);
@@ -287,233 +292,255 @@ async function play(page) {
   await page.getByText("Start new game").first().click();
   await page.waitForSelector(".character canvas");
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
-  await shot("new-game.png");
+  let fieldTile, stockpileTile;
+  if (!TARGETED) {
+    await shot("new-game.png");
 
-  await page.locator(".panel .close").first().click();
-  await speed(PAUSE);
-  // Open out from the arrival's camp close-up for the existing order checks.
-  await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
-  await page.mouse.wheel(0, 915);
-  await page.waitForTimeout(500);
-  await shot("start.png");
-  check("the player starts at a camp with a bedroll and no house", await game(() => {
-    const s = window.tinyking;
-    const camp = Object.keys(s.ecs.camp || {})[0];
-    return camp && s.ecs.sleepable[camp].capacity == 1 && !s.ecs.container[camp] &&
+    await page.locator(".panel .close").first().click();
+    await speed(PAUSE);
+    // Open out from the arrival's camp close-up for the existing order checks.
+    await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
+    await page.mouse.wheel(0, 915);
+    await page.waitForTimeout(500);
+    await shot("start.png");
+    check("the player starts at a camp with a bedroll and no house", await game(() => {
+      const s = window.tinyking;
+      const camp = Object.keys(s.ecs.camp || {})[0];
+      return camp && s.ecs.sleepable[camp].capacity == 1 && !s.ecs.container[camp] &&
       !Object.keys(s.ecs.building).some(id => s.ecs.controllable[id].controllerId == s.ui.playerId);
-  }));
+    }));
 
-  // Regression: a fresh camp has no timber. Build first, then explicitly gather.
-  const fresh = await targets();
-  const firstSite = await orderOn(fresh.build, "Build shelter");
-  if (!firstSite) throw new Error("No fresh lean-to site available");
-  await speed(FAST);
-  await page.waitForFunction(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0]?.waiting == "Waiting for logs");
-  await speed(PAUSE);
-  let firstTimber = 0;
-  for (const id of fresh.trees) {
-    if (firstTimber >= 4) break;
-    await panTo(id);
-    if (await orderOn([id], "Cut down")) firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id);
-  }
-  await closePopup();
-  await speed(NORMAL);
-  await page.waitForFunction(() => {
-    const s = window.tinyking;
-    return s.ecs.manager[s.ui.playerId].jobs[0]?.waiting == "Waiting for logs" && s.ecs.planner[s.ui.playerId].task?.[0] == "chop_tree";
-  }, null, { timeout: 30000 });
-  const waitingWhileChopping = await page.locator("#task-panel .task.waiting").innerText();
-  await speed(FAST);
-  await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
-  check("fresh build-first queue waits, chops explicitly ordered wood, and finishes the lean-to",
-    firstTimber >= 4 && waitingWhileChopping.includes("Waiting for logs") && await game(() =>
-      !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
-
-  // Start fresh again so the original interaction checks keep their empty camp.
-  await page.goto(playURL.href);
-  await page.waitForTimeout(8000);
-  await page.getByText("Start new game").first().click();
-  await page.waitForSelector(".character canvas");
-  await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
-  await page.locator(".panel .close").first().click();
-  await speed(PAUSE);
-
-  await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
-  await page.mouse.wheel(0, 915);
-  await page.waitForTimeout(500);
-
-  // --- Select a villager by clicking it (paused, so they hold still) --------------
-  const villagers = await game(() => {
-    const s = window.tinyking;
-    return Object.keys(s.ecs.personable).sort((a, b) => (b == s.ui.playerId) - (a == s.ui.playerId));
-  });
-  let selected = null;
-  const misses = [];
-  for (const id of villagers) {
-    const miss = await selectByClick(id);
-    if (!miss) {
-      selected = id;
-      break;
+    // Regression: a fresh camp has no timber. Build first, then explicitly gather.
+    const fresh = await targets();
+    const firstSite = await orderOn(fresh.build, "Build shelter");
+    if (!firstSite) throw new Error("No fresh lean-to site available");
+    await speed(FAST);
+    await page.waitForFunction(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0]?.waiting == "Waiting for logs");
+    await speed(PAUSE);
+    let firstTimber = 0;
+    for (const id of fresh.trees) {
+      if (firstTimber >= 4) break;
+      await panTo(id);
+      if (await orderOn([id], "Cut down")) firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id);
     }
-    misses.push(id + ": " + miss);
-  }
-  check("clicking a villager selects it", selected, selected ? { selected } : misses);
-  await shot("selected.png");
-  await closePopup();
-
-  // --- Orders from the popups (still paused) ------------------------------------------
-  const t = await targets();
-  const target = await orderOn(t.move, "Move here", () => shot("job-menu.png"));
-  check("clicking a tile opens its job menu, and Move here queues a job", target && (await queued()).includes("move_to_here"), { target });
-
-  check("a task appears in the task panel", await page.locator("#task-panel .task-title").first().innerText() == "Move here");
-  const person = await orderOn(t.person, "Chat");
-  check("Chat queues a personal task from the person panel", person && (await queued()).includes("chat"), { person });
-  check("the person panel has no Recruit order", !(await page.locator(".people-sheet").innerText()).includes("Recruit"));
-  await closePopup();
-
-  // NOTE: a tile already ordered is a job target, so offers no more jobs
-  const fieldTile = await orderOn(t.empty.filter(id => id != target), "Create Field");
-  const stockpileTile = await orderOn(t.empty.filter(id => id != target && id != fieldTile), "Create Stockpile");
-  const tree = await orderOn(t.trees, "Cut down");
-  check("Create Field, Create Stockpile and Cut down can be ordered from the popups",
-    fieldTile && stockpileTile && tree, { fieldTile, stockpileTile, tree });
-
-  // --- Watch the Move here walk (at normal speed; at fast it is over in frames) ---
-  if (target) {
+    await closePopup();
     await speed(NORMAL);
-    let walk = null;
-    for (let i = 0; i < 600; i++) {
-      await page.waitForTimeout(100);
-      const status = await game(targetId => {
-        const s = window.tinyking;
-        const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "move_to_here" && j.targetId == targetId);
-        const b = s.ecs.spatial[targetId];
-        const distances = {};
-        for (const id in s.ecs.personable) {
-          const a = s.ecs.spatial[id];
-          distances[id] = Math.hypot(a.x - b.x, a.y - b.y);
-        }
-        return { assigned: job ? job.assignedId : null, open: !!job, distances };
-      }, target);
-      if (status.assigned && !walk) {
-        walk = { walker: status.assigned, from: Math.round(status.distances[status.assigned]) };
-      }
-      if (walk && !status.open) {
-        walk.to = Math.round(status.distances[walk.walker]);
+    await page.waitForFunction(() => {
+      const s = window.tinyking;
+      return s.ecs.manager[s.ui.playerId].jobs[0]?.waiting == "Waiting for logs" && s.ecs.planner[s.ui.playerId].task?.[0] == "chop_tree";
+    }, null, { timeout: 30000 });
+    const waitingWhileChopping = await page.locator("#task-panel .task.waiting").innerText();
+    await speed(FAST);
+    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
+    check("fresh build-first queue waits, chops explicitly ordered wood, and finishes the lean-to",
+      firstTimber >= 4 && waitingWhileChopping.includes("Waiting for logs") && await game(() =>
+        !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
+
+    // Start fresh again so the original interaction checks keep their empty camp.
+    await page.goto(playURL.href);
+    await page.waitForTimeout(8000);
+    await page.getByText("Start new game").first().click();
+    await page.waitForSelector(".character canvas");
+    await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
+    await page.locator(".panel .close").first().click();
+    await speed(PAUSE);
+
+    await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
+    await page.mouse.wheel(0, 915);
+    await page.waitForTimeout(500);
+
+    // --- Select a villager by clicking it (paused, so they hold still) --------------
+    const villagers = await game(() => {
+      const s = window.tinyking;
+      return Object.keys(s.ecs.personable).sort((a, b) => (b == s.ui.playerId) - (a == s.ui.playerId));
+    });
+    let selected = null;
+    const misses = [];
+    for (const id of villagers) {
+      const miss = await selectByClick(id);
+      if (!miss) {
+        selected = id;
         break;
       }
+      misses.push(id + ": " + miss);
     }
-    check("a villager walks to the ordered tile", walk && walk.to < 20 && walk.from > walk.to, walk);
-    await speed(PAUSE);
-    await shot("arrived.png");
-  }
-  check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
-  await closeUp(page, game, "zoom-day.png");
+    check("clicking a villager selects it", selected, selected ? { selected } : misses);
+    await shot("selected.png");
+    await closePopup();
 
-  // --- Play on ------------------------------------------------------------------------
-  await speed(FAST);
-  const sample = () => game(() => {
-    const s = window.tinyking;
-    const ground = s.renderer.ground;
-    return Object.keys(s.ecs.personable).map(id => {
-      const p = s.ecs.spatial[id];
-      const object = s.renderer.objectOf(id);
-      return {
-        id,
-        x: p.x,
-        y: p.y,
-        height: ground.heightAt(p.x, p.y),
-        offGround: object ? Math.abs(object.position.y - ground.heightAt(p.x, p.y)) : null
-      };
-    });
-  });
-  const first = await sample();
-  const startDays = await game(() => window.tinyking.days);
-  let worstOffGround = 0;
-  const heights = new Set();
-  for (let t = 0; t < SECONDS; t += 5) {
-    await page.waitForTimeout(5000);
-    for (const p of await sample()) {
-      if (p.offGround != null) {
-        worstOffGround = Math.max(worstOffGround, p.offGround);
+    // --- Orders from the popups (still paused) ------------------------------------------
+    const t = await targets();
+    const target = await orderOn(t.move, "Move here", () => shot("job-menu.png"));
+    check("clicking a tile opens its job menu, and Move here queues a job", target && (await queued()).includes("move_to_here"), { target });
+
+    check("a task appears in the task panel", await page.locator("#task-panel .task-title").first().innerText() == "Move here");
+    const person = await orderOn(t.person, "Chat");
+    check("Chat queues a personal task from the person panel", person && (await queued()).includes("chat"), { person });
+    check("the person panel has no Recruit order", !(await page.locator(".people-sheet").innerText()).includes("Recruit"));
+    await closePopup();
+
+    // NOTE: a tile already ordered is a job target, so offers no more jobs
+    fieldTile = await orderOn(t.empty.filter(id => id != target), "Create Field");
+    stockpileTile = await orderOn(t.empty.filter(id => id != target && id != fieldTile), "Create Stockpile");
+    const tree = await orderOn(t.trees, "Cut down");
+    check("Create Field, Create Stockpile and Cut down can be ordered from the popups",
+      fieldTile && stockpileTile && tree, { fieldTile, stockpileTile, tree });
+
+    // --- Watch the Move here walk (at normal speed; at fast it is over in frames) ---
+    if (target) {
+      await speed(NORMAL);
+      let walk = null;
+      for (let i = 0; i < 600; i++) {
+        await page.waitForTimeout(100);
+        const status = await game(targetId => {
+          const s = window.tinyking;
+          const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "move_to_here" && j.targetId == targetId);
+          const b = s.ecs.spatial[targetId];
+          const distances = {};
+          for (const id in s.ecs.personable) {
+            const a = s.ecs.spatial[id];
+            distances[id] = Math.hypot(a.x - b.x, a.y - b.y);
+          }
+          return { assigned: job ? job.assignedId : null, open: !!job, distances };
+        }, target);
+        if (status.assigned && !walk) {
+          walk = { walker: status.assigned, from: Math.round(status.distances[status.assigned]) };
+        }
+        if (walk && !status.open) {
+          walk.to = Math.round(status.distances[walk.walker]);
+          break;
+        }
       }
-      heights.add(Math.round(p.height));
+      check("a villager walks to the ordered tile", walk && walk.to < 20 && walk.from > walk.to, walk);
+      await speed(PAUSE);
+      await shot("arrived.png");
     }
-  }
-  const last = await sample();
-  const moved = last.filter(p => {
-    const before = first.find(f => f.id == p.id);
-    return before && Math.hypot(before.x - p.x, before.y - p.y) > 30;
-  }).length;
-  const endDays = await game(() => window.tinyking.days);
-  check("villagers move about", moved > 0, { moved, of: last.length, gameHours: Math.round((endDays - startDays) * 24) });
-  check("villagers are drawn on the ground", worstOffGround < 0.01, { worstOffGround });
-  console.log("ground heights seen under villagers:", [...heights].sort((a, b) => a - b).join(" "));
-  await shot("after.png");
+    check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
+    await closeUp(page, game, "zoom-day.png");
 
-  // NOTE: the player works through the queue and sleeps at night, so a late
-  // order may still be waiting.
-  const outcome = await game(([person, tree, fieldTile, stockpileTile]) => {
-    const s = window.tinyking;
-    const waiting = key => s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == key);
-    // Generated family farms must not satisfy the player's Create Field check.
-    const atOrderedTile = target => id => target &&
+    // --- Play on ------------------------------------------------------------------------
+    await speed(FAST);
+    const sample = () => game(() => {
+      const s = window.tinyking;
+      const ground = s.renderer.ground;
+      return Object.keys(s.ecs.personable).map(id => {
+        const p = s.ecs.spatial[id];
+        const object = s.renderer.objectOf(id);
+        return {
+          id,
+          x: p.x,
+          y: p.y,
+          height: ground.heightAt(p.x, p.y),
+          offGround: object ? Math.abs(object.position.y - ground.heightAt(p.x, p.y)) : null
+        };
+      });
+    });
+    const first = await sample();
+    const startDays = await game(() => window.tinyking.days);
+    let worstOffGround = 0;
+    const heights = new Set();
+    for (let t = 0; t < SECONDS; t += 5) {
+      await page.waitForTimeout(5000);
+      for (const p of await sample()) {
+        if (p.offGround != null) {
+          worstOffGround = Math.max(worstOffGround, p.offGround);
+        }
+        heights.add(Math.round(p.height));
+      }
+    }
+    const last = await sample();
+    const moved = last.filter(p => {
+      const before = first.find(f => f.id == p.id);
+      return before && Math.hypot(before.x - p.x, before.y - p.y) > 30;
+    }).length;
+    const endDays = await game(() => window.tinyking.days);
+    check("villagers move about", moved > 0, { moved, of: last.length, gameHours: Math.round((endDays - startDays) * 24) });
+    check("villagers are drawn on the ground", worstOffGround < 0.01, { worstOffGround });
+    console.log("ground heights seen under villagers:", [...heights].sort((a, b) => a - b).join(" "));
+    await shot("after.png");
+
+    // NOTE: the player works through the queue and sleeps at night, so a late
+    // order may still be waiting.
+    const outcome = await game(([person, tree, fieldTile, stockpileTile]) => {
+      const s = window.tinyking;
+      const waiting = key => s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == key);
+      // Generated family farms must not satisfy the player's Create Field check.
+      const atOrderedTile = target => id => target &&
       s.ecs.spatial[id].x == s.ecs.spatial[target].x && s.ecs.spatial[id].y == s.ecs.spatial[target].y;
-    return {
-      fields: Object.keys(s.ecs.farmable || {}).filter(atOrderedTile(fieldTile)).length,
-      fieldWaiting: waiting("create_field"),
-      stockpiles: Object.keys(s.ecs.stockpile || {}).filter(atOrderedTile(stockpileTile)).length,
-      stockpileWaiting: waiting("create_stockpile"),
-      chatted: !!s.ecs.relationships[s.ui.playerId].known[person],
-      chatWaiting: waiting("chat"),
-      treeGone: !s.ecs.good[tree],
-      treeWaiting: waiting("cut_tree_down")
-    };
-  }, [person, tree, fieldTile, stockpileTile]);
-  check("the orders are carried out (or still waiting their turn)",
-    (outcome.fields > 0 || outcome.fieldWaiting) &&
+      return {
+        fields: Object.keys(s.ecs.farmable || {}).filter(atOrderedTile(fieldTile)).length,
+        fieldWaiting: waiting("create_field"),
+        stockpiles: Object.keys(s.ecs.stockpile || {}).filter(atOrderedTile(stockpileTile)).length,
+        stockpileWaiting: waiting("create_stockpile"),
+        chatted: !!s.ecs.relationships[s.ui.playerId].known[person],
+        chatWaiting: waiting("chat"),
+        treeGone: !s.ecs.good[tree],
+        treeWaiting: waiting("cut_tree_down")
+      };
+    }, [person, tree, fieldTile, stockpileTile]);
+    check("the orders are carried out (or still waiting their turn)",
+      (outcome.fields > 0 || outcome.fieldWaiting) &&
     (outcome.stockpiles > 0 || outcome.stockpileWaiting) &&
     (outcome.chatted || outcome.chatWaiting) &&
     (outcome.treeGone || outcome.treeWaiting), outcome);
-  check("at least one of those orders is done", outcome.fields + outcome.stockpiles > 0 || outcome.chatted || outcome.treeGone, outcome);
+    check("at least one of those orders is done", outcome.fields + outcome.stockpiles > 0 || outcome.chatted || outcome.treeGone, outcome);
 
-  // Choose an actual gathered item. The planner fetches and delivers it.
-  await speed(PAUSE);
-  await closePopup();
-  const giftPerson = await orderOn((await targets()).person, "Give a gift");
-  if (!giftPerson) throw new Error("No visible person available for a gift");
-  const giftButton = page.locator(".talk-chooser > button").first();
-  await giftButton.waitFor({ timeout: WAIT });
-  await giftButton.click();
-  check("Gift chooser queues a real item for delivery", (await queued()).includes("give_gift"));
-  const giftTask = await game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.find(j => j.job.key == "give_gift").id);
-  await page.evaluate(({ personId, taskId }) => {
-    const s = window.tinyking;
-    let itemId;
-    window.giftDelivery = new Promise(resolve => {
-      const watch = () => {
-        const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
-        itemId = job?.giftItem || itemId;
-        if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
+    // Choose an actual gathered item. The planner fetches and delivers it.
+    await speed(PAUSE);
+    await closePopup();
+    const giftPerson = await orderOn((await targets()).person, "Give a gift");
+    if (!giftPerson) throw new Error("No visible person available for a gift");
+    const giftButton = page.locator(".talk-chooser > button").first();
+    await giftButton.waitFor({ timeout: WAIT });
+    await giftButton.click();
+    check("Gift chooser queues a real item for delivery", (await queued()).includes("give_gift"));
+    const giftTask = await game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.find(j => j.job.key == "give_gift").id);
+    await page.evaluate(({ personId, taskId }) => {
+      const s = window.tinyking;
+      let itemId;
+      window.giftDelivery = new Promise(resolve => {
+        const watch = () => {
+          const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
+          itemId = job?.giftItem || itemId;
+          if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
           // Read the actual handover, before either character's next walking
           // task. A requestAnimationFrame observer can run several steps later.
-          const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
-          const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
-          const delivered = receipt?.gifts.find(g => g.id == itemId);
-          resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
-            personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
-        } else requestAnimationFrame(watch);
-      };
-      requestAnimationFrame(watch);
-    });
-  }, { personId: giftPerson, taskId: giftTask });
-  await closePopup();
-  await speed(FAST);
-  await page.waitForFunction(() => window.tinyking.ui.talkResult?.message == "They accepted your gift.", null, { timeout: 180000 });
-  const delivery = await page.evaluate(() => window.giftDelivery);
-  await speed(PAUSE);
-  check("the player walks over and gives the gift", delivery.itemId && delivery.owner == giftPerson && delivery.distance <= 10, delivery);
+            const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
+            const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
+            const delivered = receipt?.gifts.find(g => g.id == itemId);
+            resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
+              personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
+          } else requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+      });
+    }, { personId: giftPerson, taskId: giftTask });
+    await closePopup();
+    await speed(FAST);
+    await page.waitForFunction(() => window.tinyking.ui.talkResult?.message == "They accepted your gift.", null, { timeout: 180000 });
+    const delivery = await page.evaluate(() => window.giftDelivery);
+    await speed(PAUSE);
+    check("the player walks over and gives the gift", delivery.itemId && delivery.owner == giftPerson && delivery.distance <= 10, delivery);
+
+  } else {
+    await page.locator(".panel .close").first().click();
+    await speed(PAUSE);
+    await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
+    await page.mouse.wheel(0, 915);
+    // Reproduce the later failing case's seed, field/stockpile reservations,
+    // explicit chopping and elapsed simulation; this is not the fresh build.
+    for (const [id, action] of [["1368", "Move here"], ["1340", "Create Field"], ["1311", "Create Stockpile"], ["1679", "Cut down"]]) {
+      await panTo(id);
+      if (!await orderOn([id], action)) throw new Error("Failed later-case setup: " + action);
+    }
+    fieldTile = "1340"; stockpileTile = "1311";
+    await closePopup(); await speed(FAST);
+    await page.waitForFunction(() => window.tinyking.days >= 2.915, null, { timeout: 180000 });
+    await speed(PAUSE);
+    const state = await snapshot(page);
+    fs.writeFileSync(path.join(SHOTS, "later-placement-state.json"), JSON.stringify(state));
+    console.log("SETUP later construction: real seed13 field/stockpile/chopping orders, elapsed day " + await game(() => window.tinyking.days));
+  }
 
   // Gather enough timber, place a site through its popup, and wait for actual delivery and work.
   await speed(PAUSE);
@@ -530,32 +557,48 @@ async function play(page) {
   if (sites[0]) await panTo(sites[0]);
   const siteTile = await orderOn(sites, "Build shelter");
   check("a lean-to site can be placed from the popup", siteTile && await game(() => Object.keys(window.tinyking.ecs.construction || {}).length == 1));
+  if (siteTile) await page.evaluate(() => {
+    const s = window.tinyking;
+    window.buildEvidence = {};
+    const observe = () => {
+      const id = Object.keys(s.ecs.construction || {})[0], site = s.ecs.construction[id];
+      if (site?.delivered == 4) window.buildEvidence = { id, ...site, day: s.days };
+      if (!Object.values(s.ecs.shelter || {}).some(h => h.stage == "lean-to")) requestAnimationFrame(observe);
+    };
+    requestAnimationFrame(observe);
+  });
   const buildStarted = Date.now();
   const buildDay = await game(() => window.tinyking.days);
   await speed(FAST);
   if (siteTile) {
     await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
   }
-  check("logs are delivered and a lean-to finishes", await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")),
+  check("logs are delivered and a lean-to finishes", siteTile && await game(() => window.buildEvidence?.delivered == 4 && Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")),
     { seconds: (Date.now() - buildStarted) / 1000, gameHours: Math.round((await game(() => window.tinyking.days) - buildDay) * 24) });
 
-  await closeUp(page, game, "zoom.png");
+  await shot("completed-shelter-desktop.png");
+  if (!TARGETED) {
+    await closeUp(page, game, "zoom.png");
 
-  // --- Resizing the window resizes the view ---------------------------------------
-  await page.setViewportSize({ width: 960, height: 640 });
-  await page.waitForTimeout(500);
-  const size = await game(() => {
-    const canvas = document.querySelector("#world canvas");
-    return { width: canvas.clientWidth, height: canvas.clientHeight };
-  });
-  check("the view follows a window resize", size.width == 960 && size.height == 640, size);
-  await page.setViewportSize(VIEW);
+    // --- Resizing the window resizes the view ---------------------------------------
+    await page.setViewportSize({ width: 960, height: 640 });
+    await page.waitForTimeout(500);
+    const size = await game(() => {
+      const canvas = document.querySelector("#world canvas");
+      return { width: canvas.clientWidth, height: canvas.clientHeight };
+    });
+    check("the view follows a window resize", size.width == 960 && size.height == 640, size);
+    await page.setViewportSize(VIEW);
+
+  }
 
   // --- The debug worldgen page shows the whole map --------------------------------
-  await page.goto(new URL("/debug/worldgen", BASE_URL).href);
+  const response = await page.goto(new URL("/debug/worldgen", BASE_URL).href);
+  check("the real debug deep link serves the SPA entry", response.status() == 200);
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer, null, { timeout: 30000 });
   await page.waitForTimeout(1500);
   await shot("worldgen.png");
+  check("the targeted playtest ran to the end", true);
 }
 
 // --- Close-up: zoom towards a field (or the player), turn and tilt down -------

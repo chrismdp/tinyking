@@ -88,7 +88,7 @@ it("reserves full native station and garden footprints without taking hypothetic
 it("preserves another owner's standing timber when an optional second garden has no permitted parcel",()=>{
   const protectedTrees=[];
   const s=viableVillage(5,()=>{},true,state=>{
-    const [owner]=newEntities(state,[{controllable:{},personable:{age:40}}]);state.ecs.controllable[owner].controllerId=owner;
+    const [owner]=newEntities(state,[{controllable:{}}]);state.ecs.controllable[owner].controllerId=owner;
     for(const site of state.settlement.sites.v) {
       const centre=Hex().fromPoint(site.yardPoint);
       for(const hex of Grid.hexagon({center:centre,radius:1}).neighborsOf(centre,ALL_SIDES)) {

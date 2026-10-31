@@ -21,6 +21,13 @@ import crops from "data/crops.json";
 
 export const HOUSE_TIMBER = 12;
 const at = (s,point) => routeTile(s,point);
+function homeRearTiles(s,site) {
+  const f=buildingFootprint({ecs:{spatial:{home:site.point},building:{home:{entrance:site.entrance}}}},"home");
+  return [...new Set([-32.5,0,32.5].flatMap(x=>[0,15,30].map(depth=>{
+    const y=-f.halfDepth-depth;
+    return at(s,{x:f.x+x*Math.cos(f.angle)+y*Math.sin(f.angle),y:f.y-x*Math.sin(f.angle)+y*Math.cos(f.angle)});
+  })))];
+}
 function reserveSiteField(s,site,pads,owner) {
   const ground=s.map?.geography && groundForState(s),edges=new Map();
   const roadEdge=(a,b)=>{
@@ -41,7 +48,8 @@ function reserveSiteField(s,site,pads,owner) {
   for(const kind of ["road","foot"])for(const tile of candidates) {
     const survey={...s,ecs:{...e,mappable:{...e.mappable,[tile]:{...e.mappable[tile],cropPlot:true}}}};
     for(const access of Object.values(e.walkable[tile].neighbours).filter(id=>!padTiles.has(id) && !e.mappable[id].cropPlot && !e.mappable[id].buildingPlot)) {
-      const route=path(survey,door,access,kind=="road"?roadEdge:undefined);
+      const route=path(survey,door,access,(a,b)=>(kind!="road" || roadEdge(a,b)) && !rearSpace.has(b)) ||
+        path(survey,door,access,kind=="road"?roadEdge:undefined);
       if(!route)continue;
       const tiles=route.map(p=>p.id);
       if((kind=="road"?reserveRoad(s,tiles):reserveFieldLane(s,tiles)) && reserveFieldPlot(s,tile))return {tile,accessTileId:access,route:tiles,kind};
@@ -54,7 +62,7 @@ function reservationPreview(s) {
     mappable:Object.fromEntries(Object.entries(s.ecs.mappable).map(([id,t])=>[id,{...t,route:t.route && [...t.route]}])),
     walkable:Object.fromEntries(Object.entries(s.ecs.walkable).map(([id,w])=>[id,{...w,neighbours:{...w.neighbours}}]))}};
 }
-function yardGeometry(s,point,garden,pads) {
+function yardGeometry(s,point,garden,pads,site) {
   const station={ecs:{spatial:{station:{x:point.x,y:point.y}},workplace:{station:{}}}};
   const base=buildingFootprint(station,"station"),bay=expandedFootprint(station,"station",1);
   const gardens=[{...garden,halfWidth:18,halfDepth:18,angle:0}];
@@ -73,7 +81,9 @@ function yardGeometry(s,point,garden,pads) {
     });
     if(overlap)tiles.push(at(s,centre));
   }
-  return {tiles,base,room:!homes.some(h=>footprintsOverlap(bay,h))};
+  const homeRear=expandedFootprint({ecs:{spatial:{home:site.point},building:{home:{entrance:site.entrance}}}},"home",2);
+  return {tiles,base,room:!homes.some(h=>footprintsOverlap(bay,h)) && ![base,...gardens].some(f=>footprintsOverlap(f,homeRear)) &&
+    !workBayTiles(s,point,0).includes(at(s,garden))};
 }
 function reserveSiteYard(s,site,pads,owner=null) {
   const padTiles=new Set(pads.map(p=>at(s,p.point))),home=Hex().fromPoint(site.point),door=s.ecs.walkable[at(s,site.point)].neighbours[site.entrance];
@@ -88,25 +98,25 @@ function reserveSiteYard(s,site,pads,owner=null) {
     for(const gardenHex of Grid.hexagon({center:Hex().fromPoint(s.ecs.spatial[id]),radius:1}).neighborsOf(Hex().fromPoint(s.ecs.spatial[id]),ALL_SIDES)) {
       const garden=gardenHex.toPoint();
       if(home.distance(gardenHex)>5)continue;
-      const geometry=yardGeometry(s,s.ecs.spatial[id],garden,pads);
+      const geometry=yardGeometry(s,s.ecs.spatial[id],garden,pads,site);
       if(!geometry || geometry.tiles.some(tile=>!tile || padTiles.has(tile) ||
           s.map.playerStartTile && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(s.map.playerStartTile))<=2 ||
           Object.values(s.map.entrances || {}).some(e=>e.hexes && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(e.hexes[2]))<=2) ||
           tileContents(s,tile).some(id=>s.ecs.good?.[id]?.type=="wood" && !s.ecs.haulable?.[id] && s.ecs.controllable?.[id] && topController(s.ecs,id)!=owner) ||
           pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==tile)) ||
         !canClearForBuilding(s,geometry.base,owner) || !canReserveWorkYard(s,geometry.tiles,site.yardOwner) || !path(s,door,id))continue;
-      const plan={id,tiles:geometry.tiles,garden};
+      const plan={id,tiles:geometry.tiles,garden,room:geometry.room};
       if(geometry.room){fallback=plan;break;}
       fallback ||= plan;
     }
-    if(fallback)break;
+    if(fallback?.room)break;
   }
   if(!fallback)return undefined;
   if(!reserveWorkYard(s,fallback.tiles,site.yardOwner))return undefined;
   site.yardTiles=fallback.tiles;
   site.yardPoint={x:s.ecs.spatial[fallback.id].x,y:s.ecs.spatial[fallback.id].y};
   site.gardenPoint=fallback.garden;
-  site.rearOpportunity=workBayTiles(s,s.ecs.spatial[fallback.id],0);
+  site.rearOpportunity=[...new Set([...workBayTiles(s,s.ecs.spatial[fallback.id],0),...homeRearTiles(s,site)])];
   return fallback.id;
 }
 

@@ -53,6 +53,7 @@ export function generateVillageLife(state, seed, start) {
   const land = Object.keys(ecs.mappable).filter(id => ecs.mappable[id].terrain == "grassland");
   const tileAt = Object.fromEntries(land.map(id => [keyOf(ecs.spatial[id]), id]));
   const reserved = new Set();
+  const rearOpportunities=new Set(Object.values(state.settlement?.sites || {}).flat().flatMap(site=>site.rearOpportunity || []));
   const reserve = id => {
     if (!id) return null;
     const key = keyOf(ecs.spatial[id]);
@@ -198,7 +199,7 @@ export function generateVillageLife(state, seed, start) {
           // A second actual garden is optional. Its whole footprint fits one
           // adjacent hex and must preserve public routes and existing farms.
           const extra=Grid.hexagon({center:Hex().fromPoint(yard),radius:1}).neighborsOf(Hex().fromPoint(yard),ALL_SIDES)
-            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && clearableWood(tile,houseId) && canReserveWorkYard(state,tile,houseId));
+            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && !rearOpportunities.has(tile) && clearableWood(tile,houseId) && canReserveWorkYard(state,tile,houseId));
           if(!extra)continue;
           reserveWorkYard(state,extra,houseId);reserve(extra);workYardTiles.push(extra);
           household.plot.hexes.push(keyOf(ecs.spatial[extra]));point=ecs.spatial[extra];
@@ -250,7 +251,7 @@ export function generateVillageLife(state, seed, start) {
       }
       for (let i = h.fields.length; i < count; i++) {
         let fieldTile,accessTileId,accessKind;
-        for(const candidate of nearby(houseId).filter(id=>canCultivate(id,houseId))) {
+        for(const candidate of nearby(houseId).filter(id=>canCultivate(id,houseId)).sort((a,b)=>Number(rearOpportunities.has(a))-Number(rearOpportunities.has(b)))) {
           const access=fieldAccess(houseId,candidate);
           if(!access || !reserveFieldPlot(state,candidate))continue;
           fieldTile=candidate;accessTileId=access.tile;accessKind=access.kind;break;

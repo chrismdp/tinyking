@@ -42,7 +42,7 @@ afterEach(() => { delete global.window; });
 
 it("refreshes a selected village area as discovery, current actor and reveal mode change",()=>{
   const {state,renderer}=fixture(),centre=Hex(state.map.centre),next=Hex(centre.x+1,centre.y);
-  state.ecs.spatial.site=centre.toPoint();state.ecs.village={site:{villageId:"v"}};
+  state.ecs.spatial.site=centre.toPoint();state.ecs.building.site={entrance:1,rooms:[]};state.ecs.village={site:{villageId:"v"}};
   state.villages={v:{id:"v",houses:["site"],sharedPlaces:[],origin:{day:0}}};state.ui.selected="site";
   const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}});
   const count=()=>{view.frame();return renderer.render.mock.calls.at(-1)[0].getObjectByName("village-area").children.length;};

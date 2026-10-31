@@ -68,6 +68,17 @@ it("describes a fully expanded pub as complete",()=>{
   expect(html).not.toContain("towards the next addition");
 });
 
+it("shows the actual season, timber and space requirements before the next addition",()=>{
+  const s=household();
+  s.ecs.growth={house:{builtDay:-12,stage:0,supportedSeasons:0,additions:[]}};
+  let html=render(s,"house");
+  expect(html).toContain("4 consecutive seasons of support");
+  expect(html).toContain("6 stored timber");
+  expect(html).toContain("clear space behind the building");
+  s.ecs.growth.house.stage=1;html=render(s,"house");
+  expect(html).toContain("10 stored timber");
+});
+
 it("keeps an unintroduced household owner and assigned worker anonymous without changing knowledge", () => {
   const state = household();
   delete state.ecs.relationships.p.known.head;

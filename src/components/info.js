@@ -1,4 +1,5 @@
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
+import { EXPANSIONS } from "game/settlement_growth";
 import { ResourceRights } from "./village_customs";
 import { canPlaceField } from "game/land_use";
 import { frozenAt } from "game/climate";
@@ -85,6 +86,7 @@ export function Info({ entityId }) {
   const villageId=houseId ? state.ecs.village?.[houseId]?.villageId : state.ecs.village?.[entityId]?.villageId;
   const village = state.villages?.[villageId];
   const origin=village?.origin, growth=state.ecs.growth?.[entityId], centre=centreHousehold(state,villageId);
+  const nextAddition=growth && EXPANSIONS[growth.stage];
 
   const [jobs, setJobs] = React.useState([]);
 
@@ -141,6 +143,7 @@ export function Info({ entityId }) {
         <p>Built {historicalDate(growth.builtDay)}{growth.construction ? " using "+growth.construction.timber+" timber" : ""} · {growth.stage ? "Expanded stage "+growth.stage : "Original building"}</p>
         {growth.additions.map(a=><p key={a.stage}>{a.name}: {historicalDate(a.day)} · {a.timber} timber from its household store.</p>)}
         <p>{growth.stage>=2 ? "Both additions are complete." : <>{entity.meetingPlace?.kind=="alehouse" ? "Regular visitors" : "Residents, productive work and food reserves"}: {growth.supportedSeasons} seasons towards the next addition{growth.waiting ? " · "+growth.waiting : ""}.</>}</p>
+        {nextAddition && <p>Next addition needs {nextAddition.seasons} consecutive seasons of support, {nextAddition.timber} stored timber and clear space behind the building.</p>}
       </div>}
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       {entity.mappable && <TravelOffer entityId={entityId}/>}

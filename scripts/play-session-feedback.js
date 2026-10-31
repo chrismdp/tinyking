@@ -20,7 +20,7 @@ const record={purpose:"Builder preview: real pointer/touch gestures and ordinary
       await page.goto(base+"?seed=13&weather=clear");
       await page.getByText("Start new game",{exact:true}).click();
       await page.locator(".character canvas").waitFor();
-      await page.locator(".panel .close").first().click();
+      await page.getByRole("button", { name: "Start game", exact: true }).click();
       await page.locator("#intro-skip").waitFor();
       await page.waitForTimeout(150);
       await page.screenshot({path:path.join(out,(phone?"phone":"desktop")+"-opening.png")});

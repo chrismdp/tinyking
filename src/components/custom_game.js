@@ -41,12 +41,14 @@ export function CustomGame() {
 
   const nameField = React.useRef();
   const randomiseNameSeed = React.useCallback(() => {
+    delete state.ecs.nameable[state.ui.playerId].firstName;
     state.ecs.nameable[state.ui.playerId].seed = newSeed();
     nameField.current.value = firstName(state.ecs.nameable[state.ui.playerId]);
   }, [state.ecs.nameable, state.ui.playerId]);
 
   const familyNameField = React.useRef();
   const randomiseFamilyNameSeed = React.useCallback(() => {
+    delete state.ecs.nameable[state.ui.playerId].familyName;
     state.ecs.nameable[state.ui.playerId].familySeed = newSeed();
     familyNameField.current.value = familyName(state.ecs.nameable[state.ui.playerId]);
   }, [state.ecs.nameable, state.ui.playerId]);
@@ -59,11 +61,12 @@ export function CustomGame() {
   }, [state, state.ecs.personable]);
 
   React.useEffect(() => {
+    if (state.generating || male === undefined || !state.ecs.personable?.[state.ui.playerId]) return;
     state.ecs.nameable[state.ui.playerId].male = male;
     state.ecs.personable[state.ui.playerId].male = male;
     state.ecs.personable[state.ui.playerId].body = male ? BODY_MALE : BODY_FEMALE;
     state.redraws.push(state.ui.playerId);
-  }, [state, male]);
+  }, [state, male, state.generating, state.ui.playerId]);
 
   const reset = React.useCallback(() =>
     state.ui.actions.generate_map(seedField.current.value), [state]);
@@ -76,7 +79,7 @@ export function CustomGame() {
   React.useEffect(() => {
     const ref = characterView.current;
     let view;
-    if (ref) {
+    if (ref && !state.generating) {
       view = createPreview(ref, {
         width: 300,
         height: 250,
@@ -84,6 +87,8 @@ export function CustomGame() {
         onPickNeighbour: index => { setTab(TABS.NEIGHBOUR); setSelectedNeighbour(index); }
       });
       setPreview(view);
+    } else {
+      setPreview(null);
     }
 
     return function cleanup() {
@@ -91,7 +96,7 @@ export function CustomGame() {
         view.dispose();
       }
     };
-  }, [state, state.map]);
+  }, [state, state.map, state.generating]);
 
   // NOTE: Again this is a way to imperatively tell the preview for this
   // component to re-render - there's probably a better way.
@@ -99,7 +104,7 @@ export function CustomGame() {
   const timeToUpdate = React.useCallback(() => setNeedsUpdate({}), [setNeedsUpdate]);
 
   React.useEffect(() => {
-    if (!preview) {
+    if (!preview || state.generating) {
       return;
     }
 
@@ -125,12 +130,13 @@ export function CustomGame() {
       }
     }
   }, [preview, state, t, state.ecs.nameable,
-    state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
+    state.generating, state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
 
   return (
     <div className="custom-game">
       <h1 className="handle">Start new game</h1>
-      { state.map && <>
+      { state.generating && <p role="status">Preparing world: {progress.label || "starting"}…</p> }
+      { state.map && !state.generating && <>
         <div className="game-preview" icon="person">
           <div className="row overlay">
             <button aria-label="Character" aria-pressed={tab == TABS.PERSON} onClick={() => setTab(TABS.PERSON)} className={`${tab == TABS.PERSON ? "" : "unselected"}`}><FontAwesomeIcon icon="user"/></button>
@@ -150,7 +156,7 @@ export function CustomGame() {
             </div>
             <div className="row" style={{clear: "both"}}>
               <label htmlFor="name">First name:</label>
-              <input id="name" type="text" ref={nameField}/>
+              <input id="name" type="text" ref={nameField} onChange={event => { state.ecs.nameable[state.ui.playerId].firstName = event.target.value; }}/>
               <button aria-label="Randomise first name" onClick={randomiseNameSeed}><FontAwesomeIcon icon="dice"/></button>
             </div>
             <CharacterSelection label="Hair colour:" id={state.ui.playerId} attribute="hair" selections={HAIR} onChange={timeToUpdate}/>
@@ -159,7 +165,7 @@ export function CustomGame() {
             <h2>Customise your house</h2>
             <div className="row">
               <label htmlFor="house">House:</label>
-              <input id="house" type="text" ref={familyNameField}/>
+              <input id="house" type="text" ref={familyNameField} onChange={event => { state.ecs.nameable[state.ui.playerId].familyName = event.target.value; }}/>
               <button aria-label="Randomise house name" onClick={randomiseFamilyNameSeed}><FontAwesomeIcon icon="dice"/></button>
             </div>
           </>}
@@ -183,8 +189,8 @@ export function CustomGame() {
             </> }
           </>}
         </div>
-        <button className="mobile-start" onClick={() => state.ui.actions.close_window("mapgen")}>Start game</button>
       </> }
+      <button className="mobile-start" disabled={!!state.generating} onClick={state.ui.actions.start_game}>Start game</button>
     </div>
   );
 }

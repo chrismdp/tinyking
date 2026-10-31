@@ -176,8 +176,8 @@ async function mobile(page, size) {
     await open(desktop);
     await shot(desktop, "desktop-after-menu");
     await customise(desktop);
-    assert.equal(await desktop.locator(".mobile-start").isVisible(), false);
-    await desktop.locator(".panel .close").click();
+    assert.equal(await desktop.locator(".mobile-start").isVisible(), true);
+    await desktop.getByRole("button", { name: "Start game", exact: true }).click();
     await desktop.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
     await desktop.waitForTimeout(1800);
     await shot(desktop, "desktop-after-game");

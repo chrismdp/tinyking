@@ -70,7 +70,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
     await page.getByText("Start new game", { exact: true }).click();
     await page.locator(".character canvas").waitFor();
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.waitForFunction(() => window.tinyking.intro?.active);
     await frame("arrival");
     await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 30000 });

@@ -159,28 +159,31 @@ function updatePlannerFrame(state, frameMod) {
 
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
 // it changes ECS state and lists changed entities in state.redraws.
-export function createSimulation(state, { onHour, onTravel, onError } = {}) {
+export function createSimulation(state, { onHour, onDay, onTravel, onError } = {}) {
   let pending = null;
+  const clock = state.simulationClock ||= { hour: 0, requestsStarted: false, winter: time.season(state.days) == "winter" };
+  let savedDay = Math.floor(state.days);
+  const dayChanged = () => {
+    const day = Math.floor(state.days);
+    if (day !== savedDay) { savedDay = day; if (onDay) onDay(); }
+  };
   const background = fn => {
     state.worldBusy = true;
     if(onHour) onHour();
-    pending = fn().then(() => { state.worldBusy=false; pending=null; }).catch(error => { state.worldBusy=false; pending=null; state.travelError=String(error.stack || error); state.game_speed="paused"; if(onError) onError(error); else console.error(error); });
+    pending = fn().then(() => { state.worldBusy=false; pending=null; dayChanged(); }).catch(error => { state.worldBusy=false; pending=null; state.travelError=String(error.stack || error); state.game_speed="paused"; if(onError) onError(error); else console.error(error); });
     return pending;
   };
-  let hour = 0;
-  let requestsStarted = false;
-  let winter = time.season(state.days) == "winter";
   if (!state.weather) updateWeather(state, 0);
 
   const advanceTime = frameMod => {
     if (SPEED[state.game_speed]) {
       const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
       state.days += toAdd;
-      hour += toAdd;
-      while (hour + 1e-12 >= time.HOUR) {
-        hour -= time.HOUR;
+      clock.hour += toAdd;
+      while (clock.hour + 1e-12 >= time.HOUR) {
+        clock.hour -= time.HOUR;
         const end = state.days;
-        state.days = end - hour;
+        state.days = end - clock.hour;
 
         // FIXME: This potentially leads to frame spikes each hour
         for (const id in state.ecs.planner) {
@@ -191,9 +194,9 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
         updateNeeds(state);
 
         const nowWinter = time.season(state.days) == "winter";
-        if (winter != nowWinter) {
+        if (clock.winter != nowWinter) {
           state.redraws.push(...Object.keys(state.ecs.forageable || {}));
-          winter = nowWinter;
+          clock.winter = nowWinter;
         }
         // Sample every crossed hour, including season boundaries.
         updateEnvironment(state);
@@ -216,7 +219,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
       if (arriving) return;
-      if (!requestsStarted) { updateFavours(state); requestsStarted = true; }
+      if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
       updateCustoms(state);
       updatePlanners(state, frameMod);
       // All edge completions belong to the map where planners just ran.
@@ -232,6 +235,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
         return background(()=>advanceWorldClock(state));
       }
       if (SPEED[state.game_speed]) updateVillageLife(state);
+      dayChanged();
     }
   };
 }

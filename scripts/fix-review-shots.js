@@ -81,7 +81,7 @@ async function run(browser, phone) {
     await page.getByText("Start new game", { exact: true }).click();
     await page.waitForSelector(".character canvas");
     if (phone) await page.getByRole("button", { name: "Start game", exact: true }).click();
-    else await page.locator(".panel .close").click();
+    else await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(0);
     const player = await page.evaluate(() => window.tinyking.ui.playerId);
     const trees = await page.evaluate(() => {

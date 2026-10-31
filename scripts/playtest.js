@@ -83,7 +83,7 @@ async function opening(page) {
   await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
   await page.getByText("Start new game", { exact: true }).click();
   await page.waitForSelector(".character canvas");
-  await page.locator(".panel .close").first().click();
+  await page.getByRole("button", { name: "Start game", exact: true }).click();
   await page.waitForFunction(() => window.tinyking.intro?.active);
   const start = await page.evaluate(() => {
     const s = window.tinyking;
@@ -337,7 +337,7 @@ async function play(page) {
   await page.waitForSelector(".character canvas");
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
   if (GIFT_ONLY) {
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
     const tree = (await targets()).trees[0];
     if (!tree) throw new Error("No discovered timber for ordinary gift preparation");
@@ -355,7 +355,7 @@ async function play(page) {
   if (!TARGETED) {
     await shot("new-game.png");
 
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
     // Open out from the arrival's camp close-up for the existing order checks.
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
@@ -408,7 +408,7 @@ async function play(page) {
     await page.getByText("Start new game").first().click();
     await page.waitForSelector(".character canvas");
     await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
 
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
@@ -587,7 +587,7 @@ async function play(page) {
     await giveGift();
 
   } else {
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
     await page.mouse.wheel(0, 915);

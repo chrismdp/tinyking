@@ -27,7 +27,7 @@ const record = { url: url.href, purpose: "Camera rotated towards the interior su
     await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
     await page.getByText("Start new game", { exact: true }).click();
     await page.locator(".character canvas").waitFor();
-    await page.locator(".panel .close").first().click();
+    await page.getByRole("button", { name: "Start game", exact: true }).click();
     await page.waitForFunction(() => window.tinyking?.renderer && !window.tinyking.intro?.active);
     record.setup = await page.evaluate(() => {
       const s = window.tinyking;

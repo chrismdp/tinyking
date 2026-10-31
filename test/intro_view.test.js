@@ -253,3 +253,20 @@ it("rebuilds visible boards when an enclosure grows or is removed from a remaini
     expect(view.objectOf(yard).getObjectByName("fence")).toBeUndefined();
   } finally {view.dispose();delete global.window;}
 });
+
+it("lights an actually occupied completed player house at night and clears its windows by day or when empty", () => {
+  global.window={addEventListener(){},removeEventListener(){}};
+  const {state,view,id}=openingView();
+  const [home]=newEntities(state,[{spatial:{...state.ecs.spatial[id]},shelter:{stage:"house"},controllable:{controllerId:id}}]);
+  state.ecs.construction={};
+  state.ecs.household[id]={houseId:home};state.ecs.interior[id]={buildingId:home};state.days=23/24;
+  state.redraws.push(id,home);
+  try {
+    view.frame();
+    expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(true);
+    state.days=12/24;view.frame();
+    expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(false);
+    state.days=23/24;delete state.ecs.interior[id];view.frame();
+    expect(view.objectOf(home).getObjectByName("home-windows").visible).toBe(false);
+  } finally {view.dispose();delete global.window;}
+});

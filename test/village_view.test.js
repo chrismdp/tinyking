@@ -62,3 +62,11 @@ it("shows forge smoke only while its trade holder is working", () => {
   animateWorkplace(s, "a", model, 2);
   expect(model.getObjectByName("smoke").visible).toBe(true);
 });
+
+it("keeps the open gate leaf against a shared solid side rather than adding an unmodelled board inside the gate route", () => {
+  const s={ecs:{spatial:{pen:{x:0,y:0}},pasture:{pen:{halfWidth:39,halfDepth:34}}}};
+  const model=villageModel(FLAT_GROUND,s,"pen"),fence=model.getObjectByName("fence");
+  const boards=fence.children.filter(beam=>beam.scale.y==2);
+  expect(boards.length).toBeGreaterThan(8);
+  for(const beam of boards)expect(Math.abs(beam.position.x)==39||Math.abs(beam.position.z)==34).toBe(true);
+});

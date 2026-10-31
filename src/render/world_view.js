@@ -247,7 +247,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     const activities = [];
     const roofs = Object.entries(objects).filter(([id,object]) => object.visible &&
       (state.ecs.building[id] || state.ecs.shelter?.[id]?.stage == "house" || ["alehouse","chapel"].includes(state.ecs.meetingPlace?.[id]?.kind)))
-      .map(([,object]) => { object.updateMatrixWorld(true); return object.children[0]; }).filter(mesh=>mesh?.isMesh);
+      .map(([,object]) => { object.updateMatrixWorld(true); const part=object.children[0]; return part?.isMesh ? part : part?.children[0]; }).filter(mesh=>mesh?.isMesh);
     for (const id of people) {
       const object=objects[id];
       object.userData.labelVisible=object.visible && personLabelVisible(camera,object.position,object.userData.anchorHeight,roofs,labelRay);
@@ -488,7 +488,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         if (objects[id].getObjectByName("smoke")) instances.invalidate(id);
       }
       const occupied = occupiedHomes(state);
-      for (const id in state.ecs.building) if (objects[id]) models.animateHome(objects[id],occupied.has(id));
+      for (const id of new Set([...Object.keys(state.ecs.building),...Object.keys(state.ecs.shelter || {})])) if (objects[id]) models.animateHome(objects[id],occupied.has(id));
       instances.update();
 
       for (const id of people) {

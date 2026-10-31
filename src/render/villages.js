@@ -31,9 +31,9 @@ const fence = (parts, footprint) => {
     for (const y of [4,9]) parts.push(box((a.x+b.x)/2,y,(a.y+b.y)/2,Math.max(1.5,Math.abs(a.x-b.x)),2,Math.max(1.5,Math.abs(a.y-b.y)),THATCH));
   }
   for (const p of posts.values()) parts.push(box(p.x,6,p.y,2,12,2,TIMBER));
-  // An open leaf beside the doorway makes access legible without blocking it.
+  // Fold the open leaf against a shared solid side, clear of the gate route.
   const g=f.gateHalfWidth;
-  parts.push(box(g,6,f.halfDepth-g,1.5,2,g*2,PALE));
+  parts.push(box((g+f.halfWidth)/2,6,f.halfDepth,f.halfWidth-g,2,1.5,PALE));
 };
 const animalParts = kind => {
   const chicken = kind == "chicken", cow = kind == "cow";

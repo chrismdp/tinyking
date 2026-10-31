@@ -5,7 +5,7 @@ import { squaredDistance } from "game/math";
 export const nightTime = days => hour_of_day(days) >= 21 || hour_of_day(days) < 6;
 export function actualHome(state, actor) {
   const ecs=state.ecs, home=ecs.household?.[actor]?.houseId;
-  return isResident(state,actor) && !ecs.personable?.[actor]?.dead && ecs.building?.[home] && ecs.spatial?.[home] ? home : null;
+  return isResident(state,actor) && !ecs.personable?.[actor]?.dead && (ecs.building?.[home] || ecs.shelter?.[home]?.stage == "house") && ecs.spatial?.[home] ? home : null;
 }
 export function leaveHome(state, actor) {
   const ecs=state.ecs;

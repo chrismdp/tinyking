@@ -33,6 +33,7 @@ The player speech reach is 70 units, below the existing NPC contact reach of 85.
 A distant, interrupted or invalid interaction grants no conversation knowledge.
 
 `home.js` checks actual resident identity, household, building and position.
+Generated buildings and completed `shelter.stage == "house"` homes share this treatment.
 Night downtime replaces outdoor idle from 21:00 to 06:00. Real needs and jobs
 retain precedence. NPCs walk through the existing house approach before entering.
 The controlled person never receives this autonomous home routine. Dead, moved

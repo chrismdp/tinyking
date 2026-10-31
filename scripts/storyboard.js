@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright-core");
 const assert = require("node:assert/strict");
-const { snapshot, shelterCandidates, harvestFriend, discoverTimber, assertFamilySurfaceClear } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, harvestFriend, chatForTrust, discoverTimber, assertFamilySurfaceClear } = require("./acceptance-selection");
 const url = new URL(process.argv[2] || "http://localhost:8108/");
 url.searchParams.set("seed", "13");
 url.searchParams.delete("intro");
@@ -86,15 +86,9 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       s.renderer.focusOn(s.ecs.spatial[id], 650); s.ui.actions.select_entity(id, false);
     }, person);
     await page.locator(".person-window").waitFor(); await frame("villager");
-    await page.getByRole("button", { name: "Chat", exact: true }).click();
-    story.actions.push({ action: "First Chat visit", person, reason: "Discover the actual request; the second consenting Chat hands over the crop immediately before helping" });
-    await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
-    await page.waitForFunction(id => {
-      const s = window.tinyking;
-      return !s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
-    }, person, { timeout: 180000 });
-    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
-    assert.equal(await page.evaluate(() => window.tinyking.ui.talkResult.message), "You spent some time together.");
+    const trust=await chatForTrust(page,person,20);
+    story.actions.push({action:"Earned the original pre-handover trust level through actual Chat visits",person,trust});
+    assert.equal(await page.evaluate(()=>window.tinyking.ui.talkResult.message),"You spent some time together.");
     await page.locator(".person-requests summary").click(); await pair("request-discovery");
     story.actions.push({ action: "Completed initial conversations", bond: await page.evaluate(id => window.tinyking.ecs.relationships[id].known[window.tinyking.ui.playerId], person) });
 
@@ -335,7 +329,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     story.complete = true;
     story.assistance += " Shared helper setup used the nearest legal camp site, ordinary Cancel/Resume of its funded frame, actual self-care and a physical visit after the friend's independent care before the material-ready Chat. Existing helper, material, consent, receipt and family assertions stayed.";
     if (CLOSEOUT) story.assistance += " Closeout omitted only the unrelated 24-hour observation.";
-    story.assistance += " Assisted selection used the nearest generated adult farming household member with love disposition towards the player. The helper retained its exact initial controller and household. Two conversations and a real harvest delivery earned Personal; a material-ready consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
+    story.assistance += " Assisted selection used the nearest compatible independent farmer with a single growing crop near camp. The helper retained its exact initial controller and household. Consenting conversations and a real harvest delivery earned Personal; a material-ready consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
     console.log("PASS real favour accepted, physically delivered once and rewarded; earned Personal friend walked and worked; storyboard complete; no console errors");
   } catch (error) {
     story.failure = String(error);

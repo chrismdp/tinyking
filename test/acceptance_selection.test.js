@@ -189,3 +189,14 @@ it("rejects a reachable harvest whose household cannot store the full favour yie
   s.ecs.container[tiles[3]].amounts.grain=60;
   expect(require("../scripts/acceptance-selection").harvestFriend(s)).toMatchObject({person,field:crop});
 });
+
+it("can earn a nearby compatible farmer's trust rather than choosing only distant love dispositions", () => {
+  const {state:s,person,parent,tiles}=peopleWorld();
+  s.opinionThresholds={hate:-100,love:100};s.favours={requests:{}};
+  s.ecs.personable[parent].dead=true;
+  const [crop]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[5]],immovable:true},farmable:{houseId:tiles[3],slots:Array.from({length:3},()=>({state:"sown",content:"grain"}))},controllable:{controllerId:person}}]);
+  s.ecs.household[tiles[3]]={fields:[crop],storeId:tiles[3]};s.ecs.container ||= {};s.ecs.container[tiles[3]]={capacity:100,amounts:{}};
+  const before=JSON.stringify(s);
+  expect(require('../scripts/acceptance-selection').harvestFriend(s)).toMatchObject({person,field:crop});
+  expect(JSON.stringify(s)).toBe(before);
+});

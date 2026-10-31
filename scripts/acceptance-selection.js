@@ -62,16 +62,41 @@ function approachableCrop(s, field, home) {
 // instead, then let its existing spring crop ripen during ordinary play.
 function harvestFriend(s) {
   const player=s.ui.playerId,p=s.ecs.spatial[player];
-  const candidates=Object.keys(s.ecs.personable).filter(id=>id!=player && !s.ecs.personable[id].dead && s.ecs.personable[id].age>=18 && s.ecs.controllable[id]?.controllerId==id && disposition(s,id,player)=="love")
+  const candidates=Object.keys(s.ecs.personable).filter(id=>id!=player && !s.ecs.personable[id].dead && s.ecs.personable[id].age>=18 && s.ecs.controllable[id]?.controllerId==id && disposition(s,id,player)!="hate")
     .map(person=>({person,home:s.ecs.household[person]?.houseId}))
     .map(c=>({...c,field:(s.ecs.household[c.home]?.fields || []).find(id=>s.ecs.farmable[id]?.slots.some(slot=>["sown","harvestable"].includes(slot.state)))}))
-    .filter(c=>c.field)
-    .sort((a,b)=>Math.hypot(s.ecs.spatial[a.person].x-p.x,s.ecs.spatial[a.person].y-p.y)-Math.hypot(s.ecs.spatial[b.person].x-p.x,s.ecs.spatial[b.person].y-p.y));
+    .filter(c=>c.field && s.ecs.household[c.home].fields.filter(id=>s.ecs.farmable[id]?.slots.some(slot=>["sown","harvestable"].includes(slot.state))).length==1)
+    .sort((a,b)=>Math.hypot(s.ecs.spatial[a.home].x-p.x,s.ecs.spatial[a.home].y-p.y)-Math.hypot(s.ecs.spatial[b.home].x-p.x,s.ecs.spatial[b.home].y-p.y));
   const selected=candidates.find(c=>harvestFits(s,c.field,18) && approachableCrop(s,c.field,c.home));
   if(!selected)throw new Error("Seed 13 has no attainable farming friend scenario");
-  return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder with love disposition and a physically reachable growing field, including every crop patch, delivery route and storage for the full eighteen-grain favour. Spring growth, conversations, harvest work and delivery run normally."};
+  return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder whose fixed tastes allow friendship, with one physically reachable growing field, including every crop patch, delivery route and storage for the full eighteen-grain favour. Spring growth, conversations, harvest work and delivery run normally."};
+}
+
+// Reach the original Love-plus-two-Chats trust level through actual conversations.
+// A nearby compatible farmer can earn it too, without changing fixed tastes.
+async function chatForTrust(page,person,goal) {
+  const visits=[];
+  for(;;) {
+    const before=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,goodwill:s.ecs.relationships[id].known[s.ui.playerId]?.goodwill || 0};},person);
+    if(before.goodwill>=goal)return visits;
+    const chat=page.getByRole("button",{name:"Chat",exact:true});
+    if(!await chat.isEnabled()) {
+      await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
+      await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),before.day,{timeout:180000});
+      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+      continue;
+    }
+    await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat" && j.targetId==id);},person,{timeout:180000});
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
+    const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge[s.ui.playerId].people[id]?.conversation,result:s.ui.talkResult};},person);
+    visits.push(earned);
+    if(!earned.contact || earned.contact.day<before.day || !(earned.bond.goodwill>before.goodwill))throw new Error("The actual farmer conversation did not earn trust: "+JSON.stringify(visits));
+  }
 }
 module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend };
+module.exports.chatForTrust=chatForTrust;
 
 // Explore reachable known frontiers. Selection reads no hidden tree positions.
 // The movement callback uses real map clicks in the mechanical driver.

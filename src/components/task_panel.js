@@ -16,10 +16,12 @@ import { hungerSpeed } from "game/hunger";
 import { HEX_SIZE } from "game/hex";
 import { STAGES } from "game/construction";
 import { taskPlace } from "game/task_places";
+import { FIELD_STATES } from "game/farming";
 import { woodTask } from "game/wood_task";
 import { harvestCounts, harvestPhase } from "game/harvest_task";
 
 export const TASK_TITLES = {
+  plough_field: "Plough field", sow_field: "Sow field", tend_field: "Tend field", harvest_field: "Harvest field",
   find_food: "Find food", rest: "Rest", travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
   chat: "Chat", court: "Court", marry: "Ask to marry", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
   village_oath: "Discuss the local oath", village_leave: "Discuss leaving the village",
@@ -31,9 +33,10 @@ function estimatedMinutes(ecs, playerId, job) {
   const from = ecs.spatial[playerId] || point;
   const walking = point && from ? Math.hypot(point.x - from.x, point.y - from.y) / (HUMAN_SPEED * HEX_SIZE) * 60 : 0;
   const site = ecs.construction?.[job.targetId];
-  const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
+  const patches=FIELD_STATES[job.job.key] && ecs.farmable?.[job.targetId]?.slots.filter(slot=>FIELD_STATES[job.job.key].includes(slot.state)).length;
+  const work = patches != null ? patches * (job.job.key=="sow_field"?2.5:7.5) : site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
-      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30, village_oath: 5, village_leave: 5 }[job.job.key] || 0) * (1 - (job.progress || 0));
+      ({ tend_field: 15, cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30, village_oath: 5, village_leave: 5 }[job.job.key] || 0) * (1 - (job.progress || 0));
   return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
 }
 

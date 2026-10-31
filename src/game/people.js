@@ -1,3 +1,4 @@
+import { FOODS } from "game/goods";
 import { recogniseConversation } from "game/guidance";
 import { isResident, personComponent } from "game/residents";
 import { knownEvents, learnEvent, closeFamily } from "game/events";
@@ -306,9 +307,9 @@ export const CHAT_GOODWILL = 2;
 export const DAILY_PATIENCE = { public: 2, social: 4, personal: 6, intimate: 8 };
 export const TALK_TIRED = "They've had enough of talking for today";
 export const SOCIAL_REQUIRED = "They need to trust you before sharing gossip";
-export const FOOD_TYPES = ["forage", "grain", "gruel"];
-const GIFT_VALUES = { forage: 2, grain: 3, gruel: 5, wood: 3 };
-const GIFT_TRAITS = { forage: "generous", grain: "hard-working", gruel: "cheerful", wood: "hard-working" };
+export const FOOD_TYPES = FOODS;
+const GIFT_VALUES = { forage: 2, grain: 3, gruel: 5, bread: 5, flour: 3, wood: 3, planks: 3 };
+const GIFT_TRAITS = { forage: "generous", grain: "hard-working", gruel: "cheerful", bread: "cheerful", flour: "hard-working", planks: "hard-working", wood: "hard-working" };
 
 export function trusts(state, personId, viewerId) {
   return RINGS.indexOf(personComponent(state, "relationships", personId).known[viewerId]?.ring) >= 1;
@@ -399,13 +400,13 @@ export function giftOptions(state, actorId) {
   const options = [];
   for (const sourceId of Object.keys(ecs.haulable || {})) {
     const item = ecs.good[sourceId], holder = ecs.haulable[sourceId].heldBy;
-    if (!item || item.amount <= 0 || !owned(sourceId) || (holder && holder != actorId && !ecs.stockpile?.[holder])) continue;
-    options.push({ sourceId, ...item, ...(ecs.possession?.[sourceId] ? { possession: ecs.possession[sourceId] } : {}) });
+    if (!item || item.amount < 1 || !owned(sourceId) || (holder && holder != actorId && !ecs.stockpile?.[holder])) continue;
+    options.push({ ...item, sourceId, ...(ecs.possession?.[sourceId] ? { possession: ecs.possession[sourceId] } : {}) });
   }
   for (const sourceId of Object.keys(ecs.container || {})) {
     if (!owned(sourceId)) continue;
     for (const [type, amount] of Object.entries(ecs.container[sourceId].amounts)) {
-      if (amount > 0) options.push({ sourceId, type, amount });
+      if (amount >= 1) options.push({ sourceId, type, amount });
     }
   }
   return options;

@@ -566,11 +566,11 @@ it.each(['old store', 'fence'])('does not deliver across the %s boundary, even i
 it('keeps spare-capacity room delivery as stored wood, then consumes it for real NPC bread production', () => {
   const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
   // INITIAL room: 98 food portions plus space for the one carried log.
-  s.ecs.container[w.store].amounts.bread = 28;
-  s.ecs.household[w.house].estateAccount.initial.bread = 28;
+  s.ecs.container[w.store].amounts = { wood: 0, flour: 70, bread: 28 };
+  s.ecs.household[w.house].estateAccount.initial = { wood: 0, flour: 70, bread: 28 };
   acceptFavour(s, r.id);
   advanceUntil(w, () => r.status == 'completed');
-  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 1, grain: 70, bread: 28 } });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 1, flour: 70, bread: 28 } });
   expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
   expect(s.ecs.good[w.log]).toBeUndefined();
   expect(r.receipts).toEqual([expect.objectContaining({ itemId: w.log, fromId: w.player,
@@ -583,10 +583,10 @@ it('keeps spare-capacity room delivery as stored wood, then consumes it for real
   s.days = Math.floor(s.days) + 10 / 24;
   trade_work(s, w.person, {}, HOUR / 2, true, w.workplace);
   expect(s.ecs.workplace[w.workplace]).toMatchObject({ fuelHours: 3.5, workHours: .5 });
-  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, grain: 69, bread: 30 } });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, flour: 69, bread: 30 } });
   expect(s.ecs.household[w.house].estateAccount).toEqual({
-    initial: { wood: 0, grain: 70, bread: 28 }, received: { wood: 1 },
-    consumed: { wood: 1, grain: 1 }, produced: { bread: 2 }
+    initial: { wood: 0, flour: 70, bread: 28 }, received: { wood: 1 },
+    consumed: { wood: 1, flour: 1 }, produced: { bread: 2 }
   });
   expect(s.ecs.growth[w.workplace].production).toBe(2);
 });

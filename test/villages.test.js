@@ -1,3 +1,4 @@
+import { TIMBER, amountOf } from "game/goods";
 import { generateMap, generateFamilies, Hex, Grid, ALL_SIDES, TRIANGLES } from "game/map";
 import { newEntities } from "game/entities";
 import { addBidirectionalLink, removeBidirectionalLink, path } from "game/pathfinding";
@@ -108,9 +109,25 @@ it("keeps winter crops dormant and deterministically varies growing-season progr
   expect(farms.map(f => f.slots[0].growth)).toEqual(growth);
 });
 
-it("scales unique trades from one in 3 houses to all six in 8, with an adult and a workplace on the plot", async () => {
+it("scales unique trades on funded generated plots, with an adult and a workplace on the plot", async () => {
+  let planksSpent=0;
   for (const seed of [1, 2, 20]) {
     const s = await world(seed);
+    // INITIAL trade fixture: corrected history can leave a household below the
+    // four-timber workshop cost. Replace equal grain with planks, preserving
+    // store capacity and the estate ledger. Layout must still build real shops.
+    const funded=[];
+    for(const v of Object.values(s.villages))for(const house of v.houses) {
+      const h=s.ecs.household[house];
+      if(h.trade)continue;
+      const store=s.ecs.container[h.storeId],needed=Math.max(0,4-amountOf(store.amounts,TIMBER));
+      expect(store.amounts.grain).toBeGreaterThanOrEqual(needed);
+      store.amounts.grain-=needed;store.amounts.planks=(store.amounts.planks || 0)+needed;
+      if(h.estateAccount){h.estateAccount.initial.grain-=needed;h.estateAccount.initial.planks=(h.estateAccount.initial.planks || 0)+needed;}
+      funded.push({house,planks:store.amounts.planks});
+    }
+    generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
+    for(const before of funded)if(s.ecs.household[before.house].trade)planksSpent+=before.planks-(s.ecs.container[s.ecs.household[before.house].storeId].amounts.planks || 0);
     for (const v of Object.values(s.villages)) {
       const holders = v.houses.map(h => s.ecs.household[h]).filter(h => h?.trade);
       expect(holders).toHaveLength(Math.min(6, v.houses.length - 2));
@@ -124,6 +141,7 @@ it("scales unique trades from one in 3 houses to all six in 8, with an adult and
       }
     }
   }
+  expect(planksSpent).toBeGreaterThan(0);
 });
 
 it("covers every trade threshold in declared flat initial villages of 3–8 houses", () => {
@@ -202,6 +220,15 @@ it("covers every trade threshold in declared flat initial villages of 3–8 hous
 
 it("provides a well and green in every village and preserves real paid venues or their spatial wait", async () => {
   const s = await world(20);
+  // INITIAL funding fixture: keep each missing venue funded after the corrected
+  // food/trade history. Replace grain with equal timber before taking the stock
+  // snapshot; generation must still find a real clear footprint before spending.
+  for(const v of Object.values(s.villages))if(v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind))) {
+    const store=s.ecs.container[s.ecs.household[v.houses[0]].storeId];
+    const needed=Math.max(0,8-amountOf(store.amounts,TIMBER));
+    expect(store.amounts.grain).toBeGreaterThanOrEqual(needed);
+    store.amounts.grain-=needed;store.amounts.wood=(store.amounts.wood || 0)+needed;
+  }
   const missing=[];
   for (const v of Object.values(s.villages)) {
     const kinds = v.sharedPlaces.map(id => s.ecs.meetingPlace[id].kind);
@@ -216,7 +243,7 @@ it("provides a well and green in every village and preserves real paid venues or
         expect(v.houses).toContain(built.houseId);
         expect(s.ecs.controllable[venue].controllerId).toBe(built.houseId);
         expect(built.builtDay).toBeLessThanOrEqual(s.days);
-      } else if(v.houses.length>=5)missing.push({village:v.id,kind,wood:v.houses.map(id=>s.ecs.container[s.ecs.household[id].storeId].amounts.wood || 0)});
+      } else if(v.houses.length>=5)missing.push({village:v.id,kind,timber:v.houses.map(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER))});
     }
     for (const id of v.sharedPlaces) expect(s.ecs.village[id].villageId).toBe(v.id);
   }
@@ -226,9 +253,9 @@ it("provides a well and green in every village and preserves real paid venues or
   generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   for(const entry of missing) {
     const v=s.villages[entry.village];
-    expect(Math.max(...entry.wood)).toBeGreaterThanOrEqual(8);
+    expect(Math.max(...entry.timber)).toBeGreaterThanOrEqual(8);
     expect(v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==entry.kind)).toBe(false);
-    expect(v.houses.map(id=>s.ecs.container[s.ecs.household[id].storeId].amounts.wood || 0)).toEqual(entry.wood);
+    expect(v.houses.map(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER))).toEqual(entry.timber);
   }
 });
 

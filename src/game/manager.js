@@ -1,9 +1,11 @@
+import { ownsField } from "game/farming";
+export { fieldOrders } from "game/farming";
 import { cancelFavour, requestForTask, favourWaiting, favourReceiver, favourWorkDone } from "game/favours";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource, deliveryHome } from "game/construction";
 import { forageAvailable } from "game/ecology";
-import { topController } from "game/playable";
+import { topController, householdAccess } from "game/playable";
 import { giftOptions } from "game/people";
 
 export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel", "village_leave"];
@@ -79,6 +81,9 @@ export function reorderTask(state, taskId, index) {
   if (from == 0 || index == 0 || entry.assignedId == state.ui.playerId) interruptOrder(state);
 }
 
+// Commodity gifts retain their physical identity while another order runs.
+export const promisedGift = (ecs, id) => Object.values(ecs.manager || {}).some(manager => manager.jobs.some(job => job.giftItem == id));
+
 export function cancelTask(state, taskId) {
   const jobs = state.ecs.manager[state.ui.playerId].jobs;
   const index = jobs.findIndex(j => j.id == taskId);
@@ -123,6 +128,7 @@ function waitingReason(state, actorId, job) {
     // Harvest starts at the field. Only fuel can change its delivery endpoint.
     return favourWaiting(state, job) || (!canReachTask(state, actorId, request?.kind == "wood" ? favourReceiver(state, request) : target) ? "No path there" : null);
   }
+  if (["plough_field","sow_field","tend_field","harvest_field"].includes(job.job.key) && !ownsField(state,actorId,target))return "This is not your household's field";
   if (job.gatheredDone) {
     const home = deliveryHome(state,actorId);
     if (!home) return "No home for delivery";
@@ -133,10 +139,12 @@ function waitingReason(state, actorId, job) {
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
   if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home", "village_oath", "village_leave"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if (job.job.key == "give_gift") {
-    const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
+    const item=job.giftItem, cargo=ecs.haulable?.[item];
+    const gift = item ? ecs.good[item] && cargo && (cargo.heldBy == actorId || !cargo.heldBy && householdAccess(ecs,actorId,item)) :
       giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);
     if (!gift) return "Gift no longer available";
-    if (!job.giftItem && ecs.haulable?.[job.gift.sourceId]?.heldBy != actorId && !canReachTask(state, actorId, job.gift.sourceId)) return "No path to gift";
+    const source=item || job.gift.sourceId;
+    if (ecs.haulable?.[source]?.heldBy != actorId && !canReachTask(state, actorId, source)) return "No path to gift";
   }
   if (job.job.key == "forage" && !ecs.forageable?.[target]) return "Target gone";
   if (job.job.key == "build_shelter" && !ecs.construction?.[target]) return "Site gone";

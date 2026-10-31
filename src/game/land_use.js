@@ -5,14 +5,23 @@ export const roadAllowed = tile => !!tile && !tile.cropPlot && !tile.buildingPlo
 export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && !tile.cropPlot &&
   !tile.buildingPlot && !tile.fieldLane && !tile.route?.length && !Object.values(worn).some(n => n > 0);
 
+const enclosureAtTile = (state,id) => (state.ecs.pasture || state.ecs.fence) &&
+  tileContents(state,id).find(other=>state.ecs.pasture?.[other] || state.ecs.fence?.[other]);
 export const transitBlocked = (state,id) => !!state.ecs.mappable?.[id]?.buildingPlot || fieldAtTile(state,id);
-// Endpoint crops permit work access. Connected private space permits actual
-// property entry/exit, while public trips cannot use that interior as a shortcut.
+function propertyAtTile(state,id) {
+  return state.ecs.mappable?.[id]?.buildingPlot || tileContents(state,id).map(other=>
+    state.ecs.building?.[other] ? other : state.ecs.farmable?.[other]?.houseId ||
+    state.ecs.workplace?.[other]?.houseId || state.ecs.backyard?.[other]?.houseId).find(Boolean);
+}
+// Pens are private work space, with the same endpoint access as a household
+// yard. Public transit must go around them; physical walking uses the gate.
 export function routeBlocked(state,id,start,goal) {
   if(id==start || id==goal)return false;
   if(fieldAtTile(state,id))return true;
-  const owner=state.ecs.mappable?.[id]?.buildingPlot;
-  return !!owner && owner!=state.ecs.mappable?.[start]?.buildingPlot && owner!=state.ecs.mappable?.[goal]?.buildingPlot;
+  const pen=enclosureAtTile(state,id);
+  const owner=state.ecs.mappable?.[id]?.buildingPlot || state.ecs.pasture?.[pen]?.houseId || state.ecs.fence?.[pen]?.houseId;
+  if(pen && !owner)return true;
+  return !!owner && owner!=propertyAtTile(state,start) && owner!=propertyAtTile(state,goal);
 }
 export function canReserveWorkYard(state,tileId,houseId) {
   const ids=[...new Set(Array.isArray(tileId)?tileId:[tileId])];

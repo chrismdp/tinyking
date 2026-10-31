@@ -3,6 +3,7 @@ import { isResident } from "game/residents";
 import { die } from "game/possessions";
 import { householdAccess } from "game/playable";
 import { consumeStored } from "game/settlement_growth";
+import { FOODS } from "game/goods";
 
 // The same physiological clock and death rule apply on and off screen.
 export function updateNeeds(state, elapsed = HOUR) {
@@ -30,9 +31,9 @@ export function advanceOffscreenNeeds(state, end) {
       if (person.dead || !isResident(state, id)) continue;
       if (person.hunger > .9) {
         const house = state.ecs.household?.[id]?.houseId;
-        const store = supplies.get(id)?.find(store => ["gruel", "grain", "forage"].some(type => state.ecs.container[store].amounts[type] >= 1));
+        const store = supplies.get(id)?.find(store => FOODS.some(type => state.ecs.container[store].amounts[type] >= 1));
         if (store) {
-          const type = ["gruel", "grain", "forage"].find(type => state.ecs.container[store].amounts[type] >= 1);
+          const type = FOODS.find(type => state.ecs.container[store].amounts[type] >= 1);
           consumeStored(state, house, type, 1, store);
           const ledger = state.ecs.household?.[house]?.livelihood;
           if (ledger) ledger.foodConsumed++;

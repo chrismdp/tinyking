@@ -3,8 +3,10 @@
 Every generated village household farms one or two fields. Each field uses the
 existing 19 crop slots, permissions, ploughing, sowing, harvesting and hauling.
 Spring, summer and autumn crops start with 1.5–3.5 growing days of progress;
-winter starts with dormant sown grain. Trades, animal pens and gardens do not
-produce grain or food. They establish places and routines for later gameplay.
+winter starts with dormant sown grain. Animal pens do not produce goods. Millers turn grain into edible flour, and
+bakers turn flour into bread. Carpenters turn wood into planks. Construction
+accepts either wood or planks. Fuel-dependent households gather real unowned
+trees when their pantry has room, then haul the wood home before trade work.
 
 Households have one or two different backyard features: a kitchen garden,
 chicken coop, pig pen, goat pen or beehives. Villages also have a fenced sheep
@@ -19,7 +21,11 @@ their existing priority. Forges and ovens smoke only during actual work. Trade
 holders sway slightly as they work. Workshops stand behind the worker so the
 person is visible.
 
-Village size determines trade count:
+Village size determines the target trade count. A household needs four stored
+units of wood or planks and a clear station before it can establish a trade.
+An unfunded household waits for materials.
+
+Village targets:
 
 | Houses | Distinct trades |
 | --- | ---: |

@@ -19,7 +19,7 @@ export const player = () => [
 
 export const stationary_needs = () => [
   [world => world.feeling.hungry && world.careMeal, meal => [
-    ...(meal.kind == "held" ? [] : [[{ container: "pick_up_from_container", stockpile: "pick_up_from_stockpile", loose: "pick_up_entity_with_good" }[meal.kind], "idleFoodSource", meal.type]]),
+    ...(meal.kind == "held" ? [] : [["make_meal_space"], [{ container: "pick_up_from_container", stockpile: "pick_up_from_stockpile", loose: "pick_up_entity_with_good" }[meal.kind], "idleFoodSource", meal.type]]),
     ["eat", meal.type]
   ]],
   [world => world.feeling.tired && world.careBed && (world.days % 1 * 24 >= 20 || world.days % 1 * 24 < 9), () => [["sleep"]]],
@@ -27,6 +27,11 @@ export const stationary_needs = () => [
 ];
 
 export const player_jobs = () => [
+  ...["plough_field", "sow_field", "harvest_field"].map(key => [
+    (_,jobs)=>firstFreeJob(jobs,key),
+    entry=>[["take_job",key],["claim_farmable",entry.targetId],["set_label",key],["work_field",entry.targetId,key],["release_farmable",entry.targetId],["complete_job",key]]
+  ]),
+  [(_,jobs)=>firstFreeJob(jobs,"tend_field"),entry=>[["take_job","tend_field"],["walk_to",entry.targetId],["tend_garden",entry.targetId],["complete_job","tend_field"]]],
   [(_,jobs)=>firstFreeJob(jobs,"tend_garden"),entry=>[["take_job","tend_garden"],["walk_to",entry.targetId],["tend_garden",entry.targetId],["complete_job","tend_garden"]]],
   [(_, jobs) => firstFreeJob(jobs, "find_food"), () => [["take_job", "find_food"], ["ordered_meal"], ["complete_job", "find_food"]]],
   [(_, jobs) => firstFreeJob(jobs, "rest"), () => [["take_job", "rest"], ["move_to_place", "sleep", "allows_sleep"], ["sleep"], ["complete_job", "rest"]]],
@@ -35,8 +40,9 @@ export const player_jobs = () => [
   ...TALK_JOBS.map(key => [
     (_, jobs) => firstFreeJob(jobs, key),
     entry => {
-      const gift = key == "give_gift" && !entry.giftItem ? [
-        ...(entry.gift.possession?.carried ? [] : [["walk_to", entry.gift.sourceId]]), ["collect_gift", entry.gift.sourceId, entry.gift.type]
+      const source=entry.giftItem || entry.gift?.sourceId;
+      const gift = key == "give_gift" ? [
+        ...(!entry.giftItem && entry.gift.possession?.carried ? [] : [["walk_to", source]]), ["collect_gift", source, entry.gift.type]
       ] : [];
       return [["take_job", key], ...gift, ["get_attention", entry.targetId],
         ["walk_to", entry.targetId, { handoff: key == "give_gift" }], ["set_label", key],

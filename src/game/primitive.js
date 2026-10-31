@@ -139,7 +139,7 @@ export function complete_subtask(world, expected, place) {
 
 export function work_shelter() {}
 export function collect_log(world) { world.holding.wood = true; }
-export function deliver_log(world) { world.holding.wood = false; }
+export function deliver_log(world) { world.holding.wood = false; world.holding.planks = false; }
 export function carry_home() {}
 
 export function trade_work() {}
@@ -165,3 +165,8 @@ export function play_together() {}
 export function home_downtime() {}
 
 export function customs_visit() {}
+
+export function make_meal_space() {}
+
+export function work_field() {}
+export function household_fuel() {}

@@ -1,3 +1,4 @@
+import { FOODS } from "game/goods";
 import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
@@ -27,13 +28,13 @@ export function favourReceiver(s, r) {
 }
 export function fuelReady(s, workplaceId) {
   const w = s.ecs.workplace?.[workplaceId];
-  return !!w && (!FUEL_TRADES[w.trade] || w.fuelHours > 0 || s.ecs.container?.[householdStore(s, w.houseId)]?.amounts.wood > 0);
+  return !!w && (!FUEL_TRADES[w.trade] || w.fuelHours > 0 || s.ecs.container?.[householdStore(s, w.houseId)]?.amounts.wood >= 1);
 }
 const residents = (s, house) => Object.keys(s.ecs.personable || {}).filter(id => live(s, id) && s.ecs.household?.[id]?.houseId == house);
-const foods = ["gruel", "grain", "forage"];
+const foods = FOODS;
 // One inventory pass per needs update, rather than one full good scan for
 // every household. These transient indices preserve the existing access rule.
-function householdFood(s) {
+export function householdFood(s) {
   const ecs = s.ecs, stores = new Map(), owners = new Map(), homes = new Map(), totals = new Map();
   for (const [house, h] of Object.entries(ecs.household || {})) if (h.storeId) stores.set(h.storeId, house);
   for (const id of Object.keys(ecs.personable || {})) if (live(s, id) && ecs.household?.[id]?.houseId) {
@@ -71,7 +72,7 @@ export function reasonGone(s, r, food) {
   if (r.kind == "wood") {
     const w = ecs.workplace?.[r.workplaceId];
     if (!w || w.houseId != r.householdId || !ecs.spatial[r.workplaceId] || !FUEL_TRADES[w.trade]) return "The household target is gone";
-    if ((ecs.container[store].amounts.wood || 0) > 0 || w.fuelHours > 0) return "The fuel need is already met";
+    if ((ecs.container[store].amounts.wood || 0) >= 1 || w.fuelHours > 0) return "The fuel need is already met";
   }
   if (r.kind == "food" && (food ? food.get(r.householdId) || 0 : foodReserve(s, r.householdId)) >= residents(s, r.householdId).length * 2) return "The food need is already met";
   return null;
@@ -119,7 +120,7 @@ export function updateFavours(s) {
     const field = (h.fields || []).find(id => ecs.farmable?.[id]?.houseId == house && ecs.farmable[id].slots.some(slot => slot.state == "harvestable"));
     if (field) offer("harvest", field, Math.min(3, ecs.farmable[field].slots.filter(slot => slot.state == "harvestable").length), "The family crop is ready");
     const w = ecs.workplace?.[h.workplaceId];
-    if (w && FUEL_TRADES[w.trade] && !(w.fuelHours > 0) && !(ecs.container[h.storeId].amounts.wood > 0)) {
+    if (w && FUEL_TRADES[w.trade] && !(w.fuelHours > 0) && !(ecs.container[h.storeId].amounts.wood >= 1)) {
       offer("wood", h.storeId, 1, `The ${FUEL_TRADES[w.trade]} needs fuel · one log fuels four hours of work`, { workplaceId: h.workplaceId });
     }
     const deficit = residents(s, house).length * 2 - (food.get(house) || 0);

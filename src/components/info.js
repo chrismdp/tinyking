@@ -1,3 +1,4 @@
+import { fieldOrders } from "game/farming";
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
 import { EXPANSIONS } from "game/settlement_growth";
 import { ResourceRights } from "./village_customs";
@@ -108,6 +109,7 @@ export function Info({ entityId }) {
       if (!isCancelled) {
         const offered = result.map(r => r.jobs).flat().filter(job => job.key != "create_field" || canPlaceField(state,entityId));
         if (canPlaceShelter(state, entityId) || (entity.construction && !payload.job_targets.includes(entityId))) offered.push({ key: "build_shelter" });
+        offered.push(...fieldOrders(state,state.ui.playerId,entityId));
         setJobs(offered);
       }
     })();

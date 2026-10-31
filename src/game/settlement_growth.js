@@ -1,3 +1,4 @@
+import { FOODS, TIMBER, amountOf } from "game/goods";
 import { reserveWorkYard } from "game/land_use";
 import { containerItemCount } from "game/container";
 import { Hex, Grid } from "game/hex";
@@ -28,6 +29,16 @@ export function consumeStored(s,house,type,amount,storeId=s.ecs.household?.[hous
   if(!(amount>=0) || !(store?.amounts[type]>=amount))return false;
   store.amounts[type]-=amount;
   if(h?.estateAccount)h.estateAccount.consumed[type]=(h.estateAccount.consumed[type] || 0)+amount;
+  return true;
+}
+export function consumeTimber(s, house, amount, storeId=s.ecs.household?.[house]?.storeId) {
+  const store=s.ecs.container?.[storeId];
+  if(amountOf(store?.amounts,TIMBER)<amount)return false;
+  for(const type of TIMBER) {
+    const used=Math.min(amount,store.amounts[type] || 0);
+    if(used)consumeStored(s,house,type,used,storeId);
+    amount-=used;
+  }
   return true;
 }
 export function depositProduced(s,house,type,amount) {
@@ -119,12 +130,12 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
     const output=g.production-g.lastProduction, recent=output+(g.previousOutput || 0);
     const use=Object.entries(g.meetings).filter(([day])=>Number(day)>=season*3-3 && Number(day)<season*3).reduce((n,[,users])=>n+Object.keys(users).length,0);
     const supported=e.meetingPlace?.[id]?.kind=="alehouse" ? use>=2 && adults.length>0 :
-      adults.length>0 && occupants.length>=2 && (e.workplace?.[id]?output:recent)>=2 && (store?.amounts.grain || 0)+(store?.amounts.gruel || 0)>=occupants.length*3;
+      adults.length>0 && occupants.length>=2 && (e.workplace?.[id]?output:recent)>=2 && amountOf(store?.amounts,FOODS)>=occupants.length*3;
     g.supportedSeasons=supported ? g.supportedSeasons+1 : 0;
     g.previousOutput=output;g.lastProduction=g.production; g.lastSeason=season;
     const next=EXPANSIONS[g.stage];
     if(!next || g.supportedSeasons<next.seasons)continue;
-    if(!(store?.amounts.wood>=next.timber)) {g.waiting="Needs "+next.timber+" stored timber";continue;}
+    if(!(amountOf(store?.amounts,TIMBER)>=next.timber)) {g.waiting="Needs "+next.timber+" stored timber";continue;}
     const f=expandedFootprint(s,id,g.stage+1);
     const plots=[];
     if(!expansionFits(s,id,f,plots)){g.waiting="Needs clear space behind the building";continue;}
@@ -135,7 +146,7 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
       if(!household.plot.hexes.includes(key))household.plot.hexes.push(key);
       if(!household.workYardTiles.includes(tile))household.workYardTiles.push(tile);
     }
-    consumeStored(s,house,"wood",next.timber);
+    consumeTimber(s,house,next.timber);
     g.stage++; g.supportedSeasons=0; delete g.waiting;
     g.additions.push({stage:g.stage,name:next.name,day:s.days,timber:next.timber,storeId:store.id,occupants:[...occupants],production:output,meetings:use});
     reserveBuildingClearance(s,id,f);
@@ -154,11 +165,11 @@ export function completeTradeProduction(s, workplaceId, person) {
   const w=s.ecs.workplace?.[workplaceId];
   if(!w)return false;
   const store=s.ecs.container?.[s.ecs.household?.[w.houseId]?.storeId];
-  const recipe={carpenter:["wood","planks"],baker:["grain","bread"],miller:["grain","flour"]}[w.trade];
+  const recipe={carpenter:["wood","planks"],baker:["flour","bread"],miller:["grain","flour"]}[w.trade];
   if(recipe) {
-    if(!(store?.amounts[recipe[0]]>0))return false;
+    if(!(store?.amounts[recipe[0]]>=1))return false;
     if(containerItemCount(store)+1>store.capacity)return false;
-    consumeStored(s,w.houseId,recipe[0],1);
+    if(!consumeStored(s,w.houseId,recipe[0],1))return false;
     depositProduced(s,w.houseId,recipe[1],2);
     recordProduction(s,workplaceId,person,recipe[1],2);
   } else recordProduction(s,workplaceId,person,w.trade+" service",2);

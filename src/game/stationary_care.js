@@ -1,7 +1,7 @@
+import { FOODS } from "game/goods";
 import { householdAccess } from "game/playable";
 import { squaredDistance } from "game/math";
 
-const FOODS = ["gruel", "grain", "forage"];
 // Read actual hands and supplies; these sensors never move an actor or create food.
 export function stationarySupplies(state, actor) {
   const ecs = state.ecs, point = ecs.spatial?.[actor];
@@ -12,7 +12,7 @@ export function stationarySupplies(state, actor) {
   for (const type of FOODS) {
     const held = ecs.holder?.[actor]?.held.find(id => ecs.good[id]?.type == type && ecs.good[id].amount > 0 && owned(id));
     if (held) { meal = { type, kind: "held", source: held }; break; }
-    const store = Object.keys(ecs.container || {}).find(id => near(id) && owned(id) && ecs.container[id].amounts[type] > 0);
+    const store = Object.keys(ecs.container || {}).find(id => near(id) && owned(id) && ecs.container[id].amounts[type] >= 1);
     if (store) { meal = { type, kind: "container", source: store }; break; }
     const good = Object.keys(ecs.haulable || {}).find(id => near(id) && owned(id) && ecs.good[id]?.type == type && ecs.good[id].amount > 0 && !ecs.haulable[id].reservedFor && (!ecs.haulable[id].heldBy || ecs.stockpile?.[ecs.haulable[id].heldBy]));
     if (good) {

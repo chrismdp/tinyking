@@ -97,7 +97,7 @@ function reserveSiteYard(s,site,pads,owner=null) {
     fallback ||= plan;
   }
   if(!fallback)return undefined;
-  reserveWorkYard(s,fallback.tiles,site.yardOwner);
+  if(!reserveWorkYard(s,fallback.tiles,site.yardOwner))return undefined;
   site.yardTiles=fallback.tiles;
   site.yardPoint={x:s.ecs.spatial[fallback.id].x,y:s.ecs.spatial[fallback.id].y};
   site.rearOpportunity=workBayTiles(s,s.ecs.spatial[fallback.id]);

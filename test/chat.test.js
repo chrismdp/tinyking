@@ -155,3 +155,12 @@ it("retells a real quarrel through learnEvent and applies its family reaction on
   expect(s.knowledge[n].events.filter(id=>id==event.id)).toHaveLength(1);
   expect(s.knowledge[p].people[sibling]).toBeUndefined();
 });
+it("bases common-woodland talk on real tree permissions rather than a tree sharing a ground tile ID", () => {
+  const {state:s,player:p,person:n,tiles}=contact();
+  s.villages.village={id:"village",name:"Withyford",houses:[tiles[3]],sharedPlaces:[]};
+  s.ecs.household[tiles[3]]={fields:[]};
+  const [tree]=require("game/entities").newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},tree:{},good:{type:"wood",amount:1}}]);
+  expect(require("game/village_customs").resourcePermission(s,p,tree).kind).toBe("common");
+  const c={actorId:p,npcId:n,tags:[]};
+  expect(require("game/chat_facts").predicate(s,c,{village:{id:"village"}},{test:"village_has_common_woodland",args:{village:"village"}})).toBe(true);
+});

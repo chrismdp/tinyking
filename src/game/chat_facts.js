@@ -3,7 +3,7 @@ import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
 import { localWeather } from "game/weather";
 import { season, time, day_of_season, year } from "game/time";
-import { villageElder, membership, commonLand } from "game/village_customs";
+import { villageElder, membership, resourcePermission } from "game/village_customs";
 import { householdStore, householdFood, reasonGone, canRequestForHousehold, favourSource, FUEL_TRADES, nearbyRequester } from "game/favours";
 import { growingAt, frozenAt, climateTile } from "game/climate";
 import { Hex } from "game/hex";
@@ -221,7 +221,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "village_house_count_at_most":return (get(a.village)?.houses?.length||0)<=a.count;
   case "village_trade_count_at_least":return new Set((get(a.village)?.houses||[]).map(h=>e.household[h]?.trade).filter(Boolean)).size>=a.count;
   case "village_has_elder":return !!villageElder(s,id(a.village));
-  case "village_has_common_woodland":return [...commonLand(s)].some(([tile,v])=>v==id(a.village)&&!!e.tree?.[tile]);
+  case "village_has_common_woodland":return Object.keys(e.tree||{}).some(tree=>{const permission=resourcePermission(s,c.actorId,tree);return permission.kind=="common" && permission.villageId==id(a.village);});
   case "kin_link_known_to":return linkKnown(s,viewer,link);
   case "kinship_is":return link?.kinship==a.kind;
   case "kinship_not_in":return !!link&&!a.kinds.includes(link.kinship);

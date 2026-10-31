@@ -1,3 +1,4 @@
+import { updateCustoms } from "game/village_customs";
 import { rememberOwnConversations } from "game/knowledge";
 import MersenneTwister from "mersenne-twister";
 import { Hex, Grid } from "game/hex";
@@ -49,6 +50,7 @@ export async function resolveSuccession(s) {
   const dead=s.ui?.playerId;
   if(!dead || !s.ecs.personable[dead]?.dead)return false;
   const former=s.ecs.personable[dead];
+  updateCustoms(s);
   if(s.travel)await advanceWorldClock(s);
   const directory=s.travel?.people;
   let heir=former.heirId;

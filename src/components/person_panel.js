@@ -1,5 +1,6 @@
 import { eligiblePartner } from "game/social";
 import { canMarryPlayer, marriageReason, canInviteHome } from "game/family";
+import { VillageMembership } from "./village_customs";
 import { biography, disclosedPossessions } from "game/biography";
 import { isResident } from "game/residents";
 import { PersonRequests } from "./favour_requests";
@@ -123,6 +124,7 @@ export function PersonPanel({ entityId }) {
       {!dead && present && entityId != player && ecs.kinship[player]?.spouse != entityId && ecs.personable[player].age>=18 && <p className="talk-note">{marriageReason(state,player,entityId) || "You both feel close enough. Visit to ask and join a family home."}</p>}
       {!dead && present && canInviteHome(state,player,entityId) && <button onClick={()=>queue("invite_home")}>Invite to your household</button>}
       {!dead && present && entityId != player && ecs.personable[player].age < 18 && ecs.personable[entityId].age < 18 && <button disabled={!left} onClick={() => queue("play")}>Play together</button>}
+      {!dead && present && <VillageMembership personId={entityId}/>}
       {!dead && present && ecs.personable[player].age >= 18 && <PersonRequests personId={entityId}/>}
       {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       <p className="label">Traits you know</p>

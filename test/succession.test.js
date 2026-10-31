@@ -164,3 +164,12 @@ it("admits births in a player-owned family home before it belongs to a village",
   for(let season=1;season<=4&&!s.ecs.kinship[player].children.length;season++){s.days=season*3;advanceSeason(s,season);}
   expect(s.ecs.kinship[player].children.length).toBeGreaterThan(0);
 });
+
+it("refuses a player proposal to a known lineal ancestor beyond the NPC two-generation cousin check", () => {
+  const {state:s,player,person,parent,sibling,step}=weddingWorld();const chain=[player,person,parent,sibling];
+  for(const [i,id] of chain.entries())s.ecs.kinship[id]={parents:i?[chain[i-1]]:[],children:i<3?[chain[i+1]]:[],spouse:null};
+  for(const [i,id] of chain.entries())s.ecs.personable[id].age=[87,65,43,18][i];
+  intimate(s,player,sibling);expect(canMarryPlayer(s,player,sibling)).toBe(false);
+  enqueueTask(s,{key:"marry"},sibling);step(2);
+  expect(s.ecs.kinship[player].spouse).toBeNull();expect((s.events||[]).some(e=>e.type=="marriage")).toBe(false);
+});

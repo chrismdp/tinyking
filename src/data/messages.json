@@ -155,7 +155,9 @@
     "court": "Courting",
     "marry": "Discussing marriage",
     "play": "Playing together",
-    "invite_home": "Inviting a friend home"
+    "invite_home": "Inviting a friend home",
+    "village_oath": "Discussing the local oath",
+    "village_leave": "Discussing leaving the village"
   },
   "rooms": {
     "sleeping_quarters": {

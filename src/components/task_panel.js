@@ -2,6 +2,7 @@ import { canFoundHousehold } from "game/family";
 import { heirFor } from "game/possessions";
 import { gardenHelp } from "game/household_routines";
 import { peopleGoals } from "game/guidance";
+import { membership } from "game/village_customs";
 import { HUMAN_SPEED } from "game/locomotion";
 import { currentActivity } from "game/person_activity";
 import messages from "data/messages.json";
@@ -21,6 +22,7 @@ import { harvestCounts, harvestPhase } from "game/harvest_task";
 export const TASK_TITLES = {
   find_food: "Find food", rest: "Rest", travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
   chat: "Chat", court: "Court", marry: "Ask to marry", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
+  village_oath: "Discuss the local oath", village_leave: "Discuss leaving the village",
   create_field: "Create Field", create_stockpile: "Create Stockpile"
 };
 
@@ -31,7 +33,7 @@ function estimatedMinutes(ecs, playerId, job) {
   const site = ecs.construction?.[job.targetId];
   const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
-      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 }[job.job.key] || 0) * (1 - (job.progress || 0));
+      ({ cut_tree_down: 30, forage: 30, create_field: 20, create_stockpile: 20, chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30, village_oath: 5, village_leave: 5 }[job.job.key] || 0) * (1 - (job.progress || 0));
   return Math.max(1, Math.ceil((walking + work) / hungerSpeed(ecs.personable[playerId])));
 }
 
@@ -49,6 +51,11 @@ export function TaskPanel() {
   const id = state.ui.playerId;
   const jobs = ecs.manager[id].jobs;
   const person = ecs.personable[id];
+  if (person.dead) return <aside id="task-panel" aria-label="Your task list">
+    <header><h3>Your tasks</h3></header>
+    <p role="status">Dead · Your tasks have ended.</p>
+    <footer><strong>{name(ecs.nameable[id])}</strong></footer>
+  </aside>;
   const planner = ecs.planner[id];
   const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const currentWood = current && woodTask(state, current, true);
@@ -62,6 +69,7 @@ export function TaskPanel() {
   const garden=person.age<18 && gardenHelp(state,id,null,true);
   const hungry = person.hunger > 0.9;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
+  const member = Object.values(state.villages || {}).some(v => membership(state, id, v.id));
   const location = stage ? (stage == "lean-to" ? "Lean-to" : stage == "hut" ? "Hut" : "House") : ecs.building?.[homeId] ? "Family household" : "Camp at the edge";
   return <aside id="task-panel" className={collapsed ? "collapsed" : ""} aria-label="Your task list">
     <header>
@@ -105,6 +113,7 @@ export function TaskPanel() {
             {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {typeof job.expectedGoodwill == "number" ? `+${job.expectedGoodwill} goodwill` : job.expectedGoodwill}</span>}
             {harvest && <small className={job.waiting ? "task-waiting" : undefined}>{harvestPhase(state, job, request, active)}</small>}
             {job.waiting && !harvest && <small className="task-waiting">{job.detail || job.waiting}</small>}
+            {job.waiting == "Waiting for logs" && <small>For more wood, choose Move here at the edge of visible land. Explore beyond the gold village boundary. Select an unclaimed tree and choose Cut down. Carry the logs home.</small>}
             {active && !harvest && <>{wood && !wood.detail.startsWith(wood.phase) && <small>{wood.phase}</small>}
               <div className="task-progress"><span>{travelling ? "Walking to the edge · one season on the road" : wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : request || travelling ? "" : ` · ~${minutes}m left`}</span></div>
               {progress != null && <div className="meter" role="progressbar" aria-label={wood?.phase || title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div>}</>}
@@ -123,7 +132,7 @@ export function TaskPanel() {
     <button className="your-family" onClick={()=>state.ui.actions.show_family(id)}>Your family</button>
     <details className="people-goals"><summary>Life here · {goals.completed.length}/4</summary><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</details>
     <RequestList/>
-    <footer><strong>{name(ecs.nameable[id])}</strong><small>Owner: {ecs.controllable?.[homeId]?.controllerId && ecs.personable[ecs.controllable[homeId].controllerId] ? displayName(state,ecs.controllable[homeId].controllerId,other=>name(ecs.nameable[other])) : "No owned household"}</small><small>Your heir: {heirFor(state,id) ? displayName(state,heirFor(state,id),other=>name(ecs.nameable[other])) : "No living heir"}</small><small>You · {!ecs.kinship?.[id] ? "Stranger" : person.age < 18 ? "Child" : ecs.kinship[id].spouse && !ecs.personable[ecs.kinship[id].spouse]?.dead ? "Married" : "Unmarried"} · {location}</small>
+    <footer><strong>{name(ecs.nameable[id])}</strong><small>Owner: {ecs.controllable?.[homeId]?.controllerId && ecs.personable[ecs.controllable[homeId].controllerId] ? displayName(state,ecs.controllable[homeId].controllerId,other=>name(ecs.nameable[other])) : "No owned household"}</small><small>Your heir: {heirFor(state,id) ? displayName(state,heirFor(state,id),other=>name(ecs.nameable[other])) : "No living heir"}</small><small>You · {member ? "Village member" : "Stranger"} · {location}</small><small>Family · {!ecs.kinship?.[id] ? "Stranger" : person.age < 18 ? "Child" : ecs.kinship[id].spouse && !ecs.personable[ecs.kinship[id].spouse]?.dead ? "Married" : "Unmarried"} · {location}</small>
       <small className="compact-task">{status} · {eating ? "Stopped to eat" : current ? (requestForTask(state, current) && favourTitle(requestForTask(state, current))) || currentWood?.phase || TASK_TITLES[current.job.key] || "Build the " + (ecs.construction?.[current.targetId]?.stage || "lean-to") : activity || (hungry ? "Needs food" : person.tiredness > .9 ? "Needs rest" : "Ready")}</small></footer>
   </aside>;
 }

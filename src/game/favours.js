@@ -133,16 +133,28 @@ export function visibleFavours(s, personId) {
   const learned = new Set(s.knowledge?.[s.ui.playerId]?.favours || []);
   return Object.values(s.favours?.requests || {}).filter(r => learned.has(r.id) && (!personId || r.giverId == personId || s.ecs.household?.[personId]?.houseId == r.householdId));
 }
-export function acceptFavour(s, id) {
+// A met adult can ask for the same real household need in person. The
+// accepted request names that person, and keeps the existing delivery reward.
+export function canRequestForHousehold(s, request, personId) {
+  return live(s, personId) && s.ecs.personable[personId].age >= 18 &&
+    s.ecs.household?.[personId]?.houseId == request.householdId &&
+    !!s.knowledge?.[s.ui.playerId]?.people?.[personId]?.conversation;
+}
+export function acceptFavour(s, id, personId) {
   if (!playerOrderAllowed(s,"favour")) return null;
   updateFavours(s);
   const r = s.favours?.requests[id];
   if (!r || r.status != "offered" || !visibleFavours(s).includes(r)) return null;
-  const task = enqueueTask(s, { key: "favour" }, r.targetId, { favourId: id, forId: r.giverId, expectedGoodwill: r.goodwill });
-  if (!task) return null;
-  beginInteraction(s, s.ui.playerId, r.giverId);
-  r.status = "accepted"; r.acceptedDay = s.days; r.actorId = s.ui.playerId;
-  r.taskId = task.id;
+  let giverId=r.giverId;
+  if(personId && personId!=giverId) {
+    if(!canRequestForHousehold(s,r,personId))return null;
+    giverId=personId;
+  }
+  const task=enqueueTask(s,{key:"favour"},r.targetId,{favourId:id,forId:giverId,expectedGoodwill:r.goodwill});
+  if(!task)return null;
+  if(giverId!=r.giverId){r.offeredBy=r.giverId;r.giverId=giverId;}
+  beginInteraction(s,s.ui.playerId,giverId);
+  r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;r.taskId=task.id;
   return task;
 }
 export function finishFavour(s, r) {

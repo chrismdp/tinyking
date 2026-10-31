@@ -60,11 +60,13 @@ Favours come from actual household harvest, food or fuel needs. Acceptance queue
 
 A fed, rested Personal friend can contribute real work to a funded building or an owned field. The friend keeps their home, belongings, controller and priorities. There is no Recruit action. Household access follows actual residence. Legal ownership, residence, social trust and person-scoped local rights remain separate. Succession does not copy a predecessor's oaths, discoveries, goodwill or community permissions onto another person.
 
+Local elders can receive an independent adult's oath after actual conversation and enough goodwill. The oath grants common gathering rights, without private property access. Actual household residence can also give local recognition. Leaving ends common gathering rights. These rights belong to the person. See [village customs](village-customs.md).
+
 ## Marriage, ownership and succession
 
 The player deliberately chooses Court or Ask to marry in a person's panel. Each action queues a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat also increases the player's own regard. Ordinary play can therefore reach mutual Intimate with a compatible person.
 
-Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
+Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. Player proposals also reject any recorded direct ancestor or descendant beyond the two generations shown in the tree. NPC cousin compatibility keeps its existing two-generation rule. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
 
 A successful wedding records marriage, memories and a visible celebration notice. It introduces the spouses through actual dialogue. Their close relatives gain six directional goodwill in each direction, subject to existing dispositions and ring limits. Marriage changes neither traits nor tastes. Mutual NPC courtship still waits two seasons. The deliberate player proposal uses its own timed visit instead of an automatic seasonal wedding.
 

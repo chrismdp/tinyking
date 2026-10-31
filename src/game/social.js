@@ -52,13 +52,14 @@ export function withSocialIndex(s, fn) {
   }
 }
 // Recompute the shallow graph: imports/births can add a previously missing ancestor.
-export function related(s, a, b) {
+export function related(s, a, b, includeLineal = false) {
+  const parents=id=>(s.ecs.kinship?.[id] || s.peopleDirectory?.[id]?.kinship || s.travel?.people?.[id]?.kinship)?.parents || [];
   const cache = socialIndexes.get(s)?.ancestry;
   const ancestors = root => {
     if (cache?.has(root)) return cache.get(root);
     const result = new Set(),
       queue = [[root, 0]];
-    for (const [id, depth] of queue) if (depth < 2) for (const p of (s.ecs.kinship[id] || s.peopleDirectory?.[id]?.kinship || s.travel?.people?.[id]?.kinship)?.parents || []) {
+    for (const [id, depth] of queue) if (depth < 2) for (const p of parents(id)) {
       result.add(p);
       queue.push([p, depth + 1]);
     }
@@ -67,7 +68,19 @@ export function related(s, a, b) {
   };
   const aa = ancestors(a),
     bb = ancestors(b);
-  return aa.has(b) || bb.has(a) || [...aa].some(id => bb.has(id));
+  if (aa.has(b) || bb.has(a) || [...aa].some(id => bb.has(id))) return true;
+  if (!includeLineal) return false;
+  // Keep NPC cousin compatibility unchanged. A deliberate player proposal must
+  // also reject direct ancestry beyond the two generations shown in the tree.
+  const ancestor=(root,target)=>{
+    const queue=[root],seen=new Set();
+    for(const id of queue)if(!seen.has(id)) {
+      seen.add(id);
+      for(const parent of parents(id)){if(parent==target)return true;queue.push(parent);}
+    }
+    return false;
+  };
+  return ancestor(a,b) || ancestor(b,a);
 }
 function mutualAttraction(s, a, b) {
   const index=socialIndexes.get(s)?.affinity;
@@ -80,7 +93,7 @@ function mutualAttraction(s, a, b) {
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
 export function eligiblePartner(s, a, b, deliberate = false) {
-  return a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b);
+  return a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);

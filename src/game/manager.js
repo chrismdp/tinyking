@@ -6,7 +6,7 @@ import { forageAvailable } from "game/ecology";
 import { topController } from "game/playable";
 import { giftOptions } from "game/people";
 
-export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel"];
+export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel", "village_leave"];
 export function playerOrderAllowed(state, key) {
   const p = state.ecs.personable[state.ui.playerId];
   return p && !p.dead && ((p.age ?? 18) >= 18 || CHILD_ORDERS.includes(key));
@@ -126,7 +126,7 @@ function waitingReason(state, actorId, job) {
   }
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home", "village_oath", "village_leave"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if (job.job.key == "give_gift") {
     const gift = job.giftItem ? ecs.good[job.giftItem] && ecs.haulable[job.giftItem]?.heldBy == actorId :
       giftOptions(state, actorId).some(g => g.sourceId == job.gift.sourceId && g.type == job.gift.type);

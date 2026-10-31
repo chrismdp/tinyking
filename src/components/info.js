@@ -2,6 +2,7 @@ import { historicalDate, centreHousehold, villageArea } from "game/settlement_de
 import { EXPANSIONS } from "game/settlement_growth";
 import { ResourceRights } from "./village_customs";
 import { canPlaceField } from "game/land_use";
+import { designationPlants } from "game/designation";
 import { frozenAt } from "game/climate";
 import { TravelOffer } from "./travel_offer";
 import React from "react";
@@ -97,6 +98,7 @@ export function Info({ entityId }) {
     (async () => {
       const payload = {
         target: entity,
+        canDesignate: designationPlants(state, state.ui.playerId, entityId) !== null,
         actor: fullEntity(state.ecs, state.ui.playerId),
         job_targets: state.ecs.manager[topController(state.ecs, state.ui.playerId)].jobs.map(j => j.targetId),
         other: state.space[Hex().fromPoint(entity.spatial)]

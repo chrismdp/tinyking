@@ -6,6 +6,7 @@ import { HUMAN_SPEED } from "game/locomotion";
 import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
 import { leaveHome, enterHome, actualHome, nightTime } from "game/home";
 import { recordRoadUse } from "game/road_wear";
+import { designationPlants } from "game/designation";
 import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
@@ -280,7 +281,10 @@ export function forage(state, actorId, world, dt, firstRun, target) {
 
 const TIME_TO_DESIGNATE = time.HOUR / 3;
 export function create_stockpile(state, actorId, world, dt, firstRun, targetId) {
+  const plants = designationPlants(state, actorId, targetId);
+  if (plants === null) return Task.ABORT;
   if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_DESIGNATE)) {
+    plants.forEach(id => deleteEntity(state, id));
     newEntities(state, [{
       nameable: { nickname: "Stockpile" },
       spatial: { ...state.ecs.spatial[targetId] },
@@ -294,9 +298,11 @@ export function create_stockpile(state, actorId, world, dt, firstRun, targetId) 
 }
 
 export function create_field(state, actorId, world, dt, firstRun, targetId) {
-  if (!canPlaceField(state,targetId)) return Task.ABORT;
+  const plants = designationPlants(state, actorId, targetId);
+  if (plants === null || !canPlaceField(state,targetId)) return Task.ABORT;
   if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_DESIGNATE)) {
     if (!reserveFieldPlot(state,targetId)) return Task.ABORT;
+    plants.forEach(id => deleteEntity(state, id));
     newEntities(state, [{
       nameable: { nickname: "Field" },
       spatial: { ...state.ecs.spatial[targetId] },

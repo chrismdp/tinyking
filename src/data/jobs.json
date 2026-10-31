@@ -13,7 +13,7 @@
   {
     "conditions": {
       "target.mappable.terrain": { "is": "grassland" },
-      "other.length": { "is": 0 },
+      "canDesignate": { "is": true },
       "not": { "job_targets" : { "includes": "$target.id" } }
     },
     "event": {

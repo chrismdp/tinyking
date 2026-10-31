@@ -19,6 +19,7 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, returnToLocalView } = require("./acceptance-selection");
+const { designationTerrain } = require("./designation-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
 
@@ -250,11 +251,12 @@ async function play(page) {
   // NOTE: what each order can be given to, nearest the player first:
   //   person - other households' villagers on known land
   //   move    - any walkable known tile a little way off
-  //   empty   - grassland hexes with nothing else on them (fields and stockpiles need one)
+  //   empty   - reachable legal natural terrain, allowing designation to clear forage
   //   trees   - standing trees on known land
   const targets = async () => {
     const build = shelterCandidates(await snapshot(page));
-    return game(build => {
+    const empty = (await designationTerrain(page)).map(c => c.id);
+    return game(({build, empty}) => {
       const s = window.tinyking;
       const p = s.ecs.spatial[s.ui.playerId];
       const distance = id => Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y);
@@ -271,17 +273,14 @@ async function play(page) {
           .filter(hex => !s.space[hex].some(id => s.ecs.building[id]))
           .map(tileIn)
           .filter(id => s.ecs.walkable[id].speed > 0 && distance(id) > 150)),
-        empty: nearest(knownHexes
-          .filter(hex => s.space[hex].length == 1)
-          .map(tileIn)
-          .filter(id => s.ecs.mappable[id].terrain == "grassland")),
+        empty: nearest(empty),
         build,
         trees: nearest(Object.keys(s.ecs.good)
           .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
           .filter(id => window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted)
           .filter(drawn))
       };
-    }, build);
+    }, {build, empty});
   };
 
   // Shared by the complete playtest and the bounded gift closeout. Keep the
@@ -445,6 +444,28 @@ async function play(page) {
     check("clicking a villager selects it", selected, selected ? { selected } : misses);
     await shot("selected.png");
     await closePopup();
+
+    // Prepare two real designation sites only if standing trees block them.
+    // Selection reads known terrain; every removal is an explicit native job.
+    if ((await designationTerrain(page)).length < 2) {
+      const sites = (await designationTerrain(page, true)).slice(0, 2);
+      if (sites.length < 2) throw new Error("No two legal reachable natural designation sites");
+      const trees = sites.flatMap(site => site.trees);
+      for (const tree of trees) {
+        await panTo(tree);
+        if (!await orderOn([tree], "Cut down")) throw new Error("Could not explicitly cut designation tree " + tree);
+        await closePopup();
+      }
+      await speed(FAST);
+      await page.waitForFunction(trees => {
+        const s = window.tinyking;
+        return trees.every(id => !s.ecs.good[id] && !s.ecs.manager[s.ui.playerId].jobs.some(j => j.targetId == id));
+      }, trees, {timeout: 180000});
+      await speed(PAUSE);
+      const after = await designationTerrain(page);
+      check("explicit Cut down work makes natural terrain eligible for designation", after.length >= 2, {sites, trees, after});
+      fs.writeFileSync(path.join(SHOTS, "designation-clearing.json"), JSON.stringify({sites, trees, after}, null, 2));
+    }
 
     // --- Orders from the popups (still paused) ------------------------------------------
     const t = await targets();

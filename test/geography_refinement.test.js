@@ -6,7 +6,7 @@ import { createLandField, MAP_CENTRE, MAP_RADIUS, worldPoint } from "game/world_
 import { buildGeography, groundForState } from "game/geography";
 import { neighbours } from "game/travel_geometry";
 import { path, addBidirectionalLink } from "game/pathfinding";
-import { newEntities } from "game/entities";
+import { newEntities, deleteEntity } from "game/entities";
 import { walk_to, create_field, create_subtasks, perform_subtask_in_slot } from "game/tasks";
 import { HOUR } from "game/time";
 import { updateWeather } from "game/weather";
@@ -89,7 +89,7 @@ it("an actual walker skirts crop interiors, adds no field wear, then reaches a h
 
 it("a field created during an existing walk invalidates the cached through-route", () => {
   const {s,field,tile}=plots(), crop=tile(Hex(0,0)), neighbours=s.ecs.walkable[crop].neighbours;
-  delete s.ecs.farmable[field];
+  deleteEntity(s,field);
   const from=neighbours[0], to=neighbours[3], world={places:{}};
   Object.assign(s.ecs.spatial.walker,s.ecs.spatial[from]);
   walk_to(s,"walker",world,0,true,to);

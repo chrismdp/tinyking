@@ -25,7 +25,7 @@ function reserveSiteField(s,site,pads,owner) {
   const e=s.ecs,origin=at(s,site.point),door=e.walkable[origin].neighbours[site.entrance];
   if(!door)return null;
   const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point));
-  const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>padHexes.every(p=>p.distance(h)>=2) &&
+  const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>padHexes.every(p=>p.distance(h)>0) &&
     (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
     Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2))
     .map(h=>at(s,h.toPoint())).filter(id=>id && canPlaceField(s,id) && !(s.space[Hex().fromPoint(e.spatial[id])] || []).some(tree=>e.good?.[tree]?.type=="wood" && !e.haulable?.[tree] && e.controllable?.[tree] && topController(e,tree)!=owner))

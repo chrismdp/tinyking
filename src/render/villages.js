@@ -41,8 +41,9 @@ const animalParts = kind => {
   return parts;
 };
 
-function geometry(kind) {
-  if (!geometryCache.has(kind)) {
+function geometry(kind, stage = 0) {
+  const cacheKey=kind+":"+stage;
+  if (!geometryCache.has(cacheKey)) {
     const parts = [];
     if (kind == "fence-piece") parts.push(box(0, 0, 0, 1, 1, 1, TIMBER));
     else if (kind.startsWith("animal:")) parts.push(...animalParts(kind.slice(7)));
@@ -90,11 +91,16 @@ function geometry(kind) {
       parts.push(box(20, 25, 17, 2, 19, 2, TIMBER), box(24, 30, 17, 10, 8, 2, 0xC49B4B));
       for (const x of [-20, 20]) parts.push(cylinder(x, 5, 27, 6, 10, TIMBER));
     }
+    if(stage && ["alehouse","smith","carpenter","weaver","baker","tanner","miller"].includes(kind)) {
+      const depth=stage==1?12:30, rear=kind=="alehouse"?34:30, front=kind=="alehouse"?15:0, back=rear+depth;
+      parts.push(box(0,8,-(front+back)/2,32,16,back-front,PALE),box(0,18,-(front+back)/2,38,4,back-front,THATCH));
+      if(stage==2)parts.push(box(-10,7,-back+1,9,12,2,TIMBER),box(10,7,-back+1,9,12,2,TIMBER));
+    }
     const g = mergeColoured(parts);
     g.userData.shared = true;
-    geometryCache.set(kind, g);
+    geometryCache.set(cacheKey, g);
   }
-  return geometryCache.get(kind);
+  return geometryCache.get(cacheKey);
 }
 
 export function villageModel(ground, state, id) {
@@ -102,7 +108,7 @@ export function villageModel(ground, state, id) {
   const kind = ecs.animal?.[id] ? "animal:" + ecs.animal[id].kind : ecs.workplace?.[id]?.trade || ecs.backyard?.[id]?.kind || ecs.meetingPlace?.[id]?.kind || "pasture";
   const group = new THREE.Group();
   group.position.set(p.x, ground.heightAt(p.x, p.y), p.y);
-  group.add(new THREE.Mesh(geometry(kind), material));
+  group.add(new THREE.Mesh(geometry(kind,ecs.growth?.[id]?.stage || 0), material));
   if (ecs.workplace?.[id]) group.children[0].position.z = -15;
   const pen = ecs.pasture?.[id];
   if (pen) {

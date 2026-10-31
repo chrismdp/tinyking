@@ -12,10 +12,16 @@ export function snowlineAt(tile, days) {
 export const frozenAt = (tile, days) => tile.elevation != null ? tile.elevation >= snowlineAt(tile, days) :
   tile.temperature == "cold" || tile.temperature == "temperate" && season(days) == "winter";
 
+const stationaryTiles=new WeakMap();
 export function climateTile(state, id) {
   if (state.ecs?.mappable?.[id]) return state.ecs.mappable[id];
   const point = state.ecs?.spatial?.[id];
-  return point && (state.space?.[Hex().fromPoint(point)] || []).map(e => state.ecs.mappable?.[e]).find(Boolean) || {};
+  if(!point)return {};
+  const cached=point.immovable && stationaryTiles.get(point);
+  if(cached && cached.x==point.x && cached.y==point.y && cached.tiles===state.ecs.mappable && cached.space===state.space)return state.ecs.mappable[cached.id] || {};
+  const tile=(state.space?.[Hex().fromPoint(point)] || []).find(e=>state.ecs.mappable?.[e]);
+  if(point.immovable && tile)stationaryTiles.set(point,{x:point.x,y:point.y,tiles:state.ecs.mappable,space:state.space,id:tile});
+  return state.ecs.mappable?.[tile] || {};
 }
 export const growingAt = (state, id) => season(state.days) != "winter" &&
   (climateTile(state,id).elevation == null || !frozenAt(climateTile(state,id), state.days));

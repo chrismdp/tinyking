@@ -1,3 +1,4 @@
+import { recordProduction, recordMeetingUse, completeTradeProduction } from "game/settlement_growth";
 import { recordRoadUse } from "game/road_wear";
 import { canPlaceField, reserveFieldPlot } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
@@ -127,6 +128,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
     world.route.shift();
 
     if (!("exit" in next)) {
+      if(target=="meet" && world.target?.id)recordMeetingUse(state,world.target.id,actorId);
       return Task.FINISH;
     }
   } else {
@@ -377,6 +379,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
         controllable: { controllerId: topController(state.ecs, assisting ? targetId : actorId) }
       })));
       state.redraws.push(...goods);
+      if (farm.houseId) recordProduction(state,farm.houseId,actorId,slot.content,goods.length);
       if (request?.status == "accepted" && request.kind == "harvest" && request.targetId == targetId) {
         for (const id of goods) state.ecs.haulable[id].reservedFor = actorId;
         request.progress++; request.produced += goods.length; request.cargo.push(...goods);
@@ -824,7 +827,9 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
     w.fuelHours -= hours;
     w.workHours = (w.workHours || 0) + hours;
   }
-  return workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2) ? Task.FINISH : Task.CONTINUE;
+  if (!workComplete(state, actorId, world, dt, firstRun, time.HOUR / 2)) return Task.CONTINUE;
+  completeTradeProduction(state,workplaceId,actorId);
+  return Task.FINISH;
 }
 
 export function socialise(state, actorId, world, dt, firstRun, partnerId) {

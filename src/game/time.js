@@ -24,7 +24,7 @@ export const time = t => {
   return "night";
 };
 
-export const day_of_season = t => (Math.floor(t) % DAYS_IN_SEASON);
-export const season = t => SEASON[Math.floor(t / DAYS_IN_SEASON) % SEASON.length];
+export const day_of_season = t => ((Math.floor(t) % DAYS_IN_SEASON + DAYS_IN_SEASON) % DAYS_IN_SEASON);
+export const season = t => SEASON[((Math.floor(t / DAYS_IN_SEASON) % SEASON.length) + SEASON.length) % SEASON.length];
 
 export const full = t => am_pm(hour_of_day(t)) + ", " + DAY[day_of_season(t)] + " " + season(t) + ", year " + year(t);

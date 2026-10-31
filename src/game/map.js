@@ -1,5 +1,4 @@
-import { updateRoadWear } from "game/road_wear";
-import { reserveBuildingClearance, treeAllowed } from "game/tree_clearance";
+import { treeAllowed } from "game/tree_clearance";
 import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, suitableHouse } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
@@ -10,7 +9,7 @@ import { HEX_SIZE, Hex, Grid, ALL_SIDES } from "game/hex";
 import MersenneTwister from "mersenne-twister";
 
 
-import { newEntities, entitiesInSameLocation } from "game/entities";
+import { newEntities } from "game/entities";
 import { discoverTiles } from "game/playable";
 import { addBidirectionalLink, removeBidirectionalLink } from "game/pathfinding";
 
@@ -18,6 +17,7 @@ import { HIGH_GROUND } from "game/height";
 import { generateWorld, homeOf, tileTemperature, biomeOf } from "game/overworld";
 import { initializeEcology, generateForage } from "game/ecology";
 import { generateVillageLife } from "game/villages";
+import { expansionFits, expandedFootprint } from "game/settlement_growth";
 import { updateWeather } from "game/weather";
 import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
 import { MAP_RADIUS, MAP_CENTRE, worldPoint } from "game/world_terrain";
@@ -46,7 +46,7 @@ export const HAIR = [
 export const BODY_MALE = 0x4E3F30;
 export const BODY_FEMALE = 0x3B6071;
 
-function generatePerson({ spatial, male, age, familySeed, generator, days }) {
+export function generatePerson({ spatial, male, age, familySeed, generator, days }) {
   return {
     nameable: { type: "person", familySeed, male, seed: generator.random_int() },
     spatial,
@@ -471,12 +471,12 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const chosen = [start, ...alternatives].find(suitableArrival);
     if (chosen) start = chosen;
   }
-  let trees = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
+  let trees = generateTrees(seed, landscape, {}, grid.pointWidth(), grid.pointHeight(), {
     biomeAt: hex => biomeOf(landscape[hex].temperature, home.moisture),
     start
   }).filter(tree => {
     const hex = Hex().fromPoint(tree);
-    return landscape[hex]?.terrain == "grassland" && !settlements[hex];
+    return landscape[hex]?.terrain == "grassland";
   });
   // Every pass has the same initial resource guarantees as the opening.
   for (const entry of Object.values(entrances)) {
@@ -489,17 +489,6 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     }
   }
   const generator = new MersenneTwister(seed);
-
-  const houses = Object.values(settlements).map(s => {
-    const { x, y } = Hex(s.x, s.y).toPoint();
-    return {
-      spatial: { x, y, immovable: true },
-      nameable: { nickname: "Log cabin" },
-      controllable: {},
-      building: { entrance: s.frontDoorSide, rooms: [] },
-      village: { villageId: s.villageId }
-    };
-  });
 
   const tiles = Object.values(landscape).map((tile) => ({
     nameable: { nickname: "Map tile" },
@@ -519,8 +508,11 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     }
   }));
 
-  newEntities(state, [ ...tiles, ...houses, ...treeEntities ]);
-  updateRoadWear(state);
+  newEntities(state, [ ...tiles, ...treeEntities ]);
+  state.ecs.building ||= {};
+  state.ecs.container ||= {};
+  state.ecs.household ||= {};
+  for (const walk of Object.values(state.ecs.walkable)) { walk.routeWear = 0; walk.wearUpdatedAt = -543; }
 
   for (const id in state.ecs.walkable) {
     if (state.ecs.walkable[id].speed > 0) {
@@ -538,11 +530,6 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     }
   }
 
-  for (const id in state.ecs.building) {
-    const villageId = state.ecs.village[id].villageId;
-    if (villageId) state.villages[villageId].houses.push(id);
-  }
-
   const playerStartTile = { x: start.x, y: start.y };
   const map = {
     seed,
@@ -551,49 +538,61 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     radius: MAP_RADIUS, entrances, geography, worldKey: worldKey(state.world.home)
   };
 
+  state.map = map;
+  for (const entry of Object.values(entrances)) entry.tileIds = entry.hexes.map(h => tileAt(state, Hex(h).toPoint()));
+  state.settlement = { version: 1, lastSeason: -181, preparedSeason: -181, sites: {}, journeys: [], appliedJourneys: {}, sealedBorders: options.sealedBorders || [] };
+  const transitRoutes=geography.routes.filter(route=>Object.values(entrances).some(e=>Hex(e.hexes[2]).equals(Hex(route[0]))));
+  const transitHexes=transitRoutes.flat().map(h=>Hex(h));
+  for(const hex of transitHexes)state.ecs.mappable[tileAt(state,hex.toPoint())].settlementTransit=true;
+  for (const [index,village] of Object.values(villages).entries()) {
+    const foundingSeason = index ? -32-Math.floor(hashUnit(seed+":founding:"+village.id)*148) : -180;
+    const sites=Object.values(settlements).filter(h=>h.villageId==village.id);
+    const approach=site=>Grid.hexagon({center:Hex(site),radius:1}).neighborsOf(Hex(site),ALL_SIDES)[site.frontDoorSide];
+    const access=site=>Math.min(...transitHexes.map(h=>h.distance(approach(site))));
+    sites.sort((a,b)=>access(a)-access(b) || Number(b.villageCentre)-Number(a.villageCentre));
+    const first=sites.shift();
+    sites.sort((a,b)=>Hex(first).distance(Hex(a))-Hex(first).distance(Hex(b)) || a.x-b.x || a.y-b.y);
+    const ordered=[first,...sites];
+    state.settlement.sites[village.id] = ordered.map((h,i)=>({point:Hex(h.x,h.y).toPoint(),entrance:h.frontDoorSide,establishSeason:foundingSeason+i*2}));
+    village.access={kind:transitHexes.length?"regional route":"local route",crossings:Object.values(entrances).map(e=>e.key),distanceToTransit:transitHexes.length?access(first):null};
+    village.sharedPlaces = [];
+  }
+  const prosperityVillage=options.settlementFixture=="prosperity" && Object.values(villages).find(v=>state.settlement.sites[v.id].length>=5);
+  if(prosperityVillage)for(const site of state.settlement.sites[prosperityVillage.id])site.establishSeason=-1;
+  // Prospective pads reserve one approach. History cannot route a through
+  // connection across a house site and later construct across that road.
+  for(const site of Object.values(state.settlement.sites).flat()) {
+    const tile=tileAt(state,site.point);
+    for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(state.ecs,tile,side);
+  }
   generateFamilies({ state, seed, playerStartTile, founding: true });
-  generateHistory(state, seed);
+  initializeEcology(state,seed);
+  generateHistory(state, seed, options.routeHistory || []);
   const playerId = Object.values(state.ecs.playable)[0].id;
   state.ecs.controllable[playerId].controllerId = playerId;
   discoverStartingTiles(state.ecs, playerId, playerStartTile);
-
-  for (const id in state.ecs.building) {
-    const building = state.ecs.building[id];
-    const entities = entitiesInSameLocation(state, state.ecs.spatial[id]);
-    const mappables = entities.filter(e => state.ecs.mappable[e]);
-    ALL_SIDES.forEach(side => {
-      if (side != building.entrance) {
-        removeBidirectionalLink(state.ecs, mappables[0], side);
-      }
-    });
-    const householdSize = Object.values(state.ecs.household).filter(h => h.houseId == id).length;
-    const inhabitants = Math.max(1, Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead && state.ecs.household[person]?.houseId == id).length);
-
-    // NOTE: Create rooms (2 each at the moment in every building, one for stockpiles one for sleeping
-    building.rooms = newEntities(state, [
-      {
-        spatial: { ...state.ecs.spatial[id] },
-        controllable: { controllerId: building.id },
-        interior: { buildingId: building.id },
-        sleepable: { capacity: Math.max(3, householdSize), level: 1, occupiers: [] },
-      },
-      {
-        spatial: { ...state.ecs.spatial[id] },
-        interior: { buildingId: building.id },
-        controllable: { controllerId: building.id },
-        container: {
-          capacity: (inhabitants + 1) * TRIANGLES.length,
-          amounts: {
-            gruel: inhabitants,
-            grain: inhabitants * TRIANGLES.length
-          }
-        }
-      }
-    ]);
-  }
-
-  for (const id in state.ecs.building) reserveBuildingClearance(state,id);
   generateVillageLife(state, seed, playerStartTile);
+  if(prosperityVillage) {
+    const v=prosperityVillage;
+    const eligible=v.houses.filter(id=>state.ecs.household[id].trade && expansionFits(state,id,expandedFootprint(state,id,1)) && expansionFits(state,state.ecs.household[id].workplaceId,expandedFootprint(state,state.ecs.household[id].workplaceId,1)));
+    const prosperous=eligible.find(id=>["weaver","tanner"].includes(state.ecs.household[id].trade)) || eligible[0] || v.houses.find(id=>state.ecs.household[id].trade);
+    const pub=v.sharedPlaces.find(id=>state.ecs.meetingPlace[id].kind=="alehouse");
+    const host=pub && state.ecs.meetingPlace[pub].houseId;
+    const poor=v.houses.find(id=>id!=prosperous && id!=host);
+    const supply=(house,wood,grain)=>{
+      const h=state.ecs.household[house],store=state.ecs.container[h.storeId];
+      for(const [type,target] of [["wood",wood],["grain",grain]]) {
+        const delta=target-(store.amounts[type] || 0);
+        store.amounts[type]=target;
+        h.estateAccount.initial[type]=(h.estateAccount.initial[type] || 0)+delta;
+      }
+    };
+    supply(prosperous,80,60);
+    if(host && host!=prosperous)supply(host,40,60);
+    supply(poor,0,24);
+    state.ecs.container[playerId]={id:playerId,capacity:96,amounts:{gruel:48,grain:24}};
+    state.settlement.fixture={observerSupplies:"48 carried gruel and 24 carried grain",kind:"prosperity",label:"Initial prosperity setup",villageId:v.id,prosperousHouse:prosperous,workplaceId:state.ecs.household[prosperous].workplaceId,pubId:pub,pubHouse:host,poorHouse:poor,initialDay:state.days,stocks:"Trade household: 80 timber and 60 grain. Pub household: 40 timber and 60 grain if separate. Comparison household: no timber, 24 grain."};
+  }
   giveTradeTools(state);
   // The existing starting-wood guarantee is placed outside actual roofs and
   // approaches after household geometry is known; clearance never yields logs.
@@ -609,7 +608,9 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
       newEntities(state,[{spatial:{...tree,immovable:true},nameable:{nickname:"Tree"},good:{type:"wood",amount:1+Math.floor(hashUnit(seed+":wood:"+tree.x+","+tree.y)*3)}}]);
     }
   }
+  const naturalCaps=state.ecology.treeCaps;
   initializeEcology(state, seed);
+  for(const [biome,count] of Object.entries(naturalCaps))state.ecology.treeCaps[biome]=Math.max(count,state.ecology.treeCaps[biome] || 0);
   generateForage(state, seed, playerStartTile);
   for (const entry of Object.values(entrances)) {
     entry.tileIds = entry.hexes.map(h => tileAt(state, Hex(h).toPoint()));

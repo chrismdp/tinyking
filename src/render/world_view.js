@@ -1,3 +1,5 @@
+import { villageArea } from "game/settlement_details";
+import { label } from "render/labels";
 import * as THREE from "three";
 
 import { Hex, HEX_SIZE } from "game/map";
@@ -56,6 +58,39 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const instances = createInstances();
   scene.add(instances.mesh);
+  const settlementOverlay=new THREE.Group();
+  scene.add(settlementOverlay);
+  const villageLabels=new Map();
+  let areaOutline=null, areaKey=null;
+  const updateSettlements = () => {
+    for(const village of Object.values(state.villages || {})) {
+      const centre=village.sharedPlaces?.find(id=>state.ecs.meetingPlace?.[id]?.kind=="green");
+      if(!centre)continue;
+      let name=villageLabels.get(village.id);
+      if(!name) {
+        name=label(village.name,{height:32,colour:"#f7e8be",background:"rgba(37,47,39,0.85)"});
+        name.name="village-name";name.userData.entityId=centre;
+        villageLabels.set(village.id,name);settlementOverlay.add(name);
+      }
+      const p=state.ecs.spatial[centre];
+      name.position.set(p.x,ground.heightAt(p.x,p.y)+90,p.y);
+      name.visible=isKnown(p) && !introActive(state);
+    }
+    const villageId=state.ecs.village?.[state.ui.selected]?.villageId;
+    const key=villageId+":"+state.landUseRevision;
+    if(key!=areaKey) {
+      if(areaOutline) {settlementOverlay.remove(areaOutline);models.disposeObject(areaOutline);}
+      areaOutline=null;areaKey=key;
+      if(villageId && state.villages?.[villageId]?.origin) {
+        areaOutline=new THREE.Group();
+        for(const hex of villageArea(state,villageId)) {
+          const h=Hex(...hex.split(",").map(Number)), p=h.toPoint();
+          if(isKnown(p))areaOutline.add(models.hexOutline(ground,p,0xDFCA83));
+        }
+        settlementOverlay.add(areaOutline);
+      }
+    }
+  };
   const objects = {};
   const people = new Set();
   let known = new Set();
@@ -257,7 +292,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     hemisphere.intensity = SKY * (1 - night * 0.9) * cloud.sky;
   };
 
-  const pickables = () => [terrain.mesh, forest.mesh, instances.mesh, ...Object.entries(objects)
+  const pickables = () => [settlementOverlay, terrain.mesh, forest.mesh, instances.mesh, ...Object.entries(objects)
     .filter(([id]) => !forest.has(id) && !instances.has(id)).map(([, object]) => object)];
 
   const pick = (clientX, clientY) => {
@@ -377,6 +412,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
           rebuild(id);
         }
       }
+      updateSettlements();
       terrain.update();
       forest.setDistant(rig.distance > 3000);
       forest.update();

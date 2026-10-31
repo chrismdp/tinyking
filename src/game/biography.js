@@ -21,7 +21,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
   }
   const tree = knownFamilyTree(state, viewer, person), kin = state.ecs.kinship[person];
   const parent = id => kin.parents.includes(id) && tree.nodes[id] && !tree.nodes[id].unknown;
-  const priority = { inheritance: 0, world_move: 1, move: 2, death: 3, marriage: 4, reconciliation: 5, quarrel: 6, gift: 7, birth: 8 };
+  const priority = { inheritance: 0, expansion: 1, house_built: 2, founding: 2, household_arrival: 2, world_move: 1, move: 2, death: 3, marriage: 4, reconciliation: 5, quarrel: 6, gift: 7, birth: 8 };
   for (const e of [...events].sort((a, b) => (priority[a.type] ?? 99) - (priority[b.type] ?? 99) || b.day - a.day || a.id.localeCompare(b.id))) {
     if (facts.some(f => f.eventId == e.id)) continue;
     const [a, b] = e.people, other = a == person ? b : a;
@@ -29,6 +29,10 @@ export function biography(state, viewer, person, resolve = state.personName) {
     let text;
     if (e.type == "death" && parent(a)) text = "Lost " + (state.ecs.nameable[a]?.male === undefined ? "a parent, " : state.ecs.nameable[a].male ? "their father, " : "their mother, ") + n(a) + ", in " + when(e);
     if (e.people.includes(person)) {
+      if(e.type=="expansion")text="Built a "+e.addition+" in "+when(e);
+      if(e.type=="house_built")text="Established a household home in "+when(e);
+      if(e.type=="founding")text="Founded "+(village || "a settlement")+" beside an accessible route in "+when(e);
+      if(e.type=="household_arrival")text="Established a home in "+(village || "a settlement")+" in "+when(e);
       if (e.type == "marriage") text = "Married " + n(other) + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "move") text = "Moved to " + (state.ecs.nameable?.[e.toHouse] ? n(e.toHouse) : "another home") + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "world_move") text = "Settled in " + e.toWorld + " in " + when(e);

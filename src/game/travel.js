@@ -1,3 +1,4 @@
+import { recordJourney, routeTile } from "game/settlement_routes";
 import { advanceEnvironment } from "game/environment";
 import { drift } from "game/people";
 import { householdAccess } from "game/playable";
@@ -16,7 +17,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -243,6 +244,9 @@ export function initialiseTravel(s, seed) {
     visits: {},
     historyCalls: []
   };
+  s.travel.routeHistory=(s.settlement?.journeys || []).filter(j=>j.borderKey && !j.imported);
+  s.travel.sealedBorders=Object.fromEntries(Object.values(s.map.entrances || {}).map(e=>[e.key,key]));
+  if(s.settlement)s.settlement.observedAt=s.days;
   publish(s, s.travel);
   s.travel.maps[key] = localSnapshot(s);
 }
@@ -272,9 +276,17 @@ export async function ensureMap(s, key) {
     world: s.world,
     hex,
     noPlayer: true,
-    worldSeed: j.seed
+    worldSeed: j.seed,
+    routeHistory: j.routeHistory || [],
+    sealedBorders: Object.keys(j.sealedBorders || {})
   });
   fresh.map = result.map;
+  const knownTrips=new Set((j.routeHistory || []).map(t=>t.key));
+  j.routeHistory ||= [];
+  for(const trip of fresh.settlement?.journeys || [])if(trip.borderKey && !trip.imported && !knownTrips.has(trip.key))j.routeHistory.push(trip);
+  j.sealedBorders ||= {};
+  for(const entry of Object.values(fresh.map.entrances))j.sealedBorders[entry.key] ||= key;
+  if(fresh.settlement)fresh.settlement.observedAt=s.days;
   fresh.residents = Object.fromEntries(Object.keys(fresh.ecs.personable).map(id => [id, true]));
   freezeOpinions(fresh);
   // A never-visited hex has its own deterministic prehistory, followed by all
@@ -596,6 +608,9 @@ export function departNpc(s, id, intent, j = s.travel) {
     toWorld: intent.to,
     reason: intent.returning ? "returning home" : "seeking company"
   });
+  const side=intent.side ?? neighbours(j.world?.hexes.find(h=>worldKey(h)==from) || s.world.home).findIndex(h=>worldKey(h)==intent.to);
+  const entry=s.map.entrances?.[side];
+  if(entry && s.settlement)recordJourney(s,{key:"departure:"+id+":"+s.days,people:[id],from:routeTile(s,s.ecs.spatial[id]),to:entry.tileIds[0],reason:intent.returning?"returning home":"seeking company",borderKey:entry.key,count:1});
   const bundle = takeTraveller(s, id);
   repairHouseholds(s);
   bundle.from = from;
@@ -669,6 +684,10 @@ async function receiveNpcs(s, j) {
       p.visitedWorlds = [...new Set([...(p.visitedWorlds || []), trip.to])];
     }
     if (!trip.returning) delete dest.ecs.profession?.[id];
+    if(trip.to!=j.active || s.transition) {
+      const home=dest.ecs.household[id]?.houseId;
+      if(home && dest.settlement)recordJourney(dest,{key:"arrival:"+id+":"+trip.due,people:[id],from:entry.tileIds[0],to:routeTile(dest,dest.ecs.spatial[home]),reason:trip.returning?"returning home":"visiting household",borderKey:entry.key,count:1});
+    }
     if (trip.to == j.active && !s.transition) {
       Object.assign(dest.ecs.spatial[id], dest.ecs.spatial[entry.tileIds[0]]);
       dest.ecs.planner[id].world.worldArrival = {

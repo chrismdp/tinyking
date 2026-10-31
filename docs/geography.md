@@ -70,9 +70,9 @@ The existing travel/return system uses these exact edge/camp entities. NPC trip
 choices also require an existing local entrance. Roads draw through
 `mappable.route` (a set of tile sides) using the existing dirt-track geometry.
 `walkable.worn` starts empty and retains the existing live walking behaviour.
-No pre-arrival history claims journeys or road wear. Historical settlement
-construction, prosperity expansion and journey-derived historical wear are a
-separate feature.
+The terrain survey reserves topology without claiming journeys.
+`docs/settlements.md` describes the seasonal construction and actual journey
+records that now earn historical wear. The border contract remains unchanged.
 
 ## Building and tree clearance
 
@@ -167,8 +167,8 @@ progress. The existing mountain-pass URL remains available for pass acceptance.
 `road_wear.js` uses twice this value for full wear to fade. Each tile records
 `wearUpdatedAt`. Repeated updates at the same day do not apply decay again.
 `recordRoadUse(state, tileId, entrance, exit, amount=1)` records actual traffic.
-It replenishes that track and rejects crop plots. No initial wear claims past
-journeys.
+It replenishes that track and rejects crop plots. The settlement history calls this function with recorded journey dates and
+counts. The terrain survey itself claims no traffic.
 
 Fixed route sides remain physical reservations and connections. Their separate
 `routeWear` starts as a fresh constructed surface and then fades. The renderer
@@ -179,3 +179,20 @@ crosses a visible opacity step, or when footsteps add wear. Offscreen catch-up
 uses the same hourly environment update and preserves tile timestamps. Map
 activation does not reset them. The development API also exposes
 `updateRoadWear` and `recordRoadUse` for a small elapsed-time acceptance setup.
+
+
+## Settlement growth integration
+
+Settlement sites retain the supplied bounded pads and door approaches. New
+household fields call `reserveFieldPlot` and reserve a reachable lane beside the
+plot. Historical use calls `recordRoadUse` through the journey ledger. Its initial
+wear cursor starts before prehistory, so abandoned historical tracks also fade.
+No activation call resets that cursor. Main-route roles come from actual
+inter-village or border journeys, excluding the door endpoints. They affect the
+grey colour. Other tracks retain brown. Both use the same fading wear.
+
+Growth passes an explicit expanded footprint to `reserveBuildingClearance`.
+Rear wings preserve the original door and its corridor. Their actual rendered
+roof bounds stay within the reservation. Field, road, ownership and existing
+building conflicts prevent expansion. Future trees use the same persisted
+reservation. Terrain and shared crossing API signatures remain unchanged.

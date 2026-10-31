@@ -1,3 +1,5 @@
+import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
+import { recordJourney, routeTile } from "game/settlement_routes";
 import { entityId, isResident } from "game/residents";
 import { Hex } from "game/hex";
 // No map, renderer, DOM or pathfinding imports: also runs on an unvisited world hex.
@@ -107,7 +109,8 @@ export function moveHouse(s, id, houseId, summary = false) {
   if (availableHouse(s, houseId, [id])) s.ecs.controllable[houseId].controllerId = id;
   s.ecs.household[id] = {
     id,
-    houseId
+    houseId,
+    since: s.days
   };
   s.ecs.village[id] = {
     ...s.ecs.village[id],
@@ -163,7 +166,8 @@ function coupleHouse(s, a, b, dependents = []) {
   const villageHomes = [...new Set([...(village?.houses || []), ...(s.villages?.[ecs.village[b]?.villageId]?.houses || []), ...Object.keys(ecs.building || {}).filter(id => [a, b].includes(ecs.controllable[id]?.controllerId))])];
   const empty = villageHomes.find(id => members(id) == 0 && familyHomeAvailable(s, id, [a, b]));
   if (empty) return empty;
-  if (!village || village.houses.length >= 8) return null;
+  if (!village) return null;
+  if (s.settlement) return constructHome(s,village.id,[a,b,...dependents]);
   // A summary world can provide build sites as plain coordinates. Rendered worlds
   // derive them from reachable village grassland, outside existing plots.
   const sites = s.houseSites?.[village.id] || Object.keys(ecs.walkable || {}).filter(id => ecs.mappable[id]?.terrain == "grassland" && !ecs.mappable[id].villagePlot && distance(s, id, a) < 600 ** 2 && !Object.keys(ecs.building).some(h => distance(s, id, h) < 150 ** 2)).map(id => ecs.spatial[id]);
@@ -421,6 +425,8 @@ export function advanceSeason(s, season, summary = false) {
   return withSocialIndex(s, () => withEventIndex(s, () => withRelationshipIndex(s, () => advanceSeasonRules(s, season, summary))));
 }
 function advanceSeasonRules(s, season, summary) {
+  if (s.social?.lastSeason >= season) return;
+  prepareSettlementSeason(s,season);
   s.social ||= {};
   s.social.courtships ||= {};
   s.social.avoidance ||= {};
@@ -495,6 +501,7 @@ function advanceSeasonRules(s, season, summary) {
       if (!b) continue;
       paired.add(a);
       paired.add(b);
+      if (s.settlement && ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordJourney(s,{key:"visit:"+season+":"+a+":"+b,people:[a],from:routeTile(s,ecs.spatial[ecs.household[a]?.houseId]),to:routeTile(s,ecs.spatial[ecs.household[b]?.houseId]),reason:"visiting household",mainRoute:true,day:s.days,returnDay:s.days+.2,count:1});
       if (ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordEvent(s, "visit", [a, b], [], {
         fromVillage: ecs.village[a]?.villageId,
         toVillage: ecs.village[b]?.villageId,
@@ -538,9 +545,11 @@ function advanceSeasonRules(s, season, summary) {
     }
   }
   repairHouseholds(s);
+  settleSeason(s,season,summary);
   s.social.lastSeason = season;
 }
 export function historyStep(worldHexState, season) {
+  if (worldHexState.social?.lastSeason >= season) return worldHexState;
   // Events, names and geography are immutable. Copy only the records this step
   // can change; a forty-five-year history must not recopy the map or old events.
   const copy = {
@@ -618,6 +627,14 @@ export function historyStep(worldHexState, season) {
     ...v,
     houses: [...(v.houses || [])]
   };
+  if (worldHexState.settlement) {
+    copy.settlement=JSON.parse(JSON.stringify(worldHexState.settlement));
+    for (const key of ["growth","workplace","meetingPlace","container","treeClearance","mappable","spatial","walkable","tree","good"]) records(key,value=>JSON.parse(JSON.stringify(value)));
+    records("household",value=>JSON.parse(JSON.stringify(value)));
+    for (const key in copy.space) copy.space[key]=[...copy.space[key]];
+    copy.map=worldHexState.map && {...worldHexState.map};
+    for (const [id,v] of Object.entries(worldHexState.villages || {})) copy.villages[id]=JSON.parse(JSON.stringify(v));
+  }
   copy.days = season * 3;
   drift(copy, 72);
   advanceSeason(copy, season, true);

@@ -345,10 +345,10 @@ const squarePyramid = () => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(M
 
 export function building(ground, state, id, options) {
   const { x, y } = state.ecs.spatial[id];
-  return house(ground, x, y, state.ecs.building[id].entrance, options);
+  return house(ground, x, y, state.ecs.building[id].entrance, { ...options, growthStage:state.ecs.growth?.[id]?.stage || 0 });
 }
 
-export function house(ground, x, y, entrance, { playerOwned, selected }) {
+export function house(ground, x, y, entrance, { playerOwned, selected, growthStage = 0 }) {
   const w = HEX_SIZE * 1.35;
   const d = w / GOLDEN_RATIO;
   const wall = 26;
@@ -380,6 +380,16 @@ export function house(ground, x, y, entrance, { playerOwned, selected }) {
       matrix: at(0, high + wall + roof / 2, 0, 0, 0, 0, w + 10, roof, d + 10) },
     { geometry: new THREE.BoxGeometry(w * 0.3, 16, 2), colour: COLOURS.door, matrix: at(0, doorGround + 8, d / 2 + 0.5) },
   ];
+  if (growthStage) {
+    const depth=growthStage==1?12:30, width=w*.7, annexDepth=depth+6, z=-(30.1+depth/2-3);
+    const corners=[[-width/2,z-annexDepth/2],[width/2,z-annexDepth/2],[-width/2,z+annexDepth/2],[width/2,z+annexDepth/2]]
+      .map(([lx,lz])=>new THREE.Vector3(lx,0,lz).applyAxisAngle(UP,angle));
+    const annexHigh=Math.max(...corners.map(p=>ground.heightAt(x+p.x,y+p.z)));
+    const annexLow=Math.min(...corners.map(p=>ground.heightAt(x+p.x,y+p.z)))-3;
+    parts.push({geometry:new THREE.BoxGeometry(width,annexHigh+18-annexLow,annexDepth),colour:COLOURS.wall,matrix:at(0,(annexHigh+18+annexLow)/2,z)},
+      {geometry:squarePyramid(),colour:COLOURS.roof,matrix:at(0,annexHigh+24,z,0,0,0,width+8,12,annexDepth)});
+    if(growthStage==2)parts.push({geometry:new THREE.BoxGeometry(12,8,1),colour:COLOURS.door,matrix:at(0,annexHigh+10,-30.1-depth+.6)});
+  }
   if (playerOwned) {
     parts.push(
       { geometry: new THREE.CylinderGeometry(0.8, 0.8, 26, 4), colour: COLOURS.door, matrix: at(w * 0.3, high + wall + 13, 0) },
@@ -637,7 +647,7 @@ export function tileOverlay(ground, ecs, id, { selected }) {
       math.lerp(x0, x1, 0.25),
       math.lerp(x0, x1, 0.75),
     ]);
-    group.add(new THREE.Mesh(geometry, overlay(COLOURS.dirt, opacity, 1)));
+    group.add(new THREE.Mesh(geometry, overlay(ecs.mappable[id].roadRoles?.[key]?.role=="main" ? 0x8B8D88 : COLOURS.dirt, opacity, 1)));
   }
 
   if (selected) {

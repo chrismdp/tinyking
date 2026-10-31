@@ -83,6 +83,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
   };
 
   const zoomTowards = (factor, clientX, clientY) => {
+    if (factor != 1) inspect();
     const next = clamp(rig.distance * factor, MIN_DISTANCE, maxDistance());
     const point = clientX == null ? null : groundUnder(clientX, clientY);
     if (point) {
@@ -245,6 +246,13 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
 
   return {
     get distance() { return rig.distance; },
+    get pose() { return { ...rig }; },
+    returnTo(point) {
+      keys.clear(); pointers.clear(); press = null; pinch = null;
+      rig.x = point.x; rig.z = point.y; rig.y = groundHeight(point.x, point.y);
+      rig.distance = 1000; rig.pitch = .8;
+      following = true; recentering = true; keepInBounds(); place();
+    },
     get following() { return following; },
     suspendFollow: inspect,
     resumeFollow(center = false) { following = true; recentering = center; },

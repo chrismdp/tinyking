@@ -4,10 +4,32 @@ Click any walkable boundary tile. Its popup names the adjacent **Reach x, y**,
 biome and selected side, and describes the journey and cancellation policy. Press
 **Travel** explicitly, or **Stay here** to close it. Ordinary tile orders remain
 below the invitation. Ocean and the finite world's rim explain their block in the
-same popup. The clock opens the existing biome/weather overview and shows the
+same popup. The clock opens the continuous 3D realm overview and shows the
 current reach. A boundary corner belongs to the side with the greatest outward
 projection; exact ties choose the lowest side index. World sides are east,
 south-east, south-west, west, north-west and north-east.
+
+## Inspecting the realm
+
+The gameplay camera zooms continuously from the local scene through village and
+reach views to the finite realm. Realm fits the whole world. You returns
+to normal local distance, preserves the viewing direction and resumes soft
+camera follow. Wheel, drag, rotation keys and touch pan, pinch and twist work at
+all scales. Zooming and panning suspend follow while inspecting.
+
+The overview reads the existing world terrain field and hourly weather. Its
+Communities, Weather and Wind layers change presentation only. Wind arrows point
+in the model's actual direction and show its strength. Distant lighting keeps
+the landscape readable without changing the calendar or local night/weather.
+People and small props stop drawing at distance; their simulation continues.
+
+Clicking an overview reach or a discovered community selects information. It
+never orders movement, generates a detailed map, starts travel or advances time.
+Unexplored reaches show public terrain, climate and weather. Community names and
+areas require the current person's map-specific discovery. Household owners and
+recognised elders use that person's real identity knowledge. Elders recognise
+customs. The view gives them no territorial ownership or political title.
+The old SVG remains available in new-game and debug previews.
 
 ## Walking and arrival
 

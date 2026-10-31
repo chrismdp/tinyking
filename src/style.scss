@@ -1074,3 +1074,42 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .customs-choices { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; button { flex: 1; min-height: 44px; padding: 8px; } }
 #customs-result { top: 90px; right: 18px; width: min(350px, calc(100vw - 62px)); display: flex; gap: 10px; button { align-self: flex-start; min-width: 32px; min-height: 40px; } }
 @media (max-width: 600px) { #customs-encounter { top: 85px; padding: 12px; width: calc(100vw - 48px); font-size: 14px; max-height: calc(100svh - 210px); } #customs-result { top: 80px; font-size: 14px; } }
+
+// The camera owns one continuous local → realm view. Controls stay outside
+// the clock, task drawer, news and bottom-right speed buttons.
+#game #realm-controls {
+  #camera-actions { left: auto; right: calc(24px + var(--safe-right)); top: calc(100px + var(--safe-top)); }
+  #camera-actions small { display: none; }
+  .realm-tools { position: absolute; right: calc(24px + var(--safe-right)); top: calc(151px + var(--safe-top)); width: 300px; pointer-events: auto; color: #f1eddd; }
+  .map-layers, .reach-facts { background: rgba(35,38,30,.94); border: 1px solid #a79670; border-radius: 8px; margin-bottom: 8px; }
+  .map-layers summary { min-height: 44px; box-sizing: border-box; padding: 10px 12px; cursor: pointer; }
+  .map-layers > div { display: flex; flex-wrap: wrap; padding: 0 8px 8px; }
+  .map-layers label { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px; cursor: pointer; }
+  .map-layers input { width: 20px; height: 20px; accent-color: #dbc380; }
+  .reach-facts { position: relative; padding: 12px; max-height: min(370px,calc(100dvh - 330px)); overflow-y: auto; font-size: 16px; }
+  .reach-facts h3 { margin: 0 30px 6px 0; font-size: 19px; }
+  .reach-facts p { margin: 6px 0; line-height: 1.3; }
+  .reach-facts .close { position: absolute; top: 0; right: 0; min-width: 44px; min-height: 44px; color: #ffe29a; background: transparent; border: 0; }
+  .community-facts { border-top: 1px solid #72694f; margin-top: 10px; padding-top: 8px; }
+}
+@media (max-width: 700px), (max-height: 500px) {
+  #game #realm-controls {
+    #camera-actions { top: calc(99px + var(--safe-top)); right: calc(12px + var(--safe-right)); gap: 6px; }
+    #camera-actions button { padding: 5px 10px; }
+    .realm-tools { top: calc(150px + var(--safe-top)); right: calc(12px + var(--safe-right)); width: min(274px,calc(100vw - 24px)); }
+    .reach-facts { max-height: max(90px,calc(100dvh - 430px)); font-size: 15px; }
+    .map-layers > div { display: block; }
+    .map-layers[open] + .reach-facts { display: none; }
+  }
+}
+
+// Keep local panels mounted (and their drawer state intact) during inspection.
+#game #ui.realm-inspecting {
+  #task-panel, #opening-guidance { display: none; }
+}
+@media (max-width: 700px), (max-height: 500px) {
+  #game #realm-controls .map-layers { margin-left: auto; width: max-content; min-width: 145px; max-width: 100%; }
+  #game #realm-controls .map-layers[open] { width: 230px; }
+  #game #camera-actions { z-index: 24; }
+  #game #opening-guidance { top: calc(155px + var(--safe-top)); }
+}

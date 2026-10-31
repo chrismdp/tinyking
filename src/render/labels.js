@@ -5,9 +5,9 @@ const cache = new Map();
 
 // NOTE: A camera-facing text label, like the 2D game's rounded task labels.
 // Materials are cached by text, so a label costs one sprite.
-export function label(text, { fontSize = 10, colour = "white", background = "rgba(51, 51, 51, 0.85)", height = 15 } = {}) {
+export function label(text, { fontSize = 10, colour = "white", background = "rgba(51, 51, 51, 0.85)", height = 15, cached = true } = {}) {
   const key = [text, fontSize, colour, background].join("|");
-  let entry = cache.get(key);
+  let entry = cached && cache.get(key);
   if (!entry) {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -41,7 +41,7 @@ export function label(text, { fontSize = 10, colour = "white", background = "rgb
     texture.anisotropy = 4;
     const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
     entry = { material, aspect: w / h };
-    cache.set(key, entry);
+    if (cached) cache.set(key, entry);
   }
   const sprite = new THREE.Sprite(entry.material);
   sprite.scale.set(height * entry.aspect, height, 1);

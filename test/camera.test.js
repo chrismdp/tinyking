@@ -127,3 +127,20 @@ it("follows a controlled point through a soft usable-screen box, suspends on pan
   expect(dom.style.touchAction).toBe("none");
   rig.dispose();delete global.window;
 });
+
+it("zooms into realm inspection without follow drift and returns to the same orientation at local distance", () => {
+  global.window = new EventTarget();
+  const dom = new EventTarget();
+  Object.assign(dom,{clientWidth:390,clientHeight:664,style:{},getBoundingClientRect:()=>({left:0,top:0,width:390,height:664})});
+  const camera=new THREE.PerspectiveCamera(40,390/664,5,200000);
+  const rig=createCameraRig(camera,dom,{bounds:{centre:{x:0,y:0},apothem:50000},maxDistance:()=>200000,groundHeight:()=>100,onClick(){},followTarget:()=>({x:0,y:0})});
+  rig.lookAt(0,0,900);rig.update(0);
+  const wheel=new Event("wheel");Object.assign(wheel,{deltaX:180,deltaY:1500,clientX:100,clientY:200,preventDefault(){}});dom.dispatchEvent(wheel);
+  expect(rig.following).toBe(false);
+  rig.update(.016);const at=camera.position.clone();for(let i=0;i<60;i++)rig.update(.016);
+  expect(camera.position.distanceTo(at)).toBeLessThan(.01);
+  const yaw=rig.pose.yaw;
+  rig.returnTo({x:0,y:0});rig.update(0);
+  expect(rig.distance).toBe(1000);expect(rig.following).toBe(true);expect(rig.pose.yaw).toBe(yaw);
+  rig.dispose();delete global.window;
+});

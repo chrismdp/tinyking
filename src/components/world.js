@@ -49,7 +49,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   // NOTE: draw everything on the first frame
   state.redraws = Object.keys(state.ecs.spatial);
 
-  state.personName = id => name(state.ecs.nameable[id]);
+  state.personName = (id, record = state.ecs.nameable[id]) => name(record);
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 

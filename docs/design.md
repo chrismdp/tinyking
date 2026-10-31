@@ -21,6 +21,11 @@ Trees regrow through seasonal saplings near existing woods. Biomes set density a
 
 A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
 
+The gameplay camera provides a continuous 3D [realm view](realm-map.md). Zooming
+out inspects public terrain and weather, plus communities that the current person
+actually discovered. Realm fits the world and You restores local camera follow.
+Inspection adds no orders, detailed maps, journeys or elapsed time.
+
 ## People and history
 
 Each person has a stable identity, parents, spouse, children, developmental age, personality and directional relationships. Dead people remain historical records. Families own houses, fields, stores, trades, animals, tools and keepsakes. Items retain the identities of their makers and earlier owners. [People](people.md), [social life](social.md) and [village life](villages.md) describe these systems.

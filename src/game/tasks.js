@@ -106,7 +106,12 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   const length = Math.sqrt(dx * dx + dy * dy);
 
   if (length < 10) {
-    if (!plotAccess || next.id != closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target])) {
+    const enteringPlot = plotAccess && next.id == closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target]);
+    // Self-care releases the assignment before leaving the unfinished plot.
+    // Its saved work identifies this departure; through traffic still wears it.
+    const leavingPlot = next.entrance == null && world.ordered &&
+      jobQueueFor(state.ecs, actorId).some(job => job.job.key == "create_field" && job.targetId == next.id && job.progress > 0 && job.progress < 1);
+    if (!enteringPlot && !leavingPlot) {
       recordRoadUse(state,next.id,next.entrance,next.exit);
     }
 

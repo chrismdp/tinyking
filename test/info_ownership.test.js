@@ -5,7 +5,8 @@ import { Info } from "../src/components/info";
 
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("react-polyglot", () => ({ useTranslate: () => key => key }));
-jest.mock("components/name", () => ({ Name: ({ nameable }) => nameable?.nickname }), { virtual: true });
+jest.mock("components/name", () => require("../src/components/name"), { virtual: true });
+jest.mock("game/name", () => ({ name: n => n.nickname }));
 jest.mock("components/name_list", () => require("../src/components/name_list"), { virtual: true });
 jest.mock("components/job_list", () => ({ JobList: () => null }), { virtual: true });
 jest.mock("components/trait_list", () => ({ TraitList: () => null }), { virtual: true });
@@ -18,7 +19,9 @@ function household() {
   return { ui: { playerId: "p", actions: {} }, villages: { v: { name: "Withyford" }, elsewhere: { name: "Wrong village" } }, ecs: {
     animal: { sheep: { houseId: "house", kind: "sheep" } },
     farmable: { field: { houseId: "house", slots: [] } }, workplace: { forge: { houseId: "house", trade: "smith" } },
-    nameable: { sheep: { nickname: "Sheep" }, head: { nickname: "Agnes Miller" }, lord: { nickname: "Lord Ash" }, heir: { nickname: "Will Miller" } },
+    nameable: { sheep: { id: "sheep", nickname: "Sheep" }, head: { id: "head", nickname: "Agnes Miller" }, lord: { id: "lord", nickname: "Lord Ash" }, heir: { id: "heir", nickname: "Will Miller" } },
+    personable: { head: {}, lord: {}, heir: {} },
+    relationships: { p: { known: { head: { ring: "public" }, heir: { ring: "public" } } } },
     // Asset controllers are deliberately stale: the house owns the household.
     controllable: { house: { controllerId: "head" }, head: { controllerId: "lord" }, field: { controllerId: "lord" }, forge: { controllerId: "lord" } },
     village: { house: { villageId: "v" }, sheep: { villageId: "elsewhere" } }, manager: {}
@@ -54,4 +57,33 @@ it("handles an unknown household without inventing a person or a village", () =>
   expect(html).toContain("Unknown");
   expect(html).not.toContain("Agnes Miller");
   expect(html).not.toContain("Wrong village");
+});
+
+
+it("keeps an unintroduced household owner and assigned worker anonymous without changing knowledge", () => {
+  const state = household();
+  delete state.ecs.relationships.p.known.head;
+  state.ecs.manager.field = { jobs: [{ job: { key: "build_shelter" }, targetId: "field", assignedId: "head" }] };
+  const before = JSON.stringify(state);
+  const html = render(state, "field");
+  expect(html).toContain("an unknown person");
+  expect(html).not.toContain("Agnes Miller");
+  expect(html).toContain("Withyford");
+  expect(JSON.stringify(state)).toBe(before);
+  state.knowledge = { p: { people: { head: {} } } };
+  expect(render(state, "field")).toContain("Agnes Miller");
+});
+
+it("keeps an unknown controller anonymous while preserving observable asset names and current heirs", () => {
+  const state = household();
+  state.ecs.nameable.store = { id: "store", nickname: "Wood store" };
+  state.ecs.controllable.store = { controllerId: "lord" };
+  let html = render(state, "store");
+  expect(html).toContain("Wood store"); expect(html).toContain("Controlled by:");
+  expect(html).toContain("an unknown person"); expect(html).not.toContain("Lord Ash");
+  state.ui.playerId = "lord";
+  expect(render(state, "store")).toContain("Lord Ash");
+  state.ui.playerId = "heir";
+  state.ecs.controllable.store.controllerId = "heir";
+  expect(render(state, "store")).toContain("Will Miller");
 });

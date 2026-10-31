@@ -736,3 +736,17 @@ it.each([1,6])('a queued handover frees the household crop before accepted harve
   expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
   expect(r.produced).toBe(2);
 });
+
+it('delivers already cut crop while a family worker holds the field claim', () => {
+  const w=favourWorld(),s=w.state,r=w.request('harvest');
+  const order=acceptFavour(s,r.id);
+  advanceUntil(w,()=>r.cargo.some(id=>s.ecs.haulable[id]?.heldBy==w.player));
+  // INPUT: another worker starts on a different patch after the player's cut.
+  s.ecs.farmable[w.field].claimerId=w.person;
+  readyPlayerTasks(s);
+  expect(order.waiting).toBeFalsy();
+  advanceUntil(w,()=>r.delivered==1);
+  expect(s.ecs.farmable[w.field].claimerId).toBe(w.person);
+  expect(s.ecs.container[w.store].amounts.grain).toBe(31);
+  expect(r.receipts[0]).toMatchObject({amount:1,targetId:w.store});
+});

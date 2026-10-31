@@ -227,7 +227,8 @@ export function favourWaiting(s, task) {
   if (!containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
   if (r.kind == "harvest") {
     const field = ecs.farmable?.[r.targetId];
-    if (field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
+    // A claim protects new crop work, not the return trip with cut grain.
+    if (!r.cargo.length && field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
   } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;
   return null;
 }

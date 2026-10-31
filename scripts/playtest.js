@@ -19,7 +19,7 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView } = require("./acceptance-selection");
-const { designationTerrain } = require("./designation-selection");
+const { designationTerrain, finishDesignationCuts } = require("./designation-selection");
 const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
@@ -447,10 +447,7 @@ async function play(page) {
         await closePopup();
       }
       await speed(FAST);
-      await page.waitForFunction(trees => {
-        const s = window.tinyking;
-        return trees.every(id => !s.ecs.good[id] && !s.ecs.manager[s.ui.playerId].jobs.some(j => j.targetId == id));
-      }, trees, {timeout: 180000});
+      await page.waitForFunction(finishDesignationCuts, trees, {timeout: 180000});
       await speed(PAUSE);
       const after = await designationTerrain(page);
       check("explicit Cut down work makes natural terrain eligible for designation", after.length >= 2, {sites, trees, after});

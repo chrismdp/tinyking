@@ -30,3 +30,15 @@ async function designationTerrain(page, allowTrees = false) {
     .sort((a, b) => a.trees.length - b.trees.length || a.distance - b.distance);
 }
 module.exports = { designationTerrain };
+
+// Browser-side completion check for the driver's explicit plot clearing.
+function finishDesignationCuts(trees) {
+  const s=window.tinyking,jobs=s.ecs.manager[s.ui.playerId].jobs;
+  for(const job of [...jobs])if(job.job.key=="cut_tree_down" && trees.includes(job.targetId) && !s.ecs.good[job.targetId] && (job.gatheredDone || job.waiting=="Target gone")) {
+    // Clearing is finished. Cancel the optional haul, keeping all actual logs.
+    // A tree another worker already felled also needs no further cut order.
+    s.ui.actions.cancel_task(job.id);
+  }
+  return trees.every(id=>!s.ecs.good[id] && !jobs.some(j=>j.targetId==id));
+}
+module.exports.finishDesignationCuts=finishDesignationCuts;

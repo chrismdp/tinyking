@@ -61,3 +61,15 @@ it("does not claim a hungry player stopped to eat while they are sleeping", () =
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
   expect(html).not.toContain("Stopped to eat");
 });
+
+it("keeps an unintroduced queued chat target anonymous until actual timed speech", () => {
+  const {state,player,person}=require("./support/people").peopleWorld();
+  state.ui.actions={};state.villages={};
+  require("game/manager").enqueueTask(state,{key:"chat"},person);
+  const render=()=>renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+  expect(render()).toContain("an unknown person");
+  expect(render()).not.toContain("Agnes Miller");
+  Object.assign(state.ecs.spatial[player],state.ecs.spatial[person]);
+  require("game/tasks").talk(state,player,state.ecs.planner[player].world,1/24,true,person,"chat");
+  expect(render()).toContain("Agnes Miller");
+});

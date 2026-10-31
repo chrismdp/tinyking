@@ -1,3 +1,4 @@
+import { HUMAN_SPEED } from "game/locomotion";
 import { Hex, HEX_SIZE } from "game/hex";
 import { path } from "game/pathfinding";
 import { hungerSpeed } from "game/hunger";
@@ -28,7 +29,7 @@ function routeMinutes(state, playerId, targetId) {
       to = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     }
     minutes += Math.hypot(to.x - from.x, to.y - from.y) /
-      (20 * HEX_SIZE * (ecs.walkable[step.id].speed || 1) * load * hungerSpeed(ecs.personable[playerId])) * 60;
+      (HUMAN_SPEED * HEX_SIZE * (ecs.walkable[step.id].speed || 1) * load * hungerSpeed(ecs.personable[playerId])) * 60;
     from = to;
   }
   return Math.max(1, Math.ceil(minutes));

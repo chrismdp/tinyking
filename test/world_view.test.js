@@ -75,3 +75,15 @@ it("refreshes terrain, picking and cached grounding after a real pad changes sha
   expect(view.pick(screen.x,screen.y)).toBe(id);
   view.dispose();
 });
+
+it("hides overhead labels when a real house blocks the person, and restores them when the person is visible", () => {
+  const {personLabelVisible}=require("render/world_view");
+  const camera=new THREE.PerspectiveCamera(40,1,5,12000);
+  camera.position.set(0,100,200);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(80,40,80),new THREE.MeshBasicMaterial());
+  roof.position.set(0,40,40);roof.updateMatrixWorld();
+  expect(personLabelVisible(camera,new THREE.Vector3(0,0,0),36,[roof])).toBe(false);
+  expect(personLabelVisible(camera,new THREE.Vector3(100,0,0),36,[roof])).toBe(true);
+  expect(personLabelVisible(camera,new THREE.Vector3(0,0,150),36,[roof])).toBe(true);
+  roof.geometry.dispose();roof.material.dispose();
+});

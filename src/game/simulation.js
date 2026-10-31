@@ -1,3 +1,4 @@
+import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
 import { stationarySupplies } from "game/stationary_care";
 import { gardenHelp } from "game/household_routines";
@@ -46,6 +47,7 @@ function updatePlanners(state, frameMod) {
   }
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];
+    validateHome(state, id);
     if (state.ecs.personable[id] && (state.ecs.personable[id].dead || !isResident(state,id))) continue;
 
     planner.world.actorId = id;
@@ -63,6 +65,14 @@ function updatePlanners(state, frameMod) {
         planner.world.places.idleFoodSource = care.meal?.source;
         if (care.meal?.kind == "held") planner.world.holding[care.meal.type] = true;
       }
+    }
+    const nightHome = id != state.ui.playerId && nightTime(state.days) ? actualHome(state,id) : null;
+    if (planner.world.nightHome != nightHome) {
+      planner.world.nightHome = nightHome;
+      if (["home_downtime", "wait_for"].includes(planner.task?.[0]) || planner.task?.[0] == "walk_to" && planner.task[1] == "meet") {
+        planner.task = null; planner.plan = null;
+      }
+      if (!nightHome && planner.task?.[0] != "sleep") leaveHome(state,id);
     }
     planner.world.child = state.ecs.personable[id]?.age < 18;
     if (!planner.world.ordered) planner.world.gardenHelp = gardenHelp(state, id, childrenByHome);

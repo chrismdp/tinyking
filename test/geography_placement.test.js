@@ -1,7 +1,8 @@
+import { MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 import { addBidirectionalLink } from "game/pathfinding";
-import { groundForState } from "game/geography";
+import { buildGeography, groundForState } from "game/geography";
 import { canPlaceShelter, placeShelter } from "game/construction";
 import { reserveRoad, reserveFieldLane, reserveWorkYard, canPlaceField } from "game/land_use";
 
@@ -78,4 +79,20 @@ it("reserves a genuine walking field lane on a grade that cannot support an engi
   expect(reserveWorkYard(s,tile,"house")).toBe(false);
   expect(canPlaceField(s,tile)).toBe(false);
   expect(s.map.geography.heights).toEqual(before);
+});
+
+it("keeps compound yards clear before optional roads without changing native altitude or door spurs",()=>{
+  const grid=Grid.hexagon({center:MAP_CENTRE,radius:MAP_RADIUS});
+  const landscape=Object.fromEntries(grid.map(h=>[h,{...h.toPoint(),terrain:"grassland",elevation:480}]));
+  const homes=[Hex(20,22),Hex(23,22),Hex(22,25)];
+  const settlements=Object.fromEntries(homes.map(h=>[h,{...h,frontDoorSide:1}]));
+  const geography=buildGeography(grid,landscape,settlements,{},[Hex(15,22)],{reserveHouseYards:true,terrainAt:()=>"grassland",elevationAt:()=>480});
+  const ground=groundForState({map:{seed:13,geography},space:Object.fromEntries(grid.map(h=>[h,[String(h)]])),ecs:{mappable:landscape}});
+  const yards=Object.values(settlements).map(h=>String(Hex(h.yardHex)));
+  expect(new Set(yards).size).toBe(3);
+  for(const h of Object.values(settlements)) {
+    expect(landscape[Hex(h.yardHex)].route).toBeUndefined();
+    expect(landscape[Hex(h)].route).toContain(h.frontDoorSide);
+    expect(ground.hex(Hex(h.yardHex).toPoint()).centre).toBeCloseTo(480,5);
+  }
 });

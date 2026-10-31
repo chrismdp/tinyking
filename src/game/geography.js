@@ -339,6 +339,20 @@ export function buildGeography(tiles, landscape, settlements, entrances, anchors
     }
   }
   let final=base.heights;
+  // Keep actual compound space available before optional public connections
+  // are surveyed. No existing road or later walking wear is removed.
+  const yards=new Set(),fixed=new Set(fixedRoads().map(String));
+  if(surface.reserveHouseYards) {
+    const local=createHeightField({seed:0,terrainAt:k=>landscape[k]?.terrain,
+      cornerAt:(x,y)=>final[pointKey({x,y})] ?? natural.cornerHeight(x,y)});
+    for(const house of Object.values(settlements)) {
+      const candidates=around(Hex(house)).map((h,side)=>({h,side})).filter(({h})=>landscape[h]?.terrain=="grassland" && !fixed.has(String(h)) && !yards.has(String(h)) &&
+        anchors.every(camp=>Hex(camp).distance(h)>2) && Object.values(entrances).every(e=>Hex(e.hexes[2]).distance(h)>2) && safeTile(local,h.toPoint()));
+      const rear=(house.frontDoorSide+3)%6;
+      candidates.sort((a,b)=>Math.min((a.side-rear+6)%6,(rear-a.side+6)%6)-Math.min((b.side-rear+6)%6,(rear-b.side+6)%6) || a.side-b.side);
+      if(candidates.length){house.yardHex={x:candidates[0].h.x,y:candidates[0].h.y};yards.add(String(candidates[0].h));}
+    }
+  }
   const routes=[], network=new Set(), pinned=new Set(entranceHexes().map(String));
   const targets=[...anchors,...Object.values(entrances).map(e=>Hex(e.hexes[2])),
     ...Object.values(settlements).map(h=>around(Hex(h))[h.frontDoorSide])].filter(h=>landscape[h]);
@@ -346,7 +360,7 @@ export function buildGeography(tiles, landscape, settlements, entrances, anchors
   for(const target of targets.slice(1)) {
     const local=createHeightField({seed:0,terrainAt:k=>landscape[k]?.terrain,
       cornerAt:(x,y)=>final[pointKey({x,y})] ?? natural.cornerHeight(x,y)});
-    const route=routeTo(target,network,landscape,settlements,!!surface.elevationAt,local,new Set(),pinned);
+    const route=routeTo(target,network,landscape,settlements,!!surface.elevationAt,local,yards,pinned);
     if(!route) continue;
     const proposal=[...routes,route.map(h=>({x:h.x,y:h.y}))];
     const roadHexes=[...new Map([...fixedRoads(),...proposal.flat().map(h=>Hex(h))].map(h=>[String(h),h])).values()];

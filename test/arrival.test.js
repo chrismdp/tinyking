@@ -4,8 +4,7 @@ import { topController } from "game/playable";
 import { path } from "game/pathfinding";
 import { startIntro } from "game/intro";
 
-it("makes camp two hexes in with a bedroll, reachable village, wood and food across seeds", async () => {
-  for (const seed of [1, 2, 13, 20, 53, 84, 1234, 98765]) {
+it.each([1, 2, 13, 20, 53, 84, 1234, 98765])("makes camp two hexes in with a bedroll, reachable village, wood and food (seed %s)", async seed => {
     const state = { ecs: { nextId: 1 }, days: 0.375, ui: { show: {} }, redraws: [] };
     const { map, playerId } = await generateMap(state, seed, async () => {});
     const start = Hex(map.playerStartTile);
@@ -31,7 +30,6 @@ it("makes camp two hexes in with a bedroll, reachable village, wood and food acr
       expect(ids.some(id => start.distance(Hex().fromPoint(state.ecs.spatial[id])) <= 4 &&
         path(state, from, tileAt(state.ecs.spatial[id]))?.length > 0)).toBe(true);
     }
-  }
 }, 15000);
 
 it("keeps jittered trees on existing walkable grassland near the entry edge", async () => {

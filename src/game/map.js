@@ -440,7 +440,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   const home = homeOf(state.world);
   const field = landFieldFor(state.world);
   const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
-    settlementSites,
+    settlementSites, reserveHouseYards:true,
     terrainAt:p=>field.terrainAt(worldPoint(state.world.home,p)),
     elevationAt:(x,y)=>field.elevationAt(worldPoint(state.world.home,{x,y}))
   });
@@ -554,7 +554,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const first=sites.shift();
     sites.sort((a,b)=>Hex(first).distance(Hex(a))-Hex(first).distance(Hex(b)) || a.x-b.x || a.y-b.y);
     const ordered=[first,...sites];
-    state.settlement.sites[village.id] = ordered.map((h,i)=>({point:Hex(h.x,h.y).toPoint(),entrance:h.frontDoorSide,establishSeason:foundingSeason+i*2}));
+    state.settlement.sites[village.id] = ordered.map((h,i)=>({point:Hex(h.x,h.y).toPoint(),entrance:h.frontDoorSide,...(h.yardHex?{yardPoint:Hex(h.yardHex).toPoint()}:{}),establishSeason:foundingSeason+i*2}));
     village.access={kind:transitHexes.length?"regional route":"local route",crossings:Object.values(entrances).map(e=>e.key),distanceToTransit:transitHexes.length?access(first):null};
     village.sharedPlaces = [];
   }

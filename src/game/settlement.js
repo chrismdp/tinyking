@@ -31,12 +31,12 @@ function reserveSiteField(s,site,pads,owner) {
   };
   const e=s.ecs,origin=at(s,site.point),door=e.walkable[origin].neighbours[site.entrance];
   if(!door)return null;
-  const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point));
+  const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point)),rearSpace=new Set(pads.flatMap(p=>p.rearOpportunity || []));
   const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>padHexes.every(p=>p.distance(h)>0) &&
     (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
     Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2))
     .map(h=>at(s,h.toPoint())).filter(id=>id && canPlaceField(s,id) && !(s.space[Hex().fromPoint(e.spatial[id])] || []).some(tree=>e.good?.[tree]?.type=="wood" && !e.haulable?.[tree] && e.controllable?.[tree] && topController(e,tree)!=owner))
-    .sort((a,b)=>home.distance(Hex().fromPoint(e.spatial[a]))-home.distance(Hex().fromPoint(e.spatial[b])) || String(a).localeCompare(String(b),undefined,{numeric:true}));
+    .sort((a,b)=>Number(rearSpace.has(a))-Number(rearSpace.has(b)) || home.distance(Hex().fromPoint(e.spatial[a]))-home.distance(Hex().fromPoint(e.spatial[b])) || String(a).localeCompare(String(b),undefined,{numeric:true}));
   const padTiles=new Set(pads.map(p=>at(s,p.point)));
   for(const kind of ["road","foot"])for(const tile of candidates) {
     const survey={...s,ecs:{...e,mappable:{...e.mappable,[tile]:{...e.mappable[tile],cropPlot:true}}}};
@@ -60,14 +60,20 @@ function reserveSiteYard(s,site,pads) {
   const yard=Grid.hexagon({center:home,radius:1}).neighborsOf(home,ALL_SIDES)
     .filter((h,side)=>side!=site.entrance &&
       (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
-      Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2)).map(h=>at(s,h.toPoint())).filter(id=>id && !padTiles.has(id))
+      Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2)).map(h=>at(s,h.toPoint())).filter(id=>id && !padTiles.has(id) && !pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==id))
+    .sort((a,b)=>Number(b==at(s,site.yardPoint))-Number(a==at(s,site.yardPoint)))
     .find(id=>reserveWorkYard(s,id,site.yardOwner));
-  site.workYardTiles=yard ? workBayTiles(s,s.ecs.spatial[yard]).filter(id=>id && !padTiles.has(id) &&
-    (!s.map.playerStartTile || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(s.map.playerStartTile))>2) &&
-    Object.values(s.map.entrances || {}).every(e=>!e.hexes || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(e.hexes[2]))>2))
-    .filter(id=>reserveWorkYard(s,id,site.yardOwner)) : [];
+  site.rearOpportunity=yard?workBayTiles(s,s.ecs.spatial[yard]):[];
   return yard;
 }
+function reserveSiteRear(s,site,pads) {
+  const padTiles=new Set(pads.map(p=>at(s,p.point)));
+  return (site.rearOpportunity || []).filter(id=>id && !padTiles.has(id) &&
+    (!s.map.playerStartTile || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(s.map.playerStartTile))>2) &&
+    Object.values(s.map.entrances || {}).every(e=>!e.hexes || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(e.hexes[2]))>2))
+    .filter(id=>reserveWorkYard(s,id,site.yardOwner));
+}
+
 export function reserveFoundingFields(s) {
   const sites=Object.values(s.settlement.sites).flat(),now=s.days;
   for(const site of sites)site.navigationLinks ||= {...s.ecs.walkable[at(s,site.point)].neighbours};
@@ -94,10 +100,11 @@ export function reserveFoundingFields(s) {
         if(!planned)throw new Error("Surveyed household lacks accessible cultivable land at "+old);
         Object.assign(site,planned.site);
         applySitePlan(s,site,planned.surface);delete site.unsurveyed;
-        for(const id of [site.yard,...site.workYardTiles])if(!reserveWorkYard(s,id,site.yardOwner))throw new Error("Validated founding yard changed during reservation");
+        if(!reserveWorkYard(s,site.yard,site.yardOwner))throw new Error("Validated founding yard changed during reservation");
         if(!(site.field.kind=="foot"?reserveFieldLane(s,site.field.route):reserveRoad(s,site.field.route)) || !reserveFieldPlot(s,site.field.tile))throw new Error("Validated founding field changed during reservation");
       }
     }
+    for(const site of sites)site.workYardTiles=reserveSiteRear(s,site,sites);
   } finally {s.days=now;}
 }
 const historicalSurfacePlans=new WeakMap();
@@ -161,7 +168,7 @@ function newSitePlan(s,villageId,pads,people=[],near) {
       trial.yard=reserveSiteYard(preview,trial,[...pads,trial]);
       if(!trial.yard)continue;
       trial.field=reserveSiteField(preview,trial,[...pads,trial],people[0]?topController(e,people[0]):null);
-      if(trial.field)return {site:trial,surface};
+      if(trial.field){trial.workYardTiles=reserveSiteRear(preview,trial,[...pads,trial]);return {site:trial,surface};}
     }
   }
   return null;
@@ -198,6 +205,7 @@ export function constructHome(s, villageId, people, options={}) {
     if(!plan.yard)return null;
     plan.field=reserveSiteField(preview,plan,Object.values(s.settlement.sites).flat(),topController(e,people[0]));
     if(!plan.field)return null;
+    plan.workYardTiles=reserveSiteRear(preview,plan,Object.values(s.settlement.sites).flat());
     Object.assign(site,plan);
   }
   if(site.unsurveyed && s.map?.geography) {

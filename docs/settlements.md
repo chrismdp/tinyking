@@ -46,9 +46,11 @@ A failed proposal changes no existing property or public road. Kitchen crops
 use the native field reservation. Other private work space uses the yard API.
 Trees remain on unused land until an actual footprint or cultivation needs it.
 
-The compact station rear reservation also precedes field allocation. It uses
-the same wing tile coverage as village layout. Each tile still needs a valid
-private reservation. A road or public neck prevents that reservation. The survey
+The survey protects adjacent yard opportunities before optional roads are planned.
+Required main yards and fields take priority over optional annex space. Fields
+prefer ground outside the compact station rear opportunity. After every required
+compound has a field, the survey reserves available rear tiles through the native
+private-space check. This uses the same wing tile coverage as village layout. A road or public neck prevents that reservation. The survey
 clears no trees for these future bays. A real paid addition clears its footprint.
 
 Summary timber collection reuses one seasonal list of physical tree coordinates.

@@ -249,3 +249,11 @@ later crops and private additions out. An engineered road still uses the native
 slope and grade checks. Field metadata records `accessKind: "road" | "foot"`.
 The field's `accessTileId` must remain reachable through native walking rules.
 A crop edge does not require an engineered road where walking land is viable.
+
+Organic settlement surveys pass `reserveHouseYards: true` to `buildGeography`.
+Before optional road routes exist, the survey picks distinct walkable yard
+opportunities outside fixed doors, camps and crossings. The existing route search
+avoids those opportunities. It can leave an infeasible optional connection absent.
+Each opportunity becomes a site's preferred `yardPoint`. The later land-use
+check still decides whether that yard is actually private and accessible.
+This changes no road slope, grade, earthwork limit or existing visited map.

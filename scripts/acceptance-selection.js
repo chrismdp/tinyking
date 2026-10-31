@@ -32,17 +32,42 @@ function fuelFriend(s) {
     rule: "Assisted read-only selection: nearest living adult fuel requester whose generated disposition towards the player is love (16 initial goodwill); two consenting Chats plus the real +12 fuel favour can reach Personal, allowing ordinary drift. The material-ready third Chat refreshes contact. No seed search or personality edits.",
     candidates: candidates.map(r => ({ person: r.giverId, favourId: r.id })) };
 }
+// Exercise physical approaches on a detached snapshot. A tile-level path alone
+// can accept a crop whose later patches sit behind an impassable fence corner.
+function approachableCrop(s, field, home) {
+  const {canReachTask}=require("../src/game/manager");
+  const {walk_to}=require("../src/game/tasks");
+  const {triangleCenters}=require("../src/game/map");
+  const {Task}=require("../src/game/htn");
+  const actor=s.ui.playerId;
+  if(!s.ecs.spatial[field] || !canReachTask(s,actor,field))return false;
+  const copy=JSON.parse(JSON.stringify(s));copy.redraws=[];copy.days=s.days || 0;
+  const farm=copy.ecs.farmable[field],points=triangleCenters(copy.ecs.spatial[field]);
+  const targets=farm.slots.flatMap((slot,i)=>["sown","harvestable"].includes(slot.state)?[{...points[i],id:field}]:[]);
+  const store=copy.ecs.household[home]?.storeId || home;
+  if(!copy.ecs.spatial[store])return false;
+  targets.push(store);
+  for(const target of targets) {
+    const world={places:{}};
+    let result=walk_to(copy,actor,world,1,true,target);
+    while(result==Task.CONTINUE)result=walk_to(copy,actor,world,1,false,target);
+    if(result!=Task.FINISH)return false;
+  }
+  return true;
+}
+
 // The food-loop fix supplies fuel autonomously. Choose a real farming home
 // instead, then let its existing spring crop ripen during ordinary play.
 function harvestFriend(s) {
   const player=s.ui.playerId,p=s.ecs.spatial[player];
-  const candidates=Object.keys(s.ecs.personable).filter(id=>id!=player && !s.ecs.personable[id].dead && s.ecs.personable[id].age>=18 && disposition(s,id,player)=="love")
+  const candidates=Object.keys(s.ecs.personable).filter(id=>id!=player && !s.ecs.personable[id].dead && s.ecs.personable[id].age>=18 && s.ecs.controllable[id]?.controllerId==id && disposition(s,id,player)=="love")
     .map(person=>({person,home:s.ecs.household[person]?.houseId}))
     .map(c=>({...c,field:(s.ecs.household[c.home]?.fields || []).find(id=>s.ecs.farmable[id]?.slots.some(slot=>["sown","harvestable"].includes(slot.state)))}))
     .filter(c=>c.field)
     .sort((a,b)=>Math.hypot(s.ecs.spatial[a.person].x-p.x,s.ecs.spatial[a.person].y-p.y)-Math.hypot(s.ecs.spatial[b.person].x-p.x,s.ecs.spatial[b.person].y-p.y));
-  if(!candidates.length)throw new Error("Seed 13 has no attainable farming friend scenario");
-  return {...candidates[0],controller:s.ecs.controllable[candidates[0].person].controllerId,rule:"Read-only selection of the nearest living adult with love disposition and a real growing household field. Spring growth, conversations, harvest work and delivery run normally."};
+  const selected=candidates.find(c=>approachableCrop(s,c.field,c.home));
+  if(!selected)throw new Error("Seed 13 has no attainable farming friend scenario");
+  return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder with love disposition and a physically reachable growing field, including every crop patch and delivery route. Spring growth, conversations, harvest work and delivery run normally."};
 }
 module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend };
 

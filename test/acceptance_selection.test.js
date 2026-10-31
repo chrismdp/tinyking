@@ -153,11 +153,26 @@ it("chooses a real farming household for the storyboard when no fuel favour exis
   const {state:s,player,person,parent,tiles}=peopleWorld();
   s.opinionThresholds={hate:-100,love:-99};
   s.favours={requests:{}};
-  s.ecs.farmable={crop:{houseId:tiles[3],slots:[{state:'sown',growth:0,content:'grain'}]}};
-  s.ecs.household[tiles[3]]={fields:['crop']};
+  const [crop]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[5]],immovable:true},farmable:{houseId:tiles[3],slots:[{state:'sown',growth:0,content:'grain'}]},controllable:{controllerId:person}}]);
+  s.ecs.household[tiles[3]]={fields:[crop],storeId:tiles[3]};
   s.ecs.personable[parent].dead=true;
   const before=JSON.stringify(s);
   const choice=require('../scripts/acceptance-selection').harvestFriend(s);
-  expect(choice).toMatchObject({person,home:tiles[3],field:'crop'});
+  expect(choice).toMatchObject({person,home:tiles[3],field:crop});
+  expect(JSON.stringify(s)).toBe(before);
+});
+
+it("chooses a reachable householder crop rather than a nearer resident's unworkable field", () => {
+  const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
+  s.opinionThresholds={hate:-100,love:-99};s.favours={requests:{}};
+  s.ecs.personable[parent].dead=true;
+  s.ecs.spatial[person]={...s.ecs.spatial[tiles[0]]};
+  const [bad,good]=newEntities(s,[tiles[5],tiles[2]].map(tile=>({spatial:{...s.ecs.spatial[tile],immovable:true},farmable:{slots:[{state:'sown',content:'grain'}]},controllable:{controllerId:person}})));
+  s.ecs.household[person].houseId=tiles[4];s.ecs.household[tiles[4]]={fields:[bad],storeId:tiles[4]};
+  s.ecs.household[sibling].houseId=tiles[3];s.ecs.household[tiles[3]]={fields:[good],storeId:tiles[3]};
+  s.ecs.controllable[person].controllerId=person;s.ecs.controllable[sibling].controllerId=sibling;
+  for(const walk of Object.values(s.ecs.walkable))for(const [side,id]of Object.entries(walk.neighbours))if(id==tiles[5])delete walk.neighbours[side];
+  const before=JSON.stringify(s);
+  expect(require('../scripts/acceptance-selection').harvestFriend(s)).toMatchObject({person:sibling,field:good});
   expect(JSON.stringify(s)).toBe(before);
 });

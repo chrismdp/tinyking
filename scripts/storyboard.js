@@ -290,7 +290,8 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert(Math.hypot(proof.help.position.x - proof.help.targetPosition.x, proof.help.position.y - proof.help.targetPosition.y) <= 10, "Helper must stand at the actual site");
     assert(Math.hypot(proof.help.position.x - proof.help.sitePosition.x, proof.help.position.y - proof.help.sitePosition.y) <= 50, "Helper must work beside the actual frame");
     assert(proof.help.site.work > 0, "Helper must contribute actual construction work");
-    assert.equal(proof.help.controller, selection.controller, "A friend keeps their original independent controller");
+    assert.equal(proof.help.controller, proof.help.helperId, "A friend keeps their independent controller");
+    assert.equal(proof.help.controller, selection.controller, "A friend keeps their original controller");
     assert.notEqual(proof.help.controller, await page.evaluate(()=>window.tinyking.ui.playerId), "Helping never transfers control to the player");
     assert.equal(proof.help.home, selection.home, "A helper keeps their original home");
     assert(["personal", "intimate"].includes(proof.help.bond.ring), "Help follows THEIR ring for the player");

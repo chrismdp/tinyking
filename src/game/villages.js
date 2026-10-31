@@ -267,7 +267,7 @@ export function generateVillageLife(state, seed, start) {
       }
     }
     // A modest flock on grassland, where there is room beyond the yards.
-    const pasturePoint = Object.values(ecs.pasture || {}).some(p => p.sharedVillage == village.id) ? null : reserve(nearby(village.houses[0])[0]);
+    const pasturePoint = Object.values(ecs.pasture || {}).some(p => p.sharedVillage == village.id) ? null : reserve(nearby(village.houses[0]).find(tile=>canCultivate(tile,village.houses[0])));
     if (pasturePoint) {
       const id = enclosure(pasturePoint, village.id, village.houses[0], vi % 2 ? "cow" : "sheep", 39, 34, vi % 2 ? 3 : 5);
       ecs.pasture[id].sharedVillage = village.id;

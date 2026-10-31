@@ -96,11 +96,10 @@ export function expansionFits(s,id,footprint,plots=[]) {
     if(String(hex)!=String(Hex().fromPoint(current))) {
       proposal ||= {...s,ecs:{...e,mappable:{...e.mappable}}};
       proposal.ecs.mappable[tile]={...proposal.ecs.mappable[tile]};
-      if(!reserveWorkYard(proposal,tile,house))return false;
       if(!plots.includes(tile))plots.push(tile);
     }
   }
-  return true;
+  return !proposal || reserveWorkYard(proposal,plots,house);
 }
 export function growBuildings(s, season, residents=householdRoster(s)) {
   const e=s.ecs;
@@ -123,7 +122,7 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
     const f=expandedFootprint(s,id,g.stage+1);
     const plots=[];
     if(!expansionFits(s,id,f,plots)){g.waiting="Needs clear space behind the building";continue;}
-    for(const tile of plots)reserveWorkYard(s,tile,house);
+    if(plots.length && !reserveWorkYard(s,plots,house)){g.waiting="Needs clear space behind the building";continue;}
     const household=e.household?.[house];
     if(household?.plot)for(const tile of plots) {
       const key=String(Hex().fromPoint(e.spatial[tile]));

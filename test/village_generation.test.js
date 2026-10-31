@@ -7,7 +7,7 @@ import { constructHome, reserveFoundingFields } from "game/settlement";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 
-function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{}) {
+function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{},spread=false) {
   const centre=Hex(10,10), hexes=Grid.hexagon({center:centre,radius:8});
   const s={ecs:{nextId:1,building:{},personable:{},household:{},controllable:{},village:{},playable:{},container:{},good:{},farmable:{},pasture:{},profession:{},planner:{}},space:{},redraws:[],events:[],days:0,peopleSeed:13,opinionThresholds:{hate:-100,love:100},map:{seed:13,centre:{x:10,y:10},radius:8,worldKey:"fixture",entrances:{},playerStartTile:{x:0,y:0},geography:{version:1,heights:{},routes:[]}},villages:{v:{id:"v",name:"Initial viable village",centre:{x:10,y:10},houses:[],sharedPlaces:[]}},settlement:{version:1,sites:{v:[]},journeys:[],appliedJourneys:{}}};
   for(const h of hexes)for(const corner of Hex().corners()) {
@@ -16,8 +16,9 @@ function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{}) {
   const tiles=newEntities(s,hexes.map(h=>({spatial:{...h.toPoint(),immovable:true},mappable:{terrain:"grassland",elevation:20,temperature:"temperate"},walkable:{speed:1,worn:{},neighbours:{}}})));
   const at=Object.fromEntries(hexes.map((h,i)=>[String(h),tiles[i]]));
   for(const h of hexes)Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).forEach((n,side)=>{if(at[n])addBidirectionalLink(s.ecs,at[h],side,at[n]);});
-  const sites=[];
-  for(const h of Grid.hexagon({center:centre,radius:3}).sort((a,b)=>centre.distance(b)-centre.distance(a) || a.x-b.x || a.y-b.y))if(sites.length<count && sites.every(other=>other.distance(h)>=2))sites.push(h);
+  let sites=[];
+  for(const h of Grid.hexagon({center:centre,radius:3}).sort((a,b)=>centre.distance(b)-centre.distance(a) || a.x-b.x || a.y-b.y))if(sites.length<(spread?8:count) && sites.every(other=>other.distance(h)>=2))sites.push(h);
+  if(spread)sites=[0,4,1,5,2,6,3,7].slice(0,count).map(i=>sites[i]);
   expect(sites).toHaveLength(count);
   s.settlement.sites.v=sites.map(h=>({point:h.toPoint(),entrance:1,establishSeason:0}));
   beforeSurvey(s);
@@ -62,7 +63,9 @@ it.each([3,4,5,6,7,8])("generates actual owned trades and adult workers in a via
 });
 
 it.each([3,5,8])("keeps the garden and fields beside an accessible work station with room for its first bay (%s homes)",count=>{
-  const s=viableVillage(count),h=Object.values(s.ecs.household).find(h=>h.workplaceId && expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1)));
+  // A declared positive fixture spreads its pads within the same radius-three
+  // hamlet, rather than filling one edge first. All original sizes stay intact.
+  const s=viableVillage(count,()=>{},true,()=>{},true),h=Object.values(s.ecs.household).find(h=>h.workplaceId && expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1)));
   expect(h.fields.length).toBeGreaterThan(0);
   expect(h.backyards.length).toBeGreaterThan(0);
   expect(expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1))).toBe(true);

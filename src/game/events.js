@@ -1,13 +1,13 @@
 import { goalEvidence } from "game/guidance";
-import { isResident } from "game/residents";
+import { isResident, personComponent } from "game/residents";
 import { addGoodwill } from "game/people";
 import { hashUnit } from "game/math";
 
 export function closeFamily(state, id) {
-  const kin = state.ecs.kinship?.[id];
+  const kin = personComponent(state, "kinship", id);
   if (!kin) return [];
   return [...new Set([kin.spouse, ...kin.parents, ...kin.children,
-    ...kin.parents.flatMap(p => state.ecs.kinship[p]?.children || [])])].filter(p => p && p != id);
+    ...kin.parents.flatMap(p => personComponent(state, "kinship", p)?.children || [])])].filter(p => p && p != id);
 }
 
 const eventSets = new WeakMap();

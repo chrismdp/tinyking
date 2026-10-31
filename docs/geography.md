@@ -343,3 +343,9 @@ fragment inside its work area. Existing callers that pass one tile are unchanged
 Organic yards use actual roof and garden footprints and the existing household
 land reach. Their closest reachable viable space can stand across a public lane.
 House pads, public roads, crops and camps cannot become private work ground.
+
+
+The starting-world survey also validates the camp's main walkable component and
+a nearby group of three viable, separated house sites. It uses the same terrain,
+pad and apron rules as actual settlement placement. A rejected start moves to
+the next surveyed reach, or retries the seeded field when no reach is viable.

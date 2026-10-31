@@ -101,18 +101,18 @@ const startPatches = tiles.filter(h => MAP_CENTRE.distance(h) == MAP_RADIUS - 2)
 // NOTE: Survey only geometry and terrain, without ECS, height meshes, trees
 // or settlements. This is also the map's start, with two grassland rings:
 // room to farm and reachable spots for the existing minimum-tree planting.
-function startIn(field, home) {
+function startIn(field, home, canSettle) {
   const terrain = new Map(tiles.map(hex => [hex.toString(), field.terrainAt(worldPoint(home, hex.toPoint()))]));
   if ([...terrain.values()].filter(t => !t.includes("water")).length / tiles.length < 0.6) {
     return;
   }
   const clear = startPatches.filter(p => p.keys.every(k => terrain.get(k) == "grassland"));
   // A second clearing leaves room for a nearby village, joined by walkable land.
-  const patch = clear.find(p => clear.some(v => p.hex.distance(v.hex) >= 3 && p.hex.distance(v.hex) <= 4));
+  const patch = clear.find(p => clear.some(v => p.hex.distance(v.hex) >= 3 && p.hex.distance(v.hex) <= 4) && canSettle(field, home, p.hex));
   return patch && { x: patch.hex.x, y: patch.hex.y };
 }
 
-export function surveyWorld(hexes, seed) {
+export function surveyWorld(hexes, seed, canSettle) {
   // NOTE: Reject an unusable field rather than editing a local coastline.
   // Retry deterministically until the field contains a mostly-land start;
   // there is no attempt cap that could let an unplayable seed escape.
@@ -129,7 +129,7 @@ export function surveyWorld(hexes, seed) {
     // nearest the centre. Ring order breaks ties deterministically.
     for (const h of surveyed) {
       if (h.landFraction < 0.65) { continue; }
-      const start = startIn(field, h);
+      const start = startIn(field, h, canSettle);
       if (start) {
         h.start = start;
         return { hexes: surveyed, landSeed, home: { x: h.x, y: h.y } };

@@ -1,3 +1,4 @@
+import { updateNeeds } from "game/needs";
 import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
@@ -9,7 +10,6 @@ import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
 import { socialHour } from "game/social_visits";
 import { resolveSuccession } from "game/succession";
-import { die } from "game/possessions";
 import * as htn from "game/htn";
 import { introActive, updateIntro } from "game/intro";
 import * as time from "game/time";
@@ -154,10 +154,6 @@ function updatePlanners(state, frameMod) {
   }
 }
 
-function starve(state, id) {
-  die(state, id, "starvation");
-}
-
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
 // it changes ECS state and lists changed entities in state.redraws.
 export function createSimulation(state, { onHour, onTravel, onError } = {}) {
@@ -189,14 +185,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
           planner.world.days = state.days;
         }
 
-        for (const id in state.ecs.personable) {
-          const person = state.ecs.personable[id];
-          if (person.dead || !isResident(state,id)) continue;
-          person.tiredness += time.HOUR;
-          person.hunger += time.HOUR;
-          person.starving = person.hunger > 2.5;
-          if (person.hunger > 6 + 1e-12) starve(state, id);
-        }
+        updateNeeds(state);
 
         const nowWinter = time.season(state.days) == "winter";
         if (winter != nowWinter) {
@@ -227,12 +216,13 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
       if (!requestsStarted) { updateFavours(state); requestsStarted = true; }
       updateCustoms(state);
       updatePlanners(state, frameMod);
+      // All edge completions belong to the map where planners just ran.
+      for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
+      state.pendingNpcDepartures=[];
       if(state.pendingPlayerTravel) {
         const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
         return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
       }
-      for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
-      state.pendingNpcDepartures=[];
       advanceTime(frameMod);
       if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
       if(state.travel && (state.travel.season < Math.floor(state.days/3) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {

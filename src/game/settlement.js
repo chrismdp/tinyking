@@ -407,7 +407,8 @@ function summariseLivelihood(s,house,season,residents,woodland) {
     }
   }
   const elapsed=s.generatingHistory?DAYS_IN_SEASON:Math.max(0,s.days-Math.max(s.days-DAYS_IN_SEASON,s.environmentUpdatedAt ?? s.days-DAYS_IN_SEASON));
-  let food=occupants.length*elapsed;
+  // Post-arrival summary meals and shortages use the shared physiological clock.
+  let food=s.generatingHistory ? occupants.length*elapsed : 0;
   for(const type of ["gruel","grain","forage"]) {
     const eat=Math.min(food,amounts[type] || 0);consumeStored(s,house,type,eat);food-=eat;ledger.foodConsumed+=eat;
   }

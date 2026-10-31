@@ -1,3 +1,5 @@
+import { PanelBoundary } from "./panel_boundary";
+import { personComponent } from "game/residents";
 import { habitatAt, localHabitat, climateAt } from "game/biome_field";
 import { foundHousehold } from "game/family";
 import { expandedFootprint, expansionFits } from "game/settlement_growth";
@@ -50,7 +52,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   // NOTE: draw everything on the first frame
   state.redraws = Object.keys(state.ecs.spatial);
 
-  state.personName = (id, record = state.ecs.nameable[id]) => name(record);
+  state.personName = (id, record = personComponent(state, "nameable", id)) => name(record);
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
@@ -108,7 +110,7 @@ export function World() {
   const selectEntity = React.useCallback((id, touch) => {
     if (!introActive(state) && !state.worldBusy && !state.ui.show.main_menu) {
       if (id != state.ui.playerId) state.renderer?.suspendFollow();
-      if (state.ecs.personable[id] && id != state.ui.playerId) {
+      if (personComponent(state, "personable", id) && id != state.ui.playerId) {
         setPopupInfo({});
         state.ui.show.selected_person = id;
         state.ui.selected = id;
@@ -354,7 +356,7 @@ export function World() {
         </Switch>
         <div className="popper" ref={popperElement} style={{...popper.styles, visibility: popupInfo.id ? "visible" : "hidden" }} {...popper.attributes}>
           <button aria-label="Close menu" onClick={() => setPopupInfo({})} className='close'><FontAwesomeIcon icon="times"/></button>
-          {popupInfo.id && (<Info entityId={popupInfo.id}/>)}
+          {popupInfo.id && <PanelBoundary key={popupInfo.id} onClose={()=>setPopupInfo({})}><Info entityId={popupInfo.id}/></PanelBoundary>}
           <div className="arrow" ref={arrowElement}/>
         </div>
       </GameState.Provider>

@@ -34,14 +34,14 @@ function stranger(s) {
   const seed=Math.floor(hashUnit((s.travel?.seed ?? s.peopleSeed)+":stranger:"+s.successionCount)*4294967296);
   const g=new MersenneTwister(seed),male=g.random_int()%2==0;
   const entry=s.map.entrances[0] || Object.values(s.map.entrances)[0];
-  const [id]=newEntities(s,[{spatial:{...entry.campPoint},nameable:{type:"person",male,familySeed:g.random_int(),seed:g.random_int()},
+  const [id]=newEntities(s,[{spatial:{...(entry?.campPoint || Hex(s.map.playerStartTile).toPoint())},nameable:{type:"person",male,familySeed:g.random_int(),seed:g.random_int()},
     personable:{type:"person",age:24,lifeYears:5,size:20,male,hair:g.random_int()%7,body:male?0x4E3F30:0x3B6071,hunger:.4,tiredness:.2},
     personality:{...generatePersonality(g),opinionSeed:s.peopleSeed,opinionThresholds:{...s.opinionThresholds}},
     kinship:{parents:[],children:[],spouse:null},relationships:{known:{}},household:{houseId:null},village:{villageId:null},
     controllable:{},traits:{values:{}},attributes:{},holder:{held:[],capacity:2},manager:{jobs:[]},planner:{world:{}},playable:{known:[]}}],"stranger-");
   if(s.residents)s.residents[id]=true;
   controlled(s,id,true);
-  s.arrivalEntry=entry;s.map={...s.map,homeId:null,playerStartTile:{...entry.hexes[2]}};
+  s.arrivalEntry=entry;s.map={...s.map,homeId:null,playerStartTile:{...(entry?.hexes[2] || s.map.playerStartTile)}};
   startIntro(s);
   recordEvent(s,"arrival",[id],[],{worldHex:s.travel?.active||s.map.worldKey});
   return id;

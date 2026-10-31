@@ -35,3 +35,20 @@ it("withholds game controls throughout the opening and renders them after handov
   expect(render()).toContain('id="speed"');
   expect(render()).toContain('id="tasks"');
 });
+
+
+it("keeps controls visible for ordinary background seasons and reserves loading for player travel", () => {
+  const { UserInterface } = require("../src/components/user_interface");
+  const state = { worldBusy: true, ui: { show: { speed_controls: true }, actions: {} } };
+  const render = () => renderToStaticMarkup(<GameState.Provider value={state}><UserInterface/></GameState.Provider>);
+  expect(render()).toContain('id="speed"');
+  expect(render()).not.toContain("travel-loading");
+  state.transition = { label: "One season on the road…" };
+  expect(render()).toContain("travel-loading");
+  expect(render()).not.toContain('id="speed"');
+});
+
+it("renders the UI before the world creates its ui record", () => {
+  const { UserInterface } = require("../src/components/user_interface");
+  expect(renderToStaticMarkup(<GameState.Provider value={{}}><UserInterface/></GameState.Provider>)).toContain('id="ui"');
+});

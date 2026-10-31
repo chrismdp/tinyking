@@ -1,3 +1,4 @@
+import { personComponent } from "game/residents";
 import { currentActivity } from "game/person_activity";
 import messages from "data/messages.json";
 import React from "react";
@@ -14,7 +15,7 @@ import { fullEntity } from "game/entities";
 export function SelectedPerson({ entityId }) {
   const state = React.useContext(GameState);
   if (entityId == state.ui?.playerId) return null;
-  if (state.ecs.personality?.[entityId]) return <PersonPanel key={entityId} entityId={entityId}/>;
+  if (personComponent(state, "personality", entityId)) return <PersonPanel key={entityId} entityId={entityId}/>;
   const entity = fullEntity(state.ecs, entityId);
 
   if (entityId) {

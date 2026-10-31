@@ -1,5 +1,5 @@
 import { treeAllowed } from "game/tree_clearance";
-import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, suitableHouse } from "game/geography";
+import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, settlementSite } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import { reserveFoundingFields } from "game/settlement";
@@ -356,9 +356,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
   const villages = {};
   const generator = new MersenneTwister(seed);
   // Keep clearings inland and leave the player's starting neighbourhood alone.
-  const candidates = grid.filter(target => MAP_CENTRE.distance(target) < MAP_RADIUS - 4 &&
-    start.distance(target) >= MIN_START_SETTLEMENT_DISTANCE && mainLand.has(String(target)) && suitableHouse(natural,target.toPoint()) && landscape[target].terrain == "grassland" && Grid.hexagon({center:target,radius:1}).every(h => landscape[h] && Math.abs(landscape[h].elevation-landscape[target].elevation) < 55) &&
-    Grid.hexagon({ center: target, radius: 1 }).every(h => landscape[h] && !landscape[h].terrain.includes("water")));
+  const candidates = grid.filter(target => settlementSite(landscape, start, mainLand, natural, target));
   const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
     .sort((a, b) => b.rank - a.rank).map(c => c.hex);
   // The first hamlet is within visiting distance of the start, as before.

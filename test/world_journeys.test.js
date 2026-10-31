@@ -23,6 +23,11 @@ function pairedWorld() {
       key: worldKey(neighbours(a.s.world.home)[0]),
       player: false
     });
+  // These long courtship/estate scenarios need real meals now that offscreen
+  // residents obey starvation. Keep their original relationship assertions.
+  for (const { s, house } of [a, b]) (s.ecs.container ||= {})[house] = {
+    id: house, amounts: { grain: 1000 }, capacity: 1000
+  };
   attach(a.s, b.s);
   // Only one adjacent land community; nobody is told who lives there.
   for (const h of a.s.world.hexes) h.ocean = ![a.s.map.worldKey, b.s.map.worldKey].includes(worldKey(h));
@@ -276,7 +281,8 @@ it("persists a changed first camp/store/build through a multi-hop loop and sever
     skipIntro(s);
   }
   expect(s.travel.active).toBe("5,5");
-  expect(s.ecs.container[a.house]).toEqual(expected);
+  // Residents actually eat the nine saved portions during the offscreen years.
+  expect(s.ecs.container[a.house]).toEqual({ ...expected, amounts: { ...expected.amounts, grain: 0 } });
   expect(s.ecs.shelter[a.house].stage).toBe("hut");
   expect(s.ecs.controllable[a.house].controllerId).toBe(id);
   const ledger = s.travel.historyCalls.filter(c => c.kind === "away");

@@ -1,3 +1,4 @@
+import { personComponent } from "game/residents";
 import { knownEvents, eventSentence } from "game/events";
 import { displayName } from "game/knowledge";
 import { knownFamilyTree } from "game/people";
@@ -10,7 +11,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
   const learned = state.knowledge?.[viewer]?.people?.[person];
   const events = knownEvents(state, viewer);
   const n = id => displayName({ ...state, ui: { ...state.ui, playerId: viewer } }, id, resolve);
-  const dead = state.ecs.personable[person]?.dead;
+  const dead = personComponent(state, "personable", person)?.dead;
   const facts = [];
   for (const id of learned?.possessions || []) {
     const p = state.ecs.possession?.[id];
@@ -19,7 +20,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
     const event = events.find(e => e.type == "inheritance" && e.people[1] == person && e.people[0] == from?.personId && e.items.includes(id) && e.day == owner.day);
     if (owner.reason == "inheritance" && from && event) facts.push({ key: id, text: "Still carries " + p.name + ", inherited from " + n(from.personId) + ".", eventId: event.id, itemId: id });
   }
-  const tree = knownFamilyTree(state, viewer, person), kin = state.ecs.kinship[person];
+  const tree = knownFamilyTree(state, viewer, person), kin = personComponent(state, "kinship", person);
   const parent = id => kin.parents.includes(id) && tree.nodes[id] && !tree.nodes[id].unknown;
   const priority = { inheritance: 0, expansion: 1, house_built: 2, founding: 2, household_arrival: 2, world_move: 1, move: 2, death: 3, marriage: 4, reconciliation: 5, quarrel: 6, gift: 7, birth: 8 };
   for (const e of [...events].sort((a, b) => (priority[a.type] ?? 99) - (priority[b.type] ?? 99) || b.day - a.day || a.id.localeCompare(b.id))) {
@@ -27,7 +28,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
     const [a, b] = e.people, other = a == person ? b : a;
     const village = state.villages?.[e.toVillage || e.villageId]?.name;
     let text;
-    if (e.type == "death" && parent(a)) text = "Lost " + (state.ecs.nameable[a]?.male === undefined ? "a parent, " : state.ecs.nameable[a].male ? "their father, " : "their mother, ") + n(a) + ", in " + when(e);
+    if (e.type == "death" && parent(a)) text = "Lost " + (personComponent(state, "nameable", a)?.male === undefined ? "a parent, " : personComponent(state, "nameable", a).male ? "their father, " : "their mother, ") + n(a) + ", in " + when(e);
     if (e.people.includes(person)) {
       if(e.type=="expansion")text="Built a "+e.addition+" in "+when(e);
       if(e.type=="house_built")text="Established a household home in "+when(e);

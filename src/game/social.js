@@ -1,3 +1,4 @@
+import { advanceOffscreenNeeds } from "game/needs";
 import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { entityId, isResident } from "game/residents";
@@ -588,7 +589,7 @@ export function historyStep(worldHexState, season) {
     knowledge: {},
     villages: {},
     space: {
-      ...(worldHexState.space || {})
+      ...Object.fromEntries(Object.entries(worldHexState.space || {}).map(([key, ids]) => [key, [...ids]]))
     },
     redraws: [...(worldHexState.redraws || [])],
     social: JSON.parse(JSON.stringify(worldHexState.social || {}))
@@ -600,8 +601,12 @@ export function historyStep(worldHexState, season) {
   };
   records("personable");
   records("controllable");
-  records("household");
+  records("household", h => JSON.parse(JSON.stringify(h)));
   records("profession");
+  records("container", c => ({ ...c, amounts: { ...c.amounts } }));
+  records("holder", h => ({ ...h, held: [...h.held] }));
+  records("haulable");
+  records("spatial");
   records("kinship", k => ({
     ...k,
     parents: [...k.parents],
@@ -652,13 +657,13 @@ export function historyStep(worldHexState, season) {
   if (worldHexState.settlement) {
     copy.settlement=JSON.parse(JSON.stringify(worldHexState.settlement));
     for (const key of ["growth","workplace","meetingPlace","container","treeClearance","mappable","spatial","walkable","tree","good"]) records(key,value=>JSON.parse(JSON.stringify(value)));
-    records("household",value=>JSON.parse(JSON.stringify(value)));
     for (const key in copy.space) copy.space[key]=[...copy.space[key]];
     copy.map=worldHexState.map && {...worldHexState.map};
     for (const [id,v] of Object.entries(worldHexState.villages || {})) copy.villages[id]=JSON.parse(JSON.stringify(v));
   }
   copy.days = season * 3;
   drift(copy, 72);
+  advanceOffscreenNeeds(copy, season * 3);
   advanceSeason(copy, season, true);
   return copy;
 }

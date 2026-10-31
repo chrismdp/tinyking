@@ -1,5 +1,5 @@
 import { recogniseConversation } from "game/guidance";
-import { isResident } from "game/residents";
+import { isResident, personComponent } from "game/residents";
 import { knownEvents, learnEvent, closeFamily } from "game/events";
 import { topController } from "game/playable";
 
@@ -43,15 +43,15 @@ function pairVariation(seed, a, b) {
 }
 
 export function opinion(state, a, b) {
-  const tastes = state.ecs.personality[a];
-  const traits = state.ecs.personality[b].traits;
+  const tastes = personComponent(state, "personality", a);
+  const traits = personComponent(state, "personality", b).traits;
   return traits.reduce((score, trait) => score + (tastes.likes.includes(trait) ? 1 : 0) -
     (tastes.dislikes.includes(trait) ? 1 : 0), 0) + pairVariation(tastes.opinionSeed ?? state.peopleSeed, a, b);
 }
 
 export function disposition(state, a, b) {
   const score = opinion(state, a, b);
-  const thresholds = state.ecs.personality[a].opinionThresholds || state.opinionThresholds;
+  const thresholds = personComponent(state, "personality", a).opinionThresholds || state.opinionThresholds;
   if (score < thresholds.hate) return "hate";
   if (score >= thresholds.love) return "love";
   return "like";
@@ -206,7 +206,7 @@ export function drift(state, hours) {
 }
 
 export function siblingsOf(state, id) {
-  return [...new Set(state.ecs.kinship[id].parents.flatMap(parent => state.ecs.kinship[parent].children))]
+  return [...new Set((personComponent(state, "kinship", id)?.parents || []).flatMap(parent => personComponent(state, "kinship", parent)?.children || []))]
     .filter(other => other != id);
 }
 
@@ -254,8 +254,8 @@ export function recalibrateRelationships(state) {
 }
 
 export function feelingHint(state, a, aboutId) {
-  if (state.ecs.personable[a]?.dead || !state.knowledge?.[aboutId]?.people?.[a]?.conversation) return {};
-  const bond = state.ecs.relationships[a].known[aboutId];
+  if (personComponent(state, "personable", a)?.dead || !state.knowledge?.[aboutId]?.people?.[a]?.conversation) return {};
+  const bond = personComponent(state, "relationships", a).known[aboutId];
   const feeling = disposition(state, a, aboutId);
   if (bond && bond.ring != "public") return { ring: bond.ring, disposition: feeling };
   const goodwill = bond ? bond.goodwill : 0;
@@ -266,11 +266,11 @@ export function feelingHint(state, a, aboutId) {
 // A flat graph keeps shared ancestors and marriages from duplicating people.
 // Unknown nodes keep their links through opaque local ids, without identifying data.
 export function knownFamilyTree(state, viewerId, personId) {
-  const kinship = state.ecs.kinship;
+  const kinship = id => personComponent(state, "kinship", id);
   const selected = new Set([personId]);
   const follow = (id, field, depth) => {
     if (!depth) return;
-    for (const other of kinship[id][field]) {
+    for (const other of (kinship(id)?.[field] || [])) {
       selected.add(other);
       follow(other, field, depth - 1);
     }
@@ -278,10 +278,10 @@ export function knownFamilyTree(state, viewerId, personId) {
   follow(personId, "parents", 2);
   follow(personId, "children", 2);
   for (const id of siblingsOf(state, personId)) selected.add(id);
-  for (const id of [...selected]) if (kinship[id].spouse) selected.add(kinship[id].spouse);
-  const trust = state.ecs.relationships[personId].known[viewerId];
+  for (const id of [...selected]) if (kinship(id)?.spouse) selected.add(kinship(id).spouse);
+  const trust = personComponent(state, "relationships", personId).known[viewerId];
   const trusted = viewerId == personId || (trust && RINGS.indexOf(trust.ring) >= 1);
-  const known = state.ecs.relationships[viewerId].known;
+  const known = personComponent(state, "relationships", viewerId).known;
   const learned = state.knowledge?.[viewerId]?.people || {};
   const visible = id => trusted || id == viewerId || !!known[id] || !!learned[id];
   let nextUnknown = 0;
@@ -291,10 +291,10 @@ export function knownFamilyTree(state, viewerId, personId) {
   for (const id of selected) {
     const alias = aliases[id];
     nodes[alias] = {
-      ...(visible(id) ? { id, age: state.ecs.personable[id].age } : { id: alias, name: "unknown", unknown: true }),
-      parents: links(kinship[id].parents),
-      spouse: aliases[kinship[id].spouse] || null,
-      children: links(kinship[id].children),
+      ...(visible(id) ? { id, age: personComponent(state, "personable", id)?.age } : { id: alias, name: "unknown", unknown: true }),
+      parents: links(kinship(id)?.parents || []),
+      spouse: aliases[kinship(id)?.spouse] || null,
+      children: links(kinship(id)?.children || []),
       siblings: links(siblingsOf(state, id))
     };
   }
@@ -310,7 +310,7 @@ const GIFT_VALUES = { forage: 2, grain: 3, gruel: 5, wood: 3 };
 const GIFT_TRAITS = { forage: "generous", grain: "hard-working", gruel: "cheerful", wood: "hard-working" };
 
 export function trusts(state, personId, viewerId) {
-  return RINGS.indexOf(state.ecs.relationships[personId].known[viewerId]?.ring) >= 1;
+  return RINGS.indexOf(personComponent(state, "relationships", personId).known[viewerId]?.ring) >= 1;
 }
 
 function knowledgeFor(state, viewerId) {
@@ -340,7 +340,7 @@ export function beginInteraction(state, actorId, personId) {
 export function patienceLeft(state, actorId, personId) {
   const record = state.talking?.[personId]?.[actorId];
   const used = record?.day == Math.floor(state.days) ? record.used : 0;
-  const ring = state.ecs.relationships[personId].known[actorId]?.ring || "public";
+  const ring = personComponent(state, "relationships", personId).known[actorId]?.ring || "public";
   return Math.max(0, DAILY_PATIENCE[ring] - used);
 }
 
@@ -366,7 +366,7 @@ export function chat(state, actorId, personId) {
 
 export function askAbout(state, actorId, personId, aboutId) {
   if (!trusts(state, personId, actorId)) return { ok: false, message: SOCIAL_REQUIRED };
-  const bond = state.ecs.relationships[personId].known[aboutId];
+  const bond = personComponent(state, "relationships", personId).known[aboutId];
   if (!bond) return { ok: false, message: "They don't know that person" };
   beginInteraction(state, actorId, personId);
   if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
@@ -418,7 +418,7 @@ export function completeConversation(state, actorId, personId) {
   const learned = learnPerson(state, actorId, personId);
   const a = state.ecs.spatial?.[actorId], b = state.ecs.spatial?.[personId];
   learned.conversation = { day: state.days, ...(a && b ? { position: { x: a.x, y: a.y }, otherPosition: { x: b.x, y: b.y } } : {}) };
-  const rank = RINGS.indexOf(state.ecs.relationships[personId].known[actorId]?.ring);
+  const rank = RINGS.indexOf(personComponent(state, "relationships", personId).known[actorId]?.ring);
   const disclosed=[];
   if (rank < 1) return;
   const family = new Set([personId, ...closeFamily(state, personId)]);

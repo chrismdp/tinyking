@@ -119,6 +119,20 @@ active-map arrivals walk inward through that planner and record news/activity.
 Off-screen departures/visits/returns are events in summary. Each NPC trip takes
 three days, with one demographic season and frozen needs in transit.
 
+Autonomous visits never generate a detailed destination map. Until the player
+opens that reach, the actual traveller and carried property remain in a
+reference-only visit. Age and outgoing goodwill advance once per season; needs
+remain frozen without a simulated local household. After three seasons the
+visitor begins the normal one-season return. If the player opens the reach first,
+the visitor joins its real household simulation. Unknown communities supply no
+invented contacts, marriages or possessions during a reference-only visit.
+
+Offscreen residents consume actual accessible household food through an hourly
+summary of needs. Missing meals accumulate hunger and use the live starvation
+threshold and death/inheritance rule. The persisted needs cursor prevents repeat
+charges during activation. Prehistory retains its existing livelihood summary;
+people on the road retain their documented needs freeze.
+
 An unmarried adult without a *viable mutual romantic prospect* locally may seek
 company in an adjacent land community, even if unrelated but incompatible adults
 are present. The same eligibility, kin exclusions and mutual love/Intimate ring

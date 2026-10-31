@@ -1,3 +1,4 @@
+import { villageStart } from "game/geography";
 import SimplexNoise from "simplex-noise";
 
 import { WorldGrid as Grid, WorldHex as Hex, ALL_SIDES } from "game/hex";
@@ -100,7 +101,7 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
     }
     return { x: hex.x, y: hex.y, ...values };
   });
-  const surveyed = surveyWorld(hexes, seed);
+  const surveyed = surveyWorld(hexes, seed, villageStart);
   const climate = annualClimate(surveyed.hexes, createLandField(surveyed.landSeed), seed);
   hexes = climate.hexes.map(h => ({...h, moisture:h.annualMoisture > .68 ? "wet" : h.annualMoisture < .42 ? "dry" : "normal"}));
   // NOTE: Use the same pull as an in-play change, in fixed spiral and side

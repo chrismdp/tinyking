@@ -81,6 +81,27 @@ export function suitableHouse(ground, p) {
   // naturally walkable apron open, rather than creating an isolated island.
   return around(hex).every(h=>!safeTile(ground,h.toPoint()) || safeTile(local,h.toPoint()));
 }
+// The start survey and actual settlement placement share these physical rules.
+export function settlementSite(landscape, start, main, ground, hex) {
+  return MAP_CENTRE.distance(hex) < MAP_RADIUS - 4 && start.distance(hex) >= 3 &&
+    main.has(String(hex)) && landscape[hex]?.terrain == "grassland" && suitableHouse(ground, hex.toPoint()) &&
+    Grid.hexagon({center:hex,radius:1}).every(h => landscape[h] && !landscape[h].terrain.includes("water") &&
+      Math.abs(landscape[h].elevation - landscape[hex].elevation) < 55);
+}
+export function villageStart(field, home, start) {
+  const { tiles, main, ground } = survey(field, home);
+  if (!main.has(String(start))) return false;
+  const landscape = Object.fromEntries(grid.map(h => [String(h), {
+    terrain: tiles.get(String(h)), elevation: ground.heightAt(h.toPoint().x, h.toPoint().y)
+  }]));
+  const sites = grid.filter(h => settlementSite(landscape, start, main, ground, h));
+  return sites.some(centre => {
+    if (start.distance(centre) > 8) return false;
+    const chosen = [centre];
+    for (const site of sites) if (site.distance(centre) <= 3 && chosen.every(h => h.distance(site) >= 2)) chosen.push(site);
+    return chosen.length >= 3;
+  });
+}
 export function roadStep(ground, a, b) {
   const p=a.toPoint(),q=b.toPoint(),dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);
   return [.25,.75].every(t=>{

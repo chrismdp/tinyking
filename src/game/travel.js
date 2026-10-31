@@ -16,7 +16,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "needsUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -227,6 +227,7 @@ function references(s, j) {
 }
 export function initialiseTravel(s, seed) {
   freezeOpinions(s);
+  s.needsUpdatedAt = s.days;
   s.residents = Object.fromEntries(Object.keys(s.ecs.personable).map(id => [id, true]));
   const key = worldKey(s.world.home),
     season = Math.floor(s.days / 3);
@@ -432,7 +433,16 @@ function putTraveller(s, bundle, point, j) {
   };
   s.redraws?.push(id);
 }
+function clearMapDialogs(s) {
+  s.ui.resourceOrder = null;
+  s.ui.customsResult = null;
+  s.ui.talkResult = null;
+  s.ui.show.selected_person = null;
+  s.ui.familyPersonId = null;
+  s.ui.selected = null;
+}
 export function enterMap(s, key, bundle, side) {
+  clearMapDialogs(s);
   const j = s.travel,
     map = j.maps[key];
   for (const field of LOCAL_FIELDS) delete s[field];
@@ -559,6 +569,8 @@ export async function completeTravel(s, order) {
       return;
     }
     await ensureMap(s, order.destination);
+    // Reference-only visitors become physical only once the player opens this map.
+    await receiveNpcs(s, j);
     enterMap(s, order.destination, bundle, (order.side + 3) % 6);
     j.transit = j.transit.filter(t => t != trip);
     j.lastJourney = {
@@ -602,7 +614,7 @@ function journeyIntent(s, id, key, j, season) {
   };
 }
 export function departNpc(s, id, intent, j = s.travel) {
-  if(s.ecs.personable[id]?.dead)return false;
+  if (!s.residents[id] || !s.ecs.spatial[id] || s.ecs.personable[id]?.dead || j.transit.some(t => t.bundle.id == id)) return false;
   const from = s.map.worldKey || j.active,
     home = j.visits[id];
   const saved = {
@@ -637,22 +649,49 @@ export function departNpc(s, id, intent, j = s.travel) {
   publish(s, j);
 }
 async function receiveNpcs(s, j) {
-  const due = j.transit.filter(t => !t.player && t.due <= s.days + 1e-9),
-    touched = new Map();
+  const due = j.transit.filter(t => !t.player && (t.due <= s.days + 1e-9 || t.referenceVisit)),
+    touched = new Map(), finished = new Set();
   for (const trip of due) {
     const id = trip.bundle.id;
     // Social time and the real estate follow the same life-cycle as residents.
-    const aged = ageTraveller(s, trip.bundle, j.season);
-    if (aged.ecs.personable[id].dead) {
+    if (trip.agedSeason != j.season) {
+      ageTraveller(s, trip.bundle, j.season);
+      trip.agedSeason = j.season;
+    }
+    if (trip.bundle.entities[id].personable.dead) {
+      finished.add(trip);
       settleRoadEstate(s, trip);
       continue;
     }
-    const dest = await ensureMap(s, trip.to);
+    // An autonomous visit must not construct terrain or run local prehistory.
+    // Keep the actual person/cargo as a reference visit for three seasons.
+    if (!j.maps[trip.to] && !trip.returning) {
+      if (!trip.referenceVisit) {
+        trip.referenceVisit = true;
+        trip.arrived = j.season;
+        trip.returnAt = trip.due + 9;
+        trip.due = trip.returnAt;
+        const p = trip.bundle.entities[id].personable;
+        p.visitedWorlds = [...new Set([...(p.visitedWorlds || []), trip.to])];
+        recordEvent(j.maps[trip.from], "world_visit", [id], [], { fromWorld: trip.from, toWorld: trip.to });
+        publish(j.maps[trip.from], j);
+      }
+      if (s.days + 1e-9 >= trip.returnAt) {
+        trip.visitWorld = trip.to;
+        trip.to = trip.home.home;
+        trip.returning = true;
+        trip.referenceVisit = false;
+        trip.due = trip.returnAt + 3;
+      }
+      continue;
+    }
+    const dest = j.maps[trip.to];
+    finished.add(trip);
     dest.days = s.days;
     dest.redraws ||= [];
     touched.set(trip.to, dest);
-    for (const key of IDENTITY) for (const [ref, value] of Object.entries(aged.ecs[key] || {})) if (!dest.residents[ref]) (dest.ecs[key] ||= {})[ref] = value;
-    const side = trip.side == null ? neighbours(s.world.hexes.find(h => worldKey(h) == trip.to)).findIndex(h => worldKey(h) == trip.from) : (trip.side + 3) % 6;
+    for (const key of IDENTITY) for (const [ref, value] of Object.entries(trip.bundle.entities[id][key] ? { [id]: trip.bundle.entities[id][key] } : {})) if (!dest.residents[ref]) (dest.ecs[key] ||= {})[ref] = value;
+    const side = trip.visitWorld ? trip.side : trip.side == null ? neighbours(s.world.hexes.find(h => worldKey(h) == trip.to)).findIndex(h => worldKey(h) == (trip.visitWorld || trip.from)) : (trip.side + 3) % 6;
     const entry = dest.map.entrances[side];
     putTraveller(dest, trip.bundle, entry.campPoint, j);
     const visit = trip.home;
@@ -669,7 +708,7 @@ async function receiveNpcs(s, j) {
     } else {
       j.visits[id] = {
         ...visit,
-        arrived: j.season
+        arrived: trip.arrived ?? j.season
       };
       const host = Object.keys(dest.residents).find(other => other != id && !dest.ecs.personable[other].dead && dest.ecs.household[other]?.houseId);
       if (host) {
@@ -704,7 +743,7 @@ async function receiveNpcs(s, j) {
       };
     }
     recordEvent(dest, trip.returning ? "return" : "world_visit", [id], [], {
-      fromWorld: trip.from,
+      fromWorld: trip.visitWorld || trip.from,
       toWorld: trip.to
     });
   }
@@ -718,7 +757,7 @@ async function receiveNpcs(s, j) {
       s.redraws?.push(...(dest.redraws || []));
     }
   }
-  j.transit = j.transit.filter(t => !due.includes(t));
+  j.transit = j.transit.filter(t => !finished.has(t));
 }
 export async function advanceWorldClock(s, {
   travelling = false
@@ -805,8 +844,9 @@ export async function advanceWorldClock(s, {
 // A control handover activates an existing community in place. It is not travel:
 // no entry route, transit bundle, relocation or additional seasonal step.
 export function activateResidentMap(s, key) {
+  clearMapDialogs(s);
   const j=s.travel;
-  j.maps[j.active]=localSnapshot(s);
+  if (key != j.active) j.maps[j.active]=localSnapshot(s);
   const map=j.maps[key];
   for(const field of LOCAL_FIELDS)delete s[field];
   Object.assign(s,map);

@@ -11,6 +11,11 @@ import { Hex, Grid } from "game/hex";
 function fixture() {
   const a = community(), s = a.s;
   const b = community({ namespace: "b-", key: worldKey(neighbours(s.world.home)[0]), player: false });
+  // These ownership-only journeys span several seasons. Supply actual food so
+  // starvation does not introduce extra, unrelated inheritance transitions.
+  for (const { s, house } of [a, b]) (s.ecs.container ||= {})[house] = {
+    id: house, amounts: { grain: 1000 }, capacity: 1000
+  };
   attach(s, b.s);
   for (const h of s.world.hexes) h.ocean = ![a.s.map.worldKey, b.s.map.worldKey].includes(worldKey(h));
   return { a, b, s, player: a.ids[0], owner: a.ids[1], heir: a.ids[2] };

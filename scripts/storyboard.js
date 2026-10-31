@@ -202,23 +202,39 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
         // visiting. Resume this same funded frame after a successful third Chat.
         s.ui.actions.cancel_task(build.id);
         s.ui.actions.choose_job(id, { key: "find_food" }, id);
-        s.ui.actions.choose_job(id, { key: "rest" }, id);
         const visit = s.ecs.profession[person].workplaceId;
         s.ui.actions.choose_job(id, { key: "move_to_here" }, visit);
         s.ui.actions.change_visibility({ selected_person: null });
         s.ui.actions.set_speed("fast");
         return { before, target, visit };
       }, person);
-      story.actions.push({ action: "Pause construction through Cancel, eat/rest and physically visit the friend's workplace", preparation });
+      story.actions.push({ action: "Pause construction through Cancel, eat and physically visit the friend's workplace", preparation });
+      await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
+      await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
+      const nightCare = await page.evaluate(person => {
+        const s = window.tinyking, id = s.ui.playerId, visit = s.ecs.profession[person].workplaceId;
+        const before = { day: s.days, playerNeeds: { ...s.ecs.personable[id] }, friendNeeds: { ...s.ecs.personable[person] }, friendTask: s.ecs.planner[person].task };
+        // Return to the real camp bed after the first visit, then revisit in
+        // daylight. The previous care window accidentally began at 1am.
+        s.ui.actions.choose_job(id, { key: "rest" }, id);
+        s.ui.actions.choose_job(id, { key: "move_to_here" }, visit);
+        s.ui.actions.set_speed("fast");
+        return before;
+      }, person);
+      story.actions.push({ action: "Return to the camp bed for actual night rest, then physically revisit", nightCare });
       await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
       await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
       // A single ordinary care window, never a calendar/seed hunt. Do not
       // capture attention while the friend is still sleeping or seeking food.
+      // Keep the player's own next meal real before making the short visit.
+      await page.evaluate(() => { const s = window.tinyking; s.ui.actions.choose_job(s.ui.playerId, { key: "find_food" }, s.ui.playerId); s.ui.actions.set_speed("fast"); });
+      await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
       const windowStart = await page.evaluate(() => window.tinyking.days);
       await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
       await page.waitForFunction(({ person, start }) => {
         const s = window.tinyking, p = s.ecs.personable[person], w = s.ecs.planner[person].world;
-        const ready = !s.ecs.interior[person] && p.hunger <= .5 && p.tiredness <= .5 && !w.capturedBy && !w.social && !w.moveHome;
+        const stationary = !["walk_to", "eat", "sleep"].includes(s.ecs.planner[person].task?.[0]);
+        const ready = stationary && !s.ecs.interior[person] && p.hunger <= .5 && p.tiredness <= .5 && !w.capturedBy && !w.social && !w.moveHome;
         if (ready || s.days - start >= 8/24) { s.ui.actions.set_speed("paused"); window.closeoutFriendReady = ready; return true; }
         return false;
       }, { person, start: windowStart }, { timeout: 180000 });
@@ -226,9 +242,6 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       story.actions.push({ action: "Observed actual outdoor, fed and rested friend after independent self-care", state: await page.evaluate(person => {
         const s = window.tinyking; return { day: s.days, person, position: s.ecs.spatial[person], needs: s.ecs.personable[person], task: s.ecs.planner[person].task, bond: s.ecs.relationships[person].known[s.ui.playerId] };
       }, person) });
-      // Keep the player's own next meal real before making the short visit.
-      await page.evaluate(() => { const s = window.tinyking; s.ui.actions.choose_job(s.ui.playerId, { key: "find_food" }, s.ui.playerId); s.ui.actions.set_speed("fast"); });
-      await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
       await page.evaluate(person => { const s = window.tinyking; s.ui.actions.set_speed("paused"); window.favourObservation.pauseAfterChat = true; s.ui.actions.select_entity(person, false); }, person);
       await page.getByRole("button", { name: "Chat", exact: true }).click();
       await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));

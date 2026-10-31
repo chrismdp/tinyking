@@ -71,3 +71,11 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable?.[id
   if (!debug || ecs.personable?.[id]?.dead) return label;
   return (label || t("tasks.idle")) + " · " + (ecs.planner?.[id]?.task?.[0] || "no task");
 }
+
+// Above-head text describes present action. Panels retain route/material detail.
+export function headActivity(ecs, id, t, personName, debug = false) {
+  const task = ecs.planner?.[id]?.task;
+  if (!debug && (!task || ["walk_to", "wait_for", "leave_edge", "home_downtime"].includes(task[0]) ||
+    task[0] == "socialise" && ecs.planner[id].world.social?.stage != "visiting")) return null;
+  return currentActivity(ecs, id, t, personName, debug);
+}

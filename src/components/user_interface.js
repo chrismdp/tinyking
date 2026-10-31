@@ -1,3 +1,4 @@
+import { openingGuidance, dismissGuidance } from "game/guidance";
 import { EventFeed } from "./event_feed";
 import React from "react";
 
@@ -18,6 +19,14 @@ import { SpeedControls } from "components/speed_controls";
 
 const TravelOverview = React.lazy(() => import("./travel"));
 
+function OpeningGuidance() {
+  const state = React.useContext(GameState);
+  const [, refresh] = React.useState(0);
+  const hint = openingGuidance(state);
+  if (!hint) return null;
+  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span><button aria-label="Dismiss getting started hint" onClick={() => { dismissGuidance(state); refresh(n => n + 1); }}>×</button></aside>;
+}
+
 export function UserInterface() {
   const state = React.useContext(GameState);
   const show = state.ui && state.ui.show || {};
@@ -34,7 +43,7 @@ export function UserInterface() {
       {show.info && <Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window>}
       {show.mapgen && <Window windowId="mapgen" x={60} y={70}><CustomGame/></Window>}
       {show.selected_person && <SelectedPerson entityId={show.selected_person}/>}
-      {show.speed_controls && <><TaskPanel/><SpeedControls/><EventFeed/></>}
+      {show.speed_controls && <><OpeningGuidance/><div id="camera-actions"><button onClick={() => state.renderer?.recenter()} aria-label="Recenter on you">◎ You</button><small>Drag to pan · Pinch & twist to zoom / turn</small></div><TaskPanel/><SpeedControls/><EventFeed/></>}
     </div>
   );
 }

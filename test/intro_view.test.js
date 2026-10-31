@@ -213,3 +213,43 @@ it("lowers the stick around the shoulder without sweeping through the torso", ()
     if (centre.y > 0 && centre.y < 33) expect(Math.hypot(centre.x, centre.z)).toBeGreaterThan(15);
   }
 });
+
+it("keeps crowded known names visible and rebinds the controlled ring to ui.playerId, independently of inspection", () => {
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  const {state,view,id,npcs}=openingView();
+  state.ecs.nameable={ [id]:{nickname:"Will"} };
+  state.ecs.relationships={ [id]:{known:{}} };
+  for(const [i,npc] of npcs.entries()) {
+    state.ecs.nameable[npc]={nickname:"Neighbour "+i};
+    state.ecs.relationships[id].known[npc]={ring:"public"};
+  }
+  state.redraws.push(id,...npcs);
+  try {
+    view.frame();
+    for(const npc of npcs)expect(view.objectOf(npc).getObjectByName("person-name").visible).toBe(true);
+    expect(view.objectOf(id).getObjectByName("controlled-ring")).toBeDefined();
+    state.ui.show.selected_person=npcs[0];view.frame();
+    expect(state.ui.playerId).toBe(id);
+    expect(view.objectOf(npcs[0]).getObjectByName("controlled-ring")).toBeUndefined();
+    state.ecs.playable[npcs[0]]={known:state.ecs.playable[id].known};
+    state.ui.playerId=npcs[0];view.frame();
+    expect(view.objectOf(npcs[0]).getObjectByName("controlled-ring")).toBeDefined();
+    expect(view.objectOf(id).getObjectByName("controlled-ring")).toBeUndefined();
+    expect(view.objectOf(npcs[1]).getObjectByName("person-name")).toBeUndefined();
+  } finally {view.dispose();delete global.window;}
+});
+
+it("rebuilds visible boards when an enclosure grows or is removed from a remaining backyard", () => {
+  global.window={addEventListener(){},removeEventListener(){}};
+  const {state,view}=openingView();
+  const [yard]=newEntities(state,[{spatial:{x:0,y:0},backyard:{kind:"vegetable"},pasture:{halfWidth:18,halfDepth:16}}]);
+  state.redraws.push(yard);
+  try {
+    view.frame();
+    const width=()=>new THREE.Box3().setFromObject(view.objectOf(yard).getObjectByName("fence")).getSize(new THREE.Vector3()).x;
+    const before=width();state.ecs.pasture[yard].halfWidth=32;view.frame();
+    expect(width()).toBeGreaterThan(before);
+    delete state.ecs.pasture[yard];view.frame();
+    expect(view.objectOf(yard).getObjectByName("fence")).toBeUndefined();
+  } finally {view.dispose();delete global.window;}
+});

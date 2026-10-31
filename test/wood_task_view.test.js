@@ -2,6 +2,7 @@ jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() 
 jest.mock("render/labels", () => ({ label: jest.fn(() => new (require("three").Group)()) }));
 import { person } from "render/models";
 import { label } from "render/labels";
+import { currentActivity } from "game/person_activity";
 
 it("shows the same real wood phase above the person as in the queue", () => {
   const planner = { task: ["carry_home"], world: { label: "cut_tree_down" } };
@@ -25,7 +26,7 @@ it("shows the same real wood phase above the person as in the queue", () => {
   expect(label).toHaveBeenLastCalledWith("tasks.foraging");
 });
 
-it("labels current eating and walking rather than a stale forge plan, matching the person sheet", () => {
+it("labels meals and work above heads and keeps actual walking detail in the person sheet", () => {
   const planner = { task: ["eat", "grain"], world: { label: "at_forge", places: { meet: { id: "green", x: 0, y: 0 } } } };
   const state = { ui: { playerId: "traveller" }, intro: { active: false },
     ecs: { planner: { p: planner }, profession: { p: { trade: "smith" } }, meetingPlace: { green: { kind: "green" } } } };
@@ -33,8 +34,10 @@ it("labels current eating and walking rather than a stale forge plan, matching t
   person(state, e, key => key, { realm: 0xFFFFFF });
   expect(label).toHaveBeenLastCalledWith("tasks.eating");
   planner.task = ["walk_to", "meet"];
+  const beforeWalking = label.mock.calls.length;
   person(state, e, key => key, { realm: 0xFFFFFF });
-  expect(label).toHaveBeenLastCalledWith("tasks.walking_to_green");
+  expect(label).toHaveBeenCalledTimes(beforeWalking);
+  expect(currentActivity(state.ecs, e.id, key => key)).toBe("tasks.walking_to_green");
   planner.task = ["trade_work", "workplace"];
   person(state, e, key => key, { realm: 0xFFFFFF });
   expect(label).toHaveBeenLastCalledWith("tasks.at_forge");

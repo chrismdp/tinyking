@@ -27,13 +27,18 @@ const SIDE_NORMALS = [0, 1, 2].map(k => ({ x: Math.cos(k * Math.PI / 3), z: Math
 // NOTE: An orbiting camera over the map. Drag (or WASD / arrows) pans, the
 // wheel or a pinch zooms towards the pointer, right-drag or Q/E rotates and
 // right-drag up and down tilts. A press that does not move is a click.
-export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, enabled = () => true, maxDistance = () => 3600 }) {
+export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, enabled = () => true, maxDistance = () => 3600, followTarget = () => null, usableRect = () => ({ left: 0, top: 0, right: dom.clientWidth, bottom: dom.clientHeight }) }) {
   const rig = { x: bounds.centre.x, z: bounds.centre.y, y: 0, yaw: 0, pitch: 0.95, distance: 900 };
   const keys = new Set();
   const pointers = new Map();
   let press = null;
   let pinch = null;
   let tapTimer = null;
+  let following = true;
+  let recentering = false;
+  const originalTouchAction = dom.style?.touchAction;
+  if (dom.style) dom.style.touchAction = "none";
+  const inspect = () => { following = false; recentering = false; };
 
   const raycaster = new THREE.Raycaster();
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -107,7 +112,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
     dom.setPointerCapture(e.pointerId);
     if (pointers.size == 2) {
       const [a, b] = [...pointers.values()];
-      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y), angle: Math.atan2(b.y - a.y, b.x - a.x) };
+      pinch = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, distance: Math.hypot(a.x - b.x, a.y - b.y), angle: Math.atan2(b.y - a.y, b.x - a.x) };
       press = null;
     } else if (pointers.size == 1) {
       press = { id: e.pointerId, button: e.button, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false };
@@ -122,6 +127,9 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch && pointers.size == 2) {
       const [a, b] = [...pointers.values()];
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+      if (Math.hypot(x - pinch.x, y - pinch.y) > .1) { inspect(); pan(x - pinch.x, y - pinch.y); }
+      pinch.x = x; pinch.y = y;
       const d = Math.hypot(a.x - b.x, a.y - b.y);
       if (d > 0 && pinch.distance > 0) {
         zoomTowards(pinch.distance / d, (a.x + b.x) / 2, (a.y + b.y) / 2);
@@ -146,6 +154,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
         rig.pitch += dy * 0.005;
         keepInBounds();
       } else {
+        inspect();
         pan(dx, dy);
       }
     }
@@ -156,8 +165,14 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
   const onPointerUp = e => {
     if (!enabled()) return;
     pointers.delete(e.pointerId);
-    if (pointers.size < 2) {
+    if (pointers.size < 2 && pinch) {
       pinch = null;
+      // Continue a one-finger pan after the other finger lifts, never a tap.
+      const remaining = [...pointers.entries()][0];
+      if (remaining) {
+        const [id, p] = remaining;
+        press = { id, button: 0, x: p.x, y: p.y, lastX: p.x, lastY: p.y, moved: true };
+      }
     }
     if (press && press.id == e.pointerId) {
       if (e.type != "pointercancel" && !press.moved && press.button == 0) {
@@ -230,6 +245,9 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
 
   return {
     get distance() { return rig.distance; },
+    get following() { return following; },
+    suspendFollow: inspect,
+    resumeFollow(center = false) { following = true; recentering = center; },
     // A directed shot can target the traveller outside the normal pan bounds.
     shot({ x, z, y, distance, yaw, pitch }) {
       keys.clear();
@@ -268,6 +286,7 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
         turn += ROTATE_KEYS[code] || 0;
       }
       if (px || pz) {
+        inspect();
         const speed = rig.distance * 0.9 * dt;
         const r = right();
         const f = forward();
@@ -281,9 +300,28 @@ export function createCameraRig(camera, dom, { bounds, groundHeight, onClick, en
       const target = groundHeight(rig.x, rig.z);
       rig.y += (target - rig.y) * Math.min(1, dt * 4);
       place();
+      const person = following && followTarget();
+      if (person && enabled()) {
+        const point = new THREE.Vector3(person.x, groundHeight(person.x, person.y) + 20, person.y);
+        const depth = -point.clone().applyMatrix4(camera.matrixWorldInverse).z;
+        const projected = point.project(camera);
+        const rect = usableRect();
+        const width = Math.max(1, rect.right - rect.left), height = Math.max(1, rect.bottom - rect.top);
+        const screenX = (projected.x + 1) * dom.clientWidth / 2, screenY = (1 - projected.y) * dom.clientHeight / 2;
+        const box = recentering ? [rect.left + width / 2, rect.top + height / 2, rect.left + width / 2, rect.top + height / 2] :
+          [rect.left + width * .28, rect.top + height * .28, rect.left + width * .72, rect.top + height * .72];
+        const dx = screenX - clamp(screenX, box[0], box[2]), dy = screenY - clamp(screenY, box[1], box[3]);
+        if (recentering && Math.hypot(dx, dy) < 2) recentering = false;
+        const scale = 2 * Math.max(MIN_DISTANCE, depth) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, dom.clientHeight);
+        const ease = 1 - Math.exp(-dt * 4), r = right(), f = forward();
+        rig.x += (r.x * dx - f.x * dy / Math.sin(rig.pitch)) * scale * ease;
+        rig.z += (r.z * dx - f.z * dy / Math.sin(rig.pitch)) * scale * ease;
+        keepInBounds(); place();
+      }
     },
     dispose() {
       clearTimeout(tapTimer);
+      if (dom.style) dom.style.touchAction = originalTouchAction;
       dom.removeEventListener("pointerdown", onPointerDown);
       dom.removeEventListener("pointermove", onPointerMove);
       dom.removeEventListener("pointerup", onPointerUp);

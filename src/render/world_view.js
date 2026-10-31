@@ -1,3 +1,6 @@
+import { occupiedHomes } from "game/home";
+import { displayName } from "game/knowledge";
+import { fenceFootprints, fenceRevision } from "game/fences";
 import * as THREE from "three";
 
 import { Hex, HEX_SIZE } from "game/map";
@@ -12,7 +15,7 @@ import { realmColour } from "render/colours";
 import { lookOf } from "render/biomes";
 import { createTerrain } from "render/terrain";
 import { createInstances } from "render/instances";
-import { villageModel, animateWorkplace } from "render/villages";
+import { villageModel, fenceModel, animateWorkplace } from "render/villages";
 import { createForest } from "render/forest";
 import { introActive, arrivalTiles } from "game/intro";
 import { createCameraRig, arrivalShot } from "render/camera";
@@ -20,6 +23,17 @@ import { createWeatherView } from "render/weather";
 import { weatherLight, skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
 const hexKey = point => Hex().fromPoint(point).toString();
+
+// A name belongs to a visible person, not to a body behind an opaque roof.
+export function personLabelVisible(camera, position, height, roofs, ray = new THREE.Raycaster()) {
+  return [.9,.5].some(fraction => {
+    const target = position.clone().add(new THREE.Vector3(0,height*fraction,0));
+    const distance = target.distanceTo(camera.position);
+    ray.set(camera.position,target.sub(camera.position).normalize());
+    ray.far = Math.max(0,distance-.1);
+    return !ray.intersectObjects(roofs,false).length;
+  });
+}
 
 const SUN = 3.4;
 const SKY = 1.0;
@@ -57,6 +71,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const instances = createInstances();
   scene.add(instances.mesh);
   const objects = {};
+  const labelRay = new THREE.Raycaster();
   const people = new Set();
   let known = new Set();
   let knownCount = -1;
@@ -67,6 +82,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let wasArriving = false;
   let shot = null;
   let campSetup = null;
+  let controlledId = state.ui.playerId;
+  let fencesVersion = "";
+  let fenceIds = [];
 
   const isKnown = point => revealAll || known.has(hexKey(point)) || arrivalKnown.has(hexKey(point));
 
@@ -132,7 +150,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     if (ecs.forageable && ecs.forageable[id]) {
       return models.foragePlant(ground, state, id);
     }
-    if (ecs.backyard?.[id] || ecs.workplace?.[id] || ecs.meetingPlace?.[id] || ecs.pasture?.[id] || ecs.animal?.[id]) return villageModel(ground, state, id);
+    if (ecs.fence?.[id] && !ecs.farmable?.[id] || ecs.backyard?.[id] || ecs.workplace?.[id] || ecs.meetingPlace?.[id] || ecs.pasture?.[id] || ecs.animal?.[id]) return villageModel(ground, state, id);
     if (ecs.camp?.[id]) return models.camp(ground, state, id);
     if (ecs.shelter?.[id]) return models.shelter(ground, state, id);
     if (ecs.building[id]) {
@@ -149,7 +167,10 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       });
     }
     if (ecs.farmable && ecs.farmable[id]) {
-      return models.field(ground, state, id, { selected: isSelected });
+      const field = models.field(ground, state, id, { selected: isSelected });
+      const enclosure = fenceModel(ground,state,id);
+      if (enclosure) field.add(enclosure);
+      return field;
     }
     if (ecs.stockpile && ecs.stockpile[id]) {
       return models.stockpile(ground, state, id, { selected: isSelected });
@@ -168,6 +189,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       return;
     }
     object.userData.entityId = id;
+    if (state.ecs.personable[id]) object.userData.knownName = displayName(state,id);
     if (!state.ecs.personable[id]) {
       object.userData.hexKey = hexKey(state.ecs.spatial[id]);
       object.visible = isKnown(state.ecs.spatial[id]);
@@ -183,16 +205,20 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   };
 
   const followPerson = id => {
+    const name = displayName(state, id);
+    if (objects[id] && objects[id].userData.knownName != name) rebuild(id);
     const object = objects[id];
     const s = state.ecs.spatial[id];
     if (!object || !s) {
       return;
     }
     object.position.set(s.x, ground.heightAt(s.x, s.y), s.y);
-    object.visible = isKnown(s) || (id == state.ui.playerId && introActive(state));
+    object.visible = !state.ecs.interior[id] && (isKnown(s) || (id == state.ui.playerId && introActive(state)));
 
     const ring = object.getObjectByName("ring");
     ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), models.surfaceNormal(ground, s.x, s.y));
+    const controlled = object.getObjectByName("controlled-ring");
+    if (controlled) controlled.quaternion.copy(ring.quaternion);
 
     const figure = object.getObjectByName("figure");
     if (state.ecs.planner[id]?.task?.[0] == "trade_work") figure.rotation.z = Math.sin(performance.now() / 180) * 0.07;
@@ -219,9 +245,44 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const showActivities = () => {
     const overlaps = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
     const activities = [];
+    const roofs = Object.entries(objects).filter(([id,object]) => object.visible &&
+      (state.ecs.building[id] || state.ecs.shelter?.[id]?.stage == "house" || ["alehouse","chapel"].includes(state.ecs.meetingPlace?.[id]?.kind)))
+      .map(([,object]) => { object.updateMatrixWorld(true); return object.children[0]; }).filter(mesh=>mesh?.isMesh);
+    for (const id of people) {
+      const object=objects[id];
+      object.userData.labelVisible=object.visible && personLabelVisible(camera,object.position,object.userData.anchorHeight,roofs,labelRay);
+      for (const key of ["person-name","activity"]) {
+        const text=object.getObjectByName(key);if(text)text.visible=object.userData.labelVisible;
+      }
+    }
+    // Names have their own lane and are never culled to make room for activity.
+    const nameBounds = [];
+    for (const id of [...people].sort()) {
+      const object = objects[id], text = object.getObjectByName("person-name");
+      if (!text || !object.userData.labelVisible) continue;
+      text.position.y = object.userData.anchorHeight + 14;
+      object.updateMatrixWorld(true);
+      const depth = -text.getWorldPosition(new THREE.Vector3()).applyMatrix4(camera.matrixWorldInverse).z;
+      const pixelHeight = depth * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, canvas.clientHeight);
+      const height = rig.distance <= 2400 ? Math.max(18, pixelHeight * 20) : 18;
+      text.scale.set(height * text.userData.nameAspect, height, 1);
+      let bounds;
+      for (let lane = 0; lane <= nameBounds.length; lane++) {
+        object.updateMatrixWorld(true);
+        const point = text.getWorldPosition(new THREE.Vector3()), depth = -point.clone().applyMatrix4(camera.matrixWorldInverse).z;
+        const centre = point.project(camera);
+        const w = text.scale.x * camera.projectionMatrix.elements[0] / depth / 2, h = text.scale.y * camera.projectionMatrix.elements[5] / depth / 2;
+        bounds = [centre.x-w,centre.y-h,centre.x+w,centre.y+h];
+        if (!nameBounds.some(other=>overlaps(bounds,other))) break;
+        text.position.y += height + 3;
+      }
+      nameBounds.push(bounds);
+      const activity = object.getObjectByName("activity");
+      if (activity) activity.position.y = text.position.y + height / 2 + activity.scale.y / 2 + 3;
+    }
     for (const id of people) {
       const object = objects[id], text = object.getObjectByName("activity");
-      if (!object.visible || !text) continue;
+      if (!object.userData.labelVisible || !text) continue;
       const at = text.getWorldPosition(new THREE.Vector3());
       const depth = -at.clone().applyMatrix4(camera.matrixWorldInverse).z;
       const centre = at.project(camera);
@@ -236,11 +297,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         onScreen: depth > 0 && centre.z < 1 && overlaps(bounds, [-1, -1, 1, 1]),
         priority: id == state.ui.playerId || selected.includes(id) });
     }
-    const shown = [];
+    const shown = [...nameBounds];
     activities.sort((a, b) => Number(b.priority) - Number(a.priority));
     for (const activity of activities) {
       const { id, text, bounds, priority, onScreen } = activity;
-      text.visible = onScreen && (priority || (!shown.some(other => overlaps(bounds, other)) &&
+      text.visible = onScreen && !nameBounds.some(other => overlaps(bounds,other)) && (priority || (!shown.some(other => overlaps(bounds, other)) &&
         !activities.some(other => other.id != id && overlaps(bounds, other.body))));
       if (text.visible) shown.push(bounds);
     }
@@ -298,6 +359,22 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const rig = createCameraRig(camera, canvas, {
     bounds: { centre: middle, apothem },
     enabled: () => !introActive(state),
+    followTarget: () => revealAll ? null : state.ecs.spatial[state.ui.playerId],
+    usableRect: () => {
+      const width = canvas.clientWidth, height = canvas.clientHeight;
+      const rect = { left: 0, top: 65, right: width, bottom: height - 85 };
+      // Read actual panels: phone task drawers cover the bottom, desktop the left.
+      if (typeof document != "undefined") {
+        for (const selector of ["#task-panel", ".panel", "#opening-guidance"]) {
+          const panel = document.querySelector(selector)?.getBoundingClientRect();
+          if (!panel || !panel.width || !panel.height) continue;
+          if (panel.width > width * .65 && panel.top > height * .4) rect.bottom = Math.min(rect.bottom, panel.top - 12);
+          else if (panel.width < width * .5 && panel.left < width * .25) rect.left = Math.max(rect.left, panel.right + 12);
+          else if (selector == "#opening-guidance") rect.top = Math.max(rect.top,panel.bottom + 12);
+        }
+      }
+      return rect;
+    },
     maxDistance: () => Math.max(3600, wholeMapDistance() * 1.5),
     groundHeight: (x, z) => ground.heightAt(x, z),
     onClick: e => {
@@ -323,9 +400,15 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   return {
     camera,
+    recenter() { rig.resumeFollow(true); },
+    resumeFollow() { rig.resumeFollow(); },
+    suspendFollow() { rig.suspendFollow(); },
+    get following() { return rig.following; },
+    get cameraDistance() { return rig.distance; },
     get terrain() { return terrain; },
     // Observer control for reproducible village inspection and captures.
     focusOn(point, distance = 1000) {
+      rig.suspendFollow();
       rig.shot({ x: point.x, z: point.y, y: ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 });
     },
     frame() {
@@ -341,6 +424,15 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         scene.add(terrain.mesh);
         state.redraws.push(...Object.keys(state.ecs.spatial));
         showKnown();
+      }
+      if (controlledId != state.ui.playerId) {
+        state.redraws.push(controlledId,state.ui.playerId,...people);
+        controlledId = state.ui.playerId; knownCount = -1; rig.resumeFollow(true);
+      }
+      const fences = fenceFootprints(state), version = fenceRevision(fences);
+      if (version != fencesVersion) {
+        state.redraws.push(...fenceIds,...fences.map(f=>f.id)); fencesVersion = version;
+        fenceIds = fences.map(f=>f.id);
       }
       const arriving = introActive(state);
       const changedIntro = lastIntro != state.intro || wasArriving != arriving;
@@ -395,6 +487,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         animateWorkplace(state, id, objects[id], now / 1000);
         if (objects[id].getObjectByName("smoke")) instances.invalidate(id);
       }
+      const occupied = occupiedHomes(state);
+      for (const id in state.ecs.building) if (objects[id]) models.animateHome(objects[id],occupied.has(id));
       instances.update();
 
       for (const id of people) {
@@ -455,6 +549,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     showWholeMap(options = {}) {
       if (!revealAll) {
         revealAll = true;
+        rig.suspendFollow();
         showKnown();
         // NOTE: near enough straight down, and far enough back that the
         // hexagon's points (and a hex beyond) fit in the view

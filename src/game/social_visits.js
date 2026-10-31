@@ -1,3 +1,5 @@
+import { LOCOMOTION_RATIO } from "game/locomotion";
+import { conversationPositions } from "game/conversation";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -54,16 +56,17 @@ export function socialHour(s) {
       const to = navAt(s, s.ecs.spatial[b]);
       const route = to && path(s, from, to);
       if (!route) return false;
-      const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / 10;
+      const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / (10 * LOCOMOTION_RATIO);
       return hours + 0.5 < 21 - hour;
     });
     if (!b) continue;
     used.add(a); used.add(b);
-    const point = { x: s.ecs.spatial[b].x, y: s.ecs.spatial[b].y };
+    const positions = conversationPositions(s, a, b);
+    if (!positions) continue;
     for (const [id, partnerId] of [[a, b], [b, a]]) {
       const p = s.ecs.planner[id];
-      p.world.social = { partnerId, visitor: id == a, homeId: s.ecs.household[id]?.houseId, stage: id == a ? "outbound" : "waiting", expires: Math.floor(s.days) + 21 / 24 };
-      p.world.places.socialDestination = point;
+      p.world.social = { partnerId, visitor: id == a, homeId: s.ecs.household[id]?.houseId, stage: "outbound", expires: Math.floor(s.days) + 21 / 24 };
+      p.world.places.socialDestination = positions[id];
       p.task = null; p.plan = null;
     }
   }
@@ -83,7 +86,7 @@ function startChildPlay(s, ids, hour) {
       const from=navAt(s,s.ecs.spatial[id]), to=navAt(s,pair[i]);
       const route=from && to && path(s,from,to);
       if (!route) return false;
-      const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / 10;
+      const hours = route.reduce((n, tile) => n + 1 / (s.ecs.walkable[tile.id].speed || 1), 0) / (10 * LOCOMOTION_RATIO);
       const planner=s.ecs.planner[id],careHours=planner.task?.[0]=="tend_garden"?planner.world.workRemaining*24:0;
       return careHours + hours + .5 < Math.min(2, 19 - hour);
     }));

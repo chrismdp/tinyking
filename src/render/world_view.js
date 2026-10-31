@@ -15,7 +15,7 @@ import { entityExists, fullEntity } from "game/entities";
 import { topController } from "game/playable";
 import { frozenAt } from "game/climate";
 import { localHabitat } from "game/biome_field";
-import { localWeather, coldEnough } from "game/weather";
+import { localWeather, weatherAtPoint, coldEnough } from "game/weather";
 import { homeOf } from "game/overworld";
 import { groundForState } from "game/geography";
 
@@ -382,7 +382,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     const sky = skyAt(state.days);
     const overviewLight = realm ? (isOverview() && rig.distance < 2200 ? 1 : THREE.MathUtils.smoothstep(rig.distance, 1800, 6500)) : 0;
     const night = sky.night * (1 - overviewLight), sunset = sky.sunset * (1 - overviewLight);
-    const cloud = weatherLight((localWeather(state) || {}).type);
+    const cloud = weatherLight((weatherAtPoint(state, { x:rig.pose.x, y:rig.pose.z }) || {}).type);
     const tint = WHITE.clone().lerp(SUNSET, sunset).lerp(NIGHT, night * 1.6);
     tint.lerp(new THREE.Color(0xB7C2CE), cloud.grey);
     sun.color.copy(tint);
@@ -660,12 +660,12 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       weatherView.mesh.visible = !realm || rig.distance < 6500;
       if (weatherView.mesh.visible) {
         const pose=rig.pose,point={x:pose.x,y:pose.z};
-        const elevation=ground.heightAt(point.x,point.y);
+        const elevation=realm ? realm.heightAt(point.x,point.y) : ground.heightAt(point.x,point.y);
         if(!weatherPoint || point.x!==weatherPoint.x || point.y!==weatherPoint.y || elevation!==weatherPoint.elevation) {
           weatherPoint={...point,elevation};weatherHabitat=localHabitat(state.world,point,elevation);
         }
         const habitat=weatherHabitat;
-        weatherView.update(weather,camera,now/1000,
+        weatherView.update(weatherAtPoint(state,point),camera,now/1000,
           ["grassland","steppe","savanna"].includes(habitat?.biome || homeOf(state.world).biome),
           habitat?frozenAt(habitat,state.days):coldEnough(homeOf(state.world),state.days));
       }
@@ -726,7 +726,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       instances.dispose();
       weatherView.dispose();
       if (realm) { realm.dispose(); realmOverlay.dispose(); sea.geometry.dispose(); sea.material.dispose(); }
-      for (const name of villageLabels.values()) settlementOverlay.remove(name);
+      for (const name of villageLabels.values()) { settlementOverlay.remove(name); models.disposeObject(name); }
+      villageLabels.clear();
       if (areaOutline) models.disposeObject(areaOutline);
       canvas.style.filter = "";
     }

@@ -110,3 +110,14 @@ it("uses physical local coldness to turn regional rain into snow and regional sn
   expect(view.mesh.children.find(c=>c.name=="rain").visible).toBe(true);
   view.dispose();
 });
+
+it('uses precipitation and wind from the inspected reach, independent of the active reach', () => {
+  const { weatherAtPoint } = require('game/weather');
+  const { worldPoint, MAP_CENTRE } = require('game/world_terrain');
+  const home={x:5,y:3},away={x:5,y:2},origin=worldPoint(home,MAP_CENTRE.toPoint());
+  const world=worldPoint(away,MAP_CENTRE.toPoint()),centre=MAP_CENTRE.toPoint();
+  const point={x:world.x-origin.x+centre.x,y:world.y-origin.y+centre.y};
+  const s={world:{home,hexes:[home,away]},weather:{'5,3':{type:'rain',wind:{strength:1}},'5,2':{type:'clear',wind:{strength:.2}}}};
+  expect(weatherAtPoint(s,point)).toBe(s.weather['5,2']);
+  expect(weatherAtPoint(s,centre)).toBe(s.weather['5,3']);
+});

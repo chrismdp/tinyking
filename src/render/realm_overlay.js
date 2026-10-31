@@ -31,7 +31,7 @@ export function createRealmOverlay(state, terrain) {
   const windGeometry = new THREE.BufferGeometry();
   windGeometry.setAttribute("position",new THREE.Float32BufferAttribute(new Float32Array(terrain.layout.reaches.length*18),3));
   const winds = new THREE.LineSegments(windGeometry,new THREE.LineBasicMaterial({color:0xF3F1DA,depthTest:false,transparent:true,opacity:.8}));winds.name="realm-wind";winds.renderOrder=4;mesh.add(winds);
-  const release = sprite => {sprite.material.map?.dispose();sprite.material.dispose();};
+  const release = sprite => sprite.userData.releaseLabel?.();
   const setLabel = (key,text,point,options) => {
     let item=labels.get(key);
     if(item?.text!=text) {

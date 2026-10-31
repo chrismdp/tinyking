@@ -62,3 +62,19 @@ it("keeps witnessed news selectable and Ask about can legitimately reveal a dist
     button.props.onClick(); expect(select).toHaveBeenCalledWith(sibling, false);
   } finally { context.mockRestore(); }
 });
+
+it.each(['departure','world_visit','return','world_move','household_join','settlement'])('shows learned %s news with actor-scoped names only', type => {
+  const { state: s, player, person, sibling } = peopleWorld();
+  s.personName = id => s.ecs.nameable[id]?.nickname;
+  s.ecs.relationships[player].known[person] = { ring: 'public', goodwill: 0 };
+  s.ecs.spatial[player].x -= 2000;
+  const event = recordEvent(s, type, [person, sibling], [], { fromWorld:'5,3', toWorld:'6,3', villageId:'village' });
+  const view = () => renderToStaticMarkup(<GameState.Provider value={s}><EventFeed/></GameState.Provider>);
+  expect(view()).not.toContain('Select Agnes Miller');
+  learnEvent(s, player, event);
+  expect(view()).toContain('Select Agnes Miller');
+  expect(view()).not.toContain('Alice Miller');
+  expect(view()).not.toContain('Village life is quiet');
+  s.ui.playerId = sibling;
+  expect(view()).not.toContain('Select Agnes Miller');
+});

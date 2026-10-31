@@ -15,10 +15,17 @@ import { currentActivity } from "game/person_activity";
 import { giftChoices } from "game/gift_choices";
 import { GameState } from "components/contexts";
 import { name } from "game/name";
-import { RINGS, RELATIONSHIP_NAMES, relationshipSentence, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
+import { RINGS, RELATIONSHIP_NAMES, relationshipSentence, relationshipCap, GOODWILL_STEPS, feelingHint, knownFamilyTree, siblingsOf, trusts, patienceLeft, TALK_TIRED, SOCIAL_REQUIRED } from "game/people";
 
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
-const displayName = (state, id) => state.ecs.nameable[id] ? name(state.ecs.nameable[id]) : "?";
+const displayName = (state, id) => knownDisplayName(state, id, id => state.ecs.nameable[id] ? name(state.ecs.nameable[id]) : "?");
+// The simulation can assemble a speaker's disclosable family graph. UI cards
+// still use the current actor's actual learned identities for names and counts.
+function familyTree(state, id) {
+  const tree = knownFamilyTree(state, state.ui.playerId, id);
+  for (const node of Object.values(tree.nodes)) if (displayName(state, node.id) == "an unknown person") node.unknown = true;
+  return tree;
+}
 const number = value => Number(value.toFixed(1));
 const SYMBOLS = { public: "○", social: "◆", personal: "■", intimate: "✦" };
 
@@ -55,7 +62,8 @@ function relation(state, personId, otherId) {
 function household(state, houseId) {
   const ecs = state.ecs;
   const head = houseId && ecs.controllable[houseId]?.controllerId;
-  const family = head && ecs.nameable[head] ? displayName(state, head).split(" ").slice(1).join(" ") : "";
+  const ownerName = head && displayName(state, head);
+  const family = ownerName && ownerName != "an unknown person" ? ownerName.split(" ").slice(1).join(" ") : "";
   const home = houseId ? displayName(state, houseId) : "No household";
   return { home: home == "Log cabin" && family ? family + " cottage" : home,
     family: family || home.replace(/ cottage$| house$/i, "") };
@@ -67,7 +75,7 @@ export function PersonPanel({ entityId }) {
   const [treeOpen, setTreeOpen] = React.useState(false);
   const [chooser, setChooser] = React.useState(null);
   const ecs = state.ecs, player = state.ui.playerId;
-  const knownName = id => knownDisplayName(state, id, id => displayName(state, id));
+  const knownName = id => displayName(state, id);
   const personName = knownName(entityId);
   const identified = personName != "an unknown person";
   const close = () => state.ui.actions.change_visibility({ selected_person: null });
@@ -78,12 +86,13 @@ export function PersonPanel({ entityId }) {
   const contacted = !!state.knowledge?.[player]?.people?.[entityId]?.conversation && !ecs.personable[entityId].dead;
   const ring = feeling.ring || "public", rank = RINGS.indexOf(ring);
   const bond = ecs.relationships[entityId].known[player];
-  const goodwill = bond?.goodwill || 0, next = GOODWILL_STEPS[rank + 1];
+  const cap = relationshipCap(state, entityId, player);
+  const goodwill = bond?.goodwill || 0, next = rank < cap ? GOODWILL_STEPS[rank + 1] : undefined;
   const nextRing = RINGS[rank + 1];
   const learned = state.knowledge?.[player]?.people || {};
   const traits = ecs.personality[entityId].traits;
   const visibleTraits = new Set([...(learned[entityId]?.traits || []), ...(trusted ? traits.slice(0, 2) : [])]);
-  const tree = knownFamilyTree(state, player, entityId);
+  const tree = familyTree(state, entityId);
   const knownCount = Object.values(tree.nodes).filter(n => !n.unknown).length;
   const theirPeople = Object.entries(ecs.relationships[entityId].known).filter(([id]) => id != player &&
     (!!ecs.relationships[player].known[id] || !!learned[id] || (tree.nodes[id] && !tree.nodes[id].unknown)))
@@ -135,8 +144,9 @@ export function PersonPanel({ entityId }) {
       <div className="relationship">{contacted ? <><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : relationshipSentence(pronoun, "you", ring, possessive)}</strong><Ring ring={ring}/></div>
         <p>{trusted ? benefit : `An impression from your conversation. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
         <div className="goodwill"><span>Goodwill with {personName.split(" ")[0]}</span><span>{number(goodwill)}{next ? " / " + next : ""}</span></div>
-        <div className={"meter " + ring + "-meter"} role="progressbar" aria-label={"Goodwill with " + personName} aria-valuenow={number(goodwill)} aria-valuemin={0} aria-valuemax={next || GOODWILL_STEPS[3]}><span style={{ width: Math.max(0, Math.min(100, goodwill / (next || GOODWILL_STEPS[3]) * 100)) + "%" }}/></div>
-        <small>{next ? `${number(Math.max(0, next - goodwill))} more towards ${RELATIONSHIP_NAMES[nextRing].toLowerCase()} · space matters too.` : "One of their closest friends · space matters too."}</small>
+        {next && <div className={"meter " + ring + "-meter"} role="progressbar" aria-label={"Goodwill with " + personName} aria-valuenow={number(goodwill)} aria-valuemin={0} aria-valuemax={next || GOODWILL_STEPS[3]}><span style={{ width: Math.max(0, Math.min(100, goodwill / (next || GOODWILL_STEPS[3]) * 100)) + "%" }}/></div>}
+        {next && <small>{`${number(Math.max(0, next - goodwill))} more towards ${RELATIONSHIP_NAMES[nextRing].toLowerCase()} · space matters too.`}</small>}
+        {cap < 3 ? <small>{personName} will never be more than {cap == 0 ? "an acquaintance" : "a friend"} to you because of their fixed tastes.</small> : !next && <small>One of their closest friends · space matters too.</small>}
       </> : <p>{dead ? "Their feelings are part of the past." : "You have not spoken together yet. Their feelings about you are unknown."}</p>}</div>
       <div className="people-list"><p className="label">{trusted ? titleCase(possessive) + " closest people" : "People seen with " + (pronoun == "They" ? "them" : pronoun == "He" ? "him" : "her")}</p>
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}
@@ -198,7 +208,7 @@ function heirOf(state, id) {
 export function FamilyTree({ entityId, onClose, onSelect }) {
   const state = React.useContext(GameState);
   const scroll = React.useRef(null);
-  const tree = knownFamilyTree(state, state.ui.playerId, entityId);
+  const tree = familyTree(state, entityId);
   const { positions, width, height } = layoutFamily(tree);
   React.useLayoutEffect(() => {
     const el=scroll.current;

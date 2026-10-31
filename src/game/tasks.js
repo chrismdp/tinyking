@@ -174,8 +174,8 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
       radius: 2,
       center: newHex
     });
-    const playable = state.ecs.playable[topController(state.ecs, actorId)];
-    if (playable) { // NOTE: only explore if we're controlled by the player
+    const playable = state.ecs.playable[actorId];
+    if (playable) { // Discoveries belong to the walking person.
       const newTiles = neighbours.filter(hex => !playable.known.find(k => hex.x === k.x && hex.y === k.y));
       playable.known = [ ...playable.known, ...newTiles ];
       newTiles.map(k => state.space[Hex(k)]).flat().forEach(e => e && state.redraws.push(e));
@@ -1044,6 +1044,7 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   }
   const result = collect_gift(state, actorId, world, dt, true, source.sourceId, source.type);
   if (result == Task.ABORT) return result;
+  (r.externalCargo ||= []).push(order.giftItem);
   r.cargo.push(order.giftItem); delete order.giftItem;
   world.holding[source.type] = true;
   order.detail = `Carrying ${source.type} to the household`;

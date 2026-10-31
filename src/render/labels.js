@@ -4,9 +4,9 @@ const SCALE = 4;
 const cache = new Map();
 
 // NOTE: A camera-facing text label, like the 2D game's rounded task labels.
-// Materials are cached by text, so a label costs one sprite.
+// Active labels share materials by text. The last user releases the texture.
 export function label(text, { fontSize = 10, colour = "white", background = "rgba(51, 51, 51, 0.85)", height = 15, cached = true } = {}) {
-  const key = [text, fontSize, colour, background].join("|");
+  const key = [text, fontSize, colour, background, height].join("|");
   let entry = cached && cache.get(key);
   if (!entry) {
     const canvas = document.createElement("canvas");
@@ -40,10 +40,18 @@ export function label(text, { fontSize = 10, colour = "white", background = "rgb
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = 4;
     const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
-    entry = { material, aspect: w / h };
+    entry = { material, aspect: w / h, users: 0 };
     if (cached) cache.set(key, entry);
   }
   const sprite = new THREE.Sprite(entry.material);
+  entry.users++;
+  sprite.userData.releaseLabel = () => {
+    delete sprite.userData.releaseLabel;
+    if (--entry.users) return;
+    if (cache.get(key) == entry) cache.delete(key);
+    entry.material.map.dispose();
+    entry.material.dispose();
+  };
   sprite.scale.set(height * entry.aspect, height, 1);
   sprite.renderOrder = 10;
   return sprite;

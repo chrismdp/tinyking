@@ -1,12 +1,19 @@
 import { canCourt, eligiblePartner, marry, chatTogether, moveHouse } from "game/social";
-import { addGoodwill, disposition, spendPatience, beginInteraction, completeConversation } from "game/people";
+import { addGoodwill, disposition, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
 import { isResident, entityId } from "game/residents";
 import { Hex } from "game/hex";
 import { closeFamily, recordEvent } from "game/events";
 
 export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
+export function marriageTasteReason(s,a,b) {
+  if (relationshipCap(s,b,a) < 3) return "Their fixed tastes prevent an Intimate relationship with you. Marriage is impossible.";
+  if (relationshipCap(s,a,b) < 3) return "Your fixed tastes prevent an Intimate relationship with them. Marriage is impossible.";
+  return null;
+}
 export function marriageReason(s,a,b) {
   if (!eligiblePartner(s,a,b,true)) return "Marriage needs living unmarried adults who are not close kin.";
+  const taste = marriageTasteReason(s,a,b);
+  if (taste) return taste;
   if (!canMarryPlayer(s,a,b)) return "Marriage needs both of you to consider each other a closest friend.";
   return null;
 }
@@ -26,12 +33,12 @@ export function familyConversation(s,a,b,key) {
     return {ok:true,message:"Your friend agreed to join your household. Their belongings remain theirs."};
   }
   const reason = key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." :
-    disposition(s,a,b) == "hate" || disposition(s,b,a) == "hate" ? "One of you does not want to court." : null;
+    disposition(s,a,b) == "hate" || disposition(s,b,a) == "hate" ? marriageTasteReason(s,a,b) : null;
   if (reason) return {ok:false,message:reason};
   if (!spendPatience(s,a,b)) return {ok:false,message:"They have had enough of talking for today."};
   if (key == "court") {
     beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
-    return {ok:true,message:"You spent time courting. Your feelings grow at their own pace."};
+    return {ok:true,message:marriageTasteReason(s,a,b) || "You spent time courting. Your feelings grow at their own pace."};
   }
   // Snapshot the original families before the new spouse links join them.
   const families = [[a,closeFamily(s,b)],[b,closeFamily(s,a)]];

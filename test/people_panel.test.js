@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PersonPanel, FamilyTree, layoutFamily } from "../src/components/person_panel";
 import { GameState } from "../src/components/contexts";
 import { peopleWorld } from "./support/people";
-import { knownFamilyTree, askAbout, completeConversation } from "game/people";
+import { knownFamilyTree, askAbout, beginInteraction, completeConversation } from "game/people";
 import { createPossession, transferPossession } from "game/possessions";
 
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
@@ -125,6 +125,7 @@ it("shows only an impression and learned traits at Public, and the true ring at 
   html = panel();
   for (const text of ["Agnes Miller", "30 years · Withyford", "Miller cottage", "seems polite", "Acquaintance", "An impression from your conversation", "Goodwill with Agnes", "0 / 10", "10 more towards familiar acquaintance"]) expect(html).toContain(text);
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  beginInteraction(state, player, person);
   html = panel();
   for (const text of ["considers you a familiar acquaintance", "Familiar acquaintance", "family tree and gossip", "Generous", "Proud", "closest people", "Edith Miller", "16 / 30"]) expect(html).toContain(text);
   expect(html).not.toContain("An impression from your conversation");
@@ -170,7 +171,9 @@ it("uses household family names and the correct object pronoun in the public pan
   state.ecs.nameable[tiles[3]].nickname = "Log cabin";
   state.ecs.nameable[parent].nickname = "Edith Miller";
   const html = render(state, <PersonPanel entityId={person}/>);
-  expect(html).toContain("Miller cottage · Miller household");
+  expect(html).toContain("Log cabin · Log cabin household");
+  state.ecs.relationships[player].known[parent] = { ring: "public", goodwill: 0 };
+  expect(render(state, <PersonPanel entityId={person}/>)).toContain("Miller cottage · Miller household");
   expect(html).toContain("People seen with him");
   expect(html).toContain("1 name known");
 });
@@ -180,6 +183,7 @@ it("marks the eldest living child as the heir even when they live in another hou
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
   state.ecs.household[person].houseId = tiles[4];
   state.ecs.controllable[tiles[4]] = { controllerId: person };
+  beginInteraction(state, player, person);
   const html = render(state, <FamilyTree entityId={person}/>);
   expect(html).toMatch(/aria-label="Select Agnes Miller[^\"]*◇ Heir/);
   state.ecs.personable[person].dead = true;
@@ -207,6 +211,7 @@ it("distinguishes a sibling's spouse from an unrelated known companion", () => {
 it("marks the known householder as in the family-tree mock-up", () => {
   const { state, player, person } = peopleWorld();
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  beginInteraction(state, player, person);
   const html = render(state, <FamilyTree entityId={person}/>);
   expect(html).toMatch(/aria-label="Select Edith Miller[^\"]*Householder/);
 });
@@ -280,6 +285,7 @@ it("marks the spouse as household heir before the eldest child, matching real in
   state.ecs.household[spouse] = { houseId: tiles[3] };
   state.ecs.relationships[spouse] = { known: {} };
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
+  beginInteraction(state, player, person);
   const html = render(state, <FamilyTree entityId={person}/>);
   expect(html).toContain("Select Dora Taylor, 55 · Living, ◇ Heir");
 });
@@ -319,7 +325,53 @@ it("keeps unintroduced inspection anonymous and pure across the sheet, tree and 
   delete state.ecs.relationships[player].known[person];
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16 };
   // Genuine speech earns the existing family disclosure, including identities.
+  beginInteraction(state, player, person);
   completeConversation(state, player, person);
   expect(panel()).toContain("Agnes Miller");
   expect(render(state, <FamilyTree entityId={person}/>)).toContain("Edith Miller");
+});
+
+it('does not disclose an unknown owner through household headings or tree heir labels', () => {
+  const { state, player, person, parent, tiles } = peopleWorld();
+  state.ecs.nameable[parent].nickname = 'Edith Secretowner';
+  state.ecs.nameable[tiles[3]].nickname = 'Log cabin';
+  state.ecs.relationships[player].known[person] = { ring: 'public', goodwill: 0 };
+  for (const view of [<PersonPanel entityId={person}/>, <FamilyTree entityId={person}/>]) {
+    const html = render(state, view);
+    expect(html).not.toContain('Secretowner');
+    expect(html).not.toContain('unknown person cottage');
+  }
+  state.ecs.relationships[player].known[parent] = { ring: 'public', goodwill: 0 };
+  expect(render(state, <PersonPanel entityId={person}/>)).toContain('Secretowner cottage · Secretowner household');
+});
+
+it.each([['hate', 100, 200, 'an acquaintance'], ['like', -100, 100, 'a friend']])('explains the %s taste cap without an impossible meter target', (taste, hate, love, limit) => {
+  const { state, player, person } = peopleWorld();
+  state.ecs.personality[person].opinionThresholds = { hate, love };
+  completeConversation(state, player, person);
+  require('game/people').addGoodwill(state, player, person, 100);
+  const html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain('will never be more than ' + limit);
+  expect(html).not.toContain('more towards');
+  expect(html).not.toContain('role="progressbar"');
+  expect(html).toContain('Marriage is impossible');
+});
+
+it('explains the player taste cap even when the other person can become Intimate', () => {
+  const { state, player, person } = peopleWorld();
+  state.ecs.personality[person].opinionThresholds = { hate: -100, love: -50 };
+  completeConversation(state, player, person);
+  const html = render(state, <PersonPanel entityId={person}/>);
+  expect(html).toContain('Your fixed tastes');
+  expect(html).toContain('Marriage is impossible');
+});
+
+it('counts only actor-known names in a trusted family tree and leaves unknown cards unselectable', () => {
+  const {state,player,person}=peopleWorld();
+  state.ecs.relationships[player].known[person]={ring:'public',goodwill:0};
+  state.ecs.relationships[person].known[player]={ring:'social',goodwill:16};
+  expect(render(state,<PersonPanel entityId={person}/>)).toContain('1 name known · the rest show as ?');
+  const html=render(state,<FamilyTree entityId={person}/>);
+  expect(html).toContain('1 of 3 names known');
+  expect(html).not.toContain('Select an unknown person');
 });

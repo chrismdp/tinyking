@@ -66,7 +66,7 @@ export function reasonGone(s, r, food) {
   if (r.kind == "harvest") {
     if (r.produced > r.delivered + r.cargo.reduce((n, id) => n + (ecs.good[id]?.amount || 0), 0)) return "Harvest cargo no longer available";
     if (!ecs.farmable?.[r.targetId] || ecs.farmable[r.targetId].houseId != r.householdId) return "The family field is gone";
-    if (r.progress < r.quantity && !ecs.farmable[r.targetId].slots.some(slot => slot.state == "harvestable")) return "The harvest need is already met";
+    if (r.progress < r.quantity && !(r.status == "accepted" && r.progress > 0) && !ecs.farmable[r.targetId].slots.some(slot => slot.state == "harvestable")) return "The harvest need is already met";
   }
   if (r.kind == "wood") {
     const w = ecs.workplace?.[r.workplaceId];
@@ -171,21 +171,46 @@ export function acceptFavour(s, id, personId) {
   r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;r.taskId=task.id;
   return task;
 }
+// A settled delivery needs neither spare pantry capacity nor another trip.
+export function favourWorkDone(s, r) {
+  if (!r || r.status != "accepted") return false;
+  const partialHarvest = r.kind == "harvest" && r.progress > 0 &&
+    !s.ecs.farmable?.[r.targetId]?.slots.some(slot => slot.state == "harvestable");
+  return (r.progress >= r.quantity || partialHarvest) && !r.cargo.length && r.delivered >= r.produced;
+}
 export function finishFavour(s, r) {
-  if (!r || r.actorId && r.actorId != s.ui.playerId || s.ecs.personable[s.ui.playerId]?.dead || r.status != "accepted" || r.progress < r.quantity || r.cargo.length || r.delivered < r.produced) return false;
+  // Keep delivering the player's real crop when the family finishes first.
+  // A completed patch earns its share only after all its yield reaches home.
+  if (!favourWorkDone(s, r) || r.actorId && r.actorId != s.ui.playerId || s.ecs.personable[s.ui.playerId]?.dead) return false;
+  if (r.kind == "harvest" && r.progress < r.quantity) r.goodwill = r.progress * 4;
   r.status = "completed"; r.completedDay = s.days;
   r.outcome = `Completed · +${r.goodwill} goodwill with the requester`;
   addGoodwill(s, s.ui.playerId, r.giverId, r.goodwill);
-  recordEvent(s, "favour", [s.ui.playerId, r.giverId], [], { favourId: r.id, kind: r.kind, quantity: r.quantity, goodwill: r.goodwill, place: r.householdId });
+  recordEvent(s, "favour", [s.ui.playerId, r.giverId], [], { favourId: r.id, kind: r.kind, quantity: r.progress, goodwill: r.goodwill, place: r.householdId });
   return true;
 }
+// Match household reserve membership, including resident hands and accessible
+// loose goods. Legal ownership alone does not identify a separate supply.
+function inHouseholdReserve(s, house, id) {
+  const ecs = s.ecs;
+  if (id == householdStore(s, house) || id == house || ecs.interior?.[id]?.buildingId == house || ecs.household?.[id]?.houseId == house) return true;
+  if (!ecs.good?.[id]) return false;
+  const heldBy = ecs.haulable?.[id]?.heldBy;
+  if (heldBy && ecs.household?.[heldBy]?.houseId == house) return true;
+  if (ecs.controllable?.[id]) {
+    const owner = topController(ecs, id);
+    return Object.keys(ecs.personable || {}).some(person => live(s, person) &&
+      ecs.household?.[person]?.houseId == house && topController(ecs, person) == owner);
+  }
+  return false;
+}
 export function favourSource(s, r) {
-  return giftOptions(s, s.ui.playerId).find(g => !g.possession && (r.kind == "wood" ? g.type == "wood" : foods.includes(g.type)));
+  return giftOptions(s, s.ui.playerId).find(g => !g.possession && !inHouseholdReserve(s, r.householdId, g.sourceId) && (r.kind == "wood" ? g.type == "wood" : foods.includes(g.type)));
 }
 export function favourCargoAvailable(s, r, id) {
   if (r.kind == "harvest") return !!s.ecs.good[id] && !!s.ecs.haulable[id];
   const ecs = s.ecs, good = ecs.good[id], holder = ecs.haulable[id]?.heldBy;
-  return good?.amount == 1 && !!ecs.haulable[id] && !ecs.possession?.[id] &&
+  return (r.externalCargo?.includes(id) || !inHouseholdReserve(s, r.householdId, id)) && good?.amount == 1 && !!ecs.haulable[id] && !ecs.possession?.[id] &&
     !!ecs.controllable[id] && topController(ecs, id) == topController(ecs, s.ui.playerId) &&
     (!holder || holder == s.ui.playerId || !!ecs.stockpile?.[holder]) &&
     (r.kind == "wood" ? good.type == "wood" : foods.includes(good.type));
@@ -194,6 +219,7 @@ export function favourWaiting(s, task) {
   const r = requestForTask(s, task);
   if (!r) return "Request gone";
   if (r.status != "accepted") return r.outcome || r.status;
+  if (favourWorkDone(s, r)) return null;
   const ecs = s.ecs;
   const store = ecs.container?.[householdStore(s, r.householdId)];
   if (!store) return "The household target is gone";

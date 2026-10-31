@@ -47,7 +47,7 @@ construction caches repeated field queries. Normal frames create no world maps,
 communities or terrain meshes. Actual surface replacement refreshes active
 heights and their cache. View disposal releases its owned geometry and materials.
 The camera adjusts its depth range with zoom so that low coasts remain distinct
-from the surrounding sea. Close views retain local clipping and terrain clearance.
+from the surrounding sea. Close views retain local clipping and terrain clearance. Remote clearance uses the drawn triangles through a spatial index. It follows refreshed vertex heights. Close-up precipitation, wind and lighting use the inspected reach's hourly weather.
 
 The old SVG overview remains in new-game and debug seed/climate previews.
 

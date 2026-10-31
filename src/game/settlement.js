@@ -3,7 +3,7 @@ import MersenneTwister from "mersenne-twister";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities, deleteEntity } from "game/entities";
 import { generatePerson, TRIANGLES } from "game/map";
-import { generateVillageLife, settlementLayoutInputs, workBayTiles } from "game/villages";
+import { generateVillageLife, settlementLayoutInputs, workBayTiles, workStationPoint } from "game/villages";
 import { path, removeBidirectionalLink, addBidirectionalLink } from "game/pathfinding";
 import { reserveRoad, canPlaceField, reserveFieldPlot, reserveWorkYard, canReserveWorkYard, reserveFieldLane, tileContents } from "game/land_use";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
@@ -62,7 +62,7 @@ function reservationPreview(s) {
     walkable:Object.fromEntries(Object.entries(s.ecs.walkable).map(([id,w])=>[id,{...w,neighbours:{...w.neighbours}}]))}};
 }
 function yardGeometry(s,point,garden,pads,site) {
-  const station={ecs:{spatial:{station:{x:point.x,y:point.y}},workplace:{station:{}}}};
+  const station={ecs:{spatial:{station:workStationPoint(point)},workplace:{station:{}}}};
   const base=buildingFootprint(station,"station"),bay=expandedFootprint(station,"station",1);
   const gardens=[{...garden,halfWidth:18,halfDepth:18,angle:0}];
   const homes=pads.map(p=>p.usedBy?s.ecs.treeClearance?.[p.usedBy] || buildingFootprint(s,p.usedBy):
@@ -115,7 +115,8 @@ function reserveSiteYard(s,site,pads,owner=null) {
   site.yardTiles=fallback.tiles;
   site.yardPoint={x:s.ecs.spatial[fallback.id].x,y:s.ecs.spatial[fallback.id].y};
   site.gardenPoint=fallback.garden;
-  site.rearOpportunity=[...new Set([...workBayTiles(s,s.ecs.spatial[fallback.id],0),...homeRearTiles(s,site)])];
+  site.stationPoint=workStationPoint(site.yardPoint);
+  site.rearOpportunity=[...new Set([...workBayTiles(s,site.stationPoint,0),...homeRearTiles(s,site)])];
   return fallback.id;
 }
 
@@ -293,7 +294,7 @@ export function constructHome(s, villageId, people, options={}) {
     for(const tile of [...(site.yardTiles || [site.yard]),...(site.workYardTiles || [])])e.mappable[tile].buildingPlot=house;
     e.household[house].yardReservation=site.yard;
     e.household[house].gardenPoint=site.gardenPoint;
-    if(site.gardenPoint)e.household[house].stationPoint={...site.yardPoint};
+    if(site.gardenPoint)e.household[house].stationPoint={...site.stationPoint};
     e.household[house].workYardReservation=[...new Set([...(site.yardTiles || []).filter(id=>id!=site.yard),...(site.workYardTiles || [])])];
   }
   s.settlement.layoutDirty=true;

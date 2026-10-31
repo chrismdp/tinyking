@@ -1,4 +1,5 @@
 import { buildingFootprint } from "game/tree_clearance";
+import * as settlements from "game/settlement";
 import * as landUse from "game/land_use";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
@@ -7,7 +8,7 @@ import { constructHome, reserveFoundingFields } from "game/settlement";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 
-function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{},spread=false) {
+function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{}) {
   const centre=Hex(10,10), hexes=Grid.hexagon({center:centre,radius:8});
   const s={ecs:{nextId:1,building:{},personable:{},household:{},controllable:{},village:{},playable:{},container:{},good:{},farmable:{},pasture:{},profession:{},planner:{}},space:{},redraws:[],events:[],days:0,peopleSeed:13,opinionThresholds:{hate:-100,love:100},map:{seed:13,centre:{x:10,y:10},radius:8,worldKey:"fixture",entrances:{},playerStartTile:{x:0,y:0},geography:{version:1,heights:{},routes:[]}},villages:{v:{id:"v",name:"Initial viable village",centre:{x:10,y:10},houses:[],sharedPlaces:[]}},settlement:{version:1,sites:{v:[]},journeys:[],appliedJourneys:{}}};
   for(const h of hexes)for(const corner of Hex().corners()) {
@@ -16,9 +17,8 @@ function viableVillage(count,beforeSurvey=()=>{},build=true,beforeLife=()=>{},sp
   const tiles=newEntities(s,hexes.map(h=>({spatial:{...h.toPoint(),immovable:true},mappable:{terrain:"grassland",elevation:20,temperature:"temperate"},walkable:{speed:1,worn:{},neighbours:{}}})));
   const at=Object.fromEntries(hexes.map((h,i)=>[String(h),tiles[i]]));
   for(const h of hexes)Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).forEach((n,side)=>{if(at[n])addBidirectionalLink(s.ecs,at[h],side,at[n]);});
-  let sites=[];
-  for(const h of Grid.hexagon({center:centre,radius:3}).sort((a,b)=>centre.distance(b)-centre.distance(a) || a.x-b.x || a.y-b.y))if(sites.length<(spread?8:count) && sites.every(other=>other.distance(h)>=2))sites.push(h);
-  if(spread)sites=[0,4,1,5,2,6,3,7].slice(0,count).map(i=>sites[i]);
+  const sites=[];
+  for(const h of Grid.hexagon({center:centre,radius:3}).sort((a,b)=>centre.distance(b)-centre.distance(a) || a.x-b.x || a.y-b.y))if(sites.length<count && sites.every(other=>other.distance(h)>=2))sites.push(h);
   expect(sites).toHaveLength(count);
   s.settlement.sites.v=sites.map(h=>({point:h.toPoint(),entrance:1,establishSeason:0}));
   beforeSurvey(s);
@@ -63,9 +63,7 @@ it.each([3,4,5,6,7,8])("generates actual owned trades and adult workers in a via
 });
 
 it.each([3,5,8])("keeps the garden and fields beside an accessible work station with room for its first bay (%s homes)",count=>{
-  // A declared positive fixture spreads its pads within the same radius-three
-  // hamlet, rather than filling one edge first. All original sizes stay intact.
-  const s=viableVillage(count,()=>{},true,()=>{},true),h=Object.values(s.ecs.household).find(h=>h.workplaceId && expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1)));
+  const s=viableVillage(count),h=Object.values(s.ecs.household).find(h=>h.workplaceId && expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1)));
   expect(h.fields.length).toBeGreaterThan(0);
   expect(h.backyards.length).toBeGreaterThan(0);
   expect(expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1))).toBe(true);
@@ -78,13 +76,16 @@ it("reserves full native station and garden footprints without taking hypothetic
     expect(site.yardTiles).toHaveLength(2);
     expect(site.workYardTiles).toEqual([]);
     const h=s.ecs.household[site.usedBy];
-    expect(h.stationPoint).toEqual(site.yardPoint);
+    expect(h.stationPoint).toEqual(site.stationPoint);
     expect(h.backyards.length).toBeGreaterThanOrEqual(1);
     expect(h.backyards.length).toBeLessThanOrEqual(2);
-    if(h.workplaceId)expect(s.ecs.spatial[h.workplaceId]).toMatchObject(site.yardPoint);
-    const roof=buildingFootprint({ecs:{spatial:{station:site.yardPoint},workplace:{station:{}}}},"station");
+    if(h.workplaceId)expect(s.ecs.spatial[h.workplaceId]).toMatchObject(site.stationPoint);
+    const roof=buildingFootprint({ecs:{spatial:{station:site.stationPoint},workplace:{station:{}}}},"station");
     expect(roof.halfWidth).toBe(31);expect(roof.halfDepth).toBe(45);
     for(const x of [-31,31])for(const y of [-45,45])expect(Hex().fromPoint({x:roof.x+x,y:roof.y+y}).toString()).toBe(Hex().fromPoint(site.yardPoint).toString());
+    const next=expandedFootprint({ecs:{spatial:{station:site.stationPoint},workplace:{station:{}}}},"station",1);
+    const depth=(next.halfDepth-roof.halfDepth)*2;
+    for(const x of [-19,19])for(const y of [-45,-45-depth])expect(Hex().fromPoint({x:roof.x+x,y:roof.y+y}).toString()).toBe(Hex().fromPoint(site.yardPoint).toString());
   }
 });
 
@@ -242,4 +243,18 @@ it("dates a real green relocation while retaining its founding site and enough s
   const visitors=Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead),places=visitors.map(id=>require("game/villages").eveningPlace(s,id));
   expect(places.every(p=>p.id==green)).toBe(true);
   for(const [i,p] of places.entries())for(const q of places.slice(i+1))expect(Math.hypot(p.x-q.x,p.y-q.y)).toBeGreaterThanOrEqual(32);
+});
+
+it("keeps actual yard varieties when households arrive in separate layout phases",()=>{
+  const original=settlements.constructHome;
+  const build=jest.spyOn(settlements,"constructHome").mockImplementation((s,...args)=>{
+    const house=original(s,...args);
+    if(house)generateVillageLife(s,13,s.map.playerStartTile);
+    return house;
+  });
+  try {
+    const s=viableVillage(5);
+    const kinds=s.villages.v.houses.map(id=>s.ecs.backyard[s.ecs.household[id].backyards[0]].kind);
+    expect(kinds).toEqual(["vegetable","chicken","pig","goat","beehives"]);
+  } finally {build.mockRestore();}
 });

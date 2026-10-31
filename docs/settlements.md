@@ -50,8 +50,9 @@ Trees remain on unused land until an actual footprint or cultivation needs it.
 
 The survey protects adjacent yard opportunities before optional roads are planned.
 Required work space and fields take priority over optional annexes. The native
-station footprint keeps its full 31-by-45 half extents and stands at the centre
-of its reserved hex. One actual garden stands on an adjacent reserved hex.
+station footprint keeps its full 31-by-45 half extents. Its position is aligned
+within the reserved hex using the native roof and first-bay dimensions. Both
+fit fully inside that same private work tile. One actual garden stands on an adjacent reserved hex.
 A second garden needs a separate valid reservation. Neither its size nor the
 station roof shrinks to fit. Hypothetical wings reserve no land. A real supported,
 paid addition validates and reserves its full footprint through the native API.
@@ -88,3 +89,6 @@ A growing community can move its green to reachable public gathering ground.
 `greenMoves` and `green_moved` events record each actual date, old site and new
 site. The old well stays at the founding centre. The new green receives native
 footprint clearance, and its spatial index and current inspection show the move.
+
+Yard varieties advance across actual existing estates. A later household does
+not restart the first garden kind merely because it arrived in a new layout phase.

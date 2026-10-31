@@ -24,6 +24,16 @@ function proposal(state,point,components,house) {
     controllable:{...e.controllable,[proposalId]:{controllerId:house}},
     ...Object.fromEntries(Object.entries(components).map(([kind,record])=>[kind,{...e[kind],[proposalId]:record}]))}};
 }
+// Align the full native roof and first bay inside one actual work hex.
+// The feasible interval comes from the sloping front edge and flat rear edge.
+export function workStationPoint(point) {
+  const proposal={ecs:{spatial:{station:point},workplace:{station:{}}}};
+  const roof=buildingFootprint(proposal,"station"),bay=expandedFootprint(proposal,"station",1);
+  const corners=Hex().corners(),edge=Math.max(...corners.map(p=>p.y)),right=Math.max(...corners.map(p=>p.x));
+  const front=(right-roof.halfWidth)*edge/(right/2);
+  const low=roof.halfDepth+2*(bay.halfDepth-roof.halfDepth)-edge,high=front-roof.halfDepth;
+  return {x:point.x,y:point.y+(low+high)/2};
+}
 // Tile coverage of the actual station's rear wing, without clearing trees.
 export function workBayTiles(state,point,stationOffset=-10) {
   const keys=new Set();
@@ -134,7 +144,7 @@ export function generateVillageLife(state, seed, start) {
     return id;
   };
 
-  let householdIndex = 0;
+  let householdIndex = Object.values(ecs.household).filter(h=>h.plot).length;
   for (const [vi, village] of Object.values(state.villages).entries()) {
     if (!village.houses.length) continue;
     village.sharedPlaces ||= [];

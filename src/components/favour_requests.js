@@ -5,18 +5,22 @@ import { GameState } from "components/contexts";
 import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { Hex } from "game/hex";
-import { canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore } from "game/favours";
+import { canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
 import { harvestCounts } from "game/harvest_task";
 
 export function RequestCard({ request: r, personId }) {
   const s = React.useContext(GameState);
   const giverId = r.status == "offered" && personId && canRequestForHousehold(s, r, personId) ? personId : r.giverId;
   const giver = displayName(s, giverId, id => name(s.ecs.nameable[id]));
-  const point = s.ecs.spatial[r.targetId], at = point && Hex().fromPoint(point);
+  const receipt = r.receipts?.[r.receipts.length - 1];
+  const receiver = r.kind == "wood" ? receipt?.targetId || favourReceiver(s, r) : r.targetId;
+  const fuelDelivery = r.kind == "wood" && receiver == r.workplaceId;
+  const point = s.ecs.spatial[receiver], at = point && Hex().fromPoint(point);
   const home = s.ecs.spatial[householdStore(s, r.householdId)], destination = home && Hex().fromPoint(home);
   return <article className={"favour-request " + r.status} data-favour-id={r.id}>
     <strong>{giver}</strong><h4>{favourTitle(r)} · {favourQuantity(r)}</h4>
-    <p>{r.reason}</p><small>{r.kind == "harvest" ? "Family field" : "Household stores"}{at && ` · tile ${at.x}, ${at.y}`}</small>
+    <p>{r.reason}</p><small>{r.kind == "harvest" ? "Family field" : fuelDelivery ? "Workshop fuel" : "Household stores"}{at && ` · tile ${at.x}, ${at.y}`}</small>
+    {fuelDelivery && ["offered", "accepted"].includes(r.status) && <small>Household store is full · bring the log to the {FUEL_TRADES[s.ecs.workplace?.[r.workplaceId]?.trade]}.</small>}
     {r.kind == "harvest" && destination && <small>Deliver to household · tile {destination.x}, {destination.y}</small>}
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
       {r.status == "offered" ? <button disabled={!playerOrderAllowed(s,"favour")} aria-label={"Accept favour: " + favourTitle(r) + " for " + giver} onClick={() => s.ui.actions.accept_favour(r.id, giverId)}>Accept</button> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}

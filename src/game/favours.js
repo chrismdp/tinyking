@@ -5,6 +5,7 @@ import { giftOptions, beginInteraction, addGoodwill } from "game/people";
 import { enqueueTask, playerOrderAllowed } from "game/manager";
 import { recordEvent } from "game/events";
 import { take } from "game/holder";
+import { containerHasSpace } from "game/container";
 
 export const FUEL_TRADES = { baker: "oven", smith: "forge" };
 export const FUEL_HOURS = 4;
@@ -15,6 +16,15 @@ export const requestForTask = (s, task) => s.favours?.requests[task?.favourId];
 export const householdStore = (s, house) => s.ecs.household?.[house]?.storeId ||
   s.ecs.building?.[house]?.rooms?.find(id => s.ecs.container?.[id]) ||
   (s.ecs.container?.[house] ? house : undefined);
+// Keep ordinary room-store delivery. A full pantry can instead receive its
+// requested log at the actual oven/forge, consuming it into existing fuelHours.
+// Resolve at use time so already accepted store-targeted jobs resume unchanged.
+export function favourReceiver(s, r) {
+  const store = householdStore(s, r.householdId);
+  const w = s.ecs.workplace?.[r.workplaceId];
+  return r.kind == "wood" && s.ecs.container?.[store] && !containerHasSpace(s.ecs.container[store]) &&
+    w?.houseId == r.householdId && FUEL_TRADES[w.trade] ? r.workplaceId : store;
+}
 export function fuelReady(s, workplaceId) {
   const w = s.ecs.workplace?.[workplaceId];
   return !!w && (!FUEL_TRADES[w.trade] || w.fuelHours > 0 || s.ecs.container?.[householdStore(s, w.houseId)]?.amounts.wood > 0);
@@ -60,7 +70,7 @@ export function reasonGone(s, r, food) {
   }
   if (r.kind == "wood") {
     const w = ecs.workplace?.[r.workplaceId];
-    if (!w || !FUEL_TRADES[w.trade]) return "The household target is gone";
+    if (!w || w.houseId != r.householdId || !ecs.spatial[r.workplaceId] || !FUEL_TRADES[w.trade]) return "The household target is gone";
     if ((ecs.container[store].amounts.wood || 0) > 0 || w.fuelHours > 0) return "The fuel need is already met";
   }
   if (r.kind == "food" && (food ? food.get(r.householdId) || 0 : foodReserve(s, r.householdId)) >= residents(s, r.householdId).length * 2) return "The food need is already met";
@@ -172,6 +182,14 @@ export function finishFavour(s, r) {
 export function favourSource(s, r) {
   return giftOptions(s, s.ui.playerId).find(g => !g.possession && (r.kind == "wood" ? g.type == "wood" : foods.includes(g.type)));
 }
+export function favourCargoAvailable(s, r, id) {
+  if (r.kind == "harvest") return !!s.ecs.good[id] && !!s.ecs.haulable[id];
+  const ecs = s.ecs, good = ecs.good[id], holder = ecs.haulable[id]?.heldBy;
+  return good?.amount == 1 && !!ecs.haulable[id] && !ecs.possession?.[id] &&
+    !!ecs.controllable[id] && topController(ecs, id) == topController(ecs, s.ui.playerId) &&
+    (!holder || holder == s.ui.playerId || !!ecs.stockpile?.[holder]) &&
+    (r.kind == "wood" ? good.type == "wood" : foods.includes(good.type));
+}
 export function favourWaiting(s, task) {
   const r = requestForTask(s, task);
   if (!r) return "Request gone";
@@ -179,11 +197,11 @@ export function favourWaiting(s, task) {
   const ecs = s.ecs;
   const store = ecs.container?.[householdStore(s, r.householdId)];
   if (!store) return "The household target is gone";
-  if (Object.values(store.amounts).reduce((n, a) => n + a, 0) >= store.capacity) return "Household store is full";
+  if (!containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
   if (r.kind == "harvest") {
     const field = ecs.farmable?.[r.targetId];
     if (field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
-  } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;
+  } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;
   return null;
 }
 export const favourTitle = r => r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";

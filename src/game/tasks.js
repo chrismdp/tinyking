@@ -1,4 +1,4 @@
-import { recordProduction, recordMeetingUse, completeTradeProduction } from "game/settlement_growth";
+import { recordProduction, recordMeetingUse, completeTradeProduction, consumeStored } from "game/settlement_growth";
 import { resourcePermission, observeChop, customsVisitTarget, arriveCustoms, customsVisitFailed, openOath } from "game/village_customs";
 import { speechPosition, SPEECH_REACH } from "game/conversation";
 import { goalEvidence } from "game/guidance";
@@ -9,7 +9,7 @@ import { recordRoadUse } from "game/road_wear";
 import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
-import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
+import { FUEL_TRADES, FUEL_HOURS, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -887,9 +887,8 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
   const w = state.ecs.workplace[workplaceId];
   if (FUEL_TRADES[w.trade]) {
     if (!(w.fuelHours > 0)) {
-      const store = state.ecs.container?.[householdStore(state, w.houseId)];
-      if (!(store?.amounts.wood > 0)) return Task.ABORT;
-      store.amounts.wood--; w.fuelHours = FUEL_HOURS;
+      if (!consumeStored(state, w.houseId, "wood", 1, householdStore(state, w.houseId))) return Task.ABORT;
+      w.fuelHours = FUEL_HOURS;
     }
     const hours = Math.min(w.fuelHours, dt / time.HOUR * hungerSpeed(state.ecs.personable[actorId]));
     w.fuelHours -= hours;
@@ -939,38 +938,59 @@ export function end_visit() {}
 export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const ecs = state.ecs, r = state.favours?.requests[requestId];
   if (firstRun && r) r.working = false;
-  if (!r || r.status != "accepted") return Task.ABORT;
+  if (!r || r.status != "accepted" || r.actorId && r.actorId != actorId || ecs.personable[actorId]?.dead) return Task.ABORT;
   const gone = reasonGone(state, r);
   if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(state, r); return Task.ABORT; }
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
   const store = householdStore(state, r.householdId);
+  const receiver = favourReceiver(state, r);
   const walk = target => {
     const key = typeof target == "object" ? target.x + "," + target.y : target;
     const result = walk_to(state, actorId, world, dt, world.favourWalk != key || firstRun, target);
     world.favourWalk = result == Task.FINISH ? null : key;
     return result;
   };
-  r.cargo = r.cargo.filter(id => ecs.good[id] && ecs.haulable[id]);
+  r.cargo = r.cargo.filter(id => favourCargoAvailable(state, r, id));
   const cargo = r.cargo[0];
   if (cargo) {
     const holder = ecs.haulable[cargo].heldBy;
     if (holder && holder != actorId) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
-    const result = walk(holder == actorId ? store : cargo);
+    const result = walk(holder == actorId ? receiver : cargo);
     if (result != Task.FINISH) return result;
+    const target = ecs.spatial[holder == actorId ? receiver : cargo];
+    if (math.squaredDistance(ecs.spatial[actorId], target) > 100 || !fenceHandoffClear(state, ecs.spatial[actorId], target)) return Task.ABORT;
     if (!holder) {
       if (!give(ecs, cargo, actorId)) return Task.ABORT;
       removeFromSpace(state, cargo); state.redraws.push(cargo, actorId);
       order.detail = "Carrying the family harvest home";
       return Task.CONTINUE;
     }
-    if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
     const type = ecs.good[cargo].type, amount = ecs.good[cargo].amount;
-    world.places.favourStore = store;
-    drop_entity_into_container(state, actorId, world, dt, true, "favourStore", type, cargo);
+    const fromId = topController(ecs, cargo), use = receiver == r.workplaceId ? "fuel" : "stored";
+    if (use == "fuel") {
+      // The one physical owned log is consumed here, never added beyond store
+      // capacity. No fuel is credited until real custody and reach pass above.
+      if (type != "wood" || amount != 1) return Task.ABORT;
+      take(ecs, cargo); deleteEntity(state, cargo);
+      ecs.workplace[receiver].fuelHours = FUEL_HOURS;
+      state.redraws.push(actorId, receiver);
+    } else {
+      if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
+      world.places.favourStore = store;
+      if (drop_entity_into_container(state, actorId, world, dt, true, "favourStore", type, cargo) == Task.ABORT) return Task.ABORT;
+    }
+    (r.receipts ||= []).push({ itemId: cargo, fromId, targetId: receiver, type, amount, use, day: state.days });
+    const account = ecs.household[r.householdId].estateAccount;
+    if (account) {
+      account.received ||= {};
+      account.received[type] = (account.received[type] || 0) + amount;
+      if (use == "fuel") account.consumed[type] = (account.consumed[type] || 0) + amount;
+    }
     world.holding[type] = ecs.holder[actorId].held.some(id => ecs.good[id]?.type == type && householdAccess(ecs, actorId, id));
     r.cargo.shift(); r.delivered += amount;
     if (r.kind != "harvest") r.progress += amount;
-    order.detail = `${r.progress}/${r.quantity} ${r.kind == "harvest" ? "patches harvested" : "delivered"} · ${r.delivered} carried home`;
+    order.detail = use == "fuel" ? `Log delivered · ${FUEL_HOURS} hours of workplace fuel` :
+      `${r.progress}/${r.quantity} ${r.kind == "harvest" ? "patches harvested" : "delivered"} · ${r.delivered} carried home`;
     order.progress = r.progress / r.quantity;
     if (finishFavour(state, r)) return Task.FINISH;
     return Task.CONTINUE;

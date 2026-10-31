@@ -14,6 +14,7 @@ function setup() {
   s.ecs.container = { [w.tiles[3]]: { capacity: 10, amounts: {} } };
   s.ecs.household[w.tiles[3]] = { storeId: w.tiles[3], fields: [] };
   s.ecs.workplace = { oven: { trade: 'baker', houseId: w.tiles[3] } };
+  s.ecs.spatial.oven = { ...s.ecs.spatial[w.tiles[3]], id: 'oven' };
   s.favours = { nextId: 1, requests: { f: { id: 'f', giverId: w.person, householdId: w.tiles[3], targetId: w.tiles[3], workplaceId: 'oven', kind: 'wood', reason: 'The oven needs fuel', quantity: 1, goodwill: 12, progress: 0, delivered: 0, produced: 0, cargo: [], status: 'offered' } } };
   s.knowledge = { [w.player]: { people: {}, feelings: {}, favours: ['f'] } };
   return w;
@@ -48,4 +49,18 @@ it('keeps the compact current task favour-aware without claiming a walking-only 
   expect(html).toContain('Fed · Deliver wood');
   const item = html.slice(html.indexOf('<li class="task'), html.indexOf('</li>'));
   expect(item).not.toContain('m left');
+});
+
+it('names the real fuel receiver for a full pantry and keeps normal room-store directions when there is space', () => {
+  const w = setup(), s = w.state;
+  s.ecs.spatial.oven = { ...s.ecs.spatial[w.tiles[1]], id: 'oven' };
+  s.ecs.container[w.tiles[3]].amounts.grain = 10;
+  let html = render(s, <RequestList/>);
+  expect(html).toContain('Workshop fuel · tile 1, 0');
+  expect(html).toContain('Household store is full · bring the log to the oven.');
+  expect(html).not.toContain('Household stores · tile 3, 0');
+  s.ecs.container[w.tiles[3]].amounts.grain = 9;
+  html = render(s, <RequestList/>);
+  expect(html).toContain('Household stores · tile 3, 0');
+  expect(html).not.toContain('Workshop fuel');
 });

@@ -1,4 +1,4 @@
-import { cancelFavour, requestForTask, favourWaiting } from "game/favours";
+import { cancelFavour, requestForTask, favourWaiting, favourReceiver } from "game/favours";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource, deliveryHome } from "game/construction";
@@ -117,7 +117,11 @@ function waitingReason(state, actorId, job) {
   const ecs = state.ecs;
   const target = job.targetId;
   if (!playerOrderAllowed(state,job.job.key)) return "This character cannot do adult work";
-  if (job.favourId) return favourWaiting(state, job) || (!canReachTask(state, actorId, target) ? "No path there" : null);
+  if (job.favourId) {
+    const request = requestForTask(state, job);
+    // Harvest starts at the field. Only fuel can change its delivery endpoint.
+    return favourWaiting(state, job) || (!canReachTask(state, actorId, request?.kind == "wood" ? favourReceiver(state, request) : target) ? "No path there" : null);
+  }
   if (job.gatheredDone) {
     const home = deliveryHome(state,actorId);
     if (!home) return "No home for delivery";

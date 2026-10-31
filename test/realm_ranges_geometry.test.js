@@ -41,3 +41,27 @@ it.each([13,20])("preserves range heights between coarse vertices against the ac
   expect(error/high).toBeLessThan(100);
   realm.dispose();
 });
+
+it('keeps close cameras above the drawn remote triangles, including after surface refresh', () => {
+  const THREE=require('three'),{createCameraRig}=require('render/camera');
+  const world=generateWorld(13),field=createLandField(world.landSeed),centre=MAP_CENTRE.toPoint();
+  const origin=worldPoint(world.home,centre),global=p=>({x:p.x-centre.x+origin.x,y:p.y-centre.y+origin.y});
+  const ground=createHeightField({seed:13,terrainAt:k=>field.terrainAt(worldPoint(world.home,Hex(...k.split(',').map(Number)).toPoint())),elevationAt:(x,y)=>field.elevationAt(global({x,y}))});
+  const realm=createRealmTerrain({world,map:{seed:13},days:.375},ground);
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  const camera=new THREE.PerspectiveCamera(40,1.6,5,200000),dom={clientWidth:1280,clientHeight:800,style:{},addEventListener(){},removeEventListener(){}};
+  const rig=createCameraRig(camera,dom,{bounds:{centre:realm.layout.centre,apothem:realm.layout.radius},groundHeight:(x,z)=>realm.heightAt(x,z),maxDistance:()=>200000,onClick(){}});
+  try {
+    for(const pitch of [.8,.3]) {
+      const x=5480,z=14341.381-Math.cos(pitch)*120;
+      rig.shot({x,z,y:realm.heightAt(x,z),distance:120,yaw:0,pitch});realm.mesh.updateMatrixWorld(true);
+      const ray=new THREE.Raycaster(new THREE.Vector3(camera.position.x,10000,camera.position.z),new THREE.Vector3(0,-1,0));
+      const hit=ray.intersectObject(realm.mesh,true)[0];expect(hit).toBeDefined();
+      expect(camera.position.y-hit.point.y).toBeGreaterThanOrEqual(25-1e-3);
+    }
+    realm.refreshGround();
+    const x=5480,y=14341.381;
+    const ray=new THREE.Raycaster(new THREE.Vector3(x,10000,y),new THREE.Vector3(0,-1,0));
+    expect(realm.heightAt(x,y)).toBeCloseTo(ray.intersectObject(realm.mesh,true)[0].point.y,3);
+  } finally {rig.dispose();realm.dispose();delete globalThis.window;}
+});

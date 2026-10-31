@@ -212,3 +212,16 @@ it('puts ready material help ahead of routine garden care without pretending the
   expect(actualWork).toBe(true);
   expect(s.ecs.controllable[w.person].controllerId).toBe(w.person);
 });
+
+it('keeps a household friend helping after inheritance makes the player their controller', () => {
+  const w = world(), s = w.state;
+  s.ecs.building = { [w.tiles[3]]: { rooms: [] } };
+  s.ecs.kinship[w.parent].spouse = w.player;
+  s.ecs.kinship[w.player].spouse = w.parent;
+  expect(friendWork(s, w.person)).toMatchObject({ targetId: w.site });
+  require('game/possessions').die(s, w.parent);
+  expect(require('game/playable').topController(s.ecs, w.person)).toBe(w.player);
+  expect(friendWork(s, w.person)).toMatchObject({ targetId: w.site });
+  w.step(3);
+  expect(s.ecs.shelter[w.site].stage).toBe('lean-to');
+});

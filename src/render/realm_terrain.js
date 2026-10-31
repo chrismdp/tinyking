@@ -157,7 +157,39 @@ export function createRealmTerrain(state, ground) {
   const triangles=chunks.reduce((n,{chunk})=>n+chunk.geometry.index.count/3,0);
   const constructionMs=performance.now()-started;
   performance.measure?.("tinyking-realm-terrain",{start:started,end:performance.now(),detail:{triangles,chunks:chunks.length,constructionMs}});
-  return {mesh,layout,boundaries,heightAt,triangles,constructionMs,
+  // Index the triangles actually drawn, not the finer natural field between
+  // their vertices. Positions stay live so refreshGround needs no second cache.
+  const cellSize = Hex().height() * 3, surfaces = new Map();
+  const cellKey = (x,y) => Math.floor(x/cellSize) + "," + Math.floor(y/cellSize);
+  for (const {chunk} of chunks) {
+    const positions = chunk.geometry.attributes.position, indices = chunk.geometry.index;
+    for (let i=0;i<indices.count;i+=3) {
+      const a=indices.getX(i),b=indices.getX(i+1),c=indices.getX(i+2);
+      const xs=[positions.getX(a),positions.getX(b),positions.getX(c)], ys=[positions.getZ(a),positions.getZ(b),positions.getZ(c)];
+      const triangle={positions,a,b,c};
+      for(let x=Math.floor(Math.min(...xs)/cellSize);x<=Math.floor(Math.max(...xs)/cellSize);x++) {
+        for(let y=Math.floor(Math.min(...ys)/cellSize);y<=Math.floor(Math.max(...ys)/cellSize);y++) {
+          const key=x+","+y;
+          if(!surfaces.has(key))surfaces.set(key,[]);
+          surfaces.get(key).push(triangle);
+        }
+      }
+    }
+  }
+  const surfaceHeightAt = (x,y) => {
+    if (Hex(MAP_CENTRE).distance(Hex().fromPoint({x,y})) <= MAP_RADIUS) return ground.heightAt(x,y);
+    let height = -Infinity;
+    for (const {positions:p,a,b,c} of surfaces.get(cellKey(x,y)) || []) {
+      const ax=p.getX(a),ay=p.getZ(a),bx=p.getX(b),by=p.getZ(b),cx=p.getX(c),cy=p.getZ(c);
+      const determinant=(by-cy)*(ax-cx)+(cx-bx)*(ay-cy);
+      const u=((by-cy)*(x-cx)+(cx-bx)*(y-cy))/determinant;
+      const v=((cy-ay)*(x-cx)+(ax-cx)*(y-cy))/determinant;
+      const w=1-u-v;
+      if(u>=-1e-6 && v>=-1e-6 && w>=-1e-6) height=Math.max(height,u*p.getY(a)+v*p.getY(b)+w*p.getY(c));
+    }
+    return height == -Infinity ? heightAt(x,y) : height;
+  };
+  return {mesh,layout,boundaries,heightAt:surfaceHeightAt,triangles,constructionMs,
     fitDistance(aspect,fov,yaw,pitch,heightFraction=.8) {
       const target=heightAt(layout.centre.x,layout.centre.y), tan=Math.tan(fov*Math.PI/360);
       let distance=1000;
@@ -198,6 +230,6 @@ export function createRealmTerrain(state, ground) {
         geometry.attributes.color.needsUpdate=true;
       }
     },
-    dispose() {for(const {chunk} of chunks)chunk.geometry.dispose();material.dispose();}
+    dispose() { surfaces.clear();for(const {chunk} of chunks)chunk.geometry.dispose();material.dispose();}
   };
 }

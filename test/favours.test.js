@@ -623,3 +623,76 @@ it('checks the workshop path for an accepted full-pantry job whose old store is 
   expect(s.ecs.haulable[w.log].heldBy).toBe(w.player);
   expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
 });
+
+it.each(['food', 'wood'])('rejects %s drawn from the receiving household, including stale assigned cargo', kind => {
+  const w = favourWorld(), s = w.state;
+  s.ecs.household[w.player] = { houseId: w.house };
+  s.ecs.controllable[w.house].controllerId = w.player;
+  s.ecs.controllable[w.store].controllerId = w.house;
+  s.ecs.container[w.camp].amounts = {};
+  s.ecs.container[w.store].amounts = { grain: 3 };
+  updateFavours(s);
+  const r = w.request(kind), task = acceptFavour(s, r.id);
+  const type = kind == 'food' ? 'grain' : 'wood';
+  if (kind == 'wood') s.ecs.container[w.store].amounts.wood = 1;
+  expect(require('game/favours').favourSource(s, r)).toBeUndefined();
+  // A legacy assigned portion from this pantry must also fail delivery validation.
+  const [item] = newEntities(s, [{ spatial: { ...s.ecs.spatial[w.player] }, good: { type, amount: 1 },
+    household: { houseId: w.house }, haulable: {}, controllable: { controllerId: w.player } }]);
+  require('game/holder').give(s.ecs, item, w.player);
+  r.cargo = [item]; task.assignedId = w.player;
+  expect(require('game/favours').favourCargoAvailable(s, r, item)).toBe(false);
+  expect(r.delivered).toBe(0);
+  expect(s.ecs.container[w.store].amounts.grain).toBe(3);
+});
+
+it('can import genuine outside food into a shared household without recycling its pantry', () => {
+  const w = favourWorld(), s = w.state;
+  s.ecs.household[w.player] = { houseId: w.house };
+  s.ecs.controllable[w.house].controllerId = w.player;
+  s.ecs.controllable[w.store].controllerId = w.house;
+  s.ecs.container[w.store].amounts.grain = 3;
+  updateFavours(s);
+  const r = w.request('food'); acceptFavour(s, r.id);
+  w.step(6);
+  expect(r.status).toBe('completed');
+  expect(s.ecs.container[w.store].amounts.grain).toBe(6);
+  expect(s.ecs.container[w.camp].amounts.grain).toBe(3);
+});
+
+it('rewards delivered patches proportionally when the family finishes the remaining harvest first', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  acceptFavour(s, r.id);
+  advanceUntil(w, () => r.progress == 1 && r.delivered == 1);
+  // Reproduce household harvest between two physical player deliveries.
+  for (const slot of s.ecs.farmable[w.field].slots) if (slot.state == 'harvestable') slot.state = 'harvested';
+  updateFavours(s);
+  expect(r.status).toBe('accepted');
+  advanceUntil(w, () => r.status == 'completed');
+  expect(r).toMatchObject({ progress: 1, delivered: 2, produced: 2, goodwill: 4 });
+  expect(s.ecs.container[w.store].amounts.grain).toBe(32);
+  const earned = s.ecs.relationships[w.person].known[w.player].goodwill;
+  expect(earned).toBeCloseTo(4, 0);
+  expect(finishFavour(s, r)).toBe(false);
+  expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(earned);
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+});
+
+it('settles already delivered harvest work even if family work fills the pantry and the field route closes', () => {
+  const w = favourWorld(), s = w.state, r = w.request('harvest');
+  const task = acceptFavour(s, r.id);
+  advanceUntil(w, () => r.progress == 1 && r.delivered == 2);
+  const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
+  reorderTask(s, move.id, 0);
+  for (const slot of s.ecs.farmable[w.field].slots) if (slot.state == 'harvestable') slot.state = 'harvested';
+  s.ecs.farmable[w.field].claimerId = w.person;
+  s.ecs.container[w.store].capacity = 32;
+  for (const tile of w.tiles) for (const [side, next] of Object.entries(s.ecs.walkable[tile].neighbours)) {
+    if (tile == w.tiles[4] || next == w.tiles[4]) delete s.ecs.walkable[tile].neighbours[side];
+  }
+  updateFavours(s);
+  advanceUntil(w, () => r.status == 'completed');
+  expect(r).toMatchObject({ progress: 1, delivered: 2, produced: 2, goodwill: 4 });
+  expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+  expect(s.ecs.container[w.store].amounts.grain).toBe(32);
+});

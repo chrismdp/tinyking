@@ -68,6 +68,7 @@ const pickProxyMaterial = shared(new THREE.MeshBasicMaterial({ visible: false })
 
 export function disposeObject(object) {
   object.traverse(child => {
+    child.userData.releaseLabel?.();
     if (child.geometry && !child.geometry.userData.shared) {
       child.geometry.dispose();
     }
@@ -480,7 +481,7 @@ export function person(state, e, t, { realm, selected }) {
   }
   group.add(ring);
   if (isPlayer) {
-    const controlled = new THREE.Mesh(ringGeometry(size * 1.65), shared(new THREE.MeshBasicMaterial({ color: 0xFFE29A, depthTest: false })));
+    const controlled = new THREE.Mesh(ringGeometry(size * 1.65), new THREE.MeshBasicMaterial({ color: 0xFFE29A, depthTest: false }));
     controlled.name = "controlled-ring"; controlled.position.y = 1; controlled.renderOrder = 4;
     group.add(controlled);
   }

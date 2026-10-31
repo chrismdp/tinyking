@@ -32,6 +32,7 @@ export const GOODWILL_STEPS = [0, 10, 30, 60];
 export const DRIFT_PER_HOUR = 0.025;
 const STARTING_BUFFER = 6;
 const DISPOSITION_CAP = { hate: 0, like: 2, love: 3 };
+export const relationshipCap = (state, observer, other) => DISPOSITION_CAP[disposition(state, observer, other)];
 
 function pairVariation(seed, a, b) {
   const text = seed + ":" + a + ":" + b;

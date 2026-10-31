@@ -364,7 +364,7 @@ export function birth(s, a, b, season) {
     ecs.kinship[p].children.push(child);
     ecs.personable[p].lastBirth = season;
   }
-  for (const other of living(s)) if (other != child && ecs.village[other]?.villageId == ecs.village[child].villageId) {
+  for (const other of new Set([...living(s), a, b])) if (other != child && ecs.village[other]?.villageId == ecs.village[child].villageId) {
     meet(s, child, other);
     meet(s, other, child);
     if ([a, b].includes(other)) {

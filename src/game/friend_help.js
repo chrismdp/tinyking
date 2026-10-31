@@ -12,7 +12,9 @@ export function friendEligible(s, id) {
 export function friendWork(s, id) {
   if (!friendEligible(s, id)) return null;
   const ecs = s.ecs, player = s.ui.playerId, world = ecs.planner[id]?.world;
-  if (!world || world.capturedBy || world.moveHome || world.social || ecs.manager[topController(ecs, id)]?.jobs.length) return null;
+  const controller = topController(ecs, id);
+  const ownWork = ecs.manager[id]?.jobs.length || controller != player && ecs.manager[controller]?.jobs.length;
+  if (!world || world.capturedBy || world.moveHome || world.social || ownWork) return null;
   const job = ecs.manager[player]?.jobs.find(j => !j.waiting);
   const site = job?.job.key == "build_shelter" && ecs.construction?.[job.targetId];
   let work;

@@ -1,17 +1,31 @@
 // One footprint for visible boards and local walking. Coordinates follow ECS
 // spatial, with the gate on the positive-y side. No tile becomes unwalkable.
 export const FENCE_CLEARANCE = 5;
+const frameFences = new WeakMap(), revisions = new WeakMap();
+// Fence structure is unchanged during a planner frame. Discard the snapshot
+// before village updates or callers can mutate geometry, replace a map or ECS.
+export function withFenceCache(state, transition) {
+  frameFences.set(state, null);
+  try { return transition(); }
+  finally { frameFences.delete(state); }
+}
 export function fenceFootprints(state) {
+  if (frameFences.get(state)) return frameFences.get(state);
   const ecs = state.ecs;
   const ids = new Set([...Object.keys(ecs.pasture || {}), ...Object.keys(ecs.fence || {})]);
-  return [...ids].filter(id => ecs.spatial[id]).map(id => {
-    const source = ecs.fence?.[id] || ecs.pasture[id];
+  const footprints = [...ids].filter(id => ecs.spatial[id]).map(id => {
+    const source = ecs.fence?.[id] || ecs.pasture[id], width = source.halfWidth;
     return { id, x: ecs.spatial[id].x, y: ecs.spatial[id].y,
-      halfWidth: source.halfWidth, halfDepth: source.halfDepth,
-      gateHalfWidth: source.gateHalfWidth ?? Math.min(12, source.halfWidth * .65) };
+      halfWidth: width, halfDepth: source.halfDepth,
+      gateHalfWidth: source.gateHalfWidth ?? Math.min(12, width * .65) };
   });
+  if (frameFences.has(state)) frameFences.set(state, footprints);
+  return footprints;
 }
-export const fenceRevision = fences => fences.map(f => [f.id,f.x,f.y,f.halfWidth,f.halfDepth,f.gateHalfWidth].join(":")).join("|");
+export function fenceRevision(fences) {
+  if (!revisions.has(fences)) revisions.set(fences, fences.map(f => [f.id,f.x,f.y,f.halfWidth,f.halfDepth,f.gateHalfWidth].join(":")).join("|"));
+  return revisions.get(fences);
+}
 export function fenceSegments(f) {
   const { x, y, halfWidth:w, halfDepth:d, gateHalfWidth:g } = f;
   const p = (a,b) => ({ x:x+a, y:y+b });

@@ -1,4 +1,5 @@
 import { frozenAt, snowlineAt, climateTile } from "game/climate";
+import { worldPoint, MAP_CENTRE } from "game/world_terrain";
 import SimplexNoise from "simplex-noise";
 import { WorldHex, WorldGrid, ALL_SIDES } from "game/hex";
 import { HOUR, season } from "game/time";
@@ -132,6 +133,21 @@ export function snowDepthAfter(depth, tile, weather, days, hours) {
   const melt = tile.temperature == "hot" ? (summer ? 0.18 : 0.12) :
     tile.temperature == "temperate" ? (winter ? 0.012 : summer ? 0.12 : 0.06) : (winter ? 0 : 0.006);
   return Math.max(0, depth - melt * hours);
+}
+
+const weatherCentres = new WeakMap();
+// Camera coordinates use the same reach translations as the realm terrain.
+export function weatherAtPoint(state, point) {
+  if (!state.world) return undefined;
+  if (!weatherCentres.has(state.world)) weatherCentres.set(state.world,
+    state.world.hexes.map(h => ({ key: keyOf(h), ...worldPoint(h, MAP_CENTRE.toPoint()) })));
+  const global = worldPoint(state.world.home, point);
+  let closest, distance = Infinity;
+  for (const centre of weatherCentres.get(state.world)) {
+    const next = (centre.x-global.x)**2 + (centre.y-global.y)**2;
+    if (next < distance) { distance = next; closest = centre.key; }
+  }
+  return state.weather?.[closest];
 }
 
 export function localWeather(state) {

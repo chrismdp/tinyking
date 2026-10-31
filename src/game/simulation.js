@@ -3,7 +3,8 @@ import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
 import { stationarySupplies } from "game/stationary_care";
-import { gardenHelp } from "game/household_routines";
+import { withFenceCache } from "game/fences";
+import { gardenHelp, withGardenHelpIndex, refreshGardenHelpIndex } from "game/household_routines";
 import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
 import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
@@ -41,10 +42,10 @@ const playerDied = state => {
 const IDLE_PLAN = () => [["wait_for", time.HOUR * 0.5]];
 
 function updatePlanners(state, frameMod) {
-  if (SPEED[state.game_speed] == 0) {
-    return;
-  }
-
+  if (SPEED[state.game_speed] == 0) return;
+  return withFenceCache(state, () => withGardenHelpIndex(state, () => updatePlannerFrame(state, frameMod)));
+}
+function updatePlannerFrame(state, frameMod) {
   const childrenByHome = new Map();
   for (const [id, child] of Object.entries(state.ecs.personable || {})) if (!child.dead && child.age >= 6 && child.age < 18 && isResident(state, id)) {
     const home = state.ecs.household?.[id]?.houseId;
@@ -82,6 +83,7 @@ function updatePlanners(state, frameMod) {
     }
     planner.world.child = state.ecs.personable[id]?.age < 18;
     if (!planner.world.ordered) planner.world.gardenHelp = gardenHelp(state, id, childrenByHome);
+    refreshGardenHelpIndex(state, id);
     if (id != state.ui.playerId) {
       if (planner.world.helpingFriend && (!friendEligible(state, id) || !friendWorkWanted(state, planner.world.helpingFriend) || planner.world.feeling.hungry || planner.world.feeling.tired)) {
         releaseFriendWork(state, id); planner.task = null; planner.plan = null;
@@ -151,6 +153,7 @@ function updatePlanners(state, frameMod) {
         htn.replan(planner);
       }
     }
+    refreshGardenHelpIndex(state, id);
   }
 }
 

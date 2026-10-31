@@ -1,3 +1,4 @@
+import { resourcePermission, observeChop, customsVisitTarget, arriveCustoms, customsVisitFailed, openOath } from "game/village_customs";
 import { speechPosition, SPEECH_REACH } from "game/conversation";
 import { HUMAN_SPEED } from "game/locomotion";
 import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
@@ -310,6 +311,10 @@ export function create_field(state, actorId, world, dt, firstRun, targetId) {
 const TIME_TO_CHOP_WOOD = time.HOUR / 2;
 export function chop_tree(state, actorId, world, dt, firstRun, targetId) {
   if (!state.ecs.good[targetId]) return Task.ABORT;
+  const permission = resourcePermission(state, actorId, targetId);
+  if (permission.kind == "private" && !permission.permitted) return Task.ABORT;
+  const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
+  observeChop(state, actorId, targetId, order);
   if (workComplete(state, actorId, world, dt, firstRun, TIME_TO_CHOP_WOOD)) {
     world.gathered = newEntities(state, Array.from({length: state.ecs.good[targetId].amount}, () => ({
       spatial: { ...state.ecs.spatial[targetId], immovable: false },
@@ -791,6 +796,10 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
   if (key == "give_gift" && !fenceHandoffClear(state, ecs.spatial[actorId], ecs.spatial[personId])) return Task.ABORT;
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
+  if (["village_oath", "village_leave"].includes(key)) {
+    result = openOath(state, actorId, personId, key == "village_leave");
+    if (result.ok) return Task.CONTINUE;
+  }
   if (key == "chat") result = chat(state, actorId, personId);
   if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
   if (key == "give_gift") {
@@ -1082,6 +1091,25 @@ export function home_downtime(state, actorId, world, dt, firstRun, home) {
     const result = walk_to(state, actorId, world, dt, firstRun, home);
     if (result != Task.FINISH) return result;
     if (!enterHome(state, actorId, home)) return Task.ABORT;
+  }
+  return Task.CONTINUE;
+}
+
+// Follow the moving person through ordinary navigation and fence routing.
+export function customs_visit(state, actorId, world, dt) {
+  const visit = customsVisitTarget(state, actorId);
+  if (!visit) return Task.CONTINUE;
+  const target = state.ecs.spatial[visit.target];
+  const key = [visit.target, target.x, target.y].join(":");
+  if (math.squaredDistance(state.ecs.spatial[actorId], target) > SPEECH_REACH ** 2) {
+    const point = speechPosition(state, actorId, visit.target);
+    if (!point) { customsVisitFailed(state, actorId); return Task.CONTINUE; }
+    const result = walk_to(state, actorId, world, dt, world.customsWalk != key, point);
+    world.customsWalk = key;
+    if (result == Task.ABORT) customsVisitFailed(state, actorId);
+  } else if (arriveCustoms(state, actorId, dt) && !state.customs.dialogue) {
+    delete world.customsVisit;
+    const p = state.ecs.planner[actorId]; p.task = null; p.plan = null;
   }
   return Task.CONTINUE;
 }

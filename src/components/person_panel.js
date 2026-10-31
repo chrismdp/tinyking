@@ -1,3 +1,4 @@
+import { VillageMembership } from "./village_customs";
 import { biography, disclosedPossessions } from "game/biography";
 import { isResident } from "game/residents";
 import { PersonRequests } from "./favour_requests";
@@ -124,6 +125,7 @@ export function PersonPanel({ entityId }) {
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}
           {!theirPeople.length && <li><span>?</span><span className="kin">Others not yet known</span></li>}</ul></div>
       {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={!left} onClick={() => queue("chat")}>Chat</button><button disabled={!trusted || !left} onClick={() => setChooser(chooser == "ask" ? null : "ask")}>Ask about someone</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
+      {!dead && present && <VillageMembership personId={entityId}/>}
       {!dead && present && <PersonRequests personId={entityId}/>}
       {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>

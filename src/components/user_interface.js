@@ -1,3 +1,4 @@
+import { CustomsEncounter } from "./village_customs";
 import { openingGuidance, dismissGuidance } from "game/guidance";
 import { EventFeed } from "./event_feed";
 import React from "react";
@@ -35,6 +36,7 @@ export function UserInterface() {
   return (
     <div id="ui">
       {show.clock && <Clock/>}
+      <CustomsEncounter/>
       {state.travelError && <div className="travel-loading" role="alert">Travel stopped: {state.travelError}</div>}
       {show.world_overview && <React.Suspense fallback={null}><TravelOverview/></React.Suspense>}
       {("main_menu" in show) && <MainMenu show={show.main_menu}/>}

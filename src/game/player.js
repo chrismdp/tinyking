@@ -1,8 +1,8 @@
 import { person, check_jobs } from "game/compound";
 import { firstFreeJob } from "game/manager";
 
-export const TALK_JOBS = ["chat", "ask_about", "give_gift"];
-export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10 };
+export const TALK_JOBS = ["chat", "ask_about", "give_gift", "village_oath", "village_leave"];
+export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, village_oath: 5, village_leave: 5 };
 
 // Keep the villager survival routines, with orders scoped to this character.
 export const player = () => [

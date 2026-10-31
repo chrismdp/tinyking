@@ -1,3 +1,4 @@
+import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
 import { stationarySupplies } from "game/stationary_care";
@@ -96,6 +97,8 @@ function updatePlanners(state, frameMod) {
       }
     }
 
+    if (planner.world.customsHold) continue;
+
     if (planner.world.ordered && planner.world.currentJob) {
       const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
       if (job && (job.favourId ? requestForTask(state, job)?.status != "accepted" : !job.gatheredDone && !state.ecs.spatial[job.targetId])) deferPlayerTask(state);
@@ -130,7 +133,7 @@ function updatePlanners(state, frameMod) {
     if (planner.task) {
       htn.runTask(state, planner, dt, false);
     }
-    while (!planner.task && planner.plan) {
+    while (!planner.world.customsHold && !planner.task && planner.plan) {
       if (planner.plan.length > 0) {
         planner.task = planner.plan.shift();
         if (topController(state.ecs, planner.id) == state.ui.playerId) {
@@ -216,6 +219,7 @@ export function createSimulation(state, { onHour, onTravel, onError } = {}) {
       updateIntro(state, realSeconds);
       if (arriving) return;
       if (!requestsStarted) { updateFavours(state); requestsStarted = true; }
+      updateCustoms(state);
       updatePlanners(state, frameMod);
       if(state.pendingPlayerTravel) {
         const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;

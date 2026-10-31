@@ -151,7 +151,9 @@
     "weaving": "Weaving",
     "baking": "Baking",
     "tanning": "Tanning hides",
-    "milling": "Milling grain"
+    "milling": "Milling grain",
+    "village_oath": "Discussing the local oath",
+    "village_leave": "Discussing leaving the village"
   },
   "rooms": {
     "sleeping_quarters": {

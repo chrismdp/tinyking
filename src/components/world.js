@@ -1,3 +1,4 @@
+import { resourcePermission, answerCustoms, commonLand, villageElder, membership, oathEligibility } from "game/village_customs";
 import { updateRoadWear, recordRoadUse } from "game/road_wear";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -214,6 +215,14 @@ export function World() {
       },
       choose_job: (playerId, job, targetId) => {
         if (introActive(state)||state.worldBusy) return;
+        if (job.key == "cut_tree_down") {
+          const permission = resourcePermission(state, playerId, targetId);
+          if (permission.kind == "private" && !permission.permitted) return;
+          if (!permission.permitted) {
+            state.ui.resourceOrder = { job, targetId, villageId: permission.villageId };
+            setPopupInfo({}); renderUI(); return;
+          }
+        }
         if (job.key == "build_shelter") {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
@@ -223,7 +232,17 @@ export function World() {
         setPopupInfo({});
         renderUI();
       },
-      accept_favour: id => { if (introActive(state)||state.worldBusy) return; state.renderer?.resumeFollow(); acceptFavour(state, id); renderUI(); },
+      confirm_resource_order: () => {
+        const order = state.ui.resourceOrder;
+        if (!order || state.customs?.dialogue) return;
+        const permission = resourcePermission(state, state.ui.playerId, order.targetId);
+        if (permission.kind != "private" || permission.permitted) enqueueTask(state, order.job, order.targetId);
+        delete state.ui.resourceOrder; renderUI();
+      },
+      dismiss_resource_order: () => { delete state.ui.resourceOrder; renderUI(); },
+      answer_customs: choice => { answerCustoms(state, choice); renderUI(); },
+      dismiss_customs: () => { delete state.ui.customsResult; renderUI(); },
+      accept_favour: (id, personId) => { if (introActive(state)||state.worldBusy) return; state.renderer?.resumeFollow(); acceptFavour(state, id, personId); renderUI(); },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)||state.worldBusy) return;
         state.renderer?.resumeFollow();
@@ -244,6 +263,7 @@ export function World() {
       generate_map: async (seed) => {
         state.ecs = { nextId: 1 };
         state.travel=null;state.residents=null;state.worldBusy=false;state.travelError=null;state.transition=null;state.pendingPlayerTravel=null;state.pendingNpcDepartures=[];
+        state.customs = null; state.ui.resourceOrder = null; state.ui.customsResult = null;
         state.knowledge = {};
         state.talking = {};
         state.ui.talkResult = null;
@@ -292,6 +312,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
+      window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }
 

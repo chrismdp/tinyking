@@ -276,6 +276,7 @@ async function play(page) {
         build,
         trees: nearest(Object.keys(s.ecs.good)
           .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
+          .filter(id => window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted)
           .filter(drawn))
       };
     }, build);

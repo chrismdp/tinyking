@@ -1,4 +1,4 @@
-import { knownEvents } from "game/events";
+import { knownEvents, eventSentence } from "game/events";
 import { displayName } from "game/knowledge";
 import { knownFamilyTree } from "game/people";
 
@@ -29,6 +29,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
     let text;
     if (e.type == "death" && parent(a)) text = "Lost " + (state.ecs.nameable[a]?.male === undefined ? "a parent, " : state.ecs.nameable[a].male ? "their father, " : "their mother, ") + n(a) + ", in " + when(e);
     if (e.people.includes(person)) {
+      if (["commons_warning", "commons_report", "village_oath", "village_leave"].includes(e.type)) text = eventSentence(state, e, n).replace(/\.$/, "");
       if (e.type == "marriage") text = "Married " + n(other) + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "move") text = "Moved to " + (state.ecs.nameable?.[e.toHouse] ? n(e.toHouse) : "another home") + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "world_move") text = "Settled in " + e.toWorld + " in " + when(e);

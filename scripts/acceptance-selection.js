@@ -229,3 +229,13 @@ async function assertFamilySurfaceClear(page) {
   return result;
 }
 module.exports.assertFamilySurfaceClear=assertFamilySurfaceClear;
+
+// Overview is intentionally inspection-only. Older mechanical drivers zoomed
+// out past its threshold, then tried local orders. Return with the same visible
+// You control as a player before resuming their real map clicks.
+async function returnToLocalView(page) {
+  if (!await page.evaluate(() => !!window.tinyking.renderer.overview)) return;
+  await page.getByRole("button", {name:"Recenter on you", exact:true}).click();
+  await page.waitForFunction(() => !window.tinyking.renderer.overview);
+}
+module.exports.returnToLocalView = returnToLocalView;

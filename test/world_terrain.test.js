@@ -35,6 +35,7 @@ describe("the continuous world terrain", () => {
           const left = worldPoint(home, local(home));
           const right = worldPoint(next, local(next));
           expect(a.landAt(left)).toBeCloseTo(b.landAt(right), 10);
+          expect(a.elevationAt(left)).toBeCloseTo(b.elevationAt(right), 8);
           expect(a.terrainAt(left)).toEqual(b.terrainAt(right));
         }
       }

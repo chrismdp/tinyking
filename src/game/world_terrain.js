@@ -40,17 +40,34 @@ export function createLandField(seed, fixture) {
     0.2 * land.noise2D(x * 0.0001 - 31.7, y * 0.0001 + 14.6) +
     0.06 * land.noise2D(x * 0.0007 + 5.9, y * 0.0007 - 22.4) +
     0.008 * land.noise2D(x * 0.0015 - 13.1, y * 0.0015 + 3.3);
+  // Anisotropic zero contours form spines, rather than maxima forming cones.
+  // Slow domain warping bends the belts. The envelope leaves whole plains
+  // between uplands; the smaller contour only adds spurs on their shoulders.
+  const angle = relief.noise2D(71.2, -39.4) * Math.PI;
+  const along = { x: Math.cos(angle), y: Math.sin(angle) };
+  const clamp = n => Math.max(0, Math.min(1, n));
   const elevationAt = p => {
     if (fixture?.kind == "mountain-pass") {
       const x=p.x-fixture.x, y=p.y-fixture.y;
       return 20+850*Math.exp(-((x/650)**2))*(1-.78*Math.exp(-(((y+420)/260)**2)));
     }
-    // Broad uplands carry smaller ridges and valleys, all in world coordinates.
-    const upland = Math.max(0, relief.noise2D(p.x*.00013+8.2,p.y*.00013-4.6)+.18);
-    const ridge = Math.max(0, relief.noise2D(p.x*.00042+8.2,p.y*.00042-4.6));
-    const valley = relief.noise2D(p.x*.0009,p.y*.0009);
-    const coast = Math.min(1, Math.max(0, landAt(p)) / .16);
-    return 14 + coast * (850*upland + 1400*ridge*ridge + 65*upland*valley);
+    const coast = clamp(landAt(p) / .16);
+    if (!coast) return 14;
+    const u = p.x * along.x + p.y * along.y;
+    const v = -p.x * along.y + p.y * along.x;
+    const bend = 2400 * relief.noise2D(u * .000035 + 28.1, v * .000045 - 11.7);
+    const contour = Math.abs(relief.noise2D(u * .000012 + 8.2, (v + bend) * .00009 - 4.6));
+    const envelope = clamp((relief.noise2D(p.x * .000025 - 2.8, p.y * .000025 + 12.4) + .55) * 1.3);
+    const width = .42 + .14 * relief.noise2D(u * .00008 - 19.2, v * .00005 + 3.1);
+    const shoulder = Math.max(0, 1 - contour / (width * 1.8));
+    const spine = Math.max(0, 1 - (contour / width) ** 2) ** 2;
+    const spur = Math.max(0, 1 - Math.abs(relief.noise2D(u * .00018 + v * .00009, v * .00032 - 18.2)) / .45);
+    const summits = .76 + .24 * relief.noise2D(u * .0004 + 7.4, v * .00008);
+    const hills = Math.max(0, relief.noise2D(p.x * .00009 + 8.2, p.y * .00009 - 4.6) + .25);
+    // The max joins secondary ridges into a main shoulder without making a
+    // grid. Detail is proportional to relief and cannot seed isolated peaks.
+    const range = Math.max(spine * summits, .8 * spur * shoulder);
+    return 14 + coast * (300 * hills + envelope * (300 * shoulder * shoulder + 1150 * range));
   };
   return {
     landAt, elevationAt,

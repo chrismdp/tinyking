@@ -1,5 +1,5 @@
 jest.mock("../scripts/game-register",()=>({}));
-import { discoverTimber, waitForOathReadiness } from "../scripts/acceptance-selection";
+import { discoverTimber, waitForOathReadiness, returnToLocalView } from "../scripts/acceptance-selection";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
 import { resourcePermission, oathEligibility } from "game/village_customs";
@@ -134,4 +134,17 @@ it("leaves ready parties and their supplies alone before the real oath request",
   const {s,elder,orders,page}=oathCareWorld(false),before=JSON.stringify(s);
   expect((await waitForOathReadiness(page,elder,"village")).orders).toEqual([]);
   expect(orders).toEqual([]);expect(JSON.stringify(s)).toBe(before);
+});
+
+it("returns the old overview driver through the visible You button before local clicks, without touching game outcomes",async()=>{
+  const {s,page}=view(),before=JSON.stringify(s);
+  s.renderer={overview:true};
+  const click=jest.fn(async()=>{s.renderer.overview=false;});
+  page.getByRole=jest.fn(()=>({click}));
+  page.waitForFunction=async fn=>expect(fn()).toBe(true);
+  await returnToLocalView(page);
+  expect(page.getByRole).toHaveBeenCalledWith("button",{name:"Recenter on you",exact:true});
+  expect(click).toHaveBeenCalledTimes(1);
+  await returnToLocalView(page);expect(click).toHaveBeenCalledTimes(1);
+  delete s.renderer;expect(JSON.stringify(s)).toBe(before);
 });

@@ -1,7 +1,7 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { generateWorld } from "game/overworld";
 import { createHeightField } from "game/height";
-import { buildGeography, groundForState, safeTile } from "game/geography";
+import { buildGeography, groundForState, safeTile, suitableHouse } from "game/geography";
 import { createLandField, MAP_CENTRE, MAP_RADIUS, worldPoint } from "game/world_terrain";
 import { generateMap } from "game/map";
 
@@ -23,12 +23,20 @@ it("a distant low pad cannot cut the seed13 ridge beside its preserved shared bo
     return [h, { ...p, terrain: surface.terrainAt(p), elevation: surface.elevationAt(p.x, p.y) }];
   }));
   const natural = createHeightField({ seed: 0, terrainAt: k => surface.terrainAt(Hex(...k.split(",").map(Number)).toPoint()), elevationAt: surface.elevationAt });
-  // A real lowland house pad must not project its cut up the pictured ridge.
-  const house=Hex(7,21),settlements={[house]:{...house,frontDoorSide:0}};
+  // Range refinement moves the old cone and makes its old pad (7,21) steep.
+  // Select an actual high border ridge and a distant viable lowland pad in
+  // this same ordinary seed, retaining the exact no-distant-cut assertion.
+  const ridge=[...grid].filter(h=>MAP_CENTRE.distance(h)>=MAP_RADIUS-2)
+    .sort((a,b)=>natural.hex(b.toPoint()).centre-natural.hex(a.toPoint()).centre)[0];
+  expect(natural.hex(ridge.toPoint()).centre).toBeGreaterThan(600);
+  const house=grid.find(h=>MAP_CENTRE.distance(h)<MAP_RADIUS-3 && h.distance(ridge)>10 &&
+    landscape[h].terrain=="grassland" && natural.hex(h.toPoint()).centre<120 && suitableHouse(natural,h.toPoint()));
+  expect(house).toBeDefined();
+  const settlements={[house]:{...house,frontDoorSide:0}};
   const geography = buildGeography(grid, landscape, settlements, {}, [], surface);
   expect(Object.keys(settlements)).toHaveLength(1);
   const ground = groundForState({ map: { seed: 13, geography }, ecs: { mappable: landscape }, space: Object.fromEntries(grid.map(h => [h, [String(h)]])) });
-  for (const h of Grid.hexagon({ center: Hex(6, 8), radius: 2 }).filter(h => landscape[h])) {
+  for (const h of Grid.hexagon({ center: ridge, radius: 2 }).filter(h => landscape[h])) {
     expect(ground.hex(h.toPoint()).corners).toEqual(natural.hex(h.toPoint()).corners);
   }
 });

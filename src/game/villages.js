@@ -6,7 +6,7 @@ import { path } from "game/pathfinding";
 import { canPlaceField, reserveFieldPlot, reserveRoad, reserveWorkYard, canReserveWorkYard, reserveFieldLane } from "game/land_use";
 import { reserveBuildingClearance, buildingFootprint, canClearForBuilding } from "game/tree_clearance";
 import { isResident } from "game/residents";
-import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { Hex, Grid, ALL_SIDES, hexDistance, hexAtPoint } from "game/hex";
 import { TRIANGLES } from "game/map";
 import { newEntities, deleteEntity, removeFromSpace } from "game/entities";
 import { hashUnit, squaredDistance } from "game/math";
@@ -54,13 +54,15 @@ export function settlementLayoutInputs(state) {
 // props use the adjoining yard, leaving the house and its door legible.
 export function generateVillageLife(state, seed, start) {
   const ecs = state.ecs;
+  const keyOf = point => String(hexAtPoint(point));
+  const startHex = Hex(start);
   state.redraws ||= [];
   const housePads=new Set([...Object.keys(ecs.building).map(id=>keyOf(ecs.spatial[id])),...Object.values(state.settlement?.sites || {}).flat().map(site=>keyOf(site.point))]);
   const occupied = new Set([...housePads,...Object.keys(ecs.mappable).filter(id=>ecs.mappable[id].villagePlot).map(id=>keyOf(ecs.spatial[id]))]);
   for (const hex of Grid.hexagon({ center: Hex(start), radius: 1 })) occupied.add(hex.toString());
   // Village clearings must preserve the reachable timber promised at arrival.
   for (const id in ecs.good) if (ecs.good[id].type == "wood" &&
-    Hex(start).distance(Hex().fromPoint(ecs.spatial[id])) <= 4) occupied.add(keyOf(ecs.spatial[id]));
+    hexDistance(startHex,hexAtPoint(ecs.spatial[id])) <= 4) occupied.add(keyOf(ecs.spatial[id]));
   const land = Object.keys(ecs.mappable).filter(id => ecs.mappable[id].terrain == "grassland");
   const tileAt = Object.fromEntries(land.map(id => [keyOf(ecs.spatial[id]), id]));
   const reserved = new Set();
@@ -75,7 +77,7 @@ export function generateVillageLife(state, seed, start) {
   };
   // Search through the actual navigation graph, so a nearby field is reachable.
   const nearby = (house, reach = 5, includePlots = false, includeOccupied = false) => {
-    const origin = Hex().fromPoint(ecs.spatial[house]);
+    const origin = hexAtPoint(ecs.spatial[house]);
     const tile = tileAt[origin];
     const reached = new Set();
     const queue = [tile];
@@ -84,12 +86,12 @@ export function generateVillageLife(state, seed, start) {
       if (!id || reached.has(id)) continue;
       reached.add(id);
       for (const n of Object.values(ecs.walkable[id].neighbours)) {
-        if (!ecs.mappable[n].cropPlot && !ecs.mappable[n].buildingPlot && origin.distance(Hex().fromPoint(ecs.spatial[n])) <= reach && !reached.has(n)) queue.push(n);
+        if (!ecs.mappable[n].cropPlot && !ecs.mappable[n].buildingPlot && hexDistance(origin,hexAtPoint(ecs.spatial[n])) <= reach && !reached.has(n)) queue.push(n);
       }
     }
     return [...reached].filter(id => ecs.mappable[id].terrain == "grassland" &&
       (includeOccupied || !occupied.has(keyOf(ecs.spatial[id])) || includePlots && reserved.has(keyOf(ecs.spatial[id]))))
-      .sort((a, b) => origin.distance(Hex().fromPoint(ecs.spatial[a])) - origin.distance(Hex().fromPoint(ecs.spatial[b])) || Number(a) - Number(b));
+      .sort((a, b) => hexDistance(origin,hexAtPoint(ecs.spatial[a])) - hexDistance(origin,hexAtPoint(ecs.spatial[b])) || Number(a) - Number(b));
   };
   const add = (point, villageId, components, houseId) => {
     const [id] = newEntities(state, [{

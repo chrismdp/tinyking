@@ -2,11 +2,54 @@
 
 Generated maps use one surface for terrain, walking, picking, occlusion and
 camera/object grounding. `createLandField(seed).elevationAt(worldPoint)` makes
-broad relief in world coordinates. Slow upland relief carries smaller ridges and
-valleys. Coastal relief fades towards sea level. Steep ground becomes mountain
-terrain. Gentle ground above altitude 780 becomes exposed stone, which remains
-walkable. Gentle uplands can support vegetation and settlements.
+relief in world coordinates. A seeded direction stretches a ridged noise field
+into long belts. Slow warping bends their spines. Broad envelopes limit mountain
+extent and leave lowlands between ranges. Rounded cross-sections and variations
+along each crest make summits and saddles. Smaller ridges join the shoulders as
+spurs. A separate slow field supplies rolling country. Coastal relief fades
+towards sea level. Local maps and coarse realm meshes sample this same field.
+The realm lattice has triangle edges about 312 units long. These samples retain
+the broad range profiles.
 
+Steep ground becomes mountain terrain. Gentle ground above altitude 780 becomes
+exposed stone, which remains walkable. Gentle uplands can support vegetation and
+settlements. Alpine rock stays grey. The existing altitude rules control snow,
+freezing and the shorter growing season.
+
+These are analytic shapes. Valleys approximate spaces between ridges. The model
+does not simulate erosion, runoff, drainage networks, rivers or geological time.
+The coast field remains independent of the range field. Existing lakes remain
+noise-based depressions, without a river or water-balance simulation.
+
+The conceptual starting point is Amit Patel's
+[terrain from noise](https://www.redblobgames.com/maps/terrain-from-noise/),
+especially ridged fields and restrained detail. This implementation uses the
+project's existing noise library. It imports no generator code or assets.
+
+## Annual moisture
+
+`annualClimate` samples the shared terrain on a 900-unit grid aligned with a
+seeded prevailing wind. The grid extends 18,000 units upwind of the realm's
+sampling margin. Each row transports moisture downwind. Sea cells replenish
+vapour. The carrying capacity falls exponentially with elevation. Ascent
+condenses excess vapour. Descending air retains the depleted supply, so the
+leeward side becomes drier. Slow moisture loss also dries continental interiors.
+Nine samples spread over each reach summarise its land climate. Sea samples do
+not enter the land average a second time. Entirely unsampled sea uses wet supply.
+
+`world.hexes[].annualMoisture` stores a dimensionless annual index. The existing
+wet, normal and dry categories use thresholds 0.68 and 0.42. The existing repair
+then limits neighbouring climate categories to one step. Temperature and morality
+retain their seeded fields. `world.prevailingWind` stores the annual direction.
+The summary grid is temporary. No detailed maps or histories are generated for it.
+Normal frames read the stored categories and do not repeat the moisture pass.
+
+This follows the small wind-ordered transport idea in
+[Mapgen4 rainfall](https://simblob.blogspot.com/2018/09/mapgen4-rainfall.html).
+It is a climate approximation, without measured rainfall units, seasonal wind
+reversals or fluid dynamics. The actual hourly pressure gradient still supplies
+weather wind. Weather continues to use the regional moisture categories. Storms
+do not change a biome instantly.
 `buildGeography(grid, landscape, settlements, entrances, anchors)` connects
 actual front-door approaches, camps and entrances through land. A least-cost
 search prefers lower elevations and smaller changes in elevation. It does not

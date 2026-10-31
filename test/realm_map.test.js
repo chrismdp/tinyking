@@ -68,7 +68,7 @@ it("inspection and layer changes only change view state; weather is the real mod
 it("keeps every coarse land vertex finite and samples real relief beyond the active map",()=>{
   const field=createLandField("13:0");
   const candidates=Array.from({length:121},(_,i)=>({x:i%11,y:Math.floor(i/11)}));
-  const h=candidates.find(h=>field.landAt(worldPoint(h,MAP_CENTRE.toPoint()))>.3);
+  const h=candidates.find(h=>field.landAt(worldPoint(h,MAP_CENTRE.toPoint()))>.3 && field.elevationAt(worldPoint(h,MAP_CENTRE.toPoint()))>600);
   expect(h).toBeDefined();
   const w={...world,home:{x:h.x-1,y:h.y},hexes:[{...world.hexes[0],x:h.x-1,y:h.y},{...world.hexes[1],...h}]};
   const ground=createHeightField({seed:13,terrainAt:()=>"grassland",cornerAt:()=>100});

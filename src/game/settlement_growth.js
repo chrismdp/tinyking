@@ -1,6 +1,6 @@
 import { reserveWorkYard } from "game/land_use";
 import { containerItemCount } from "game/container";
-import { Hex } from "game/hex";
+import { Hex, Grid } from "game/hex";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
 import { topController } from "game/playable";
 import { isResident } from "game/residents";
@@ -75,7 +75,10 @@ export function expansionFits(s,id,footprint,plots=[]) {
   if (!footprint || !canClearForBuilding(s,footprint,e.controllable?.[id] ? topController(e,id) : null)) return false;
   const house=e.workplace?.[id]?.houseId || e.meetingPlace?.[id]?.houseId || id;
   let proposal;
-  const near = Object.keys(e.spatial).filter(other=>other!=id && Math.hypot(e.spatial[other].x-footprint.x,e.spatial[other].y-footprint.y)<250);
+  // The shared spatial index already contains these entities. Enumerating
+  // distant trees and historical people for every proposed wing is redundant.
+  const nearby = Grid.hexagon({center:Hex().fromPoint(footprint),radius:4});
+  const near = nearby.flatMap(h=>s.space[h] || []).filter(other=>other!=id && Math.hypot(e.spatial[other].x-footprint.x,e.spatial[other].y-footprint.y)<250);
   for(const other of near) {
     const f=e.treeClearance?.[other] || buildingFootprint(s,other);
     if(f && footprintsOverlap(addition,f))return false;

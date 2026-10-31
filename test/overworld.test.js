@@ -44,8 +44,8 @@ const worldFor = seed => {
 const regionalWorlds = () => Array.from({ length: 100 }, (_, i) => worldFor(i + 1));
 
 describe("regions across many seeds", () => {
-  it("keeps about two thirds of all neighbours the same on each axis", () => {
-    for (const axis in AXES) {
+  it("keeps about two thirds of all neighbours the same on each independent seeded axis", () => {
+    for (const axis of ["temperature", "morality"]) {
       let same = 0;
       let pairs = 0;
       for (const world of regionalWorlds()) {
@@ -60,8 +60,8 @@ describe("regions across many seeds", () => {
     }
   });
 
-  it("gives each of the three values about a third of the world on every axis", () => {
-    for (const axis in AXES) {
+  it("gives each of the three values about a third of the world on each independent seeded axis", () => {
+    for (const axis of ["temperature", "morality"]) {
       const counts = [0, 0, 0];
       for (const world of regionalWorlds()) {
         world.hexes.forEach(h => { counts[step(axis, h[axis])]++; });

@@ -1,6 +1,6 @@
 import { FUEL_TRADES, FUEL_HOURS } from "game/favours";
 import MersenneTwister from "mersenne-twister";
-import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { Hex, Grid, ALL_SIDES, hexAtPoint, hexDistance } from "game/hex";
 import { newEntities, deleteEntity } from "game/entities";
 import { generatePerson, TRIANGLES } from "game/map";
 import { generateVillageLife, settlementLayoutInputs, workBayTiles, workStationPoint } from "game/villages";
@@ -348,10 +348,10 @@ export function prepareSettlementSeason(s,season) {
       const house=constructHome(s,village.id,people,{founding:!village.houses.length,timber:20,site});
       if(!house)throw new Error("Surveyed founding household cannot build in "+village.id+" at "+season+" site "+index);
       site.householdEstablished=house;
-      const timberTrees=Object.keys(s.ecs.good || {}).filter(id=>s.ecs.good[id].type=="wood" && !s.ecs.haulable?.[id] && Hex().fromPoint(s.ecs.spatial[id]).distance(Hex().fromPoint(site.point))<=5);
+      const timberTrees=Object.keys(s.ecs.good || {}).filter(id=>s.ecs.good[id].type=="wood" && !s.ecs.haulable?.[id] && hexDistance(hexAtPoint(s.ecs.spatial[id]),hexAtPoint(site.point))<=5);
       const event=recordEvent(s,index?"household_arrival":"founding",people,[house],{villageId:village.id,reason:"accessible route and cultivable household land"+(timberTrees.length?" with nearby timber":""),timberTrees:timberTrees.length});
       if(!index) {
-        village.origin={day:s.days,people:[...people],houseId:house,reason:event.reason,access:village.access,priorJourneys:s.settlement.journeys.filter(j=>j.tiles.some(id=>Hex().fromPoint(s.ecs.spatial[id]).distance(Hex().fromPoint(site.point))<=1)).length};
+        village.origin={day:s.days,people:[...people],houseId:house,reason:event.reason,access:village.access,priorJourneys:s.settlement.journeys.filter(j=>j.tiles.some(id=>hexDistance(hexAtPoint(s.ecs.spatial[id]),hexAtPoint(site.point))<=1)).length};
         createPossession(s,people[0],["Silver ring","Bronze brooch","Carved box","Family sword","Psalter"][index%5],"heirloom");
       }
       recordEvent(s,"marriage",people);
@@ -372,8 +372,8 @@ function summariseLivelihood(s,house,season,residents,woodland) {
   // One fuel/construction collection per household per season is a journey,
   // never a fresh supply or village-wide woodland clearing.
   if((amounts.wood || 0)<HOUSE_TIMBER+10) {
-    const home=Hex().fromPoint(e.spatial[house]);
-    const tree=woodland.find(({id,hex})=>e.good[id] && home.distance(hex)<=5 &&
+    const home=hexAtPoint(e.spatial[house]);
+    const tree=woodland.find(({id,hex})=>e.good[id] && hexDistance(home,hex)<=5 &&
       path(s,at(s,e.spatial[house]),at(s,e.spatial[id])))?.id;
     if(tree) {
       const trips=Math.ceil(e.good[tree].amount/(e.holder?.[worker]?.capacity || 2));
@@ -462,7 +462,7 @@ export function settleSeason(s,season,summary=false) {
     // an earlier household can already have collected and deleted that tree.
     const start=Hex(s.map.playerStartTile),camps=Object.values(s.map.entrances).map(e=>Hex(e.hexes[2]));
     const woodland=Object.keys(s.ecs.good || {}).filter(id=>s.ecs.good[id].type=="wood" && !s.ecs.haulable?.[id] && !s.ecs.controllable?.[id] && s.ecs.good[id].amount>0)
-      .map(id=>({id,hex:Hex().fromPoint(s.ecs.spatial[id])})).filter(({hex})=>hex.distance(start)>4 && camps.every(camp=>hex.distance(camp)>4));
+      .map(id=>({id,hex:hexAtPoint(s.ecs.spatial[id])})).filter(({hex})=>hexDistance(hex,start)>4 && camps.every(camp=>hexDistance(hex,camp)>4));
     for(const house of Object.keys(s.ecs.building || {}))if(growthRecord(s,house).builtDay<s.days)summariseLivelihood(s,house,season,residents,woodland);
     summariseJourneys(s,season,residents);
     delete s.settlement.summarising;

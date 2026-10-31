@@ -127,7 +127,8 @@ export function updateEcology(state) {
   const { seed, tiles, treeCaps } = state.ecology;
   const counts = {};
   const mature = [];
-  for (const [id, tree] of Object.entries(state.ecs.tree)) {
+  for (const id in state.ecs.tree) {
+    const tree = state.ecs.tree[id];
     counts[tree.biome] = (counts[tree.biome] || 0) + 1;
     if (tree.stage == "mature") {
       mature.push(id);

@@ -11,7 +11,13 @@ const PAD_EARTHWORK = 35;
 const ROAD_EARTHWORK = 55;
 const PAD_BLEND = 180;
 const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
-const around = h => Grid.hexagon({ center:h, radius:1 }).neighborsOf(h,ALL_SIDES);
+// Neighbour geometry is independent of seed, grades and land reservations.
+const neighbourhoods = new Map();
+const around = h => {
+  const key=String(h);
+  if(!neighbourhoods.has(key))neighbourhoods.set(key,Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES));
+  return neighbourhoods.get(key);
+};
 const land = t => t && !t.includes("water");
 const pointKey = p => Math.round(p.x*1000)+","+Math.round(p.y*1000);
 const surveys = new WeakMap();
@@ -159,8 +165,11 @@ function routeTo(start, targets, landscape, settlements, inland, ground, blocked
 // bounded cut/fill intervals. Houses and canonical boundary corners are fixed.
 function gradeRoads(roadHexes, roadSides, initial, natural, settlements, surface, landscape, fixedHexes=[]) {
   const offsets=Hex().corners(), vertices=new Map();
-  const boundary=(x,y)=>surface.elevationAt && Grid.hexagon({center:Hex().fromPoint({x,y}),radius:1})
-    .some(h=>!landscape[h] && Math.hypot(h.toPoint().x-x,h.toPoint().y-y)<61);
+  const boundary=(x,y)=>{
+    if(!surface.elevationAt)return false;
+    const h=Hex().fromPoint({x,y});
+    return [h,...around(h)].some(n=>!landscape[n] && Math.hypot(n.toPoint().x-x,n.toPoint().y-y)<61);
+  };
   const vertex=(x,y)=>{
     const key=pointKey({x,y});
     if(!vertices.has(key)) {

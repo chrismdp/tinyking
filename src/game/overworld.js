@@ -1,12 +1,13 @@
 import SimplexNoise from "simplex-noise";
 
 import { WorldGrid as Grid, WorldHex as Hex, ALL_SIDES } from "game/hex";
-import { surveyWorld } from "game/world_terrain";
+import { annualClimate } from "game/annual_moisture";
+import { createLandField, surveyWorld } from "game/world_terrain";
 
 // NOTE: The world is a hexagon of world hexes, and the map the game is
 // played on is one of them. Each world hex has one value on each of three
-// axes, and its temperature and moisture make its biome. They change how the
-// map looks and nothing else: no rule of the game reads them.
+// axes, and its temperature and moisture make its biome. Climate feeds the
+// existing vegetation, crops, snow and hourly weather conventions.
 
 export const AXES = {
   morality: ["good", "neutral", "evil"],
@@ -80,17 +81,17 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
     layouts.set(radius, [...Grid.spiral({ center: centre, radius })]);
   }
   // NOTE: Sample separate seeded fields in units of a world hex's height.
-  // Scales and thresholds balance thirds and about 2/3 matching neighbours
-  // across seeds, after the one-step repair below.
-  const fields = Object.fromEntries(Object.keys(AXES).map(axis => [axis, new SimplexNoise(axis + ":" + seed)]));
+  // Temperature and morality retain their seeded fields. Moisture comes
+  // from terrain-aware long-term transport after the dry-land survey.
+  const fields = Object.fromEntries(["morality", "temperature"].map(axis => [axis, new SimplexNoise(axis + ":" + seed)]));
   const c = centre.toPoint();
-  const hexes = layouts.get(radius).map(hex => {
+  let hexes = layouts.get(radius).map(hex => {
     const values = {};
     const p = hex.toPoint();
     const x = (p.x - c.x) / Hex().height();
     const y = (p.y - c.y) / Hex().height();
     const latitude = radius ? Math.abs(y) / radius : 0;
-    for (const axis in AXES) {
+    for (const axis of ["morality", "temperature"]) {
       const scale = axis == "temperature" ? 0.145 : 0.125;
       const threshold = axis == "temperature" ? 0.22 : 0.215;
       const noise = fields[axis].noise2D(x * scale + 17.3, y * scale - 9.1);
@@ -99,6 +100,9 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
     }
     return { x: hex.x, y: hex.y, ...values };
   });
+  const surveyed = surveyWorld(hexes, seed);
+  const climate = annualClimate(surveyed.hexes, createLandField(surveyed.landSeed), seed);
+  hexes = climate.hexes.map(h => ({...h, moisture:h.annualMoisture > .68 ? "wet" : h.annualMoisture < .42 ? "dry" : "normal"}));
   // NOTE: Use the same pull as an in-play change, in fixed spiral and side
   // order. A clash between extremes pulls one to the middle, which cannot
   // create another clash on a three-step axis. Include oceans in the repair.
@@ -115,7 +119,7 @@ export function generateWorld(seed, { radius = WORLD_RADIUS } = {}) {
   }
   hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
   const world = { radius, centre: { x: centre.x, y: centre.y }, hexes };
-  return { ...world, ...surveyWorld(world.hexes, seed) };
+  return { ...surveyed, ...world, prevailingWind:climate.wind };
 }
 
 export const homeOf = world => world.hexes.find(h => h.x == world.home.x && h.y == world.home.y);

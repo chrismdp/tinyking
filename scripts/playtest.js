@@ -18,7 +18,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
-const { snapshot, shelterCandidates, discoverTimber } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, discoverTimber, returnToLocalView } = require("./acceptance-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
 
@@ -330,7 +330,7 @@ async function play(page) {
   playURL.searchParams.set("seed", "13");
   playURL.searchParams.set("intro", "skip");
   await page.goto(playURL.href);
-  await page.waitForTimeout(8000);
+  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
   if (await page.locator("#webpack-dev-server-client-overlay").count() > 0) {
     throw new Error("the dev server's error overlay is covering the game: fix the build's errors or warnings");
   }
@@ -361,6 +361,7 @@ async function play(page) {
     // Open out from the arrival's camp close-up for the existing order checks.
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
     await page.mouse.wheel(0, 915);
+    await returnToLocalView(page);
     await page.waitForTimeout(500);
     await shot("start.png");
     check("the player starts at a camp with a bedroll and no house", await game(() => {
@@ -404,7 +405,7 @@ async function play(page) {
 
     // Start fresh again so the original interaction checks keep their empty camp.
     await page.goto(playURL.href);
-    await page.waitForTimeout(8000);
+    await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 60000 });
     await page.getByText("Start new game").first().click();
     await page.waitForSelector(".character canvas");
     await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
@@ -413,6 +414,7 @@ async function play(page) {
 
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
     await page.mouse.wheel(0, 915);
+    await returnToLocalView(page);
     await page.waitForTimeout(500);
 
     // The fresh world has its own local rights. Earn legal timber access
@@ -568,6 +570,7 @@ async function play(page) {
     await speed(PAUSE);
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
     await page.mouse.wheel(0, 915);
+    await returnToLocalView(page);
     // Reproduce the later failing case's seed, field/stockpile reservations,
     // explicit chopping and elapsed simulation; this is not the fresh build.
     for (const [id, action] of [["1368", "Move here"], ["1340", "Create Field"], ["1311", "Create Stockpile"], ["1679", "Cut down"]]) {

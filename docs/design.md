@@ -15,7 +15,7 @@ The game aims to make these activities enjoyable:
 
 ## The world and time
 
-Each local map is a world hex. Temperature, moisture, morality, elevation and continuous coastlines shape its terrain. Nine temperature/moisture combinations produce the biomes. Neighbouring world hexes differ by at most one category on each climate axis. [Geography](geography.md) describes terrain, passes, paths and placement rules.
+Each local map is a world hex. Temperature, moisture, morality, elevation and continuous coastlines shape its terrain. Nine temperature/moisture combinations produce the biomes. Long mountain belts, secondary ridges and lowland envelopes share one world-coordinate height field. Annual moisture moves along a seeded prevailing wind, with coastal supply and drier rain shadows. Neighbouring world hexes differ by at most one category on each climate axis. [Geography](geography.md) describes terrain, passes, paths and placement rules.
 
 Trees regrow through seasonal saplings near existing woods. Biomes set density and growth. Winter pauses growth. Fields use real crop patches, seasonal growth, household permissions and harvested grain. Weather follows the world pressure model. Rain, snow, wind and storms affect the presentation. They do not introduce injury, warmth or storm damage.
 

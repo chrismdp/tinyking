@@ -35,7 +35,11 @@ speed and return controls remain available. Returning restores the local panel.
 Distant lighting keeps terrain readable at night without changing local night or weather.
 
 Coarse terrain uses the same land field and exact world-coordinate translations
-as local maps. The active patch uses the actual graded surface and exact tile
+as local maps. Long spines, foothills and intervening lowlands come from that
+shared field, rather than decorative mountain models. The coarse lattice has
+triangle edges about 312 units long. It retains the broad ridge cross-sections
+at overview scale. Unexplored close-ups
+remain coarse and never generate a detailed map for the camera. The active patch uses the actual graded surface and exact tile
 fans. Other reaches use a triangular lattice with the actual stepped borders.
 Shared edges meet the active surface. Indexed geometry reuses vertices, and each
 reach can leave the draw list when it lies outside the camera view. Terrain

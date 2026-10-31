@@ -281,7 +281,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert(Math.hypot(proof.delivery.position.x - proof.delivery.targetPosition.x, proof.delivery.position.y - proof.delivery.targetPosition.y) <= 10, "Delivery must be physical at the requesting household");
     assert.equal(proof.delivery.request.delivered, proof.delivery.request.produced);
     assert.equal(proof.delivery.request.delivered + proof.delivery.request.gleaned.length, 18);
-    assert.equal(proof.delivery.request.gleaned.length, 6);
+    assert.equal(proof.delivery.request.gleaned.length, 1);
     assert.equal(proof.delivery.request.progress, 3);
     assert.equal(proof.delivery.request.goodwill, 12);
     assert.equal(proof.help.site.stage, "lean-to");

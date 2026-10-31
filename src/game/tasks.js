@@ -30,6 +30,8 @@ import { containerHasSpace, containerItemCount } from "game/container";
 import { forageAvailable } from "game/ecology";
 import { eveningPlace } from "game/villages";
 import { hungerSpeed } from "game/hunger";
+
+export const GLEANING_SHARE = 0.05;
 import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, localHome } from "game/construction";
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, chat, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
@@ -484,9 +486,10 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
       if (order?.job?.key == "harvest_field") order.gathered = [...(order.gathered || []), ...goods];
       if (farm.houseId) recordProduction(state,farm.houseId,actorId,slot.content,goods.length);
       if (request?.status == "accepted" && request.kind == "harvest" && request.targetId == targetId) {
-        // One third of a patch (rounded down) is the helper's gleaning share.
+        // The helper's gleaning share is 5% of the favour's harvest so far, at least one grain.
         // Split the actual yield: only the household's remainder is favour cargo.
-        const gleaned = goods.splice(0, Math.floor(goods.length / 3));
+        const owed = Math.max(1, Math.round(GLEANING_SHARE * (request.produced + (request.gleaned?.length || 0) + goods.length)));
+        const gleaned = goods.splice(0, Math.max(0, Math.min(goods.length, owed - (request.gleaned?.length || 0))));
         for (const id of gleaned) {
           delete state.ecs.household?.[id];
           state.ecs.controllable[id].controllerId = actorId;

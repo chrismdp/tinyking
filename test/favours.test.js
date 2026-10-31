@@ -29,7 +29,7 @@ it('does not present actual first-patch work overrun as 160% favour completion',
   // Real timed crop work with a long final frame, not an injected progress value.
   do_favour(s, w.player, planner.world, task.workRemaining + HOUR / 8 * .6, false, r.id);
   expect(task.progress).toBeCloseTo(1.6);
-  expect(r).toMatchObject({ progress: 1, delivered: 0, produced: 2, status: 'accepted' });
+  expect(r).toMatchObject({ progress: 1, delivered: 0, produced: 1, status: 'accepted' });
   expect(s.ecs.farmable[w.field].slots.filter(slot => slot.state == 'harvested')).toHaveLength(1);
   expect(harvestRow(s)).not.toContain('160%');
   expect(harvestRow(s)).toContain('1/3 patches harvested');
@@ -53,17 +53,17 @@ it('shows real patch, hand and home counts through work, partial delivery and co
   expect(r.status).toBe('accepted');
   advanceUntil(w, () => r.progress == 2);
   expect(harvestRow(s)).toContain('2/3 patches harvested');
-  expect(harvestRow(s)).toContain('2 crop portions carried home');
-  advanceUntil(w, () => r.progress == 3 && r.delivered == 5);
+  expect(harvestRow(s)).toContain('1 crop portion carried home');
+  advanceUntil(w, () => r.progress == 3 && r.delivered == 4);
   row = harvestRow(s);
   expect(row).toContain('3/3 patches harvested');
-  expect(row).toContain('5 crop portions carried home');
+  expect(row).toContain('4 crop portions carried home');
   expect(row).not.toContain('Completed');
   expect(row).not.toContain('%');
   advanceUntil(w, () => r.status == 'completed');
   expect(taskMarkup(s)).toContain('Completed · +12 goodwill with the requester');
-  expect(taskMarkup(s)).toContain('6 crop portions carried home');
-  expect(s.ecs.container[w.store].amounts.grain).toBe(36);
+  expect(taskMarkup(s)).toContain('5 crop portions carried home');
+  expect(s.ecs.container[w.store].amounts.grain).toBe(35);
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
 });
 
@@ -89,8 +89,8 @@ it('keeps harvest counts honest while reordered, waiting, interrupted and resume
   expect(html).toContain('1/3 patches harvested');
   advanceUntil(w, () => r.status == 'completed');
   expect(s.ecs.manager[w.player].jobs).not.toContain(favour);
-  expect(taskMarkup(s)).toContain('6 crop portions carried home');
-  expect(s.ecs.container[w.store].amounts.grain).toBe(36);
+  expect(taskMarkup(s)).toContain('5 crop portions carried home');
+  expect(s.ecs.container[w.store].amounts.grain).toBe(35);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(5);
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
 });
@@ -225,8 +225,8 @@ it('harvests after acceptance, preserves family ownership and physically hauls t
   w.step(6);
   expect(r.status).toBe('completed');
   expect(r.progress).toBe(3);
-  expect(r.delivered).toBe(6);
-  expect(s.ecs.container[w.store].amounts.grain).toBe(36);
+  expect(r.delivered).toBe(5);
+  expect(s.ecs.container[w.store].amounts.grain).toBe(35);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(6);
   expect(task.progress).toBe(1);
   expect(s.ecs.controllable[w.field].controllerId).toBe(w.person);
@@ -670,8 +670,8 @@ it('rewards delivered patches proportionally when the family finishes the remain
   updateFavours(s);
   expect(r.status).toBe('accepted');
   advanceUntil(w, () => r.status == 'completed');
-  expect(r).toMatchObject({ progress: 1, delivered: 2, produced: 2, goodwill: 4 });
-  expect(s.ecs.container[w.store].amounts.grain).toBe(32);
+  expect(r).toMatchObject({ progress: 1, delivered: 1, produced: 1, goodwill: 4 });
+  expect(s.ecs.container[w.store].amounts.grain).toBe(31);
   const earned = s.ecs.relationships[w.person].known[w.player].goodwill;
   expect(earned).toBeCloseTo(4, 0);
   expect(finishFavour(s, r)).toBe(false);
@@ -682,7 +682,7 @@ it('rewards delivered patches proportionally when the family finishes the remain
 it('settles already delivered harvest work even if family work fills the pantry and the field route closes', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   const task = acceptFavour(s, r.id);
-  advanceUntil(w, () => r.progress == 1 && r.delivered == 2);
+  advanceUntil(w, () => r.progress == 1 && r.delivered == 1);
   const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
   reorderTask(s, move.id, 0);
   for (const slot of s.ecs.farmable[w.field].slots) if (slot.state == 'harvestable') slot.state = 'harvested';
@@ -693,9 +693,9 @@ it('settles already delivered harvest work even if family work fills the pantry 
   }
   updateFavours(s);
   advanceUntil(w, () => r.status == 'completed');
-  expect(r).toMatchObject({ progress: 1, delivered: 2, produced: 2, goodwill: 4 });
+  expect(r).toMatchObject({ progress: 1, delivered: 1, produced: 1, goodwill: 4 });
   expect(s.ecs.manager[w.player].jobs).not.toContain(task);
-  expect(s.ecs.container[w.store].amounts.grain).toBe(32);
+  expect(s.ecs.container[w.store].amounts.grain).toBe(31);
 });
 
 it.each([true,false])('keeps a conserved gleaning share for a harvest helper (player=%s)', playerHelper => {
@@ -708,14 +708,26 @@ it.each([true,false])('keeps a conserved gleaning share for a harvest helper (pl
   s.ecs.planner[actor].world.ordered=true;
   advanceUntil(w,()=>r.progress==1);
   const own=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=='grain'&&s.ecs.controllable[id].controllerId==actor);
-  expect(own.reduce((n,id)=>n+s.ecs.good[id].amount,0)).toBe(2);
-  expect(r.cargo).toHaveLength(4);
-  expect(r.produced).toBe(4);
-  expect(r.gleaned).toHaveLength(2);
+  expect(own.reduce((n,id)=>n+s.ecs.good[id].amount,0)).toBe(1);
+  expect(r.cargo).toHaveLength(5);
+  expect(r.produced).toBe(5);
+  expect(r.gleaned).toHaveLength(1);
   expect(own.every(id=>!r.cargo.includes(id))).toBe(true);
   expect(task.favourId).toBe(r.id);
   const grain=Object.values(s.ecs.good).filter(g=>g.type=='grain').reduce((n,g)=>n+g.amount,0);
   expect(grain).toBe(6);
+});
+
+it('gleans five per cent of a larger harvest, at least one grain per favour', () => {
+  const w=favourWorld(),s=w.state,r=w.request('harvest');
+  for(const slot of s.ecs.farmable[w.field].slots)slot.amount=20;
+  const task=acceptFavour(s,r.id);
+  s.ecs.manager[w.player].ordered=true;
+  s.ecs.planner[w.player].world.ordered=true;
+  advanceUntil(w,()=>r.progress==1);
+  expect(r.gleaned).toHaveLength(1);
+  expect(r.produced).toBe(19);
+  expect(task.favourId).toBe(r.id);
 });
 
 it.each([1,6])('a queued handover frees the household crop before accepted harvest (frame=%s)', frame => {
@@ -735,7 +747,7 @@ it.each([1,6])('a queued handover frees the household crop before accepted harve
   while(r.progress==0 && s.days<deadline)simulation.step(frame);
   expect(r.progress).toBeGreaterThan(0);
   expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
-  expect(r.produced).toBe(2);
+  expect(r.produced).toBe(1);
 });
 
 it('delivers already cut crop while a family worker holds the field claim', () => {

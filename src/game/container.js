@@ -3,6 +3,6 @@ export function containerItemCount(container) {
     result += container.amounts[k], 0);
 }
 
-export function containerHasSpace(container) {
-  return containerItemCount(container) < container.capacity;
+export function containerHasSpace(container, amount = 1) {
+  return containerItemCount(container) + amount <= container.capacity;
 }

@@ -1,5 +1,6 @@
+import { TIMBER, FOODS, amountOf } from "game/goods";
 import { setTileElevation } from "game/biome_field";
-import { FUEL_TRADES, FUEL_HOURS } from "game/favours";
+import { FUEL_TRADES, FUEL_HOURS, householdStore } from "game/favours";
 import MersenneTwister from "mersenne-twister";
 import { Hex, Grid, ALL_SIDES, hexAtPoint, hexDistance } from "game/hex";
 import { newEntities, deleteEntity } from "game/entities";
@@ -14,7 +15,7 @@ import { meet, addGoodwill } from "game/people";
 import { invalidateEventIndex, recordEvent } from "game/events";
 import { createPossession, repairHouseholds } from "game/possessions";
 import { recordJourney, routeTile, flushJourneys } from "game/settlement_routes";
-import { growthRecord, growBuildings, householdRoster, expandedFootprint, footprintsOverlap, recordProduction, recordMeetingUse, completeTradeProduction, consumeStored, depositProduced } from "game/settlement_growth";
+import { growthRecord, growBuildings, householdRoster, expandedFootprint, footprintsOverlap, recordProduction, recordMeetingUse, completeTradeProduction, consumeTimber, consumeStored, depositProduced } from "game/settlement_growth";
 import { frozenAt, climateTile } from "game/climate";
 import { DAYS_IN_SEASON, HOUR, season as seasonName } from "game/time";
 import { hashUnit } from "game/math";
@@ -253,7 +254,7 @@ export function constructHome(s, villageId, people, options={}) {
     e.container ||= {};
     funding=e.container[people[0]] ||= {id:people[0],capacity:200,amounts:{wood:options.timber,grain:people.length*TRIANGLES.length,gruel:people.length}};
   }
-  if(!(funding?.amounts.wood>=HOUSE_TIMBER))return null;
+  if(!(amountOf(funding?.amounts,TIMBER)>=HOUSE_TIMBER))return null;
   const sites=s.settlement.sites[villageId] || [];
   let surface;
   let site=(options.site?[options.site]:sites).find(site=>siteAvailable(s,site,villageId,people) && (options.timber!=null || site.establishSeason==null));
@@ -280,8 +281,9 @@ export function constructHome(s, villageId, people, options={}) {
   if(!reserveWorkYard(s,[...(site.yardTiles || [site.yard]),...(site.workYardTiles || [])],site.yardOwner))throw new Error("Validated household yard reservation changed during construction");
   if(!e.mappable[site.field.tile].cropPlot && (!(site.field.kind=="foot"?reserveFieldLane(s,site.field.route):reserveRoad(s,site.field.route)) || !reserveFieldPlot(s,site.field.tile)))throw new Error("Validated household field reservation changed during construction");
   const fundingHouse=e.household?.[people[0]]?.houseId;
-  if(options.timber==null)consumeStored(s,fundingHouse,"wood",HOUSE_TIMBER);
-  else funding.amounts.wood-=HOUSE_TIMBER;
+  let remainingTimber=HOUSE_TIMBER;
+  if(options.timber==null)consumeTimber(s,fundingHouse,HOUSE_TIMBER,funding.id);
+  else for(const type of TIMBER) { const used=Math.min(funding.amounts[type] || 0,remainingTimber);if(used)funding.amounts[type]-=used;remainingTimber-=used; }
   const starting=options.timber!=null?{...funding.amounts}:{};
   if(options.timber==null) {
     for(const [type,desired] of [["grain",TRIANGLES.length],["gruel",people.length]]) {
@@ -400,15 +402,15 @@ function summariseLivelihood(s,house,season,residents,woodland) {
         recordProduction(s,house,worker,"grain",harvest);
         Object.assign(slot,{state:"harvested",content:null,growth:0,updated:s.days});delete slot.amount;
       }
-      if(["empty","ploughed","harvested"].includes(slot.state) && amounts.grain>0) {
-        consumeStored(s,house,"grain",1);ledger.grainSown++;
+      if(["empty","ploughed","harvested"].includes(slot.state) && consumeStored(s,house,"grain",1)) {
+        ledger.grainSown++;
         Object.assign(slot,{state:"sown",content:"grain",growth:0,updated:s.days});
       }
     }
   }
   const elapsed=s.generatingHistory?DAYS_IN_SEASON:Math.max(0,s.days-Math.max(s.days-DAYS_IN_SEASON,s.environmentUpdatedAt ?? s.days-DAYS_IN_SEASON));
   let food=occupants.length*elapsed;
-  for(const type of ["gruel","grain","forage"]) {
+  for(const type of FOODS) {
     const eat=Math.min(food,amounts[type] || 0);consumeStored(s,house,type,eat);food-=eat;ledger.foodConsumed+=eat;
   }
   const workplace=h.workplaceId && e.workplace[h.workplaceId];
@@ -464,7 +466,7 @@ export function settleSeason(s,season,summary=false) {
     const start=Hex(s.map.playerStartTile),camps=Object.values(s.map.entrances).map(e=>Hex(e.hexes[2]));
     const woodland=Object.keys(s.ecs.good || {}).filter(id=>s.ecs.good[id].type=="wood" && !s.ecs.haulable?.[id] && !s.ecs.controllable?.[id] && s.ecs.good[id].amount>0)
       .map(id=>({id,hex:hexAtPoint(s.ecs.spatial[id])})).filter(({hex})=>hexDistance(hex,start)>4 && camps.every(camp=>hexDistance(hex,camp)>4));
-    for(const house of Object.keys(s.ecs.building || {}))if(growthRecord(s,house).builtDay<s.days)summariseLivelihood(s,house,season,residents,woodland);
+    for(const house of new Set([...Object.keys(s.ecs.building || {}),...Object.keys(s.ecs.household || {}).filter(id=>s.ecs.household[id].fields?.length && householdStore(s,id))]))if(growthRecord(s,house).builtDay<s.days)summariseLivelihood(s,house,season,residents,woodland);
     summariseJourneys(s,season,residents);
     delete s.settlement.summarising;
     flushJourneys(s);
@@ -473,9 +475,9 @@ export function settleSeason(s,season,summary=false) {
   const changedInputs=!s.generatingHistory || s.settlement.layoutInputs!==settlementLayoutInputs(s);
   if(s.settlement.estatesInitialized && changedInputs && Object.values(s.villages).some(v=>v.houses.some(id=>!s.ecs.household[id].fields.length) ||
     v.houses.filter(id=>s.ecs.household[id].trade).length<Math.min(6,Math.max(0,v.houses.length-2)) &&
-    v.houses.some(id=>!s.ecs.household[id].trade && (residents.get(id) || []).some(p=>s.ecs.personable[p].age>=18) && s.ecs.container[s.ecs.household[id].storeId].amounts.wood>=4) ||
+    v.houses.some(id=>!s.ecs.household[id].trade && (residents.get(id) || []).some(p=>s.ecs.personable[p].age>=18) && amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER)>=4) ||
     v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind)) &&
-    v.houses.some(id=>s.ecs.container[s.ecs.household[id].storeId].amounts.wood>=8)))generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
+    v.houses.some(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER)>=8)))generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   growBuildings(s,season,residents);
   const crowded=s.settlement.estatesInitialized && Object.values(s.villages).some(v=>{
     const points=v.sharedPlaces.filter(id=>["green","alehouse"].includes(s.ecs.meetingPlace[id].kind)).flatMap(id=>s.ecs.meetingPlace[id].gatheringPoints || []);

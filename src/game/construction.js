@@ -1,3 +1,4 @@
+import { TIMBER } from "game/goods";
 import { setTileElevation } from "game/biome_field";
 import { householdStore } from "game/favours";
 import { growthRecord } from "game/settlement_growth";
@@ -79,21 +80,22 @@ export function shelterLogSource(state, actorId, reachable = () => true) {
   const owner = topController(ecs, actorId);
   const owned = id => ecs.controllable[id] && topController(ecs, id) == owner;
   const homes = [...Object.keys(ecs.camp || {}), ...Object.keys(ecs.shelter || {}).filter(id => ecs.shelter[id].stage)].filter(owned);
-  const log = Object.keys(ecs.haulable || {}).find(id => ecs.good[id]?.type == "wood" && owned(id) &&
+  const log = Object.keys(ecs.haulable || {}).find(id => TIMBER.includes(ecs.good[id]?.type) && owned(id) &&
     (ecs.haulable[id].heldBy == actorId ||
       (ecs.haulable[id].heldBy ? owned(ecs.haulable[id].heldBy) && ecs.stockpile?.[ecs.haulable[id].heldBy] :
         homes.some(home => Hex().fromPoint(ecs.spatial[home]).distance(Hex().fromPoint(ecs.spatial[id])) == 0))) && reachable(id));
-  return log || Object.keys(ecs.container || {}).find(id => owned(id) && ecs.container[id].amounts.wood > 0 && reachable(id));
+  return log || Object.keys(ecs.container || {}).find(id => owned(id) && TIMBER.some(type => ecs.container[id].amounts[type] >= 1) && reachable(id));
 }
 
 export function collectShelterLog(state, actorId, world, dt, firstRun, source) {
   const ecs = state.ecs;
   let log = source;
   if (ecs.container[source]) {
-    if (!(ecs.container[source].amounts.wood > 0)) return Task.ABORT;
+    const type = TIMBER.find(type => ecs.container[source].amounts[type] >= 1);
+    if (!type) return Task.ABORT;
     if (ecs.holder[actorId].held.length >= ecs.holder[actorId].capacity) return Task.ABORT;
-    ecs.container[source].amounts.wood--;
-    [log] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { type: "wood", amount: 1 },
+    ecs.container[source].amounts[type]--;
+    [log] = newEntities(state, [{ spatial: { ...ecs.spatial[actorId] }, good: { type, amount: 1 },
       haulable: {}, controllable: { controllerId: topController(ecs, actorId) } }]);
   }
   if (!ecs.haulable[log]) return Task.ABORT;
@@ -108,7 +110,7 @@ export function collectShelterLog(state, actorId, world, dt, firstRun, source) {
 export function deliverShelterLog(state, actorId, world, dt, firstRun, targetId) {
   const ecs = state.ecs;
   const site = ecs.construction?.[targetId];
-  const log = ecs.holder[actorId].held.find(id => ecs.good[id]?.type == "wood");
+  const log = ecs.holder[actorId].held.find(id => TIMBER.includes(ecs.good[id]?.type));
   if (!site || !log) return Task.ABORT;
   if (site.delivered >= STAGES[site.stage].logs) return Task.FINISH;
   take(ecs, log);
@@ -143,6 +145,13 @@ export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   ecs.container[targetId] = { id: targetId, capacity: stage.capacity, amounts: ecs.container[targetId]?.amounts || {} };
   ecs.household ||= {};
   const owner = topController(ecs, targetId);
+  const previousHome=ecs.household[owner]?.houseId;
+  const previous=ecs.household[previousHome];
+  ecs.household[targetId] ||= {id:targetId,fields:[],backyards:[],storeId:targetId};
+  if(previousHome!=targetId && previous?.fields?.length) {
+    for(const field of previous.fields){ecs.farmable[field].houseId=targetId;ecs.household[targetId].fields.push(field);}
+    previous.fields=[];
+  }
   ecs.household[owner] = { id: owner, houseId: targetId };
   for (const camp of Object.keys(ecs.camp || {})) if(topController(ecs,camp)==owner)ecs.sleepable[camp].capacity = 0;
   if(site.stage=="house") {

@@ -116,7 +116,11 @@
     "create_field": "Create Field",
     "cancel_job": "Cancel",
     "forage": "Forage",
-    "build_shelter": "Build shelter"
+    "build_shelter": "Build shelter",
+    "plough_field": "Plough field",
+    "sow_field": "Sow field",
+    "tend_field": "Tend field",
+    "harvest_field": "Harvest field"
   },
   "tasks": {
     "idle": "Idle",

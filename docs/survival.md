@@ -3,7 +3,7 @@
 Grain is edible as porridge. One stored grain portion makes one full meal;
 there is no stove or crafting prerequisite. This uses the existing pickup,
 hauling and eating tasks, rather than completing the unfinished workshop chain.
-Gruel remains edible too. A full meal takes one game hour and resets hunger to
+Gruel, forage, bread and flour are edible too. Every meal path uses the same food list. Bakers use flour, while millers use grain. A full meal takes one game hour and resets hunger to
 zero, including the starving flag.
 
 The food chain is sow → grow for 4.5 growing days → harvest six grain per slot →
@@ -20,6 +20,19 @@ also order **Forage** on a full plant, then carry the portion home using the
 usual storage plan. Picking is checked again when the work completes so two
 people cannot take the same portion. Wild food is public; stored food continues
 to follow the existing controller permissions.
+
+Player fields belong to the current household, including fields created at camp.
+Select an owned field to order Plough field, Sow field, Tend field or Harvest field.
+Sowing spends one whole grain per patch. Harvesting performs real work and carries
+the grain home. A Personal friend can help during the normal field claim.
+Moving from camp to a shelter keeps the fields in the household.
+
+Harvesting requires pantry space for the whole patch yield. Grain already cut
+and waiting for delivery also uses that space. Full stores leave ripe crops in
+the field, as the offscreen household summary does.
+
+Hungry people can put down non-food cargo to free a hand for a meal. A failed
+food walk clears the cached destination so another source can be chosen.
 
 ## Hunger
 

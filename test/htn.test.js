@@ -88,6 +88,7 @@ describe("HTN planning", () => {
     // NOTE: picking up stored gruel happens inside the first find_food descent;
     // the second find_food must see that held gruel and eat it at the pickup place.
     expect(plan).toEqual([
+      ["make_meal_space"],
       ["find_place", "container_with gruel", "container_with", "gruel"],
       ["walk_to", "container_with gruel"],
       ["pick_up_from_container", "container_with gruel", "gruel"],

@@ -1,7 +1,8 @@
+import { TIMBER, amountOf } from "game/goods";
 import { householdStore } from "game/favours";
 import { topController } from "game/playable";
 import { recordEvent } from "game/events";
-import { growthRecord, consumeStored, expansionFits, expandedFootprint, householdRoster } from "game/settlement_growth";
+import { growthRecord, consumeTimber, consumeStored, expansionFits, expandedFootprint, householdRoster } from "game/settlement_growth";
 import { path } from "game/pathfinding";
 import { canPlaceField, reserveFieldPlot, reserveRoad, reserveWorkYard, canReserveWorkYard, reserveFieldLane } from "game/land_use";
 import { reserveBuildingClearance, buildingFootprint, canClearForBuilding } from "game/tree_clearance";
@@ -45,7 +46,7 @@ export function workBayTiles(state,point,stationOffset=-10) {
 export function settlementLayoutInputs(state) {
   const residents=householdRoster(state);
   return JSON.stringify([state.landUseRevision,Object.values(state.villages).map(v=>[v.id,v.houses.map(id=>{
-    const wood=state.ecs.container[householdStore(state,id)].amounts.wood || 0;
+    const wood=amountOf(state.ecs.container[householdStore(state,id)].amounts,TIMBER);
     return [id,wood>=4,wood>=8,(residents.get(id) || []).some(p=>state.ecs.personable[p].age>=18)];
   }),v.sharedPlaces])]);
 }
@@ -168,10 +169,10 @@ export function generateVillageLife(state, seed, start) {
     }
     if (village.houses.length >= 5) for (const kind of ["chapel", "alehouse"]) {
       if (village.sharedPlaces.some(id => ecs.meetingPlace[id].kind == kind)) continue;
-      const host = village.houses.find(id => (ecs.container[ecs.household[id]?.storeId]?.amounts.wood || 0) >= 8);
+      const host = village.houses.find(id => amountOf(ecs.container[ecs.household[id]?.storeId]?.amounts,TIMBER) >= 8);
       const point = nearby(village.houses[0], 4).filter(id=>!ecs.mappable[id].route?.length && !ecs.walkable[id].trackReserved).map(id => ecs.spatial[id]).find(p => !Object.keys(ecs.building).some(id => squaredDistance(p,ecs.spatial[id]) < 100 ** 2) && canClearForBuilding(state,buildingFootprint(proposal(state,p,{meetingPlace:{kind}},host),proposalId),host?topController(ecs,host):null));
       if (!point || state.settlement && !host) continue;
-      if (host) consumeStored(state,host,"wood",8);
+      if (host) consumeTimber(state,host,8);
       reserve(tileAt[keyOf(point)]);
       const id = add(point, village.id, { nameable: { nickname: kind == "chapel" ? "Chapel" : "Alehouse" }, meetingPlace: { kind, houseId:host, builtDay:state.days } }, host);
       village.sharedPlaces.push(id);
@@ -238,11 +239,11 @@ export function generateVillageLife(state, seed, start) {
     for (const houseId of inhabited) {
       if(establishedTrades.size>=targetTrades)break;
       const household = ecs.household[houseId], storeId = household.storeId;
-      if (household.trade || state.settlement && ecs.container[storeId].amounts.wood < 4) continue;
+      if (household.trade || state.settlement && amountOf(ecs.container[storeId].amounts,TIMBER) < 4) continue;
       const yard = household.yardPoint;
       const point = household.stationPoint || { x: yard.x - 10, y: yard.y };
       if(!canClearForBuilding(state,buildingFootprint(proposal(state,point,{workplace:{houseId}},houseId),proposalId),topController(ecs,houseId)))continue;
-      if (state.settlement) consumeStored(state,houseId,"wood",4);
+      if (state.settlement) consumeTimber(state,houseId,4);
       household.trade = [...TRADES.slice(vi%TRADES.length),...TRADES.slice(0,vi%TRADES.length)].find(trade=>!establishedTrades.has(trade));
       establishedTrades.add(household.trade);
       household.workplaceId = add(point, village.id, {

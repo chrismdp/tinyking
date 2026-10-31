@@ -1,3 +1,4 @@
+import { FOODS } from "game/goods";
 import { hashUnit } from "game/math";
 import * as time from "game/time";
 import { TRADE_LABELS } from "game/villages";
@@ -158,7 +159,7 @@ export const build_shelter = targetId => [
     () => [["walk_to", targetId], ["work_shelter", targetId], ["complete_job", "build_shelter"]]
   ],
   [
-    world => world.holding.wood,
+    world => world.holding.wood || world.holding.planks,
     () => [["walk_to", targetId], ["deliver_log", targetId], ["release_job", "build_shelter"]]
   ],
   [
@@ -319,7 +320,6 @@ export const move_to_place = (type, filter, param) => [
   ]
 ];
 
-const FOODS = ["gruel", "grain", "forage"];
 
 export const find_food = () => [
   ...FOODS.map(good => [
@@ -332,11 +332,12 @@ export const find_food = () => [
   ]),
   ...FOODS.map(good => [
     world => !world.holding[good],
-    () => [ [ "pick_up", good, true ], [ "find_food" ] ]
+    () => [ [ "make_meal_space" ], [ "pick_up", good, true ], [ "find_food" ] ]
   ]),
   [
     always,
     () => [
+      [ "make_meal_space" ],
       [ "move_to_place", "forage_plant", "forage_plant" ],
       [ "set_label", "foraging" ],
       [ "forage", "forage_plant" ],
@@ -490,10 +491,13 @@ export const sow_field = (targetId, seed) => [
   ]
 ];
 
-export const work_trade = () => [[
-  world => world.tradeReady !== false && world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
-  job => [["walk_to", job.workplaceId], ["set_label", TRADE_LABELS[job.trade]], ["trade_work", job.workplaceId]]
-]];
+export const work_trade = () => [
+  [world => world.tradeReady === false && world.profession, job => [["household_fuel",job.workplaceId]]],
+  [
+    world => world.tradeReady !== false && world.profession && time.hour_of_day(world.days) >= 8 && time.hour_of_day(world.days) < 17 && world.profession,
+    job => [["walk_to", job.workplaceId], ["set_label", TRADE_LABELS[job.trade]], ["trade_work", job.workplaceId]]
+  ]
+];
 
 export const social_visit = () => [
   [world => world.social?.kind == "play" && world.social, visit => [["walk_to", "socialDestination"], ["play_together", visit.partnerId], ["end_visit"]]],

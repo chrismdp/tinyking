@@ -1,3 +1,4 @@
+import { harvestFits } from "game/farming";
 import { topController } from "game/playable";
 import { STAGES } from "game/construction";
 import { triangleCenters } from "game/map";
@@ -28,7 +29,7 @@ export function friendWork(s, id) {
     if (farm && ecs.controllable[field] && topController(ecs, field) == player) {
       // Help with clearing/ploughing and harvest. Sowing remains with the
       // player, whose seed and food choice should stay explicit.
-      const idx = farm.slots.findIndex(slot => !slot.workerId && ["empty", "harvested", "harvestable"].includes(slot.state));
+      const idx = farm.slots.findIndex(slot => !slot.workerId && ["empty", "harvested", "harvestable"].includes(slot.state) && (slot.state != "harvestable" || harvestFits(s,field,slot.amount)));
       if (idx >= 0) work = { kind: "field", targetId: field, idx, result: farm.slots[idx].state == "harvestable" ? "harvested" : "ploughed", ...triangleCenters(ecs.spatial[field])[idx] };
     }
   }

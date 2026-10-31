@@ -23,11 +23,11 @@ export function growthRecord(s, id) {
   const records = s.ecs.growth ||= {};
   return records[id] ||= { id, stage: 0, builtDay: s.days, additions: [], production: 0, supportedSeasons: 0, lastProduction: 0, meetings: {} };
 }
-export function consumeStored(s,house,type,amount) {
-  const h=s.ecs.household?.[house], store=s.ecs.container?.[h?.storeId];
+export function consumeStored(s,house,type,amount,storeId=s.ecs.household?.[house]?.storeId) {
+  const h=s.ecs.household?.[house], store=s.ecs.container?.[storeId];
   if(!(amount>=0) || !(store?.amounts[type]>=amount))return false;
   store.amounts[type]-=amount;
-  if(h.estateAccount)h.estateAccount.consumed[type]=(h.estateAccount.consumed[type] || 0)+amount;
+  if(h?.estateAccount)h.estateAccount.consumed[type]=(h.estateAccount.consumed[type] || 0)+amount;
   return true;
 }
 export function depositProduced(s,house,type,amount) {

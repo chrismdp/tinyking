@@ -430,3 +430,196 @@ it('refuses minor favour acceptance before introduction, status, queue or reward
   expect(task).toMatchObject({ favourId: r.id, forId: r.giverId });
   expect(r).toMatchObject({ status: 'accepted', taskId: task.id, actorId: w.player });
 });
+
+// INITIAL supplies only: one owned log in hand and a pantry full of actual food.
+// The queued simulation must produce every delivery, receipt and reward below.
+function fullPantryFuelWorld() {
+  const w = favourWorld(), s = w.state;
+  s.events = [];
+  s.ecs.container[w.camp].amounts.wood = 0;
+  s.ecs.container[w.store].amounts = { wood: 0, grain: 70, bread: 30 };
+  s.ecs.household[w.house].estateAccount = {
+    initial: { wood: 0, grain: 70, bread: 30 }, produced: {}, consumed: {}
+  };
+  // Separate endpoints: arriving at the old room store cannot fuel the oven.
+  s.ecs.spatial[w.workplace] = { ...s.ecs.spatial[w.tiles[1]], id: w.workplace };
+  s.ecs.interior ||= {};
+  s.ecs.interior[w.store] = { buildingId: w.house };
+  s.ecs.building[w.house].rooms = [w.store];
+  s.knowledge[w.player].people[w.person].conversation = true;
+  const [log] = newEntities(s, [{
+    spatial: { ...s.ecs.spatial[w.player] }, good: { type: 'wood', amount: 1 },
+    haulable: {}, controllable: { controllerId: w.player }
+  }]);
+  require('game/holder').give(s.ecs, log, w.player);
+  // Offer from the full-store need itself, rather than reusing a spare-store offer.
+  s.favours = { nextId: 0, requests: {} };
+  updateFavours(s);
+  return { ...w, log };
+}
+
+it.each([false, true])('physically fuels a full-pantry oven, including an old accepted store job (%s)', alreadyAccepted => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  const task = acceptFavour(s, r.id);
+  if (alreadyAccepted) {
+    // Legacy saved requests name the room store and already own assigned cargo.
+    r.cargo = [w.log]; task.targetId = w.store;
+    task.waiting = task.detail = 'Household store is full';
+    task.assignedId = null;
+  }
+  expect(r).toMatchObject({ quantity: 1, goodwill: 12, targetId: w.store, status: 'accepted' });
+  const pantry = JSON.parse(JSON.stringify(s.ecs.container[w.store]));
+  const start = { ...s.ecs.spatial[w.player] };
+  expect(readyPlayerTasks(s)).toContain(task);
+  w.step(.05);
+  expect(s.ecs.spatial[w.player]).not.toEqual(start);
+  expect(r.delivered).toBe(0);
+  expect(s.ecs.good[w.log]).toMatchObject({ type: 'wood', amount: 1 });
+  advanceUntil(w, () => r.status == 'completed');
+  expect(r).toMatchObject({ progress: 1, delivered: 1, quantity: 1, goodwill: 12 });
+  expect(task.progress).toBe(1);
+  expect(Math.hypot(s.ecs.spatial[w.player].x - s.ecs.spatial[w.workplace].x,
+    s.ecs.spatial[w.player].y - s.ecs.spatial[w.workplace].y)).toBeLessThanOrEqual(10);
+  expect(s.ecs.container[w.store]).toEqual(pantry);
+  expect(s.ecs.good[w.log]).toBeUndefined();
+  expect(s.ecs.haulable[w.log]).toBeUndefined();
+  expect(s.ecs.holder[w.player].held).not.toContain(w.log);
+  expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
+  expect(r.receipts).toEqual([expect.objectContaining({ itemId: w.log, fromId: w.player,
+    targetId: w.workplace, type: 'wood', amount: 1, use: 'fuel' })]);
+  expect(s.ecs.household[w.house].estateAccount).toEqual({ initial: { wood: 0, grain: 70, bread: 30 },
+    produced: {}, received: { wood: 1 }, consumed: { wood: 1 } });
+  const earned = s.ecs.relationships[w.person].known[w.player].goodwill;
+  expect(earned).toBeCloseTo(12, 0);
+  expect(do_favour(s, w.player, s.ecs.planner[w.player].world, HOUR, true, r.id)).toBe(require('game/htn').Task.ABORT);
+  expect(finishFavour(s, r)).toBe(false);
+  expect(acceptFavour(s, r.id)).toBeNull();
+  expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(earned);
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+  expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
+  expect(r.receipts).toHaveLength(1);
+  expect(taskMarkup(s)).toContain('Workshop fuel · tile 1, 0');
+  expect(taskMarkup(s)).not.toContain('bring the log');
+
+  // An actual NPC at the station burns the delivered resource during work.
+  // A full output store still prevents bread output; no food is removed to fit it.
+  s.ecs.spatial[w.person] = { ...s.ecs.spatial[w.workplace] };
+  s.days = Math.floor(s.days) + 10 / 24;
+  const world = {};
+  trade_work(s, w.person, world, HOUR / 2, true, w.workplace);
+  expect(s.ecs.workplace[w.workplace].fuelHours).toBeCloseTo(3.5);
+  expect(s.ecs.workplace[w.workplace].workHours).toBeCloseTo(.5);
+  expect(s.ecs.container[w.store]).toEqual(pantry);
+  expect(s.ecs.growth?.[w.workplace]?.production || 0).toBe(0);
+  for (let i = 0; i < 7; i++) trade_work(s, w.person, {}, HOUR / 2, true, w.workplace);
+  expect(s.ecs.workplace[w.workplace].fuelHours).toBeCloseTo(0);
+  expect(s.ecs.workplace[w.workplace].workHours).toBeCloseTo(4);
+  expect(fuelReady(s, w.workplace)).toBe(false);
+  expect(trade_work(s, w.person, {}, HOUR / 2, true, w.workplace)).toBe(require('game/htn').Task.ABORT);
+  expect(s.ecs.container[w.store]).toEqual(pantry);
+  expect(s.ecs.household[w.house].estateAccount.consumed).toEqual({ wood: 1 });
+});
+
+it.each(['missing', 'private', 'wrong', 'possession'])('cannot fuel a full pantry with %s assigned cargo', why => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  const task = acceptFavour(s, r.id);
+  r.cargo = [w.log];
+  if (why == 'missing') { require('game/holder').take(s.ecs, w.log); deleteEntity(s, w.log); }
+  if (why == 'private') s.ecs.controllable[w.log].controllerId = w.person;
+  if (why == 'wrong') s.ecs.good[w.log].type = 'grain';
+  if (why == 'possession') (s.ecs.possession ||= {})[w.log] = { ownerId: w.player };
+  const cargoBefore = JSON.stringify({ good: s.ecs.good[w.log], possession: s.ecs.possession?.[w.log],
+    owner: s.ecs.controllable[w.log], heldBy: s.ecs.haulable[w.log]?.heldBy });
+  readyPlayerTasks(s);
+  expect(task.waiting).toContain('your wood');
+  task.assignedId = w.player;
+  s.ecs.spatial[w.player] = { ...s.ecs.spatial[w.workplace] };
+  do_favour(s, w.player, s.ecs.planner[w.player].world, 0, true, r.id);
+  w.step(.5);
+  expect(r).toMatchObject({ status: 'accepted', delivered: 0, progress: 0 });
+  expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
+  expect(s.ecs.container[w.store].amounts).toEqual({ wood: 0, grain: 70, bread: 30 });
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(0);
+  expect(JSON.stringify({ good: s.ecs.good[w.log], possession: s.ecs.possession?.[w.log],
+    owner: s.ecs.controllable[w.log], heldBy: s.ecs.haulable[w.log]?.heldBy })).toBe(cargoBefore);
+});
+
+it.each(['old store', 'fence'])('does not deliver across the %s boundary, even if a stale route says it finished', boundary => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  const task = acceptFavour(s, r.id); task.assignedId = w.player; r.cargo = [w.log];
+  s.ecs.spatial[w.player] = { ...s.ecs.spatial[w.store] };
+  if (boundary == 'fence') {
+    s.ecs.spatial[w.player] = { ...s.ecs.spatial[w.workplace], x: s.ecs.spatial[w.workplace].x + 8 };
+    newEntities(s, [{ spatial: { ...s.ecs.spatial[w.workplace] }, fence: { halfWidth: 4, halfDepth: 20, gateHalfWidth: 2 } }]);
+    expect(require('game/fences').fenceHandoffClear(s, s.ecs.spatial[w.player], s.ecs.spatial[w.workplace])).toBe(false);
+  }
+  const world = s.ecs.planner[w.player].world;
+  world.route = []; world.routeLandUse = s.landUseRevision || 0;
+  world.routeFences = require('game/fences').fenceRevision(require('game/fences').fenceFootprints(s));
+  world.favourWalk = w.workplace;
+  do_favour(s, w.player, world, 0, false, r.id);
+  expect(r.delivered).toBe(0);
+  expect(s.ecs.haulable[w.log].heldBy).toBe(w.player);
+  expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
+});
+
+it('keeps spare-capacity room delivery as stored wood, then consumes it for real NPC bread production', () => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  // INITIAL room: 98 food portions plus space for the one carried log.
+  s.ecs.container[w.store].amounts.bread = 28;
+  s.ecs.household[w.house].estateAccount.initial.bread = 28;
+  acceptFavour(s, r.id);
+  advanceUntil(w, () => r.status == 'completed');
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 1, grain: 70, bread: 28 } });
+  expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
+  expect(s.ecs.good[w.log]).toBeUndefined();
+  expect(r.receipts).toEqual([expect.objectContaining({ itemId: w.log, fromId: w.player,
+    targetId: w.store, type: 'wood', amount: 1, use: 'stored' })]);
+  expect(s.ecs.household[w.house].estateAccount.received).toEqual({ wood: 1 });
+  expect(s.ecs.household[w.house].estateAccount.consumed).toEqual({});
+  expect(Math.hypot(s.ecs.spatial[w.player].x - s.ecs.spatial[w.store].x,
+    s.ecs.spatial[w.player].y - s.ecs.spatial[w.store].y)).toBeLessThanOrEqual(10);
+  s.ecs.spatial[w.person] = { ...s.ecs.spatial[w.workplace] };
+  s.days = Math.floor(s.days) + 10 / 24;
+  trade_work(s, w.person, {}, HOUR / 2, true, w.workplace);
+  expect(s.ecs.workplace[w.workplace]).toMatchObject({ fuelHours: 3.5, workHours: .5 });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, grain: 69, bread: 30 } });
+  expect(s.ecs.household[w.house].estateAccount).toEqual({
+    initial: { wood: 0, grain: 70, bread: 28 }, received: { wood: 1 },
+    consumed: { wood: 1, grain: 1 }, produced: { bread: 2 }
+  });
+  expect(s.ecs.growth[w.workplace].production).toBe(2);
+});
+
+it('rechecks the actual receiver if normal production fills the pantry after acceptance', () => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  s.ecs.container[w.store].amounts.bread = 29;
+  s.ecs.household[w.house].estateAccount.initial.bread = 29;
+  const task = acceptFavour(s, r.id);
+  advanceUntil(w, () => r.cargo.includes(w.log));
+  expect(r.delivered).toBe(0);
+  expect(require('game/settlement_growth').depositProduced(s, w.house, 'bread', 1)).toBe(true);
+  advanceUntil(w, () => r.status == 'completed');
+  expect(task.targetId).toBe(w.store);
+  expect(r.receipts[0]).toMatchObject({ itemId: w.log, targetId: w.workplace, use: 'fuel', amount: 1 });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, grain: 70, bread: 30 } });
+  expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
+  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+});
+
+it('checks the workshop path for an accepted full-pantry job whose old store is still reachable', () => {
+  const w = fullPantryFuelWorld(), s = w.state, r = w.request('wood');
+  const task = acceptFavour(s, r.id);
+  r.cargo = [w.log];
+  // INITIAL obstacle: disconnect the workshop tile, retaining the public store approach.
+  for (const tile of w.tiles) for (const [side, next] of Object.entries(s.ecs.walkable[tile].neighbours)) {
+    if (tile == w.tiles[1] || next == w.tiles[1]) delete s.ecs.walkable[tile].neighbours[side];
+  }
+  expect(require('game/manager').canReachTask(s, w.player, w.store)).toBe(true);
+  expect(readyPlayerTasks(s)).not.toContain(task);
+  expect(task.waiting).toBe('No path there');
+  w.step(.5);
+  expect(r.delivered).toBe(0);
+  expect(s.ecs.haulable[w.log].heldBy).toBe(w.player);
+  expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
+});

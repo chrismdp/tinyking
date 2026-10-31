@@ -8,6 +8,10 @@ Requests come from living adult residents of a household with a real store. The 
 
 Requests never create materials. Wood and food deliveries use goods the player already owns. If none is available, the favour waits and the player can queue explicit chopping or gathering after it. The existing construction rule remains: a build waits for delivered materials and never gathers them automatically.
 
+Fuel delivery normally puts the carried log in the household store. If that store is full, the player instead walks to the household's actual oven or forge. Handover consumes that one owned log into the existing four hours of workplace fuel. The pantry keeps all its goods and its capacity. Trade work burns the fuel at the existing rate. A full output store still prevents new bread from entering it.
+
+This receiver is resolved during planning and delivery. Already accepted requests and their queued tasks can therefore continue from the old store target. Delivery checks actual custody, ownership, commodity type, distance and fences before consumption or storage. The request retains a receipt with the item, previous owner, physical receiver, amount, use and date. An existing household estate account records the incoming goods as `received`. Direct fuel delivery also records the log as `consumed`. Normal trade work records stored wood consumption when it loads the fuel.
+
 ## Discovery and orders
 
 The simulation checks needs initially and each game hour. A requester within 300 world units on explored ground teaches the request through `knowledge[player].favours`. The encounter records only the requester's name in the existing learned-person record, with no traits, kin or relationship. Knowing someone's name or hearing about a distant household reveals no needs. Lists contain learned requests only. Opening a sheet does not introduce anybody. Explicit acceptance introduces the player and giver through the existing interaction functions.

@@ -1,3 +1,4 @@
+import { OPENING_NARRATIVE } from "game/guidance";
 import React from "react";
 import PropTypes from "prop-types";
 import { GameState } from "components/contexts";
@@ -16,7 +17,7 @@ export function IntroOverlay({ touch = typeof navigator != "undefined" && naviga
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
   }, [skip]);
-  return <button id="intro-skip" onClick={e => { e.stopPropagation(); skip(); }}><span>{touch ? "Tap to skip" : "Click to skip"}</span></button>;
+  return <button id="intro-skip" onClick={e => { e.stopPropagation(); skip(); }}><p className="intro-narrative">{OPENING_NARRATIVE}</p><span>{touch ? "Tap to skip" : "Click to skip"}</span></button>;
 }
 
 IntroOverlay.propTypes = { touch: PropTypes.bool };

@@ -983,3 +983,36 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 
 .need-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .need-actions button { min-height: 44px; padding: 6px 12px; }
+
+#game #ui #intro-skip .intro-narrative {
+  position: absolute; top: calc(18px + var(--safe-top)); left: 50%; transform: translateX(-50%);
+  width: min(560px, calc(100% - 48px)); box-sizing: border-box; margin: 0;
+  padding: 14px 18px; border-radius: 8px; background: rgba(25,29,24,.8);
+  font-size: clamp(18px, 2.3vw, 24px); line-height: 1.35; text-align: center;
+}
+#opening-guidance {
+  position: absolute; top: calc(104px + var(--safe-top)); left: 50%; transform: translateX(-50%);
+  width: min(430px, calc(100% - 24px)); box-sizing: border-box; display: flex; gap: 8px; align-items: center;
+  padding: 8px 12px; border-radius: 8px; background: rgba(35,38,30,.88); font-size: 16px;
+  pointer-events: auto;
+  button { background: transparent; border: 0; color: white; min-width: 32px; min-height: 44px; }
+}
+#camera-actions {
+  position: absolute; top: calc(10px + var(--safe-top)); left: calc(392px + var(--safe-left));
+  display: flex; align-items: center; gap: 10px; text-shadow: 1px 1px 3px #000;
+  button { pointer-events: auto; min-height: 44px; padding: 5px 12px; background: #393e35; color: #ffe29a; border: 1px solid #b6a67b; border-radius: 8px; }
+  small { font-size: 12px; }
+}
+@media (max-width: 700px), (max-height: 500px) { #camera-actions { left: calc(12px + var(--safe-left)); } #camera-actions small { display: none; } }
+
+// Keep opening guidance below the clock and above a phone encounter sheet.
+@media (max-width: 700px), (max-height: 500px) {
+  #ui:has(#opening-guidance) .people-sheet {
+    top: calc(202px + var(--safe-top));
+    max-height: calc(100svh - 276px - var(--safe-top) - var(--safe-bottom));
+  }
+}
+@media (min-width: 701px) and (min-height: 501px) {
+  #ui:has(.person-window) #opening-guidance { left: calc(774px + var(--safe-left)); transform: none; width: min(430px, calc(100% - 800px)); }
+  #ui:has(.tree-window) #opening-guidance { display: none; }
+}

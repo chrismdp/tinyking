@@ -1,6 +1,10 @@
 import { recordProduction, recordMeetingUse, completeTradeProduction } from "game/settlement_growth";
+import { speechPosition, SPEECH_REACH } from "game/conversation";
+import { HUMAN_SPEED } from "game/locomotion";
+import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
+import { leaveHome, enterHome, actualHome, nightTime } from "game/home";
 import { recordRoadUse } from "game/road_wear";
-import { canPlaceField, reserveFieldPlot } from "game/land_use";
+import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
 import { FUEL_TRADES, FUEL_HOURS, householdStore, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
@@ -49,7 +53,7 @@ function closestNavPointTo(state, point) {
   return entities[0];
 }
 
-export function walk_to(state, actorId, world, dt, firstRun, target, { plotAccess = false } = {}) {
+export function walk_to(state, actorId, world, dt, firstRun, target, { plotAccess = false, handoff = false } = {}) {
   const s = state.ecs.spatial[actorId];
   if (state.ecs.haulable?.[target]?.heldBy == actorId) return Task.FINISH;
 
@@ -66,16 +70,27 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   } else {
     targetPoint = state.ecs.spatial[world.target];
   }
+  if (!handoff && state.ecs.personable?.[world.target] && world.capturedAttentionOf == world.target) {
+    if (firstRun || world.speechTarget != world.target) {
+      world.speechPoint = speechPosition(state,actorId,world.target);
+      world.speechTarget = world.target;
+    }
+    targetPoint = world.speechPoint || targetPoint;
+  }
   if (targetPoint == null) {
     delete world.places[target];
     return Task.ABORT;
   }
 
   if (!s) throw "walk to: Actor " + actorId + " has no spatial";
+  leaveHome(state, actorId);
+  const fences = fenceFootprints(state), geometry = fenceRevision(fences);
   const revision = state.landUseRevision || 0;
-  if (firstRun || world.routeLandUse != revision) {
+  if (firstRun || world.routeLandUse != revision || world.routeFences != geometry) {
+    delete world.fenceWaypoints;
     world.route = path(state, closestNavPointTo(state, s), closestNavPointTo(state, targetPoint));
     world.routeLandUse = revision;
+    world.routeFences = geometry;
   }
 
   let next = world.route && world.route[0];
@@ -86,8 +101,35 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
 
   if ("exit" in next) {
     const corners = Hex().corners().map(c => c.add(state.ecs.spatial[next.id]));
-    targetPoint = math.lerp(corners[next.exit], corners[(next.exit + 1) % 6], 0.5);
+    const a = corners[next.exit], b = corners[(next.exit + 1) % 6];
+    // An offset yard can cover the usual edge midpoint. Cross the same tile
+    // edge through an open part, rather than treating transit as pen access.
+    targetPoint = [.5,.3,.7,.15,.85].map(t => math.lerp(a,b,t)).find(p => clearFencePoint(p,fences));
+    if (!targetPoint) return Task.ABORT;
   }
+
+  const segmentKey = [next.id, targetPoint.x, targetPoint.y].join(":");
+  if (world.fenceSegment != segmentKey || !world.fenceWaypoints) {
+    const startTile = closestNavPointTo(state,s), goalTile = closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target]);
+    const canWalk = (a,b) => {
+      let previous = null;
+      const count = Math.max(1, Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/6));
+      for (let i=0; i<=count; i++) {
+        const point = math.lerp(a,b,i/count);
+        const tile = (state.space[Hex().fromPoint(point)] || []).find(id=>state.ecs.walkable[id]);
+        if (!tile || routeBlocked(state,tile,startTile,goalTile)) return false;
+        if (previous && previous != tile && !Object.values(state.ecs.walkable[previous].neighbours).includes(tile)) return false;
+        previous = tile;
+      }
+      return true;
+    };
+    world.fenceWaypoints = fenceRoute(state, s, targetPoint, fences, canWalk);
+    world.fenceSegment = segmentKey;
+  }
+  if (!world.fenceWaypoints) return Task.ABORT;
+  while (world.fenceWaypoints.length > 1 && math.squaredDistance(s, world.fenceWaypoints[0]) < .01) world.fenceWaypoints.shift();
+  const detouring = world.fenceWaypoints.length > 1;
+  targetPoint = world.fenceWaypoints[0] || targetPoint;
 
   const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId && j.job.key == "move_to_here");
   if (order) {
@@ -97,7 +139,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   }
   const terrainCost = state.ecs.walkable[next.id].speed || 1;
   // NOTE: number of hex sides per hour
-  const baseHumanSpeed = 20;
+  const baseHumanSpeed = HUMAN_SPEED;
   const weightCost = state.ecs.holder[actorId].held
     .map(id => state.ecs.haulable[id].speedModifier || 1)
     .reduce((result, x) => result * x, 1);
@@ -106,8 +148,13 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
   let dy = targetPoint.y - s.y;
   const length = Math.sqrt(dx * dx + dy * dy);
 
-  if (length < 10) {
-    if (!plotAccess || next.id != closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target])) {
+  if (length < 10 && !detouring) {
+    const enteringPlot = plotAccess && next.id == closestNavPointTo(state,typeof world.target == "object" ? world.target : state.ecs.spatial[world.target]);
+    // Self-care releases the assignment before leaving the unfinished plot.
+    // Its saved work identifies this departure; through traffic still wears it.
+    const leavingPlot = next.entrance == null && world.ordered &&
+      jobQueueFor(state.ecs, actorId).some(job => job.job.key == "create_field" && job.targetId == next.id && job.progress > 0 && job.progress < 1);
+    if (!enteringPlot && !leavingPlot) {
       recordRoadUse(state,next.id,next.entrance,next.exit);
     }
 
@@ -126,6 +173,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
     }
 
     world.route.shift();
+    delete world.fenceWaypoints;
 
     if (!("exit" in next)) {
       if(target=="meet" && world.target?.id)recordMeetingUse(state,world.target.id,actorId);
@@ -507,8 +555,10 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
     const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
       householdAccess(state.ecs, actorId, id) &&
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
+    const home = actualHome(state, actorId);
+    const ownBed = available_in_realm.find(id => state.ecs.interior?.[id]?.buildingId == home);
     available_in_realm.sort(closestSpatialTo(state, actorId));
-    found_place = available_in_realm[0];
+    found_place = ownBed || available_in_realm[0];
   } else if (filter == "forage_plant") {
     const reached = new Set();
     const queue = [closestNavPointTo(state, state.ecs.spatial[actorId])];
@@ -630,6 +680,7 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 
 export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
+  enterHome(state, actorId, world.places.sleep);
   person.tiredness -= dt * SLEEP_REPLENISH;
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
@@ -734,9 +785,13 @@ export function collect_gift(state, actorId, world, dt, firstRun, sourceId, type
 export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId) {
   const ecs = state.ecs;
   if (!ecs.personable[personId] || ecs.personable[personId].dead) return Task.ABORT;
+  if (ecs.interior?.[personId]?.buildingId != ecs.interior?.[actorId]?.buildingId) return Task.ABORT;
   // Attention asks the other planner to wait. If they were already walking,
   // finish approaching their current position before spending conversation time.
-  if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > 100) return Task.ABORT;
+  const reach = key == "give_gift" ? 10 : SPEECH_REACH;
+  if (math.squaredDistance(ecs.spatial[actorId], ecs.spatial[personId]) > reach ** 2) return Task.ABORT;
+  // Recheck the physical handoff on every work tick, including completion.
+  if (key == "give_gift" && !fenceHandoffClear(state, ecs.spatial[actorId], ecs.spatial[personId])) return Task.ABORT;
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
   if (key == "chat") result = chat(state, actorId, personId);
@@ -971,7 +1026,7 @@ export function end_friend_help(state, actorId) { releaseFriendWork(state, actor
 // walk_to uses the normal pathfinder; transfer happens only after crossing it.
 export function leave_edge(state, actorId, world, dt, firstRun, tileId, journey) {
   const target=exitPoint(state,tileId),p=state.ecs.spatial[actorId];
-  const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*20*60*hungerSpeed(state.ecs.personable[actorId]);
+  const dx=target.x-p.x,dy=target.y-p.y,length=Math.hypot(dx,dy),speed=dt*24*HUMAN_SPEED*60*hungerSpeed(state.ecs.personable[actorId]);
   const depart=()=>{
     if(actorId==state.ui.playerId)state.pendingPlayerTravel=journey;
     else (state.pendingNpcDepartures ||= []).push({id:actorId,intent:journey});
@@ -1023,4 +1078,15 @@ export function play_together(state, actorId, world, dt, firstRun, partnerId) {
   const result = walk_to(state, actorId, world, dt, v.playPhase != phase, point);
   v.playPhase = phase;
   return result == Task.ABORT ? Task.FINISH : Task.CONTINUE;
+}
+
+// Arrival and occupancy are real; a changed home invalidates the current routine.
+export function home_downtime(state, actorId, world, dt, firstRun, home) {
+  if (actorId == state.ui.playerId || actualHome(state, actorId) != home || !nightTime(state.days)) { leaveHome(state, actorId); return Task.FINISH; }
+  if (state.ecs.interior?.[actorId]?.buildingId != home) {
+    const result = walk_to(state, actorId, world, dt, firstRun, home);
+    if (result != Task.FINISH) return result;
+    if (!enterHome(state, actorId, home)) return Task.ABORT;
+  }
+  return Task.CONTINUE;
 }

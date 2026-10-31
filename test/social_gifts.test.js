@@ -118,3 +118,53 @@ it('preserves a physically collected unique gift through reordered gathering and
   expect(s.ecs.possession[item].owners.slice(0,-1)).toEqual(collected.owners);
   expect(s.ecs.possession[item].owners.at(-1)).toMatchObject({ personId: person, reason: 'gift' });
 });
+
+it.each(["far", "moved", "wall", "actor-wall", "fence"])("revalidates a %s gift without transfer, contact or goodwill", kind => {
+  const { state: s, player, person } = peopleWorld();
+  const item = createPossession(s, player, "Engraved ring", "heirloom");
+  const w = s.ecs.planner[player].world;
+  s.ecs.spatial[player] = { ...s.ecs.spatial[person], x: s.ecs.spatial[person].x - 5 };
+  s.ecs.manager[player].jobs.push({ assignedId: player });
+  collect_gift(s, player, w, 0, true, item, "heirloom");
+  if (kind == "moved") expect(talk(s, player, w, 0, true, person, "give_gift")).toBe(Task.CONTINUE);
+  if (["far", "moved"].includes(kind)) s.ecs.spatial[player].x -= 40;
+  if (kind == "wall") s.ecs.interior = { [person]: { buildingId: "house" } };
+  if (kind == "actor-wall") s.ecs.interior = { [player]: { buildingId: "house" } };
+  if (kind == "fence") {
+    const b = s.ecs.spatial[person];
+    newEntities(s, [{ spatial: { x: b.x + 20, y: b.y }, fence: { halfWidth: 22, halfDepth: 22 } }]);
+  }
+  const before = JSON.stringify({ knowledge: s.knowledge, bonds: s.ecs.relationships, item: s.ecs.possession[item], events: s.events });
+  expect(talk(s, player, w, 1, kind != "moved", person, "give_gift")).toBe(Task.ABORT);
+  expect(JSON.stringify({ knowledge: s.knowledge, bonds: s.ecs.relationships, item: s.ecs.possession[item], events: s.events })).toBe(before);
+  expect(s.ecs.haulable[item].heldBy).toBe(player);
+});
+
+it("approaches a queued real gift within ten units and hands the same item over once", () => {
+  const { state: s, player, person, step } = peopleWorld();
+  const { enqueueTask } = require("game/manager");
+  const item = createPossession(s, player, "Carved ring", "heirloom");
+  const gift = giftChoices(s, player).find(c => c.gift.sourceId == item).gift;
+  const job = enqueueTask(s, { key: "give_gift" }, person, { gift });
+  step(4);
+  expect(job.progress).toBe(1);
+  const receipts = s.events.filter(e => e.type == "gift" && e.items.includes(item));
+  expect(receipts).toHaveLength(1);
+  const a = receipts[0].positions[player], b = receipts[0].positions[person];
+  expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThanOrEqual(10);
+  expect(s.ecs.possession[item].owners.map(o => o.personId)).toEqual([player, person]);
+  expect(s.knowledge[player].people[person].conversation).toBeDefined();
+});
+
+it("allows a real near handoff through the open gate without crossing boards", () => {
+  const { state: s, player, person } = peopleWorld();
+  const b = s.ecs.spatial[person];
+  s.ecs.spatial[player] = { ...b, y: b.y - 6 };
+  newEntities(s, [{ spatial: { x: b.x, y: b.y - 24 }, fence: { halfWidth: 22, halfDepth: 22, gateHalfWidth: 12 } }]);
+  const item = createPossession(s, player, "Gate gift", "heirloom"), w = s.ecs.planner[player].world;
+  s.ecs.manager[player].jobs.push({ assignedId: player });
+  collect_gift(s, player, w, 0, true, item, "heirloom");
+  expect(talk(s, player, w, 1, true, person, "give_gift")).toBe(Task.FINISH);
+  expect(s.ecs.possession[item].ownerId).toBe(person);
+  expect(s.events.filter(e => e.type == "gift")).toHaveLength(1);
+});

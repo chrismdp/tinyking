@@ -1,4 +1,8 @@
-import { generateMap, Hex } from "game/map";
+import { generateMap, generateFamilies, Hex, Grid, ALL_SIDES, TRIANGLES } from "game/map";
+import { newEntities } from "game/entities";
+import { addBidirectionalLink, removeBidirectionalLink, path } from "game/pathfinding";
+import { reserveBuildingClearance } from "game/tree_clearance";
+import { generateVillageLife } from "game/villages";
 import { createSimulation } from "game/simulation";
 import { topController } from "game/playable";
 import { solve } from "game/htn";
@@ -17,6 +21,52 @@ const world = async (seed = 1, days = 0.375, fresh = false) => {
   state.ui.playerId = result.playerId;
   if(!fresh)initialWorlds.set(key,structuredClone(state));
   return state;
+};
+
+// Initial conditions only: flat land, real navigation, houses, families and
+// stocked rooms. Village life must allocate all plots, fields, yards and trades.
+const flatVillage = count => {
+  const s = { ecs: { nextId: 1, good: {}, farmable: {} }, days: 0.375, redraws: [],
+    villages: { fixture: { id: "fixture", houses: [] } } };
+  const grid = Grid.hexagon({ center: Hex(0, 0), radius: 9 });
+  const tiles = newEntities(s, grid.map(hex => ({
+    spatial: { ...hex.toPoint(), immovable: true },
+    mappable: { terrain: "grassland", elevation: 0 },
+    walkable: { worn: {}, speed: 1, neighbours: {} }
+  })));
+  const tileAt = Object.fromEntries(tiles.map(id => [Hex().fromPoint(s.ecs.spatial[id]).toString(), id]));
+  for (const id of tiles) {
+    const hex = Hex().fromPoint(s.ecs.spatial[id]);
+    Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).forEach((next, side) => {
+      if (tileAt[next]) addBidirectionalLink(s.ecs, id, side, tileAt[next]);
+    });
+  }
+  // One declared layout, truncated to each requested size. No seed search or
+  // terrain/siting changes are needed to provide viable initial houses.
+  const sites = [[-3, -2], [0, -2], [3, -2], [-3, 1], [0, 1], [3, 1], [-3, 4], [0, 4]];
+  const village = s.villages.fixture;
+  village.houses = newEntities(s, sites.slice(0, count).map(([x, y]) => ({
+    spatial: { ...Hex(x, y).toPoint(), immovable: true },
+    controllable: {}, building: { entrance: 1, rooms: [] }, village: { villageId: village.id }
+  })));
+  const start = Hex(-7, 0);
+  generateFamilies({ state: s, seed: 1, playerStartTile: start, founding: true });
+  for (const house of village.houses) {
+    const building = s.ecs.building[house];
+    const tile = tileAt[Hex().fromPoint(s.ecs.spatial[house])];
+    for (const side of ALL_SIDES) if (side != building.entrance) removeBidirectionalLink(s.ecs, tile, side);
+    const inhabitants = Object.values(s.ecs.household).filter(h => h.houseId == house).length;
+    building.rooms = newEntities(s, [{
+      spatial: { ...s.ecs.spatial[house] }, controllable: { controllerId: house },
+      interior: { buildingId: house }, sleepable: { capacity: Math.max(3, inhabitants), level: 1, occupiers: [] }
+    }, {
+      spatial: { ...s.ecs.spatial[house] }, controllable: { controllerId: house },
+      interior: { buildingId: house }, container: { capacity: (inhabitants + 1) * TRIANGLES.length,
+        amounts: { gruel: inhabitants, grain: inhabitants * TRIANGLES.length } }
+    }]);
+    reserveBuildingClearance(s, house);
+  }
+  return { s, village, tileAt, start };
 };
 
 it("gives every household a plot, 1–2 owned historical crops and 1–2 backyards on nearby land", async () => {
@@ -74,8 +124,80 @@ it("scales unique trades from one in 3 houses to all six in 8, with an adult and
       }
     }
   }
-  // Exhaustive 3–8 household coverage uses real viable construction fixtures
-  // in village_generation.test.js; ordinary terrain need not sample every size.
+});
+
+it("covers every trade threshold in declared flat initial villages of 3–8 houses", () => {
+  const sizes = new Set();
+  for (const count of [3, 4, 5, 6, 7, 8]) {
+    const { s, village, tileAt, start } = flatVillage(count);
+    expect(village.houses).toHaveLength(count);
+    expect(Object.values(s.ecs.mappable).every(t => t.terrain == "grassland" && t.elevation == 0)).toBe(true);
+    expect(Object.keys(s.ecs.profession || {})).toHaveLength(0);
+    expect(Object.keys(s.ecs.workplace || {})).toHaveLength(0);
+    expect(Object.keys(s.ecs.farmable)).toHaveLength(0);
+    for (const house of village.houses) {
+      expect(s.ecs.household[house]).toBeUndefined();
+      expect(Object.keys(s.ecs.personable).some(id => !s.ecs.personable[id].dead &&
+        s.ecs.personable[id].age >= 18 && s.ecs.household[id]?.houseId == house)).toBe(true);
+    }
+
+    generateVillageLife(s, 1, start);
+
+    sizes.add(village.houses.length);
+    const holders = village.houses.map(id => s.ecs.household[id]).filter(h => h.trade);
+    expect(holders).toHaveLength(Math.min(6, count - 2));
+    expect(new Set(holders.map(h => h.trade)).size).toBe(holders.length);
+    if (count == 8) expect(holders.map(h => h.trade).sort()).toEqual(["baker", "carpenter", "miller", "smith", "tanner", "weaver"]);
+    const usedFields = new Set();
+    for (const house of village.houses) {
+      const h = s.ecs.household[house];
+      const houseTile = tileAt[Hex().fromPoint(s.ecs.spatial[house])];
+      expect(h.id).toBe(house);
+      expect(h.farming).toBe(true);
+      expect(h.plot.hexes).toContain(Hex().fromPoint(s.ecs.spatial[house]).toString());
+      expect([1, 2]).toContain(h.fields.length);
+      expect([1, 2]).toContain(h.backyards.length);
+      expect(s.ecs.container[h.storeId].amounts.grain).toBeGreaterThan(0);
+      expect(topController(s.ecs, h.storeId)).toBe(topController(s.ecs, house));
+      const outputs = [...h.fields, ...h.backyards];
+      for (const id of h.fields) {
+        expect(s.ecs.farmable[id].houseId).toBe(house);
+        expect(s.ecs.farmable[id].slots.every(slot => slot.state == "sown" && slot.content == "grain")).toBe(true);
+        expect(Hex().fromPoint(s.ecs.spatial[house]).distance(Hex().fromPoint(s.ecs.spatial[id]))).toBeLessThanOrEqual(5);
+        const key = Hex().fromPoint(s.ecs.spatial[id]).toString();
+        expect(usedFields.has(key)).toBe(false);
+        usedFields.add(key);
+        expect(s.ecs.mappable[tileAt[key]].cropPlot).toBe(true);
+      }
+      for (const id of h.backyards) expect(s.ecs.backyard[id].houseId).toBe(house);
+      if (h.trade) {
+        const workers = Object.keys(s.ecs.profession).filter(id => s.ecs.profession[id].workplaceId == h.workplaceId);
+        expect(workers).toHaveLength(1);
+        const worker = workers[0];
+        expect(s.ecs.personable[worker].age).toBeGreaterThanOrEqual(18);
+        expect(s.ecs.personable[worker].dead).toBeFalsy();
+        expect(s.ecs.household[worker].houseId).toBe(house);
+        expect(s.ecs.profession[worker]).toMatchObject({ trade: h.trade, houseId: house });
+        expect(s.ecs.planner[worker].world.profession).toEqual(s.ecs.profession[worker]);
+        expect(s.ecs.workplace[h.workplaceId]).toMatchObject({ houseId: house, trade: h.trade });
+        outputs.push(h.workplaceId);
+      }
+      for (const id of outputs) {
+        const key = Hex().fromPoint(s.ecs.spatial[id]).toString();
+        expect(topController(s.ecs, id)).toBe(topController(s.ecs, house));
+        expect(s.ecs.controllable[id].controllerId).toBe(house);
+        expect(h.plot.hexes).toContain(key);
+        expect(s.space[key]).toContain(id);
+        expect(s.ecs.mappable[tileAt[key]].villagePlot).toBe(true);
+        const route = path(s, houseTile, tileAt[key]);
+        expect(route).not.toBeNull();
+        expect(route[0].id).toBe(houseTile);
+        expect(route.at(-1).id).toBe(tileAt[key]);
+        for (const step of route.slice(0, -1)) expect(s.ecs.mappable[step.id].cropPlot).not.toBe(true);
+      }
+    }
+  }
+  expect([...sizes].sort()).toEqual([3, 4, 5, 6, 7, 8]);
 });
 
 it("provides a well and green in every village, and chapel and alehouse from 5 houses", async () => {

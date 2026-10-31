@@ -161,3 +161,5 @@ export function end_world_arrival(world) { delete world.worldArrival; }
 
 export function tend_garden(world) { delete world.gardenHelp; }
 export function play_together() {}
+
+export function home_downtime() {}

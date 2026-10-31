@@ -1,3 +1,4 @@
+import { fenceFootprints, fenceSegments } from "game/fences";
 import * as THREE from "three";
 import { at, mergeColoured } from "render/models";
 
@@ -22,13 +23,17 @@ const bench = parts => {
   parts.push(box(0, 10, 0, 22, 4, 12, TIMBER));
   for (const x of [-8, 8]) for (const z of [-4, 4]) parts.push(box(x, 5, z, 3, 10, 3, TIMBER));
 };
-const fence = (parts, w, d) => {
-  for (const z of [-d, d]) for (const x of [-w, 0, w]) parts.push(box(x, 6, z, 2, 12, 2, TIMBER));
-  for (const x of [-w, w]) parts.push(box(x, 6, 0, 2, 12, 2, TIMBER));
-  for (const y of [4, 9]) {
-    for (const z of [-d, d]) parts.push(box(0, y, z, w * 2, 2, 1.5, THATCH));
-    for (const x of [-w, w]) parts.push(box(x, y, 0, 1.5, 2, d * 2, THATCH));
+const fence = (parts, footprint) => {
+  const f = { ...footprint, x: 0, y: 0 };
+  const posts = new Map();
+  for (const [a,b] of fenceSegments(f)) {
+    for (const p of [a,b]) posts.set(p.x + "," + p.y,p);
+    for (const y of [4,9]) parts.push(box((a.x+b.x)/2,y,(a.y+b.y)/2,Math.max(1.5,Math.abs(a.x-b.x)),2,Math.max(1.5,Math.abs(a.y-b.y)),THATCH));
   }
+  for (const p of posts.values()) parts.push(box(p.x,6,p.y,2,12,2,TIMBER));
+  // Fold the open leaf against a shared solid side, clear of the gate route.
+  const g=f.gateHalfWidth;
+  parts.push(box((g+f.halfWidth)/2,6,f.halfDepth,f.halfWidth-g,2,1.5,PALE));
 };
 const animalParts = kind => {
   const chicken = kind == "chicken", cow = kind == "cow";
@@ -110,9 +115,26 @@ export function villageModel(ground, state, id) {
   group.position.set(p.x, ground.heightAt(p.x, p.y), p.y);
   group.add(new THREE.Mesh(geometry(kind,ecs.growth?.[id]?.stage || 0), material));
   if (ecs.workplace?.[id]) group.children[0].position.z = -15;
-  const pen = ecs.pasture?.[id];
+  const enclosure = fenceModel(ground,state,id);
+  if (enclosure) { enclosure.position.sub(group.position); group.add(enclosure); }
+  if (["smith", "baker"].includes(kind)) {
+    const smoke = new THREE.Group(); smoke.name = "smoke";
+    smoke.position.set(-9, kind == "smith" ? 39 : 42, -24);
+    for (let i = 0; i < 3; i++) smoke.add(new THREE.Mesh(smokeGeometry, smokeMaterial));
+    smoke.visible = false;
+    group.add(smoke);
+  }
+  return group;
+}
+
+export function fenceModel(ground, state, id) {
+  const p = state.ecs.spatial[id];
+  const group = new THREE.Group();
+  group.name = "fence";
+  group.position.set(p.x,ground.heightAt(p.x,p.y),p.y);
+  const pen = fenceFootprints(state).find(f => f.id == id);
   if (pen) {
-    const pieces = []; fence(pieces, pen.halfWidth, pen.halfDepth);
+    const pieces = []; fence(pieces, pen);
     for (const piece of pieces) {
       const { width, height, depth } = piece.geometry.parameters;
       const x = piece.matrix.elements[12], z = piece.matrix.elements[14];
@@ -125,14 +147,7 @@ export function villageModel(ground, state, id) {
       piece.geometry.dispose();
     }
   }
-  if (["smith", "baker"].includes(kind)) {
-    const smoke = new THREE.Group(); smoke.name = "smoke";
-    smoke.position.set(-9, kind == "smith" ? 39 : 42, -24);
-    for (let i = 0; i < 3; i++) smoke.add(new THREE.Mesh(smokeGeometry, smokeMaterial));
-    smoke.visible = false;
-    group.add(smoke);
-  }
-  return group;
+  return pen ? group : null;
 }
 
 export function animateWorkplace(state, id, model, seconds) {

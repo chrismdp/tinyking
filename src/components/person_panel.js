@@ -63,8 +63,9 @@ export function PersonPanel({ entityId }) {
   const [treeOpen, setTreeOpen] = React.useState(false);
   const [chooser, setChooser] = React.useState(null);
   const ecs = state.ecs, player = state.ui.playerId;
-  const personName = displayName(state, entityId);
   const knownName = id => knownDisplayName(state, id, id => displayName(state, id));
+  const personName = knownName(entityId);
+  const identified = personName != "an unknown person";
   const close = () => state.ui.actions.change_visibility({ selected_person: null });
   const select = id => { setTreeOpen(false); state.ui.actions.select_entity(id, false); };
   if (treeOpen) return <FamilyTree entityId={entityId} onClose={() => setTreeOpen(false)} onSelect={select}/>;
@@ -108,7 +109,7 @@ export function PersonPanel({ entityId }) {
   const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
-      <p className="person-meta">{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
+      <p className="person-meta">{identified ? <>{ecs.personable[entityId].age} years · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
     <div className="person-body"><p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
@@ -127,7 +128,7 @@ export function PersonPanel({ entityId }) {
       {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       {chooser && <div className="talk-chooser"><div className="chooser-heading"><strong>{chooser == "gift" ? "Choose a gift" : "Ask about someone"}</strong><button aria-label="Close chooser" onClick={() => setChooser(null)}>×</button></div>
         {chooser == "gift" ? <><p>One item from your stores. You carry it to them.</p>{gifts.length ? gifts.map(({ gift, source, amount }) => <button key={gift.sourceId + gift.type} onClick={() => queue("give_gift", { gift })}><span>{gift.possession?.name || titleCase(gift.type)}{gift.value != null ? " · value " + gift.value : ""}<small>{source}{gift.possession ? " · " + gift.possession.owners.map(o => knownName(o.personId)).join(" → ") : ""}</small></span><small>{amount} available</small></button>) : <p>You have no goods to give.</p>}</> :
-          Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{displayName(state, id)}</button>)}</div>}
+          Object.keys(ecs.relationships[entityId].known).filter(id => id != player && ecs.personable[id]).map(id => <button key={id} onClick={() => queue("ask_about", { aboutId: id })}>{knownName(id)}</button>)}</div>}
       {Object.keys(gossip).length > 0 && <div className="gossip"><p className="label">What they told you</p>{Object.entries(gossip).map(([id, ring]) => <p key={id}>{relationshipSentence(personName, knownName(id), ring, possessive)}</p>)}</div>}
       <div className="heard-events"><p className="label">What you&apos;ve heard</p>{knownEvents(state, player, entityId).slice(-5).reverse().map(e => <p key={e.id}>{eventSentence(state, e, id => knownDisplayName(state, id, id => displayName(state, id)))}</p>)}{!knownEvents(state, player, entityId).length && <p>No news yet. Ask someone who knows them.</p>}</div>
       <div className="possessions"><p className="label">Personal possessions</p>{disclosedPossessions(state, player, entityId).map(p => <details key={p.id}><summary>{p.name}</summary><p>Made by {knownName(p.maker)}. First owned by {knownName(p.originalOwner)}.</p><p>{p.owners.map(o => knownName(o.personId) + " (" + o.reason + ")").join(" → ")}</p></details>)}</div>
@@ -186,7 +187,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   const { positions, width, height } = layoutFamily(tree);
   React.useEffect(() => {
     if (scroll.current) {
-      const at = positions[entityId];
+      const at = positions[tree.rootId];
       scroll.current.scrollLeft = at.x - scroll.current.clientWidth / 2 + 82;
       scroll.current.scrollTop = at.y - scroll.current.clientHeight / 2 + 41;
     }
@@ -195,7 +196,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   }, [entityId]);
   const close = onClose || (() => state.ui.actions.change_visibility({ selected_person: null }));
   const select = onSelect || (id => state.ui.actions.select_entity(id, false));
-  const nodes = Object.values(tree.nodes), personName = displayName(state, entityId);
+  const nodes = Object.values(tree.nodes), personName = tree.nodes[tree.rootId].unknown ? "an unknown person" : displayName(state, entityId);
   const unions = new Map();
   for (const node of nodes) if (node.parents.length) {
     const parents = [...node.parents].sort(), key = parents.join(":");
@@ -230,8 +231,8 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
         const meta = node.unknown ? "Not yet known" : dead ? "Died aged " + node.age : node.age + " · " + (node.age >= 18 && !node.spouse ? "Unmarried adult" : node.age < 18 ? "Child" : "Living");
         const houseId = person && state.ecs.household[node.id]?.houseId;
         const householder = !dead && houseId && state.ecs.controllable[houseId]?.controllerId == node.id;
-        const tag = heir ? "◇ Heir · " + heir : node.id == entityId ? "Selected person" : householder ? "Householder" : "";
-        return <g key={node.id} className={"node" + (node.unknown ? " unknown" : "") + (dead ? " dead" : "") + (node.id == entityId ? " selected" : "")}
+        const tag = heir ? "◇ Heir · " + heir : node.id == tree.rootId ? "Selected person" : householder ? "Householder" : "";
+        return <g key={node.id} className={"node" + (node.unknown ? " unknown" : "") + (dead ? " dead" : "") + (node.id == tree.rootId ? " selected" : "")}
           transform={`translate(${x} ${y})`} role={node.unknown ? "img" : "button"} tabIndex={node.unknown ? undefined : 0}
           aria-label={node.unknown ? "Unknown relative" : "Select " + label + ", " + meta + (tag ? ", " + tag : "")}
           onClick={node.unknown ? undefined : () => select(node.id)} onKeyDown={node.unknown ? undefined : e => { if (e.key == "Enter" || e.key == " ") { e.preventDefault(); select(node.id); } }}>

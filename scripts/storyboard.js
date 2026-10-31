@@ -5,10 +5,12 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright-core");
 const assert = require("node:assert/strict");
+const { snapshot, shelterCandidates, fuelFriend } = require("./acceptance-selection");
 const url = new URL(process.argv[2] || "http://localhost:8108/");
-url.searchParams.set("seed", url.searchParams.get("seed") || "13");
+url.searchParams.set("seed", "13");
 url.searchParams.delete("intro");
 const out = path.resolve(process.argv[3] || "shots/storyboard");
+const CLOSEOUT = process.argv.includes("--closeout");
 const story = { assistance: "Command-assisted: selection, orders and speed use public ui.actions. Chat, news and family controls are clicked. No state/results shortcuts.", url: url.href, actions: [], frames: [], errors: [] };
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -74,43 +76,56 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 30000 });
     story.actions.push("Watched the complete opening");
     await page.waitForFunction(() => window.tinyking.favours);
-    const person = await page.evaluate(() => {
-      const s = window.tinyking, p = s.ecs.spatial[s.ui.playerId];
-      const ids = Object.keys(s.ecs.personable).filter(id => id != s.ui.playerId && !s.ecs.personable[id].dead);
-      const request = Object.values(s.favours.requests).find(r => r.kind == "wood" && r.status == "offered" && (s.knowledge?.[s.ui.playerId]?.favours || []).includes(r.id));
-      const id = request?.giverId || ids.sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y))[0];
-      s.renderer.focusOn(s.ecs.spatial[id], 650); s.ui.actions.select_entity(id, false); return id;
-    });
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
+    const selection = fuelFriend(await snapshot(page));
+    const { person, favourId } = selection;
+    story.actions.push({ action: "Assisted scenario selection", ...selection });
+    await page.evaluate(id => {
+      const s = window.tinyking;
+      s.renderer.focusOn(s.ecs.spatial[id], 650); s.ui.actions.select_entity(id, false);
+    }, person);
     await page.locator(".person-window").waitFor(); await frame("villager");
-    await page.locator(".person-requests summary").click(); await pair("request-discovery");
     await page.getByRole("button", { name: "Chat", exact: true }).click();
     await page.getByRole("button", { name: "Chat", exact: true }).click();
     story.actions.push({ action: "Two Chat visits", person, reason: "Get to know the nearby requester through ordinary conversations" });
-    const materials = await page.evaluate(() => {
-      const s = window.tinyking, p = s.ecs.spatial[s.ui.playerId];
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(id => {
+      const s = window.tinyking;
+      return !s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
+    }, person, { timeout: 180000 });
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
+    assert.equal(await page.evaluate(() => window.tinyking.ui.talkResult.message), "You spent some time together.");
+    await page.locator(".person-requests summary").click(); await pair("request-discovery");
+    story.actions.push({ action: "Completed initial conversations", bond: await page.evaluate(id => window.tinyking.ecs.relationships[id].known[window.tinyking.ui.playerId], person) });
+
+    const sites = shelterCandidates(await snapshot(page), selection.home);
+    story.actions.push({ action: "Choose the legal camp shelter site nearest the earned friend household", site: sites[0], home: selection.home,
+      positions: await page.evaluate(({ site, home }) => ({ site: window.tinyking.ecs.spatial[site], home: window.tinyking.ecs.spatial[home] }), { site: sites[0], home: selection.home }),
+      rule: "Existing shelter placement, discovered land, camp radius and material rules remain unchanged." });
+    assert(sites.length, "A feasible camp shelter site is required");
+    const materials = await page.evaluate(tile => {
+      const s = window.tinyking, p = s.ecs.spatial[Object.keys(s.ecs.camp)[0]];
       const known = new Set(s.ecs.playable[s.ui.playerId].known.map(k => k.x + "," + k.y));
       const candidates = Object.keys(s.ecs.good).filter(id => s.ecs.good[id].type == "wood" && s.ecs.good[id].amount > 0 && !s.ecs.haulable?.[id] &&
         known.has(Object.keys(s.space).find(key => s.space[key].includes(id)))).sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y));
       const trees = []; let logs = 0;
       for (const id of candidates) { trees.push(id); logs += s.ecs.good[id].amount; if (logs >= 5) break; }
       if (logs < 5) throw new Error("Need five real discovered logs: four for the lean-to and one for the favour");
-      const tile = Object.keys(s.ecs.mappable).filter(id => s.ecs.mappable[id].terrain == "grassland" && !s.ecs.mappable[id].villagePlot &&
-        !s.ecs.building[id] && !(s.space[Object.keys(s.space).find(key => s.space[key].includes(id))] || []).some(other => s.ecs.camp?.[other] || s.ecs.farmable?.[other] || s.ecs.stockpile?.[other] || s.ecs.tree?.[other]) && Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y) < 250).sort((a, b) => Math.hypot(s.ecs.spatial[a].x - p.x, s.ecs.spatial[a].y - p.y) - Math.hypot(s.ecs.spatial[b].x - p.x, s.ecs.spatial[b].y - p.y))[0];
       s.ui.actions.choose_job(s.ui.playerId, { key: "cut_tree_down" }, trees[0]);
       s.ui.actions.choose_job(s.ui.playerId, { key: "build_shelter" }, tile);
       for (const tree of trees.slice(1)) s.ui.actions.choose_job(s.ui.playerId, { key: "cut_tree_down" }, tree);
       if (!s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "build_shelter")) throw new Error("The lean-to order was not queued");
       s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("paused");
       return { requiredLogs: 5, actualLogs: logs, trees: trees.map(id => ({ id, logs: s.ecs.good[id].amount })) };
-    });
+    }, sites[0]);
     story.actions.push({ action: "Queued sufficient discovered timber by its actual yield and a lean-to; explicit chopping runs past the waiting build", materials });
     await page.locator(".favour-list summary").click();
-    const card = page.locator(".favour-list .favour-request.offered").filter({ hasText: "Deliver wood" }).first();
-    const favourId = await card.getAttribute("data-favour-id");
+    const card = page.locator(`.favour-list .favour-request.offered[data-favour-id="${favourId}"]`);
     await card.getByRole("button", { name: /Accept favour:/ }).click();
     await page.evaluate(id => {
-      const s = window.tinyking, job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.favourId == id);
-      s.ui.actions.reorder_task(job.id, 3);
+      const s = window.tinyking, jobs = s.ecs.manager[s.ui.playerId].jobs;
+      const job = jobs.find(j => j.favourId == id);
+      s.ui.actions.reorder_task(job.id, jobs.findIndex(j => j.job.key == "build_shelter"));
     }, favourId);
     story.actions.push({ action: "Accepted the discovered fuel request and moved it ahead of building", favourId });
     await pair("favour-accepted-in-queue", true);
@@ -131,6 +146,14 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
           s.ui.actions.set_speed("paused");
         }
         const build = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "build_shelter"), site = s.ecs.construction[build?.targetId];
+        if (o.materialReady && (!o.nextSample || s.days >= o.nextSample)) {
+          const helper = s.ecs.planner[r.giverId], p = s.ecs.personable[r.giverId];
+          (o.eligibility ||= []).push({ day: s.days, task: helper.task, plan: JSON.parse(JSON.stringify(helper.plan || [])), needs: { hunger: p.hunger, tiredness: p.tiredness },
+            position: { ...s.ecs.spatial[r.giverId] }, capturedBy: helper.world.capturedBy, social: helper.world.social, moveHome: helper.world.moveHome,
+            offer: helper.world.friendOffer, helping: helper.world.helpingFriend, jobs: JSON.parse(JSON.stringify(s.ecs.manager[r.giverId].jobs)),
+            playerJobs: JSON.parse(JSON.stringify(s.ecs.manager[s.ui.playerId].jobs)), site: site && { ...site } });
+          o.nextSample = s.days + 1/24;
+        }
         if (o.delivery && !o.materialReady && site?.stage == "lean-to" && site.delivered == 4) {
           o.materialReady = { day: s.days, target: build.targetId, site: { ...site }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
           s.ui.actions.set_speed("paused");
@@ -138,6 +161,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
         const conversation = s.knowledge[s.ui.playerId]?.people[r.giverId]?.conversation;
         if (o.materialReady && !o.chat && conversation?.day > o.materialReady.day) {
           o.chat = { ...conversation, result: { ...s.ui.talkResult }, bond: { ...s.ecs.relationships[r.giverId].known[s.ui.playerId] } };
+          if (o.pauseAfterChat) s.ui.actions.set_speed("paused");
         }
         const player = s.ecs.planner[s.ui.playerId], needTask = player.task?.[0];
         if (["eat", "sleep"].includes(needTask)) {
@@ -168,14 +192,64 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await pair("earned-ring-improvement");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
+    assert.equal(await page.evaluate(() => window.favourObservation.delivery.bond.ring), "personal", "The real delivery must earn THEIR Personal trust");
     await page.waitForFunction(() => window.favourObservation?.materialReady, null, { timeout: 180000 });
-    await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
+    const preparation = await page.evaluate(person => {
+      const s = window.tinyking, id = s.ui.playerId, build = s.ecs.manager[id].jobs.find(j => j.job.key == "build_shelter");
+      const target = build.targetId, before = { day: s.days, needs: { ...s.ecs.personable[id] }, site: { ...s.ecs.construction[target] } };
+      // Cancel the order, not its real frame/materials, while taking care and
+      // visiting. Resume this same funded frame after a successful third Chat.
+      s.ui.actions.cancel_task(build.id);
+      s.ui.actions.choose_job(id, { key: "find_food" }, id);
+      const visit = s.ecs.profession[person].workplaceId;
+      s.ui.actions.choose_job(id, { key: "move_to_here" }, visit);
+      s.ui.actions.change_visibility({ selected_person: null });
+      s.ui.actions.set_speed("fast");
+      return { before, target, visit };
+    }, person);
+    story.actions.push({ action: "Pause construction through Cancel, eat and physically visit the friend's workplace", preparation });
+    await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
+    const nightCare = await page.evaluate(person => {
+      const s = window.tinyking, id = s.ui.playerId, visit = s.ecs.profession[person].workplaceId;
+      const before = { day: s.days, playerNeeds: { ...s.ecs.personable[id] }, friendNeeds: { ...s.ecs.personable[person] }, friendTask: s.ecs.planner[person].task };
+      // Return to the real camp bed after the first visit, then revisit in
+      // daylight. The previous care window accidentally began at 1am.
+      s.ui.actions.choose_job(id, { key: "rest" }, id);
+      s.ui.actions.choose_job(id, { key: "move_to_here" }, visit);
+      s.ui.actions.set_speed("fast");
+      return before;
+    }, person);
+    story.actions.push({ action: "Return to the camp bed for actual night rest, then physically revisit", nightCare });
+    await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
+    // A single ordinary care window, never a calendar/seed hunt. Do not
+    // capture attention while the friend is still sleeping or seeking food.
+    // Keep the player's own next meal real before making the short visit.
+    await page.evaluate(() => { const s = window.tinyking; s.ui.actions.choose_job(s.ui.playerId, { key: "find_food" }, s.ui.playerId); s.ui.actions.set_speed("fast"); });
+    await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
+    const windowStart = await page.evaluate(() => window.tinyking.days);
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(({ person, start }) => {
+      const s = window.tinyking, p = s.ecs.personable[person], w = s.ecs.planner[person].world;
+      const stationary = !["walk_to", "eat", "sleep"].includes(s.ecs.planner[person].task?.[0]);
+      const ready = stationary && !s.ecs.interior[person] && p.hunger <= .5 && p.tiredness <= .5 && !w.capturedBy && !w.social && !w.moveHome;
+      if (ready || s.days - start >= 8/24) { s.ui.actions.set_speed("paused"); window.closeoutFriendReady = ready; return true; }
+      return false;
+    }, { person, start: windowStart }, { timeout: 180000 });
+    assert(await page.evaluate(() => window.closeoutFriendReady), "The earned friend must become genuinely available within this ordinary eight-hour care window");
+    story.actions.push({ action: "Observed actual outdoor, fed and rested friend after independent self-care", state: await page.evaluate(person => {
+      const s = window.tinyking; return { day: s.days, person, position: s.ecs.spatial[person], needs: s.ecs.personable[person], task: s.ecs.planner[person].task, bond: s.ecs.relationships[person].known[s.ui.playerId] };
+    }, person) });
+    await page.evaluate(person => { const s = window.tinyking; s.ui.actions.set_speed("paused"); window.favourObservation.pauseAfterChat = true; s.ui.actions.select_entity(person, false); }, person);
     await page.getByRole("button", { name: "Chat", exact: true }).click();
-    const earlierChat = page.locator(".task").filter({ hasText: "Chat" }).getByRole("button", { name: "Move earlier", exact: true });
-    while (await earlierChat.isEnabled()) await earlierChat.click();
-    story.actions.push({ action: "Paused the whole game at four delivered logs; queued a third Chat with the earned friend ahead of Build using Move earlier", person,
-      boundary: await page.evaluate(() => window.favourObservation.materialReady),
-      queue: await page.evaluate(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs) });
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
+    await page.waitForFunction(() => window.favourObservation.chat, null, { timeout: 180000 });
+    await page.evaluate(() => {
+      const s = window.tinyking, target = window.favourObservation.materialReady.target;
+      s.ui.actions.choose_job(s.ui.playerId, { key: "build_shelter" }, target);
+    });
+    story.actions.push({ action: "Completed the actual third Chat before resuming the same four-log frame", chat: await page.evaluate(() => window.favourObservation.chat) });
     await pair("material-ready-chat-before-build");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.set_speed("fast"); });
     await page.waitForFunction(() => window.favourObservation?.help, null, { timeout: 180000 });
@@ -198,6 +272,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     assert(Math.hypot(proof.help.position.x - proof.help.sitePosition.x, proof.help.position.y - proof.help.sitePosition.y) <= 50, "Helper must work beside the actual frame");
     assert(proof.help.site.work > 0, "Helper must contribute actual construction work");
     assert.equal(proof.help.controller, proof.help.helperId, "A friend keeps their independent controller");
+    assert.equal(proof.help.home, selection.home, "A helper keeps their original home");
     assert(["personal", "intimate"].includes(proof.help.bond.ring), "Help follows THEIR ring for the player");
     story.actions.push({ action: "Earned friendship through the fuel favour and conversations; received physical help", proof });
     if (await page.locator(".favour-list").getAttribute("open") !== null) await page.locator(".favour-list summary").click();
@@ -208,11 +283,12 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
     const start = await page.evaluate(() => window.tinyking.days);
     await frame("orders");
-    for (let hours = 4; hours <= 24; hours += 4) {
+    for (let hours = 4; !CLOSEOUT && hours <= 24; hours += 4) {
       await page.evaluate(()=>{const s=window.tinyking,id=s.ui.playerId,p=s.ecs.personable[id];if(!s.ecs.manager[id].jobs.length){if(p.hunger>.9)s.ui.actions.choose_job(id,{key:"find_food"},id);if(p.tiredness>.9)s.ui.actions.choose_job(id,{key:"rest"},id);}});
       await page.waitForFunction(target => window.tinyking.days >= target, start + hours / 24, { timeout: 45000 });
       await frame("day-" + hours + "h");
     }
+    if (CLOSEOUT) await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
     await page.locator(".event-feed summary").click(); await frame("news");
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await page.getByRole("button", { name: "Open family tree »" }).click();
@@ -227,7 +303,9 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await frame("player");
     assert.equal(story.errors.length, 0, story.errors.join("\n"));
     story.complete = true;
-    story.assistance += " Two conversations and a real fuel delivery earned Personal; a third consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
+    story.assistance += " Shared helper setup used the nearest legal camp site, ordinary Cancel/Resume of its funded frame, actual self-care and a physical visit after the friend's independent care before the third Chat. Existing helper, material, consent, receipt and family assertions stayed.";
+    if (CLOSEOUT) story.assistance += " Closeout omitted only the unrelated 24-hour observation.";
+    story.assistance += " Assisted selection used the nearest generated adult fuel requester with love disposition towards the player. Two conversations and a real fuel delivery earned Personal; a third consenting Chat was moved before Build at four delivered logs. No materials, needs or rings were injected. The observer used global Pause at actual delivery/material readiness/help. Active Chat/Build orders kept normal food and rest handling. Phone frames resize the same session to 390x664 with CDP touch emulation.";
     console.log("PASS real favour accepted, physically delivered once and rewarded; earned Personal friend walked and worked; storyboard complete; no console errors");
   } catch (error) {
     story.failure = String(error);

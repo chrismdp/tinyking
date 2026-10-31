@@ -33,7 +33,10 @@ it("pans with one touch, pinches to zoom, twists to rotate, taps to select and i
   pointer("pointermove", 2, 100, 450);
   expect(camera.quaternion.angleTo(quaternion)).toBeGreaterThan(0.5);
   pointer("pointerup", 2, 100, 450);
-  pointer("pointerup", 1, 100, 300);
+  const afterTwist = camera.position.clone();
+  pointer("pointermove", 1, 130, 315);
+  expect(camera.position.distanceTo(afterTwist)).toBeGreaterThan(1);
+  pointer("pointerup", 1, 130, 315);
   expect(onClick).not.toHaveBeenCalled();
   pointer("pointerdown", 1, 100, 300);
   pointer("pointercancel", 1, 100, 300);
@@ -94,4 +97,33 @@ it.each([[1440, 900], [390, 664], [664, 390]])("keeps the traveller and camp in 
       expect(Math.abs(framed.y)).toBeLessThan(0.8);
     }
   }
+});
+
+it("follows a controlled point through a soft usable-screen box, suspends on pan, resumes explicitly", () => {
+  global.window = new EventTarget();
+  const dom = new EventTarget();
+  Object.assign(dom, { clientWidth:390, clientHeight:664, style:{}, setPointerCapture(){}, getBoundingClientRect:()=>({left:0,top:0,width:390,height:664}) });
+  const camera = new THREE.PerspectiveCamera(40,390/664,5,12000);
+  let point={x:0,y:0};
+  const rig=createCameraRig(camera,dom,{bounds:{centre:{x:0,y:0},apothem:5000},groundHeight:()=>80,onClick(){},followTarget:()=>point,usableRect:()=>({left:0,top:50,right:390,bottom:450})});
+  rig.lookAt(0,0,900);rig.update(.016);
+  const start=camera.position.clone();
+  point={x:10,y:0};rig.update(.016);
+  expect(camera.position.distanceTo(start)).toBeLessThan(1);
+  point={x:350,y:0};rig.update(.016);
+  const first=camera.position.distanceTo(start);
+  expect(first).toBeGreaterThan(0);expect(first).toBeLessThan(100);
+  for(let i=0;i<120;i++)rig.update(.016);
+  const projected=new THREE.Vector3(point.x,100,point.y).project(camera);
+  expect(Math.abs(projected.x)).toBeLessThan(.8);
+  for(const [type,x] of [["pointerdown",100],["pointermove",150],["pointerup",150]]) {
+    const e=new Event(type);Object.assign(e,{pointerId:1,pointerType:"touch",button:0,clientX:x,clientY:200});dom.dispatchEvent(e);
+  }
+  expect(rig.following).toBe(false);
+  rig.update(.016);const inspection=camera.position.clone();point={x:700,y:0};rig.update(.016);
+  expect(camera.position.distanceTo(inspection)).toBeLessThan(1);
+  rig.resumeFollow();rig.update(.016);expect(rig.following).toBe(true);
+  expect(camera.position.distanceTo(inspection)).toBeGreaterThan(1);
+  expect(dom.style.touchAction).toBe("none");
+  rig.dispose();delete global.window;
 });

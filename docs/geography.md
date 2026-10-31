@@ -210,13 +210,34 @@ roads, worn reservations, crops and occupied public places. Expansion checks
 and reserves its new private tiles through this same API before it spends wood.
 
 `path` allows connected private tiles only when their property contains the
-journey's start or destination. Crop tiles remain endpoints only. Local walker
-or fence detours must follow these same restrictions after integration. Use
-`transitBlocked` for public travel. For property entry or exit, allow only the
-endpoint property's interior, and continue to exclude crop interiors. Continue
+journey's start or destination. Crop tiles remain endpoints only. `routeBlocked(state, tileId, start, goal)` shares this rule between the path
+search and actual local fence detours. `transitBlocked` reports public blockers.
+A detour cannot cross crop interiors or another property's private space. Continue
 to call `recordRoadUse` for actual steps. It rejects private and crop work space.
 
 `safeTile` uses the same `1e-8` numerical tolerance as `roadStep`. This accepts
 roundoff at a projected limit without changing the road slope or grade limits.
 Greens and wells now use actual footprint clearance, including mature crowns.
 They have no artificial door corridor. Unbuilt reserved land retains woodland.
+## Fences and gates
+
+`fences.js` defines the boards and their walking clearance. `fenceFootprints(state)`
+reads each enclosure from its actual `ecs.spatial` and `ecs.pasture` dimensions.
+`fenceSegments(footprint)` returns the visible solid sides. Each enclosure has
+an open gate on its positive-y side. The gate width defaults to 24 units.
+Small yards use a narrower gate that fits their width.
+
+`fenceRoute(state, start, end)` adds local waypoints around those boards.
+Ordinary transit goes around the enclosure. If the start or endpoint is inside,
+the route uses the gate. The existing tile path still controls land access,
+fields and house entrances. No containing tile becomes blocked because it has a fence.
+Workers, carried goods and explicit movement use the same physical walker.
+
+The walker caches these waypoints with a signature of every enclosure position,
+width, depth and gate width. A changed signature discards the cached route.
+The renderer uses that same signature to rebuild the visible fence.
+Future settlement growth can change `pasture.halfWidth`, `pasture.halfDepth`
+and optional `pasture.gateHalfWidth`. Use `ecs.spatial[id]` for position.
+The older animal `centre` field does not override the physical fence position.
+An optional `ecs.fence[id]` with those dimensions reserves the same geometry
+for a future fenced plot. Unfenced crop plots retain the shared field rules above.

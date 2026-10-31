@@ -1,3 +1,4 @@
+import { HUMAN_SPEED } from "game/locomotion";
 import { currentActivity } from "game/person_activity";
 import messages from "data/messages.json";
 import { RequestList } from "./favour_requests";
@@ -22,7 +23,7 @@ export const TASK_TITLES = {
 function estimatedMinutes(ecs, playerId, job) {
   const point = ecs.spatial[job.targetId];
   const from = ecs.spatial[playerId] || point;
-  const walking = point && from ? Math.hypot(point.x - from.x, point.y - from.y) / (20 * HEX_SIZE) * 60 : 0;
+  const walking = point && from ? Math.hypot(point.x - from.x, point.y - from.y) / (HUMAN_SPEED * HEX_SIZE) * 60 : 0;
   const site = ecs.construction?.[job.targetId];
   const work = site ? (STAGES[site.stage].hours - site.work) * 60 :
     job.workRemaining != null ? job.workRemaining * 1440 :
@@ -88,10 +89,10 @@ export function TaskPanel() {
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); state.ui.actions.reorder_task(dragged || e.dataTransfer.getData("text/plain"), index); setDragged(null); }}>
           <span className={"grip" + (active ? " play" : "")} title="Drag to reorder">{job.waiting ? "⌛" : active ? "▶" : "⠿"}</span>
           <div className="task-content"><div className="task-title">{title}</div>
-            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? name(ecs.nameable[job.targetId]) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
+            <small>{["chat", "ask_about", "give_gift"].includes(job.job.key) ? displayName(state, job.targetId, id => name(ecs.nameable[id])) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
             {request && <small>{harvest ? harvestCounts(state, request) : `${favourQuantity(request)} · ${request.progress}/${request.quantity} delivered`}</small>}
             {job.gift && <small>{job.gift.type} · 1 item</small>}
-            {job.aboutId && <small>About {name(ecs.nameable[job.aboutId])}</small>}
+            {job.aboutId && <small>About {displayName(state, job.aboutId, id => name(ecs.nameable[id]))}</small>}
             {job.forId && job.expectedGoodwill && <span className="task-credit">Favour · {typeof job.expectedGoodwill == "number" ? `+${job.expectedGoodwill} goodwill` : job.expectedGoodwill}</span>}
             {harvest && <small className={job.waiting ? "task-waiting" : undefined}>{harvestPhase(state, job, request, active)}</small>}
             {job.waiting && !harvest && <small className="task-waiting">{job.detail || job.waiting}</small>}

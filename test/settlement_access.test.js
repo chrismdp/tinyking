@@ -1,3 +1,6 @@
+import { rowOfTiles } from "./support/world";
+import { walk_to } from "game/tasks";
+import { Task } from "game/htn";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
 import { path, addBidirectionalLink } from "game/pathfinding";
@@ -64,4 +67,24 @@ it("preserves a worn public reservation even after its visible wear fades",()=>{
   const before=JSON.stringify(s);
   expect(reserveWorkYard(s,ids[3],"house")).toBe(false);
   expect(JSON.stringify(s)).toBe(before);
+});
+
+it.each([false,true])("walks into and out of connected private work space without transit wear (fenced %s)",fenced=>{
+  const {state:s,tiles,villager}=rowOfTiles(5);
+  s.ecs.mappable[tiles[2]].buildingPlot="house";
+  s.ecs.mappable[tiles[3]].buildingPlot="house";
+  if(fenced)newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},fence:{halfWidth:14,halfDepth:14}}]);
+  const walk=target=>{
+    const w={places:{}};let result;
+    for(let i=0;i<3000 && result!=Task.FINISH && result!=Task.ABORT;i++)result=walk_to(s,villager,w,1/86400,i==0,target);
+    return result;
+  };
+  expect(walk(tiles[3])).toBe(Task.FINISH);
+  expect(Math.hypot(s.ecs.spatial[villager].x-s.ecs.spatial[tiles[3]].x,s.ecs.spatial[villager].y-s.ecs.spatial[tiles[3]].y)).toBeLessThan(10);
+  expect(walk(tiles[0])).toBe(Task.FINISH);
+  expect(s.ecs.walkable[tiles[2]].worn).toEqual({});
+  expect(s.ecs.walkable[tiles[3]].worn).toEqual({});
+  expect(walk(tiles[4])).toBe(Task.ABORT);
+  s.ecs.mappable[tiles[2]].cropPlot=true;
+  expect(walk(tiles[3])).toBe(Task.ABORT);
 });

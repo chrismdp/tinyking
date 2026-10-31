@@ -6,6 +6,14 @@ export const plotAllowed = (tile, worn = {}) => tile?.terrain == "grassland" && 
   !tile.buildingPlot && !tile.route?.length && !Object.values(worn).some(n => n > 0);
 
 export const transitBlocked = (state,id) => !!state.ecs.mappable?.[id]?.buildingPlot || fieldAtTile(state,id);
+// Endpoint crops permit work access. Connected private space permits actual
+// property entry/exit, while public trips cannot use that interior as a shortcut.
+export function routeBlocked(state,id,start,goal) {
+  if(id==start || id==goal)return false;
+  if(fieldAtTile(state,id))return true;
+  const owner=state.ecs.mappable?.[id]?.buildingPlot;
+  return !!owner && owner!=state.ecs.mappable?.[start]?.buildingPlot && owner!=state.ecs.mappable?.[goal]?.buildingPlot;
+}
 export function canReserveWorkYard(state,tileId,houseId) {
   const tile=state.ecs.mappable[tileId],walk=state.ecs.walkable[tileId];
   if(!tile || !walk || fieldAtTile(state,tileId))return false;

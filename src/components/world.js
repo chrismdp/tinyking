@@ -104,6 +104,7 @@ export function World() {
 
   const selectEntity = React.useCallback((id, touch) => {
     if (!introActive(state) && !state.worldBusy && !state.ui.show.main_menu) {
+      if (id != state.ui.playerId) state.renderer?.suspendFollow();
       if (state.ecs.personable[id] && id != state.ui.playerId) {
         setPopupInfo({});
         state.ui.show.selected_person = id;
@@ -111,6 +112,7 @@ export function World() {
         renderUI();
         return;
       }
+      if (id == state.ui.playerId) state.renderer?.recenter();
       state.ui.show.selected_person = null;
       setPopupInfo(s => (s.id != id) ? { id, touch } : {});
     }
@@ -160,7 +162,11 @@ export function World() {
       },
       change_visibility: action => {
         state.ui.show = { ...state.ui.show, ...action };
-        if ("selected_person" in action) state.ui.selected = action.selected_person;
+        if ("selected_person" in action) {
+          state.ui.selected = action.selected_person;
+          if (action.selected_person == state.ui.playerId) state.renderer?.recenter();
+          else if (action.selected_person) state.renderer?.suspendFollow();
+        }
         renderUI();
       },
       toggle_debug: () => {
@@ -200,7 +206,7 @@ export function World() {
       },
       travel: tileId => {
         if (introActive(state)||state.worldBusy) return;
-        if (acceptTravel(state,tileId)) { setPopupInfo({}); state.ui.show.world_overview=false; }
+        if (acceptTravel(state,tileId)) { state.renderer?.resumeFollow(); setPopupInfo({}); state.ui.show.world_overview=false; }
         renderUI();
       },
       dismiss_travel: () => { setPopupInfo({}); renderUI(); },
@@ -214,13 +220,15 @@ export function World() {
           targetId = state.ecs.construction?.[targetId] ? targetId : placeShelter(state, targetId);
           if (!targetId) return;
         }
+        state.renderer?.resumeFollow();
         enqueueTask(state, job, targetId);
         setPopupInfo({});
         renderUI();
       },
-      accept_favour: id => { if (introActive(state)||state.worldBusy) return; acceptFavour(state, id); renderUI(); },
+      accept_favour: id => { if (introActive(state)||state.worldBusy) return; state.renderer?.resumeFollow(); acceptFavour(state, id); renderUI(); },
       talk_to: (personId, key, metadata) => {
         if (introActive(state)||state.worldBusy) return;
+        state.renderer?.resumeFollow();
         enqueueTask(state, { key }, personId, metadata);
         renderUI();
       },

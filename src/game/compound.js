@@ -73,6 +73,7 @@ export const person = () => [
   ],
   [world => world.friendOffer, offer => [["begin_friend_help", offer], ["walk_to", offer?.x != null ? { x: offer.x, y: offer.y } : offer?.targetId], ["help_friend_work"], ["end_friend_help"]]],
   [world => world.gardenHelp, garden => [["walk_to", garden], ["tend_garden", garden]]],
+  [world => world.child && world.nightHome, home => [["home_downtime", home]]],
   [world => world.child, () => [["child_idle"]]],
   [
     world => time.hour_of_day(world.days) >= 6 && time.hour_of_day(world.days) < 18,
@@ -89,6 +90,7 @@ export const person = () => [
     always,
     () => [ [ "haul", "wood" ] ]
   ],
+  [world => world.nightHome, home => [["home_downtime", home]]],
   [always, () => [["idle_person"]]]
 ];
 
@@ -496,7 +498,7 @@ export const social_visit = () => [
   [world => world.social?.kind == "play" && world.social, visit => [["walk_to", "socialDestination"], ["play_together", visit.partnerId], ["end_visit"]]],
   [world => world.social?.stage == "returning" && world.social, visit => [["walk_to", visit.homeId], ["end_visit"]]],
   [world => world.social?.visitor && world.social, visit => [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["return_from_visit"], ["walk_to", visit.homeId], ["end_visit"]]],
-  [world => world.social, visit => [["socialise", visit.partnerId], ["end_visit"]]]
+  [world => world.social, visit => [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["end_visit"]]]
 ];
 
 export const child_idle = () => [[always, () => [["wait_for", time.HOUR / 4]]]];

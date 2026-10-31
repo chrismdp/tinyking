@@ -10,7 +10,7 @@ import { treeColours, treeKind } from "render/biomes";
 import { label } from "render/labels";
 
 import { displayName } from "game/knowledge";
-import { currentActivity } from "game/person_activity";
+import { headActivity } from "game/person_activity";
 import { forageAvailable } from "game/ecology";
 
 import crops from "data/crops.json";
@@ -342,6 +342,8 @@ export function foragePlant(ground, state, id) {
 // NOTE: a unit pyramid on a square base lined up with the axes, so it can be
 // stretched to fit the walls
 const squarePyramid = () => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4);
+const windowGlass = shared(new THREE.MeshBasicMaterial({ color: 0xFFCA79 }));
+const windowPane = shared(new THREE.BoxGeometry(8, 9, 1));
 
 export function building(ground, state, id, options) {
   const { x, y } = state.ecs.spatial[id];
@@ -396,6 +398,12 @@ export function house(ground, x, y, entrance, { playerOwned, selected, growthSta
       { geometry: new THREE.BoxGeometry(12, 8, 1), colour: 0xD93B30, matrix: at(w * 0.3 + 6, high + wall + 21, 0) });
   }
   group.add(new THREE.Mesh(mergeColoured(parts), vertexColoured));
+  const windows = new THREE.Group(); windows.name = "home-windows";
+  for (const wx of [-w * .32, w * .32]) {
+    const pane = new THREE.Mesh(windowPane, windowGlass);
+    pane.position.set(wx, high + 16, d / 2 + 1.1); windows.add(pane);
+  }
+  windows.visible = false; group.add(windows);
 
   if (selected) {
     const marker = selectionMarker(high + wall + roof + 14);
@@ -470,6 +478,11 @@ export function person(state, e, t, { realm, selected }) {
     ring.scale.set(1.3, 1, 1.3);
   }
   group.add(ring);
+  if (e.id == state.ui.playerId) {
+    const controlled = new THREE.Mesh(ringGeometry(size * 1.65), shared(new THREE.MeshBasicMaterial({ color: 0xFFE29A, depthTest: false })));
+    controlled.name = "controlled-ring"; controlled.position.y = 1; controlled.renderOrder = 4;
+    group.add(controlled);
+  }
 
   if (!proxyGeometry) {
     proxyGeometry = shared(new THREE.CylinderGeometry(HIT_RADIUS, HIT_RADIUS, 40, 8));
@@ -488,16 +501,23 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? currentActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui.debug) : null;
+  const activity = e.planner && !introActive(state) ? headActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui.debug) : null;
+  const knownName = displayName(state, e.id);
+  const hasName = knownName != "an unknown person";
+  if (hasName) {
+    const text = label((e.id == state.ui.playerId ? "You · " : "") + knownName, { height: 18, fontSize: 13, colour: e.id == state.ui.playerId ? "#ffe29a" : "white" });
+    text.userData.nameAspect = text.scale.x / text.scale.y;
+    text.name = "person-name"; text.position.y = height + 14; group.add(text);
+  }
   if (activity) {
     const text = label(activity);
     text.name = "activity";
-    text.position.y = height + 14;
+    text.position.y = height + (hasName ? 31 : 14);
     group.add(text);
   }
 
   if (selected) {
-    group.add(selectionMarker(height + (activity ? 32 : 16)));
+    group.add(selectionMarker(height + (hasName ? 17 : 0) + (activity ? 32 : 16)));
   }
 
   group.userData.anchorHeight = height;
@@ -858,4 +878,9 @@ export function shelter(ground, state, id) {
   }
   group.userData.anchorHeight = stage == "house" ? 65 : stage == "hut" ? 50 : 30;
   return group;
+}
+
+export function animateHome(model, occupied) {
+  const windows = model.getObjectByName("home-windows");
+  if (windows) windows.visible = occupied;
 }

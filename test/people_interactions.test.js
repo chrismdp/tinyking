@@ -23,7 +23,7 @@ it("ask about is gated by the speaker's Social ring and fills unknown family nam
   expect(state.knowledge).toBeUndefined();
   state.ecs.relationships[person].known[player] = { ring: "social", goodwill: 16, base: 16 };
   const before = knownFamilyTree(state, player, sibling);
-  expect(Object.values(before.nodes).filter(n => n.unknown)).toHaveLength(2);
+  expect(Object.values(before.nodes).filter(n => n.unknown)).toHaveLength(3);
   expect(askAbout(state, player, person, sibling)).toMatchObject({ ok: true, ring: "social" });
   const after = knownFamilyTree(state, player, sibling);
   expect(Object.values(after.nodes).some(n => n.unknown)).toBe(false);

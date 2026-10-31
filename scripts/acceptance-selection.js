@@ -5,6 +5,7 @@ require("./game-register");
 const { canPlaceShelter } = require("../src/game/construction");
 const { Hex } = require("../src/game/hex");
 const { disposition } = require("../src/game/people");
+const { harvestFits } = require("../src/game/farming");
 const { OATH_TRUST } = require("../src/game/village_customs");
 
 const snapshot = page => page.evaluate(() => {
@@ -43,14 +44,15 @@ function approachableCrop(s, field, home) {
   if(!s.ecs.spatial[field] || !canReachTask(s,actor,field))return false;
   const copy=JSON.parse(JSON.stringify(s));copy.redraws=[];copy.days=s.days || 0;
   const farm=copy.ecs.farmable[field],points=triangleCenters(copy.ecs.spatial[field]);
-  const targets=farm.slots.flatMap((slot,i)=>["sown","harvestable"].includes(slot.state)?[{...points[i],id:field}]:[]);
   const store=copy.ecs.household[home]?.storeId || home;
   if(!copy.ecs.spatial[store])return false;
-  targets.push(store);
+  // Each cut returns home before the next patch. Use the same six-frame
+  // Fast quantum as the software-rendered browser, including its stopping distance.
+  const targets=farm.slots.flatMap((slot,i)=>["sown","harvestable"].includes(slot.state)?[{...points[i],id:field},store]:[]);
   for(const target of targets) {
     const world={places:{}};
-    let result=walk_to(copy,actor,world,1,true,target);
-    while(result==Task.CONTINUE)result=walk_to(copy,actor,world,1,false,target);
+    let result=walk_to(copy,actor,world,6/1440,true,target);
+    while(result==Task.CONTINUE)result=walk_to(copy,actor,world,6/1440,false,target);
     if(result!=Task.FINISH)return false;
   }
   return true;
@@ -65,9 +67,9 @@ function harvestFriend(s) {
     .map(c=>({...c,field:(s.ecs.household[c.home]?.fields || []).find(id=>s.ecs.farmable[id]?.slots.some(slot=>["sown","harvestable"].includes(slot.state)))}))
     .filter(c=>c.field)
     .sort((a,b)=>Math.hypot(s.ecs.spatial[a.person].x-p.x,s.ecs.spatial[a.person].y-p.y)-Math.hypot(s.ecs.spatial[b.person].x-p.x,s.ecs.spatial[b.person].y-p.y));
-  const selected=candidates.find(c=>approachableCrop(s,c.field,c.home));
+  const selected=candidates.find(c=>harvestFits(s,c.field,18) && approachableCrop(s,c.field,c.home));
   if(!selected)throw new Error("Seed 13 has no attainable farming friend scenario");
-  return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder with love disposition and a physically reachable growing field, including every crop patch and delivery route. Spring growth, conversations, harvest work and delivery run normally."};
+  return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder with love disposition and a physically reachable growing field, including every crop patch, delivery route and storage for the full eighteen-grain favour. Spring growth, conversations, harvest work and delivery run normally."};
 }
 module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend };
 

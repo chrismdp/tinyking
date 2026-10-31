@@ -87,8 +87,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     }, person);
     await page.locator(".person-window").waitFor(); await frame("villager");
     await page.getByRole("button", { name: "Chat", exact: true }).click();
-    await page.getByRole("button", { name: "Chat", exact: true }).click();
-    story.actions.push({ action: "Two Chat visits", person, reason: "Get to know the nearby requester through ordinary conversations" });
+    story.actions.push({ action: "First Chat visit", person, reason: "Discover the actual request; the second consenting Chat hands over the crop immediately before helping" });
     await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
     await page.waitForFunction(id => {
       const s = window.tinyking;
@@ -127,7 +126,7 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     // One ordinary spring growth window, with real ordered meals and sleep.
     // The generated fuel requests are now resolved by household routines.
     const cropStart=await page.evaluate(()=>window.tinyking.days);
-    await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
     await page.waitForFunction(({home,start})=>{
       const s=window.tinyking,r=Object.values(s.favours.requests).find(r=>r.householdId==home && r.kind=="harvest" && r.status=="offered");
       if(r || s.days>=start+3){s.ui.actions.set_speed("paused");return true;}return false;

@@ -155,6 +155,7 @@ it("chooses a real farming household for the storyboard when no fuel favour exis
   s.favours={requests:{}};
   const [crop]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[5]],immovable:true},farmable:{houseId:tiles[3],slots:[{state:'sown',growth:0,content:'grain'}]},controllable:{controllerId:person}}]);
   s.ecs.household[tiles[3]]={fields:[crop],storeId:tiles[3]};
+  s.ecs.container ||= {};s.ecs.container[tiles[3]]={capacity:100,amounts:{}};
   s.ecs.personable[parent].dead=true;
   const before=JSON.stringify(s);
   const choice=require('../scripts/acceptance-selection').harvestFriend(s);
@@ -175,4 +176,16 @@ it("chooses a reachable householder crop rather than a nearer resident's unworka
   const before=JSON.stringify(s);
   expect(require('../scripts/acceptance-selection').harvestFriend(s)).toMatchObject({person:sibling,field:good});
   expect(JSON.stringify(s)).toBe(before);
+});
+
+it("rejects a reachable harvest whose household cannot store the full favour yield", () => {
+  const {state:s,person,parent,tiles}=peopleWorld();
+  s.opinionThresholds={hate:-100,love:-99};s.favours={requests:{}};
+  s.ecs.personable[parent].dead=true;
+  const [crop]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[5]],immovable:true},farmable:{houseId:tiles[3],slots:Array.from({length:3},()=>({state:"sown",content:"grain"}))},controllable:{controllerId:person}}]);
+  s.ecs.household[tiles[3]]={fields:[crop],storeId:tiles[3]};
+  s.ecs.container ||= {};s.ecs.container[tiles[3]]={capacity:100,amounts:{grain:90}};
+  expect(()=>require("../scripts/acceptance-selection").harvestFriend(s)).toThrow("no attainable farming friend");
+  s.ecs.container[tiles[3]].amounts.grain=60;
+  expect(require("../scripts/acceptance-selection").harvestFriend(s)).toMatchObject({person,field:crop});
 });

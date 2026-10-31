@@ -15,19 +15,24 @@ export function routeBlocked(state,id,start,goal) {
   return !!owner && owner!=state.ecs.mappable?.[start]?.buildingPlot && owner!=state.ecs.mappable?.[goal]?.buildingPlot;
 }
 export function canReserveWorkYard(state,tileId,houseId) {
-  const tile=state.ecs.mappable[tileId],walk=state.ecs.walkable[tileId];
-  if(!tile || !walk || fieldAtTile(state,tileId))return false;
-  if(tile.buildingPlot)return tile.buildingPlot==houseId;
-  const occupied=(state.space[Hex().fromPoint(state.ecs.spatial[tileId])] || []).some(id=>
-    state.ecs.building?.[id] || state.ecs.camp?.[id] || state.ecs.stockpile?.[id] || state.ecs.meetingPlace?.[id] ||
-    state.ecs.pasture?.[id] || state.ecs.workplace?.[id] && state.ecs.workplace[id].houseId!=houseId);
-  return !occupied && plotAllowed(tile,walk?.worn) && !walk?.trackReserved && preservesPublicAccess(state,tileId,houseId);
+  const ids=[...new Set(Array.isArray(tileId)?tileId:[tileId])];
+  if(!ids.length)return false;
+  for(const id of ids) {
+    const tile=state.ecs.mappable[id],walk=state.ecs.walkable[id];
+    if(!tile || !walk?.speed || fieldAtTile(state,id))return false;
+    if(tile.buildingPlot){if(tile.buildingPlot!=houseId)return false;continue;}
+    const occupied=tileContents(state,id).some(other=>state.ecs.building?.[other] || state.ecs.camp?.[other] ||
+      state.ecs.stockpile?.[other] || state.ecs.meetingPlace?.[other] || state.ecs.pasture?.[other] ||
+      state.ecs.workplace?.[other] && state.ecs.workplace[other].houseId!=houseId);
+    if(occupied || !plotAllowed(tile,walk.worn) || walk.trackReserved)return false;
+  }
+  return ids.every(id=>state.ecs.mappable[id].buildingPlot==houseId) || preservesPublicAccess(state,ids,houseId);
 }
 export function reserveWorkYard(state,tileId,houseId) {
   if(!canReserveWorkYard(state,tileId,houseId))return false;
-  if(state.ecs.mappable[tileId].buildingPlot==houseId)return true;
-  state.ecs.mappable[tileId].buildingPlot=houseId;
-  state.landUseRevision=(state.landUseRevision || 0)+1;
+  const ids=Array.isArray(tileId)?tileId:[tileId];let changed=false;
+  for(const id of ids)if(state.ecs.mappable[id].buildingPlot!=houseId){state.ecs.mappable[id].buildingPlot=houseId;changed=true;}
+  if(changed)state.landUseRevision=(state.landUseRevision || 0)+1;
   return true;
 }
 
@@ -63,8 +68,9 @@ export function canPlaceField(state, tileId) {
 // interior tiles, but cannot serve as the public bypass around another plot.
 function preservesPublicAccess(state,tileId,houseId) {
   const {ecs}=state;
-  const adjacent=Object.values(ecs.walkable?.[tileId]?.neighbours || {});
-  const publicTile=id=>String(id)!=String(tileId) && !transitBlocked(state,id);
+  const ids=Array.isArray(tileId)?tileId:[tileId],blocked=new Set(ids.map(String));
+  const adjacent=[...new Set(ids.flatMap(id=>Object.values(ecs.walkable?.[id]?.neighbours || {})))].filter(id=>!blocked.has(String(id)));
+  const publicTile=id=>!blocked.has(String(id)) && !transitBlocked(state,id);
   const neighbours=adjacent.filter(publicTile);
   if(!neighbours.length)return false;
   for(const id of adjacent.filter(id=>transitBlocked(state,id))) {
@@ -80,7 +86,7 @@ function preservesPublicAccess(state,tileId,houseId) {
         seen.add(next);
         for(const n of Object.values(ecs.walkable[next].neighbours)) {
           if(publicTile(n)){exit=true;break;}
-          if(String(n)!=String(tileId) && !fieldAtTile(state,n) && ecs.mappable[n].buildingPlot==owner && !seen.has(n))queue.push(n);
+          if(!blocked.has(String(n)) && !fieldAtTile(state,n) && ecs.mappable[n].buildingPlot==owner && !seen.has(n))queue.push(n);
         }
       }
       if(!exit)return false;

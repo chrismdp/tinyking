@@ -105,3 +105,14 @@ it("reads live crop membership after cached tile lookup, replacement and coordin
   s.space={...s.space,[Hex().fromPoint(p)]:[tiles[0]]};
   expect(fieldAtTile(s,tiles[0])).toBe(false);
 });
+
+it("reserves a connected private parcel atomically while retaining public connections and work exits",()=>{
+  const {s,ids}=neck();
+  const before=JSON.stringify(s);
+  expect(reserveWorkYard(s,[ids[1],ids[3]],"house")).toBe(false);
+  expect(JSON.stringify(s)).toBe(before);
+  addBidirectionalLink(s.ecs,ids[0],5,ids[2]);
+  expect(reserveWorkYard(s,[ids[1],ids[3]],"house")).toBe(true);
+  expect(path(s,ids[0],ids[2]).map(p=>p.id)).not.toContain(ids[1]);
+  expect(path(s,ids[0],ids[3])).toBeTruthy();
+});

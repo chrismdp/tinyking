@@ -142,3 +142,19 @@ it("releases only an infeasible opportunity's unused field proposal when reassig
     }
   } finally {yards.mockRestore();}
 });
+
+it("keeps an approved house pad when its real work yard must stand across an existing public lane",()=>{
+  let original;
+  const s=viableVillage(3,state=>{
+    const site=state.settlement.sites.v[0],home=Hex().fromPoint(site.point);original={...site.point};
+    const ring=Grid.hexagon({center:home,radius:1}).neighborsOf(home,ALL_SIDES);
+    const tiles=ring.map(h=>state.space[h].find(id=>state.ecs.mappable[id]));
+    expect(landUse.reserveRoad(state,[...tiles,tiles[0]])).toBe(true);
+  });
+  expect(s.settlement.sites.v[0].point).toEqual(original);
+  const house=s.villages.v.houses[0],h=s.ecs.household[house],yard=Hex().fromPoint(h.yardPoint);
+  expect(Hex().fromPoint(original).distance(yard)).toBeGreaterThan(1);
+  expect(Hex().fromPoint(original).distance(yard)).toBeLessThanOrEqual(5);
+  const origin=s.space[Hex().fromPoint(original)].find(id=>s.ecs.mappable[id]),end=s.space[yard].find(id=>s.ecs.mappable[id]);
+  expect(require("game/pathfinding").path(s,origin,end)).not.toBeNull();
+});

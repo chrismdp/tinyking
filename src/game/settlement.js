@@ -5,7 +5,7 @@ import { newEntities, deleteEntity } from "game/entities";
 import { generatePerson, TRIANGLES } from "game/map";
 import { generateVillageLife, settlementLayoutInputs, workBayTiles } from "game/villages";
 import { path, removeBidirectionalLink, addBidirectionalLink } from "game/pathfinding";
-import { reserveRoad, canPlaceField, reserveFieldPlot, reserveWorkYard, reserveFieldLane } from "game/land_use";
+import { reserveRoad, canPlaceField, reserveFieldPlot, reserveWorkYard, canReserveWorkYard, reserveFieldLane, tileContents } from "game/land_use";
 import { buildingFootprint, canClearForBuilding, reserveBuildingClearance } from "game/tree_clearance";
 import { groundForState, safeTile, shelterSurface, roadStep, ROAD_CROSS_SLOPE } from "game/geography";
 import { topController } from "game/playable";
@@ -13,7 +13,7 @@ import { meet, addGoodwill } from "game/people";
 import { invalidateEventIndex, recordEvent } from "game/events";
 import { createPossession, repairHouseholds } from "game/possessions";
 import { recordJourney, routeTile, flushJourneys } from "game/settlement_routes";
-import { growthRecord, growBuildings, householdRoster, recordProduction, recordMeetingUse, completeTradeProduction, consumeStored, depositProduced } from "game/settlement_growth";
+import { growthRecord, growBuildings, householdRoster, expandedFootprint, footprintsOverlap, recordProduction, recordMeetingUse, completeTradeProduction, consumeStored, depositProduced } from "game/settlement_growth";
 import { frozenAt, climateTile } from "game/climate";
 import { DAYS_IN_SEASON, HOUR, season as seasonName } from "game/time";
 import { hashUnit } from "game/math";
@@ -54,18 +54,56 @@ function reservationPreview(s) {
     mappable:Object.fromEntries(Object.entries(s.ecs.mappable).map(([id,t])=>[id,{...t,route:t.route && [...t.route]}])),
     walkable:Object.fromEntries(Object.entries(s.ecs.walkable).map(([id,w])=>[id,{...w,neighbours:{...w.neighbours}}]))}};
 }
-function reserveSiteYard(s,site,pads) {
-  const padTiles=new Set(pads.map(p=>at(s,p.point))),home=Hex().fromPoint(site.point);
-  site.yardOwner="site:"+at(s,site.point);
-  const yard=Grid.hexagon({center:home,radius:1}).neighborsOf(home,ALL_SIDES)
-    .filter((h,side)=>side!=site.entrance &&
-      (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
-      Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2)).map(h=>at(s,h.toPoint())).filter(id=>id && !padTiles.has(id) && !pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==id))
-    .sort((a,b)=>Number(b==at(s,site.yardPoint))-Number(a==at(s,site.yardPoint)))
-    .find(id=>reserveWorkYard(s,id,site.yardOwner));
-  site.rearOpportunity=yard?workBayTiles(s,s.ecs.spatial[yard]):[];
-  return yard;
+function yardGeometry(s,point,pads) {
+  const station={ecs:{spatial:{station:{x:point.x-10,y:point.y}},workplace:{station:{}}}};
+  const base=buildingFootprint(station,"station"),bay=expandedFootprint(station,"station",1);
+  const gardens=[-23,23].map(y=>({x:point.x+43,y:point.y+y,halfWidth:18,halfDepth:18,angle:0}));
+  const homes=pads.map(p=>p.usedBy?s.ecs.treeClearance?.[p.usedBy] || buildingFootprint(s,p.usedBy):
+    buildingFootprint({ecs:{spatial:{pad:p.point},building:{pad:{entrance:p.entrance}}}},"pad"));
+  if([base,...gardens].some(f=>homes.some(h=>footprintsOverlap(f,h))))return null;
+  const rectangles=[base,...gardens],tiles=[];
+  // Exact convex overlap with the real roof/garden rectangles. The union
+  // reserves only intersected tiles, rather than an inflated future yard.
+  for(const h of Grid.hexagon({center:Hex().fromPoint(point),radius:2})) {
+    const centre=h.toPoint(),hex=Hex().corners().map(p=>({x:p.x+centre.x,y:p.y+centre.y}));
+    const overlap=rectangles.some(f=>{
+      const box=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x,y])=>({x:f.x+x*f.halfWidth,y:f.y+y*f.halfDepth}));
+      const axes=[{x:1,y:0},{x:0,y:1},...hex.map((p,i)=>({x:hex[(i+1)%6].y-p.y,y:p.x-hex[(i+1)%6].x}))];
+      return axes.every(a=>{const A=hex.map(p=>p.x*a.x+p.y*a.y),B=box.map(p=>p.x*a.x+p.y*a.y);return Math.max(...A)>Math.min(...B)+1e-7 && Math.max(...B)>Math.min(...A)+1e-7;});
+    });
+    if(overlap)tiles.push(at(s,centre));
+  }
+  return {tiles,base,room:!homes.some(h=>footprintsOverlap(bay,h))};
 }
+function reserveSiteYard(s,site,pads,owner=null) {
+  const padTiles=new Set(pads.map(p=>at(s,p.point))),home=Hex().fromPoint(site.point),door=s.ecs.walkable[at(s,site.point)].neighbours[site.entrance];
+  site.yardOwner="site:"+at(s,site.point);
+  const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>home.distance(h)>0 &&
+    (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
+    Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2)).map(h=>at(s,h.toPoint())).filter(id=>id &&
+      !padTiles.has(id) && canReserveWorkYard(s,id,site.yardOwner) && !pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==id))
+    .sort((a,b)=>home.distance(Hex().fromPoint(s.ecs.spatial[a]))-home.distance(Hex().fromPoint(s.ecs.spatial[b])) || Number(b==at(s,site.yardPoint))-Number(a==at(s,site.yardPoint)) || Number(a)-Number(b));
+  let fallback;
+  for(const id of candidates) {
+    const geometry=yardGeometry(s,s.ecs.spatial[id],pads);
+    if(!geometry || geometry.tiles.some(tile=>!tile || padTiles.has(tile) ||
+        s.map.playerStartTile && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(s.map.playerStartTile))<=2 ||
+        Object.values(s.map.entrances || {}).some(e=>e.hexes && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(e.hexes[2]))<=2) ||
+        tileContents(s,tile).some(id=>s.ecs.good?.[id]?.type=="wood" && !s.ecs.haulable?.[id] && s.ecs.controllable?.[id] && topController(s.ecs,id)!=owner) ||
+        pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==tile)) ||
+      !canClearForBuilding(s,geometry.base,owner) || !canReserveWorkYard(s,geometry.tiles,site.yardOwner) || !path(s,door,id))continue;
+    const plan={id,tiles:geometry.tiles};
+    if(geometry.room){fallback=plan;break;}
+    fallback ||= plan;
+  }
+  if(!fallback)return undefined;
+  reserveWorkYard(s,fallback.tiles,site.yardOwner);
+  site.yardTiles=fallback.tiles;
+  site.yardPoint={x:s.ecs.spatial[fallback.id].x,y:s.ecs.spatial[fallback.id].y};
+  site.rearOpportunity=workBayTiles(s,s.ecs.spatial[fallback.id]);
+  return fallback.id;
+}
+
 function reserveSiteRear(s,site,pads) {
   const padTiles=new Set(pads.map(p=>at(s,p.point)));
   return (site.rearOpportunity || []).filter(id=>id && !padTiles.has(id) &&
@@ -100,7 +138,7 @@ export function reserveFoundingFields(s) {
         if(!planned)throw new Error("Surveyed household lacks accessible cultivable land at "+old);
         Object.assign(site,planned.site);
         applySitePlan(s,site,planned.surface);delete site.unsurveyed;
-        if(!reserveWorkYard(s,site.yard,site.yardOwner))throw new Error("Validated founding yard changed during reservation");
+        if(!reserveWorkYard(s,site.yardTiles || [site.yard],site.yardOwner))throw new Error("Validated founding yard changed during reservation");
         if(!(site.field.kind=="foot"?reserveFieldLane(s,site.field.route):reserveRoad(s,site.field.route)) || !reserveFieldPlot(s,site.field.tile))throw new Error("Validated founding field changed during reservation");
       }
     }
@@ -165,7 +203,7 @@ function newSitePlan(s,villageId,pads,people=[],near) {
       for(const side of ALL_SIDES)if(side!=entrance)removeBidirectionalLink(preview.ecs,tile,side);
       const door=preview.ecs.walkable[tile].neighbours[entrance];
       if(!door || !(reserveRoad(preview,[tile,door]) || reserveFieldLane(preview,[tile,door])) || !path(preview,door,anchor))continue;
-      trial.yard=reserveSiteYard(preview,trial,[...pads,trial]);
+      trial.yard=reserveSiteYard(preview,trial,[...pads,trial],people[0]?topController(e,people[0]):null);
       if(!trial.yard)continue;
       trial.field=reserveSiteField(preview,trial,[...pads,trial],people[0]?topController(e,people[0]):null);
       if(trial.field){trial.workYardTiles=reserveSiteRear(preview,trial,[...pads,trial]);return {site:trial,surface};}
@@ -201,7 +239,7 @@ export function constructHome(s, villageId, people, options={}) {
   if(!site.field) {
     const preview=reservationPreview(s),plan={...site};
     for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(preview.ecs,at(s,site.point),side);
-    plan.yard=reserveSiteYard(preview,plan,Object.values(s.settlement.sites).flat());
+    plan.yard=reserveSiteYard(preview,plan,Object.values(s.settlement.sites).flat(),topController(e,people[0]));
     if(!plan.yard)return null;
     plan.field=reserveSiteField(preview,plan,Object.values(s.settlement.sites).flat(),topController(e,people[0]));
     if(!plan.field)return null;
@@ -213,7 +251,7 @@ export function constructHome(s, villageId, people, options={}) {
     if(!surface)return null;
     applySitePlan(s,site,surface);
   }
-  for(const tile of [site.yard,...(site.workYardTiles || [])])if(!reserveWorkYard(s,tile,site.yardOwner))throw new Error("Validated household yard reservation changed during construction");
+  if(!reserveWorkYard(s,[...(site.yardTiles || [site.yard]),...(site.workYardTiles || [])],site.yardOwner))throw new Error("Validated household yard reservation changed during construction");
   if(!e.mappable[site.field.tile].cropPlot && (!(site.field.kind=="foot"?reserveFieldLane(s,site.field.route):reserveRoad(s,site.field.route)) || !reserveFieldPlot(s,site.field.tile)))throw new Error("Validated household field reservation changed during construction");
   const fundingHouse=e.household?.[people[0]]?.houseId;
   if(options.timber==null)consumeStored(s,fundingHouse,"wood",HOUSE_TIMBER);
@@ -228,9 +266,9 @@ export function constructHome(s, villageId, people, options={}) {
   const [house]=newEntities(s,[{spatial:{...site.point,immovable:true},nameable:{nickname:options.founding?"Founder's cottage":"Family cottage"},building:{entrance:site.entrance,rooms:[]},household:{farming:false,fields:[],backyards:[]},controllable:{controllerId:people[0]},village:{villageId}}]);
   site.usedBy=house;
   if(site.yard) {
-    for(const tile of [site.yard,...(site.workYardTiles || [])])e.mappable[tile].buildingPlot=house;
+    for(const tile of [...(site.yardTiles || [site.yard]),...(site.workYardTiles || [])])e.mappable[tile].buildingPlot=house;
     e.household[house].yardReservation=site.yard;
-    e.household[house].workYardReservation=site.workYardTiles || [];
+    e.household[house].workYardReservation=[...new Set([...(site.yardTiles || []).filter(id=>id!=site.yard),...(site.workYardTiles || [])])];
   }
   s.settlement.layoutDirty=true;
   s.landUseRevision=(s.landUseRevision || 0)+1;

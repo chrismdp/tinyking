@@ -54,10 +54,10 @@ function reservationPreview(s) {
     mappable:Object.fromEntries(Object.entries(s.ecs.mappable).map(([id,t])=>[id,{...t,route:t.route && [...t.route]}])),
     walkable:Object.fromEntries(Object.entries(s.ecs.walkable).map(([id,w])=>[id,{...w,neighbours:{...w.neighbours}}]))}};
 }
-function yardGeometry(s,point,pads) {
-  const station={ecs:{spatial:{station:{x:point.x-10,y:point.y}},workplace:{station:{}}}};
+function yardGeometry(s,point,garden,pads) {
+  const station={ecs:{spatial:{station:{x:point.x,y:point.y}},workplace:{station:{}}}};
   const base=buildingFootprint(station,"station"),bay=expandedFootprint(station,"station",1);
-  const gardens=[-23,23].map(y=>({x:point.x+43,y:point.y+y,halfWidth:18,halfDepth:18,angle:0}));
+  const gardens=[{...garden,halfWidth:18,halfDepth:18,angle:0}];
   const homes=pads.map(p=>p.usedBy?s.ecs.treeClearance?.[p.usedBy] || buildingFootprint(s,p.usedBy):
     buildingFootprint({ecs:{spatial:{pad:p.point},building:{pad:{entrance:p.entrance}}}},"pad"));
   if([base,...gardens].some(f=>homes.some(h=>footprintsOverlap(f,h))))return null;
@@ -85,31 +85,29 @@ function reserveSiteYard(s,site,pads,owner=null) {
     .sort((a,b)=>home.distance(Hex().fromPoint(s.ecs.spatial[a]))-home.distance(Hex().fromPoint(s.ecs.spatial[b])) || Number(b==at(s,site.yardPoint))-Number(a==at(s,site.yardPoint)) || Number(a)-Number(b));
   let fallback;
   for(const id of candidates) {
-    const geometry=yardGeometry(s,s.ecs.spatial[id],pads);
-    if(!geometry || geometry.tiles.some(tile=>!tile || padTiles.has(tile) ||
-        s.map.playerStartTile && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(s.map.playerStartTile))<=2 ||
-        Object.values(s.map.entrances || {}).some(e=>e.hexes && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(e.hexes[2]))<=2) ||
-        tileContents(s,tile).some(id=>s.ecs.good?.[id]?.type=="wood" && !s.ecs.haulable?.[id] && s.ecs.controllable?.[id] && topController(s.ecs,id)!=owner) ||
-        pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==tile)) ||
-      !canClearForBuilding(s,geometry.base,owner) || !canReserveWorkYard(s,geometry.tiles,site.yardOwner) || !path(s,door,id))continue;
-    const plan={id,tiles:geometry.tiles};
-    if(geometry.room){fallback=plan;break;}
-    fallback ||= plan;
+    for(const gardenHex of Grid.hexagon({center:Hex().fromPoint(s.ecs.spatial[id]),radius:1}).neighborsOf(Hex().fromPoint(s.ecs.spatial[id]),ALL_SIDES)) {
+      const garden=gardenHex.toPoint();
+      if(home.distance(gardenHex)>5)continue;
+      const geometry=yardGeometry(s,s.ecs.spatial[id],garden,pads);
+      if(!geometry || geometry.tiles.some(tile=>!tile || padTiles.has(tile) ||
+          s.map.playerStartTile && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(s.map.playerStartTile))<=2 ||
+          Object.values(s.map.entrances || {}).some(e=>e.hexes && Hex().fromPoint(s.ecs.spatial[tile]).distance(Hex(e.hexes[2]))<=2) ||
+          tileContents(s,tile).some(id=>s.ecs.good?.[id]?.type=="wood" && !s.ecs.haulable?.[id] && s.ecs.controllable?.[id] && topController(s.ecs,id)!=owner) ||
+          pads.some(other=>other!=site && !other.usedBy && other.yardPoint && at(s,other.yardPoint)==tile)) ||
+        !canClearForBuilding(s,geometry.base,owner) || !canReserveWorkYard(s,geometry.tiles,site.yardOwner) || !path(s,door,id))continue;
+      const plan={id,tiles:geometry.tiles,garden};
+      if(geometry.room){fallback=plan;break;}
+      fallback ||= plan;
+    }
+    if(fallback)break;
   }
   if(!fallback)return undefined;
   if(!reserveWorkYard(s,fallback.tiles,site.yardOwner))return undefined;
   site.yardTiles=fallback.tiles;
   site.yardPoint={x:s.ecs.spatial[fallback.id].x,y:s.ecs.spatial[fallback.id].y};
-  site.rearOpportunity=workBayTiles(s,s.ecs.spatial[fallback.id]);
+  site.gardenPoint=fallback.garden;
+  site.rearOpportunity=workBayTiles(s,s.ecs.spatial[fallback.id],0);
   return fallback.id;
-}
-
-function reserveSiteRear(s,site,pads) {
-  const padTiles=new Set(pads.map(p=>at(s,p.point)));
-  return (site.rearOpportunity || []).filter(id=>id && !padTiles.has(id) &&
-    (!s.map.playerStartTile || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(s.map.playerStartTile))>2) &&
-    Object.values(s.map.entrances || {}).every(e=>!e.hexes || Hex().fromPoint(s.ecs.spatial[id]).distance(Hex(e.hexes[2]))>2))
-    .filter(id=>reserveWorkYard(s,id,site.yardOwner));
 }
 
 export function reserveFoundingFields(s) {
@@ -159,7 +157,7 @@ export function reserveFoundingFields(s) {
         if(!(site.field.kind=="foot"?reserveFieldLane(s,site.field.route):reserveRoad(s,site.field.route)) || !reserveFieldPlot(s,site.field.tile))throw new Error("Validated founding field changed during reservation");
       }
     }
-    for(const site of sites)site.workYardTiles=reserveSiteRear(s,site,sites);
+    for(const site of sites)site.workYardTiles=[];
   } finally {s.days=now;}
 }
 const historicalSurfacePlans=new WeakMap();
@@ -223,7 +221,7 @@ function newSitePlan(s,villageId,pads,people=[],near) {
       trial.yard=reserveSiteYard(preview,trial,[...pads,trial],people[0]?topController(e,people[0]):null);
       if(!trial.yard)continue;
       trial.field=reserveSiteField(preview,trial,[...pads,trial],people[0]?topController(e,people[0]):null);
-      if(trial.field){trial.workYardTiles=reserveSiteRear(preview,trial,[...pads,trial]);return {site:trial,surface};}
+      if(trial.field){trial.workYardTiles=[];return {site:trial,surface};}
     }
   }
   return null;
@@ -260,7 +258,7 @@ export function constructHome(s, villageId, people, options={}) {
     if(!plan.yard)return null;
     plan.field=reserveSiteField(preview,plan,Object.values(s.settlement.sites).flat(),topController(e,people[0]));
     if(!plan.field)return null;
-    plan.workYardTiles=reserveSiteRear(preview,plan,Object.values(s.settlement.sites).flat());
+    plan.workYardTiles=[];
     Object.assign(site,plan);
   }
   if(site.unsurveyed && s.map?.geography) {
@@ -285,6 +283,8 @@ export function constructHome(s, villageId, people, options={}) {
   if(site.yard) {
     for(const tile of [...(site.yardTiles || [site.yard]),...(site.workYardTiles || [])])e.mappable[tile].buildingPlot=house;
     e.household[house].yardReservation=site.yard;
+    e.household[house].gardenPoint=site.gardenPoint;
+    if(site.gardenPoint)e.household[house].stationPoint={...site.yardPoint};
     e.household[house].workYardReservation=[...new Set([...(site.yardTiles || []).filter(id=>id!=site.yard),...(site.workYardTiles || [])])];
   }
   s.settlement.layoutDirty=true;

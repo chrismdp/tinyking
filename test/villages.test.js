@@ -224,7 +224,7 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
   expect(solve({ ...p.world, days: 0.8 }, [], [["work_trade"]])[0]).toBeUndefined();
   expect(solve({ ...p.world, days: 0.5, feeling: { hungry: true } }, [], [["person"]])[0].some(t => t[0] == "trade_work")).toBe(false);
   // Make crops quiet so the real planner reaches the trade after its needs.
-  for (const f of Object.values(s.ecs.farmable)) for (const slot of f.slots) slot.state = "sown";
+  for (const f of Object.values(s.ecs.farmable)) for (const slot of f.slots) { slot.state = "sown"; slot.growth = 0; }
   s.ecs.personable[id].hunger = s.ecs.personable[id].tiredness = 0;
   // Oven/forge work now needs real fuel. Supply this routine fixture's store
   // so the existing walking, work and needs assertions still exercise work.

@@ -49,11 +49,13 @@ use the native field reservation. Other private work space uses the yard API.
 Trees remain on unused land until an actual footprint or cultivation needs it.
 
 The survey protects adjacent yard opportunities before optional roads are planned.
-Required main yards and fields take priority over optional annex space. Fields
-prefer ground outside the compact station rear opportunity. After every required
-compound has a field, the survey reserves available rear tiles through the native
-private-space check. This uses the same wing tile coverage as village layout. A road or public neck prevents that reservation. The survey
-clears no trees for these future bays. A real paid addition clears its footprint.
+Required work space and fields take priority over optional annexes. The native
+station footprint keeps its full 31-by-45 half extents and stands at the centre
+of its reserved hex. One actual garden stands on an adjacent reserved hex.
+A second garden needs a separate valid reservation. Neither its size nor the
+station roof shrinks to fit. Hypothetical wings reserve no land. A real supported,
+paid addition validates and reserves its full footprint through the native API.
+Fields still prefer ground outside the station's compact rear opportunity.
 
 Summary timber collection reuses one seasonal list of physical tree coordinates.
 Each household rechecks that its selected tree still exists before collection.

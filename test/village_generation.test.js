@@ -1,3 +1,4 @@
+import { buildingFootprint } from "game/tree_clearance";
 import * as landUse from "game/land_use";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
@@ -65,6 +66,22 @@ it.each([3,5,8])("keeps the garden and fields beside an accessible work station 
   expect(h.backyards.length).toBeGreaterThan(0);
   expect(expansionFits(s,h.workplaceId,expandedFootprint(s,h.workplaceId,1))).toBe(true);
   for(const tile of h.workYardTiles)expect(s.ecs.mappable[tile].cropPlot).not.toBe(true);
+});
+
+it("reserves full native station and garden footprints without taking hypothetical annex land",()=>{
+  const s=viableVillage(5);
+  for(const site of s.settlement.sites.v) {
+    expect(site.yardTiles).toHaveLength(2);
+    expect(site.workYardTiles).toEqual([]);
+    const h=s.ecs.household[site.usedBy];
+    expect(h.stationPoint).toEqual(site.yardPoint);
+    expect(h.backyards.length).toBeGreaterThanOrEqual(1);
+    expect(h.backyards.length).toBeLessThanOrEqual(2);
+    if(h.workplaceId)expect(s.ecs.spatial[h.workplaceId]).toMatchObject(site.yardPoint);
+    const roof=buildingFootprint({ecs:{spatial:{station:site.yardPoint},workplace:{station:{}}}},"station");
+    expect(roof.halfWidth).toBe(31);expect(roof.halfDepth).toBe(45);
+    for(const x of [-31,31])for(const y of [-45,45])expect(Hex().fromPoint({x:roof.x+x,y:roof.y+y}).toString()).toBe(Hex().fromPoint(site.yardPoint).toString());
+  }
 });
 
 it("clears actual green and well footprints and keeps them out of crops and private yards",()=>{

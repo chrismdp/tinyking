@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+/* global require */
 // Builder preview only. Revealed discovery and camera framing are labelled.
 // This does not repeat the independent mechanical or storyboard acceptance.
 const fs=require("fs"),path=require("path");

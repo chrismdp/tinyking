@@ -25,9 +25,9 @@ function proposal(state,point,components,house) {
     ...Object.fromEntries(Object.entries(components).map(([kind,record])=>[kind,{...e[kind],[proposalId]:record}]))}};
 }
 // Tile coverage of the actual station's rear wing, without clearing trees.
-export function workBayTiles(state,point) {
+export function workBayTiles(state,point,stationOffset=-10) {
   const keys=new Set();
-  for(const x of [-29,-10,9])for(const y of [-45,-57,-75])keys.add(keyOf({x:point.x+x,y:point.y+y}));
+  for(const x of [stationOffset-19,stationOffset,stationOffset+19])for(const y of [-45,-57,-75])keys.add(keyOf({x:point.x+x,y:point.y+y}));
   keys.delete(keyOf(point));
   return [...keys].map(key=>(state.space[key] || []).find(id=>state.ecs.mappable[id]));
 }
@@ -178,8 +178,9 @@ export function generateVillageLife(state, seed, start) {
         return expansionFits(preview,proposalId,expandedFootprint(preview,proposalId,2));
       };
       const yardTile=yardCandidates.find(id=>rearTiles(id).every(freeRear) && stationFits(id)) || yardCandidates.find(stationFits) || yardCandidates[0];
+      const compact=ecs.household[houseId]?.gardenPoint;
       const workYardTiles=[...new Set([...(ecs.household[houseId]?.workYardReservation || []),
-        ...(yardTile?rearTiles(yardTile).filter(freeRear).filter(tile=>reserveWorkYard(state,tile,houseId)):[])])];
+        ...(!compact && yardTile?rearTiles(yardTile).filter(freeRear).filter(tile=>reserveWorkYard(state,tile,houseId)):[])])];
       const yard = reserve(yardTile) || { x: ecs.spatial[houseId].x, y: ecs.spatial[houseId].y - 33 };
       // The actual household yard leaves room behind its work station. Trees
       // outside the current roof remain until a paid extension needs clearance.
@@ -191,19 +192,30 @@ export function generateVillageLife(state, seed, start) {
       const kinds = [BACKYARDS[householdIndex % BACKYARDS.length]];
       if (hashUnit(seed + ":backyard:" + houseId) < 0.6) kinds.push(BACKYARDS[(householdIndex + 2) % BACKYARDS.length]);
       for (const [i, kind] of kinds.entries()) {
-        const point = { x: yard.x + 43, y: yard.y + (i ? 23 : -23) };
+        let point = compact && !i ? compact : { x: yard.x + 43, y: yard.y + (i ? 23 : -23) };
+        if(compact && i) {
+          // A second actual garden is optional. Its whole footprint fits one
+          // adjacent hex and must preserve public routes and existing farms.
+          const extra=Grid.hexagon({center:Hex().fromPoint(yard),radius:1}).neighborsOf(Hex().fromPoint(yard),ALL_SIDES)
+            .filter(h=>!state.map?.playerStartTile || h.distance(Hex(state.map.playerStartTile))>2).map(h=>tileAt[h]).find(tile=>tile && tile!=tileAt[keyOf(compact)] && !occupied.has(keyOf(ecs.spatial[tile])) && canReserveWorkYard(state,tile,houseId));
+          if(!extra)continue;
+          reserveWorkYard(state,extra,houseId);reserve(extra);workYardTiles.push(extra);
+          household.plot.hexes.push(keyOf(ecs.spatial[extra]));point=ecs.spatial[extra];
+        }
         const id = add(point, village.id, { nameable: { nickname: kind == "vegetable" ? "Kitchen garden" : kind }, backyard: { houseId, kind } }, houseId);
         household.backyards.push(id);
-        if (kind == "vegetable" && yardTile) {
+        const gardenTile=compact?tileAt[keyOf(point)]:yardTile;
+        if (kind == "vegetable" && gardenTile) {
           // Convert this household's unused private plot to its real kitchen crop.
-          if(ecs.mappable[yardTile].buildingPlot==houseId)delete ecs.mappable[yardTile].buildingPlot;
-          if(reserveFieldPlot(state,yardTile))
+          if(ecs.mappable[gardenTile].buildingPlot==houseId)delete ecs.mappable[gardenTile].buildingPlot;
+          if(reserveFieldPlot(state,gardenTile))
             (ecs.farmable ||= {})[id] = { id, houseId, claimerId: null,
               slots: Array.from({ length: 2 }, () => seedSlot(houseId)) };
         }
         if (["chicken", "pig", "goat"].includes(kind)) enclosure(point, village.id, houseId, kind, 18, 16, kind == "chicken" ? 4 : 2, id);
       }
-      for(const tile of [...workYardTiles,yardTile].filter(Boolean))reserveWorkYard(state,tile,houseId);
+      household.workYardTiles=workYardTiles.filter(tile=>!ecs.mappable[tile].cropPlot);
+      for(const tile of [...household.workYardTiles,yardTile].filter(Boolean))reserveWorkYard(state,tile,houseId);
       householdIndex++;
     }
     const targetTrades=Math.min(6,Math.max(0,village.houses.length-2));
@@ -213,7 +225,7 @@ export function generateVillageLife(state, seed, start) {
       const household = ecs.household[houseId], storeId = household.storeId;
       if (household.trade || state.settlement && ecs.container[storeId].amounts.wood < 4) continue;
       const yard = household.yardPoint;
-      const point = { x: yard.x - 10, y: yard.y };
+      const point = household.stationPoint || { x: yard.x - 10, y: yard.y };
       if(!canClearForBuilding(state,buildingFootprint(proposal(state,point,{workplace:{houseId}},houseId),proposalId),topController(ecs,houseId)))continue;
       if (state.settlement) consumeStored(state,houseId,"wood",4);
       household.trade = [...TRADES.slice(vi%TRADES.length),...TRADES.slice(0,vi%TRADES.length)].find(trade=>!establishedTrades.has(trade));

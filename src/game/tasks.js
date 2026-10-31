@@ -158,7 +158,12 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
     // Its saved work identifies this departure; through traffic still wears it.
     const leavingPlot = next.entrance == null && world.ordered &&
       jobQueueFor(state.ecs, actorId).some(job => job.job.key == "create_field" && job.targetId == next.id && job.progress > 0 && job.progress < 1);
-    if (!enteringPlot && !leavingPlot) {
+    // A resource work visit includes collection/haul and automatic care, but
+    // only at the journey's endpoints. Crossing that tile still wears it.
+    const visitingWork = (next.entrance == null || next.exit == null) && world.ordered &&
+      jobQueueFor(state.ecs, actorId).some(job => job.workTileId == next.id &&
+        (job.assignedId == actorId || !world.currentJob && (world.feeling?.hungry || world.feeling?.tired)));
+    if (!enteringPlot && !leavingPlot && !visitingWork) {
       recordRoadUse(state,next.id,next.entrance,next.exit);
     }
 
@@ -201,6 +206,11 @@ export function take_job(state, actorId, world, dt, firstRun, key) {
   const jobs = jobQueueFor(state.ecs, actorId);
   const job = firstFreeJob(jobs, key);
   job.assignedId = actorId;
+  // The tree disappears at completion; keep its actual work tile on this job
+  // until delivery finishes, including any released assignment for self-care.
+  if (["cut_tree_down", "forage"].includes(key) && state.ecs.spatial[job.targetId]) {
+    job.workTileId = closestNavPointTo(state, state.ecs.spatial[job.targetId]);
+  }
 }
 
 export function release_job(state, actorId, world, dt, firstRun, key) {

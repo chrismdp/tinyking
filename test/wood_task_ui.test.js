@@ -44,7 +44,7 @@ it("uses combined hunger and tiredness for chopping and loaded delivery estimate
   const job = { job: { key: "cut_tree_down" }, workRemaining: 1 / 48 };
   expect(woodTask(state, job, true).time).toBe("~30m chopping left");
   Object.assign(state.ecs.personable[player], { hunger: 1, tiredness: 2 });
-  expect(woodTask(state, job, true).time).toBe("~63m chopping left");
+  expect(woodTask(state, job, true).time).toBe("~150m chopping left");
   const [log] = newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[8]] }, good: { type: "wood", amount: 1 }, haulable: { heldBy: player, speedModifier: .75 } }]);
   state.ecs.holder[player].held = [log];
   Object.assign(state.ecs.spatial[player], state.ecs.spatial[tiles[8]]);
@@ -54,7 +54,7 @@ it("uses combined hunger and tiredness for chopping and loaded delivery estimate
   Object.assign(state.ecs.personable[player], { hunger: 0, tiredness: 0 });
   const normal = +woodTask(state, job, true).time.match(/~(\d+)m/)[1];
   expect(slow).toBeGreaterThan(normal * 2);
-  expect(slow).toBeLessThanOrEqual(normal / .48 + 1);
+  expect(slow).toBeLessThanOrEqual(normal / .2 + 1);
 });
 
 it("renders the actual chop, collection, return journeys and delivered counts until the completed order disappears", () => {

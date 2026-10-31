@@ -96,8 +96,8 @@ it("explains tired slowdown next to hunger during active work and keeps Rest vis
   expect(render()).toContain("Hungry");
   expect(render()).toContain("Tired: working slowly");
   expect(render()).toMatch(/<button[^>]*>Rest<\/button>/);
-  // Two hours of building / (.8 hunger * .8 tiredness) = 188 rounded minutes.
-  expect(render()).toContain("~188m left");
+  // Two hours of building / (.8 hunger * .5 tiredness) = 300 rounded minutes.
+  expect(render()).toContain("~300m left");
   state.ecs.personable.p.tiredness = 0;
   expect(render()).not.toContain("Tired: working slowly");
   expect(render()).toContain("~150m left");

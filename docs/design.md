@@ -71,7 +71,7 @@ Orders belong to the current player. They use the same planner as village work. 
 
 An idle player stays where left. They can eat accessible food or rest in an available bed at that position. They do not walk away to seek care while idle. Find food and Rest are explicit orders. Running orders retain automatic meals and sleep, then resume.
 
-Hunger and missed sleep slow walking and work for everyone. Their speed factors multiply, and task estimates use that same factor. Tiredness permits full speed through 1.2 days, then gives 80% speed above 1.2 and 60% above 1.8. This leaves time for conversations, a shelter and sleep on the first day. Skipping that night slows the following day. The task panel explains the slowdown and offers Rest, including during work.
+Hunger and missed sleep slow walking and work for everyone. Their speed factors multiply, and task estimates use that same factor. Tiredness permits full speed through 1.2 days, then gives 50% speed above 1.2 and 25% above 1.8. This leaves time for conversations, a shelter and sleep on the first day. Skipping that night slows the following day. The task panel explains the slowdown and offers Rest, including during work.
 
 The arrival camp has a bedroll that permits sleep before building. It restores tiredness at the same rate as a bed or completed shelter. Building a shelter replaces that camp sleeping place. Without an accessible sleeping place, tiredness keeps rising. Rest uses the existing rules for access and walking to a bed.
 

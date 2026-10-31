@@ -22,7 +22,7 @@ function world(player = true) {
 }
 
 it.each([true, false])("slows walking, chopping and construction together, including combined hunger (player=%s)", player => {
-  for (const [hunger, tiredness, factor] of [[0, 0, 1], [0, 1.2, 1], [0, 1.21, .8], [0, 1.8, .8], [0, 1.81, .6], [1, 1.3, .64], [3, 2, .36]]) {
+  for (const [hunger, tiredness, factor] of [[0, 0, 1], [0, 1.2, 1], [0, 1.21, .5], [0, 1.8, .5], [0, 1.81, .25], [1, 1.3, .4], [3, 2, .15]]) {
     const { state: s, villager: id, tiles } = world(player);
     Object.assign(s.ecs.personable[id], { hunger, tiredness });
     const start = { ...s.ecs.spatial[id] };
@@ -55,10 +55,10 @@ it("changes ongoing effort immediately and uses the same factor for trade fuel",
   chop_tree(s, id, work, HOUR / 10, true, tree);
   s.ecs.personable[id].tiredness = 2;
   chop_tree(s, id, work, HOUR / 10, false, tree);
-  expect(work.workRemaining).toBeCloseTo(HOUR * (.5 - .1 - .06), 10);
+  expect(work.workRemaining).toBeCloseTo(HOUR * (.5 - .1 - .025), 10);
   trade_work(s, id, {}, HOUR / 10, true, forge);
-  expect(s.ecs.workplace[forge].workHours).toBeCloseTo(.06, 10);
-  expect(s.ecs.workplace[forge].fuelHours).toBeCloseTo(3.94, 10);
+  expect(s.ecs.workplace[forge].workHours).toBeCloseTo(.025, 10);
+  expect(s.ecs.workplace[forge].fuelHours).toBeCloseTo(3.975, 10);
 });
 
 it.each(["chopping", "construction"])("spends only 60%% effort on %s after prolonged missed sleep", kind => {
@@ -68,13 +68,13 @@ it.each(["chopping", "construction"])("spends only 60%% effort on %s after prolo
     const [tree] = newEntities(s, [{ spatial: { ...s.ecs.spatial[id] }, good: { type: "wood", amount: 2 } }]);
     const w = {};
     chop_tree(s, id, w, HOUR / 10, true, tree);
-    expect(w.workRemaining).toBeCloseTo(HOUR * .44, 10);
+    expect(w.workRemaining).toBeCloseTo(HOUR * .475, 10);
   } else {
     newEntities(s, [{ spatial: { ...s.ecs.spatial[id] }, camp: {}, controllable: { controllerId: id } }]);
     const site = placeShelter(s, tiles[1]);
     s.ecs.construction[site].delivered = 4;
     workOnShelter(s, id, {}, HOUR / 10, true, site);
-    expect(s.ecs.construction[site].work).toBeCloseTo(.06, 10);
+    expect(s.ecs.construction[site].work).toBeCloseTo(.025, 10);
   }
 });
 
@@ -89,7 +89,7 @@ it("slows the final walking steps off-map by the same factor", () => {
     expect(leave_edge(s, id, {}, .0001, false, tiles[2], {})).toBe(Task.CONTINUE);
     distances.push(Math.hypot(s.ecs.spatial[id].x - start.x, s.ecs.spatial[id].y - start.y));
   }
-  expect(distances[1] / distances[0]).toBeCloseTo(.6, 10);
+  expect(distances[1] / distances[0]).toBeCloseTo(.25, 10);
 });
 
 it.each(["camp", "bed", "shelter"])("Rest restores speed using an accessible %s", kind => {
@@ -98,7 +98,7 @@ it.each(["camp", "bed", "shelter"])("Rest restores speed using an accessible %s"
     ...(kind == "camp" ? { camp: {} } : kind == "shelter" ? { shelter: { stage: "lean-to" } } : {}),
     controllable: { controllerId: id }, sleepable: { capacity: 1, level: kind == "camp" ? 0 : 1, occupiers: [] } }]);
   s.ecs.personable[id].tiredness = 2;
-  expect(careSpeed(s.ecs.personable[id])).toBe(.6);
+  expect(careSpeed(s.ecs.personable[id])).toBe(.25);
   enqueueTask(s, { key: "rest" }, id);
   s.game_speed = "fast";
   const sim = createSimulation(s);
@@ -119,7 +119,7 @@ it("has no sleep place without a bed, camp or shelter and retains the penalty", 
   find_place(s, id, w, 0, true, "sleep", "allows_sleep");
   expect(w.places.sleep).toBeFalsy();
   updateNeeds(s, HOUR);
-  expect(careSpeed(s.ecs.personable[id])).toBe(.6);
+  expect(careSpeed(s.ecs.personable[id])).toBe(.25);
 });
 
 it.each([.2, .6])("allows an ordinary first day and night with starting tiredness %s", tiredness => {
@@ -133,7 +133,7 @@ it.each([.2, .6])("allows an ordinary first day and night with starting tirednes
     expect(careSpeed(p)).toBe(1);
   }
   const missedNight = { ...p, tiredness: p.tiredness + 11 * HOUR };
-  expect(careSpeed(missedNight)).toBe(.8);
+  expect(careSpeed(missedNight)).toBe(.5);
   const w = { places: {}, days: 23 / 24 };
   for (let i = 0; i < 8; i++) {
     updateNeeds(s, HOUR);
@@ -153,6 +153,6 @@ it.each([true, false])("offscreen needs retain exhaustion without a bed and rest
     s.ecs.sleepable.home = { capacity, occupiers: [] };
     advanceOffscreenNeeds(s, s.days + HOUR);
     expect(s.ecs.personable[id].tiredness).toBeCloseTo((capacity ? .1 : 2) + HOUR, 10);
-    expect(careSpeed(s.ecs.personable[id])).toBe(capacity ? 1 : .6);
+    expect(careSpeed(s.ecs.personable[id])).toBe(capacity ? 1 : .25);
   }
 });

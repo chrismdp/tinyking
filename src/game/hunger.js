@@ -9,6 +9,6 @@ export const hungerSpeed = person => !person ? 1 :
 // The sleep sensor requests rest at .9. Give a newcomer their first day
 // (9am arrival, initial tiredness .2–.6) before missed sleep slows them.
 export const tirednessSpeed = person => !person ? 1 :
-  person.tiredness > 1.8 ? 0.6 : person.tiredness > 1.2 ? 0.8 : 1;
+  person.tiredness > 1.8 ? 0.25 : person.tiredness > 1.2 ? 0.5 : 1;
 
 export const careSpeed = person => hungerSpeed(person) * tirednessSpeed(person);

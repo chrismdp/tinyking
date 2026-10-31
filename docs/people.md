@@ -98,7 +98,7 @@ The [phase-one design](design.md#marriage-ownership-and-succession) describes de
 
 ## Hunger, tiredness and speed
 
-`personable.tiredness` rises by one per game day. The planner requests sleep above 0.9. Movement and work keep their normal speed through 1.2, then fall to 80% above 1.2 and 60% above 1.8. These strict thresholds allow the first day of conversations and building before sleep. A missed night causes slower movement and work the next day.
+`personable.tiredness` rises by one per game day. The planner requests sleep above 0.9. Movement and work keep their normal speed through 1.2, then fall to 50% above 1.2 and 25% above 1.8. These strict thresholds allow the first day of conversations and building before sleep. A missed night causes slower movement and work the next day.
 
 `careSpeed(person)` multiplies the hunger and tiredness factors. Walking, timed work, construction, trade fuel use, the final steps off-map and task estimates use this shared factor. Hunger keeps its existing thresholds and factors. A hungry, tired person therefore feels both penalties.
 

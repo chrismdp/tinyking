@@ -104,8 +104,8 @@ export function generateVillageLife(state, seed, start) {
     const workYards=new Set(Object.values(ecs.household).flatMap(h=>h.workYardTiles || []));
     const blocked=Object.fromEntries([...workYards,tile].map(id=>[id,{...ecs.mappable[id],cropPlot:true}]));
     const survey={...state,ecs:{...ecs,mappable:{...ecs.mappable,...blocked}}};
-    for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id) && !housePads.has(keyOf(ecs.spatial[id])))) {
-      const route=path(survey,origin,lane);
+    for(const keepRear of [true,false])for(const lane of Object.values(ecs.walkable[tile].neighbours).filter(id=>!ecs.mappable[id].cropPlot && !workYards.has(id) && !housePads.has(keyOf(ecs.spatial[id])))) {
+      const route=path(survey,origin,lane,(a,b)=>!keepRear || !rearOpportunities.has(b));
       if(route) {
         const tiles=route.slice(1).map(p=>p.id);
         const kind=reserveRoad(state,tiles)?"road":reserveFieldLane(state,tiles)?"foot":null;

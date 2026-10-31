@@ -38,18 +38,17 @@ function reserveSiteField(s,site,pads,owner) {
   };
   const e=s.ecs,origin=at(s,site.point),door=e.walkable[origin].neighbours[site.entrance];
   if(!door)return null;
-  const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point)),rearSpace=new Set(pads.flatMap(p=>p.rearOpportunity || []));
+  const home=Hex().fromPoint(site.point),padHexes=pads.map(p=>Hex().fromPoint(p.point)),rearSpace=new Set([...(site.rearOpportunity || []),...pads.flatMap(p=>[...homeRearTiles(s,p),...(p.rearOpportunity || [])])]);
   const candidates=Grid.hexagon({center:home,radius:5}).filter(h=>padHexes.every(p=>p.distance(h)>0) &&
     (!s.map.playerStartTile || h.distance(Hex(s.map.playerStartTile))>2) &&
     Object.values(s.map.entrances || {}).every(e=>!e.hexes || h.distance(Hex(e.hexes[2]))>2))
     .map(h=>at(s,h.toPoint())).filter(id=>id && canPlaceField(s,id) && !(s.space[Hex().fromPoint(e.spatial[id])] || []).some(tree=>e.good?.[tree]?.type=="wood" && !e.haulable?.[tree] && e.controllable?.[tree] && topController(e,tree)!=owner))
     .sort((a,b)=>Number(rearSpace.has(a))-Number(rearSpace.has(b)) || home.distance(Hex().fromPoint(e.spatial[a]))-home.distance(Hex().fromPoint(e.spatial[b])) || String(a).localeCompare(String(b),undefined,{numeric:true}));
   const padTiles=new Set(pads.map(p=>at(s,p.point)));
-  for(const kind of ["road","foot"])for(const tile of candidates) {
+  for(const keepRear of [true,false])for(const kind of ["road","foot"])for(const tile of candidates) {
     const survey={...s,ecs:{...e,mappable:{...e.mappable,[tile]:{...e.mappable[tile],cropPlot:true}}}};
     for(const access of Object.values(e.walkable[tile].neighbours).filter(id=>!padTiles.has(id) && !e.mappable[id].cropPlot && !e.mappable[id].buildingPlot)) {
-      const route=path(survey,door,access,(a,b)=>(kind!="road" || roadEdge(a,b)) && !rearSpace.has(b)) ||
-        path(survey,door,access,kind=="road"?roadEdge:undefined);
+      const route=path(survey,door,access,(a,b)=>(kind!="road" || roadEdge(a,b)) && (!keepRear || !rearSpace.has(b)));
       if(!route)continue;
       const tiles=route.map(p=>p.id);
       if((kind=="road"?reserveRoad(s,tiles):reserveFieldLane(s,tiles)) && reserveFieldPlot(s,tile))return {tile,accessTileId:access,route:tiles,kind};

@@ -3,6 +3,7 @@ import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, n
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import { reserveFoundingFields } from "game/settlement";
+import { markThroughRoutes } from "game/settlement_routes";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
 import { HEX_SIZE, Hex, Grid, ALL_SIDES } from "game/hex";
@@ -588,6 +589,10 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   state.ecs.controllable[playerId].controllerId = playerId;
   discoverStartingTiles(state.ecs, playerId, playerStartTile);
   generateVillageLife(state, seed, playerStartTile);
+  markThroughRoutes(state,Object.values(state.villages).map(village=>{
+    const house=village.houses[0], tile=tileAt(state,state.ecs.spatial[house]);
+    return state.ecs.walkable[tile].neighbours[state.ecs.building[house].entrance];
+  }));
   if(prosperityVillage) {
     const v=prosperityVillage;
     const eligible=v.houses.filter(id=>state.ecs.household[id].trade && expansionFits(state,id,expandedFootprint(state,id,1)) && expansionFits(state,state.ecs.household[id].workplaceId,expandedFootprint(state,state.ecs.household[id].workplaceId,1)));

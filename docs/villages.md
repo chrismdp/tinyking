@@ -91,6 +91,17 @@ continue to count people, and every member points to that house's record. Field
 and workshop controllers follow the existing family head. Harvest is owned and
 stored through those same permissions in the household's existing room store.
 
+## Roads and local tracks
+
+Grey roads connect the village to map edges, passes and other villages. Local
+approaches to houses, fields, yards, the mill and other workplaces use brown
+walking-wear tracks. The forty-five years of recorded journeys supply their
+initial wear. Unused tracks still fade through the existing wear rules.
+
+Local tracks keep their navigation links and land reservations. Their ground
+speed stays unchanged. Worn ground keeps the existing routing preference,
+which discounts up to half a grassland step when choosing a route.
+
 ## Rendering
 
 Props share cached coloured geometry. Crops across fields, fence posts and

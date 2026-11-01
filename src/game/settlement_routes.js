@@ -1,6 +1,64 @@
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { recordRoadUse, updateRoadWear } from "game/road_wear";
+import { recordRoadUse, updateRoadWear, throughTrack } from "game/road_wear";
+import { transitBlocked } from "game/land_use";
+
+// Connect border crossings and one public approach per village along the
+// surveyed network. House, field and camp spurs keep their existing topology.
+// Colour is per side pair, so a local turn at a main junction stays brown.
+export function markThroughRoutes(s, villageApproaches) {
+  const {ecs}=s, entries=Object.values(s.map.entrances || {});
+  const terminals=[...entries.map(e=>e.tileIds[0]),...villageApproaches];
+  const network=new Set(), links=new Map(Object.keys(ecs.mappable).map(id=>[id,new Map()]));
+  const link=(id,side)=>{
+    const next=ecs.walkable[id].neighbours[side];
+    if(!next || ecs.walkable[next].neighbours[(side+3)%6]!=id || transitBlocked(s,id) || transitBlocked(s,next))return;
+    links.get(id).set(side,next);links.get(next).set((side+3)%6,id);
+  };
+  for(const [id,tile] of Object.entries(ecs.mappable))for(const side of tile.route || [])link(id,side);
+  // Later households can reach the original survey along walking tracks.
+  // Their recorded border and inter-village journeys supply those real links.
+  for(const trip of s.settlement.journeys.filter(trip=>trip.mainRoute)) {
+    for(const step of trip.steps)if(step.exit!=null)link(step.id,step.exit);
+  }
+  for(const tile of Object.values(ecs.mappable))tile.throughRoute=[];
+  const mark=(id,side)=>{
+    const sides=ecs.mappable[id].throughRoute;
+    if(!sides.includes(side))sides.push(side);
+  };
+  for(const target of terminals) {
+    const queue=[target], previous=new Map([[target,null]]);
+    let joined;
+    for(let i=0;i<queue.length;i++) {
+      const id=queue[i];
+      if(network.has(id)){joined=id;break;}
+      for(const [side,next] of links.get(id)) {
+        if(previous.has(next))continue;
+        previous.set(next,{id,side});queue.push(next);
+      }
+    }
+    while(joined && previous.get(joined)) {
+      const {id,side}=previous.get(joined);
+      mark(id,side);mark(joined,(side+3)%6);
+      network.add(joined);network.add(id);joined=id;
+    }
+    network.add(target);
+  }
+  // Continue the corridor to the real crossing beyond the map boundary.
+  for(const entry of entries) {
+    const id=entry.tileIds[0];
+    if(ecs.mappable[id].throughRoute.length)for(const side of ecs.mappable[id].route || []) {
+      if(!ecs.walkable[id].neighbours[side])mark(id,side);
+    }
+  }
+  // Construction can relocate surveyed sites during prehistory. Classify the
+  // finished village, then attribute the existing journey ledger to it.
+  for(const tile of Object.values(ecs.mappable))tile.roadRoles={};
+  for(const trip of s.settlement.journeys)for(const step of trip.steps) {
+    recordMainUse(s,trip,step,trip.day);
+    if(trip.returnDay!=null)recordMainUse(s,trip,step,trip.returnDay);
+  }
+}
 
 export const routeTile = (s, point) => point && (s.space?.[Hex().fromPoint(point)] || []).find(id=>s.ecs.walkable?.[id]);
 const routeCaches=new WeakMap();
@@ -14,15 +72,18 @@ function journeyPath(s,from,to) {
 }
 function applyLeg(s,trip,day) {
   s.days=day;
-  for(const [i,step] of trip.steps.entries()) {
+  for(const step of trip.steps) {
     recordRoadUse(s,step.id,step.entrance,step.exit,trip.count);
-    if(trip.mainRoute && i>0 && i<trip.steps.length-1) {
-      const tile=s.ecs.mappable[step.id], key=[step.entrance ?? "C",step.exit ?? "C"].sort().join(",");
-      const roles=tile.roadRoles ||= {};
-      const role=roles[key] ||= {role:"main",journeys:0,firstDay:day,reason:trip.reason};
-      role.journeys+=trip.count;role.lastDay=day;
-    }
+    recordMainUse(s,trip,step,day);
   }
+}
+function recordMainUse(s,trip,step,day) {
+  const key=[step.entrance ?? "C",step.exit ?? "C"].sort().join(",");
+  if(!trip.mainRoute || !throughTrack(s.ecs,step.id,key))return;
+  const roles=s.ecs.mappable[step.id].roadRoles ||= {};
+  const role=roles[key] ||= {role:"main",journeys:0,firstDay:day,reason:trip.reason};
+  role.journeys+=trip.count;
+  role.firstDay=Math.min(role.firstDay,day);role.lastDay=Math.max(role.lastDay ?? day,day);
 }
 export function flushJourneys(s) {
   const history=s.settlement, now=s.days;

@@ -1,4 +1,4 @@
-import { roadTracks, FULL_TRACK } from "game/road_wear";
+import { roadTracks, FULL_TRACK, throughTrack } from "game/road_wear";
 import { visualNumber } from "render/variation";
 import * as THREE from "three";
 
@@ -669,7 +669,7 @@ export function tileOverlay(ground, ecs, id, { selected }) {
       math.lerp(x0, x1, 0.25),
       math.lerp(x0, x1, 0.75),
     ]);
-    group.add(new THREE.Mesh(geometry, overlay(ecs.mappable[id].roadRoles?.[key]?.role=="main" ? 0x8B8D88 : COLOURS.dirt, opacity, 1)));
+    group.add(new THREE.Mesh(geometry, overlay(throughTrack(ecs,id,key) ? 0x8B8D88 : COLOURS.dirt, opacity, 1)));
   }
 
   if (selected) {

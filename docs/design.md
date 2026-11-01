@@ -22,6 +22,9 @@ belts, secondary ridges and lowlands share one world-coordinate height field.
 Annual moisture moves along a seeded prevailing wind, with coastal supply and
 drier rain shadows. Reach climate labels summarise these conditions.
 [Geography](geography.md) describes terrain, habitats, passes, paths and placement.
+Grey roads connect map edges, passes and village approaches. Local ways to homes,
+fields and workplaces are brown tracks. Historical journeys seed their walking
+wear before arrival.
 
 Trees and forage use each tile's habitat mixture for species and density.
 Individual plants retain a definite type and its growth rules. Trees regrow

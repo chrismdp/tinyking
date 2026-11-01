@@ -42,12 +42,22 @@ export function recordRoadUse(state, id, entrance, exit, amount = 1) {
   return true;
 }
 
+// A local turn off a through road is still a brown walking track.
+export function throughTrack(ecs, id, key) {
+  const sides=ecs.mappable[id].throughRoute || [];
+  return sides.length>0 && key.split(",").every(side=>side=="C" ? sides.length==1 : sides.includes(+side));
+}
+
 // Fixed topology contributes its fading surface, never an eternal dirt overlay.
 export function roadTracks(ecs, id) {
-  const tracks={...ecs.walkable[id].worn}, sides=ecs.mappable[id].route || [];
+  const tracks={...ecs.walkable[id].worn}, main=ecs.mappable[id].throughRoute || [];
+  // Start junction strips on the through road, rather than drawing a star
+  // from a house spur that can hide the continuous grey connection.
+  const sides=[...main,...(ecs.mappable[id].route || []).filter(side=>!main.includes(side))];
   const visible=ecs.walkable[id].routeWear ?? FULL_TRACK;
   const mark=(a,b)=>{const key=[a,b].sort().join(",");tracks[key]=Math.max(tracks[key] || 0,visible);};
   if(sides.length==1) mark("C",sides[0]);
   for(let i=1;i<sides.length;i++) mark(sides[0],sides[i]);
+  if(main.length==1)mark("C",main[0]);
   return tracks;
 }

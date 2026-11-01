@@ -146,7 +146,8 @@ A real isolated island is not connected by terraforming sea.
 The existing travel/return system uses these exact edge/camp entities. NPC trip
 choices also require an existing local entrance. Roads draw through
 `mappable.route` (a set of tile sides) using the existing dirt-track geometry.
-`walkable.worn` starts empty and retains the existing live walking behaviour.
+`walkable.worn` starts empty before history. Recorded historical journeys then
+seed its wear through the same API as live walking.
 The terrain survey reserves topology without claiming journeys.
 `docs/settlements.md` describes the seasonal construction and actual journey
 records that now earn historical wear. The border contract remains unchanged.
@@ -264,9 +265,20 @@ Settlement sites retain the supplied bounded pads and door approaches. New
 household fields call `reserveFieldPlot` and reserve a reachable lane beside the
 plot. Historical use calls `recordRoadUse` through the journey ledger. Its initial
 wear cursor starts before prehistory, so abandoned historical tracks also fade.
-No activation call resets that cursor. Main-route roles come from actual
-inter-village or border journeys, excluding the door endpoints. They affect the
-grey colour. Other tracks retain brown. Both use the same fading wear.
+No activation call resets that cursor. Generation connects border crossings and
+one public approach per village on the finished map. It follows surveyed roads
+and the walking links from recorded border and inter-village journeys. It stores the
+sides of these corridors in `mappable.throughRoute`. Connections to houses,
+fields, yards, camps and workplaces retain their existing navigation and land
+reservations.
+
+The renderer colours a track grey only when both ends follow that through
+corridor. A local turn at a junction stays brown. Historical border journeys
+can no longer turn a house approach grey. `roadRoles` records actual main-route
+journeys only on the through corridor. Both colours use the existing draped
+track geometry, opacity and fading wear. Historical work and visits supply the
+brown wear before arrival. Ground speed and the pathfinder's existing wear
+discount stay unchanged.
 
 Growth passes an explicit expanded footprint to `reserveBuildingClearance`.
 Rear wings preserve the original door and its corridor. Their actual rendered

@@ -200,3 +200,90 @@ it("can earn a nearby compatible farmer's trust rather than choosing only distan
   expect(require('../scripts/acceptance-selection').harvestFriend(s)).toMatchObject({person,field:crop});
   expect(JSON.stringify(s)).toBe(before);
 });
+
+it("uses discovered tastes and visible matches while keeping favour acceptance deliberate", () => {
+  const {chooseVisibleLine}=require("../scripts/acceptance-selection");
+  const choices=[
+    {id:"decline",family:"favour_decline",score:4,matches:2},
+    {id:"accept",family:"favour_accept",score:2,matches:1},
+    {id:"disliked",family:"work_question",score:-2,matches:2},
+    {id:"unknown",family:"season_talk",score:0,matches:1},
+    {id:"liked",family:"lands_question",score:1,matches:1},
+    {id:"full",family:"family_question",score:4,matches:2,disabled:true}
+  ];
+  expect(chooseVisibleLine(choices).id).toBe("liked");
+  expect(chooseVisibleLine(choices,true).id).toBe("accept");
+  expect(chooseVisibleLine(choices.filter(c=>c.id!="liked")).id).toBe("unknown");
+  expect(chooseVisibleLine([...choices,{id:"name",family:"introduction",score:0,matches:0}]).id).toBe("name");
+  expect(chooseVisibleLine(choices.filter(c=>["decline","accept","full"].includes(c.id)))).toBeUndefined();
+});
+
+it("closes an actual spoken Chat with End chat before returning to game-time waits", async () => {
+  const {openChat,chatChoices,chooseLine,closeChat}=require("game/chat");
+  const {finishChatPanel}=require("../scripts/acceptance-selection");
+  const {state:s,player,person}=peopleWorld();
+  s.ecs.planner[person].world.feeling={hungry:false,tired:false};
+  s.ecs.spatial[person]={...s.ecs.spatial[player]};
+  s.game_speed="fast";s.ticker={stop:jest.fn(),start:jest.fn()};
+  expect(openChat(s,player,person)).toBe(true);
+  const day=s.days,clicks=[];
+  s.ui.actions={set_speed:speed=>{s.game_speed=speed;}};
+  global.window={tinyking:s,requestAnimationFrame:fn=>fn()};
+  const page={
+    evaluate:async(fn,arg)=>fn(arg),
+    waitForFunction:async(fn,arg)=>expect(fn(arg)).toBe(true),
+    locator:selector=>({
+      evaluateAll:async()=>chatChoices(s).map(l=>({id:l.id,family:l.family,disabled:false,score:0,matches:0})),
+      click:async()=>{const id=selector.match(/data-line-id="([^"]+)"/)[1],line=chatChoices(s).find(l=>l.id==id);clicks.push(line.family);chooseLine(s,line.key);},
+      waitFor:async()=>expect(s.chat.active).toBeUndefined()
+    }),
+    getByRole:(role,options)=>({click:async()=>{expect(role).toBe("button");expect(options.name).toBe("End chat");clicks.push("End chat");closeChat(s);}})
+  };
+  const result=await finishChatPanel(page,person,{maxLines:1});
+  expect(result.selected).toHaveLength(1);expect(result.nativePauseVerified).toBe(true);
+  expect(s.ticker.stop).toHaveBeenCalledTimes(1);expect(s.ticker.start).toHaveBeenCalledTimes(1);
+  expect(result.contact.day).toBe(day);
+  expect(result.history.lines.some(l=>l.speaker=="player" && l.family!="leave_taking")).toBe(true);
+  expect(s.days).toBe(day);expect(s.game_speed).toBe("paused");
+  expect(clicks.at(-1)).toBe("End chat");expect(s.chat.active).toBeUndefined();
+});
+
+it("waits through real delivery progress without extending a stalled favour's timeout", async () => {
+  const {waitForFavourDelivery}=require("../scripts/acceptance-selection");
+  const r={status:"accepted",progress:1,delivered:0};
+  global.window={tinyking:{favours:{requests:{harvest:r}}}};
+  const observations=[];
+  const page={evaluate:async(fn,arg)=>fn(arg),waitForFunction:async(fn,arg,options)=>{
+    observations.push(arg);expect(options.timeout).toBe(180000);
+    expect(fn(arg)).toBe(false);
+    if(r.delivered==0)r.delivered=5;
+    else if(r.progress==1)r.progress=2;
+    else r.status="completed";
+    expect(fn(arg)).toBe(true);
+  }};
+  expect((await waitForFavourDelivery(page,"harvest")).status).toBe("completed");
+  expect(observations.map(o=>[o.progress,o.delivered])).toEqual([[1,0],[1,5],[2,5]]);
+  r.status="accepted";
+  page.waitForFunction=async()=>{throw new Error("unchanged physical progress timed out");};
+  await expect(waitForFavourDelivery(page,"harvest")).rejects.toThrow("unchanged physical progress timed out");
+  r.status="expired";
+  await expect(waitForFavourDelivery(page,"harvest")).rejects.toThrow("ended without delivery");
+});
+
+it.each([true,false])("waits for native care before approach, requiring visible slots: %s", async requireSlots => {
+  const {waitForChatReadiness}=require("../scripts/acceptance-selection");
+  const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
+  const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
+  const previousDocument=global.document;
+  global.document={querySelectorAll:()=>requireSlots ? [{textContent:"Chat",disabled:false}] : []};
+  try {
+    await waitForChatReadiness(page,elder,{requireSlots});
+    expect(orders).toEqual(["find_food","rest"]);
+    expect(s.ecs.good[meal]).toBeUndefined();
+    for(const id of [actor,elder])expect(s.ecs.planner[id].world.feeling).toMatchObject({hungry:false,tired:false});
+    expect(s.game_speed).toBe("paused");
+    expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
+  } finally {
+    if(previousDocument===undefined)delete global.document;else global.document=previousDocument;
+  }
+});

@@ -18,7 +18,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
-const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView } = require("./acceptance-selection");
+const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView, waitForChatPanel, finishChatPanel, observeWork, waitForStartMenu, waitForCharacter } = require("./acceptance-selection");
 const { designationTerrain, finishDesignationCuts } = require("./designation-selection");
 const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
@@ -35,6 +35,7 @@ const WAIT = 10000;
 const report = { errors: [], checks: [] };
 const check = (name, ok, detail) => {
   report.checks.push({ name, ok: !!ok, detail });
+  fs.writeFileSync(path.join(SHOTS,"playtest-report.json"),JSON.stringify(report,null,2));
   console.log((ok ? "PASS " : "FAIL ") + name + (detail ? " - " + JSON.stringify(detail) : ""));
 };
 
@@ -56,7 +57,7 @@ const check = (name, ok, detail) => {
 
   try {
     if (!TARGETED && !GIFT_ONLY) await opening(page);
-    await play(page);
+    await play(page, !TARGETED && !GIFT_ONLY);
   } catch (e) {
     console.error(e.stack);
     const snapshot = await page.evaluate(() => {
@@ -79,58 +80,55 @@ async function opening(page) {
   url.searchParams.set("seed", "13");
   url.searchParams.delete("intro");
   await page.goto(url.href);
-  // Shared-host measurement: merged 95a5682 was ready in 50.220s; baseline
-  // 1652843 took 51.410s. Allow startup scheduling headroom, separately from play.
-  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
+  await waitForStartMenu(page);
   await page.getByText("Start new game", { exact: true }).click();
-  await page.waitForSelector(".character canvas", { timeout: 120000 });
-  await page.getByRole("button", { name: "Start game", exact: true }).click();
-  await page.waitForFunction(() => window.tinyking.intro?.active);
-  const start = await page.evaluate(() => {
-    const s = window.tinyking;
-    const days = s.days;
-    const started = performance.now() / 1000 - s.intro.elapsed;
-    window.introFinished = new Promise(resolve => {
-      const watch = () => {
-        if (s.intro.active) return requestAnimationFrame(watch);
-        const p = s.ecs.spatial[s.ui.playerId];
-        const camp = s.ecs.spatial[s.intro.campId];
-        resolve({ elapsed: s.intro.elapsed, realSeconds: performance.now() / 1000 - started,
-          nearCamp: Math.hypot(p.x - camp.x, p.y - camp.y) < 40,
-          standing: s.intro.pose == "standing", bundle: !!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
-          campCount: Object.keys(s.ecs.camp || {}).length, steps: s.intro.tileIds.length - 1,
-          days: s.days, needs: JSON.stringify(s.ecs.personable), control: s.ui.show.speed_controls });
+  await waitForCharacter(page);
+  await page.screenshot({path:path.join(SHOTS,"new-game.png")});
+  // Observe in the click's event turn. On a software-rendered host, waiting
+  // for a later CDP round trip can miss the entire walking phase.
+  await page.evaluate(() => {
+    document.addEventListener("click", function observeStart(event) {
+      if(event.target.closest("button")?.textContent!="Start game")return;
+      document.removeEventListener("click",observeStart);
+      const s=window.tinyking,days=s.days,started=performance.now()/1000-s.intro.elapsed;
+      const p={...s.ecs.spatial[s.ui.playerId]},needs=JSON.stringify(s.ecs.personable);
+      s.ui.actions.set_speed("fast");
+      s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},s.intro.tileIds.at(-1));
+      s.ui.actions.select_entity(s.ui.playerId);
+      const start={days,p,needs,noCamp:!Object.keys(s.ecs.camp||{}).length,
+        locked:s.game_speed=="normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls};
+      window.introObservation={start,walked:false};
+      const watch=()=>{
+        const now=s.ecs.spatial[s.ui.playerId],o=window.introObservation;
+        if(s.intro.active) {
+          if(Math.hypot(now.x-p.x,now.y-p.y)>20 && s.renderer.objectOf(s.ui.playerId)?.getObjectByName("arrival-bundle")?.visible)o.walked=true;
+          requestAnimationFrame(watch);return;
+        }
+        const camp=s.ecs.spatial[s.intro.campId];
+        o.end={elapsed:s.intro.elapsed,realSeconds:performance.now()/1000-started,
+          nearCamp:Math.hypot(now.x-camp.x,now.y-camp.y)<40,standing:s.intro.pose=="standing",
+          bundle:!!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
+          campCount:Object.keys(s.ecs.camp||{}).length,steps:s.intro.tileIds.length-1,
+          days:s.days,needs:JSON.stringify(s.ecs.personable),control:s.ui.show.speed_controls};
+        s.ui.actions.set_speed("paused");
       };
       requestAnimationFrame(watch);
     });
-    const p = { ...s.ecs.spatial[s.ui.playerId] };
-    const needs = JSON.stringify(s.ecs.personable);
-    // These are the same handlers used by the game UI.
-    s.ui.actions.set_speed("fast");
-    s.ui.actions.choose_job(s.ui.playerId, { key: "move_to_here" }, s.intro.tileIds.at(-1));
-    s.ui.actions.select_entity(s.ui.playerId);
-    return { days, p, needs, noCamp: !Object.keys(s.ecs.camp || {}).length,
-      locked: s.game_speed == "normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls };
   });
-  await page.waitForTimeout(1400);
-  const walked = await page.evaluate(p => {
-    const s = window.tinyking;
-    const now = s.ecs.spatial[s.ui.playerId];
-    return Math.hypot(now.x - p.x, now.y - p.y) > 20 && s.renderer.objectOf(s.ui.playerId).getObjectByName("arrival-bundle").visible;
-  }, start.p);
-  await page.waitForFunction(() => !window.tinyking.intro.active, null, { timeout: 15000 });
-  const end = await page.evaluate(() => window.introFinished);
+  await page.getByRole("button", { name: "Start game", exact: true }).click();
+  await page.waitForFunction(() => window.introObservation?.end, null, { timeout: 15000 });
+  const {start,end,walked}=await page.evaluate(()=>window.introObservation);
   check("the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
     start.noCamp && start.locked && walked && end.realSeconds >= 4 && end.realSeconds <= 6 && end.nearCamp && end.standing && end.bundle && end.campCount == 1 && end.steps == 2 &&
     end.control && end.days == start.days && end.needs == start.needs,
     { seconds: end.realSeconds, noCamp: start.noCamp, steps: end.steps, walked, nearCamp: end.nearCamp, standing: end.standing, bundle: end.bundle, locked: start.locked, gameDays: end.days - start.days });
 }
 
-async function play(page) {
+async function play(page, alreadyStarted=false) {
   const game = (fn, arg) => page.evaluate(fn, arg);
   const speed = async n => {
-    const button = page.getByRole("button", { name: ["Pause", "Normal speed", "Fast speed"][n], exact: true });
-    if (!await button.isDisabled()) await button.click();
+    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed", "Fast speed"][n], exact: true });
+    if (!await button.isDisabled()) await button.click({noWaitAfter:true});
     await page.waitForFunction(index => window.tinyking.game_speed == ["paused", "normal", "fast"][index], n);
   };
   const [ PAUSE, NORMAL, FAST ] = [0, 1, 2];
@@ -273,30 +271,25 @@ async function play(page) {
     await giftButton.waitFor({ timeout: WAIT });
     await giftButton.click();
     check("Gift chooser queues a real item for delivery", (await queued()).includes("give_gift"));
-    const giftTask = await game(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.find(j => j.job.key == "give_gift").id);
-    await page.evaluate(({ personId, taskId }) => {
-      const s = window.tinyking;
-      let itemId;
-      window.giftDelivery = new Promise(resolve => {
-        const watch = () => {
-          const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.id == taskId);
-          itemId = job?.giftItem || itemId;
-          if (s.ui.talkResult?.personId == personId && s.ui.talkResult.message == "They accepted your gift.") {
-          // Read the actual handover, before either character's next walking
-          // task. A requestAnimationFrame observer can run several steps later.
-            const receipt = s.events.findLast(e => e.type == "gift" && e.people[0] == s.ui.playerId && e.people[1] == personId && e.items.includes(itemId));
-            const a = receipt?.positions[s.ui.playerId], b = receipt?.positions[personId];
-            const delivered = receipt?.gifts.find(g => g.id == itemId);
-            resolve({ itemId, type: delivered?.type, owner: delivered?.ownerId,
-              personId, distance: a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity, receiptDay: receipt?.day, observedDay: s.days });
-          } else requestAnimationFrame(watch);
-        };
-        requestAnimationFrame(watch);
-      });
-    }, { personId: giftPerson, taskId: giftTask });
+    const previousGiftEvents=await game(()=>window.tinyking.events.filter(e=>e.type=="gift").map(e=>e.id));
+    await page.evaluate(({personId,previousGiftEvents})=>{
+      const s=window.tinyking;
+      window.giftDelivery=null;
+      const watch=()=>{
+        // Only a new canonical event can prove this gift. Earlier oath gifts
+        // can leave the same accepted message visible for the same recipient.
+        const receipt=s.events.findLast(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==personId && !previousGiftEvents.includes(e.id));
+        if(receipt) {
+          const a=receipt.positions[s.ui.playerId],b=receipt.positions[personId],delivered=receipt.gifts[0];
+          window.giftDelivery={itemId:delivered.id,type:delivered.type,owner:delivered.ownerId,personId,
+            distance:a&&b?Math.hypot(a.x-b.x,a.y-b.y):Infinity,receiptDay:receipt.day,observedDay:s.days};
+        } else requestAnimationFrame(watch);
+      };
+      requestAnimationFrame(watch);
+    },{personId:giftPerson,previousGiftEvents});
     await closePopup();
     await speed(FAST);
-    await page.waitForFunction(() => window.tinyking.ui.talkResult?.message == "They accepted your gift.", null, { timeout: 180000 });
+    await observeWork(page,()=>page.waitForFunction(() => window.giftDelivery, null, { timeout: 180000 }));
     const delivery = await page.evaluate(() => window.giftDelivery);
     await speed(PAUSE);
     check("the player walks over and gives the gift", delivery.itemId && delivery.owner == giftPerson && delivery.distance <= 10, delivery);
@@ -306,14 +299,13 @@ async function play(page) {
   const playURL = new URL(BASE_URL);
   playURL.searchParams.set("seed", "13");
   playURL.searchParams.set("intro", "skip");
-  await page.goto(playURL.href);
-  await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
-  if (await page.locator("#webpack-dev-server-client-overlay").count() > 0) {
-    throw new Error("the dev server's error overlay is covering the game: fix the build's errors or warnings");
+  if(!alreadyStarted) {
+    await page.goto(playURL.href);
+    await waitForStartMenu(page);
+    if(await page.locator("#webpack-dev-server-client-overlay").count()>0)throw new Error("The dev server error overlay is covering the game");
+    await page.getByText("Start new game",{exact:true}).click();
+    await waitForCharacter(page);
   }
-  await page.getByText("Start new game").first().click();
-  await page.waitForSelector(".character canvas", { timeout: 120000 });
-  await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
   if (GIFT_ONLY) {
     await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
@@ -331,9 +323,12 @@ async function play(page) {
   }
   let fieldTile, stockpileTile;
   if (!TARGETED) {
-    await shot("new-game.png");
-
-    await page.getByRole("button", { name: "Start game", exact: true }).click();
+    // The arrival left this same unworked camp paused: no need to generate
+    // an identical third world for the build-first check.
+    if(!alreadyStarted) {
+      await shot("new-game.png");
+      await page.getByRole("button", { name: "Start game", exact: true }).click();
+    }
     await speed(PAUSE);
     // Open out from the arrival's camp close-up for the existing order checks.
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
@@ -375,17 +370,16 @@ async function play(page) {
     }, null, { timeout: 30000 });
     const waitingWhileChopping = await page.locator("#task-panel .task.waiting").innerText();
     await speed(FAST);
-    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
+    await observeWork(page,()=>page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 }));
     check("fresh build-first queue waits, chops explicitly ordered wood, and finishes the lean-to",
       firstTimber >= 4 && waitingWhileChopping.includes("Waiting for logs") && await game(() =>
         !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
 
     // Start fresh again so the original interaction checks keep their empty camp.
     await page.goto(playURL.href);
-    await page.getByText("Start new game", { exact: true }).waitFor({ timeout: 120000 });
+    await waitForStartMenu(page);
     await page.getByText("Start new game").first().click();
-    await page.waitForSelector(".character canvas", { timeout: 120000 });
-    await page.waitForFunction(() => window.tinyking && window.tinyking.renderer && window.tinyking.redraws.length == 0);
+    await waitForCharacter(page);
     await page.getByRole("button", { name: "Start game", exact: true }).click();
     await speed(PAUSE);
 
@@ -502,6 +496,11 @@ async function play(page) {
       await shot("arrived.png");
     }
     check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
+    await waitForChatPanel(page, person);
+    const conversation = await finishChatPanel(page, person, {maxLines:1});
+    check("Chat pauses the world, chosen lines make contact and End chat releases the panel",
+      conversation.contact && conversation.selected.length && conversation.history.npcId == person,
+      {person,lines:conversation.selected,pops:conversation.pops,contact:conversation.contact});
     await closeUp(page, game, "zoom-day.png");
 
     // --- Play on ------------------------------------------------------------------------
@@ -525,8 +524,11 @@ async function play(page) {
     const startDays = await game(() => window.tinyking.days);
     let worstOffGround = 0;
     const heights = new Set();
-    for (let t = 0; t < SECONDS; t += 5) {
-      await page.waitForTimeout(5000);
+    // Poll real simulation progress after End chat. Sample six game hours
+    // (scaled by the optional observation argument), not a fixed wall sleep.
+    for (let step = 1; step <= 12; step++) {
+      await page.waitForFunction(day => window.tinyking.days >= day,
+        startDays + step * (SECONDS / 60) / 48, {timeout:45000});
       for (const p of await sample()) {
         if (p.offGround != null) {
           worstOffGround = Math.max(worstOffGround, p.offGround);
@@ -629,7 +631,7 @@ async function play(page) {
   const buildDay = await game(() => window.tinyking.days);
   await speed(FAST);
   if (siteTile) {
-    await page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 });
+    await observeWork(page,()=>page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 }));
   }
   check("logs are delivered and a lean-to finishes", siteTile && await game(() => window.buildEvidence?.delivered == 4 && Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")),
     { seconds: (Date.now() - buildStarted) / 1000, gameHours: Math.round((await game(() => window.tinyking.days) - buildDay) * 24) });
@@ -651,10 +653,17 @@ async function play(page) {
   }
 
   // --- The debug worldgen page shows the whole map --------------------------------
-  const response = await page.goto(new URL("/debug/worldgen", BASE_URL).href);
+  const response = await page.request.get(new URL("/debug/worldgen", BASE_URL).href);
   check("the real debug deep link serves the SPA entry", response.status() == 200);
+  // Open the real debug route with the world just played. The in-game Debug
+  // button toggles activity labels; browser history avoids another generation.
+  await page.evaluate(()=>{
+    window.history.pushState(null,"","/debug/worldgen");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await page.getByRole("heading",{name:"Debug worldgen",exact:true}).waitFor();
   await page.waitForFunction(() => window.tinyking && window.tinyking.renderer, null, { timeout: 30000 });
-  await page.waitForTimeout(1500);
+  await page.waitForFunction(()=>window.tinyking.redraws.length==0);
   await shot("worldgen.png");
   check("the targeted playtest ran to the end", true);
 }

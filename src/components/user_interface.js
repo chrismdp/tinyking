@@ -1,3 +1,4 @@
+import { LoadingScreen } from "./loading_screen";
 import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
 import { TravelOverview } from "./travel";
@@ -36,7 +37,7 @@ function OpeningGuidance() {
 export function UserInterface() {
   const state = React.useContext(GameState);
   const show = state.ui && state.ui.show || {};
-  if (state.transition) return <div id="ui"><div className="travel-loading" role="status">{state.transition?.label || "News from the neighbouring communities…"}<small>Time and needs are paused while the world is prepared.</small></div></div>;
+  if (state.generating || state.transition) return <div id="ui"><LoadingScreen progress={state.ui?.progress}/></div>;
   if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
     <div id="ui">

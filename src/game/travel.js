@@ -274,8 +274,8 @@ export async function ensureMap(s, key) {
     seed = Math.floor(hashUnit(j.seed + ":hex:" + key) * 4294967296);
   fresh.ecs.namespace = "w" + hex.x + "_" + hex.y + "-";
   const started = performance.now();
-  const result = await generateMap(fresh, seed, async label => {
-    if (s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label);
+  const result = await generateMap(fresh, seed, async (label, value) => {
+    if (s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label, .15 + .75 * value);
   }, {
     world: s.world,
     hex,
@@ -296,6 +296,7 @@ export async function ensureMap(s, key) {
   // A never-visited hex has its own deterministic prehistory, followed by all
   // elapsed global seasons, irrespective of its eventual first visitor.
   for (let season = 1; season <= j.season; season++) {
+    if (s.transition) await s.ui?.actions?.progress_update?.("Catching up with the passing seasons: " + season + " of " + j.season, .9 + .05 * (season - 1) / j.season);
     const next = historyStep(fresh, season);
     Object.assign(fresh, next);
     advanceEnvironment(fresh,season*3,j.seed);
@@ -649,6 +650,7 @@ export async function completeTravel(s, order) {
     destination: order.destination
   };
   try {
+    await s.ui?.actions?.progress_update?.("One season on the road", 0);
     const j = s.travel,
       from = j.active,
       id = s.ui.playerId,
@@ -687,9 +689,11 @@ export async function completeTravel(s, order) {
       j.transit=j.transit.filter(t=>t!=trip);
       return;
     }
+    await s.ui?.actions?.progress_update?.(j.maps[order.destination] ? "Opening the familiar lands" : "Preparing the lands ahead", .15);
     await ensureMap(s, order.destination);
     // Reference-only visitors become physical only once the player opens this map.
     await receiveNpcs(s, j);
+    await s.ui?.actions?.progress_update?.("Arriving at the edge of the region", .95);
     enterMap(s, order.destination, bundle, (order.side + 3) % 6);
     j.transit = j.transit.filter(t => t != trip);
     if (j.journey?.actorId == id) {
@@ -905,6 +909,7 @@ export async function advanceWorldClock(s, {
     for (const row of start) {
       references(row.map, j);
       if (row.key == j.active && !travelling) continue; // socialHour already ran live.
+      if (s.transition) await s.ui?.actions?.progress_update?.("News from the neighbouring communities", .05 + .1 * start.indexOf(row) / start.length);
       const next = historyStep(row.map, season);
       // Snapshot records changed by hourly ecology must remain independent.
       for (const component of ["tree","forageable","good"]) next.ecs[component] = Object.fromEntries(

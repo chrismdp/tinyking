@@ -1,3 +1,5 @@
+import { flushSync } from "react-dom";
+import { createLoadingProgress } from "game/loading";
 import { toggleWorldMap } from "game/realm_map";
 import { chooseLine, closeChat, selectChatSubject } from "game/chat";
 import { PanelBoundary } from "./panel_boundary";
@@ -226,6 +228,7 @@ export function World() {
         state.generating = true;
         renderUI();
         try {
+          await state.ui.actions.progress_update("Reading your saved world", 0);
           const data = await state.persistence.load();
           if (!data) return;
           releaseMap(state);
@@ -236,6 +239,7 @@ export function World() {
           state.ui.show.main_menu = false;
           state.ui.show.mapgen = false;
           setPopupInfo({});
+          await state.ui.actions.progress_update("Waking the villagers", .8);
           renderMap(webgl, state, selectEntity, renderUI, t);
         } catch (error) {
           state.persistence.error = "Could not continue: " + error.message;
@@ -325,6 +329,7 @@ export function World() {
         state.game_speed = "normal";
         state.days = 0.375;
 
+        await state.ui.actions.progress_update("Preparing your world", 0);
         const results = await generateMap(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
         state.map = results.map;
         state.ui.playerId = results.playerId;
@@ -338,12 +343,7 @@ export function World() {
 
         renderUI();
       },
-      progress_update: async (label) => {
-        state.ui.progress.label = label;
-        state.ui.progress.count++;
-        renderUI();
-        return new Promise(resolve => setTimeout(resolve, 10));
-      }
+      progress_update: createLoadingProgress(state, () => flushSync(renderUI))
     } };
 
     let saveClient;

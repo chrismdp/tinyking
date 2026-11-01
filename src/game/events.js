@@ -1,3 +1,4 @@
+import { finishTransition } from "game/history_scope";
 import { goalEvidence } from "game/guidance";
 import { isResident, personComponent } from "game/residents";
 import { addGoodwill } from "game/people";
@@ -33,13 +34,12 @@ export function learnEvent(state, viewerId, event) {
   }
 }
 
-// Listener pools belong to a synchronous transition, never to caller state.
+// Listener pools belong to an owned transition, never to caller state.
 const eventIndexes = new WeakMap();
 export function withEventIndex(state, transition) {
   if (eventIndexes.has(state)) return transition();
   eventIndexes.set(state, {});
-  try { return transition(); }
-  finally { eventIndexes.delete(state); }
+  return finishTransition(transition, () => eventIndexes.delete(state));
 }
 export function invalidateEventIndex(state) {
   const index = eventIndexes.get(state);

@@ -1160,3 +1160,23 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .world-destination { border-top: 1px solid #99886d; padding-top: 8px; }
   .map-key { font-size: 12px; }
 }
+
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 40%, #293d34, #111e1b 75%);
+  color: #f4ebd7;
+  pointer-events: auto;
+  .loading-card { width: min(440px, calc(100vw - 48px)); text-align: center; }
+  .loading-kicker { color: #b7c6ac; font-size: 14px; letter-spacing: .12em; }
+  h1 { margin: 16px 0 40px; font: normal clamp(42px, 8vw, 64px) Georgia, serif; }
+  p { min-height: 3em; margin: 0 0 12px; font-size: 18px; line-height: 1.5; }
+  progress { display: block; width: 100%; height: 14px; border: 1px solid #73806a; border-radius: 7px; overflow: hidden; background: #182620; accent-color: #d1b878; }
+  progress::-webkit-progress-bar { background: #182620; }
+  progress::-webkit-progress-value { background: #d1b878; }
+  progress::-moz-progress-bar { background: #d1b878; }
+  .loading-amount { display: block; margin-top: 12px; color: #d1c6a8; font-variant-numeric: tabular-nums; }
+}

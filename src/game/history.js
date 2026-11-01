@@ -9,8 +9,8 @@ import { recordEvent, withEventIndex } from "game/events";
 
 // Keep geography and vegetation out of seasonal copies. These records are all
 // a distant world hex needs to continue its families while the player travels.
-export function generateHistory(state, seed, routeHistory = []) {
-  if (state.settlement) return generateSettlementHistory(state, seed, routeHistory);
+export function generateHistory(state, seed, routeHistory = [], progressUpdate) {
+  if (state.settlement) return generateSettlementHistory(state, seed, routeHistory, progressUpdate);
   const started = performance.now();
   // Merge complete personal items created below, while the people/house filter
   // keeps existing map goods out of the summary and leaves them in the world.
@@ -32,33 +32,34 @@ export function generateHistory(state, seed, routeHistory = []) {
   }
   // Generation owns this detached summary. Reuse it between seasons; public
   // historyStep still copies callers' snapshots for travel/replay.
-  withSocialIndex(summary, () => withEventIndex(summary, () => withRelationshipIndex(summary, () => {
-    for (let season = -180; season < 0; season++) {
-      summary.days = season * 3;
-      drift(summary, 72);
-      advanceSeason(summary, season, true);
+  const seasons = runHistorySeasons(summary, season => {
+    summary.days = season * 3;
+    drift(summary, 72);
+    advanceSeason(summary, season, true);
+  }, progressUpdate);
+  const finish = () => {
+    for (const key of components) {
+      state.ecs[key] ||= {};
+      Object.assign(state.ecs[key], summary.ecs[key]);
     }
-  })));
-  for (const key of components) {
-    state.ecs[key] ||= {};
-    Object.assign(state.ecs[key], summary.ecs[key]);
-  }
-  for (const p of Object.values(state.ecs.personable)) if (p.dead) p.historical = true;
-  // Every newborn gets a real planner on entering the rendered simulation.
-  for (const id of Object.keys(summary.ecs.personable)) if (!state.ecs.planner[id]) {
-    const fields = { traits: { values: {} }, attributes: {}, holder: { held: [], capacity: 2 }, manager: { jobs: [] },
-      planner: { world: { no_place_for: {}, jobs: [], places: {}, feeling: {}, holding: {}, days: state.days } } };
-    for (const [key, value] of Object.entries(fields)) (state.ecs[key] ||= {})[id] = { ...value, id };
-  }
-  state.ecs.nextId = summary.ecs.nextId;
-  state.villages = summary.villages; state.events = summary.events; state.knowledge = summary.knowledge;
-  state.social = { ...summary.social, lastSeason: 0 };
-  state.eventIds = summary.eventIds;
-  // Calibrate once for the people the player actually meets. Ancestors remain
-  // known records; current living opinions retain the rule-of-five quantiles.
-  recalibrateRelationships(state);
-  repairHouseholds(state);
-  Object.defineProperty(state, "historyGenerationMs", { value: performance.now() - started, writable: true, configurable: true, enumerable: false });
+    for (const p of Object.values(state.ecs.personable)) if (p.dead) p.historical = true;
+    // Every newborn gets a real planner on entering the rendered simulation.
+    for (const id of Object.keys(summary.ecs.personable)) if (!state.ecs.planner[id]) {
+      const fields = { traits: { values: {} }, attributes: {}, holder: { held: [], capacity: 2 }, manager: { jobs: [] },
+        planner: { world: { no_place_for: {}, jobs: [], places: {}, feeling: {}, holding: {}, days: state.days } } };
+      for (const [key, value] of Object.entries(fields)) (state.ecs[key] ||= {})[id] = { ...value, id };
+    }
+    state.ecs.nextId = summary.ecs.nextId;
+    state.villages = summary.villages; state.events = summary.events; state.knowledge = summary.knowledge;
+    state.social = { ...summary.social, lastSeason: 0 };
+    state.eventIds = summary.eventIds;
+    // Calibrate once for the people the player actually meets. Ancestors remain
+    // known records; current living opinions retain the rule-of-five quantiles.
+    recalibrateRelationships(state);
+    repairHouseholds(state);
+    Object.defineProperty(state, "historyGenerationMs", { value: performance.now() - started, writable: true, configurable: true, enumerable: false });
+  };
+  return seasons?.then ? seasons.then(finish) : finish();
 }
 
 export function giveTradeTools(state) {
@@ -69,30 +70,31 @@ export function giveTradeTools(state) {
 
 export { historyStep };
 
-function generateSettlementHistory(state, seed, routeHistory) {
+function generateSettlementHistory(state, seed, routeHistory, progressUpdate) {
   const started = performance.now(), now = state.days;
   state.peopleSeed = seed;
   state.generatingHistory = true;
   state.opinionThresholds = { hate: -0.8, love: 0.8 };
   state.events = []; state.knowledge = {}; state.social = { lastSeason: -181, courtships: {}, avoidance: {} };
-  withSocialIndex(state, () => withEventIndex(state, () => withRelationshipIndex(state, () => {
-    for (let season=-180; season<0; season++) {
-      state.days = season*3;
-      advanceHistoricalWoodland(state,state.days);
-      drift(state,72);
-      advanceSeason(state,season,true);
-    }
-  })));
-  for (const p of Object.values(state.ecs.personable)) if (p.dead) p.historical=true;
-  delete state.generatingHistory;
-  state.days = now;
-  advanceHistoricalWoodland(state,now);
-  reconcileRouteHistory(state,routeHistory);
-  updateRoadWear(state);
-  state.social.lastSeason=0;
-  state.settlement.lastSeason=0;
-  recalibrateRelationships(state);repairHouseholds(state);
-  Object.defineProperty(state,"historyGenerationMs",{value:performance.now()-started,writable:true,configurable:true,enumerable:false});
+  const seasons = runHistorySeasons(state, season => {
+    state.days = season*3;
+    advanceHistoricalWoodland(state,state.days);
+    drift(state,72);
+    advanceSeason(state,season,true);
+  }, progressUpdate);
+  const finish = () => {
+    for (const p of Object.values(state.ecs.personable)) if (p.dead) p.historical=true;
+    delete state.generatingHistory;
+    state.days = now;
+    advanceHistoricalWoodland(state,now);
+    reconcileRouteHistory(state,routeHistory);
+    updateRoadWear(state);
+    state.social.lastSeason=0;
+    state.settlement.lastSeason=0;
+    recalibrateRelationships(state);repairHouseholds(state);
+    Object.defineProperty(state,"historyGenerationMs",{value:performance.now()-started,writable:true,configurable:true,enumerable:false});
+  };
+  return seasons?.then ? seasons.then(finish) : finish();
 }
 
 // Reuse the real woodland update at real hours. This runs only in prehistory;
@@ -104,4 +106,21 @@ export function advanceHistoricalWoodland(state,end) {
     state.days=at;updateEcology(state);state.ecology.historyUpdatedAt=at;
   }
   state.days=now;
+}
+
+// Preserve the owned caches across paint yields. Callers without a progress
+// callback retain the synchronous history API used for replay and fixtures.
+function runHistorySeasons(state, step, progressUpdate) {
+  return withSocialIndex(state, () => withEventIndex(state, () => withRelationshipIndex(state, () => {
+    if (!progressUpdate) {
+      for (let season = -180; season < 0; season++) step(season);
+      return;
+    }
+    return (async () => {
+      for (let season = -180; season < 0; season++) {
+        step(season);
+        await progressUpdate(season + 181);
+      }
+    })();
+  })));
 }

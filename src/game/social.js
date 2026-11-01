@@ -1,3 +1,4 @@
+import { finishTransition } from "game/history_scope";
 import { advanceOffscreenNeeds } from "game/needs";
 import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
 import { recordJourney, routeTile } from "game/settlement_routes";
@@ -39,7 +40,7 @@ const add = (s, components) => {
   return id;
 };
 
-// Caches exist only inside a synchronous owned history transition. Imports and
+// Caches exist only inside an owned history transition. Imports and
 // caller edits never reuse them. Prehistory owns its graph until generation ends.
 const socialIndexes = new WeakMap();
 export function withSocialIndex(s, fn) {
@@ -48,11 +49,7 @@ export function withSocialIndex(s, fn) {
     ancestry: new Map(),
     affinity: new Map()
   });
-  try {
-    return fn();
-  } finally {
-    socialIndexes.delete(s);
-  }
+  return finishTransition(fn, () => socialIndexes.delete(s));
 }
 // Recompute the shallow graph: imports/births can add a previously missing ancestor.
 export function related(s, a, b, includeLineal = false) {

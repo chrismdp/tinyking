@@ -1,3 +1,4 @@
+import { finishTransition } from "game/history_scope";
 import { recoverSlots } from "game/chat_patience";
 import { FOODS } from "game/goods";
 import { recogniseConversation } from "game/guidance";
@@ -96,11 +97,10 @@ export function withRelationshipIndex(state, transition) {
   if (relationshipScopes.has(state)) return transition();
   const lists = new Set(); relationshipScopes.set(state, lists);
   for (const [id, r] of Object.entries(state.ecs.relationships || {})) if (!state.ecs.personable?.[id]?.dead) indexList(state, r.known);
-  try { return transition(); }
-  finally {
+  return finishTransition(transition, () => {
     for (const list of lists) relationshipIndexes.delete(list);
     relationshipScopes.delete(state);
-  }
+  });
 }
 function relationshipIndex(list) {
   const index = relationshipIndexes.get(list);

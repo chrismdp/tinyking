@@ -167,7 +167,7 @@ async function generateTerrain(grid, world, progressUpdate) {
     const hex = grid[i];
     const point = hex.toPoint();
     result[hex] = { ...point, terrain: field.terrainAt(worldPoint(home, point)), elevation: field.elevationAt(worldPoint(home, point)) };
-    if (i % UPDATE_PROGRESS_EVERY == 0) { await progressUpdate("terrain"); }
+    if (i % UPDATE_PROGRESS_EVERY == 0) { await progressUpdate("Shaping the land", .12 * (i + 1) / grid.length); }
   }
   return result;
 }
@@ -333,7 +333,7 @@ async function generateEconomicValue(grid, landscape, progressUpdate) {
       landscape[target].economic_value = Object.values(found).reduce((a, b) => a + b, 0);
     }
     if (grid_index % UPDATE_PROGRESS_EVERY == 0) {
-      await progressUpdate("economic");
+      await progressUpdate("Finding fertile ground", .12 + .1 * (grid_index + 1) / grid.length);
     }
   }
 }
@@ -390,7 +390,7 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
       settlements[hex].villageId = id;
       settlements[hex].villageCentre = hex.equals(centre);
     }
-    await progressUpdate("settlements");
+    await progressUpdate("Founding villages", .22);
   }
   // A coastal land hex can have no natural three-house clearing. It is still
   // a community destination: establish one inland village clearing, leaving
@@ -419,6 +419,7 @@ function discoverStartingTiles(ecs, id, center) {
 }
 
 export async function generateMap(state, seed, progressUpdate, options = {}) {
+  await progressUpdate("Shaping the land", 0);
   // NOTE: a new map starts with an empty space index; entity ids restart at
   // 1, so anything left from an old map would point at the wrong entities
   state.space = {};
@@ -439,6 +440,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     Grid.hexagon({center:h,radius:2}).every(n=>landscape[n]?.terrain=="grassland"))
     .sort((a,b)=>a.toPoint().x-b.toPoint().x || a.y-b.y)[0];
   let start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
+  await progressUpdate("Founding villages", .22);
   const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world), naturalGroundFor(state.world));
   // Village keys also cross maps in kinship, event and courtship records.
   if (state.ecs.namespace) {
@@ -451,6 +453,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   // Store physical habitat once per tile after the finished surface is known.
   const home = homeOf(state.world);
   const field = landFieldFor(state.world);
+  await progressUpdate("Finding paths through the land", .3);
   const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
     settlementSites, reserveHouseYards:true,
     terrainAt:p=>field.terrainAt(worldPoint(state.world.home,p)),
@@ -486,6 +489,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const chosen = [start, ...alternatives].find(suitableArrival);
     if (chosen) start = chosen;
   }
+  await progressUpdate("Planting forests", .38);
   let trees = generateTrees(seed, landscape, {}, grid.pointWidth(), grid.pointHeight(), {
     world:state.world, biomeAt: hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture),
     start
@@ -582,9 +586,12 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   reserveFoundingFields(state);
   const prosperityVillage=options.settlementFixture=="prosperity" && Object.values(villages).find(v=>state.settlement.sites[v.id].length>=5);
   if(prosperityVillage)for(const site of state.settlement.sites[prosperityVillage.id])site.establishSeason=-1;
+  await progressUpdate("Settling the first families", .45);
   generateFamilies({ state, seed, playerStartTile, founding: true });
   initializeEcology(state,seed);
-  generateHistory(state, seed, options.routeHistory || []);
+  await generateHistory(state, seed, options.routeHistory || [], completed =>
+    progressUpdate("Forty-five years of history: year " + Math.ceil(completed / 4), .45 + .45 * completed / 180));
+  await progressUpdate("Waking the villagers", .9);
   const playerId = Object.values(state.ecs.playable)[0].id;
   state.ecs.controllable[playerId].controllerId = playerId;
   discoverStartingTiles(state.ecs, playerId, playerStartTile);
@@ -614,6 +621,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     state.ecs.container[playerId]={id:playerId,capacity:96,amounts:{gruel:48,grain:24}};
     state.settlement.fixture={observerSupplies:"48 carried gruel and 24 carried grain",kind:"prosperity",label:"Initial prosperity setup",villageId:v.id,prosperousHouse:prosperous,workplaceId:state.ecs.household[prosperous].workplaceId,pubId:pub,pubHouse:host,poorHouse:poor,initialDay:state.days,stocks:"Trade household: 80 timber and 60 grain. Pub household: 40 timber and 60 grain if separate. Comparison household: no timber, 24 grain."};
   }
+  await progressUpdate("Preparing the village stores", .95);
   giveTradeTools(state);
   // The existing starting-wood guarantee is placed outside actual roofs and
   // approaches after household geometry is known; clearance never yields logs.
@@ -655,7 +663,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     state.ecs.playable = {};
   }
   updateWeather(state, 0, options.worldSeed ?? seed);
-  await progressUpdate("complete");
+  await progressUpdate("Ready to arrive", 1);
 
   // History can apply real house grading to a newer map object. Return that
   // authoritative surface, so callers cannot restore the prehistory survey.

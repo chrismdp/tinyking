@@ -285,6 +285,8 @@ export function speakLine(s,line) {
   }
   const risk=lineRisk(s,c,line);
   if(risk&&line.level.below=="hide")return false;
+  const snapshot=()=>({row:c.row.map(i=>({...i})),regard:s.ecs.relationships[c.npcId]?.known[c.actorId]?.goodwill||0,learned:JSON.parse(JSON.stringify(s.knowledge?.[c.actorId]?.people?.[c.npcId]||{}))});
+  const before=snapshot();
   const {row,popped}=rowAfter(c,{...line,risk}),pops=[];
   for(const i of popped) {
     const score=iconScore(s,i,c.actorId,c.npcId),amount=score==0?-.25:score;
@@ -306,7 +308,9 @@ export function speakLine(s,line) {
     recent.push(line.id);recent.splice(0,Math.max(0,recent.length-8));
   }
   c.lastPops=[...(c.lastPops||[]),...pops];
-  c.usedIds.push(line.id);c.transcript.push({id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,icons:line.icons,pops});
+  c.usedIds.push(line.id);
+  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,icons:line.icons,pops,presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
+  c.transcript.push(spoken);
   if(!risk) {
     for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
     c.tags=c.tags.filter(t=>!line.tags?.remove?.includes(t));
@@ -338,6 +342,7 @@ export function speakLine(s,line) {
   // first, then only as many ordinary icons as the visible row can hold.
   const grievances=c.row.filter(i=>i.kind=="grievance");
   c.row=[...grievances,...c.row.filter(i=>i.kind!="grievance")].slice(0,Math.max(0,p.max-p.resting));
+  spoken.presentation.after=snapshot();
   const awaitsAnswer=line.speaker=="player"&&(line.resolve||line.effects?.some(e=>e.op=="set_reply_purpose"));
   if(c.phase!="opening" && c.row.length+p.resting>=p.max) {
     c.closeReason="row_full";

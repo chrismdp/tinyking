@@ -1,3 +1,4 @@
+import { chooseLine, chatChoices, closeChat } from "game/chat";
 import React from "react";
 import { I18n } from "react-polyglot";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -38,7 +39,10 @@ it("requires this actor's completed physical talk, never selection, gossip, intr
   Object.assign(s.ecs.spatial[player], s.ecs.spatial[person]);
   expect(talk(s, player, pw, 1 / 1440, true, person, "chat")).toBe(Task.CONTINUE);
   expect(feelingHint(s, person, player)).toEqual({});
-  talk(s, player, pw, 1 / 24, false, person, "chat");
+  expect(talk(s, player, pw, 1 / 24, false, person, "chat")).toBe(Task.CONTINUE);
+  expect(feelingHint(s, person, player)).toEqual({});
+  // Reading and elapsed time grant no contact until the player actually speaks.
+  chooseLine(s,chatChoices(s)[0].key); closeChat(s);
   expect(feelingHint(s, person, player).ring).toBe("personal");
   expect(panel(s, person)).toContain("considers you a friend");
   s.ecs.personable[person].dead = true;
@@ -76,6 +80,9 @@ it("builds a concise disclosed life from real events and item provenance, includ
   beginInteraction(s, player, person);
   Object.assign(s.ecs.spatial[player], s.ecs.spatial[person]);
   talk(s, player, s.ecs.planner[player].world, 1 / 24, true, person, "chat");
+  chooseLine(s,chatChoices(s)[0].key); closeChat(s);
+  // Provenance requires disclosed evidence, rather than an automatic chat dump.
+  askAbout(s,player,person,parent);
   s.ecs.personable[parent].dead = true;
   s.residents = { [player]: true, [person]: true, [sibling]: true };
   const html = panel(s, person);

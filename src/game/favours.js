@@ -2,7 +2,7 @@ import { FOODS } from "game/goods";
 import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
-import { giftOptions, beginInteraction, addGoodwill } from "game/people";
+import { giftOptions, addGoodwill, meet } from "game/people";
 import { enqueueTask, playerOrderAllowed } from "game/manager";
 import { recordEvent } from "game/events";
 import { take } from "game/holder";
@@ -126,20 +126,16 @@ export function updateFavours(s) {
     const deficit = residents(s, house).length * 2 - (food.get(house) || 0);
     if (deficit > 0) offer("food", h.storeId, Math.min(3, deficit), "The household has less than two meals each");
   }
-  // Nearby encounters teach requests through the same knowledge record as news
-  // and learned people. A known name elsewhere never reveals a hidden need.
-  for (const r of Object.values(s.favours.requests)) if (r.status == "offered" && nearbyRequester(s, r.giverId)) {
+  // An anonymous overheard need is an observation, never an introduction.
+  for (const r of Object.values(s.favours.requests)) if (r.status == "offered" && nearbyRequester(s, r.giverId) && !s.knowledge?.[player]?.people?.[r.giverId]?.conversation) {
     s.knowledge ||= {};
-    const knowledge = s.knowledge[player] ||= { people: {}, feelings: {} };
-    // Hearing a nearby resident ask makes their visible Public name known,
-    // without meeting them, learning traits or revealing their relatives.
-    knowledge.people[r.giverId] ||= { traits: [] };
-    knowledge.favours ||= [];
-    if (!knowledge.favours.includes(r.id)) knowledge.favours.push(r.id);
+    const k = s.knowledge[player] ||= { people: {}, feelings: {} };
+    (k.noticedNeeds ||= {})[r.giverId + ":" + r.kind] = { speakerId: r.giverId, kind: r.kind, householdId: r.householdId, workplace_name: FUEL_TRADES[ecs.workplace?.[r.workplaceId]?.trade], day: s.days };
+    s.redraws?.push(r.giverId);
   }
 }
-function nearbyRequester(s, id) {
-  const p = s.ecs.spatial[s.ui.playerId], q = s.ecs.spatial[id];
+export function nearbyRequester(s, id) {
+  const p = s.ecs.spatial?.[s.ui?.playerId], q = s.ecs.spatial?.[id];
   if (!p || !q || (p.x-q.x)**2 + (p.y-q.y)**2 > 300**2) return false;
   const at = Hex().fromPoint(q);
   return (s.ecs.playable?.[s.ui.playerId]?.known || []).some(k => k.x == at.x && k.y == at.y);
@@ -160,7 +156,8 @@ export function acceptFavour(s, id, personId) {
   updateFavours(s);
   const r = s.favours?.requests[id];
   if (!r || r.status != "offered" || !visibleFavours(s).includes(r)) return null;
-  let giverId=r.giverId;
+  let giverId=personId || r.giverId;
+  if (!canRequestForHousehold(s,r,giverId) || s.knowledge?.[s.ui.playerId]?.offers?.[r.id]?.speakerId != giverId) return null;
   if(personId && personId!=giverId) {
     if(!canRequestForHousehold(s,r,personId))return null;
     giverId=personId;
@@ -168,7 +165,9 @@ export function acceptFavour(s, id, personId) {
   const task=enqueueTask(s,{key:"favour"},r.targetId,{favourId:id,forId:giverId,expectedGoodwill:r.goodwill});
   if(!task)return null;
   if(giverId!=r.giverId){r.offeredBy=r.giverId;r.giverId=giverId;}
-  beginInteraction(s,s.ui.playerId,giverId);
+  meet(s,s.ui.playerId,giverId);
+  meet(s,giverId,s.ui.playerId);
+  r.deliveryAuthorised=true;
   r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;r.taskId=task.id;
   return task;
 }

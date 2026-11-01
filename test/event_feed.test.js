@@ -43,8 +43,12 @@ it("keeps witnessed news selectable and Ask about can legitimately reveal a dist
   const { beginInteraction, askAbout } = require("game/people");
   const { state: s, player, person, sibling } = peopleWorld();
   beginInteraction(s, player, person);
-  s.events = []; recordEvent(s, "visit", [person, sibling], [], { toVillage: "village" });
+  s.events = []; const visit = recordEvent(s, "visit", [person, sibling], [], { toVillage: "village" });
   let html = renderToStaticMarkup(<GameState.Provider value={s}><EventFeed/></GameState.Provider>);
+  // Visits are learned through speech in v1, never passively while nearby.
+  expect(html).not.toContain("visited");
+  learnEvent(s,player,visit); (s.knowledge[player].spokenSources ||= {})[visit.id]={speakerId:person,day:s.days};
+  html = renderToStaticMarkup(<GameState.Provider value={s}><EventFeed/></GameState.Provider>);
   expect(html).toContain("Select Agnes Miller"); expect(html).toContain("visited");
   s.ecs.spatial[player].x -= 2000; s.days = -3; s.generatingHistory = true;
   const event = recordEvent(s, "move", [sibling], [], { toHouse: s.ecs.household[sibling].houseId, toVillage: "village" });
@@ -72,6 +76,7 @@ it.each(['departure','world_visit','return','world_move','household_join','settl
   const view = () => renderToStaticMarkup(<GameState.Provider value={s}><EventFeed/></GameState.Provider>);
   expect(view()).not.toContain('Select Agnes Miller');
   learnEvent(s, player, event);
+  if (["world_visit","return"].includes(type)) (s.knowledge[player].spokenSources ||= {})[event.id]={speakerId:person,day:s.days};
   expect(view()).toContain('Select Agnes Miller');
   expect(view()).not.toContain('Alice Miller');
   expect(view()).not.toContain('Village life is quiet');

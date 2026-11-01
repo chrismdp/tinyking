@@ -7,6 +7,7 @@ import { name } from "game/name";
 import { Hex } from "game/hex";
 import { canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
 import { harvestCounts } from "game/harvest_task";
+import { patience, MIN_CHAT_SLOTS } from "game/chat_patience";
 
 export function RequestCard({ request: r, personId }) {
   const s = React.useContext(GameState);
@@ -24,8 +25,9 @@ export function RequestCard({ request: r, personId }) {
     {r.kind == "harvest" && destination && <small>Deliver to household · tile {destination.x}, {destination.y}</small>}
     {r.kind == "harvest" && <small>Keep a small share as seed grain. Carry the rest home.</small>}
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
-      {r.status == "offered" ? <button disabled={!playerOrderAllowed(s,"favour")} aria-label={"Accept favour: " + favourTitle(r) + " for " + giver} onClick={() => s.ui.actions.accept_favour(r.id, giverId)}>Accept</button> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
+      {r.status == "offered" ? <span>Discuss this in Chat</span> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
     </div>
+    {r.status=="offered"&&s.ecs.planner?.[giverId]&&<button disabled={patience(s,s.ui.playerId,giverId).free<MIN_CHAT_SLOTS} onClick={()=>s.ui.actions.talk_to(giverId,"chat")}>Chat with {giver}</button>}
     {r.kind == "harvest" && ["accepted", "completed"].includes(r.status) ? <small>{harvestCounts(s, r)}</small> :
       r.status == "accepted" && <small>{r.progress}/{r.quantity} delivered · {r.delivered} carried home</small>}
     {!playerOrderAllowed(s,"favour") && <small>Adult work. Children can help at home when crops need care.</small>}
@@ -36,7 +38,7 @@ RequestCard.propTypes = { request: PropTypes.object.isRequired, personId: PropTy
 
 function Requests({ requests, personId }) {
   return <div className="request-content">{requests.length ? requests.map(r => <RequestCard key={r.id} request={r} personId={personId}/>) : <p className="request-note">No requests just now. Meet people nearby.</p>}
-    <p className="request-note">Accept adds a favour to your queue. Goodwill comes when the work is done.</p></div>;
+    <p className="request-note">Accepting a spoken chat offer adds a favour to your queue. Goodwill comes when the work is done.</p></div>;
 }
 Requests.propTypes = { requests: PropTypes.array.isRequired, personId: PropTypes.string };
 export function RequestList() {

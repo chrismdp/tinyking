@@ -1,3 +1,4 @@
+import { recoverSlots } from "game/chat_patience";
 import { FOODS } from "game/goods";
 import { recogniseConversation } from "game/guidance";
 import { isResident, personComponent } from "game/residents";
@@ -186,6 +187,11 @@ export function addGoodwill(state, from, to, amount) {
 
 export function drift(state, hours) {
   if (hours <= 0) return;
+  if (state.chat && hours > 1) {
+    for (let remaining=hours; remaining>0; remaining-=1) drift(state,Math.min(1,remaining));
+    return;
+  }
+  recoverSlots(state, hours);
   const people = state.ecs.personable;
   for (const [personId, { known: list }] of Object.entries(state.ecs.relationships || {})) {
     if (people?.[personId]?.dead || !isResident(state,personId)) continue;
@@ -281,11 +287,9 @@ export function knownFamilyTree(state, viewerId, personId) {
   follow(personId, "children", 2);
   for (const id of siblingsOf(state, personId)) selected.add(id);
   for (const id of [...selected]) if (kinship(id)?.spouse) selected.add(kinship(id).spouse);
-  const trust = personComponent(state, "relationships", personId).known[viewerId];
-  const trusted = viewerId == personId || (trust && RINGS.indexOf(trust.ring) >= 1);
   const known = personComponent(state, "relationships", viewerId).known;
   const learned = state.knowledge?.[viewerId]?.people || {};
-  const visible = id => trusted || id == viewerId || !!known[id] || !!learned[id];
+  const visible = id => viewerId == personId || id == viewerId || !!known[id] || !!learned[id];
   let nextUnknown = 0;
   const aliases = Object.fromEntries([...selected].map(id => [id, visible(id) ? id : "unknown-" + (++nextUnknown)]));
   const nodes = {};
@@ -303,7 +307,6 @@ export function knownFamilyTree(state, viewerId, personId) {
   return { rootId: aliases[personId], nodes };
 }
 
-export const CHAT_GOODWILL = 2;
 export const DAILY_PATIENCE = { public: 2, social: 4, personal: 6, intimate: 8 };
 export const TALK_TIRED = "They've had enough of talking for today";
 export const SOCIAL_REQUIRED = "They need to trust you before sharing gossip";
@@ -332,11 +335,7 @@ export function beginInteraction(state, actorId, personId) {
   const learned = learnPerson(state, actorId, personId);
   const trait = state.ecs.personality[personId].traits.find(t => !learned.traits.includes(t));
   if (trait) learned.traits.push(trait);
-  if (trusts(state, personId, actorId)) {
-    for (const node of Object.values(knownFamilyTree(state, actorId, personId).nodes)) {
-      if (!node.unknown) learnPerson(state, actorId, node.id);
-    }
-  }
+
 }
 
 export function patienceLeft(state, actorId, personId) {
@@ -357,12 +356,11 @@ export function spendPatience(state, actorId, personId) {
   return true;
 }
 
+// Contact bookkeeping for timed NPC/legacy callers. Interactive player chat
+// lives in chat.js and awards regard only when a pair pops.
 export function chat(state, actorId, personId) {
   beginInteraction(state, actorId, personId);
-  if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
-  addGoodwill(state, actorId, personId, CHAT_GOODWILL);
-  addGoodwill(state, personId, actorId, CHAT_GOODWILL);
-  completeConversation(state, actorId, personId);
+  completeConversation(state, actorId, personId, false);
   return { ok: true };
 }
 
@@ -374,9 +372,7 @@ export function askAbout(state, actorId, personId, aboutId) {
   if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
   const knowledge = knowledgeFor(state, actorId);
   (knowledge.feelings[personId] ||= {})[aboutId] = bond.ring;
-  for (const node of Object.values(knownFamilyTree(state, personId, aboutId).nodes)) {
-    if (!node.unknown) learnPerson(state, actorId, node.id);
-  }
+  for (const id of [aboutId, ...closeFamily(state,aboutId)]) learnPerson(state, actorId,id);
   for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) learnEvent(state, actorId, event);
   completeConversation(state, actorId, personId);
   recogniseConversation(state,actorId,personId,knownEvents(state,personId,aboutId).filter(e=>canDiscloseEvent(state,personId,actorId,e)));
@@ -414,12 +410,13 @@ export function giftOptions(state, actorId) {
 
 // Names, gossip and seasonal encounters do not count as a completed conversation.
 // Call only after actual timed, proximate conversation succeeds.
-export function completeConversation(state, actorId, personId) {
+export function completeConversation(state, actorId, personId, bulkDisclosure = true) {
   state.social ||= {};
   (state.social.contacts ||= {})[[actorId,personId].sort().join(":")]=state.days;
   const learned = learnPerson(state, actorId, personId);
   const a = state.ecs.spatial?.[actorId], b = state.ecs.spatial?.[personId];
   learned.conversation = { day: state.days, ...(a && b ? { position: { x: a.x, y: a.y }, otherPosition: { x: b.x, y: b.y } } : {}) };
+  if (!bulkDisclosure) return;
   const rank = RINGS.indexOf(personComponent(state, "relationships", personId).known[actorId]?.ring);
   const disclosed=[];
   if (rank < 1) return;

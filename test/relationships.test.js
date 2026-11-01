@@ -155,7 +155,7 @@ describe("knowledge", () => {
     return state;
   };
 
-  it("shows known kin and anonymous unknown boxes until the subject trusts the viewer", () => {
+  it("shows known kin and anonymous unknown boxes before family disclosure", () => {
     const state = treeWorld();
     const before = structuredClone(state);
     const tree = knownFamilyTree(state, "1", "2");
@@ -170,9 +170,13 @@ describe("knowledge", () => {
     expect(state).toEqual(before);
   });
 
-  it("reveals two generations up and down, siblings and spouses when trusted in the subject's own list", () => {
+  it("keeps trust separate from the explicitly disclosed names in two generations", () => {
     const state = treeWorld();
     known(state, "2")[1] = { ring: "social", goodwill: 16 };
+    // v1: trust permits disclosure but does not perform it. Layout assertions
+    // below use explicit learned-person records for the disclosed family.
+    expect(Object.values(knownFamilyTree(state,"1","2").nodes).some(n=>n.unknown)).toBe(true);
+    state.knowledge={"1":{people:Object.fromEntries(["2","3","4","5","6","7","8","9","10"].map(id=>[id,{traits:[]}])),feelings:{}}};
     const before = structuredClone(state);
     const tree = knownFamilyTree(state, "1", "2");
     expect(Object.keys(tree.nodes).sort()).toEqual(["2", "3", "4", "5", "6", "7", "8", "9", "10"].sort());

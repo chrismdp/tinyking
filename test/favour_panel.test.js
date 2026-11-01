@@ -16,16 +16,17 @@ function setup() {
   s.ecs.workplace = { oven: { trade: 'baker', houseId: w.tiles[3] } };
   s.ecs.spatial.oven = { ...s.ecs.spatial[w.tiles[3]], id: 'oven' };
   s.favours = { nextId: 1, requests: { f: { id: 'f', giverId: w.person, householdId: w.tiles[3], targetId: w.tiles[3], workplaceId: 'oven', kind: 'wood', reason: 'The oven needs fuel', quantity: 1, goodwill: 12, progress: 0, delivered: 0, produced: 0, cargo: [], status: 'offered' } } };
-  s.knowledge = { [w.player]: { people: {}, feelings: {}, favours: ['f'] } };
+  s.knowledge = { [w.player]: { people: { [w.person]: { traits: [], conversation: { day: s.days } } }, feelings: {}, favours: ['f'], offers: { f: { speakerId: w.person, day: s.days } } } };
   return w;
 }
 const render = (s, child) => renderToStaticMarkup(<GameState.Provider value={s}>{child}</GameState.Provider>);
 it('uses known-person naming and hides unlearned requests in the compact list', () => {
-  const w = setup(); let html = render(w.state, <RequestList/>);
+  const w = setup(); w.state.knowledge[w.player].people = {}; let html = render(w.state, <RequestList/>);
   expect(html).toContain('an unknown person');
   expect(html).not.toContain('Agnes Miller');
   expect(html).toContain('+12 goodwill');
-  expect(html).toContain('Accept favour');
+  expect(html).toContain('Discuss this in Chat');
+  expect(html).not.toContain('Accept favour');
   w.state.knowledge[w.player].favours = [];
   html = render(w.state, <RequestList/>);
   expect(html).not.toContain('The oven needs fuel');
@@ -40,6 +41,13 @@ it('shows explicit acceptance, queue reward and clear completed/expired outcomes
   expect(render(s, <RequestList/>)).toContain('Completed · +12 goodwill');
   s.favours.requests.f.status = 'expired'; s.favours.requests.f.outcome = 'The requester died · no goodwill';
   expect(render(s, <RequestList/>)).toContain('The requester died');
+});
+it('links a heard offer back to its real conversation without accepting it', () => {
+  const w=setup(),s=w.state;
+  const html=render(s,<RequestList/>);
+  expect(html).toContain('Chat with Agnes Miller');
+  expect(s.favours.requests.f.status).toBe('offered');
+  expect(s.ecs.manager[w.player].jobs).toEqual([]);
 });
 
 it('keeps the compact current task favour-aware without claiming a walking-only completion estimate', () => {

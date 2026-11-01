@@ -4,7 +4,7 @@ import male_names from "data/male_names.csv";
 import female_names from "data/female_names.csv";
 
 function bias(g, n) {
-  return Math.abs((g.random_int() % n) + (g.random_int() % n) - n);
+  return Math.min(n - 1, Math.abs((g.random_int() % n) + (g.random_int() % n) - n));
 }
 
 export function firstName(nameable) {

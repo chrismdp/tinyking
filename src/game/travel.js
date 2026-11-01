@@ -16,7 +16,7 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
-const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "needsUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "chat", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "needsUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -382,10 +382,16 @@ function takeTraveller(s, id) {
   }
   delete s.residents[id];
   s.redraws?.push(...ids);
+  const chatPairs={};
+  for(const [key,record] of Object.entries(s.chat?.pairs||{}))if(record.actorId==id||record.npcId==id) {
+    chatPairs[key]=record;
+    delete s.chat.pairs[key];
+  }
   return {
     id,
     entities,
     knowledge: s.knowledge?.[id],
+    chatPairs,
     homeHouse: s.ecs.household?.[id]?.houseId
   };
 }
@@ -398,6 +404,10 @@ function putTraveller(s, bundle, point, j) {
   Object.assign(s.ecs.spatial[id], point);
   for (const item of Object.keys(bundle.entities).filter(i => i != id)) if (s.ecs.spatial[item]) Object.assign(s.ecs.spatial[item], point);
   if (bundle.knowledge) (s.knowledge ||= {})[id] = bundle.knowledge;
+  if(Object.keys(bundle.chatPairs||{}).length) {
+    s.chat ||= {version:1,pairs:{}};
+    Object.assign(s.chat.pairs,bundle.chatPairs);
+  }
   if (j) {
     const queue = Object.keys(bundle.entities).map(id => s.ecs.controllable[id]?.controllerId).filter(Boolean),
       seen = new Set();
@@ -503,9 +513,11 @@ function ageTraveller(s, bundle, season) {
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (transit.ecs[key] ||= {})[id] = clone(value);
   references(transit, s.travel);
   if (bundle.knowledge) transit.knowledge[bundle.id] = clone(bundle.knowledge);
+  if(Object.keys(bundle.chatPairs||{}).length)transit.chat={version:1,pairs:clone(bundle.chatPairs)};
   const aged = historyStep(transit, season);
   for (const [id, components] of Object.entries(bundle.entities)) for (const key of Object.keys(components)) if (aged.ecs[key]?.[id]) components[key] = aged.ecs[key][id];
   bundle.knowledge = aged.knowledge[bundle.id];
+  if(aged.chat)bundle.chatPairs=aged.chat.pairs;
   publish(aged, s.travel);
   return aged;
 }

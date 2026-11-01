@@ -62,7 +62,7 @@ it("does not claim a hungry player stopped to eat while they are sleeping", () =
   expect(html).not.toContain("Stopped to eat");
 });
 
-it("keeps an unintroduced queued chat target anonymous until actual timed speech", () => {
+it("keeps an unintroduced queued chat target anonymous until the NPC speaks", () => {
   const {state,player,person}=require("./support/people").peopleWorld();
   state.ui.actions={};state.villages={};
   require("game/manager").enqueueTask(state,{key:"chat"},person);

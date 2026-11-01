@@ -608,6 +608,7 @@ export function historyStep(worldHexState, season) {
       ...Object.fromEntries(Object.entries(worldHexState.space || {}).map(([key, ids]) => [key, [...ids]]))
     },
     redraws: [...(worldHexState.redraws || [])],
+    chat: worldHexState.chat && JSON.parse(JSON.stringify(worldHexState.chat)),
     social: JSON.parse(JSON.stringify(worldHexState.social || {}))
   };
   const records = (key, clone = value => ({

@@ -14,7 +14,9 @@ This receiver is resolved during planning and delivery. Already accepted request
 
 ## Discovery and orders
 
-The simulation checks needs initially and each game hour. A requester within 300 world units on explored ground teaches the request through `knowledge[player].favours`. The encounter records only the requester's name in the existing learned-person record, with no traits, kin or relationship. Knowing someone's name or hearing about a distant household reveals no needs. Lists contain learned requests only. Opening a sheet does not introduce anybody. Explicit acceptance introduces the player and giver through the existing interaction functions.
+The simulation checks needs initially and each game hour. An unacquainted requester within 300 world units on explored ground can show an anonymous speech hint. The hint records a noticed need. It teaches no name, traits, family or request identity.
+
+A completed spoken exchange establishes acquaintance. The NPC can offer a real request during that same chat. Only the spoken offer teaches its request ID. Acceptance and decline use chat lines. Acceptance also authorises delivery and requires completed contact, including when the speaker is the original giver. The request list keeps progress and receipts but has no separate accept button.
 
 `state.favours` contains `nextId` and `requests`, keyed by stable request ID. Each record stores `giverId`, `householdId`, `kind`, `reason`, `targetId`, `quantity`, `progress`, `delivered`, `produced`, `goodwill`, `status`, `cargo` IDs and creation/acceptance/completion dates. Fuel requests also store `workplaceId`. Harvest work retains its current patch and remaining effort across interruptions. The personal queue entry has the normal stable task ID, `job.key: "favour"`, `favourId`, `forId` and `expectedGoodwill`.
 

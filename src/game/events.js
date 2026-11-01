@@ -91,6 +91,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   const { personable, playable, spatial, village, relationships } = state.ecs;
   for (const id of eventViewers(state, villageId, family, people)) {
     if (personable[id].dead && !people.includes(id)) continue;
+    if (["visit", "world_visit", "return"].includes(type) && (id == state.ui?.playerId || playable?.[id]) && !people.includes(id)) continue;
     if (details.audienceIds) { if (details.audienceIds.includes(id)) learnEvent(state, id, event); continue; }
     // Players hear witnessed live news, or learn it through Ask about. No history omniscience.
     if (playable?.[id] && !people.includes(id)) {
@@ -114,7 +115,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
 
 export function knownEvents(state, viewerId, aboutId) {
   const ids = new Set(state.knowledge?.[viewerId]?.events || []);
-  return (state.events || []).filter(e => ids.has(e.id) && (!aboutId || e.people.includes(aboutId)));
+  return (state.events || []).filter(e => ids.has(e.id) && (!(viewerId == state.ui?.playerId && ["visit", "world_visit", "return"].includes(e.type)) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
 }
 
 export function eventSentence(state, event, displayName) {

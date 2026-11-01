@@ -1,4 +1,6 @@
-import { visibleFavours } from "game/favours";
+import { patience, MIN_CHAT_SLOTS } from "game/chat_patience";
+import { localDirection, worldDirection } from "game/chat_lands";
+import { visibleFavours, reasonGone } from "game/favours";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 
@@ -13,30 +15,56 @@ export function guidanceState(state, key = "opening") {
 export function dismissGuidance(state, key = "opening") { guidanceState(state,key).dismissed = true; }
 export function openingGuidance(state) {
   if(!state.intro || state.intro.active || state.ui.show?.main_menu) return null;
-  const actorId=state.ui.playerId;
-  if (!actorId) return null;
-  const progress=guidanceState(state);
-  if(progress.dismissed || state.ecs.personable?.[actorId]?.dead) return null;
-  const conversations=Object.entries(state.knowledge?.[actorId]?.people || {}).filter(([,p])=>p.conversation);
-  const requests=visibleFavours(state);
-  const completed=requests.some(r=>r.status=="completed");
-  // Successful help closes this short opening permanently.
-  if(completed) { progress.dismissed=true;return null; }
-  const request=requests.find(r=>r.status=="offered");
-  const accepted=requests.find(r=>r.status=="accepted");
-  let key="meet",text="Select someone nearby and choose Chat to meet a local.";
-  if(conversations.length) {
-    key="contact";
-    text="You have made a first acquaintance. Keep talking when you want to know them better.";
-    if(request) { key="help";text="Ask how to help: select " + displayName(state,request.giverId) + " and open Offer help to see their request."; }
-    if(accepted) {key="working";text="Your accepted favour is in Your tasks. Goodwill comes when the real work is done.";}
+  const actorId=state.ui.playerId, ecs=state.ecs;
+  if (!actorId || ecs.personable?.[actorId]?.dead) return null;
+  const accepted=visibleFavours(state).find(r=>r.status=="accepted");
+  const task=(ecs.manager?.[actorId]?.jobs||[])[0];
+  const person=ecs.personable[actorId],jobs=ecs.manager?.[actorId]?.jobs||[];
+  if(state.game_speed=="paused" && jobs.length) return {actorId,key:"resume",text:"Choose Normal speed to continue your tasks.",action:"Normal speed",speed:"normal"};
+  if(person.hunger>.9) return jobs.some(j=>j.job.key=="find_food")?{actorId,key:"eating",text:"Keep the game running until your Find food task finishes."}:{actorId,key:"food",text:"Choose Find food to go for a meal before your next conversation.",action:"Find food",job:"find_food"};
+  if(person.tiredness>.9 && (state.days%1*24>=20 || state.days%1*24<9)) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:{actorId,key:"sleep",text:"Choose Rest to sleep before your next conversation.",action:"Rest",job:"rest"};
+  if (state.renderer?.overview) return {actorId,key:"return",text:"Choose You to return to your character."};
+  if (state.ui.familyPersonId) return {actorId,key:"family",text:"Close the family tree to return to your conversations."};
+  if(task?.job.key=="chat") {
+    if(task.waiting) return {actorId,key:"blocked_chat",text:"Cancel the Chat task marked ‘"+task.waiting+"’."};
+    const feeling=ecs.planner?.[task.targetId]?.world.feeling;
+    if(feeling?.hungry) return {actorId,key:"waiting_meal",text:"Keep the game running while your neighbour finishes a meal."};
+    if(feeling?.tired) return {actorId,key:"waiting_rest",text:"Keep the game running while your neighbour finishes resting."};
+    return {actorId,key:"approach",text:"Let your character walk over to start the conversation."};
   }
-  if(!progress.seen.includes(key)) {
-    // Contact without a request is useful briefly, then leaves the player alone.
-    progress.seen.push(key); progress.changedAt=state.days;
+  if(accepted && !task?.waiting) return {actorId,key:"working",text:"Keep the game running to finish your favour delivery."};
+  if(accepted && task?.waiting && accepted.kind!="harvest") return {actorId,key:"supply",text:accepted.kind=="wood" ? "Select an unclaimed tree and choose Cut down to supply your promised log." : "Select a forage plant and choose Forage to supply your promised food."};
+  const lead=Object.values(state.knowledge?.[actorId]?.heardNeeds||{}).find(l=>{
+    const r=state.favours?.requests[l.requestId];
+    return r?.status=="offered"&&!reasonGone(state,r)&&!state.knowledge?.[actorId]?.offers?.[r.id]&&!ecs.personable[r.giverId]?.dead&&patience(state,actorId,r.giverId).free>=MIN_CHAT_SLOTS;
+  });
+  if(lead) {
+    const r=state.favours.requests[lead.requestId],giver=r.giverId,n=displayName(state,giver),point=ecs.spatial[giver];
+    const explored=point&&(ecs.playable?.[actorId]?.known||[]).some(h=>String(Hex(h))==String(Hex().fromPoint(point)));
+    if(!ecs.planner?.[giver]||!explored) {
+      const villageId=ecs.village?.[giver]?.villageId,village=state.villages?.[villageId]||state.travel?.villages?.[villageId];
+      const far=Object.entries(state.travel?.maps||{}).find(([,m])=>m.residents?.[giver])?.[0];
+      const direction=ecs.planner?.[giver]?localDirection(ecs.spatial[actorId],point):worldDirection(state,far);
+      return {actorId,key:"find_help",text:"Find "+n+(village?.name?" in "+village.name:"")+(direction?", to the "+direction:"")+"."};
+    }
+    return {actorId,key:"help_lead",targetId:giver,text:"Chat with "+n+" and ask how you can help.",action:"Chat with "+n};
   }
-  if(key=="contact" && state.days-progress.changedAt>1/24 || state.days-(progress.startedAt ??=state.days)>1) {progress.dismissed=true;return null;}
-  return {actorId,key,text};
+  const player=ecs.spatial[actorId];
+  const explored=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>h.x+","+h.y));
+  const candidates=Object.keys(ecs.planner||{}).filter(id=>id!=actorId&&!ecs.personable[id]?.dead&&ecs.spatial[id]&&explored.has(String(Hex().fromPoint(ecs.spatial[id])))&&patience(state,actorId,id).free>=MIN_CHAT_SLOTS);
+  candidates.sort((a,b)=>Math.hypot(ecs.spatial[a].x-player.x,ecs.spatial[a].y-player.y)-Math.hypot(ecs.spatial[b].x-player.x,ecs.spatial[b].y-player.y));
+  const target=candidates.find(id=>!state.knowledge?.[actorId]?.people?.[id]?.conversation) || candidates.sort((a,b)=>(state.chat?.pairs?.[actorId+":"+a]?.encounters||0)-(state.chat?.pairs?.[actorId+":"+b]?.encounters||0))[0];
+  if(target) {
+    const n=displayName(state,target);
+    const walking=task?.job.key=="chat";
+    const anyContact=Object.values(state.knowledge?.[actorId]?.people||{}).some(p=>p.conversation);
+    let text="Chat with "+n+" and ask how you can help.";
+    if(n=="an unknown person") text=anyContact?"Chat with the nearby neighbour to meet someone new.":"Chat with the nearby neighbour to make your first acquaintance.";
+    if(walking) text="Let your character walk over to start the conversation.";
+    if(accepted) text="Chat with the nearby neighbour while your harvest waits.";
+    return {actorId,key:"chat",targetId:target,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
+  }
+  return {actorId,key:"explore",text:"Select the edge of visible ground and choose Move here to find another neighbour."};
 }
 
 export const PEOPLE_GOALS = {

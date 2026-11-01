@@ -53,6 +53,8 @@ NPC adults choose visits through the planner. Mutual Intimate relationships, rec
 
 ## Relationships and disclosure
 
+Player conversations use the paused panel and authored lines described in [Conversations](conversations.md). Topic and person pairs change the NPC's regard for the player, whichever speaker completes them. Patience slots recover over game time. A spoken fact reveals only its stated knowledge.
+
 Relationships are one-way. Each observer has their own goodwill and limited slots:
 
 | Ring | Slots | Goodwill | Effect |
@@ -80,7 +82,7 @@ The arrival camp has a bedroll that permits sleep before building. It restores t
 
 Playable children keep explicit movement, conversation, gifts, Find food, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
 
-Favours come from actual household harvest, food or fuel needs. Acceptance queues physical work and delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
+Favours come from actual household harvest, food or fuel needs. Acceptance through a chat line queues physical work and authorises delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
 
 A fed, rested Personal friend can contribute real work to a funded building or an owned field. The friend keeps their home, belongings, controller and priorities. There is no Recruit action. Household access follows actual residence. Legal ownership, residence, social trust and person-scoped local rights remain separate. Succession does not copy a predecessor's oaths, discoveries, goodwill or community permissions onto another person.
 
@@ -88,7 +90,7 @@ Local elders can receive an independent adult's oath after actual conversation a
 
 ## Marriage, ownership and succession
 
-The player deliberately chooses Court or Ask to marry in a person's panel. Each action queues a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat also increases the player's own regard. Ordinary play can therefore reach mutual Intimate with a compatible person.
+The player deliberately chooses Court or Ask to marry in a person's panel. Each action queues a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat changes the NPC's regard through matching icons. Courtship can build mutual Intimate regard with a compatible person.
 
 Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. Player proposals also reject any recorded direct ancestor or descendant beyond the two generations shown in the tree. NPC cousin compatibility keeps its existing two-generation rule. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
 

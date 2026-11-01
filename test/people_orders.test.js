@@ -1,3 +1,4 @@
+import { chatChoices, chooseLine, closeChat } from "game/chat";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { peopleWorld } from "./support/people";
@@ -15,15 +16,21 @@ import rules from "../src/data/jobs.json";
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 
-it("walks to chat, takes time and meets only through interaction, never changing control", () => {
+it("walks to a paused chat, completes spoken contact and releases attention without changing control", () => {
   const { state, player, person, step } = peopleWorld();
   const task = enqueueTask(state, { key: "chat" }, person);
   expect(state.ecs.relationships[player].known).toEqual({});
   step(0.1);
   expect(task.progress).toBeLessThan(1);
   step(2);
+  expect(state.chat.active.npcId).toBe(person);
+  expect(state.game_speed).toBe("paused");
+  expect(state.ecs.relationships[person].known[player].goodwill).toBe(0);
+  // Replace the old timed +2 assertion with a real, directional portrait pop.
+  const line=chatChoices(state).find(l=>l.icons.some(i=>i.personId==person));
+  chooseLine(state,line.key);closeChat(state);step(.1);
   expect(state.ecs.manager[player].jobs).toEqual([]);
-  expect(state.ecs.relationships[person].known[player].goodwill).toBeGreaterThan(1);
+  expect(state.ecs.relationships[person].known[player].goodwill).toBeGreaterThan(0);
   expect(state.ecs.relationships[player].known[person]).toBeDefined();
   expect(state.ecs.controllable[person].controllerId).toBe(person);
   expect(state.ecs.planner[person].world.capturedBy).toBeFalsy();

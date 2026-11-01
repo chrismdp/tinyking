@@ -1,3 +1,4 @@
+import { overheardHint } from "game/chat_bubbles";
 import { roadTracks, FULL_TRACK, throughTrack } from "game/road_wear";
 import { visualNumber } from "render/variation";
 import * as THREE from "three";
@@ -503,7 +504,7 @@ export function person(state, e, t, { realm, selected }) {
     });
   }
 
-  const activity = e.planner && !introActive(state) ? headActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui?.debug) : null;
+  const activity = !introActive(state) && overheardHint(state,e.id) || (e.planner && !introActive(state) ? headActivity(state.ecs, e.id, t, id => displayName(state, id), state.ui?.debug) : null);
   const knownName = displayName(state, e.id);
   const hasName = knownName != "an unknown person";
   if (hasName) {

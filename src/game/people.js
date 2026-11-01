@@ -1,3 +1,4 @@
+import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
 import { recoverSlots } from "game/chat_patience";
@@ -378,7 +379,21 @@ export function chat(state, actorId, personId) {
 }
 
 export function askAbout(state, actorId, personId, aboutId) {
-  if (!trusts(state, personId, actorId)) return { ok: false, message: SOCIAL_REQUIRED };
+  if (!trusts(state, personId, actorId)) {
+    const events=knownEvents(state,personId,aboutId).filter(e=>canDiscloseEvent(state,personId,actorId,e));
+    if(!events.length)return {ok:false,message:SOCIAL_REQUIRED};
+    beginInteraction(state,actorId,personId);
+    if(!spendPatience(state,actorId,personId))return {ok:false,message:TALK_TIRED};
+    const knowledge=knowledgeFor(state,actorId);
+    for(const event of events) {
+      for(const person of event.people)learnPerson(state,actorId,person);
+      learnEvent(state,actorId,event);
+      (knowledge.spokenSources ||= {})[event.id] ||= {speakerId:personId,day:state.days,lineId:"legacy.ask_about"};
+    }
+    completeConversation(state,actorId,personId);
+    recogniseConversation(state,actorId,personId,events);
+    return {ok:true};
+  }
   const bond = personComponent(state, "relationships", personId).known[aboutId];
   if (!bond) return { ok: false, message: "They don't know that person" };
   beginInteraction(state, actorId, personId);
@@ -394,6 +409,7 @@ export function askAbout(state, actorId, personId, aboutId) {
     knowledge.kinLinks[id+":"+relative] = {speaker_id:id,relative_id:relative,day:state.days,speakerId:personId};
   for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) {
     learnEvent(state, actorId, event);
+    (knowledge.spokenSources ||= {})[event.id] ||= {speakerId:personId,day:state.days,lineId:"legacy.ask_about"};
     const learned=learnPerson(state,actorId,personId);
     for(const itemId of event.items || [])if(state.ecs.possession?.[itemId]?.ownerId==personId){
       learned.possessions ||= [];
@@ -445,9 +461,20 @@ export function completeConversation(state, actorId, personId) {
   learned.conversation = { day: state.days, ...(a && b ? { position: { x: a.x, y: a.y }, otherPosition: { x: b.x, y: b.y } } : {}) };
 }
 
+// Current directional trust and current kin/bonds govern speech, not the
+// event's initial audience. Sealed backstory remains undisclosable.
 export function canDiscloseEvent(state, speaker, viewer, event) {
-  const rank = RINGS.indexOf(state.ecs.relationships[speaker]?.known[viewer]?.ring);
-  return !event.sealed && rank >= (["quarrel", "reconciliation", "gift", "courtship"].includes(event.type) ? 2 : 1);
+  const rule=EVENT_TYPES[event?.type]?.disclosure;
+  if(!rule || event.sealed)return false;
+  const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
+  const trust=rank(speaker,viewer),family=rule.family;
+  if(trust<RINGS.indexOf(rule.ring))return false;
+  if(!family || family.between!="spouses" || !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
+  if(event.people.includes(viewer))return true;
+  if(family.excludeKin && event.people.some(id=>closeFamily(state,id).includes(viewer)||closeFamily(state,viewer).includes(id)))return false;
+  if(family.excludeFriends && event.people.some(id=>rank(viewer,id)>=RINGS.indexOf(family.excludeFriends)))return false;
+  const rival=event.people.some(id=>personComponent(state,"relationships",viewer)?.known[id]?.goodwill<0);
+  return trust>=RINGS.indexOf(rival?family.rivalRing:family.ring);
 }
 
 export const RELATIONSHIP_NAMES = { public: "Acquaintance", social: "Familiar acquaintance", personal: "Friend", intimate: "Closest friend" };

@@ -1,3 +1,7 @@
+import EVENT_TYPES from "data/event_types.json";
+import { displayName } from "game/knowledge";
+import { MOODS, moodScore } from "game/chat_moods";
+export { MOODS, moodScore };
 import { customsIntentUnavailable, customsChatContext, customsChatValid, applyCustomsResponse, stopForbiddenCutting, membership } from "game/village_customs";
 import { recogniseMaternalKin, firstFamilyRequest } from "game/mother_family";
 import { completeChatOrder } from "game/manager";
@@ -16,7 +20,7 @@ const mapping={woodland:[["generous","hard-working"],["greedy"]],family:[["gener
 const clamp=(v,n)=>Math.max(-n,Math.min(n,v));
 const traitWeight=(s,id,t)=>{const p=s.ecs.personality[id];return Number(p.traits.includes(t))+Number(p.likes.includes(t))-Number(p.dislikes.includes(t));};
 export function topicScore(s,id,topic) {const [add,sub]=mapping[topic];return clamp(add.reduce((v,t)=>v+traitWeight(s,id,t),0)-sub.reduce((v,t)=>v+traitWeight(s,id,t),0),2);}
-export const iconKey=i=>i.kind=="grievance"?"grievance":i.kind=="person"?"person:"+i.personId:"topic:"+i.key;
+export const iconKey=i=>i.kind=="grievance"?"grievance":i.kind=="person"?"person:"+i.personId:i.kind+":"+i.key;
 // Levels refer to the NPC's directional relationship with this player. Standing
 // is local to that NPC's village, and an explicit departure revokes it.
 function lineRisk(s,c,line) {
@@ -40,6 +44,7 @@ function rowAfter(c,line) {
 }
 export function iconScore(s,icon,speaker,listener) {
   if(icon.kind=="topic")return topicScore(s,listener,icon.key);
+  if(icon.kind=="mood")return moodScore(s,listener,icon.key);
   if(icon.personId==speaker)return -1;
   if(icon.personId==listener)return clamp(traitWeight(s,listener,"proud")-traitWeight(s,listener,"humble"),1);
   const b=s.ecs.relationships[listener]?.known[icon.personId];
@@ -64,19 +69,25 @@ export function lineCandidates(s,c,family,speaker) {
     if(row.family!=family||speaker&&row.speaker!=speaker||c.usedIds.includes(row.id)&&!row.answers?.includes(c.expectation)&&!row.situation.startsWith("fallback_")&&family!="referral_reply")continue;
     if(!row.tags.require.every(t=>c.tags.includes(t))||row.tags.forbid.some(t=>c.tags.includes(t)))continue;
     let bound=[baseBindings(s,c)];
-    for(const key of bindingOrder(row.bindings))bound=bound.flatMap(b=>sourceValues(s,c,b,{...row.bindings[key],jobKey:row.when.all.find(p=>p.test=="player_has_queued_order")?.args.key}).map(v=>({...b,[key]:v})));
+    for(const key of bindingOrder(row.bindings))bound=bound.flatMap(b=>sourceValues(s,c,b,{...row.bindings[key],eventType:row.when.all.find(p=>p.test=="event_type_is"&&p.args.event==key)?.args.type,jobKey:row.when.all.find(p=>p.test=="player_has_queued_order")?.args.key}).map(v=>({...b,[key]:v})));
     for(const b of bound) {
       const tests=[...row.when.all,...row.when.none].map(p=>predicate(s,c,b,p));
       if(tests.some(v=>v===undefined)||!row.when.all.every((_,i)=>tests[i])||row.when.none.some((_,i)=>tests[row.when.all.length+i]))continue;
+      // Catalogue accounts are one authored template with distinct real facts.
+      // Qualify their spoken IDs so telling one harvest does not hide all others.
+      const id=row.icons.some(i=>i.kind=="event")?row.id+"@"+b.event.id:row.id;
+      if(id!=row.id&&c.usedIds.includes(id))continue;
       const text=interpolate(row.text,b),useKey=interpolate(row.use_key,b);
       if(text==null||useKey==null)continue;
       const reoffer=family=="favour_ask" && c.tags.includes("offered_help") && s.knowledge?.[c.actorId]?.declinedOffers?.[b.request?.id];
       if(pair.used[useKey] && !row.answers?.includes(c.expectation) && !row.situation.startsWith("fallback_") && family!="referral_reply" && !reoffer && !["greeting","leave_taking","introduction_reply","name_answer"].includes(family))continue;
-      const icons=row.icons.map(i=>i.kind=="topic"?{...i}:{kind:"person",personId:b[i.ref]?.id});
+      const icons=row.icons.flatMap(i=>i.kind=="event"?
+        [{kind:"topic",key:EVENT_TYPES[b[i.ref]?.type]?.topic},...(b[i.ref]?.people||[]).map(personId=>({kind:"person",personId}))]:
+        i.kind=="person"?[{kind:"person",personId:b[i.ref]?.id}]:[{...i}]);
       if(icons.some(i=>i.kind=="person"&&!i.personId))continue;
       const risk=lineRisk(s,c,row);
       if(risk&&row.level.below=="hide")continue;
-      result.push({...row,text,useKey,key:row.id+"|"+useKey,icons,b,...(risk?{risk}:{})});
+      result.push({...row,id,text,useKey,key:row.id+"|"+useKey,icons,b,...(risk?{risk}:{})});
     }
   }
   return result;
@@ -138,18 +149,21 @@ export function chatChoices(s) {
   const available=families.flatMap(f=>variants(s,c,lineCandidates(s,c,f,"player")));
   let all=available;
   const direct=available.filter(l=>l.answers?.includes(c.expectation)&&previewLine(s,l).fits);
-  const withAnswers=result=>{
+  const withAnswers=(result,limit=true)=>{
     const mandatory=["warning","oath","leave","offer"].includes(c.expectation)?direct.filter((l,i)=>direct.findIndex(x=>x.family==l.family&&x.situation==l.situation)==i).slice(0,2):direct.slice(0,1);
+    const evasion=direct.find(l=>l.evasive);
+    if(evasion&&!mandatory.includes(evasion))mandatory.push(evasion);
     const oath=available.find(l=>l.family=="customs_question"&&previewLine(s,l).fits);
     if(oath&&!mandatory.includes(oath))mandatory.push(oath);
     if(["warning","oath","leave"].includes(c.expectation))return mandatory;
     const combined=[...mandatory,...result.filter(l=>!mandatory.some(x=>x.useKey==l.useKey))];
     let searches=0;
-    return combined.filter(l=>l.family!="maternal_search"||++searches<=1).slice(0,4);
+    return combined.filter(l=>l.family!="maternal_search"||++searches<=1).slice(0,limit?4:undefined);
   };
   if(c.closingReply) return withAnswers(all.filter(l=>(c.closingReply=="offer"?["favour_accept","favour_decline"]:["referral_reply"]).includes(l.family)));
+  if(c.focus=="tell")return withAnswers(all.filter(l=>l.family=="gossip_tell"&&l.situation.startsWith("catalogue_")).sort((a,b)=>b.b.event.day-a.b.event.day||a.useKey.localeCompare(b.useKey)),false);
   if (c.focus) {
-    const focus={family:["maternal_introduction","maternal_search","family_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"]}[c.focus];
+    const focus={family:["maternal_introduction","maternal_search","family_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["mood_talk","mood_reply"]}[c.focus];
     all=all.filter(l=>focus.includes(l.family)||l.family=="customs_question"||c.focus=="season"&&l.family=="lands_question"&&l.situation=="country");
   }
   // Practical lines remain reachable; the list otherwise favours a visible
@@ -176,6 +190,8 @@ export function chatChoices(s) {
       if(at>=0)result[at]=best;
     }
   }
+  const comfort=available.find(l=>l.family=="mood_reply"&&previewLine(s,l).fits);
+  if(comfort&&!result.some(l=>l.family=="mood_reply")) {if(result.length==4)result.pop();result.push(comfort);}
   // The opening goal always has a reachable line, including under Family.
   if(!c.focus || c.focus=="family") {
     const practical=all.filter(l=>["maternal_introduction","maternal_search"].includes(l.family)&&previewLine(s,l).fits).sort((a,b)=>Number(b.family=="maternal_introduction")-Number(a.family=="maternal_introduction"));
@@ -191,13 +207,16 @@ export function chatChoices(s) {
 }
 function effects(s,c,line) {
   const b=line.b||{},ref=x=>b[x]?.id,viewer=ref(line.disclosure?.to),speaker=line.speaker=="player"?c.actorId:c.npcId;
-  for(const id of line.disclosure?.people||[])learnIdentity(s,viewer,ref(id));
+  for(const id of line.disclosure?.people||[]) {
+    if(id=="event.people") {for(const person of b.event?.people||[])if(knows(s,speaker,person))learnIdentity(s,viewer,person);}
+    else learnIdentity(s,viewer,ref(id));
+  }
   const disclosed=[];
   for(const key of line.disclosure?.events||[]) {
     const event=(s.events||[]).find(e=>e.id==b[key]?.id);if(!event)continue;
     if(line.speaker=="player"){c.toldEventId=event.id;c.npcKnewEvent=heard(s,c.npcId,event);}
     learnEvent(s,viewer,event);disclosed.push(event);
-    const k=knowledge(s,viewer);(k.spokenSources ||= {})[event.id]={speakerId:speaker,day:s.days,lineId:line.id};
+    const k=knowledge(s,viewer);(k.spokenSources ||= {})[event.id] ||= {speakerId:speaker,day:s.days,lineId:line.id};
   }
   if(viewer==c.actorId&&disclosed.length)recogniseConversation(s,c.actorId,c.npcId,disclosed);
   for(const key of line.disclosure?.requests||[]) {
@@ -273,6 +292,7 @@ export function speakLine(s,line) {
       addGoodwill(s,c.actorId,c.npcId,amount);pops.push({...i,score,amount,listenerId:c.npcId});
       learnIdentity(s,c.actorId,c.npcId);const learned=knowledge(s,c.actorId).people[c.npcId];
       if(i.kind=="topic")(learned.topicTastes ||= {})[i.key]=score;
+      else if(i.kind=="mood")(learned.moodTastes ||= {})[i.key]=score;
       else if(i.personId!=c.actorId)(learned.personReactions ||= {})[i.personId]={score,day:s.days};
     }
   }
@@ -291,6 +311,11 @@ export function speakLine(s,line) {
     for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
     c.tags=c.tags.filter(t=>!line.tags?.remove?.includes(t));
     effects(s,c,line);
+  }
+  if(line.evasive) {
+    const npcSpeaks=line.speaker=="npc";
+    addGoodwill(s,npcSpeaks?c.npcId:c.actorId,npcSpeaks?c.actorId:c.npcId,-1);
+    c.lastSetback={cost:1,message:npcSpeaks?"They avoid your question. Your regard falls.":"You avoid their question. Their regard falls."};
   }
   if(line.defiant||risk?.grievance) {
     addGoodwill(s,c.actorId,c.npcId,-2);
@@ -406,7 +431,7 @@ export function openChat(s,actor,npc,options={}) {
   s.redraws?.push(actor,npc);return true;
 }
 export function selectChatSubject(s,id) {if(s.chat?.active&&!s.chat.active.endReason){s.chat.active.subjectId=id||null;s.chat.active.focus="news";}}
-export function chatPersonName(s,id) {return id==s.ui.playerId?"You":personFact(s,id)?.first_name||"Someone";}
+export function chatPersonName(s,id) {return id==s.ui.playerId?"You":displayName(s,id,x=>personFact(s,x)?.first_name)||"Someone";}
 
 // Any authored opening can use this physical approach. Callers supply the
 // reason as serialisable context; no completed contact exists until a reply.

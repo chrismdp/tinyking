@@ -1,6 +1,9 @@
 import { personComponent } from "game/residents";
 import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 /* global require */
+import EVENT_TYPES from "data/event_types.json";
+import { eventText } from "game/events";
+import { personLabel } from "game/knowledge";
 import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
 import { localWeather } from "game/weather";
@@ -12,7 +15,7 @@ import { Hex } from "game/hex";
 import { currentReach, worldDirection, localDirection, countryWords, placeFact, discoveredVillage, knownPlaces, ownTrips, visitedVillage, landsFact, landsTold } from "game/chat_lands";
 import { patience } from "game/chat_patience";
 
-export const VISITS=["visit","world_visit","return"];
+export const VISITS=Object.keys(EVENT_TYPES).filter(type=>EVENT_TYPES[type].spokenVisit);
 const trades={baker:"oven",smith:"forge",carpenter:"workshop",weaver:"loom",tanner:"tan-yard",miller:"mill"};
 export const words=n=>["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"][n] ?? String(n);
 const living=(s,id)=>!!s.ecs.personable[id]&&!s.ecs.personable[id].dead;
@@ -27,7 +30,7 @@ export function notable(s,id) {
   return living(s,id) && (!!s.ecs.profession?.[id] || !!h&&s.ecs.controllable[h]?.controllerId==id || !!v&&villageElder(s,v)==id);
 }
 export function relevantVisit(s,speaker,viewer,e) {
-  return !!e && VISITS.includes(e.type) && heard(s,speaker,e) && !heard(s,viewer,e) &&
+  return !!e && VISITS.includes(e.type) && heard(s,speaker,e) && !heard(s,viewer,e) && canDiscloseEvent(s,speaker,viewer,e) &&
     (knows(s,viewer,e.people[0]) || notable(s,e.people[0])&&knows(s,speaker,e.people[0])) &&
     (e.people.includes(speaker) || e.villageId==s.ecs.village?.[speaker]?.villageId || e.fromWorld==(s.travel?.active||s.map?.worldKey));
 }
@@ -72,7 +75,7 @@ export function eventFact(s,e) {
   if(!e)return null;
   const item=e.items?.[0],good=e.gifts?.[0]?.type||s.ecs.good?.[item]?.type;
   const far=e.fromWorld==currentReach(s)?e.toWorld:e.fromWorld;
-  return {...e,account:({woodland:"refused to heed the woodland warning from",death:"pressed for an account of a death from",flirt:"made an unwelcome advance to",disagreement:"defied",intrusion:"offended"})[e.reason],when:relativeDate(s,e),when_exact:relativeDate(s,e,true),village:e.villageId,
+  return {...e,account_sentence:eventText(s,e,id=>personLabel(s,id,s.personName,s.chat?.active?.npcId),"chat"),tell_sentence:eventText(s,e,id=>personLabel(s,id,s.personName,s.chat?.active?.actorId),"chat"),account:({woodland:"refused to heed the woodland warning from",death:"pressed for an account of a death from",flirt:"made an unwelcome advance to",disagreement:"defied",intrusion:"offended"})[e.reason],when:relativeDate(s,e),when_exact:relativeDate(s,e,true),village:e.villageId,
     item_name:s.ecs.possession?.[item]?.name,item_phrase:s.ecs.possession?.[item]?.name || (good?"some "+good:undefined),
     building_name:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill",alehouse:"alehouse"})[e.kind],
     addition_phrase:({"Rear work bay":"a work bay at the back","Long rear wing":"a long wing at the back"})[e.addition],
@@ -115,13 +118,13 @@ function elsewhereRequests(s,c) {
 function tellableTravel(s,c) {
   return knownEvents(s,c.npcId).filter(e=>["world_visit","world_move","return"].includes(e.type)&&e.people[0]!=c.npcId&&e.fromWorld&&e.toWorld&&
     (knows(s,c.actorId,e.people[0])||notable(s,e.people[0])&&knows(s,c.npcId,e.people[0]))&&
-    (VISITS.includes(e.type)||canDiscloseEvent(s,c.npcId,c.actorId,e)));
+    canDiscloseEvent(s,c.npcId,c.actorId,e));
 }
 // Bind one source at a time. Multiple real events/relatives remain distinct
 // candidates; an absent source rejects the row, including in negative tests.
 export function sourceValues(s,c,b,d) {
   const e=s.ecs,p=c.actorId,n=c.npcId,ref=x=>x?.split(".").reduce((v,k)=>v?.[k],b),person=x=>ref(x)?.id;
-  const events=(type,id)=>knownEvents(s,n,id).filter(x=>x.type==type).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
+  const events=(type,id)=>knownEvents(s,n,id).filter(x=>x.type==type&&canDiscloseEvent(s,n,p,x)).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   const request=r=>r?{...r,house_direction:localDirection(e.spatial[n],e.spatial[r.householdId]),quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade]}:null;
   const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
@@ -158,9 +161,9 @@ export function sourceValues(s,c,b,d) {
   case "village_founding_event":return events("founding").filter(x=>x.villageId==ref(d.village)?.id);
   case "current_subject_known_to_player":return knows(s,p,c.subjectId)?[personFact(s,c.subjectId)].filter(Boolean):[];
   case "npc_bond_with_subject": {const bond=e.relationships[n]?.known[c.subjectId];return bond?[{...bond,dislikes:disposition(s,n,c.subjectId)=="hate"||bond.goodwill<0}]:[];}
-  case "npc_known_unheard_event_for_question":return newsEvents(s,c).map(x=>eventFact(s,x));
-  case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).map(x=>eventFact(s,x));
-  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>x.people.every(id=>knows(s,p,id))&&canDiscloseEvent(s,p,n,x)&&(!VISITS.includes(x.type)||s.knowledge?.[p]?.spokenSources?.[x.id])&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
+  case "npc_known_unheard_event_for_question":return newsEvents(s,c).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
+  case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
+  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   case "event_just_told_by_player":return [eventFact(s,(s.events||[]).find(x=>x.id==c.toldEventId))].filter(Boolean);
   case "event_person":return [personFact(s,ref(d.event)?.people[d.index])].filter(Boolean);
   case "event_other_participant":return (ref(d.event)?.people||[]).filter(id=>id!=person(d.person)).map(id=>personFact(s,id));
@@ -207,6 +210,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   switch(test) {
   case "family_search_answer":return b.relative?.answer==a.value;
   case "festival_active":return !!s.ecs.planner?.[c.npcId]?.world.festivalPlace;
+  case "mood_in_row":return c.row.some(i=>i.kind=="mood"&&i.key==a.key);
   case "phase_is":return c.phase==a.phase;
   case "customs_chat_kind_is":return c.context?.kind==a.value;
   case "customs_eligible":return !c.context&&!customsIntentUnavailable(s,c.actorId,c.npcId,a.kind)&&

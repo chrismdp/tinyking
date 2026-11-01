@@ -1,3 +1,4 @@
+import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
 import { goalEvidence } from "game/guidance";
@@ -94,7 +95,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   const { personable, playable, spatial, village, relationships } = state.ecs;
   for (const id of eventViewers(state, villageId, family, people)) {
     if (personable[id].dead && !people.includes(id)) continue;
-    if (["visit", "world_visit", "return"].includes(type) && (id == state.ui?.playerId || playable?.[id]) && !people.includes(id)) continue;
+    if (EVENT_TYPES[type]?.spokenVisit && (id == state.ui?.playerId || playable?.[id]) && !people.includes(id)) continue;
     if (details.audienceIds) { if (details.audienceIds.includes(id)) learnEvent(state, id, event); continue; }
     // Players hear witnessed live news, or learn it through Ask about. No history omniscience.
     if (playable?.[id] && !people.includes(id)) {
@@ -118,51 +119,31 @@ export function recordEvent(state, type, people, items = [], details = {}) {
 
 export function knownEvents(state, viewerId, aboutId) {
   const ids = new Set(state.knowledge?.[viewerId]?.events || []);
-  return (state.events || []).filter(e => !e.sealed && ids.has(e.id) && (!(viewerId == state.ui?.playerId && ["visit", "world_visit", "return"].includes(e.type)) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
+  return (state.events || []).filter(e => !e.sealed && ids.has(e.id) && (!(viewerId == state.ui?.playerId && EVENT_TYPES[e.type]?.spokenVisit) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
 }
 
+// Catalogue wording is shared by dated news and generated conversation rows.
+export function eventText(state, event, displayName, wording="sentence") {
+  if(event.sealed)return "";
+  const definition=EVENT_TYPES[event.type];
+  if(!definition)return event.type;
+  const n=id=>id?displayName(id):"someone",[a,b]=event.people;
+  const village=state.villages?.[event.villageId]?.name;
+  const toVillage=state.villages?.[event.toVillage]?.name;
+  const item=(event.items||[]).map(id=>state.ecs.possession?.[id]?.name || event.gifts?.find(g=>g.id==id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
+  const values={...event,a:n(a),b:n(b),c:n(event.people[2]),building:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill"})[event.kind]||event.kind,village:village||"a settlement",village_suffix:village?" in "+village:"",
+    parents:event.people.slice(1).map(n).join(" and "),gift_item:item||"a gift",estate:item||"the household",
+    to_house:n(event.toHouse),to_village_suffix:toVillage?" in "+toVillage:"",cause_suffix:event.cause?" of "+event.cause:"",
+    journey_reason:event.reason?" · "+event.reason:" · one season on the road",fire_place:event.place?" at "+n(event.place):"",
+    succession_account:event.newStranger?"arrived after the death of":"succeeded",
+    favour_kind:({harvest:"the harvest",wood:"fuel for the household",food:"household food"})[event.kind]||"a favour",
+    defiance_spoken:({woodland:"refused to heed the woodland warning from",death:"pressed for an account of a death from",flirt:"made an unwelcome advance to",disagreement:"defied",intrusion:"offended"})[event.reason]||"offended",
+    defiance_account:({woodland:"refused to heed",death:"pressed",flirt:"made an unwelcome advance to"})[event.reason]||"offended",
+    defiance_suffix:({woodland:"'s warning about the village woodland",death:" about a death"})[event.reason]||""};
+  return (definition[wording]||definition.sentence).replace(/\{(\w+)\}/g,(_,key)=>values[key]??"unknown");
+}
 export function eventSentence(state, event, displayName) {
   if(event.sealed)return "";
-  const n = id => displayName(id), [a, b] = event.people;
-  const when = ["spring", "summer", "autumn", "winter"][((event.season % 4) + 4) % 4] + " of year " + (Math.floor(event.season / 4) + 1);
-  const village = state.villages?.[event.villageId]?.name;
-  const item = event.items.map(id => state.ecs.possession?.[id]?.name || event.gifts?.find(g => g.id == id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
-  const text = {
-    building_built: () => n(a)+" built a "+event.kind+" using "+event.timber+" timber",
-    founding: () => n(a)+" and "+n(b)+" founded "+(village || "a settlement")+" beside an accessible route",
-    household_arrival: () => n(a)+" established a household in "+(village || "a settlement"),
-    green_moved: () => "The community moved its green for more gathering space",
-    house_built: () => n(a)+" built a household home using "+event.timber+" timber",
-    expansion: () => n(a)+" added a "+event.addition+" using "+event.timber+" timber",
-    departure: () => n(a) + " left for " + event.toWorld + (event.reason ? " · " + event.reason : " · one season on the road"),
-    arrival: () => n(a) + " arrived in " + event.worldHex,
-    world_visit: () => n(a) + " arrived from " + event.fromWorld + " to meet people",
-    return: () => n(a) + " returned home from " + event.fromWorld,
-    world_move: () => n(a) + " settled in " + event.toWorld + " after marrying",
-    defiance: () => event.reason=="woodland" ? n(a)+" refused to heed "+n(b)+"'s warning about the village woodland" :
-      event.reason=="death" ? n(a)+" pressed "+n(b)+" about a death" : event.reason=="flirt" ? n(a)+" made an unwelcome advance to "+n(b) : n(a)+" offended "+n(b)+" in conversation",
-    commons_cut: () => n(a) + " cut common woodland without permission",
-    commons_warning: () => n(a) + " warned " + n(b) + " about cutting village commons (−" + event.loss + " goodwill)",
-    commons_report: () => n(a) + " reported the cutting to elder " + n(b) + " (−" + event.loss + " goodwill)",
-    village_oath: () => n(a) + " swore the local oath with elder " + n(b),
-    village_leave: () => n(a) + " left the village before elder " + n(b),
-    favour: () => n(a) + " helped " + n(b) + " with " + ({ harvest: "the harvest", wood: "fuel for the household", food: "household food" }[event.kind] || "a favour") + " (+" + event.goodwill + " goodwill)",
-    harvest: () => n(a)+" brought in "+event.quantity+" grain",
-    fire: () => "A fire broke out"+(event.place ? " at "+n(event.place):""),
-    festival: () => n(a)+" attended the "+event.title,
-    birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
-    marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),
-    death: () => n(a) + " died" + (event.cause ? " of " + event.cause : ""),
-    move: () => n(a) + " moved to " + n(event.toHouse) + (state.villages?.[event.toVillage]?.name ? " in " + state.villages[event.toVillage].name : ""),
-    visit: () => n(a) + " visited " + n(b) + (state.villages?.[event.toVillage]?.name ? " in " + state.villages[event.toVillage].name : ""),
-    quarrel: () => n(a) + " quarrelled with " + n(b),
-    reconciliation: () => n(a) + " made peace with " + n(b),
-    gift: () => n(a) + " gave " + (item || "a gift") + " to " + n(b),
-    settlement: () => n(a)+" founded a household in "+(village||"a new village"),
-    household_join: () => n(a)+" joined the household of "+n(b),
-    succession: () => event.newStranger ? n(b)+" arrived after the death of "+n(a) : n(b)+" succeeded "+n(a),
-    celebration: () => n(a)+" and "+n(b)+" celebrated their wedding",
-    inheritance: () => n(b) + " inherited " + (item || "the household") + " from " + n(a)
-  }[event.type];
-  return (text ? text() : event.type) + " in the " + when + ".";
+  const when=["spring","summer","autumn","winter"][((event.season%4)+4)%4]+" of year "+(Math.floor(event.season/4)+1);
+  return eventText(state,event,displayName)+" in the "+when+".";
 }

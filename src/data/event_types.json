@@ -1,0 +1,437 @@
+{
+  "building_built": {
+    "sentence": "{a} built a {kind} using {timber} timber",
+    "topic": "work",
+    "roles": [
+      "builder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "chat": "{a} built a {building}"
+  },
+  "founding": {
+    "sentence": "{a} and {b} founded {village} beside an accessible route",
+    "topic": "village",
+    "roles": [
+      "founder",
+      "cofounder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "household_arrival": {
+    "sentence": "{a} established a household in {village}",
+    "topic": "village",
+    "roles": [
+      "householder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "green_moved": {
+    "sentence": "The community moved its green for more gathering space",
+    "topic": "village",
+    "roles": [],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "house_built": {
+    "sentence": "{a} built a household home using {timber} timber",
+    "topic": "work",
+    "roles": [
+      "builder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "expansion": {
+    "sentence": "{a} added a {addition} using {timber} timber",
+    "topic": "work",
+    "roles": [
+      "builder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "departure": {
+    "sentence": "{a} left for {toWorld}{journey_reason}",
+    "topic": "village",
+    "roles": [
+      "traveller"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "arrival": {
+    "sentence": "{a} arrived in {worldHex}",
+    "topic": "village",
+    "roles": [
+      "traveller"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "world_visit": {
+    "sentence": "{a} arrived from {fromWorld} to meet people",
+    "topic": "village",
+    "roles": [
+      "visitor"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": true
+  },
+  "return": {
+    "sentence": "{a} returned home from {fromWorld}",
+    "topic": "village",
+    "roles": [
+      "traveller"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": true
+  },
+  "world_move": {
+    "sentence": "{a} settled in {toWorld} after marrying",
+    "topic": "family",
+    "roles": [
+      "new_resident"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "defiance": {
+    "sentence": "{a} {defiance_account} {b}{defiance_suffix}",
+    "topic": "gossip",
+    "roles": [
+      "actor",
+      "witness"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "chat": "{a} {defiance_spoken} {b}"
+  },
+  "commons_cut": {
+    "sentence": "{a} cut common woodland without permission",
+    "topic": "woodland",
+    "roles": [
+      "cutter"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "commons_warning": {
+    "sentence": "{a} warned {b} about cutting village commons (−{loss} goodwill)",
+    "topic": "woodland",
+    "roles": [
+      "witness",
+      "cutter"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "chat": "{a} warned {b} about cutting village commons"
+  },
+  "commons_report": {
+    "sentence": "{a} reported the cutting to elder {b} (−{loss} goodwill)",
+    "topic": "woodland",
+    "roles": [
+      "witness",
+      "elder",
+      "cutter"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "chat": "{a} reported {c}’s cutting to elder {b}"
+  },
+  "village_oath": {
+    "sentence": "{a} swore the local oath with elder {b}",
+    "topic": "village",
+    "roles": [
+      "member",
+      "elder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "village_leave": {
+    "sentence": "{a} left the village before elder {b}",
+    "topic": "village",
+    "roles": [
+      "member",
+      "elder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "favour": {
+    "sentence": "{a} helped {b} with {favour_kind} (+{goodwill} goodwill)",
+    "topic": "help",
+    "roles": [
+      "helper",
+      "requester"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "chat": "{a} helped {b} with {favour_kind}"
+  },
+  "harvest": {
+    "sentence": "{a} brought in {quantity} grain",
+    "topic": "harvest",
+    "roles": [
+      "harvester"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "fire": {
+    "sentence": "A fire broke out{fire_place}",
+    "topic": "village",
+    "roles": [],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "festival": {
+    "sentence": "{a} attended the {title}",
+    "topic": "season",
+    "roles": [
+      "attendee"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "birth": {
+    "sentence": "{a} was born to {parents}",
+    "topic": "family",
+    "roles": [
+      "child",
+      "parent",
+      "parent"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "marriage": {
+    "sentence": "{a} and {b} married{village_suffix}",
+    "topic": "family",
+    "roles": [
+      "spouse",
+      "spouse"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "death": {
+    "sentence": "{a} died{cause_suffix}",
+    "topic": "family",
+    "roles": [
+      "deceased"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "move": {
+    "sentence": "{a} moved to {to_house}{to_village_suffix}",
+    "topic": "village",
+    "roles": [
+      "mover"
+    ],
+    "disclosure": {
+      "ring": "social"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "visit": {
+    "sentence": "{a} visited {b}{to_village_suffix}",
+    "topic": "village",
+    "roles": [
+      "visitor",
+      "host"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": true
+  },
+  "quarrel": {
+    "sentence": "{a} quarrelled with {b}",
+    "topic": "gossip",
+    "roles": [
+      "actor",
+      "opponent"
+    ],
+    "disclosure": {
+      "ring": "personal",
+      "family": {
+        "between": "spouses",
+        "ring": "intimate",
+        "rivalRing": "personal",
+        "excludeKin": true,
+        "excludeFriends": "personal"
+      }
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "reconciliation": {
+    "sentence": "{a} made peace with {b}",
+    "topic": "gossip",
+    "roles": [
+      "reconciler",
+      "other"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "gift": {
+    "sentence": "{a} gave {gift_item} to {b}",
+    "topic": "gossip",
+    "roles": [
+      "giver",
+      "recipient"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "settlement": {
+    "sentence": "{a} founded a household in {village}",
+    "topic": "village",
+    "roles": [
+      "founder"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "household_join": {
+    "sentence": "{a} joined the household of {b}",
+    "topic": "family",
+    "roles": [
+      "new_member",
+      "host"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "succession": {
+    "sentence": "{b} {succession_account} {a}",
+    "topic": "family",
+    "roles": [
+      "deceased",
+      "successor"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "celebration": {
+    "sentence": "{a} and {b} celebrated their wedding",
+    "topic": "family",
+    "roles": [
+      "spouse",
+      "spouse"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false
+  },
+  "inheritance": {
+    "sentence": "{b} inherited {estate} from {a}",
+    "topic": "family",
+    "roles": [
+      "deceased",
+      "heir"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false
+  }
+}

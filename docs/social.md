@@ -6,7 +6,7 @@ Generation starts with founding households and advances 180 seasons, or 45 game 
 
 ## Records
 
-Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. Each person's `state.knowledge[id].events` contains the event identities they know. Ask about copies relevant events from the speaker's knowledge. Completed-contact bookkeeping itself copies no events or possessions. Warnings, reports, oaths, gifts, courtship, play and household invitations therefore disclose no family history. A spoken family answer grants only its stated facts; a disclosed possession event can identify that item.
+Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. Each person's `state.knowledge[id].events` contains the event identities they know. Ask about copies permitted events from the speaker’s knowledge and records the spoken source. Completed-contact bookkeeping itself copies no events or possessions. Warnings, reports, oaths, gifts, courtship, play and household invitations therefore disclose no family history. A spoken family answer grants only its stated facts; a disclosed possession event can identify that item.
 
 A personal item has an ECS identity and a `possession` component. It contains `name`, `kind`, `ownerId`, `maker`, `originalOwner` and `owners`. Each entry in `owners` contains `personId`, `day` and `reason`. `carried` separates personal belongings from the two working hands. Personal items never enter commodity totals. A gift transfers the same unique item and appends its new owner. Splitting an ordinary stack preserves its good metadata.
 
@@ -77,4 +77,16 @@ History still contains 180 seasons, or 45 years. Dates use seven days per season
 Ageing, births and old-age probabilities remain seasonal. Courtship still waits
 two seasons. Festival attendance and the season-turn page use only real events.
 Public honours and memorial readings disclose their actual recorded events to
-people present. Sealed events remain secret. See [the core loop](design.md#seasons-and-gatherings).
+people present. Sealed backstory stays hidden. See [the core loop](design.md#seasons-and-gatherings).
+
+## Event accounts and audiences
+
+The shared event catalogue is `src/data/event_types.json`. It defines each type’s wording, topic icon, participant roles, ordinary disclosure and feed membership. The news feed and chat read this table. `tools/chat-design/gen_lines.py` generates both NPC accounts and player Tell rows from it. The catalogue preserves existing event producers and initial audiences. It adds no event occurrence, private event or automatic news exchange.
+
+One policy, `canDiscloseEvent`, governs NPC speech, player Tell and legacy Ask about. Public events include weddings, births, deaths, completed buildings, household arrivals and oaths. Social trust admits moves, help and woodland incidents. Personal trust admits inheritance, household joining, gifts, reconciliation, quarrels and defiance. A public legacy answer discloses its event without disclosing an unrelated family tree.
+
+A quarrel between current spouses needs Intimate trust, or Personal trust for a listener with negative goodwill towards a subject. The policy excludes either subject’s close kin and close friends from third-party disclosure. It reads current kinship and directional bonds. Initial family learning remains unchanged, so withholding later speech does not erase existing knowledge.
+
+Player Tell uses only known, unsealed, permitted records. A card carries the catalogue topic and every participant. Anonymous witnesses can tell what happened without naming unknown people. New listeners learn through `learnEvent`, which keeps family reactions once per learner. Spoken sources retain the first teller, day and line. Retelling records the player as the new listener’s source while preserving the player’s earlier source.
+
+Mood preferences are stable calculations from each person’s personality, tastes, identity and opinion seed. Learned mood scores live beside topic evidence in personal knowledge. Existing save and traveller knowledge records carry that evidence and spoken event sources. NPC visits still change relationships without exchanging old news.

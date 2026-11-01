@@ -1,4 +1,7 @@
 import json, re, sys, collections
+from pathlib import Path
+catalogue=json.loads((Path(__file__).resolve().parents[2] / "src/data/event_types.json").read_text())
+moods={"guarded","grumbling","cheerful","joking"}
 rows = json.load(open(sys.argv[1]))
 COMMON = {"player", "npc", "contact", "context"}
 problems = []
@@ -20,7 +23,9 @@ for r in rows:
         root = ph.split("|")[0].split(".")[0]
         if root not in bound: problems.append(("unbound placeholder", r["id"], ph))
     for ic in r["icons"]:
-        if ic["kind"] == "person":
+        if ic["kind"] not in ("topic","person","mood","event"): problems.append(("invalid icon kind",r["id"],ic))
+        if ic["kind"]=="mood" and ic.get("key") not in moods: problems.append(("invalid mood",r["id"],ic))
+        if ic["kind"] in ("person","event"):
             root = ic["ref"].split(".")[0]
             if root not in bound: problems.append(("unbound icon", r["id"], ic["ref"]))
     keys = [ic.get("key") or ic.get("ref") for ic in r["icons"]]
@@ -45,6 +50,13 @@ for r in rows:
         if not 2 <= n <= 3: problems.append(("opening icon count", r["id"], n))
         if n == 3 and not any(p["test"] == "free_cells_at_least" and p["args"].get("count", 0) >= 5 for p in r["when"]["all"]):
             problems.append(("three-icon opening without room", r["id"]))
+for etype, definition in catalogue.items():
+    if not definition.get("sentence") or not definition.get("topic") or not isinstance(definition.get("roles"),list) or definition.get("disclosure",{}).get("ring") not in ("public","social","personal","intimate"):
+        problems.append(("invalid event definition",etype))
+    for family in ("event_news","gossip_tell"):
+        generated=[r for r in rows if r["family"]==family and r["situation"]=="catalogue_"+etype]
+        if len(generated)!=1: problems.append(("missing catalogue account",etype,family))
+        elif generated[0]["icons"] != [{"kind":"event","ref":"event"}]: problems.append(("catalogue icons",etype,family))
 answers={a for r in rows if r["speaker"]=="player" for a in r.get("answers",[])}
 for r in rows:
     if r.get("expects") and r["expects"] not in answers: problems.append(("unanswerable expectation",r["id"],r["expects"]))

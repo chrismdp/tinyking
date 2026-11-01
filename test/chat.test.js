@@ -210,7 +210,12 @@ it("does not name unknown people when retelling an anonymously witnessed event",
   openChat(s,p,n);s.chat.active.focus="news";
   expect(s.knowledge[p].people[parent]).toBeUndefined();
   expect(s.knowledge[p].people[sibling]).toBeUndefined();
-  expect(chatChoices(s).some(l=>l.family=="gossip_tell")).toBe(false);
+  const tell=chatChoices(s).find(l=>l.family=="gossip_tell");
+  expect(tell).toBeDefined();
+  expect(tell.text).not.toContain("Edith");expect(tell.text).not.toContain("Alice");
+  expect(markup(s)).not.toContain("Edith");expect(markup(s)).not.toContain("Alice");
+  expect(s.knowledge[p].people[parent]).toBeUndefined();
+  expect(s.knowledge[p].people[sibling]).toBeUndefined();
 });
 it("bases common-woodland talk on real tree permissions rather than a tree sharing a ground tile ID", () => {
   const {state:s,player:p,person:n,tiles}=contact();

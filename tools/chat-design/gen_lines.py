@@ -6,6 +6,7 @@ use key, trade-off, effects and disclosure. Each variant adds voice
 conditions and its own text. The output rows follow design.md's format.
 """
 import json, sys, re
+from pathlib import Path
 from collections import Counter, OrderedDict
 
 OUT = sys.argv[1]
@@ -1901,172 +1902,6 @@ opinion("dislike", [P("bond_dislikes", bond="bond")], [
     V("{subject.first_name}? Don't start me.", "gloomy", TR("gloomy")),
     V("I keep clear of {subject.first_name}.", "timid", TR("timid"))])
 
-# --- NPC tells a real event the player does not know ---
-def ev_binding(src="npc_known_unheard_event_about_subject", **people):
-    b = {"event": {"source": src}}
-    for name, idx in people.items():
-        b[name] = {"source": "event_person", "event": "event", "index": idx}
-    return b
-
-def gossip_report(sit, etype, variants, icons, people, extra_base=(), family="event_news",
-                  src="npc_known_unheard_event_for_question", fields=("id", "type", "people", "day", "season"),
-                  extra_bindings=None, risks_extra=()):
-    b = ev_binding(src, **people)
-    if extra_bindings:
-        b.update(extra_bindings)
-    situation(
-        family, sit, "npc",
-        base_all=[PHASE_REPLY, P("event_type_is", event="event", type=etype),
-                  P("event_known_to", person="npc", event="event"),
-                  P("event_unknown_to", person="player", event="event"),
-                  P("can_disclose_event", speaker="npc", viewer="player", event="event")] + list(extra_base),
-        base_none=NOT_PRACTICAL, bindings=b,
-        facts=[F("event", list(fields), "past")], icons=icons,
-        use_key="tell_event:{npc.id}:{player.id}:{event.id}",
-        risks=["Gossip, Family or a named person can land badly with them."] + list(risks_extra),
-        reveals=["One real event you did not know"],
-        effects=[{"op": "set_subject", "person": list(people)[0]}] if people else [],
-        disc_people=list(people), disc_events=["event"], variants=variants)
-
-def SPEAKER_IS(idx):
-    return P("event_participant_is", event="event", index=idx, person="npc")
-def SPEAKER_NOT_IN():
-    return P("not_event_participant", event="event", person="npc")
-
-for fam, src in (("event_news", "npc_known_unheard_event_for_question"),):
-    tag = ""
-    gossip_report(tag + "quarrel", "quarrel", [
-        V("{a.first_name} and {b.first_name} had words {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{a.first_name} fell out with {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("There was a quarrel between {a.first_name} and {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{a.first_name} and {b.first_name} quarrelled {event.when}. It happens.", "gloomy", SPEAKER_NOT_IN(), TR("gloomy")),
-    ], [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src,
-        risks_extra=["If either is your close kin, hearing this costs your goodwill towards the other."])
-    gossip_report(tag + "quarrel_self", "quarrel", [
-        V("{other.first_name} and I quarrelled {event.when}.", "self"),
-        V("I fell out with {other.first_name} {event.when}.", "self"),
-        V("{other.first_name} and I had words {event.when}. I'll say no more.", "proud", TR("proud")),
-    ], [T("gossip"), R("other")], {"other": "other_participant"}, extra_base=[P("event_participant", event="event", person="npc")],
-        family=fam, src=src, extra_bindings={"other": {"source": "event_other_participant", "event": "event", "person": "npc"}})
-    gossip_report(tag + "reconciliation", "reconciliation", [
-        V("{a.first_name} and {b.first_name} made it up {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{a.first_name} made peace with {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{a.first_name} and {b.first_name} are speaking again. Since {event.when}.", "cheerful", SPEAKER_NOT_IN(), TR("cheerful"),
-          P("no_later_quarrel", event="event")),
-    ], [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src)
-    gossip_report(tag + "reconciliation_self", "reconciliation", [
-        V("{other.first_name} and I made our peace {event.when}.", "self"),
-        V("I made it up with {other.first_name} {event.when}.", "self"),
-    ], [T("gossip"), R("other")], {"other": "other_participant"}, extra_base=[P("event_participant", event="event", person="npc")],
-        family=fam, src=src, extra_bindings={"other": {"source": "event_other_participant", "event": "event", "person": "npc"}})
-    gossip_report(tag + "gift", "gift", [
-        V("{a.first_name} gave {b.first_name} {event.item_phrase} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{b.first_name} had {event.item_phrase} from {a.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("I gave {b.first_name} {event.item_phrase} {event.when}.", "giver", SPEAKER_IS(0)),
-        V("{a.first_name} gave me {event.item_phrase} {event.when}.", "recipient", SPEAKER_IS(1)),
-    ], [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src,
-        fields=("id", "type", "people", "day", "items", "gifts"))
-    gossip_report(tag + "marriage", "marriage", [
-        V("{a.first_name} and {b.first_name} were married {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("{a.first_name} wed {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("There was a wedding {event.when}. {a.first_name} and {b.first_name}.", "cheerful", SPEAKER_NOT_IN(), TR("cheerful")),
-    ], [T("family"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src)
-    gossip_report(tag + "celebration", "celebration", [
-        V("{a.first_name} and {b.first_name} celebrated their wedding {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("There was a wedding party for {a.first_name} and {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-    ], [T("family"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src)
-    gossip_report(tag + "birth", "birth", [
-        V("{a.first_name} and {b.first_name} had a {child.boy_girl} {event.when}. {child.first_name}, they named {child.him_her}.",
-          "third", SPEAKER_NOT_IN()),
-        V("{child.first_name} was born to {a.first_name} and {b.first_name} {event.when}.", "third", SPEAKER_NOT_IN()),
-        V("Our {child.son_daughter}, {child.first_name}, was born {event.when}.", "parent",
-          P("event_participant_in", event="event", indices=[1, 2], person="npc")),
-    ], [T("family"), R("child"), R("a")], {"child": 0, "a": 1, "b": 2}, family=fam, src=src)
-    gossip_report(tag + "death", "death", [
-        V("{a.first_name} died {event.when}.", "base"),
-        V("We lost {a.first_name} {event.when}. Old age.", "old_age", P("event_detail_is", event="event", field="cause", value="old age")),
-        V("{a.first_name} died of old age, {event.when}.", "old_age", P("event_detail_is", event="event", field="cause", value="old age")),
-        V("{a.first_name} died for want of food, {event.when}.", "starved", P("event_detail_is", event="event", field="cause", value="starvation")),
-        V("{a.first_name} went hungry too long. Died {event.when}.", "starved", P("event_detail_is", event="event", field="cause", value="starvation")),
-    ], [T("family"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "cause"))
-    gossip_report(tag + "inheritance", "inheritance", [
-        V("{b.first_name} came into {a.first_name}'s house {event.when}.", "house", SPEAKER_NOT_IN(), P("event_items_are_houses", event="event")),
-        V("{a.first_name}'s house went to {b.first_name} {event.when}.", "house", SPEAKER_NOT_IN(), P("event_items_are_houses", event="event")),
-        V("{b.first_name} has {a.first_name}'s {event.item_name} now. Inherited it {event.when}.", "item", SPEAKER_NOT_IN(),
-          P("event_items_are_possessions", event="event")),
-        V("When {a.first_name} died, {b.first_name} had the {event.item_name}.", "item", SPEAKER_NOT_IN(), P("event_items_are_possessions", event="event")),
-        V("I came into {a.first_name}'s house {event.when}.", "self_house", SPEAKER_IS(1), P("event_items_are_houses", event="event")),
-        V("This {event.item_name} was {a.first_name}'s. It came to me {event.when}.", "self_item", SPEAKER_IS(1),
-          P("event_items_are_possessions", event="event"), P("item_carried_by", event="event", person="npc")),
-    ], [T("family"), R("b"), R("a")], {"a": 0, "b": 1}, family=fam, src=src, fields=("id", "type", "people", "day", "items"))
-    gossip_report(tag + "move", "move", [
-        V("{a.first_name} moved to {event.to_village_name} {event.when}.", "away", SPEAKER_NOT_IN(), P("event_villages_differ", event="event")),
-        V("{a.first_name} left {event.from_village_name} for {event.to_village_name} {event.when}.", "away", SPEAKER_NOT_IN(),
-          P("event_villages_differ", event="event")),
-        V("{a.first_name} moved house {event.when}.", "same", SPEAKER_NOT_IN(), P("event_villages_same", event="event")),
-        V("{a.first_name} moved to another house {event.when}.", "same", SPEAKER_NOT_IN(), P("event_villages_same", event="event")),
-    ], [T("village"), R("a")], {"a": 0}, family=fam, src=src,
-        fields=("id", "type", "people", "day", "fromHouse", "toHouse", "fromVillage", "toVillage"))
-    gossip_report(tag + "household_join", "household_join", [
-        V("{a.first_name} joined {b.first_name}'s household {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} went to live with {b.first_name} {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("I joined {b.first_name}'s household {event.when}.", "self", SPEAKER_IS(0)),
-        V("{a.first_name} came to live with us {event.when}.", "host", SPEAKER_IS(1)),
-    ], [T("family"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src)
-    gossip_report(tag + "building", "building_built", [
-        V("{a.first_name} built the {event.building_name} {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("The {event.building_name}? {a.first_name} put that up, {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("I built the {event.building_name} myself, {event.when}.", "self", SPEAKER_IS(0)),
-    ], [T("work"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "kind", "timber"))
-    gossip_report(tag + "house", "house_built", [
-        V("{a.first_name} built a house {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name}'s house went up {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("Our house went up {event.when}.", "self", P("event_participant", event="event", person="npc")),
-    ], [T("village"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "houseId"))
-    gossip_report(tag + "expansion", "expansion", [
-        V("{a.first_name} added {event.addition_phrase} to the house {event.when}.", "base"),
-        V("{a.first_name}'s house got {event.addition_phrase} {event.when}.", "base"),
-    ], [T("work"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "addition"))
-    gossip_report(tag + "oath", "village_oath", [
-        V("{a.first_name} swore the oath before {b.first_name} {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} gave {b.first_name} their word and joined {event.village_name}, {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} swore the oath before me {event.when}.", "elder", SPEAKER_IS(1)),
-    ], [T("village"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src, fields=("id", "type", "people", "day", "villageId"))
-    gossip_report(tag + "leave", "village_leave", [
-        V("{a.first_name} gave up {event.village_name} {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} left the village before {b.first_name}, {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} came to me {event.when} and gave up the village.", "elder", SPEAKER_IS(1)),
-    ], [T("village"), R("a")], {"a": 0, "b": 1}, family=fam, src=src, fields=("id", "type", "people", "day", "villageId"))
-    gossip_report(tag + "commons_cut", "commons_cut", [
-        V("{a.first_name} cut wood on the common without leave, {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} took wood from the common {event.when}, and had no right.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} was cutting the common woodland {event.when}. No right to.", "proud", SPEAKER_NOT_IN(), TR("proud")),
-    ], [T("village"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "villageId"))
-    gossip_report(tag + "commons_warning", "commons_warning", [
-        V("{a.first_name} caught {b.first_name} cutting on the common {event.when}, and said so.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} warned {b.first_name} off the common woodland {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("I caught {b.first_name} cutting on the common {event.when}. I said my piece.", "self", SPEAKER_IS(0)),
-    ], [T("village"), R("a"), R("b")], {"a": 0, "b": 1}, family=fam, src=src, fields=("id", "type", "people", "day", "response"))
-    gossip_report(tag + "departure", "departure", [
-        V("{a.first_name} went off on the road {event.when}, looking for company.", "company", SPEAKER_NOT_IN(),
-          P("event_detail_is", event="event", field="reason", value="seeking company")),
-        V("{a.first_name} took to the road {event.when}, to find company.", "company", SPEAKER_NOT_IN(),
-          P("event_detail_is", event="event", field="reason", value="seeking company")),
-        V("{a.first_name} went home {event.when}.", "home", SPEAKER_NOT_IN(), P("event_detail_is", event="event", field="reason", value="returning home")),
-        V("{a.first_name} set off for home {event.when}.", "home", SPEAKER_NOT_IN(), P("event_detail_is", event="event", field="reason", value="returning home")),
-        V("{a.first_name} left for the {event.to_direction} {event.when}.", "base", SPEAKER_NOT_IN()),
-    ], [T("village"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "toWorld", "reason"))
-    gossip_report(tag + "world_move", "world_move", [
-        V("{a.first_name} married away and settled in the {event.to_direction}, {event.when}.", "base", SPEAKER_NOT_IN()),
-        V("{a.first_name} wed and went to live in the {event.to_direction}, {event.when}.", "base", SPEAKER_NOT_IN()),
-    ], [T("family"), R("a")], {"a": 0}, family=fam, src=src, fields=("id", "type", "people", "day", "toWorld"))
-
-gossip_report("village_green", "green_moved", [
-    V("We moved the green {event.when}, to give more room.", "base", P("same_village", a="npc", b="event")),
-    V("The green was moved {event.when}. More space for everyone.", "base"),
-], [T("village")], {}, family="event_news", src="npc_known_unheard_event_for_question", extra_base=[P("question_is_village")],
-    fields=("id", "type", "day", "villageId"))
-
 npc_refusal("event_news", "nothing_more", [TRUST_SOCIAL, P("subject_is_set"), P("no_permitted_unheard_event_about", speaker="npc", viewer="player", subject="subject")], [
     "That's all I know of {subject.first_name}.",
     "Nothing more to tell about {subject.first_name}.",
@@ -2083,80 +1918,6 @@ npc_refusal("event_news", "nothing_more_village", [TRUST_SOCIAL, P("question_is_
     "village_nothing:{npc.id}:{player.id}:{context.encounter_number}",
     facts=[F("npc_knowledge", ["no_permitted_unheard_event_in_village"])])
 
-# --- the player retells a real event ---
-def player_tell(sit, etype, variants, icons, people, extra_base=(), fields=("id", "type", "people", "day"),
-                risks_extra=(), bindings_extra=None, src="player_known_permitted_event"):
-    b = ev_binding(src, **{k: v for k, v in people.items() if isinstance(v, int)})
-    if bindings_extra:
-        b.update(bindings_extra)
-    situation(
-        "gossip_tell", sit, "player",
-        base_all=[PHASE_PLAYER, P("event_type_is", event="event", type=etype),
-                  P("event_known_to", person="player", event="event"),
-                  P("can_disclose_event", speaker="player", viewer="npc", event="event")] + list(extra_base),
-        base_none=NOT_PRACTICAL, bindings=b,
-        facts=[F("event", list(fields), "past")], icons=icons,
-        use_key="tell_event:{player.id}:{npc.id}:{event.id}",
-        risks=["Gossip, Family or a named person can land badly with them.",
-               "They may tell someone else, including the people involved."] + list(risks_extra),
-        reveals=["One real event you know"],
-        effects=[{"op": "set_subject", "person": list(people)[0]},
-                 {"op": "set_reply_purpose", "purpose": "gossip_reaction"}],
-        disc_people=list(people), disc_events=["event"], variants=variants)
-
-player_tell("quarrel", "quarrel", [
-    "{a.first_name} and {b.first_name} had words {event.when}.",
-    "Did you know {a.first_name} and {b.first_name} quarrelled?"],
-    [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1},
-    risks_extra=["If either is their close kin, they lose 3 goodwill towards the other."])
-player_tell("reconciliation", "reconciliation", [
-    "{a.first_name} and {b.first_name} made it up {event.when}.",
-    "{a.first_name} made peace with {b.first_name}."], [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1},
-    risks_extra=["If the second is their close kin, they gain 1 goodwill towards the first."])
-player_tell("gift", "gift", [
-    "{a.first_name} gave {b.first_name} {event.item_phrase}.",
-    "{b.first_name} had {event.item_phrase} from {a.first_name}."], [T("gossip"), R("a"), R("b")], {"a": 0, "b": 1},
-    fields=("id", "type", "people", "day", "items", "gifts"),
-    risks_extra=["If the recipient is their close kin, they gain 1 goodwill towards the giver."])
-player_tell("own_gift", "gift", [
-    "I gave {b.first_name} {event.item_phrase} {event.when}.", "{b.first_name} has {event.item_phrase} from me."], [T("help"), R("b")], {"b": 1},
-    extra_base=[P("event_participant_is", event="event", index=0, person="player")],
-    fields=("id", "type", "people", "day", "items"))
-player_tell("marriage", "marriage", [
-    "{a.first_name} and {b.first_name} were married {event.when}.", "{a.first_name} wed {b.first_name}."],
-    [T("family"), R("a"), R("b")], {"a": 0, "b": 1})
-player_tell("birth", "birth", [
-    "{a.first_name} and {b.first_name} had a {child.boy_girl}.", "{child.first_name} was born {event.when}."],
-    [T("family"), R("child"), R("a")], {"child": 0, "a": 1, "b": 2})
-player_tell("death", "death", [
-    "{a.first_name} died {event.when}.", "Did you hear {a.first_name} died?"], [T("family"), R("a")], {"a": 0},
-    fields=("id", "type", "people", "day", "cause"))
-player_tell("move", "move", [
-    "{a.first_name} moved to {event.to_village_name}.", "{a.first_name} moved house {event.when}."],
-    [T("village"), R("a")], {"a": 0}, fields=("id", "type", "people", "day", "toVillage"))
-player_tell("own_favour_harvest", "favour", [
-    "I helped {b.first_name} with the harvest {event.when}.", "I brought in {b.first_name}'s grain."],
-    [T("help"), R("player"), R("b")], {"b": 1},
-    extra_base=[P("event_participant_is", event="event", index=0, person="player"),
-                P("event_detail_is", event="event", field="kind", value="harvest")],
-    fields=("id", "type", "people", "day", "kind", "quantity"))
-player_tell("own_favour_wood", "favour", [
-    "I brought {b.first_name} a log {event.when}.", "I fetched fuel for {b.first_name}."],
-    [T("help"), R("player"), R("b")], {"b": 1},
-    extra_base=[P("event_participant_is", event="event", index=0, person="player"),
-                P("event_detail_is", event="event", field="kind", value="wood")],
-    fields=("id", "type", "people", "day", "kind"))
-player_tell("own_favour_food", "favour", [
-    "I took food to {b.first_name}'s house {event.when}.", "I brought {b.first_name}'s household food."],
-    [T("help"), R("player"), R("b")], {"b": 1},
-    extra_base=[P("event_participant_is", event="event", index=0, person="player"),
-                P("event_detail_is", event="event", field="kind", value="food")],
-    fields=("id", "type", "people", "day", "kind", "quantity"))
-player_tell("visit", "visit", [
-    "{a.first_name} visited {b.first_name} {event.when}.", "{a.first_name} was over at {b.first_name}'s."],
-    [T("village"), R("a")], {"a": 0, "b": 1}, fields=("id", "type", "people", "day", "fromVillage", "toVillage"),
-    extra_base=[P("player_heard_event_spoken", event="event")])
-
 # --- NPC reaction to a retelling: the truth of whether they already knew ---
 def reaction(sit, base, variants, icons=None, facts=None, effects=None, bindings=None, people=()):
     situation(
@@ -2164,7 +1925,7 @@ def reaction(sit, base, variants, icons=None, facts=None, effects=None, bindings
         base_all=[PHASE_REPLY] + base, base_none=NOT_PRACTICAL,
         bindings=bindings or {"event": {"source": "event_just_told_by_player"}},
         facts=facts or [F("npc_knowledge", ["knew_event_before_this_line"])],
-        icons=icons or [T("gossip")], use_key="react:{npc.id}:{event.id}",
+        icons=icons or [T("gossip")], use_key="react:{npc.id}:{event.id}:{context.encounter_number}",
         risks=["Gossip can land badly with them."], reveals=["Whether they already knew"],
         effects=effects or [{"op": "set_reply_purpose", "purpose": "open"}], disc_people=list(people),
         variants=variants)
@@ -2174,7 +1935,7 @@ reaction("new", [P("npc_knew_event_before_line", event="event", value=False)], [
     V("Doesn't surprise me.", "gloomy", TR("gloomy")),
     V("Oh! Well, there's news.", "cheerful", TR("cheerful"))])
 reaction("known", [P("npc_knew_event_before_line", event="event", value=True)], [
-    "So I'd heard.", "Yes, I knew of that.", "Old news, that.",
+    "Nothing new. I had heard that.", "Yes, I knew of that.", "Old news, that.",
     V("I know. Everyone knows.", "worldly", TR("worldly"))])
 reaction("kin_quarrel", [P("npc_knew_event_before_line", event="event", value=False),
                          P("event_type_is", event="event", type="quarrel"),
@@ -3108,11 +2869,6 @@ situation("village_question", "commons_leave", "player", base_all=[PHASE_PLAYER]
 situation("commons_answer", "fallback_rights", "npc", base_all=[PHASE_REPLY], icons=[T("village"),T("woodland")],
     use_key="commons_answer:{context.encounter_number}", variants=["As a village member, you may gather the commons. Private trees and stores still need their owner's leave."])
 
-# A defiant deed is already a real event with a witness. These account lines
-# prepare it for ordinary disclosure; passing gossip between NPCs is step 5b.
-gossip_report("defiance", "defiance", ["{a.first_name} {event.account} {b.first_name} {event.when}."],
-    [T("gossip"),R("a"),R("b")], {"a":0,"b":1}, fields=("id","type","people","reason","statement","day"))
-
 for r in rows:
     r["level"]={"ring":"public","below":"hide"}
     if r["speaker"]!="player":
@@ -3129,6 +2885,61 @@ for r in rows:
         r["level"]={"ring":"personal","below":"risk","cost":3,"grievance":True,"reason":"death"}
     elif r["family"]=="village_question" and r["situation"]=="commons_leave":
         r["level"]={"ring":"public","standing":"oath-sworn","below":"risk","cost":2}
+
+# Catalogue entries supply the default account and Tell rows for every event.
+# The runtime expands the event icon into its topic and all participant faces.
+EVENT_TYPES = json.loads((Path(__file__).resolve().parents[2] / "src/data/event_types.json").read_text())
+for etype in EVENT_TYPES:
+    for speaker, family, source, wording in [
+        ("npc", "event_news", "npc_known_unheard_event_for_question", "account_sentence"),
+        ("player", "gossip_tell", "player_known_permitted_event", "tell_sentence"),
+    ]:
+        situation(family, "catalogue_"+etype, speaker,
+            base_all=[PHASE_REPLY if speaker=="npc" else PHASE_PLAYER,
+                P("event_type_is",event="event",type=etype),
+                P("can_disclose_event",speaker=speaker,viewer="player" if speaker=="npc" else "npc",event="event")],
+            bindings={"event":{"source":source}}, icons=[{"kind":"event","ref":"event"}],
+            facts=[F("event",["id","type","people","day"],"past")],
+            use_key="tell_event:{"+speaker+".id}:{"+("player" if speaker=="npc" else "npc")+".id}:{event.id}:{context.encounter_number}",
+            effects=[{"op":"set_reply_purpose","purpose":"gossip_reaction" if speaker=="player" else "open"}],
+            disc_people=["event.people"],disc_events=["event"],
+            variants=["{event."+wording+"} {event.when}."])
+        rows[-1]["level"]={"ring":"public","below":"hide"}
+
+# Explicit mood authoring. Refusals remain optional to answer.
+for r in rows:
+    evasive_player=r["speaker"]=="player" and r["family"]=="direct_answer" and r["situation"] in ["fallback_answer_"+x for x in ("origin","news","family","work","subject")]
+    evasive_npc=r["speaker"]=="npc" and r["situation"] in ("refuse_trust","refuse_children","household_refuse")
+    if evasive_player or evasive_npc:
+        r["evasive"]=True
+        r["icons"]=[{"kind":"mood","key":"guarded"}]
+        if evasive_player:
+            for effect in r["effects"]:
+                if effect["op"]=="set_reply_purpose": effect["purpose"]="guarded_acknowledged"
+
+situation("guarded_acknowledged","commiserate","npc",base_all=[PHASE_REPLY],
+    icons=[{"kind":"mood","key":"guarded"}],use_key="guarded_ack:{context.encounter_number}",
+    variants=["I hear you. Some things are hard to discuss.","Aye. We all have things we would rather leave alone."])
+rows[-1]["level"]={"ring":"public","below":"hide"}
+rows[-2]["level"]={"ring":"public","below":"hide"}
+
+for key, text in [("guarded","I hear you. Some things are hard to discuss."),
+                  ("grumbling","I hear you. It wears me down too."),
+                  ("cheerful","It is good to share a cheerful moment."),
+                  ("joking","Ha! A laugh does us good.")]:
+    situation("mood_reply", key, "player",base_all=[PHASE_PLAYER,P("mood_in_row",key=key)],
+        icons=[{"kind":"mood","key":key}],use_key="mood_reply:"+key+":{context.encounter_number}",
+        effects=[{"op":"set_reply_purpose","purpose":"answer_acknowledged"}],variants=[text])
+    rows[-1]["level"]={"ring":"public","below":"hide"}
+for key,text,answer in [("grumbling","Some days feel like one long chore.","Aye. The day can drag."),
+                         ("cheerful","It is good to have company today.","A bit of company cheers the day."),
+                         ("joking","Even the hens look busy. They want a holiday.","Ha! They can have mine.")]:
+    for speaker in ("player","npc"):
+        situation("mood_talk" if speaker=="player" else "mood_answer",key,speaker,
+            base_all=[PHASE_PLAYER] if speaker=="player" else [PHASE_REPLY,P("question_is",family="mood_talk",situation=key)],
+            icons=[{"kind":"mood","key":key}],use_key="mood_"+speaker+":"+key+":{context.encounter_number}",
+            effects=[{"op":"set_reply_purpose","purpose":"mood_answer" if speaker=="player" else "open"}],variants=[text if speaker=="player" else answer])
+        rows[-1]["level"]={"ring":"public","below":"hide"}
 
 # ---------- weights ----------
 groups = {}

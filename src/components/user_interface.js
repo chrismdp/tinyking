@@ -1,4 +1,5 @@
 import { LoadingScreen } from "./loading_screen";
+import { SeasonTurn, FestivalNotice } from "./season_turn";
 import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
 import { TravelOverview } from "./travel";
@@ -37,10 +38,12 @@ function OpeningGuidance() {
 export function UserInterface() {
   const state = React.useContext(GameState);
   const show = state.ui && state.ui.show || {};
-  if (state.generating || state.transition) return <div id="ui"><LoadingScreen progress={state.ui?.progress}/></div>;
+  if (state.generating || state.transition) return <div id="ui"><LoadingScreen progress={state.ui?.progress || (state.transition?.label ? { label: state.transition.label } : undefined)}/></div>;
   if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
     <div id="ui">
+      <SeasonTurn/>
+      {!state.seasonTurn && <FestivalNotice/>}
       {state.chat?.active && <ChatPanel/>}
       {show.clock && <Clock/>}
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}

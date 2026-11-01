@@ -14,8 +14,9 @@ it("leaves an unfinished plot for a real meal without transit wear, and cancella
   const progress = task.progress;
   expect(progress).toBeGreaterThan(0);
   expect(progress).toBeLessThan(1);
-  state.ecs.personable[player].hunger = 1.2;
-  newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 2, growth: 0 } }]);
+  state.ecs.personable[player].energy = 20;
+  const [food]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:player}}]);
+  enqueueTask(state,{key:"eat_food"},food,{foodType:"forage"});
   step(0.5);
   expect(Hex().fromPoint(state.ecs.spatial[player]).equals(Hex().fromPoint(state.ecs.spatial[tiles[0]]))).toBe(false);
   expect(task.progress).toBe(progress);

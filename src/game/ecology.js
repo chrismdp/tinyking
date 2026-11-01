@@ -4,7 +4,7 @@ import { treeAllowed } from "game/tree_clearance";
 import { Hex, Grid, HEX_SIZE, hexAtPoint } from "game/hex";
 import { newEntities } from "game/entities";
 import { biomeOf, homeOf } from "game/overworld";
-import { HOUR } from "game/time";
+import { HOUR, DAYS_IN_SEASON } from "game/time";
 import { hashUnit } from "game/math";
 
 // Forage densities are plants per land tile. Seeding is saplings per mature tree
@@ -21,9 +21,15 @@ export const BIOME_ECOLOGY = {
   desert: { seeding: 0.003, forageDensity: 0.12, forageDays: 6, berries: 0 },
 };
 
+// Keep replacement and woodland growth rates stable per season.
+for(const profile of Object.values(BIOME_ECOLOGY)) {
+  profile.forageDays *= DAYS_IN_SEASON / 3;
+  profile.seeding *= 3 / DAYS_IN_SEASON;
+}
+
 export const TREE_SEED_REACH = HEX_SIZE * 1.5;
-const YOUNG_AFTER = 3;
-const MATURE_AFTER = 6;
+const YOUNG_AFTER = DAYS_IN_SEASON;
+const MATURE_AFTER = 2 * DAYS_IN_SEASON;
 
 function tileBiome(state, tile) {
   if (tile.biome) return tile.biome;

@@ -113,3 +113,31 @@ it("keeps other queued local work when the remaining journey is stopped", () => 
   stopJourney(s);
   expect(s.ecs.manager[s.ui.playerId].jobs).toEqual([local]);
 });
+it('makes camp at core-loop dusk and never sends a traveller back to their home fire',()=>{
+ const {s,ids}=community();const a=ids[0];s.ecs.personable[a].energy=50;
+ planJourney(s,'6,5');s.days=.75;
+ require('game/energy').playerDay(s);updateJourney(s);
+ expect(s.ecs.planner[a].world.duskHome).toBeUndefined();
+ expect(s.travel.journey.campId).toBeTruthy();
+ expect(s.ecs.planner[a].world.journeyCamp).toBe(true);
+});
+it('sleeps on the journey bedroll rather than a distant household bed',()=>{
+ const {s,ids}=community();const a=ids[0],p=s.ecs.personable[a];
+ p.energy=20;planJourney(s,'6,5');s.days=.75;updateJourney(s);
+ const w=s.ecs.planner[a].world;
+ s.ecs.sleepable.homeBed={capacity:2,occupiers:[]};w.restBed='homeBed';
+ require('game/tasks').sleep(s,a,w,1/24,true);
+ expect(w.places.sleep).toBe(s.travel.journey.campId);
+ expect(p.energy).toBe(28);
+});
+it('finishes forced rest after a full night at the journey camp before packing',()=>{
+ const {s,ids}=community();const a=ids[0],person=s.ecs.personable[a];
+ person.energy=0;person.collapsed=true;planJourney(s,'6,5');s.days=.75;updateJourney(s);
+ const w=s.ecs.planner[a].world;w.forcedRest=true;
+ for(let hour=0;hour<12;hour++){s.days=.75+hour/24;require('game/tasks').sleep(s,a,w,1/24,hour==0);}
+ expect(w.forcedRest).toBe(true);
+ s.days=1.25;updateJourney(s);
+ expect(w.forcedRest).toBeUndefined();expect(person.collapsed).toBeUndefined();
+ expect(person.energy).toBe(55);expect(s.travel.journey.campId).toBeUndefined();
+ expect(s.ecs.manager[a].jobs[0].job.key).toBe('travel');
+});

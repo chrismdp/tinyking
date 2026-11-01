@@ -88,18 +88,19 @@ it("queues the first chop, hauls both logs, then completes a real twenty-minute 
   expect(s.ecs.walkable[site].trackReserved).toBeFalsy();
 });
 
-it.each(["cut_tree_down", "forage"])("%s approaches, leaves for a native meal, resumes and delivers without reserving its work tile", key => {
+it.each(["cut_tree_down", "forage"])("%s approaches, leaves for a chosen meal, resumes and delivers without reserving its work tile", key => {
   const { s, player, site, camp, tree, plant, planner, until, cleanSite } = clearing();
   const job = enqueueTask(s, { key }, key == "forage" ? plant : tree);
   until(() => job.progress > 0.1 && job.progress < 1);
   const progress = job.progress;
-  s.ecs.personable[player].hunger = 1.2;
-  until(() => !job.assignedId && planner.task?.[0] == "eat");
+  s.ecs.personable[player].energy = 20;
+  enqueueTask(s,{key:"eat_food"},camp,{foodType:"grain"});
+  until(() => !job.assignedId && planner.task?.[0] == "eat_food");
   expect(job.progress).toBe(progress);
   expect(Hex().fromPoint(s.ecs.spatial[player]).equals(Hex().fromPoint(s.ecs.spatial[site]))).toBe(false);
   cleanSite();
   until(() => job.assignedId == player && job.progress > progress);
-  expect(s.ecs.personable[player].hunger).toBeLessThan(0.9);
+  expect(s.ecs.personable[player].energy).toBeGreaterThan(20);
   until(() => !s.ecs.manager[player].jobs.length);
   expect(s.ecs.container[camp].amounts.grain).toBe(3);
   expect(s.ecs.container[camp].amounts[key == "forage" ? "forage" : "wood"]).toBe(key == "forage" ? 1 : 2);
@@ -107,13 +108,14 @@ it.each(["cut_tree_down", "forage"])("%s approaches, leaves for a native meal, r
   cleanSite();
 });
 
-it("keeps the deleted tree's work endpoint free during a native meal interruption of hauling", () => {
+it("keeps the deleted tree's work endpoint free during a chosen meal interruption of hauling", () => {
   const { s, player, tree, camp, planner, until, cleanSite } = clearing();
   const job = enqueueTask(s, { key: "cut_tree_down" }, tree);
   until(() => job.gatheredDone && !s.ecs.holder[player].held.length);
   expect(s.ecs.spatial[tree]).toBeUndefined();
-  s.ecs.personable[player].hunger = 1.2;
-  until(() => !job.assignedId && planner.task?.[0] == "eat");
+  s.ecs.personable[player].energy = 20;
+  enqueueTask(s,{key:"eat_food"},camp,{foodType:"grain"});
+  until(() => !job.assignedId && planner.task?.[0] == "eat_food");
   cleanSite();
   until(() => !s.ecs.manager[player].jobs.length);
   expect(s.ecs.container[camp].amounts.wood).toBe(2);
@@ -141,7 +143,8 @@ it("records actual through traffic on a resource job's tile while care interrupt
   Object.assign(s.ecs.spatial[camp], s.ecs.spatial[tiles[4]]);
   enqueueTask(s, { key: "cut_tree_down" }, tree);
   until(() => Hex().fromPoint(s.ecs.spatial[player]).equals(Hex().fromPoint(s.ecs.spatial[tiles[1]])));
-  s.ecs.personable[player].hunger = 1.2;
+  s.ecs.personable[player].energy = 20;
+  enqueueTask(s,{key:"eat_food"},camp,{foodType:"grain"});
   until(() => s.ecs.container[camp].amounts.grain == 3);
   expect(s.ecs.good[tree].amount).toBe(2);
   expect(s.ecs.walkable[site].trackReserved).toBe(true);

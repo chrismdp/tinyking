@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community } from "./support/travel";
 import { generateWorld, homeOf } from "game/overworld";
 import { Grid, Hex } from "game/hex";
@@ -25,7 +26,7 @@ it("resolves ungenerated NPC visits without generating terrain, and later return
     departNpc(s, npc, { to: "6,5", side: 0 });
     const needs = { hunger: s.travel.people[npc].personable.hunger, tiredness: s.travel.people[npc].personable.tiredness };
     for (let season = 1; season <= 5; season++) {
-      s.days += 3; advanceSeason(s, season); await advanceWorldClock(s);
+      s.days += DAYS_IN_SEASON; advanceSeason(s, season); await advanceWorldClock(s);
       if (season == 1) expect(s.travel.transit.find(t => t.bundle.id == npc).due).toBeGreaterThan(s.days);
     }
     expect(generate).not.toHaveBeenCalled();
@@ -43,7 +44,7 @@ it("materialises a waiting reference visitor once the player opens that reach, w
   s.ecs.kinship[s.ui.playerId].spouse = spouse; s.ecs.kinship[spouse].spouse = s.ui.playerId;
   const item = createPossession(s, npc, "Visitor ring");
   departNpc(s, npc, { to: "6,5", side: 0 });
-  s.days += 3; advanceSeason(s, 1); await advanceWorldClock(s);
+  s.days += DAYS_IN_SEASON; advanceSeason(s, 1); await advanceWorldClock(s);
   expect(s.travel.maps["6,5"]).toBeUndefined();
   expect(s.travel.transit.find(t => t.bundle.id == npc).referenceVisit).toBe(true);
   // A generated destination fixture stands for the player's first detailed map.
@@ -68,7 +69,7 @@ it("preserves the real home pass when a returning reference visitor becomes the 
   s.ecs.kinship[player].spouse = spouse; s.ecs.kinship[spouse].spouse = player;
   Object.assign(s.ecs.spatial[npc], exitPoint(s, entry.tileIds[0]));
   departNpc(s, npc, { to: worldKey(neighbours(s.world.home)[side]), side });
-  for (let season = 1; season <= 4; season++) { s.days += 3; await advanceWorldClock(s); }
+  for (let season = 1; season <= 4; season++) { s.days += DAYS_IN_SEASON; await advanceWorldClock(s); }
   expect(s.travel.transit.find(t => t.bundle.id == npc).returning).toBe(true);
   expect(await returnSuccessorFromRoad(s, npc)).toBe("5,5");
   expect(s.travel.maps["5,5"].residents[npc]).toBe(true);

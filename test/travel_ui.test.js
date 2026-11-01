@@ -28,7 +28,7 @@ it("offers an explicit named Travel action, one season, needs and unfinished-wor
   expect(html).toContain("Reach ");
   expect(html).toContain("grassland");
   expect(html).toContain("one season");
-  expect(html).toContain("Hunger and tiredness");
+  expect(html).toContain("Walking uses a little energy");
   expect(html).toContain("cancels unfinished local tasks and favours");
   expect(html).toContain(">Travel</button>");
   expect(html).toContain(">Stay here</button>");

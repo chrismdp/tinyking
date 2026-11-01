@@ -5,7 +5,7 @@ import { eat, perform_subtask_in_slot, walk_to, chop_tree, pick_up_from_stockpil
 import { give } from "game/holder";
 import { TRIANGLES, Hex, Grid, ALL_SIDES } from "game/map";
 import { addBidirectionalLink } from "game/pathfinding";
-import { HOUR } from "game/time";
+import { HOUR, DAYS_IN_SEASON } from "game/time";
 import { anyControlledAlive } from "game/playable";
 import { Task, solve } from "game/htn";
 
@@ -110,26 +110,7 @@ it.each([[0.9, 1], [0.91, 0.8], [2.5, 0.8], [2.51, 0.6]])("hunger %s changes wal
   expect(moved[1] / moved[0]).toBeCloseTo(factor, 10);
 });
 
-it("starvation kills only beyond six days and releases the dead villager's work", () => {
-  const { state, villager, tiles } = hungryVillage();
-  state.ecs.personable[villager].hunger = 6 - HOUR;
-  const planner = state.ecs.planner[villager];
-  planner.task = ["wait_for", 10];
-  planner.plan = [];
-  planner.world.wait_until = 100;
-  state.ecs.farmable = { [tiles[1]]: { claimerId: villager, slots: [] } };
-  state.ecs.manager[villager].jobs.push({ job: { key: "move_to_here" }, targetId: tiles[2], assignedId: villager });
-  const simulation = createSimulation(state);
-  simulation.step(60);
-  expect(state.ecs.personable[villager].dead).toBeFalsy();
-  expect(state.ecs.personable[villager].starving).toBe(true);
-  simulation.step(60);
-  expect(state.ecs.personable[villager].dead).toBe(true);
-  expect(state.redraws).toContain(villager);
-  expect(state.ecs.farmable[tiles[1]].claimerId).toBeNull();
-  expect(state.ecs.manager[villager].jobs[0].assignedId).toBeNull();
-  expect(planner.task).toBeNull();
-});
+
 
 it("dead people never plan, move, eat, or accumulate needs", () => {
   const { state, villager } = hungryVillage();
@@ -142,15 +123,7 @@ it("dead people never plan, move, eat, or accumulate needs", () => {
   expect(state.ecs.planner[villager].task).toBeFalsy();
 });
 
-it("eating clears the starving flag immediately", () => {
-  const { state, villager } = hungryVillage();
-  state.ecs.personable[villager].hunger = 3;
-  state.ecs.personable[villager].starving = true;
-  const [meal] = newEntities(state, [{ spatial: { ...state.ecs.spatial[villager] }, good: { type: "grain", amount: 1 }, haulable: {} }]);
-  give(state.ecs, meal, villager);
-  eat(state, villager, {}, HOUR, true, "grain");
-  expect(state.ecs.personable[villager].starving).toBe(false);
-});
+
 
 it("a hungry villager walks to wild food, forages it, and eats", () => {
   const { state, villager, tiles } = hungryVillage();
@@ -200,27 +173,29 @@ it("winter pauses berries and crops until their growing season", () => {
   for (const h of Grid.hexagon({center:Hex(1,0),radius:1})) for(const [side,n] of Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).entries()) {
     if(tileAt(h) && tileAt(n)) addBidirectionalLink(state.ecs,tileAt(h),side,tileAt(n));
   }
-  state.days = 9;
-  state.ecs.planner[villager].world.days = 9;
+  // A full seven-day winter must not also test a week without any bed.
+  newEntities(state,[{spatial:{...state.ecs.spatial[villager]},sleepable:{capacity:1,occupiers:[]},controllable:{controllerId:villager}}]);
+  state.days = 3*DAYS_IN_SEASON;
+  state.ecs.planner[villager].world.days = 3*DAYS_IN_SEASON;
   const [field, bush] = newEntities(state, [{
     spatial: { ...state.ecs.spatial[tiles[1]], immovable: true },
-    farmable: { claimerId: "other", slots: [{ content: "grain", state: "sown", updated: 0, growth: 4 }] },
+    farmable: { claimerId: "other", slots: [{ content: "grain", state: "sown", updated: 0, growth: 10 }] },
     controllable: { controllerId: villager }
   }, {
     spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
     forageable: { kind: "berries", biome: "grassland", amount: 1, growth: 0 }
   }]);
-  advance(state, 2.9);
+  advance(state, DAYS_IN_SEASON - .1);
   expect(state.ecs.farmable[field].slots[0].state).toBe("sown");
-  expect(state.ecs.farmable[field].slots[0].growth).toBe(4);
+  expect(state.ecs.farmable[field].slots[0].growth).toBe(10);
   expect(state.ecs.forageable[bush].amount).toBe(1);
   expect(state.ecs.personable[villager].hunger).toBeGreaterThan(4);
-  expect(state.ecs.personable[villager].starving).toBe(true);
+  expect(state.ecs.personable[villager].starving).toBeUndefined();
   expect(state.ecs.personable[villager].dead).toBeFalsy();
   advance(state, 0.8);
   expect(state.ecs.farmable[field].slots[0].state).toBe("harvestable");
   expect(state.ecs.personable[villager].hunger).toBeLessThan(0.9);
-  expect(state.ecs.personable[villager].starving).toBe(false);
+  expect(state.ecs.personable[villager].starving).toBeUndefined();
 });
 
 it("a harvested slot cannot produce a second crop without being sown again", () => {
@@ -245,7 +220,7 @@ it("same-seed planners replay identically without global randomness", () => {
   }
 });
 
-it("starvation death can be checked even when the player owns buildings", () => {
+it("a dead actor can be checked even when the player owns buildings", () => {
   const { state, villager, tiles } = hungryVillage();
   state.ecs.personable[villager].dead = true;
   state.ecs.controllable[tiles[0]] = { id: tiles[0], controllerId: villager };

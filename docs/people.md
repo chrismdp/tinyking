@@ -66,7 +66,7 @@ Meeting again preserves the existing bond. Meeting oneself does nothing.
 Positive help selects the ring allowed by goodwill and disposition. Harm never promotes a displaced bond.
 Negative goodwill puts the bond at public.
 
-`drift(state, hours)` moves each bond's goodwill 0.125 per hour back towards `base`, the goodwill it started with, and stops there. Family and neighbour bonds therefore hold their starting ring, and only goodwill earned or lost since then fades. Bonds made by meeting someone start at `base` 0, or at Social for someone who loves you at first sight.
+`drift(state, hours)` moves each bond's goodwill `0.025 * 3 / 7` per hour back towards `base`, the goodwill it started with, and stops there. Family and neighbour bonds therefore hold their starting ring, and only goodwill earned or lost since then fades. Bonds made by meeting someone start at `base` 0, or at Social for someone who loves you at first sight.
 A bond moves out when its goodwill falls below its ring's requirement.
 Drift never promotes someone displaced from a full ring.
 The simulation calls drift once for every crossed game hour, including long steps. Paused time does not decay relationships.
@@ -96,12 +96,12 @@ The [phase-one design](design.md#marriage-ownership-and-succession) describes de
 
 `playable.arrivedAt` records the real arrival handover. Only an arrived playable actor participates in seasonal ageing and births. NPC people always use their shared lifecycle. This keeps pre-arrival strangers and legacy NPC-only placeholder players outside that lifecycle without altering NPC matchmaking. A controlled NPC heir starts playable participation immediately.
 
-## Hunger, tiredness and speed
+## Energy, meals and speed
 
-`personable.tiredness` rises by one per game day. The planner requests sleep above 0.9. Movement and work keep their normal speed through 1.2, then fall to 50% above 1.2 and 25% above 1.8. These strict thresholds allow the first day of conversations and building before sleep. A missed night causes slower movement and work the next day.
+The player uses the [daily energy budget](survival.md). Work spends energy.
+Food and sleep restore it. `careSpeed` uses energy for the player and the existing
+meal and tiredness factors for villagers. Task estimates use the same speed.
 
-`careSpeed(person)` multiplies the hunger and tiredness factors. Walking, timed work, construction, trade fuel use, the final steps off-map and task estimates use this shared factor. Hunger keeps its existing thresholds and factors. A hungry, tired person therefore feels both penalties.
-
-Sleep reduces tiredness and restores speed as it crosses the thresholds. The arrival camp bedroll, accessible beds and completed shelters all permit the existing sleep task. The bedroll has no recovery penalty. A completed shelter disables its owner's camp sleeping place. With no accessible sleeping place, the planner cannot find a bed and tiredness keeps rising.
-
-The task panel shows “Tired: working slowly” beside hunger and offers the existing Rest order during work or idle time. Offscreen residents keep the shared needs clock. Their existing home sleep restores tiredness when the home has sleeping capacity. Without it, exhaustion persists into live play. Seasonal summaries do not simulate walking speed or hunger-based work rates, so this change adds no separate summary work rule.
+Villagers retain daily meals and sleep. Their larders supply real food and create
+requests when reserves fall. They cannot starve to death. Old-age deaths remain.
+The player chooses meals and rest. Chatting does not spend energy.

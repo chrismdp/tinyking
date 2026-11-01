@@ -28,7 +28,7 @@ it("has higher mean pressure in cold biomes, seasonal land pressure and stronger
   const land = { ...hex, temperature: "temperate" };
   // Same weather-system position in the same seed: seasonal contribution is isolated by ocean.
   const seasonal = days => pressureAt(land, 13, days) - pressureAt({ ...land, ocean: true }, 13, days);
-  expect(seasonal(9.5) - seasonal(3.5)).toBeGreaterThan(0);
+  expect(seasonal(21.5) - seasonal(7.5)).toBeGreaterThan(0);
   const spread = a => Math.max(...a) - Math.min(...a);
   expect(spread(values("temperate", true))).toBeGreaterThan(spread(values("temperate")));
 });
@@ -131,16 +131,16 @@ it("holds weather for hours with an average run of at least four hours", () => {
 });
 
 it("builds snow on land, melts fastest when warm and preserves cold high ground in winter", () => {
-  const snowy = snowDepthAfter(0, { temperature: "cold", terrain: "grassland" }, "snow", 9.5, 6);
+  const snowy = snowDepthAfter(0, { temperature: "cold", terrain: "grassland" }, "snow", 21.5, 6);
   expect(snowy).toBeGreaterThan(0.3);
-  const hot = snowDepthAfter(snowy, { temperature: "hot", terrain: "grassland" }, "clear", 3.5, 4);
-  const cold = snowDepthAfter(snowy, { temperature: "cold", terrain: "grassland" }, "clear", 3.5, 4);
+  const hot = snowDepthAfter(snowy, { temperature: "hot", terrain: "grassland" }, "clear", 7.5, 4);
+  const cold = snowDepthAfter(snowy, { temperature: "cold", terrain: "grassland" }, "clear", 7.5, 4);
   expect(hot).toBe(0);
   expect(cold).toBeGreaterThan(hot);
-  expect(snowDepthAfter(0, { temperature: "cold", terrain: "deep water" }, "snow", 9.5, 12)).toBe(0);
+  expect(snowDepthAfter(0, { temperature: "cold", terrain: "deep water" }, "snow", 21.5, 12)).toBe(0);
   let depth = snowy;
   for (let hour = 0; hour < 72; hour++) {
-    depth = snowDepthAfter(depth, { temperature: "cold", terrain: "mountain" }, "clear", 9 + hour * HOUR, 1);
+    depth = snowDepthAfter(depth, { temperature: "cold", terrain: "mountain" }, "clear", 21 + hour * HOUR, 1);
   }
   expect(depth).toBeGreaterThanOrEqual(0.25);
 });
@@ -158,7 +158,7 @@ it("stores one current weather for every world hex and independent depths for ev
 
 it("also accumulates snow during a wet storm in a cold world hex", () => {
   const world = region("steppe", "cold", "wet");
-  const state = { world, days: 9.5, map: { seed: 13 }, weatherOverride: "storm",
+  const state = { world, days: 21.5, map: { seed: 13 }, weatherOverride: "storm",
     ecs: { mappable: { 1: { temperature: "cold", terrain: "mountain" } } } };
   updateWeather(state, 2);
   expect(state.weather["2,2"].type).toBe("storm");

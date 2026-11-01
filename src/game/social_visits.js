@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { LOCOMOTION_RATIO } from "game/locomotion";
 import { conversationPositions } from "game/conversation";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
@@ -21,7 +22,7 @@ export function returnFromVisit(s, id) {
 }
 
 export function socialHour(s) {
-  const season = Math.floor(s.days / 3);
+  const season = Math.floor(s.days / DAYS_IN_SEASON);
   s.social ||= { lastSeason: season, courtships: {}, avoidance: {} };
   if (s.social.lastSeason == null) s.social.lastSeason = season;
   while (s.social.lastSeason < season) advanceSeason(s, s.social.lastSeason + 1);

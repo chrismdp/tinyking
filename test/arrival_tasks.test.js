@@ -74,9 +74,12 @@ it("delivers logs before work, then upgrades lean-to, hut and house in the same 
       spatial: { ...state.ecs.spatial[camp] }, good: { type: "wood", amount: 1 }, haulable: {},
       controllable: { controllerId: player }
     })));
-    // No meal pressure during this isolated construction check.
-    for (let i = 0; i < 48 && state.ecs.construction[site]; i++) {
-      state.ecs.personable[player].hunger = 0;
+    // Isolate construction effort from the daily energy budget. Dusk still stops work.
+    // Darkness removes half the available work hours. Keep the former daylight
+    // allowance across two calendar days without changing the work assertions.
+    for (let i = 0; i < 96 && state.ecs.construction[site]; i++) {
+      state.ecs.personable[player].energy = 100;
+      state.ecs.personable[player].tiredness = 0;
       step(0.5);
     }
     expect(state.ecs.shelter[site].stage).toBe(stage);
@@ -90,31 +93,9 @@ it("delivers logs before work, then upgrades lean-to, hut and house in the same 
   expect(world.places.sleep).toBe(site);
 });
 
-it("a player follows explicit food and rest orders and survives ten days from an empty camp", () => {
-  const { state, player, tiles, step } = arrival();
-  newEntities(state, Array.from({ length: 12 }, (_, i) => ({
-    spatial: { ...state.ecs.spatial[tiles[1 + i % 4]], immovable: true },
-    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
-  })));
-  // Idle need trips now require an explicit order. Keep the original ten-day
-  // survival and real-forage assertions under the player's new care controls.
-  for (let hour = 0; hour < 24 * 10; hour++) {
-    const person = state.ecs.personable[player], jobs = state.ecs.manager[player].jobs;
-    if (person.hunger > .9 && !jobs.some(j => j.job.key == "find_food")) enqueueTask(state, { key: "find_food" }, player);
-    if (person.tiredness > .9 && state.days % 1 * 24 >= 20 && !jobs.some(j => j.job.key == "rest")) enqueueTask(state, { key: "rest" }, player);
-    step(1);
-  }
-  expect(state.ecs.personable[player].dead).toBeFalsy();
-  expect(state.ecs.personable[player].hunger).toBeLessThan(2.5);
-  expect(Object.values(state.ecs.forageable).some(p => p.amount == 0)).toBe(true);
-});
 
-it("a player who never eats reaches Starving", () => {
-  const { state, player, step } = arrival();
-  step(24 * 3);
-  expect(state.ecs.personable[player].starving).toBe(true);
-  expect(state.ecs.personable[player].dead).toBeFalsy();
-});
+
+
 
 it("chops and forages through the queue, carries both to camp, and reports work progress", () => {
   const { state, player, camp, tiles, step } = arrival();
@@ -145,21 +126,21 @@ it("resumes a chopped tree's delivery after reordering and keeps meals intact wh
   expect(state.ecs.manager[player].jobs).toEqual([]);
   expect(chop.progress).toBe(1);
   const planner = state.ecs.planner[player];
-  planner.task = ["eat", "forage"];
+  planner.task = ["eat_food", "forage"];
   planner.plan = [];
   planner.world.mealRemaining = 0.02;
   enqueueTask(state, { key: "move_to_here" }, tiles[1]);
-  expect(planner.task).toEqual(["eat", "forage"]);
+  expect(planner.task).toEqual(["eat_food", "forage"]);
 });
 
 it("cancelling queued work leaves a meal in progress intact", () => {
   const { state, player, tiles } = arrival();
   const job = enqueueTask(state, { key: "move_to_here" }, tiles[1]);
   const planner = state.ecs.planner[player];
-  planner.task = ["eat", "forage"];
+  planner.task = ["eat_food", "forage"];
   planner.world.mealRemaining = 0.02;
   cancelTask(state, job.id);
-  expect(planner.task).toEqual(["eat", "forage"]);
+  expect(planner.task).toEqual(["eat_food", "forage"]);
 });
 
 it("the bedroll is used for sleep before building, then gathered food is stored and eaten from the lean-to", () => {
@@ -167,6 +148,7 @@ it("the bedroll is used for sleep before building, then gathered food is stored 
   const world = state.ecs.planner[player].world;
   state.days = world.days = 0.9;
   state.ecs.personable[player].tiredness = 1.1;
+  enqueueTask(state,{key:"rest"},player);
   step(1);
   expect(world.places.sleep).toBe(camp);
   state.days = world.days = 1.375;
@@ -174,6 +156,7 @@ it("the bedroll is used for sleep before building, then gathered food is stored 
   world.feeling.tired = false;
   state.ecs.planner[player].task = null;
   state.ecs.planner[player].plan = null;
+  for(const job of [...state.ecs.manager[player].jobs])cancelTask(state,job.id);
   const site = placeShelter(state, tiles[1]);
   newEntities(state, Array.from({ length: 4 }, () => ({ spatial: { ...state.ecs.spatial[camp] },
     good: { type: "wood", amount: 1 }, haulable: {}, controllable: { controllerId: player } })));
@@ -185,10 +168,11 @@ it("the bedroll is used for sleep before building, then gathered food is stored 
   enqueueTask(state, { key: "forage" }, bush);
   step(3);
   expect(state.ecs.container[site].amounts.forage).toBe(1);
-  state.ecs.personable[player].hunger = 1.3;
+  state.ecs.personable[player].energy = 20;
+  enqueueTask(state,{key:"eat_food"},site,{foodType:"forage"});
   step(5);
   expect(state.ecs.container[site].amounts.forage).toBe(0);
-  expect(state.ecs.personable[player].hunger).toBeLessThan(0.5);
+  expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
 });
 
 it("requires the full work time after delivery and combines effort from two workers", () => {
@@ -441,7 +425,7 @@ it("wakes waiting work without restarting a walk to sleep", () => {
   state.ecs.spatial[player] = { ...state.ecs.spatial[tiles[4]] };
   planner.world.places.sleep = camp;
   state.days = planner.world.days = 0.9;
-  planner.world.feeling.tired = true;
+  const rest=enqueueTask(state,{key:"rest"},player);rest.assignedId=player;planner.world.currentJob="rest";
   planner.task = ["walk_to", "sleep"];
   planner.plan = [["sleep"]];
   require("game/tasks").walk_to(state, player, planner.world, 0, true, "sleep");

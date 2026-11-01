@@ -73,21 +73,22 @@ it("learns gossip and family names only after completing a queued visit", () => 
   expect(state.ecs.relationships[player].known[parent]).toBeUndefined();
 });
 
-it("feeds the player automatically, displays an interruption and resumes partially finished queued work", () => {
+it("feeds the player on request, displays an interruption and resumes partially finished queued work", () => {
   const { state, player, tiles, step } = peopleWorld();
   const task = enqueueTask(state, { key: "create_field" }, tiles[0]);
   enqueueTask(state, { key: "move_to_here" }, tiles[5]);
   step(0.05);
   expect(task.progress).toBeGreaterThan(0);
-  state.ecs.personable[player].hunger = 1.2;
-  newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 2, growth: 0 } }]);
+  state.ecs.personable[player].energy = 20;
+  const [meal]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:player}}]);
+  enqueueTask(state,{key:"eat_food"},meal,{foodType:"forage"});
   step(0.1);
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
-  expect(html).toContain("Looking for a meal");
+  expect(html).toContain("Eat");
   expect(html).not.toContain("Stopped to eat");
-  expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["create_field", "move_to_here"]);
+  expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["eat_food", "create_field", "move_to_here"]);
   step(4);
-  expect(state.ecs.personable[player].hunger).toBeLessThan(0.5);
+  expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
   expect(task.progress).toBe(1);
   expect(state.ecs.manager[player].jobs).toEqual([]);
 });
@@ -132,11 +133,12 @@ it("keeps a gift in hand through a meal interruption and resumes its delivery", 
   const task = enqueueTask(state, { key: "give_gift" }, person, { gift: { sourceId: item, type: "wood" } });
   step(0.02);
   expect(task.giftItem).toBe(item);
-  state.ecs.personable[player].hunger = 1.2;
+  state.ecs.personable[player].energy = 20;
+  enqueueTask(state,{key:"eat_food"},food,{foodType:"forage"});
   step(3);
   expect(task.progress).toBe(1);
   expect(state.ecs.controllable[item].controllerId).toBe(person);
-  expect(state.ecs.personable[player].hunger).toBeLessThan(0.5);
+  expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
 });
 
 it("delivers an already held gift when its old ground position is unreachable", () => {
@@ -229,15 +231,7 @@ it("knocks for an indoor target and opens at the doorstep without premature cont
   expect(s.chat.active.npcId).toBe(n);expect(s.ecs.interior[n]).toBeUndefined();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
-it("bounds a chat approach behind a deferred food order during player care",()=>{
-  const {state:s,player:p,person:n}=peopleWorld();
-  s.ecs.personable[p].hunger=1.1;
-  s.ecs.manager[p].jobs.push({job:{key:"find_food"},failed:true,waiting:"No meal. Forage."});
-  const order=enqueueTask(s,{key:"chat"},n),{expireChatApproach}=require("game/manager");
-  expireChatApproach(s);s.days+=1.1/24;expireChatApproach(s);
-  expect(order.waiting).toMatch(/You need a meal/);
-  expect(order.failed).toBe(true);
-});
+
 it("lets a player leave their own interior to approach an outdoor neighbour",()=>{
   const {state:s,player:p,person:n}=peopleWorld();
   s.ecs.interior ||= {};s.ecs.interior[p]={buildingId:"player-house"};

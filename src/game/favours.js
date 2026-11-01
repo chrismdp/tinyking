@@ -7,7 +7,8 @@ import { giftOptions, addGoodwill, meet } from "game/people";
 import { taskPlace } from "game/task_places";
 import { enqueueTask, playerOrderAllowed, canReachTask } from "game/manager";
 import { recordEvent } from "game/events";
-import { take } from "game/holder";
+import { take, give } from "game/holder";
+import { newEntities } from "game/entities";
 import { containerHasSpace } from "game/container";
 
 export const FUEL_TRADES = { baker: "oven", smith: "forge" };
@@ -200,6 +201,21 @@ export function finishFavour(s, r) {
   r.status = "completed"; r.completedDay = s.days;
   r.outcome = `Completed · +${r.goodwill} goodwill with the requester`;
   addGoodwill(s, s.ui.playerId, r.giverId, r.goodwill);
+  // A household with a surplus can thank a helper with one of its real meals.
+  // Never give food back for a food request or take from an already low larder.
+  const storeId=householdStore(s,r.householdId),store=s.ecs.container?.[storeId];
+  const type=FOODS.find(type=>store?.amounts[type]>=1);
+  if(r.kind=="wood" && type && foodReserve(s,r.householdId)>residents(s,r.householdId).length*2+1) {
+    store.amounts[type]--;
+    const [id]=newEntities(s,[{spatial:{...s.ecs.spatial[s.ui.playerId]},good:{type,amount:1},haulable:{},controllable:{controllerId:s.ui.playerId}}]);
+    give(s.ecs,id,s.ui.playerId);
+    r.thanksFood={type,amount:1,itemId:id,sourceId:storeId,day:s.days};
+    r.outcome+=" · Thank you: "+type;
+    const account=s.ecs.household?.[r.householdId]?.estateAccount;
+    if(account){account.given ||= {};account.given[type]=(account.given[type] || 0)+1;}
+    s.redraws.push(id);
+  }
+
   recordEvent(s, "favour", [s.ui.playerId, r.giverId], [], { favourId: r.id, kind: r.kind, quantity: r.progress, goodwill: r.goodwill, place: r.householdId });
   return true;
 }

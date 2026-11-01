@@ -167,19 +167,11 @@ async function finishChatPanel(page, person, { acceptFavourId, onOpen, maxLines=
 async function waitForChatReadiness(page,person,{requireSlots=true}={}) {
   await page.evaluate(()=>{window.chatCareAttempted={};window.chatCareOrders=[];window.tinyking.ui.actions.set_speed("fast");});
   await page.waitForFunction(({id,requireSlots})=>{
-    const s=window.tinyking,actor=s.ui.playerId,p=s.ecs.personable[actor],jobs=s.ecs.manager[actor].jobs;
-    const pending=jobs.some(j=>["find_food","rest"].includes(j.job.key));
-    for(const [amount,key] of [["hunger","find_food"],["tiredness","rest"]]) {
-      if(p[amount]<=.9)delete window.chatCareAttempted[key];
-      if(p[amount]>.9 && !pending && !window.chatCareAttempted[key]) {
-        window.chatCareAttempted[key]=true;
-        window.chatCareOrders.push({day:s.days,key});s.ui.actions.choose_job(actor,{key},actor);
-      }
-    }
+    const s=window.tinyking,actor=s.ui.playerId;
     const needs=id=>{const f=s.ecs.planner[id].world.feeling;return f?.hungry || f?.tired;};
     const button=[...document.querySelectorAll(".person-window button")].find(b=>b.textContent=="Chat");
     const moving=["walk_to","eat","sleep"].includes(s.ecs.planner[id].task?.[0]);
-    if(requireSlots && (!button || button.disabled) || s.ecs.manager[actor].jobs.some(j=>["find_food","rest"].includes(j.job.key)) || needs(actor) || needs(id) || moving || s.ecs.interior[id])return false;
+    if(requireSlots && (!button || button.disabled) || s.ecs.manager[actor].jobs.some(j=>["eat_food","rest"].includes(j.job.key)) || needs(id) || moving || s.ecs.interior[id])return false;
     s.ui.actions.set_speed("paused");return true;
   },{id:person,requireSlots},{timeout:180000});
   return page.evaluate(()=>window.chatCareOrders);
@@ -257,43 +249,25 @@ function timberSurvey(visited) {
     return {id,unseen,permitted:window.tinykingCustoms.resourcePermission(s,actor,id).permitted,distance:Math.hypot(e.spatial[id].x-e.spatial[actor].x,e.spatial[id].y-e.spatial[actor].y)};
   }).filter(f=>f.unseen && f.distance>10).sort((a,b)=>Number(b.permitted)-Number(a.permitted) || a.distance-b.distance || b.unseen-a.unseen || a.id.localeCompare(b.id));
   const frontier=frontiers.find(f=>knownPath(f.id));
-  return {day:s.days,trees,logs:trees.reduce((n,id)=>n+e.good[id].amount,0),commonWoodland:Object.values(commonWoodland),edge:frontier?.id,frontierPermitted:frontier?.permitted,known:known.size,position:{...e.spatial[actor]},needs:{hunger:e.personable[actor].hunger,tiredness:e.personable[actor].tiredness}};
+  return {day:s.days,trees,logs:trees.reduce((n,id)=>n+e.good[id].amount,0),commonWoodland:Object.values(commonWoodland),edge:frontier?.id,frontierPermitted:frontier?.permitted,known:known.size,position:{...e.spatial[actor]},needs:{energy:e.personable[actor].energy,tiredness:e.personable[actor].tiredness}};
 }
-// Wait for actual planner recovery. Ordinary player care gives the NPC time
-// to follow their own meal/sleep plan; no needs or outcomes are assigned.
+// Let the elder's actual household meal/rest finish. Player energy does not
+// block conversation, and this helper never orders automatic player care.
 async function waitForOathReadiness(page,elder,villageId) {
   const observe=({elder,villageId})=>{
     const s=window.tinyking,actor=s.ui.playerId;
     return {day:s.days,readiness:window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness,
-      actor:s.ecs.planner[actor].world.feeling,elder:s.ecs.planner[elder].world.feeling,
-      needs:{hunger:s.ecs.personable[actor].hunger,tiredness:s.ecs.personable[actor].tiredness}};
+      actor:s.ecs.planner[actor].world.feeling,elder:s.ecs.planner[elder].world.feeling};
   };
   const initial=await page.evaluate(observe,{elder,villageId});
   if(initial.readiness.ok)return {initial,orders:[],after:initial};
-  const orders=[];
-  if(initial.actor.hungry && initial.needs.hunger>.9)orders.push("find_food");
-  if(initial.actor.tired && initial.needs.tiredness>.9)orders.push("rest");
-  await page.evaluate(keys=>{const s=window.tinyking;window.oathCareOrders=[];window.oathCareAttempted={};for(const key of keys){window.oathCareAttempted[key]=true;s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);}s.ui.actions.set_speed("fast");},orders);
+  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
   await page.waitForFunction(({villageId})=>{
-    const s=window.tinyking,actor=s.ui.playerId;
-    const pending=s.ecs.manager[actor].jobs.some(j=>["find_food","rest"].includes(j.job.key));
-    if(!window.tinykingCustoms.oathEligibility(s,actor,villageId).readiness.ok || pending) {
-      // Feelings remain latched until a native task finishes. Let recovery
-      // finish, and issue at most one order for each actual new need episode.
-      const planner=s.ecs.planner[actor],person=s.ecs.personable[actor];
-      for(const [need,amount,key] of [["hungry","hunger","find_food"],["tired","tiredness","rest"]]) {
-        if(person[amount]<=.9)delete window.oathCareAttempted[key];
-        if(!pending && !["eat","sleep","forage"].includes(planner.task?.[0]) && planner.world.feeling[need] && person[amount]>.9 && !window.oathCareAttempted[key]) {
-          window.oathCareAttempted[key]=true;
-          window.oathCareOrders.push({day:s.days,key});
-          s.ui.actions.choose_job(actor,{key},actor);
-        }
-      }
-      return false;
-    }
+    const s=window.tinyking;
+    if(!window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId).readiness.ok)return false;
     s.ui.actions.set_speed("paused");return true;
   },{villageId},{timeout:180000});
-  return {initial,orders,continuingCare:await page.evaluate(()=>window.oathCareOrders),after:await page.evaluate(observe,{elder,villageId})};
+  return {initial,orders:[],after:await page.evaluate(observe,{elder,villageId})};
 }
 module.exports.waitForOathReadiness=waitForOathReadiness;
 
@@ -398,10 +372,9 @@ async function discoverTimber(page,required,move) {
     }
     if(!view.edge || view.day-started>=1 || step==7)throw new Error("Exploration did not discover "+required+" real permitted reachable logs: "+JSON.stringify(steps));
     visited.push(view.edge);
-    if(view.needs.hunger>.9 || view.needs.tiredness>.9) {
+    if(view.needs.energy<20 || view.needs.tiredness>.9) {
       const care=[];
-      if(view.needs.hunger>.9)care.push("find_food");
-      if(view.needs.tiredness>.9)care.push("rest");
+      care.push("rest");
       await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},care);
       await page.waitForFunction(keys=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>keys.includes(j.job.key));},care,{timeout:180000});
       await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));

@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community, attach } from "./support/travel";
 import { advanceWorldClock, acceptTravel, completeTravel, initialiseTravel, localSnapshot, departNpc } from "game/travel";
 import { worldKey, neighbours } from "game/travel_geometry";
@@ -13,8 +14,8 @@ import { Hex } from "game/hex";
 import { weatherForWorld } from "game/weather";
 import { season, year } from "game/time";
 const stepSeason = async s => {
-  s.days += 3;
-  advanceSeason(s, Math.floor(s.days / 3));
+  s.days += DAYS_IN_SEASON;
+  advanceSeason(s, Math.floor(s.days / DAYS_IN_SEASON));
   await advanceWorldClock(s);
 };
 function pairedWorld() {
@@ -57,9 +58,9 @@ it("autonomously searches despite unrelated but incompatible locals, while playe
   const intent = s.ecs.planner[seeker].world.worldJourney;
   expect(intent.to).toBe(b.s.map.worldKey);
   departNpc(s, seeker, intent);
-  const due = s.days + 3;
+  const due = s.days + DAYS_IN_SEASON;
   s.days = due;
-  advanceSeason(s, Math.floor(due / 3));
+  advanceSeason(s, Math.floor(due / DAYS_IN_SEASON));
   await advanceWorldClock(s);
   const dest = s.travel.maps[b.s.map.worldKey];
   expect(dest.residents[seeker]).toBe(true);
@@ -159,8 +160,8 @@ it("moves the same player and real carried cargo across all six facing edges, on
     expect(acceptTravel(s, tile)).toBe(true);
     const order = s.ecs.manager[id].jobs[0];
     await completeTravel(s, order);
-    expect(s.days).toBe(Math.floor(before) + 3.25);
-  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
+    expect(s.days).toBe(Math.floor(before) + DAYS_IN_SEASON + .25);
+  expect(Math.floor(s.days / DAYS_IN_SEASON)).toBe(Math.floor(before / DAYS_IN_SEASON) + 1);
     expect(season(s.days)).toBe("summer");
     expect(year(s.days)).toBe(1);
     expect(s.weather).toEqual(weatherForWorld(s.world, 13, s.days));
@@ -201,6 +202,7 @@ it("ordinary active seasons catch up off-screen residents exactly once and auton
     } = pairedWorld(),
     s = a.s,
     id = a.ids[1];
+  s.villages.v.centre=Hex(6,6).toPoint();
   // Diagnostic survival isolation: no meals/planning other than the traveller;
   // hunger is below starvation over these four ordinary active seasons.
   for (const p of Object.values(s.ecs.personable)) {
@@ -217,12 +219,13 @@ it("ordinary active seasons catch up off-screen residents exactly once and auton
   };
   const sim = createSimulation(s);
   let walked = false;
-  for (let i = 0; i < 3000; i++) {
+  for (let i = 0; s.days < 4*DAYS_IN_SEASON+.1 && i < 12000; i++) {
     sim.step(6);
     if (sim.pending) await sim.pending;
+    if (s.seasonTurn) {require("game/seasons").finishSeasonTurn(s);s.game_speed="fast";}
     if (s.ecs.planner[id]?.task?.[0] === "leave_edge") walked = true;
   }
-  expect(s.days).toBeGreaterThan(12);
+  expect(s.days).toBeGreaterThan(4*DAYS_IN_SEASON);
   expect(walked).toBe(true);
   expect(s.travel.active).toBe("5,5");
   for (let season = 1; season <= 4; season++) expect(s.travel.historyCalls.filter(c => c.key === b.s.map.worldKey && c.season === season)).toHaveLength(1);
@@ -509,18 +512,20 @@ it("eats genuine owned food from full working hands after player arrival; the he
   }]);
   s.ecs.haulable[item].heldBy = id;
   s.ecs.holder[id].held = [item, food];
-  s.ecs.personable[id].hunger = 1.5;
+  s.ecs.personable[id].energy = 20;
   acceptTravel(s, s.map.entrances[0].tileIds[0]);
   expect(s.ecs.planner[id].world.holding.grain).toBe(true);
   await completeTravel(s, s.ecs.manager[id].jobs[0]);
   skipIntro(s);
   expect(s.ecs.planner[id].world.holding.grain).toBe(true);
+  require("game/manager").enqueueTask(s,{key:"eat_food"},food,{foodType:"grain"});
   const sim = createSimulation(s);
   for (let i = 0; i < 30; i++) {
     sim.step(6);
     if (sim.pending) await sim.pending;
   }
-  expect(s.ecs.personable[id].hunger).toBeLessThan(.3);
+  expect(s.ecs.personable[id].energy).toBeGreaterThan(20);
+  expect(s.ecs.personable[id].hunger).toBeUndefined();
   expect(s.ecs.good[food]).toBeUndefined();
   expect(s.ecs.holder[id].held).toContain(item);
   expect(s.ecs.possession[item].name).toBe("Brooch");

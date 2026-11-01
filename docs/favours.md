@@ -41,3 +41,15 @@ Construction help starts only once all logs have been delivered through the exis
 Field helpers plough and harvest while the player is working an owned field. Sowing remains the player's seed/food choice. Short-lived `slot.workerId` claims prevent two workers changing the same patch; the existing field claim still serialises ordinary family workers. Interrupted or finished workers release their claims. A helper's crop remains the player's. Hunger, tiredness or a lapsed Personal ring ends help and returns the helper to their own planner.
 
 The standard seed-13 storyboard uses two conversations and one real fuel delivery to earn Personal, then explicitly chooses nearby trees by their actual timber yield and chops enough wood to let a friend help finish the house. It pauses through normal UI speed commands at the actual delivery and helper work for desktop/phone frames. It injects no materials, needs or relationships. Evidence and any limits are recorded in `shots/favours-report.md`.
+
+## Food and the daily budget
+
+A completed fuel favour can also earn one real meal from a household with surplus
+food. The reward removes a portion from its pantry and records the receipt once.
+Food requests never return food as a reward. Harvest gleaning still splits the
+actual crop. The player can eat these owned goods with Eat. They restore energy.
+
+Darkness and zero energy pause physical favours without discarding delivered goods
+or completed work. Villagers still eat from household larders, but never starve
+to death. Requests expire when their actual need ends. There is no fixed three-day
+deadline. The seven-day calendar does not introduce one.

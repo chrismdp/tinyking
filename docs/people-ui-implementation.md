@@ -1,3 +1,5 @@
+> Historical implementation record. The 1 November 2026 [core loop](design.md) replaces player hunger and automatic care with energy. See [energy](survival.md) for current controls.
+
 # People panels and talking
 
 The follow-up [people review fixes](people-review-fixes.md) add trade/current activity, explicit gossip direction and readable gift sources. The evidence below records the earlier implementation.

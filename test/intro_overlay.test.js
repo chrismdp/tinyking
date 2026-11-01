@@ -52,9 +52,11 @@ it("keeps controls visible for ordinary background seasons and reserves loading 
   const state = { worldBusy: true, ui: { show: { speed_controls: true }, actions: {} } };
   const render = () => renderToStaticMarkup(<GameState.Provider value={state}><UserInterface/></GameState.Provider>);
   expect(render()).toContain('id="speed"');
-  expect(render()).not.toContain("travel-loading");
+  expect(render()).not.toContain("loading-screen");
+  // The full loading screen replaced the old travel-loading strip.
   state.transition = { label: "One season on the road…" };
-  expect(render()).toContain("travel-loading");
+  expect(render()).toContain("loading-screen");
+  expect(render()).toContain("One season on the road…");
   expect(render()).not.toContain('id="speed"');
 });
 

@@ -54,7 +54,7 @@ it('keeps the compact current task favour-aware without claiming a walking-only 
   const w = setup(), s = w.state;
   const task = acceptFavour(s, 'f'); task.assignedId = w.player;
   const html = render(s, <TaskPanel/>);
-  expect(html).toContain('Fed · Deliver wood');
+  expect(html).toContain('Energy 100 / 100 · Deliver wood');
   const item = html.slice(html.indexOf('<li class="task'), html.indexOf('</li>'));
   expect(item).not.toContain('m left');
 });

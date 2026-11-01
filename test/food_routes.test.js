@@ -7,25 +7,7 @@ import { HOUR } from "game/time";
 // Extracted fixed geometry and the trapped position from the review running-state.json.gz.
 import penState from "./support/food-pen-route.json";
 
-it("invalidates an unreachable cached food choice and eats reachable berries", () => {
-  const f = economy(6), { s, p, camp, tiles, world } = f;
-  s.ecs.container[camp].amounts = {};
-  for (const t of tiles) for (const [side,n] of Object.entries(s.ecs.walkable[t].neighbours)) {
-    if ((tiles.indexOf(t) < 3) != (tiles.indexOf(n) < 3)) delete s.ecs.walkable[t].neighbours[side];
-  }
-  const [store, plant] = newEntities(s, [
-    { spatial: { ...s.ecs.spatial[tiles[5]] }, container: { capacity: 100, amounts: { grain: 50 } }, controllable: { controllerId: p } },
-    { spatial: { ...s.ecs.spatial[tiles[1]] }, forageable: { kind: "berries", biome: "grassland", amount: 1, growth: 0 } }
-  ]);
-  world.places["container_with grain"] = store;
-  s.ecs.personable[p].hunger = 2;
-  enqueueTask(s, { key: "find_food" }, p);
-  f.step(180);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
-  expect(s.ecs.forageable[plant].amount).toBe(0);
-  expect(world.places["container_with grain"]).not.toBe(store);
-  expect(s.ecs.container[store].amounts.grain).toBe(50);
-});
+
 
 it("walks the real seed-13 trapped villager home through a route that respects the pen", () => {
   const s = JSON.parse(JSON.stringify(penState)), actor = "social-5921", target = "4005";

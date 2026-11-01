@@ -28,7 +28,7 @@ Summary stores retain an `estateAccount`: initial stock, produced goods and cons
 
 Historical woodland also uses the existing hourly ecology update. Saplings mature and seed on the actual highland calendar. The history cursor applies each hour once. Building and crop clearance therefore cannot exhaust a forest for 45 years while preventing its existing regrowth rules. The initial ecology retains the natural biome density. Live and offscreen updates keep their normal environment cursor.
 
-The prosperity setup also gives the observing player 48 carried gruel and 24 grain. These are actual initial container goods. Normal need actions consume them. This keeps a stationary observer fed during the seasonal check. The ordinary opening receives no extra supplies.
+The prosperity setup also gives the observing player 48 carried gruel and 24 grain. These are actual initial container goods. Explicit Eat actions consume them. This keeps an observing player supplied during the seasonal check. The ordinary opening receives no extra supplies.
 
 The development API exposes the existing `createSimulation`. An acceptance driver can stop `tinyking.ticker`, create a simulation from that same state and advance `step(6)` until the required calendar boundary. Await returned promises when world travel is pending. These steps run real needs, walking, crops, trade work, meetings and social seasons. They do not set production or growth counters. Use the running UI clock when a driver is unnecessary. Independent acceptance owns the extended seasonal observation.
 
@@ -92,3 +92,7 @@ footprint clearance, and its spatial index and current inspection show the move.
 
 Yard varieties advance across actual existing estates. A later household does
 not restart the first garden kind merely because it arrived in a new layout phase.
+
+Seasonal dates now use seven days. Growth support requires one season of food
+per resident. Crop growth takes 10.5 growing days. Summary harvests record actual
+yields as events. Initial history still covers 45 years, or 180 seasons.

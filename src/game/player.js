@@ -1,31 +1,25 @@
-import { person, check_jobs } from "game/compound";
+import { check_jobs } from "game/compound";
 import { firstFreeJob } from "game/manager";
 
 export const TALK_JOBS = ["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"];
 export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 };
 
-// Keep the villager survival routines, with orders scoped to this character.
+// The player chooses meals and sleep. Villagers retain their household routines.
 export const player = () => [
   [world => world.journeyCamp, () => [["sleep"]]],
   [world => world.stationaryPlayer === false, () => [["person"]]],
-  [world => world.stationaryPlayer && !world.playerWorking && (world.feeling.hungry || world.feeling.tired), () => [["stationary_needs"]]],
-  [world => world.stationaryPlayer && world.playerWorking && world.feeling.hungry && !world.mealFailure && !world.currentJob && !world.capturedAttentionOf && !world.claimedFarmable && !world.capturedBy, () => [["recover_meal"],["eat","meal"]]],
-  ...person().filter(([, actions]) => !actions(null).some(task => ["store_held", "farm", "work_trade", "haul", "idle_person", "social_visit", "tend_garden", "child_idle", "begin_friend_help", "arrive_home"].includes(task[0])))
-    .map(([condition, actions]) => {
-      const need = actions(null).some(task => ["find_food", "go_to_sleep"].includes(task[0]));
-      return [world => (!need || !world.stationaryPlayer || world.playerWorking) && !(need && actions(null).some(task=>task[0]=="find_food") && world.mealFailure) && (actions(null).some(task => task[0] == "check_jobs") || condition(world)), value => actions(value).map(([key, ...args]) =>
-        [key == "person" ? "player" : key == "check_jobs" ? "player_jobs" : key, ...args])];
-    }),
-  [() => true, () => [["wait_for", 1 / 48]]]
+  [world => world.capturedAttentionOf, id => [["release_attention",id],["player"]]],
+  [world => world.currentJob, key => [["release_job",key],["player"]]],
+  [world => world.claimedFarmable, id => [["release_farmable",id],["player"]]],
+  [world => world.capturedBy, () => [["wait_for",1/96]]],
+  [world => world.forcedRest, () => [["player_rest"]]],
+  [world => world.duskHome, home => [["walk_to",home],["settle_fire"]]],
+  [() => true, () => [["player_jobs"]]],
+  [() => true, () => [["wait_for",1/48]]]
 ];
-
-export const stationary_needs = () => [
-  [world => world.feeling.hungry && world.careMeal, meal => [
-    ...(meal.kind == "held" ? [] : [["make_meal_space"], [{ container: "pick_up_from_container", stockpile: "pick_up_from_stockpile", loose: "pick_up_entity_with_good" }[meal.kind], "idleFoodSource", meal.type]]),
-    ["eat", meal.type]
-  ]],
-  [world => world.feeling.tired && world.careBed && (world.days % 1 * 24 >= 20 || world.days % 1 * 24 < 9), () => [["sleep"]]],
-  [() => true, () => [["wait_for", 1 / 48]]]
+export const player_rest = () => [
+  [world => world.restBed || world.restHome, home => [["walk_to",home],["sleep"]]],
+  [() => true, () => [["sleep"]]]
 ];
 
 export const player_jobs = () => [
@@ -35,8 +29,8 @@ export const player_jobs = () => [
   ]),
   [(_,jobs)=>firstFreeJob(jobs,"tend_field"),entry=>[["take_job","tend_field"],["walk_to",entry.targetId],["tend_garden",entry.targetId],["complete_job","tend_field"]]],
   [(_,jobs)=>firstFreeJob(jobs,"tend_garden"),entry=>[["take_job","tend_garden"],["walk_to",entry.targetId],["tend_garden",entry.targetId],["complete_job","tend_garden"]]],
-  [(_, jobs) => firstFreeJob(jobs, "find_food"), () => [["take_job", "find_food"], ["ordered_meal"], ["complete_job", "find_food"]]],
-  [(_, jobs) => firstFreeJob(jobs, "rest"), () => [["take_job", "rest"], ["move_to_place", "sleep", "allows_sleep"], ["sleep"], ["complete_job", "rest"]]],
+  [(_,jobs)=>firstFreeJob(jobs,"eat_food"),entry=>[["take_job","eat_food"],["walk_to",entry.targetId],["eat_food",entry.targetId,entry.foodType],["complete_job","eat_food"]]],
+  [(_, jobs) => firstFreeJob(jobs, "rest"), () => [["take_job", "rest"], ["player_rest"], ["complete_job", "rest"]]],
   [(_, jobs) => firstFreeJob(jobs, "travel"), entry => [["take_job", "travel"], ["walk_to", entry.targetId], ["leave_edge", entry.targetId, entry]]],
   [(_, jobs) => firstFreeJob(jobs, "favour"), entry => [["take_job", "favour"], ["do_favour", entry.favourId], ["complete_job", "favour"]]],
   ...TALK_JOBS.map(key => [
@@ -53,11 +47,4 @@ export const player_jobs = () => [
     }
   ]),
   ...check_jobs()
-];
-
-export const ordered_meal = () => [
-  [world=>world.stationaryPlayer && world.feeling.hungry,()=>[["recover_meal"],["eat","meal"]]],
-  [world => world.feeling.hungry, () => [["find_food"]]],
-  [world => !world.feeling.hungry, () => [["set_label"]]],
-  [() => true, () => [["meal_unavailable"]]]
 ];

@@ -41,7 +41,7 @@ it("instances whole flocks with selectable ids and updates moving transforms", (
 
 it("batches crops across fields and keeps winter crop height fixed", () => {
   const batch = createInstances();
-  const s = { days: 9.375, ecs: { spatial: { a: { x: 0, y: 0 }, b: { x: 120, y: 0 } }, farmable: {} } };
+  const s = { days: 21.375, ecs: { spatial: { a: { x: 0, y: 0 }, b: { x: 120, y: 0 } }, farmable: {} } };
   for (const id of ["a", "b"]) s.ecs.farmable[id] = { slots: TRIANGLES.map(() => ({ state: "sown", content: "grain", growth: 2, updated: 1 })) };
   const a = field(FLAT_GROUND, s, "a", {});
   const height = new THREE.Box3().setFromObject(a).max.y;

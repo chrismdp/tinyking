@@ -1,5 +1,5 @@
 import { updateEcology } from "game/ecology";
-import { HOUR } from "game/time";
+import { HOUR, DAYS_IN_SEASON } from "game/time";
 import { reconcileRouteHistory } from "game/settlement_routes";
 import { updateRoadWear } from "game/road_wear";
 import { historyStep, advanceSeason, withSocialIndex } from "game/social";
@@ -17,7 +17,7 @@ export function generateHistory(state, seed, routeHistory = [], progressUpdate) 
   const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "good", "haulable", "nameable", "playable", "spatial"];
   const people = new Set(Object.keys(state.ecs.personable).filter(id => !state.ecs.playable?.[id]));
   const houses = new Set(Object.keys(state.ecs.building));
-  let summary = { ecs: { nextId: state.ecs.nextId, namespace: state.ecs.namespace }, villages: state.villages, days: -540, peopleSeed: seed,
+  let summary = { ecs: { nextId: state.ecs.nextId, namespace: state.ecs.namespace }, villages: state.villages, days: -180 * DAYS_IN_SEASON, peopleSeed: seed,
     opinionThresholds: state.opinionThresholds, generatingHistory: true, events: [], knowledge: {}, social: { courtships: {}, avoidance: {} } };
   for (const key of components) summary.ecs[key] = Object.fromEntries(Object.entries(state.ecs[key] || {}).filter(([id]) => people.has(id) || houses.has(id)));
   const names = ["Silver ring", "Bronze brooch", "Carved box", "Family sword", "Psalter"];
@@ -33,8 +33,8 @@ export function generateHistory(state, seed, routeHistory = [], progressUpdate) 
   // Generation owns this detached summary. Reuse it between seasons; public
   // historyStep still copies callers' snapshots for travel/replay.
   const seasons = runHistorySeasons(summary, season => {
-    summary.days = season * 3;
-    drift(summary, 72);
+    summary.days = season * DAYS_IN_SEASON;
+    drift(summary, 24 * DAYS_IN_SEASON);
     advanceSeason(summary, season, true);
   }, progressUpdate);
   const finish = () => {
@@ -77,9 +77,9 @@ function generateSettlementHistory(state, seed, routeHistory, progressUpdate) {
   state.opinionThresholds = { hate: -0.8, love: 0.8 };
   state.events = []; state.knowledge = {}; state.social = { lastSeason: -181, courtships: {}, avoidance: {} };
   const seasons = runHistorySeasons(state, season => {
-    state.days = season*3;
+    state.days = season*DAYS_IN_SEASON;
     advanceHistoricalWoodland(state,state.days);
-    drift(state,72);
+    drift(state,24 * DAYS_IN_SEASON);
     advanceSeason(state,season,true);
   }, progressUpdate);
   const finish = () => {
@@ -101,7 +101,7 @@ function generateSettlementHistory(state, seed, routeHistory, progressUpdate) {
 // live and offscreen woodland keep the existing environment cursor.
 export function advanceHistoricalWoodland(state,end) {
   if(!state.ecology)return;
-  const now=state.days, from=state.ecology.historyUpdatedAt ?? -543;
+  const now=state.days, from=state.ecology.historyUpdatedAt ?? -181 * DAYS_IN_SEASON;
   for(let at=from+HOUR;at<=end+1e-9;at+=HOUR) {
     state.days=at;updateEcology(state);state.ecology.historyUpdatedAt=at;
   }

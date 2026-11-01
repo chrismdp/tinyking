@@ -181,3 +181,8 @@ export function recover_meal(world, expected) {
 
 export function approach_chat(world, expected, targetId) { world.capturedAttentionOf=targetId; }
 export function chat_visit() {}
+
+export function settle_fire(world) { delete world.duskHome; }
+export function eat_food() {}
+
+export function festival_wait() {}

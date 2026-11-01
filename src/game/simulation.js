@@ -1,8 +1,10 @@
+import { updateFestival, seasonTurnAt } from "game/seasons";
+import { DAYS_IN_SEASON } from "game/time";
+import { playerDay } from "game/energy";
 import { updateNeeds } from "game/needs";
 import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
-import { stationarySupplies } from "game/stationary_care";
 import { withFenceCache } from "game/fences";
 import { gardenHelp, withGardenHelpIndex, refreshGardenHelpIndex } from "game/household_routines";
 import { advanceWorldClock, completeTravel, departNpc, updateJourney } from "game/travel";
@@ -66,13 +68,7 @@ function updatePlannerFrame(state, frameMod) {
       if (wasWorking && !planner.world.playerWorking && !["eat", "sleep"].includes(planner.task?.[0])) {
         planner.task = null; planner.plan = null;
       }
-      if (!planner.world.playerWorking) {
-        const care = stationarySupplies(state, id);
-        planner.world.careMeal = care.meal; planner.world.careBed = care.bed;
-        if (care.bed) planner.world.places.sleep = care.bed;
-        planner.world.places.idleFoodSource = care.meal?.source;
-        if (care.meal?.kind == "held") planner.world.holding[care.meal.type] = true;
-      }
+
     }
     const nightHome = id != state.ui.playerId && nightTime(state.days) ? actualHome(state,id) : null;
     if (planner.world.nightHome != nightHome) {
@@ -95,11 +91,11 @@ function updatePlannerFrame(state, frameMod) {
     // Update sensors
     if (state.ecs.personable[id]) {
       const person = state.ecs.personable[id];
-      if (!planner.world.feeling.tired && person.tiredness > 0.9) {
+      if ((id != state.ui.playerId || !planner.world.ordered) && !planner.world.festivalPlace && !planner.world.feeling.tired && person.tiredness > 0.9) {
         planner.world.feeling.tired = true;
         if(planner.task?.[0] != "leave_edge") htn.replan(planner);
       }
-      if (!planner.world.feeling.hungry && person.hunger > 0.9) {
+      if ((id != state.ui.playerId || !planner.world.ordered) && !planner.world.festivalPlace && !planner.world.feeling.hungry && person.hunger > 0.9) {
         planner.world.feeling.hungry = true;
         if(planner.task?.[0] != "leave_edge") htn.replan(planner);
       }
@@ -108,9 +104,9 @@ function updatePlannerFrame(state, frameMod) {
 
     if (planner.world.ordered && planner.world.currentJob) {
       const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
-      if (job && (job.favourId ? requestForTask(state, job)?.status != "accepted" : !job.gatheredDone && !state.ecs.spatial[job.targetId])) deferPlayerTask(state);
+      if (job && (job.favourId ? requestForTask(state, job)?.status != "accepted" : !job.gatheredDone && job.job.key!="eat_food" && !state.ecs.spatial[job.targetId])) deferPlayerTask(state);
     }
-    if (planner.world.ordered && !planner.world.currentJob && planner.plan &&
+    if (planner.world.ordered && !planner.world.forcedRest && !planner.world.currentJob && planner.plan &&
       !planner.world.feeling.hungry && !planner.world.feeling.tired &&
       !["eat", "sleep", "forage"].includes(planner.task?.[0]) && readyPlayerTasks(state).length) {
       planner.task = null;
@@ -185,7 +181,9 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
 
   const advanceTime = frameMod => {
     if (SPEED[state.game_speed]) {
-      const toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
+      let toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
+      const turn=seasonTurnAt(state,state.days+toAdd);
+      if(turn!=null)toAdd=Math.max(0,turn-state.days);
       state.days += toAdd;
       clock.hour += toAdd;
       while (clock.hour + 1e-12 >= time.HOUR) {
@@ -210,6 +208,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
         updateEnvironment(state);
         drift(state, 1);
         socialHour(state);
+        updateFestival(state);
         updateFavours(state);
         if (onHour) {
           onHour();
@@ -222,12 +221,13 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
   return {
     get pending() { return pending; },
     step(frameMod, realSeconds = frameMod / 60) {
-      if(pending || state.travelError || state.chat?.active) return pending;
+      if(pending || state.travelError || state.chat?.active || state.seasonTurn) return pending;
       if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
       const arriving = introActive(state);
       updateIntro(state, realSeconds);
       if (arriving) return;
       if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
+      playerDay(state);
       updateCustoms(state);
       updateJourney(state);
       updatePlanners(state, frameMod);
@@ -241,7 +241,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
       }
       advanceTime(frameMod);
       if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
-      if(state.travel && (state.travel.season < Math.floor(state.days/3) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
+      if(state.travel && (state.travel.season < Math.floor(state.days/DAYS_IN_SEASON) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
         return background(()=>advanceWorldClock(state));
       }
       if (SPEED[state.game_speed]) updateVillageLife(state);

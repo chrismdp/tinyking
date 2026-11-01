@@ -116,15 +116,15 @@ function oathCareWorld(unready) {
   return {s,actor,elder,meal,orders,page};
 }
 
-it("lets actual NPC sleep and ordinary player food/rest recover oath readiness without granting contact or rights",async()=>{
+it("lets actual NPC sleep recover oath readiness without automatic player care or granting contact or rights",async()=>{
   const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
   const result=await waitForOathReadiness(page,elder,"village");
   expect(result.initial.readiness.ok).toBe(false);expect(result.after.readiness.ok).toBe(true);
-  expect(orders).toEqual(["find_food","rest"]);
-  expect(s.ecs.good[meal]).toBeUndefined();
+  expect(orders).toEqual([]);
+  expect(s.ecs.good[meal]).toMatchObject({type:"forage",amount:1});
   expect(s.ecs.personable[elder].tiredness).toBeLessThan(.2);
-  expect(s.ecs.personable[actor].tiredness).toBeLessThan(.2);
+  expect(s.ecs.personable[actor].energy).toBeGreaterThanOrEqual(0);
   expect(s.ecs.planner[elder].world.feeling.tired).toBe(false);
   expect(s.game_speed).toBe("paused");expect(s.ecs.manager[actor].jobs).toEqual([]);
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
@@ -271,7 +271,7 @@ it("waits through real delivery progress without extending a stalled favour's ti
   await expect(waitForFavourDelivery(page,"harvest")).rejects.toThrow("ended without delivery");
 });
 
-it.each([true,false])("waits for native care before approach, requiring visible slots: %s", async requireSlots => {
+it.each([true,false])("waits for NPC readiness without ordering player care, requiring visible slots: %s", async requireSlots => {
   const {waitForChatReadiness}=require("../scripts/acceptance-selection");
   const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
@@ -279,8 +279,8 @@ it.each([true,false])("waits for native care before approach, requiring visible 
   global.document={querySelectorAll:()=>requireSlots ? [{textContent:"Chat",disabled:false}] : []};
   try {
     await waitForChatReadiness(page,elder,{requireSlots});
-    expect(orders).toEqual(["find_food","rest"]);
-    expect(s.ecs.good[meal]).toBeUndefined();
+    expect(orders).toEqual([]);
+    expect(s.ecs.good[meal]).toMatchObject({type:"forage",amount:1});
     for(const id of [actor,elder])expect(s.ecs.planner[id].world.feeling).toMatchObject({hungry:false,tired:false});
     expect(s.game_speed).toBe("paused");
     expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);

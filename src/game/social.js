@@ -1,4 +1,5 @@
 import { finishTransition } from "game/history_scope";
+import { DAYS_IN_SEASON } from "game/time";
 import { advanceOffscreenNeeds } from "game/needs";
 import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
 import { recordJourney, routeTile } from "game/settlement_routes";
@@ -300,7 +301,7 @@ export function birth(s, a, b, season) {
     personable: {
       age: 0,
       lifeYears: 0,
-      born: season * 3,
+      born: season * DAYS_IN_SEASON,
       size: 12,
       male,
       body: male ? 0x4E3F30 : 0x3B6071,
@@ -393,7 +394,7 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   if (hostile && roll(s, "quarrel:" + key + ":" + Math.floor(s.days)) < 1 - 0.88 ** conversations) {
     addGoodwill(s, a, b, -6);
     addGoodwill(s, b, a, -6);
-    s.social.avoidance[key] = s.days + 3;
+    s.social.avoidance[key] = s.days + DAYS_IN_SEASON;
     recordEvent(s, "quarrel", [a, b]);
     return true;
   }
@@ -434,10 +435,10 @@ function settleAdults(s, summary) {
 }
 
 // Retry mature courtships when fresh contact occurs between seasonal updates.
-function updateCourtships(s, season = Math.floor(s.days / 3), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
+function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
   const used = new Set();
   for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - 3)) {
+    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - DAYS_IN_SEASON)) {
       const key = a + ":" + b;
       const started = s.social.courtships[key] ?? season;
       s.social.courtships[key] = started;
@@ -452,9 +453,9 @@ function updateCourtships(s, season = Math.floor(s.days / 3), summary = false, r
 // Hourly contact can arrive just after a seasonal wedding check. Retry only
 // existing courtships so their original seasonal start and delay stay intact.
 export function retryCourtships(s) {
-  const season = Math.floor(s.days / 3);
+  const season = Math.floor(s.days / DAYS_IN_SEASON);
   for (const [key, started] of Object.entries(s.social?.courtships || {})) {
-    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - 3) continue;
+    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - DAYS_IN_SEASON) continue;
     const [a,b] = key.split(":");
     marry(s,a,b);
   }
@@ -675,9 +676,9 @@ export function historyStep(worldHexState, season) {
     copy.map=worldHexState.map && {...worldHexState.map};
     for (const [id,v] of Object.entries(worldHexState.villages || {})) copy.villages[id]=JSON.parse(JSON.stringify(v));
   }
-  copy.days = season * 3;
-  drift(copy, 72);
-  advanceOffscreenNeeds(copy, season * 3);
+  copy.days = season * DAYS_IN_SEASON;
+  drift(copy, 24 * DAYS_IN_SEASON);
+  advanceOffscreenNeeds(copy, season * DAYS_IN_SEASON);
   advanceSeason(copy, season, true);
   return copy;
 }

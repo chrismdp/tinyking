@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community, attach } from "./support/travel";
 import { acceptTravel, completeTravel, advanceWorldClock } from "game/travel";
 import { neighbours, worldKey } from "game/travel_geometry";
@@ -26,8 +27,8 @@ async function travel(s, side, skip = true) {
   if (skip) skipIntro(s);
 }
 async function season(s) {
-  s.days += 3;
-  advanceSeason(s, Math.floor(s.days / 3));
+  s.days += DAYS_IN_SEASON;
+  advanceSeason(s, Math.floor(s.days / DAYS_IN_SEASON));
   await advanceWorldClock(s);
 }
 function borrowedCargo(s, player, owner) {
@@ -49,12 +50,12 @@ it.each([false, true])("settles real borrowed working-hand cargo only if its liv
   const before = s.days, identity = { ...s.ecs.personable[player] };
   await travel(s, 0);
   const legalOwner = death ? heir : owner;
-  expect(s.days).toBe(Math.floor(before) + 3.25);
-  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
+  expect(s.days).toBe(Math.floor(before) + DAYS_IN_SEASON + .25);
+  expect(Math.floor(s.days / DAYS_IN_SEASON)).toBe(Math.floor(before / DAYS_IN_SEASON) + 1);
   expect(s.ecs.personable[player]).toEqual(identity);
   expect(topController(s.ecs, player)).toBe(player);
   expect(s.travel.people[owner].personable.dead || false).toBe(death);
-  if (death) expect(s.travel.people[owner].personable).toMatchObject({ heirId: heir, deathCause: "old age", died: 3 });
+  if (death) expect(s.travel.people[owner].personable).toMatchObject({ heirId: heir, deathCause: "old age", died: DAYS_IN_SEASON });
   expect(s.travel.maps["5,5"].ecs.controllable[a.house].controllerId).toBe(legalOwner);
   expect(s.ecs.controllable[ring].controllerId).toBe(legalOwner);
   expect(s.ecs.possession[ring].ownerId).toBe(legalOwner);
@@ -127,8 +128,8 @@ it.each(["normal", "Skip"])("retains the seen route and camp immediately after %
   else for (let i = 0; i < 53; i++) updateIntro(s, .1);
   expect(s.intro.active).toBe(false);
   expect(s.intro.elapsed).toBe(INTRO_TIMING.duration);
-  expect(s.days).toBe(Math.floor(before) + 3.25);
-  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
+  expect(s.days).toBe(Math.floor(before) + DAYS_IN_SEASON + .25);
+  expect(Math.floor(s.days / DAYS_IN_SEASON)).toBe(Math.floor(before / DAYS_IN_SEASON) + 1);
   expect(s.game_speed).toBe("paused");
   expect(s.ecs.personable[player]).toEqual(needs);
   expect(s.ecs.manager[player].jobs).toEqual([]);

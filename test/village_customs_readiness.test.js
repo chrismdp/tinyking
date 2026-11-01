@@ -52,7 +52,7 @@ function completeTalk(w,key) {
 const facts=s=>JSON.stringify({knowledge:s.knowledge,bonds:s.ecs.relationships,rights:s.ecs.village,events:s.events,patience:s.talking,needs:s.ecs.personable});
 const render=(s,child)=>renderToStaticMarkup(<GameState.Provider value={s}>{child}</GameState.Provider>);
 
-it.each([["elder","tired","The elder needs rest"],["elder","hungry","The elder needs food"],["actor","hungry","You need food"],["actor","tired","You need rest"]])("refuses %s %s at eligibility, panel and actual timed oath completion",(party,need,message)=>{
+it.each([["elder","tired","The elder needs rest"],["elder","hungry","The elder needs food"]])("refuses %s %s at eligibility, panel and actual timed oath completion",(party,need,message)=>{
   const w=readyWorld({party,need}),s=w.state,before=facts(s);
   expect(oathEligibility(s,w.player,"village")).toMatchObject({ok:false,reason:expect.stringContaining(message)});
   const html=render(s,<VillageMembership personId={w.parent}/>);
@@ -81,7 +81,7 @@ it("opens a valid ready dialogue and earns only common rights through the actual
   expect(s.knowledge[w.parent].people[w.player].conversation).toBeDefined();
 });
 
-it.each([["elder","tired","The elder needs rest"],["actor","hungry","You need food"]])("keeps membership and contact unchanged when %s is %s at leave completion",(party,need,message)=>{
+it.each([["elder","tired","The elder needs rest"]])("keeps membership and contact unchanged when %s is %s at leave completion",(party,need,message)=>{
   const w=readyWorld({party,need,member:true,child:true}),s=w.state,before=facts(s);
   const html=render(s,<VillageMembership personId={w.parent}/>);
   expect(html).toContain(message);expect(html).toContain("disabled=\"\"");
@@ -158,4 +158,10 @@ it.each([false,true])("acknowledges declining a customs offer without repeating 
   expect(answer.text).not.toContain("Old woodland warning");
   expect(answer.text).toMatch(member?/remain.*member/:/no oath/);
   expect(membership(s,w.player,"village")).toBe(member?"oath":null);
+});
+
+it.each(["hungry","tired"])("does not block a player's oath on removed %s care",need=>{
+ const w=readyWorld({party:"actor",need}),s=w.state;require("game/energy").ensureEnergy(s);
+ expect(oathEligibility(s,w.player,"village").ok).toBe(true);
+ expect(completeTalk(w,"oath")).toBe(Task.CONTINUE);expect(customsChatValid(s)).toBe(true);
 });

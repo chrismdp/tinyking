@@ -1,4 +1,5 @@
 import { finishTransition } from "game/history_scope";
+import { DAYS_IN_SEASON } from "game/time";
 import { recoverSlots } from "game/chat_patience";
 import { FOODS } from "game/goods";
 import { recogniseConversation } from "game/guidance";
@@ -30,9 +31,9 @@ export function generatePersonality(generator) {
 export const RINGS = ["public", "social", "personal", "intimate"];
 export const RING_CAPS = { intimate: 2, personal: 6, social: 10 };
 export const GOODWILL_STEPS = [0, 10, 30, 60];
-// A neglected bond loses 0.6 goodwill per day (1.8 per season).
+// A neglected bond loses 1.8 goodwill per seven-day season.
 // Sparse real visits must be able to accumulate the same contact as history.
-export const DRIFT_PER_HOUR = 0.025;
+export const DRIFT_PER_HOUR = 0.025 * 3 / DAYS_IN_SEASON;
 const STARTING_BUFFER = 6;
 const DISPOSITION_CAP = { hate: 0, like: 2, love: 3 };
 export const relationshipCap = (state, observer, other) => DISPOSITION_CAP[disposition(state, observer, other)];

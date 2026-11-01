@@ -19,7 +19,7 @@ import { hashUnit } from "game/math";
 import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geometry";
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
-export const TRANSITION_NEEDS = "The journey takes one season. Hunger and tiredness stay as they are while off-map and making camp; normal needs continue during the walk to the edge.";
+export const TRANSITION_NEEDS = "The journey takes one season. Walking uses a little energy. Eat your own food or Rest before leaving if you need more.";
 const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "chat", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "needsUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -234,7 +234,7 @@ export function initialiseTravel(s, seed) {
   s.needsUpdatedAt = s.days;
   s.residents = Object.fromEntries(Object.keys(s.ecs.personable).map(id => [id, true]));
   const key = worldKey(s.world.home),
-    season = Math.floor(s.days / 3);
+    season = Math.floor(s.days / DAYS_IN_SEASON);
   s.travel = {
     seed,
     active: key,
@@ -299,7 +299,7 @@ export async function ensureMap(s, key) {
     if (s.transition) await s.ui?.actions?.progress_update?.("Catching up with the passing seasons: " + season + " of " + j.season, .9 + .05 * (season - 1) / j.season);
     const next = historyStep(fresh, season);
     Object.assign(fresh, next);
-    advanceEnvironment(fresh,season*3,j.seed);
+    advanceEnvironment(fresh,season*DAYS_IN_SEASON,j.seed);
     j.historyCalls.push({
       key,
       season,
@@ -369,6 +369,14 @@ function packJourneyCamp(s, journey) {
   const planner = s.ecs.planner[s.ui.playerId];
   delete planner.world.journeyCamp;
   delete planner.world.places.sleep;
+  // Packing runs before planners at dawn. Finish a full night's forced rest
+  // here so the interrupted sleep does not send a rested traveller home again.
+  if (planner.world.sleepHours >= 6) {
+    delete planner.world.forcedRest;
+    delete s.ecs.personable[s.ui.playerId].collapsed;
+  }
+  delete planner.world.sleepStart;
+  delete planner.world.sleepHours;
   planner.task = null; planner.plan = null;
   if (s.ecs.camp?.[journey.campId]) deleteEntity(s, journey.campId);
   delete journey.campId;
@@ -412,7 +420,7 @@ export function updateJourney(s) {
   if (journey.orderId && !job) { stopJourney(s); return; }
   if (!journey.orderId && !journey.paused) queueJourneyHop(s);
   if (journey.paused) return;
-  const hour = s.days % 1 * 24, dark = hour >= 20 || hour < 6;
+  const hour = s.days % 1 * 24, dark = hour >= 18 || hour < 6;
   if (!dark) { packJourneyCamp(s, journey); return; }
   if (journey.campId) return;
   const id = s.ui.playerId, planner = s.ecs.planner[id], point = s.ecs.spatial[id];
@@ -427,6 +435,7 @@ export function updateJourney(s) {
   journey.campId = camp;
   planner.world.places.sleep = camp;
   planner.world.journeyCamp = true;
+  delete planner.world.duskHome;
   s.redraws.push(camp, id);
 }
 export function acceptTravel(s, tileId) {
@@ -605,7 +614,7 @@ function ageTraveller(s, bundle, season) {
     residents: {
       [bundle.id]: true
     },
-    days: season * 3,
+    days: season * DAYS_IN_SEASON,
     peopleSeed: s.peopleSeed,
     opinionThresholds: s.opinionThresholds,
     events: [],
@@ -761,7 +770,7 @@ export function departNpc(s, id, intent, j = s.travel) {
   const bundle = takeTraveller(s, id);
   repairHouseholds(s);
   bundle.from = from;
-  const due = s.days + 3;
+  const due = s.days + DAYS_IN_SEASON;
   j.transit.push({
     bundle,
     from,
@@ -797,7 +806,7 @@ async function receiveNpcs(s, j) {
       if (!trip.referenceVisit) {
         trip.referenceVisit = true;
         trip.arrived = j.season;
-        trip.returnAt = trip.due + 9;
+        trip.returnAt = trip.due + 3 * DAYS_IN_SEASON;
         trip.due = trip.returnAt;
         const p = trip.bundle.entities[id].personable;
         p.visitedWorlds = [...new Set([...(p.visitedWorlds || []), trip.to])];
@@ -809,7 +818,7 @@ async function receiveNpcs(s, j) {
         trip.to = trip.home.home;
         trip.returning = true;
         trip.referenceVisit = false;
-        trip.due = trip.returnAt + 3;
+        trip.due = trip.returnAt + DAYS_IN_SEASON;
       }
       continue;
     }
@@ -897,7 +906,7 @@ export async function advanceWorldClock(s, {
   j.maps[j.active] = localSnapshot(s);
   publish(s, j);
   reconcileEstates(s, j);
-  const target = Math.floor(s.days / 3);
+  const target = Math.floor(s.days / DAYS_IN_SEASON);
   while (j.season < target) {
     const season = ++j.season;
     const start = Object.entries(j.maps).map(([key, map]) => ({
@@ -918,7 +927,7 @@ export async function advanceWorldClock(s, {
       next.snow = {...next.snow};
       next.space = Object.fromEntries(Object.entries(next.space).map(([key,ids])=>[key,[...ids]]));
       next.world = {...s.world,home:Object.fromEntries(row.key.split(",").map((n,i)=>[i?"y":"x",+n]))};
-      advanceEnvironment(next,season*3,j.seed);
+      advanceEnvironment(next,season*DAYS_IN_SEASON,j.seed);
       delete next.world;
       next.days = s.days;
       j.maps[row.key] = next;

@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { FOODS, TIMBER, amountOf } from "game/goods";
 import { reserveWorkYard } from "game/land_use";
 import { containerItemCount } from "game/container";
@@ -128,9 +129,9 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
     const adults=occupants.filter(p=>e.personable[p].age>=18);
     const store=e.container?.[e.household?.[house]?.storeId];
     const output=g.production-g.lastProduction, recent=output+(g.previousOutput || 0);
-    const use=Object.entries(g.meetings).filter(([day])=>Number(day)>=season*3-3 && Number(day)<season*3).reduce((n,[,users])=>n+Object.keys(users).length,0);
+    const use=Object.entries(g.meetings).filter(([day])=>Number(day)>=(season-1)*DAYS_IN_SEASON && Number(day)<season*DAYS_IN_SEASON).reduce((n,[,users])=>n+Object.keys(users).length,0);
     const supported=e.meetingPlace?.[id]?.kind=="alehouse" ? use>=2 && adults.length>0 :
-      adults.length>0 && occupants.length>=2 && (e.workplace?.[id]?output:recent)>=2 && amountOf(store?.amounts,FOODS)>=occupants.length*3;
+      adults.length>0 && occupants.length>=2 && (e.workplace?.[id]?output:recent)>=2 && amountOf(store?.amounts,FOODS)>=occupants.length*DAYS_IN_SEASON;
     g.supportedSeasons=supported ? g.supportedSeasons+1 : 0;
     g.previousOutput=output;g.lastProduction=g.production; g.lastSeason=season;
     const next=EXPANSIONS[g.stage];

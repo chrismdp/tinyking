@@ -92,24 +92,15 @@ it("slows the final walking steps off-map by the same factor", () => {
   expect(distances[1] / distances[0]).toBeCloseTo(.25, 10);
 });
 
-it.each(["camp", "bed", "shelter"])("Rest restores speed using an accessible %s", kind => {
-  const { state: s, villager: id, tiles } = world();
-  const [bed] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[1]] },
-    ...(kind == "camp" ? { camp: {} } : kind == "shelter" ? { shelter: { stage: "lean-to" } } : {}),
-    controllable: { controllerId: id }, sleepable: { capacity: 1, level: kind == "camp" ? 0 : 1, occupiers: [] } }]);
-  s.ecs.personable[id].tiredness = 2;
-  expect(careSpeed(s.ecs.personable[id])).toBe(.25);
-  enqueueTask(s, { key: "rest" }, id);
-  s.game_speed = "fast";
-  const sim = createSimulation(s);
-  let slept = false;
-  for (let i = 0; i < 24 * 60 && careSpeed(s.ecs.personable[id]) < 1; i++) {
-    sim.step(1);
-    slept ||= s.ecs.planner[id].task?.[0] == "sleep";
-  }
-  expect(slept).toBe(true);
-  expect(s.ecs.planner[id].world.places.sleep).toBe(bed);
-  expect(careSpeed(s.ecs.personable[id])).toBe(1);
+it.each(["camp", "bed", "shelter"])("Rest restores energy using an accessible %s", kind => {
+  const {state:s,villager:id,tiles}=world();
+  const [bed]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},...(kind=="camp"?{camp:{}}:kind=="shelter"?{shelter:{stage:"lean-to"}}:{building:{rooms:[]}}),controllable:{controllerId:id},sleepable:{capacity:1,level:kind=="camp"?0:1,occupiers:[]}}]);
+  s.ecs.household={[id]:{houseId:bed}};s.ecs.personable[id].energy=0;
+  enqueueTask(s,{key:"rest"},id);s.game_speed="fast";
+  const sim=createSimulation(s);let slept=false;
+  for(let i=0;i<24*60 && s.ecs.manager[id].jobs.length;i++){sim.step(1);slept ||= s.ecs.planner[id].task?.[0]=="sleep";}
+  expect(slept).toBe(true);expect(s.ecs.planner[id].world.places.sleep).toBe(bed);
+  expect(s.ecs.personable[id].energy).toBeGreaterThan(40);expect(careSpeed(s.ecs.personable[id])).toBe(1);
 });
 
 it("has no sleep place without a bed, camp or shelter and retains the penalty", () => {

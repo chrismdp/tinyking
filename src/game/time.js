@@ -1,7 +1,7 @@
 const SEASON = ["spring", "summer", "autumn", "winter"];
-const DAY = ["early", "mid", "late"];
 
-export const DAYS_IN_SEASON = 3;
+
+export const DAYS_IN_SEASON = 7;
 export const HOUR = 1 / 24;
 export const DAYS_IN_YEAR = DAYS_IN_SEASON * SEASON.length;
 
@@ -27,4 +27,6 @@ export const time = t => {
 export const day_of_season = t => ((Math.floor(t) % DAYS_IN_SEASON + DAYS_IN_SEASON) % DAYS_IN_SEASON);
 export const season = t => SEASON[((Math.floor(t / DAYS_IN_SEASON) % SEASON.length) + SEASON.length) % SEASON.length];
 
-export const full = t => am_pm(hour_of_day(t)) + ", " + DAY[day_of_season(t)] + " " + season(t) + ", year " + year(t);
+export const full = t => am_pm(hour_of_day(t)) + ", " + "day " + (day_of_season(t) + 1) + " of" + " " + season(t) + ", year " + year(t);
+
+export const seasonPart = t => day_of_season(t) < 2 ? "early" : day_of_season(t) < 5 ? "mid" : "late";

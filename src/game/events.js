@@ -1,4 +1,5 @@
 import { finishTransition } from "game/history_scope";
+import { DAYS_IN_SEASON } from "game/time";
 import { goalEvidence } from "game/guidance";
 import { isResident, personComponent } from "game/residents";
 import { addGoodwill } from "game/people";
@@ -81,7 +82,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   const villageId = (type == "visit" ? details.toVillage : null) || state.ecs.village?.[people[0]]?.villageId || null;
   state.eventIds ||= { next: state.events.length };
   const event = { id: (state.ecs.namespace || "") + "event-" + (++state.eventIds.next), type, people: [...people],
-    day: state.days, season: Math.floor(state.days / 3), villageId,
+    day: state.days, season: Math.floor(state.days / DAYS_IN_SEASON), villageId,
     place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
@@ -144,6 +145,9 @@ export function eventSentence(state, event, displayName) {
     village_oath: () => n(a) + " swore the local oath with elder " + n(b),
     village_leave: () => n(a) + " left the village before elder " + n(b),
     favour: () => n(a) + " helped " + n(b) + " with " + ({ harvest: "the harvest", wood: "fuel for the household", food: "household food" }[event.kind] || "a favour") + " (+" + event.goodwill + " goodwill)",
+    harvest: () => n(a)+" brought in "+event.quantity+" grain",
+    fire: () => "A fire broke out"+(event.place ? " at "+n(event.place):""),
+    festival: () => n(a)+" attended the "+event.title,
     birth: () => n(a) + " was born to " + event.people.slice(1).map(n).join(" and "),
     marriage: () => n(a) + " and " + n(b) + " married" + (village ? " in " + village : ""),
     death: () => n(a) + " died" + (event.cause ? " of " + event.cause : ""),

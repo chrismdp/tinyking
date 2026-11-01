@@ -619,7 +619,7 @@ player_intro("player_name", [], [
     "{player.first_name}. Pleased to meet you.",
     "Hello. I'm {player.first_name}.",
 ], [], ["Your name"])
-player_intro("player_name_new", [P("arrived_within_days", person="player", days=12),
+player_intro("player_name_new", [P("arrived_within_days", person="player", days=28),
                                  P("not_resident_of_village", person="player", village="npc.village")], [
     "I'm {player.first_name}. I'm new here.",
     "{player.first_name}. I arrived {player.arrived_when}.",
@@ -1214,7 +1214,7 @@ npc_village("founded", [P("event_type_is", event="founding", type="founding"),
 # THE LANDS (what lies around: villages, roads and passes, the country)
 # A newcomer can always ask these. Every answer reads the real map and world.
 # =====================================================================
-ARRIVED = P("arrived_within_days", person="player", days=12)
+ARRIVED = P("arrived_within_days", person="player", days=28)
 
 def topic_risk(icons):
     """Every pop scores for the NPC being talked to, whoever completes the pair."""
@@ -1786,7 +1786,7 @@ def player_family(sit, base, variants, icons, bindings, facts, people=(), reveal
 
 player_family("no_kin", [P("has_no_living_kin", person="player")], [
     "I've no family here.", "There's just me.",
-    V("I came on my own.", "arrived", P("arrived_within_days", person="player", days=24))],
+    V("I came on my own.", "arrived", P("arrived_within_days", person="player", days=56))],
     [T("family"), R("player")], {}, [F("player", ["kinship_living_count", "arrived_at"])],
     reveals=["That you have no living kin"])
 player_family("spouse", [P("has_living_spouse", person="player")], [
@@ -3074,6 +3074,16 @@ for r in rows:
         else: r["expects"]="acknowledgement"
     elif r["family"]=="favour_ask" and r["situation"]=="child": r["expects"]="referral"
     elif r["family"]=="favour_ask" and r["situation"]=="not_yet": r["expects"]="name"
+
+# ---------- seasonal gatherings ----------
+for st, text, topics in [
+    ("spring", "Seedwake at last. Bring your plans to the green; there is room for another pair of hands.", ["season", "work"]),
+    ("summer", "The midsummer fires are lit. Sit with us; this is an evening for promises and company.", ["season", "family"]),
+    ("autumn", "Come to the Harvest Hearth. Tonight we thank the hands that brought the grain home.", ["harvest", "village"]),
+    ("winter", "Stay for the longest night. Every door is open; we keep the names of those we lost.", ["faith", "family"]),
+]:
+    situation("festival", st, "npc", base_all=[PHASE_OPEN, SEASON(st), P("festival_active")],
+              icons=[T(t) for t in topics], use_key="festival:"+st+":{context.game_hour}", variants=[text])
 
 # ---------- weights ----------
 groups = {}

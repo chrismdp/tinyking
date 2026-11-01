@@ -58,7 +58,7 @@ it("uses combined hunger and tiredness for chopping and loaded delivery estimate
 });
 
 it("renders the actual chop, collection, return journeys and delivered counts until the completed order disappears", () => {
-  const { state, player, tree, until, planner } = arrival();
+  const { state, player, tree, camp, until, planner } = arrival();
   const job = enqueueTask(state, { key: "cut_tree_down" }, tree);
   until(() => planner.task?.[0] == "chop_tree" && job.progress > 0.1);
   expect(render(state)).toContain("Chopping");
@@ -75,10 +75,10 @@ it("renders the actual chop, collection, return journeys and delivered counts un
   const minutes = +carrying.match(/~(\d+)m to home/)[1];
   expect(minutes).toBeGreaterThan(15);
   expect(carrying).toContain("more wood to collect");
-  // Route estimates use the same hunger, terrain and load costs as walking.
-  state.ecs.personable[player].hunger = 1;
+  // Estimates share actual energy, terrain and load costs with walking.
+  state.ecs.personable[player].energy=20;
   expect(+render(state).match(/~(\d+)m to home/)[1]).toBeGreaterThan(minutes);
-  state.ecs.personable[player].hunger = 0;
+  state.ecs.personable[player].energy=100;
   for (const tile of Object.values(state.ecs.walkable)) tile.speed = 0.5;
   expect(+render(state).match(/~(\d+)m to home/)[1]).toBeGreaterThan(minutes * 1.8);
   for (const tile of Object.values(state.ecs.walkable)) tile.speed = 1;
@@ -92,18 +92,21 @@ it("renders the actual chop, collection, return journeys and delivered counts un
   expect(Object.values(state.ecs.haulable).filter(h => !h.heldBy)).toHaveLength(2);
 });
 
-it("labels an interrupted delivery honestly and resumes it after an automatic meal", () => {
-  const { state, player, tree, until, planner } = arrival();
+it("labels an interrupted delivery honestly and resumes it after a chosen meal", () => {
+  const { state, player, tree, camp, until, planner } = arrival();
   const job = enqueueTask(state, { key: "cut_tree_down" }, tree);
   until(() => job.gatheredDone && !state.ecs.holder[player].held.length);
-  state.ecs.personable[player].hunger = 1;
-  until(() => !job.assignedId && ["forage", "eat"].includes(planner.task?.[0]));
+  state.ecs.personable[player].energy = 20;
+  state.ecs.container[camp]={capacity:10,amounts:{grain:1}};
+  enqueueTask(state,{key:"eat_food"},camp,{foodType:"grain"});
+  until(() => !job.assignedId && ["eat_food"].includes(planner.task?.[0]));
   const paused = render(state);
   expect(paused).toContain("Wood delivery paused");
-  expect(paused).not.toMatch(/~1m/);
-  expect(paused).not.toContain('class="task current"');
+  const woodRow=paused.match(/<li class="task"[^]*?Chop wood[^]*?<\/li>/)?.[0];
+  expect(woodRow).not.toMatch(/~1m/);
+  expect(woodRow).not.toContain('class="task current"');
   until(() => job.assignedId == player && !!state.ecs.holder[player].held.length);
-  expect(state.ecs.personable[player].hunger).toBeLessThan(0.9);
+  expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
   expect(render(state)).toContain("Carrying wood home");
   until(() => !state.ecs.manager[player].jobs.length);
 });

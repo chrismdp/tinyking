@@ -39,12 +39,12 @@ legal owners and provenance. Uncarried property remains on its map.
 The normal ordered HTN queue performs `walk_to` followed by `leave_edge`:
 pathfinding reaches the selected tile, then the character physically steps off
 its navigation mesh. A cancelled Travel queue entry cancels departure. Only after
-crossing does the calendar hop one season. The date advances three days and the
+crossing does the calendar hop one season. The date advances seven days and the
 arrival clock becomes 6am. This crosses exactly one seasonal boundary, even
 when the departure hour differs. The traveller receives one seasonal ageing and
 goodwill update. The partial-hour clock restarts at dawn.
 
-Normal needs continue during the walk out. Hunger and tiredness are frozen on the
+Normal needs continue during the walk out. Energy and tiredness are frozen on the
 off-map journey, while generation runs, and through the 5.2-second arrival.
 No food, healing or inventory is supplied. Every arrival starts at dawn and uses the opposite side's
 deterministic boundary → middle → camp route and the opening's put-down/fire/
@@ -64,9 +64,9 @@ regrow used resources or refill a store.
 
 ## Camping during a journey
 
-At 8pm, a traveller makes camp at their actual position. The camp uses the
+At 6pm, a traveller makes camp at their actual position. The camp uses the
 existing bundle, fire and bedroll. The character stays there and sleeps through
-the existing sleep task. Hunger and tiredness retain their current rules.
+the existing sleep task. Energy and tiredness retain their current rules.
 At 6am, the character packs that temporary camp and resumes the same Travel task.
 A stopped journey leaves its bedroll available for ordinary rest.
 The remaining route and temporary camp survive saving and restoring.
@@ -125,7 +125,7 @@ another seasonal update, another trip or recursively generate neighbours in that
 batch. Active-map departures use the independent NPC's HTN walk/edge tasks;
 active-map arrivals walk inward through that planner and record news/activity.
 Off-screen departures/visits/returns are events in summary. Each NPC trip takes
-three days, with one demographic season and frozen needs in transit.
+seven days, with one demographic season and frozen needs in transit.
 
 Autonomous visits never generate a detailed destination map. Until the player
 opens that reach, the actual traveller and carried property remain in a
@@ -136,8 +136,8 @@ the visitor joins its real household simulation. Unknown communities supply no
 invented contacts, marriages or possessions during a reference-only visit.
 
 Offscreen residents consume actual accessible household food through an hourly
-summary of needs. Missing meals accumulate hunger and use the live starvation
-threshold and death/inheritance rule. The persisted needs cursor prevents repeat
+summary of needs. Missing meals accumulate hunger and can create real household requests. They
+do not cause starvation deaths. Old age uses the shared death/inheritance rule. The persisted needs cursor prevents repeat
 charges during activation. Prehistory retains its existing livelihood summary;
 people on the road retain their documented needs freeze.
 
@@ -185,7 +185,7 @@ legal ownership stays with the absent person until a real inheritance occurs.
 
 The final steps off an edge have a visible planner phase. Once a character crosses
 the navigation boundary, transfer is immediate in that simulation step. A new
-hunger/tiredness signal cannot restart pathfinding from outside the map. Normal
+needs signal cannot restart pathfinding from outside the map. Normal
 needs still accrue until crossing, and cancellation remains available while the
 character is on the walkable edge.
 
@@ -214,6 +214,9 @@ namespaced vegetation and carried/ground goods have finite deterministic transfo
 The map-transfer UI callback closes any local popup opened during the departure
 walk, as well as the original invitation. Skipping arrival cannot restore that
 old popup or leave executable old-map targets in the new map.
+
+The player uses [energy](survival.md), with deliberate Eat and Rest actions.
+Walking spends a little energy. Current journey dates use `DAYS_IN_SEASON`.
 
 ## Memory limit still outstanding
 

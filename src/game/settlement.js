@@ -126,7 +126,7 @@ export function reserveFoundingFields(s) {
   const sites=Object.values(s.settlement.sites).flat(),now=s.days;
   for(const site of sites)site.navigationLinks ||= {...s.ecs.walkable[at(s,site.point)].neighbours};
   for(const site of sites)for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(s.ecs,at(s,site.point),side);
-  s.days=-543;
+  s.days=-181*DAYS_IN_SEASON;
   try {
     for(const site of sites)site.yard=reserveSiteYard(s,site,sites);
     for(const site of [...sites]) {
@@ -399,6 +399,7 @@ function summariseLivelihood(s,house,season,residents,woodland) {
         const harvest=slot.amount || crops.grain.harvestableAmount;
         if(!depositProduced(s,house,"grain",harvest))continue;
         ledger.grainGrown+=harvest;
+        recordEvent(s,"harvest",[worker],[],{fieldId:id,quantity:harvest});
         recordProduction(s,house,worker,"grain",harvest);
         Object.assign(slot,{state:"harvested",content:null,growth:0,updated:s.days});delete slot.amount;
       }

@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community, attach } from "./support/travel";
 import { acceptTravel, completeTravel, advanceWorldClock, departNpc, activateResidentMap, initialiseTravel } from "game/travel";
 import { neighbours, worldKey, exitPoint } from "game/travel_geometry";
@@ -46,7 +47,7 @@ it("settles player road death once without overwriting the advanced departed com
 it("processes simultaneous real player and NPC edge completions on their departure map", async () => {
   const { s, ids: [player, npc, spouse], key } = pair();
   s.ecs.kinship[player].spouse = spouse; s.ecs.kinship[spouse].spouse = player;
-  s.days += 3; advanceSeason(s, 1); await advanceWorldClock(s);
+  s.days += DAYS_IN_SEASON; advanceSeason(s, 1); await advanceWorldClock(s);
   const intent = s.ecs.planner[npc].world.worldJourney;
   expect(intent.to).toBe(key);
   const edge = s.map.entrances[0].tileIds[0];
@@ -60,7 +61,7 @@ it("processes simultaneous real player and NPC edge completions on their departu
   await sim.step(0); skipIntro(s); await sim.step(0);
   expect(s.pendingNpcDepartures).toEqual([]);
   expect(s.travel.transit.filter(t => t.bundle.id == npc).length).toBeLessThanOrEqual(1);
-  s.days += 3; await advanceWorldClock(s);
+  s.days += DAYS_IN_SEASON; await advanceWorldClock(s);
   expect(s.travelError).toBeUndefined();
   expect(s.travel.maps[key].residents[npc]).toBe(true);
   expect(s.travel.maps["5,5"].residents[npc]).toBeUndefined();
@@ -91,17 +92,18 @@ it("clears local resource confirmations and results for travel and resident map 
   expect(s.ui.resourceOrder).toBeFalsy(); expect(s.ui.customsResult).toBeFalsy(); expect(s.ui.talkResult).toBeFalsy();
 });
 
-it("offscreen food shortages use the live starvation threshold and settle the estate", () => {
+it("offscreen old age uses the live death rule and settles the estate", () => {
   const { s, ids: [, actor, heir] } = community();
   delete s.travel;
-  s.ecs.personable[actor].hunger = 5.99;
+  s.days=DAYS_IN_SEASON-.001;
+  Object.assign(s.ecs.personable[actor],{age:88,lifeYears:37.25});
   s.ecs.kinship[actor].spouse = heir; s.ecs.kinship[heir].spouse = actor;
   const item = createPossession(s, actor, "Hungry householder's ring");
   const live = structuredClone(s); live.ecs.planner = {};
   createSimulation(live).step(60);
   const away = historyStep(s, 1);
-  expect(live.ecs.personable[actor].deathCause).toBe("starvation");
-  expect(away.ecs.personable[actor]).toMatchObject({ dead: true, deathCause: "starvation", heirId: heir });
+  expect(live.ecs.personable[actor].deathCause).toBe("old age");
+  expect(away.ecs.personable[actor]).toMatchObject({ dead: true, deathCause: "old age", heirId: heir });
   expect(away.ecs.possession[item].ownerId).toBe(heir);
   expect(s.ecs.personable[actor].dead).toBeUndefined();
 });
@@ -110,8 +112,8 @@ it("offscreen food shortages use the live starvation threshold and settle the es
 it("offscreen meals consume actual household portions once and leave the input snapshot intact", () => {
   const { s, ids: [, actor], house } = community();
   s.ecs.household[house].storeId = "pantry";
-  s.ecs.household[house].estateAccount = { initial: { grain: 20 }, consumed: {}, produced: {} };
-  s.ecs.container = { pantry: { amounts: { grain: 20 }, capacity: 30 } };
+  s.ecs.household[house].estateAccount = { initial: { grain: 30 }, consumed: {}, produced: {} };
+  s.ecs.container = { pantry: { amounts: { grain: 30 }, capacity: 40 } };
   s.ecs.interior = { pantry: { buildingId: house } };
   s.ecs.controllable.pantry = { controllerId: house };
   s.ecs.personable[actor].hunger = 5.99;
@@ -119,8 +121,8 @@ it("offscreen meals consume actual household portions once and leave the input s
   const away = historyStep(s, 1);
   expect(away.ecs.personable[actor].dead).toBeUndefined();
   expect(away.ecs.personable[actor].hunger).toBeLessThan(1);
-  expect(away.ecs.container.pantry.amounts.grain).toBeLessThan(20);
-  expect(away.ecs.household[house].estateAccount.consumed.grain).toBe(20 - away.ecs.container.pantry.amounts.grain);
+  expect(away.ecs.container.pantry.amounts.grain).toBeLessThan(30);
+  expect(away.ecs.household[house].estateAccount.consumed.grain).toBe(30 - away.ecs.container.pantry.amounts.grain);
   expect(historyStep(away, 1)).toBe(away);
   expect(JSON.stringify(s)).toBe(before);
 });
@@ -131,4 +133,16 @@ it("starts a new world's needs clock at its actual calendar rather than a previo
   s.needsUpdatedAt = 99;
   initialiseTravel(s, 13);
   expect(s.needsUpdatedAt).toBe(s.days);
+});
+
+it("offscreen and live food shortages keep people and their estate alive",()=>{
+  const {s,ids:[,actor]}=community();delete s.travel;
+  s.ecs.personable[actor].hunger=5.99;
+  const item=createPossession(s,actor,"Householder's ring");
+  const live=structuredClone(s);live.ecs.planner={};createSimulation(live).step(60);
+  const away=historyStep(s,1);
+  for(const world of [live,away]) {
+    expect(world.ecs.personable[actor].dead).toBeFalsy();
+    expect(world.ecs.possession[item].ownerId).toBe(actor);
+  }
 });

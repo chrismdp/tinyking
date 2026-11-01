@@ -9,31 +9,9 @@ import { solve } from "game/htn";
 import { FOODS } from "game/goods";
 import { Hex } from "game/hex";
 
-it("does not plan a successful hungry Find food after all source lookups failed",()=>{
-  const {world}=economy();world.days=10.85;world.feeling.hungry=true;
-  for(const type of FOODS)for(const prefix of ["container_with ","stockpile_with ","haulable_with "])world.no_place_for[prefix+type]=100;
-  world.no_place_for.forage_plant=100;
-  const [plan]=solve(world,[],[["ordered_meal"]]);
-  expect(plan).toContainEqual(["meal_unavailable"]);
-});
-it("keeps a failed winter meal visible with a seasonal next step instead of completing hungry",()=>{
-  const f=economy(),{s,p,camp}=f;s.days=10.855215416665336;s.intro={active:false};
-  s.ecs.container[camp].amounts={};s.ecs.personable[p].hunger=2.791666666666665;
-  const job=enqueueTask(s,{key:"find_food"},p);f.step(60);
-  expect(s.ecs.manager[p].jobs).toContain(job);
-  expect(job.waiting).toMatch(/No accessible meal/);
-  expect(job.waiting).toMatch(/Move here/);
-  expect(openingGuidance(s).text).toBe(job.waiting);
-  expect(openingGuidance(s).action).not.toBe("Find food");
-});
-it("eats a real remaining root portion in winter without waiting for spring growth",()=>{
-  const f=economy(),{s,p,camp,tiles}=f;s.days=10.85;s.ecs.container[camp].amounts={};
-  s.ecs.personable[p].hunger=2.79;
-  const [root]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},forageable:{kind:"roots",biome:"grassland",amount:1,growth:0}}]);
-  enqueueTask(s,{key:"find_food"},p);f.step(180);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
-  expect(s.ecs.forageable[root].amount).toBe(0);
-});
+
+
+
 it("retires the exact approach when chat closes, even before another simulation frame",()=>{
   const {state:s,player:p,person:n,parent}=peopleWorld();
   s.ecs.spatial[p]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};
@@ -108,24 +86,8 @@ it("does not call the row full after the closing reply clears its icons",()=>{
   expect(c.row.length).toBeLessThan(patience(s,p,n).max);
   expect(c.endReason).not.toBe("row_full");
 });
-it("cannot complete a meal order using a stale fed planner flag",()=>{
-  const {s,p,world}=economy();s.ecs.personable[p].hunger=2.79;world.feeling.hungry=false;
-  const order=enqueueTask(s,{key:"find_food"},p);order.assignedId=p;
-  expect(require("game/tasks").complete_job(s,p,world,0,true,"find_food")).toBe(require("game/htn").Task.ABORT);
-  expect(s.ecs.manager[p].jobs).toContain(order);
-});
-it("does not promote an unfinished meal's planner effects when tiredness changes",()=>{
-  const f=economy(),{s,p,world}=f;s.ecs.personable[p].hunger=2;
-  enqueueTask(s,{key:"find_food"},p);
-  for(let minute=0;minute<60 && s.ecs.planner[p].task?.[0]!="eat";minute++)f.step(1);
-  expect(s.ecs.planner[p].task[0]).toBe("eat");
-  s.ecs.personable[p].tiredness=1;world.feeling.tired=false;
-  f.step(1);
-  expect(s.ecs.personable[p].hunger).toBeGreaterThan(.9);
-  expect(world.feeling.hungry).toBe(true);
-  f.step(65);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
-});
+
+
 it("leads home after the first completed favour even with only one acquaintance",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.days=4.4;
   newEntities(s,[{spatial:{...s.ecs.spatial[tiles[0]]},camp:{},controllable:{controllerId:p}}]);
@@ -152,13 +114,5 @@ it("replaces a timed-out Chat hint with one concrete movement order",()=>{
   enqueueTask(s,{key:hint.job},hint.targetId);
   expect(s.ui.talkResult).toBeUndefined();
   expect(openingGuidance(s).key).toBe("moving");
-  expect(s.ecs.manager[p].jobs).not.toContain(job);
-});
-it("removes a failed meal order once its alternative supplies a real meal",()=>{
-  const f=economy(),{s,p,camp}=f;s.days=10.85;s.ecs.container[camp].amounts={};s.ecs.personable[p].hunger=2.79;
-  const job=enqueueTask(s,{key:"find_food"},p);f.step(60);expect(job.failed).toBe(true);
-  const [food]=newEntities(s,[{spatial:{...s.ecs.spatial[p]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:p}}]);
-  require("game/holder").give(s.ecs,food,p);f.step(150);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
   expect(s.ecs.manager[p].jobs).not.toContain(job);
 });

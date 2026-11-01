@@ -1,3 +1,5 @@
+> Historical implementation record. The 1 November 2026 [core loop](design.md) replaces player hunger and automatic care with energy. See [energy](survival.md) for current controls.
+
 # Waiting tasks and timber delivery
 
 Construction uses HTN methods for collecting one stored log, carrying it to the

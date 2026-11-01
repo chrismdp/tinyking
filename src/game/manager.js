@@ -143,6 +143,7 @@ function waitingReason(state, actorId, job) {
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
   if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home", "village_oath", "village_leave"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if(job.job.key=="chat" && ecs.interior?.[target] && ecs.interior[target].buildingId!=ecs.interior?.[actorId]?.buildingId)return "They are indoors. Wait for them to come outside, or try another neighbour";
   if (job.job.key == "give_gift") {
     const item=job.giftItem, cargo=ecs.haulable?.[item];
     const gift = item ? ecs.good[item] && cargo && (cargo.heldBy == actorId || !cargo.heldBy && householdAccess(ecs,actorId,item)) :
@@ -166,6 +167,26 @@ function waitingReason(state, actorId, job) {
 
 function reachableShelterLog(state, actorId) {
   return shelterLogSource(state, actorId, id => state.ecs.haulable?.[id]?.heldBy == actorId || canReachTask(state, actorId, id));
+}
+
+// A chat approach includes waiting for care and walking. Never spend hours
+// retrying a moving or unavailable target silently, even during player self-care.
+export function expireChatApproach(state) {
+  if(state.chat?.active)return;
+  const actor=state.ui.playerId,jobs=state.ecs.manager?.[actor]?.jobs||[];
+  const head=jobs.find(j=>!j.waiting);
+  const job=jobs.find(j=>j.job.key=="chat"&&!j.waiting&&(j.assignedId==actor||j==head));
+  if(!job)return;
+  job.approachAt ??= state.days;
+  if(state.days-job.approachAt<1/24)return;
+  const target=state.ecs.planner?.[job.targetId]?.world.feeling||{};
+  const person=state.ecs.personable[actor];
+  const reason=target.hungry?"They are still eating or looking for a meal":target.tired?"They are still resting":
+    person.hunger>.9?"You need a meal before walking over":person.tiredness>.9?"You need rest before walking over":"You could not reach them within an hour";
+  interruptOrder(state);
+  job.failed=true;
+  job.waiting=job.detail=reason+". Cancel this Chat task; finish eating or resting, move closer, then choose Chat again, or try another neighbour.";
+  state.ui.talkResult={personId:job.targetId,message:job.waiting};
 }
 
 // Called at a free planner boundary. Queue order is priority among ready jobs.

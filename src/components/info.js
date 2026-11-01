@@ -26,7 +26,7 @@ import { SleepingQuarters } from "components/sleeping_quarters";
 import { EntityContainer } from "components/entity_container";
 
 import Engine from "json-rules-engine-simplified";
-import { canPlaceShelter, STAGES } from "game/construction";
+import { canPlaceShelter, shelterPlacementReason, STAGES } from "game/construction";
 import rules from "data/jobs.json";
 
 function Job({ job, managerId, linkToTarget }) {
@@ -153,6 +153,7 @@ export function Info({ entityId }) {
       { entity.mappable && entity.mappable.temperature && state.world && (<WorldHex mappable={entity.mappable}/>) }
       {entity.mappable && <TravelOffer entityId={entityId}/>}
       <ResourceRights entityId={entityId}/>
+      {entity.mappable && shelterPlacementReason(state,entityId) && <p className="talk-note">Shelter: {shelterPlacementReason(state,entityId)}</p>}
       <TraitList traits={entity.traits}/>
       { entity.attributes && (<div>
         {

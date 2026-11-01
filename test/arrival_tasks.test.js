@@ -461,3 +461,10 @@ it("skips a chop delivery that cannot pick up its logs and runs later work", () 
   expect(chop.waiting).toBe("Your hands are full. Deliver or give away carried goods, then queue this task again.");
   expect(next.progress).toBe(1);
 });
+it("explains the occupied camp tile and names a usable shelter tile",()=>{
+  const {state:s,tiles}=arrival();
+  const {shelterPlacementReason,canPlaceShelter}=require("game/construction");
+  expect(shelterPlacementReason(s,tiles[0])).toMatch(/camp|occupied/i);
+  expect(canPlaceShelter(s,tiles[0])).toBe(false);
+  expect(shelterPlacementReason(s,tiles[1])).toBeNull();
+});

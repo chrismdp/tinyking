@@ -372,7 +372,13 @@ export function askAbout(state, actorId, personId, aboutId) {
   if (!spendPatience(state, actorId, personId)) return { ok: false, message: TALK_TIRED };
   const knowledge = knowledgeFor(state, actorId);
   (knowledge.feelings[personId] ||= {})[aboutId] = bond.ring;
-  for (const id of [aboutId, ...closeFamily(state,aboutId)]) learnPerson(state, actorId,id);
+  const disclosed=[aboutId,...closeFamily(state,aboutId)];
+  for (const id of disclosed) learnPerson(state, actorId,id);
+  // The legacy timed family disclosure states this small tree. Keep evidence
+  // explicit so UI never mistakes independent acquaintance for learned kin.
+  knowledge.kinLinks ||= {};
+  for(const id of disclosed)for(const relative of closeFamily(state,id).filter(r=>disclosed.includes(r)))
+    knowledge.kinLinks[id+":"+relative] = {speaker_id:id,relative_id:relative,day:state.days,speakerId:personId};
   for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) learnEvent(state, actorId, event);
   completeConversation(state, actorId, personId);
   recogniseConversation(state,actorId,personId,knownEvents(state,personId,aboutId).filter(e=>canDiscloseEvent(state,personId,actorId,e)));

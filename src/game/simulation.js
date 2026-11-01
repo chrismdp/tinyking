@@ -17,7 +17,7 @@ import * as time from "game/time";
 import { updateWeather } from "game/weather";
 import { drift } from "game/people";
 import { topController } from "game/playable";
-import { jobQueueFor, readyPlayerTasks, deferPlayerTask } from "game/manager";
+import { jobQueueFor, readyPlayerTasks, deferPlayerTask, expireChatApproach } from "game/manager";
 
 import { updateVillageLife } from "game/villages";
 
@@ -52,6 +52,7 @@ function updatePlannerFrame(state, frameMod) {
     if (!childrenByHome.has(home)) childrenByHome.set(home, []);
     childrenByHome.get(home).push(id);
   }
+  expireChatApproach(state);
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];
     validateHome(state, id);

@@ -29,7 +29,7 @@ function OpeningGuidance() {
   const state = React.useContext(GameState);
   const hint = openingGuidance(state);
   if (!hint) return null;
-  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span>{hint.action && <button onClick={() => hint.speed ? state.ui.actions.set_speed(hint.speed) : hint.job ? state.ui.actions.choose_job(hint.actorId,{key:hint.job},hint.actorId) : state.ui.actions.talk_to(hint.targetId,"chat")}>{hint.action}</button>}</aside>;
+  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span>{hint.action && <button onClick={() => hint.selectId ? state.ui.actions.select_entity(hint.selectId,false) : hint.speed ? state.ui.actions.set_speed(hint.speed) : hint.job ? state.ui.actions.choose_job(hint.actorId,{key:hint.job},hint.actorId) : state.ui.actions.talk_to(hint.targetId,"chat")}>{hint.action}</button>}</aside>;
 }
 
 export function UserInterface() {

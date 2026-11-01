@@ -201,3 +201,43 @@ it("leaves a collected choice in hand on cancellation and waits if the chosen so
   expect(unavailable.progress).toBe(0);
   expect(state.ecs.good[supply].amount).toBe(1);
 });
+
+it("stops waiting for a hungry chat target within one game hour and gives a next step",()=>{
+  const {state:s,player:p,person:n,step}=peopleWorld();
+  const {enqueueTask}=require("game/manager");
+  s.ecs.personality[n].traits=[];
+  s.ecs.personable[n].hunger=1.1;s.ecs.planner[n].world.feeling.hungry=true;
+  const order=enqueueTask(s,{key:"chat"},n);
+  step(1.1);
+  expect(order.waiting).toMatch(/meal|eating/i);
+  expect(order.waiting).toMatch(/another|again/i);
+  expect(order.assignedId).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+});
+it("explains an indoor target instead of capturing them for an impossible outdoor handoff",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  s.ecs.interior ||= {};s.ecs.interior[n]={buildingId:"private-house"};
+  const order=enqueueTask(s,{key:"chat"},n);
+  order.assignedId=p;
+  expect(tasks.get_attention(s,p,s.ecs.planner[p].world,0,true,n)).toBe(require("game/htn").Task.ABORT);
+  require("game/manager").deferPlayerTask(s);
+  expect(order.waiting).toMatch(/indoors|outside/i);
+  expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+});
+it("bounds a chat approach behind a deferred food order during player care",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  s.ecs.personable[p].hunger=1.1;
+  s.ecs.manager[p].jobs.push({job:{key:"find_food"},failed:true,waiting:"No meal. Forage."});
+  const order=enqueueTask(s,{key:"chat"},n),{expireChatApproach}=require("game/manager");
+  expireChatApproach(s);s.days+=1.1/24;expireChatApproach(s);
+  expect(order.waiting).toMatch(/You need a meal/);
+  expect(order.failed).toBe(true);
+});
+it("lets a player leave their own interior to approach an outdoor neighbour",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  s.ecs.interior ||= {};s.ecs.interior[p]={buildingId:"player-house"};
+  const order=enqueueTask(s,{key:"chat"},n);
+  expect(require("game/manager").readyPlayerTasks(s)).toContain(order);
+  expect(tasks.get_attention(s,p,s.ecs.planner[p].world,0,true,n)).not.toBe(require("game/htn").Task.ABORT);
+});

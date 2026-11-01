@@ -820,7 +820,9 @@ export function get_attention(state, actorId, world, dt, firstRun, targetId) {
   if (!target) {
     throw "Cannot get_attention for non-planner " + targetId;
   }
-  if (state.ecs.manager?.[actorId]?.jobs.some(j => j.job.key == "chat" && j.targetId == targetId)) world.chatActivity = snapshotActivity(state, targetId);
+  const approachingChat=state.ecs.manager?.[actorId]?.jobs.some(j => j.job.key == "chat" && j.targetId == targetId);
+  if(approachingChat && state.ecs.interior?.[targetId] && state.ecs.interior[targetId].buildingId!=state.ecs.interior?.[actorId]?.buildingId)return Task.ABORT;
+  if(approachingChat)world.chatActivity = snapshotActivity(state, targetId);
   if (target.world.feeling?.hungry || target.world.feeling?.tired || target.world.capturedBy && target.world.capturedBy != actorId) return Task.CONTINUE;
   replan(target);
   target.world.capturedBy = actorId;

@@ -202,12 +202,14 @@ it("distinguishes a sibling's spouse from an unrelated known companion", () => {
   state.ecs.relationships[player].known[sibling] = { ring: "public", goodwill: 0 };
   state.ecs.kinship[parent].children = [person];
   state.ecs.kinship[sibling].parents = [];
+  state.knowledge = { [player]: { people: {}, feelings: { [person]: { [sibling]: "social" } } } };
   let html = render(state, <PersonPanel entityId={person}/>);
   expect(html).toMatch(/Alice Miller<\/button><span class="kin">Known to you/);
   state.ecs.kinship[parent].children = [person, player];
   state.ecs.kinship[player].parents = [parent];
   state.ecs.kinship[player].spouse = sibling;
   state.ecs.kinship[sibling].spouse = player;
+  state.knowledge[player].kinLinks = { inlaw: { speaker_id: person, relative_id: sibling, kinship: "sibling_in_law" } };
   html = render(state, <PersonPanel entityId={person}/>);
   expect(html).toMatch(/Alice Miller<\/button><span class="kin">Sister-in-law/);
 });
@@ -389,6 +391,7 @@ it.each([true,false])('reads a remote home owner and heir from its saved map (ow
   state.ecs.nameable[home].nickname='Log cabin';
   state.ecs.relationships[player].known[person]={ring:'public',goodwill:0};
   if(known) state.ecs.relationships[player].known[parent]={ring:'public',goodwill:0};
+  state.knowledge={[player]:{people:{},feelings:{},kinLinks:{heard_parent:{speaker_id:person,relative_id:parent,kinship:'parent'}}}};
   const remote={ecs:structuredClone(state.ecs)};
   state.travel={maps:{'0,0':remote},people:{}};
   state.residents={[player]:true};
@@ -405,4 +408,19 @@ it.each([true,false])('reads a remote home owner and heir from its saved map (ow
   expect(html).not.toContain('an unknown person household');
   if(!known) expect(html).not.toContain('Edith Miller');
   expect(render(state,<FamilyTree entityId={person}/>)).toContain('◇ Heir');
+});
+
+it("never labels independently known people as kin or grants traits merely for trust",()=>{
+  const {state:s,player:p,person:n,parent,sibling}=peopleWorld();
+  s.ecs.relationships[n].known[p]={ring:"personal",goodwill:36};
+  s.knowledge={[p]:{people:Object.fromEntries([n,parent,sibling].map(id=>[id,{traits:[],conversation:{day:s.days}}])),feelings:{}}};
+  let html=render(s,<PersonPanel entityId={n}/>);
+  expect(html).not.toContain('class="kin">Mother');expect(html).not.toContain('class="kin">Sister');
+  expect(html).not.toContain('>Generous<');expect(html).not.toContain('>Proud<');
+  expect(html).toContain("Household heir: Not yet learned");
+  s.knowledge[p].kinLinks={[`${n}:${sibling}:sibling`]:{speaker_id:n,relative_id:sibling,kinship:"sibling"}};
+  s.knowledge[p].people[n].traits=["brave"];
+  html=render(s,<PersonPanel entityId={n}/>);
+  expect(html).toContain('class="kin">Sister');expect(html).toContain('>Brave<');
+  expect(html).not.toContain('class="kin">Mother');
 });

@@ -23,3 +23,20 @@ export function rememberOwnConversations(state, actorId) {
     learned.conversation ||= {day};
   }
 }
+
+// A name, trust or goodwill is not evidence of a relationship. Only a stated
+// link, a known birth/marriage, or one's own family permits kin labels.
+export function knownKinship(state, viewer, a, b) {
+  if(viewer==a || viewer==b) return true;
+  const links=Object.values(state.knowledge?.[viewer]?.kinLinks||{});
+  const edges=links.map(l=>[l.speaker_id,l.relative_id]);
+  const heard=new Set(state.knowledge?.[viewer]?.events||[]);
+  for(const event of state.events||[])if(heard.has(event.id)&&["birth","marriage"].includes(event.type))
+    for(const id of event.people.slice(1))edges.push([event.people[0],id]);
+  const reached=new Set([a]);
+  for(const id of reached)for(const [from,to] of edges) {
+    if(from==id)reached.add(to);
+    if(to==id)reached.add(from);
+  }
+  return reached.has(b);
+}

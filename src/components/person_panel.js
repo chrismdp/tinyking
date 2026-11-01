@@ -8,7 +8,7 @@ import { VillageMembership } from "./village_customs";
 import { biography, disclosedPossessions } from "game/biography";
 import { isResident, personComponent, homeState } from "game/residents";
 import { PersonRequests } from "./favour_requests";
-import { displayName as knownDisplayName } from "game/knowledge";
+import { displayName as knownDisplayName, knownKinship } from "game/knowledge";
 import { heirFor } from "game/possessions";
 import { knownEvents, eventSentence } from "game/events";
 import React from "react";
@@ -26,7 +26,7 @@ const displayName = (state, id) => knownDisplayName(state, id, id => personCompo
 // still use the current actor's actual learned identities for names and counts.
 function familyTree(state, id) {
   const tree = knownFamilyTree(state, state.ui.playerId, id);
-  for (const node of Object.values(tree.nodes)) if (displayName(state, node.id) == "an unknown person") node.unknown = true;
+  for (const node of Object.values(tree.nodes)) if (displayName(state, node.id) == "an unknown person" || node.id!=id&&!knownKinship(state,state.ui.playerId,id,node.id)) node.unknown = true;
   return tree;
 }
 const number = value => Number(value.toFixed(1));
@@ -52,6 +52,7 @@ function Sheet({ children, label, onClose, className }) {
 Sheet.propTypes = { children: PropTypes.node, label: PropTypes.string, onClose: PropTypes.func, className: PropTypes.string };
 
 function relation(state, personId, otherId) {
+  if(!knownKinship(state,state.ui.playerId,personId,otherId))return "Known to you";
   const kin = personComponent(state, "kinship", personId), male = personComponent(state, "nameable", otherId)?.male;
   if (kin.spouse == otherId) return "Spouse";
   if (kin.parents.includes(otherId)) return male === undefined ? "Parent" : male ? "Father" : "Mother";
@@ -93,11 +94,11 @@ export function PersonPanel({ entityId }) {
   const nextRing = RINGS[rank + 1];
   const learned = state.knowledge?.[player]?.people || {};
   const traits = personComponent(state, "personality", entityId).traits;
-  const visibleTraits = new Set([...(learned[entityId]?.traits || []), ...(trusted ? traits.slice(0, 2) : [])]);
+  const visibleTraits = new Set([...(learned[entityId]?.traits || []), ...(entityId==player ? traits : [])]);
   const tree = familyTree(state, entityId);
   const knownCount = Object.values(tree.nodes).filter(n => !n.unknown).length;
   const theirPeople = Object.entries(personComponent(state, "relationships", entityId).known).filter(([id]) => id != player &&
-    (!!personComponent(state, "relationships", player).known[id] || !!learned[id] || (tree.nodes[id] && !tree.nodes[id].unknown)))
+    (knownKinship(state,player,entityId,id) || state.knowledge?.[player]?.feelings?.[entityId]?.[id] || knownEvents(state,player).some(e=>e.people.includes(entityId)&&e.people.includes(id))))
     .sort((a, b) => RINGS.indexOf(b[1].ring) - RINGS.indexOf(a[1].ring) || b[1].goodwill - a[1].goodwill).slice(0, 3);
   const pronoun = personComponent(state, "nameable", entityId)?.male === undefined ? "They" : personComponent(state, "nameable", entityId).male ? "He" : "She";
   const possessive = pronoun == "She" ? "her" : pronoun == "He" ? "his" : "their";
@@ -146,7 +147,7 @@ export function PersonPanel({ entityId }) {
       {Object.entries(learned[entityId]?.personReactions||{}).map(([id,evidence])=><p className="talk-note" key={id}>{evidence.score>0?"Welcomes":evidence.score<0?"Dislikes":"Is neutral about"} {id==entityId?"attention":"talk of "+knownName(id)} · {gameDate(evidence.day)}</p>)}
       <p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
-      {identified && <div className="family-status"><p className="label">Household and inheritance</p><p>Owner: {owner && personComponent(state, "personable", owner) ? knownName(owner) : "Unclaimed home"}</p><p>Household heir: {successor ? knownName(successor) + (personComponent(state, "personable", successor)?.age < 18 ? " · Child" : "") : "No living heir"}</p><small>Spouse, then eldest living child, then nearest kin.</small></div>}
+      {identified && <div className="family-status"><p className="label">Household and inheritance</p><p>Owner: {owner && personComponent(state, "personable", owner) ? knownName(owner) : "Unclaimed home"}</p><p>Household heir: {successor && !knownKinship(state,player,owner,successor) ? "Not yet learned" : successor ? knownName(successor) + (personComponent(state, "personable", successor)?.age < 18 ? " · Child" : "") : "No living heir"}</p><small>Spouse, then eldest living child, then nearest kin.</small></div>}
       <div className="biography"><p className="label">Their story</p>{biography(state, player, entityId, id => displayName(state, id)).map(f => <p key={f.key}>{f.text}</p>)}</div>
       <div className="relationship">{contacted ? <><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : relationshipSentence(pronoun, "you", ring, possessive)}</strong><Ring ring={ring}/></div>
         <p>{trusted ? benefit : `An impression from your conversation. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
@@ -207,7 +208,7 @@ function heirOf(state, id) {
     const head = ecs.controllable[house].controllerId, kin = personComponent(state, "kinship", head);
     if (!kin) continue;
     const heir = heirFor({...state,ecs,residents:estate.residents}, head);
-    if (heir == id) return household(state, house, ecs).home;
+    if (heir == id && knownKinship(state,state.ui.playerId,head,id)) return household(state, house, ecs).home;
   }
   return null;
 }
@@ -230,7 +231,8 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   const close = onClose || (() => state.ui.actions.change_visibility({ selected_person: null }));
   const select = onSelect || (id => state.ui.actions.select_entity(id, false));
   const estate = homeState(state,entityId), owner = estate.ecs.controllable[personComponent(state,"household",entityId)?.houseId]?.controllerId;
-  const heir = owner && heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner);
+  const actualHeir = owner && heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner);
+  const heir = actualHeir && knownKinship(state,state.ui.playerId,owner,actualHeir) ? actualHeir : null;
   const nodes = Object.values(tree.nodes), personName = tree.nodes[tree.rootId].unknown ? "an unknown person" : displayName(state, entityId);
   const unions = new Map();
   for (const node of nodes) if (node.parents.length) {

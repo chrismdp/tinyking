@@ -195,6 +195,10 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
   case "phase_is":return c.phase==a.phase;
+  case "closing_reply_is":return c.closingReply==a.value;
+  case "question_is":return c.question?.family==a.family&&c.question?.situation==a.situation;
+  case "relative_known_dead":return !!s.knowledge?.[viewer]?.events?.some(id=>(s.events||[]).some(e=>e.id==id&&e.type=="death"&&e.people[0]==person));
+  case "has_no_children":return !k(person).children.length;
   case "npc_first_encounter":return !c.knewBefore;
   case "npc_knew_player_before_chat":return c.knewBefore;
   case "completed_contact_exists":return !!s.knowledge?.[id(a.actor)]?.people?.[person]?.conversation;

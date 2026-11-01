@@ -30,24 +30,31 @@ export function deliveryHome(state,actorId) {
   const home=localHome(state,actorId);
   return householdStore(state,home) || home;
 }
-export function canPlaceShelter(state, targetId) {
-  const ecs = state.ecs;
-  if (ecs.construction?.[targetId]) return false;
-  if (ecs.shelter?.[targetId]) return topController(ecs, targetId) == state.ui.playerId && !!STAGES[ecs.shelter[targetId].stage].next &&
-    canClearForBuilding(state, buildingFootprint(state, targetId), state.ui.playerId);
-  if (ecs.mappable[targetId]?.terrain != "grassland" || ecs.mappable[targetId]?.villagePlot || ecs.mappable[targetId]?.route?.length) return false;
-  if (state.map?.geography && !shelterSurface(state, ecs.spatial[targetId])) return false;
-  const preview = { ecs: { spatial: { site: ecs.spatial[targetId] }, shelter: { site: {} } } };
-  if (!canClearForBuilding(state, buildingFootprint(preview, "site"), state.ui.playerId)) return false;
-  const hex = Hex().fromPoint(ecs.spatial[targetId]);
-  const camp = Object.keys(ecs.camp || {}).find(id=>topController(ecs,id)==state.ui.playerId);
-  if (!camp || hex.distance(Hex().fromPoint(ecs.spatial[camp])) > 3) return false;
-  const campTile = state.space[Hex().fromPoint(ecs.spatial[camp])].find(id => ecs.mappable[id]);
-  if (!path(state, campTile, targetId)) return false;
-  if ([...Object.keys(ecs.shelter || {}),...Object.keys(ecs.construction || {})].some(id=>topController(ecs,id)==state.ui.playerId)) return false;
-  return !(state.space[hex] || []).some(id => id != targetId &&
-    (ecs.building[id] || ecs.camp?.[id] || ecs.farmable?.[id] || ecs.stockpile?.[id]));
+export function shelterPlacementReason(state, targetId) {
+  const ecs=state.ecs;
+  if(ecs.construction?.[targetId])return "A shelter is already being built here.";
+  if(ecs.shelter?.[targetId]) {
+    if(topController(ecs,targetId)!=state.ui.playerId)return "This shelter belongs to someone else.";
+    if(!STAGES[ecs.shelter[targetId].stage]?.next)return "This house is fully built.";
+    return canClearForBuilding(state,buildingFootprint(state,targetId),state.ui.playerId)?null:"The larger shelter needs clear ground.";
+  }
+  if(ecs.mappable?.[targetId]?.terrain!="grassland")return "A shelter needs grassland.";
+  if(ecs.mappable[targetId].villagePlot)return "This ground belongs to a village plot.";
+  if(ecs.mappable[targetId].route?.length)return "A shelter would block this route.";
+  const preview={ecs:{spatial:{site:ecs.spatial[targetId]},shelter:{site:{}}}};
+  if(!canClearForBuilding(state,buildingFootprint(preview,"site"),state.ui.playerId))return "Trees belonging to someone else block this site.";
+  const hex=Hex().fromPoint(ecs.spatial[targetId]);
+  const camp=Object.keys(ecs.camp||{}).find(id=>topController(ecs,id)==state.ui.playerId);
+  if(!camp||hex.distance(Hex().fromPoint(ecs.spatial[camp]))>3)return "Choose grass within three tiles of your camp.";
+  if((state.space[hex]||[]).some(id=>id!=targetId&&(ecs.building?.[id]||ecs.camp?.[id]||ecs.farmable?.[id]||ecs.stockpile?.[id])))
+    return "This tile is occupied by a camp, building, field or stockpile. Choose an empty neighbouring tile.";
+  if(state.map?.geography&&!shelterSurface(state,ecs.spatial[targetId]))return "This ground is too steep for a shelter.";
+  const campTile=state.space[Hex().fromPoint(ecs.spatial[camp])].find(id=>ecs.mappable[id]);
+  if(!path(state,campTile,targetId))return "There is no walking route from camp to this tile.";
+  if([...Object.keys(ecs.shelter||{}),...Object.keys(ecs.construction||{})].some(id=>topController(ecs,id)==state.ui.playerId))return "You already have a shelter or a shelter site.";
+  return null;
 }
+export const canPlaceShelter=(state,targetId)=>shelterPlacementReason(state,targetId)==null;
 
 export function placeShelter(state, targetId) {
   if (!canPlaceShelter(state, targetId)) return null;

@@ -2838,6 +2838,112 @@ situation("help_refusal", "before_introduction", "npc",
     variants=[V("Your name first, if you please. Then we can speak of work.", "proud", TR("proud")),
               V("I don't even know your name. Introduce yourself first.", "timid", TR("timid"))])
 
+# Specific questions always have an honest, on-topic reply after factual rows
+# or refusals have been spent. These rows reveal no new facts.
+for r in rows:
+    if r["speaker"] == "player" and r["family"] == "family_question" and r["situation"] == "known_relative":
+        r["when"]["none"].append(P("relative_known_dead", viewer="player", person="relative"))
+
+player_family_q("bereaved_relative", ["I'm sorry about {relative.first_name}.", "You must miss {relative.first_name}."],
+    icons=[T("family"), R("relative")],
+    base=[P("relative_known_dead", viewer="player", person="relative")],
+    bindings={"link": {"source": "player_known_kin_link_of_npc"}, "relative": {"source": "link_relative", "link": "link"}},
+    purpose="relative_news", key="condolence:{player.id}:{npc.id}:{relative.id}:{context.encounter_number}")
+situation("family_answer", "refuse_children", "npc", base_all=[PHASE_REPLY,RING("public"),
+    P("question_is",family="family_question",situation="children")], icons=[T("family")],
+    use_key="children_refusal:{npc.id}:{player.id}:{context.encounter_number}",
+    variants=["I'm not talking about children with a stranger.", "Children are private business. Ask when we know each other."])
+situation("family_answer", "no_children", "npc", base_all=[PHASE_REPLY, TRUST_SOCIAL,
+    P("has_no_children", person="npc"), P("question_is", family="family_question", situation="children")],
+    icons=[T("family")], facts=[F("npc", ["children"])],
+    use_key="no_children:{npc.id}:{player.id}:{context.game_hour}", variants=["I've no children.", "No little ones of mine."])
+
+fallbacks = {
+    "work_question": {"general": "I've no more work to tell you of.", "personal": "That's all I'm doing today.",
+        "workplace_age": "I couldn't tell you how old the workplace is.", "field": "I've nothing more to tell you about our grain."},
+    "village_question": {"general": "I've nothing more to tell you about the village.", "elder": "I can't tell you more about the elder."},
+    "lands_question": {"villages": "I know no more places to tell you of.", "roads": "That's all I know of the roads.",
+        "beyond": "I can't tell you any more about the lands beyond.", "country": "That's all I can tell you about this country.", "known_village": "I know nothing more about that place."},
+    "family_question": {"general": "I've no more family to speak of today.", "household": "I can't tell you more about my household.",
+        "spouse": "I've nothing more to say about marriage.", "children": "I've no more to say about children today.",
+        "parents": "I've nothing more to tell you about my parents.", "residence": "I've no more to tell you about living here.",
+        "known_relative": "I've no more news of them.", "bereaved_relative": "Thank you. I remember them often."},
+    "gossip_question": {"news_of": "I've no more news of them.", "opinion_of": "I've nothing more to say about them.", "village_news": "I've no more village news."},
+    "visit_question": {"general": "I've no more visits to tell you of."},
+    "help_offer": {"generic": "There's no work I can offer you just now.", "noticed_harvest": "I've no harvest work to offer you now.",
+        "noticed_wood": "I've no fuel delivery to ask of you now.", "noticed_food": "I've no food delivery to ask of you now."},
+    "need_question": {"anyone": "I know of nobody else needing help just now."},
+    "introduction": {"player_asks_name": "You've heard my name already."}
+}
+questions = {(r["family"],r["situation"]):r for r in rows if r["speaker"]=="player" and r["situation"] in fallbacks.get(r["family"],{})}
+for (fam,sit), q in questions.items():
+    purpose = next(e["purpose"] for e in q["effects"] if e["op"]=="set_reply_purpose")
+    topic = {"work_question":"work", "village_question":"village", "lands_question":"village", "family_question":"family",
+             "gossip_question":"gossip", "visit_question":"gossip", "help_offer":"help", "need_question":"help", "introduction":"village"}[fam]
+    situation(purpose, "fallback_"+sit, "npc", base_all=[PHASE_REPLY,P("question_is",family=fam,situation=sit)],
+        icons=[T(topic)], use_key="topic_reply:"+fam+":"+sit+":{context.encounter_number}",
+        variants=[fallbacks[fam][sit]])
+situation("referral_reply", "thanks", "player", base_all=[PHASE_PLAYER,P("closing_reply_is",value="referral")], icons=[T("help")],
+    use_key="referral_reply:{context.encounter_number}", variants=["Thank you. I'll look for them."],
+    effects=[{"op":"set_reply_purpose","purpose":"open"}])
+
+# Many field voices: usable by all plus trait-specific replies. Truth remains in
+# the original situation predicates, with no unearned needs or history invented.
+voices={
+'field_growing': ['The shoots are up. Now we wait.', 'Still green, as you can see.', 'Our grain has taken root.', 'Growing, though it takes its time.', 'The field is sown. It is growing.', 'A green field today; grain later.', 'The crop is making its way.', 'There is life in the field.', 'Seed is in and shoots are showing.', 'It is growing. No cutting yet.', 'The grain is getting taller.', 'We have a growing crop to watch.', 'The field has greened up.', 'Sown grain, still growing.'],
+'no_field':['We have no ground under grain.', 'No field here. Other work keeps us.', 'We do without a field.', 'No crops of our own to watch.', 'There is no grain field in our household.', 'We have no sowing to see to.', 'No land under the plough here.', 'We have no crop to bring in.', 'We are a household without a field.']}
+for sit, texts in voices.items():
+    model=next(r for r in rows if r['family']=='field_talk' and r['situation']==sit)
+    for i,text in enumerate(texts,1):
+        import copy
+        r=copy.deepcopy(model);r['id']=f"npc.field_talk.{sit}.extra.{i:02d}";r['text']=text;rows.append(r)
+# Disposition changes the voice of facts, without changing their truth.
+voiced = {
+    "field_growing": {
+        "hate": ["It is growing. You can see that.", "The grain is sown. Leave it be.", "Growing. Was there something else?", "No harvest yet. Be on your way."],
+        "like": ["The grain is up; we keep an eye on it.", "Sown and growing. How goes your work?", "A little taller when we look again.", "Still growing. There is time before cutting."],
+        "love": ["Come and look at the shoots with me.", "Our grain is growing. Good to see you too.", "A growing field and a visitor. A good day.", "We have shoots coming through. Have a look!"]},
+    "field_ripe": {
+        "hate": ["Ripe. Keep your hands off it.", "The grain is ours, and ready to cut."],
+        "like": ["The grain is ready. Cutting time now.", "Our ripe patches will keep us occupied."],
+        "love": ["You've come at cutting time. Look at our grain!", "Ripe at last. I am glad you came to see it."]},
+    "field_ploughed": {
+        "hate": ["We have ploughed. We don't need advice."],
+        "like": ["The ground is turned. Sowing is next."],
+        "love": ["Ploughed and ready. Come and see our work."]},
+    "field_bare": {
+        "hate": ["Bare ground. Nothing for you there."],
+        "like": ["The field is bare. We will sow again."],
+        "love": ["Nothing growing to show you yet. Come again."]},
+    "no_field": {
+        "hate": ["No field. Why do you ask?"],
+        "like": ["No field of our own. We have other work."],
+        "love": ["No field to show you, but you are welcome."]},
+    "idle": {
+        "hate": ["My time is my own.", "Nothing I need discuss with you."],
+        "like": ["A moment between tasks. What of you?", "Nothing pressing. I can stop a moment."],
+        "love": ["Free for a moment, and here you are.", "I've time to hear how you are getting on."]},
+    "trade_baker": {
+        "hate": ["Bread. What else would I be making?"],
+        "like": ["The oven keeps us occupied. Bread is our trade."],
+        "love": ["Bread is our work. Come and see the oven."]},
+    "trade_smith": {
+        "hate": ["I work iron. Stand clear of the forge."],
+        "like": ["Ironwork keeps me at the forge."],
+        "love": ["Working iron. You are welcome to watch."]},
+    "trade_carpenter": {
+        "hate": ["Woodwork. Do you need something made?"],
+        "like": ["Wood is my trade. There is always shaping to do."],
+        "love": ["Working wood. Come and have a look."]},
+}
+for sit, dispositions in voiced.items():
+    model=next(r for r in rows if r["speaker"]=="npc" and r["family"] in ("field_talk","work_talk") and r["situation"]==sit)
+    for voice,texts in dispositions.items():
+        for i,text in enumerate(texts,1):
+            import copy
+            r=copy.deepcopy(model);r["id"]=f"npc.{model['family']}.{sit}.{voice}.{i:02d}";r["text"]=text
+            r["when"]["all"].append(P("disposition_is",person="npc",towards="player",value=voice));rows.append(r)
+
 # ---------- weights ----------
 groups = {}
 for r in rows:

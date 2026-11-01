@@ -80879,6 +80879,13 @@
      "args": {
       "mode": "practical_only"
      }
+    },
+    {
+     "test": "relative_known_dead",
+     "args": {
+      "viewer": "player",
+      "person": "relative"
+     }
     }
    ]
   },
@@ -80982,6 +80989,13 @@
      "args": {
       "mode": "practical_only"
      }
+    },
+    {
+     "test": "relative_known_dead",
+     "args": {
+      "viewer": "player",
+      "person": "relative"
+     }
     }
    ]
   },
@@ -81084,6 +81098,13 @@
      "test": "chat_mode_is",
      "args": {
       "mode": "practical_only"
+     }
+    },
+    {
+     "test": "relative_known_dead",
+     "args": {
+      "viewer": "player",
+      "person": "relative"
      }
     }
    ]
@@ -143276,6 +143297,8916 @@
    "events": [],
    "requests": [],
    "facts": []
+  }
+ },
+ {
+  "id": "player.family_question.bereaved_relative.base.01",
+  "speaker": "player",
+  "family": "family_question",
+  "situation": "bereaved_relative",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "player_known_kin_link_of_npc"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "relative_known_dead",
+     "args": {
+      "viewer": "player",
+      "person": "relative"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:family"
+   ],
+   "remove": []
+  },
+  "text": "I'm sorry about {relative.first_name}.",
+  "facts": [
+   {
+    "ref": "player_knowledge",
+    "fields": [
+     "npc_identity"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "condolence:{player.id}:{npc.id}:{relative.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Family or their portrait can land badly with them.",
+    "They need to trust you (Familiar or closer) to name relatives."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "relative_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "player.family_question.bereaved_relative.base.02",
+  "speaker": "player",
+  "family": "family_question",
+  "situation": "bereaved_relative",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "player_known_kin_link_of_npc"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "relative_known_dead",
+     "args": {
+      "viewer": "player",
+      "person": "relative"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:family"
+   ],
+   "remove": []
+  },
+  "text": "You must miss {relative.first_name}.",
+  "facts": [
+   {
+    "ref": "player_knowledge",
+    "fields": [
+     "npc_identity"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "condolence:{player.id}:{npc.id}:{relative.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Family or their portrait can land badly with them.",
+    "They need to trust you (Familiar or closer) to name relatives."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "relative_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.refuse_children.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "refuse_children",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "children"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'm not talking about children with a stranger.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "children_refusal:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.refuse_children.base.02",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "refuse_children",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "children"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Children are private business. Ask when we know each other.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "children_refusal:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.no_children.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "no_children",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    },
+    {
+     "test": "has_no_children",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "children"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no children.",
+  "facts": [
+   {
+    "ref": "npc",
+    "fields": [
+     "children"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "no_children:{npc.id}:{player.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.no_children.base.02",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "no_children",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    },
+    {
+     "test": "has_no_children",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "children"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No little ones of mine.",
+  "facts": [
+   {
+    "ref": "npc",
+    "fields": [
+     "children"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "no_children:{npc.id}:{player.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.name_answer.fallback_player_asks_name.base.01",
+  "speaker": "npc",
+  "family": "name_answer",
+  "situation": "fallback_player_asks_name",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "introduction",
+      "situation": "player_asks_name"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "You've heard my name already.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:introduction:player_asks_name:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.work_talk.fallback_general.base.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "fallback_general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "work_question",
+      "situation": "general"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more work to tell you of.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "topic_reply:work_question:general:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.work_talk.fallback_personal.base.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "fallback_personal",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "work_question",
+      "situation": "personal"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "That's all I'm doing today.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "topic_reply:work_question:personal:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.work_talk.fallback_workplace_age.base.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "fallback_workplace_age",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "work_question",
+      "situation": "workplace_age"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I couldn't tell you how old the workplace is.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "topic_reply:work_question:workplace_age:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.fallback_field.base.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "fallback_field",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "work_question",
+      "situation": "field"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've nothing more to tell you about our grain.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "topic_reply:work_question:field:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.village_talk.fallback_general.base.01",
+  "speaker": "npc",
+  "family": "village_talk",
+  "situation": "fallback_general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "village_question",
+      "situation": "general"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've nothing more to tell you about the village.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:village_question:general:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.elder_answer.fallback_elder.base.01",
+  "speaker": "npc",
+  "family": "elder_answer",
+  "situation": "fallback_elder",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "village_question",
+      "situation": "elder"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I can't tell you more about the elder.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:village_question:elder:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.lands_villages.fallback_villages.base.01",
+  "speaker": "npc",
+  "family": "lands_villages",
+  "situation": "fallback_villages",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "lands_question",
+      "situation": "villages"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know no more places to tell you of.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:lands_question:villages:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.lands_roads.fallback_roads.base.01",
+  "speaker": "npc",
+  "family": "lands_roads",
+  "situation": "fallback_roads",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "lands_question",
+      "situation": "roads"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "That's all I know of the roads.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:lands_question:roads:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.lands_beyond.fallback_beyond.base.01",
+  "speaker": "npc",
+  "family": "lands_beyond",
+  "situation": "fallback_beyond",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "lands_question",
+      "situation": "beyond"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I can't tell you any more about the lands beyond.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:lands_question:beyond:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.lands_country.fallback_country.base.01",
+  "speaker": "npc",
+  "family": "lands_country",
+  "situation": "fallback_country",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "lands_question",
+      "situation": "country"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "That's all I can tell you about this country.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:lands_question:country:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.lands_place.fallback_known_village.base.01",
+  "speaker": "npc",
+  "family": "lands_place",
+  "situation": "fallback_known_village",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "lands_question",
+      "situation": "known_village"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know nothing more about that place.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "topic_reply:lands_question:known_village:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.fallback_general.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "fallback_general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "general"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more family to speak of today.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:general:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.household_answer.fallback_household.base.01",
+  "speaker": "npc",
+  "family": "household_answer",
+  "situation": "fallback_household",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "household"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I can't tell you more about my household.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:household:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.fallback_spouse.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "fallback_spouse",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "spouse"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've nothing more to say about marriage.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:spouse:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.fallback_children.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "fallback_children",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "children"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more to say about children today.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:children:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.family_answer.fallback_parents.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "fallback_parents",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "parents"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've nothing more to tell you about my parents.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:parents:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.residence_answer.fallback_residence.base.01",
+  "speaker": "npc",
+  "family": "residence_answer",
+  "situation": "fallback_residence",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "residence"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more to tell you about living here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:residence:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.relative_news.fallback_known_relative.base.01",
+  "speaker": "npc",
+  "family": "relative_news",
+  "situation": "fallback_known_relative",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "known_relative"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more news of them.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:known_relative:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.event_news.fallback_news_of.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "fallback_news_of",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "gossip_question",
+      "situation": "news_of"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more news of them.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "topic_reply:gossip_question:news_of:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.relationship_answer.fallback_opinion_of.base.01",
+  "speaker": "npc",
+  "family": "relationship_answer",
+  "situation": "fallback_opinion_of",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "gossip_question",
+      "situation": "opinion_of"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've nothing more to say about them.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "topic_reply:gossip_question:opinion_of:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.event_news.fallback_village_news.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "fallback_village_news",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "gossip_question",
+      "situation": "village_news"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more village news.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "topic_reply:gossip_question:village_news:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.visit_news.fallback_general.base.01",
+  "speaker": "npc",
+  "family": "visit_news",
+  "situation": "fallback_general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "visit_question",
+      "situation": "general"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no more visits to tell you of.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "topic_reply:visit_question:general:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.favour_ask.fallback_generic.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "fallback_generic",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "help_offer",
+      "situation": "generic"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "There's no work I can offer you just now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "topic_reply:help_offer:generic:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.favour_ask.fallback_noticed_harvest.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "fallback_noticed_harvest",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "help_offer",
+      "situation": "noticed_harvest"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no harvest work to offer you now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "topic_reply:help_offer:noticed_harvest:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.favour_ask.fallback_noticed_wood.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "fallback_noticed_wood",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "help_offer",
+      "situation": "noticed_wood"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no fuel delivery to ask of you now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "topic_reply:help_offer:noticed_wood:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.favour_ask.fallback_noticed_food.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "fallback_noticed_food",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "help_offer",
+      "situation": "noticed_food"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no food delivery to ask of you now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "topic_reply:help_offer:noticed_food:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.need_news.fallback_anyone.base.01",
+  "speaker": "npc",
+  "family": "need_news",
+  "situation": "fallback_anyone",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "need_question",
+      "situation": "anyone"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know of nobody else needing help just now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "topic_reply:need_question:anyone:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.relative_news.fallback_bereaved_relative.base.01",
+  "speaker": "npc",
+  "family": "relative_news",
+  "situation": "fallback_bereaved_relative",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "question_is",
+     "args": {
+      "family": "family_question",
+      "situation": "bereaved_relative"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. I remember them often.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "topic_reply:family_question:bereaved_relative:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "player.referral_reply.thanks.base.01",
+  "speaker": "player",
+  "family": "referral_reply",
+  "situation": "thanks",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "closing_reply_is",
+     "args": {
+      "value": "referral"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. I'll look for them.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "referral_reply:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The shoots are up. Now we wait.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Still green, as you can see.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.03",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Our grain has taken root.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.04",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Growing, though it takes its time.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.05",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The field is sown. It is growing.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.06",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "A green field today; grain later.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.07",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The crop is making its way.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.08",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "There is life in the field.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.09",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Seed is in and shoots are showing.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.10",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "It is growing. No cutting yet.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.11",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The grain is getting taller.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.12",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have a growing crop to watch.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.13",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The field has greened up.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.extra.14",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Sown grain, still growing.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have no ground under grain.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No field here. Other work keeps us.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.03",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We do without a field.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.04",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No crops of our own to watch.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.05",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "There is no grain field in our household.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.06",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have no sowing to see to.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.07",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No land under the plough here.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.08",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have no crop to bring in.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.extra.09",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 1,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We are a household without a field.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.hate.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "It is growing. You can see that.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.hate.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The grain is sown. Leave it be.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.hate.03",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Growing. Was there something else?",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.hate.04",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No harvest yet. Be on your way.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.like.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The grain is up; we keep an eye on it.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.like.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Sown and growing. How goes your work?",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.like.03",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "A little taller when we look again.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.like.04",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Still growing. There is time before cutting.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.love.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Come and look at the shoots with me.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.love.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Our grain is growing. Good to see you too.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.love.03",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "A growing field and a visitor. A good day.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_growing.love.04",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_growing",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "sown",
+      "min": 1
+     }
+    },
+    {
+     "test": "crops_growing_at",
+     "args": {
+      "field": "field"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have shoots coming through. Have a look!",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "sown_count",
+     "growing"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_growing:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_growing"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.hate.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Ripe. Keep your hands off it.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.hate.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The grain is ours, and ready to cut.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.like.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The grain is ready. Cutting time now.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.like.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Our ripe patches will keep us occupied.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.love.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "You've come at cutting time. Look at our grain!",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ripe.love.02",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ripe",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "harvestable",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Ripe at last. I am glad you came to see it.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ripe_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ripe:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ripe"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ploughed.hate.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ploughed",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "ploughed",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We have ploughed. We don't need advice.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ploughed_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ploughed:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ploughed"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ploughed.like.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ploughed",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "ploughed",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The ground is turned. Sowing is next.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ploughed_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ploughed:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ploughed"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_ploughed.love.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_ploughed",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_has_state",
+     "args": {
+      "field": "field",
+      "state": "ploughed",
+      "min": 1
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Ploughed and ready. Come and see our work.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "ploughed_count"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_ploughed:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_ploughed"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_bare.hate.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_bare",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_all_states_in",
+     "args": {
+      "field": "field",
+      "states": [
+       "empty",
+       "harvested"
+      ]
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Bare ground. Nothing for you there.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "slot_states"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_bare:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_bare"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_bare.like.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_bare",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_all_states_in",
+     "args": {
+      "field": "field",
+      "states": [
+       "empty",
+       "harvested"
+      ]
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The field is bare. We will sow again.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "slot_states"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_bare:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_bare"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.field_bare.love.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "field_bare",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   },
+   "field": {
+    "source": "npc_household_field"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "field_all_states_in",
+     "args": {
+      "field": "field",
+      "states": [
+       "empty",
+       "harvested"
+      ]
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Nothing growing to show you yet. Come again.",
+  "facts": [
+   {
+    "ref": "field",
+    "fields": [
+     "slot_states"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:field_bare:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "field_bare"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.hate.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No field. Why do you ask?",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.like.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No field of our own. We have other work.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.field_talk.no_field.love.01",
+  "speaker": "npc",
+  "family": "field_talk",
+  "situation": "no_field",
+  "weight": 3,
+  "bindings": {
+   "home": {
+    "source": "npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "household_has_no_field",
+     "args": {
+      "household": "home"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "No field to show you, but you are welcome.",
+  "facts": [
+   {
+    "ref": "home",
+    "fields": [
+     "fields"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "home_fact:{npc.id}:{player.id}:no_field:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "The topic or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "A current fact about the speaker's household"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "no_field"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.hate.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "My time is my own.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.hate.02",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Nothing I need discuss with you.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.like.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "A moment between tasks. What of you?",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.like.02",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Nothing pressing. I can stop a moment.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.love.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Free for a moment, and here you are.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.idle.love.02",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "idle",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "idle"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've time to hear how you are getting on.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:idle:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_baker.hate.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_baker",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "baker"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Bread. What else would I be making?",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "baker_flour_to_bread"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_baker:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_baker.like.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_baker",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "baker"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The oven keeps us occupied. Bread is our trade.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "baker_flour_to_bread"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_baker:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_baker.love.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_baker",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "baker"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Bread is our work. Come and see the oven.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "baker_flour_to_bread"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_baker:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_smith.hate.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_smith",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "smith"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I work iron. Stand clear of the forge.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_smith:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_smith.like.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_smith",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "smith"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Ironwork keeps me at the forge.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_smith:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_smith.love.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_smith",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "smith"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Working iron. You are welcome to watch.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "fuel_hours_per_log"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_smith:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_carpenter.hate.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_carpenter",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "carpenter"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "hate"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Woodwork. Do you need something made?",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "carpenter_wood_to_planks"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_carpenter:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_carpenter.like.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_carpenter",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "carpenter"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "like"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Wood is my trade. There is always shaping to do.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "carpenter_wood_to_planks"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_carpenter:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.work_talk.trade_carpenter.love.01",
+  "speaker": "npc",
+  "family": "work_talk",
+  "situation": "trade_carpenter",
+  "weight": 3,
+  "bindings": {
+   "activity": {
+    "source": "npc_activity_at_approach"
+   },
+   "job": {
+    "source": "npc_current_profession"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "activity_snapshot_is",
+     "args": {
+      "person": "npc",
+      "activity": "trade_work"
+     }
+    },
+    {
+     "test": "profession_is",
+     "args": {
+      "person": "npc",
+      "trade": "carpenter"
+     }
+    },
+    {
+     "test": "disposition_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "value": "love"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Working wood. Come and have a look.",
+  "facts": [
+   {
+    "ref": "activity",
+    "fields": [
+     "key",
+     "place_kind",
+     "held_goods"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "job",
+    "fields": [
+     "trade",
+     "workplace_id",
+     "workplace_name"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "recipe",
+    "fields": [
+     "carpenter_wood_to_planks"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "work_fact:{npc.id}:{player.id}:trade_carpenter:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Work or the speaker's portrait can land badly with them."
+   ],
+   "reveals": [
+    "What the speaker was doing when you came over"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "remember_observation",
+    "viewer": "player",
+    "fact": "activity"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "activity",
+     "fields": [
+      "key"
+     ]
+    }
+   ]
   }
  }
 ]

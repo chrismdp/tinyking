@@ -120,7 +120,21 @@
     "plough_field": "Plough field",
     "sow_field": "Sow field",
     "tend_field": "Tend field",
-    "harvest_field": "Harvest field"
+    "harvest_field": "Harvest field",
+    "find_food": "Find food",
+    "rest": "Rest",
+    "travel": "Travel",
+    "favour": "Help with a favour",
+    "chat": "Chat",
+    "ask_about": "Ask about someone",
+    "give_gift": "Give a gift",
+    "court": "Court",
+    "marry": "Ask to marry",
+    "play": "Play together",
+    "invite_home": "Invite to your household",
+    "village_oath": "Offer your oath",
+    "village_leave": "Leave the village",
+    "tend_garden": "Help at home"
   },
   "tasks": {
     "idle": "Idle",

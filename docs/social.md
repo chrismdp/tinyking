@@ -50,3 +50,23 @@ Generation runs the same seasonal transition on its owned summary rather than ma
 
 
 `food-audit.js` reports edible portions, empty resident homes and individual risk traces. Each trace keeps hunger, task, plan, hands, household, source ownership, access and a real route to accessible stores. `social-check.js` counts completed meals at each six-minute step, separately from the original hourly meal gate. It records seasonal food totals and pre-death traces without changing state. An empty household reserve can coexist with private food elsewhere. These diagnostics do not grant access or create food.
+
+## Player questions and closing replies
+
+A player question receives its own reply before the icon row can end the chat.
+Specific questions use answers from that topic. When the speaker has no eligible
+fact or refusal left, an authored reply says that they have nothing more to tell
+on that topic. A children question never selects another kind of relative.
+Known deaths replace living-relative questions with condolences.
+
+An NPC request always gives the player an accept or decline choice. A referral
+always gives the player a closing reply. These responses remain available when
+the row is full, including in tired chats. They do not need an extra patience
+slot. If the row filled at the offer, the chat ends after the response and its
+NPC reply. Otherwise, the chat continues with its usual patience. The visible
+row still keeps its normal maximum size.
+
+Each player remembers the last eight spoken NPC row IDs for each reply purpose across people. The
+wording selector skips those IDs when another eligible wording exists. It also
+keeps the existing rule against repeating the previous wording on a return
+visit. An on-topic answer takes priority when only one eligible wording remains.

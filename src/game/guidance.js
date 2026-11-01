@@ -1,7 +1,7 @@
 import { patience } from "game/chat_patience";
 import { localDirection, worldDirection } from "game/chat_lands";
 import { visibleFavours, reasonGone } from "game/favours";
-import { STAGES, shelterLogSource } from "game/construction";
+import { STAGES, shelterLogSource, canPlaceShelter } from "game/construction";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
@@ -19,9 +19,12 @@ export function openingGuidance(state) {
   if(!state.intro || state.intro.active || state.ui.show?.main_menu) return null;
   const actorId=state.ui.playerId, ecs=state.ecs;
   if (!actorId || ecs.personable?.[actorId]?.dead) return null;
+  if(state.chat?.active)return {actorId,key:"chat_open",text:state.chat.active.endReason?"Close the conversation when you have finished reading.":"Choose a reply in the conversation, or End chat."};
   const accepted=visibleFavours(state).find(r=>r.status=="accepted");
   const task=(ecs.manager?.[actorId]?.jobs||[])[0];
   const person=ecs.personable[actorId],jobs=ecs.manager?.[actorId]?.jobs||[];
+  const deferred=(person.hunger>.9 && jobs.find(j=>j.waiting&&j.job.key=="find_food")) || jobs.find(j=>j.waiting&&j.job.key=="chat");
+  if(deferred)return {actorId,key:"deferred",text:deferred.waiting};
   if(state.game_speed=="paused" && jobs.length) return {actorId,key:"resume",text:"Choose Normal speed to continue your tasks.",action:"Normal speed",speed:"normal"};
   if(person.hunger>.9) return jobs.some(j=>j.job.key=="find_food")?{actorId,key:"eating",text:"Keep the game running until your Find food task finishes."}:{actorId,key:"food",text:"Choose Find food to go for a meal before your next conversation.",action:"Find food",job:"find_food"};
   if(person.tiredness>.9 && (state.days%1*24>=20 || state.days%1*24<9)) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:{actorId,key:"sleep",text:"Choose Rest to sleep before your next conversation.",action:"Rest",job:"rest"};
@@ -49,7 +52,13 @@ export function openingGuidance(state) {
         return {actorId,key:"shelter",text:"Select your shelter site and choose Build shelter to finish it before night."};
       return {actorId,key:"building",text:"Keep the game running to finish your shelter before night."};
     }
-    if(!shelter) return {actorId,key:"shelter",text:"Select clear grass near camp and choose Build shelter before night."};
+    if(!shelter) {
+      const at=ecs.spatial[actorId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
+      const tile=Object.keys(ecs.mappable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&ecs.mappable[id].terrain=="grassland")
+        .sort((a,b)=>Math.hypot(ecs.spatial[a].x-at.x,ecs.spatial[a].y-at.y)-Math.hypot(ecs.spatial[b].x-at.x,ecs.spatial[b].y-at.y)).find(id=>canPlaceShelter(state,id));
+      return tile?{actorId,key:"shelter",text:"Select Grassland #"+tile+" near camp and choose Build shelter before night.",action:"Show shelter tile",selectId:tile}:
+        {actorId,key:"shelter",text:"Build shelter needs an available site on explored ground. Explore empty grass within three tiles of camp; select a tile to see its shelter requirements."};
+    }
     return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
       {actorId,key:"sleep",text:"Choose Rest to sleep in your shelter.",action:"Rest",job:"rest"};
   }

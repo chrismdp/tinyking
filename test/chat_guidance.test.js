@@ -34,3 +34,32 @@ it("guides three actual conversations, shelter supplies and building, then sleep
   s.days=1.4;
   expect(openingGuidance(s).action).toContain("Chat with");
 });
+it("uses the deferred food task's reason and next step, even while paused",()=>{
+  const {state:s,player:p}=peopleWorld();s.intro={active:false};s.game_speed="paused";
+  s.ecs.personable[p].hunger=1.2;
+  const reason="No accessible meal was found. Select a ripe forage plant and choose Forage.";
+  s.ecs.manager[p].jobs=[{job:{key:"find_food"},failed:true,waiting:reason}];
+  expect(openingGuidance(s).text).toBe(reason);
+});
+it("gives chat guidance while the world is paused for chat",()=>{
+  const {state:s,player:p}=peopleWorld();s.intro={active:false};s.game_speed="paused";
+  s.ecs.manager[p].jobs=[{job:{key:"chat"}}];s.chat={active:{npcId:"someone"}};
+  expect(openingGuidance(s).text).toMatch(/reply|conversation|chat/i);
+  expect(openingGuidance(s).text).not.toContain("Normal speed");
+});
+it("points to an eligible explored shelter tile and explains how to select it",()=>{
+  const {state:s,player:p,person,parent,sibling,tiles}=peopleWorld();
+  const {newEntities}=require("game/entities"),{Hex}=require("game/hex");
+  newEntities(s,[{spatial:{...s.ecs.spatial[tiles[0]]},camp:{},controllable:{controllerId:p}}]);
+  s.intro={active:false};s.days=.4;s.ecs.playable[p].arrivedAt=0;s.ecs.playable[p].known=tiles.map(id=>Hex().fromPoint(s.ecs.spatial[id]));
+  s.knowledge={[p]:{people:Object.fromEntries([person,parent,sibling].map(id=>[id,{conversation:{day:s.days}}]))}};
+  const hint=openingGuidance(s);
+  expect(hint.selectId).toBeDefined();
+  expect(require("game/construction").canPlaceShelter(s,hint.selectId)).toBe(true);
+  expect(hint.text).toContain("#"+hint.selectId);
+});
+it("finds the deferred food reason behind a different deferred task",()=>{
+  const {state:s,player:p}=peopleWorld();s.intro={active:false};s.ecs.personable[p].hunger=1.2;
+  s.ecs.manager[p].jobs=[{job:{key:"build_shelter"},waiting:"Waiting for logs"},{job:{key:"find_food"},waiting:"No accessible meal. Choose Forage."}];
+  expect(openingGuidance(s).text).toBe("No accessible meal. Choose Forage.");
+});

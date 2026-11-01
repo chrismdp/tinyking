@@ -34,7 +34,7 @@ export function seedMotherFamily(s,actor,seed) {
     const room=id=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==e.household[id].houseId).length<6;
     const work=id=>Object.values(s.favours.requests).some(r=>r.householdId==e.household[id].houseId&&r.status=="offered");
     const suitable=id=>kin(s,id).parents.every(p=>personComponent(s,"personable",p).age>=age+18) &&
-      (siblingsOf(s,id).some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<6));
+      ([...kin(s,id).parents,...siblingsOf(s,id)].some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<6));
     anchor=locals.filter(suitable).sort((a,b)=>Number(work(b)&&room(b))-Number(work(a)&&room(a))||Number(disposition(s,b,actor)!="hate")-Number(disposition(s,a,actor)!="hate")||Number(kin(s,b).parents.length>0)-Number(kin(s,a).parents.length>0)||e.personable[b].age-e.personable[a].age||a.localeCompare(b))[0];
     if(anchor)break;
   }

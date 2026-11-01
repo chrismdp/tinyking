@@ -22,8 +22,19 @@ import { openChat, chatChoices, chooseLine, lineCandidates, closeChat } from "ga
 import { kinLinks } from "game/chat_facts";
 import { serialiseGame, restoreGame } from "game/save_game";
 import LINES from "data/conversation_lines.json";
+import { newEntities } from "game/entities";
 
 const setup=()=>{const f=peopleWorld(),s=f.state;s.map={seed:13};s.ecs.spatial[f.player]={...s.ecs.spatial[f.person]};s.villages.village.houses=[f.tiles[3]];s.villages.village.id="village";s.ecs.container={[f.tiles[3]]:{capacity:100,amounts:{}}};s.ecs.household[f.tiles[3]]={storeId:f.tiles[3]};seedMotherFamily(s,f.player,13);return f;};
+it("uses two living established relatives even when their village has no spare bed",()=>{
+  const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
+  s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];
+  s.ecs.household[player].houseId=tiles[0];
+  s.ecs.kinship[sibling].parents=[];s.ecs.kinship[parent].children=[person];
+  newEntities(s,Array.from({length:3},()=>({personable:{age:30},spatial:{...s.ecs.spatial[person]},controllable:{controllerId:parent},kinship:{parents:[],children:[],spouse:null},household:{houseId:tiles[3]},village:{villageId:"village"}})));
+  seedMotherFamily(s,player,13);
+  expect(s.backstories?.[player]?.relatives.map(r=>r.id)).toEqual(expect.arrayContaining([person,parent]));
+  expect(s.backstories[player].relatives.length).toBeGreaterThanOrEqual(2);
+});
 it("stores named off-map royal history and reciprocal kin, giving only maternal names and kinship at arrival",()=>{
   const {state:s,player}=setup(),b=s.backstories[player];
   expect(b.relatives.length).toBeGreaterThanOrEqual(2);

@@ -90,13 +90,17 @@ export function createRealmTerrain(state, ground) {
     if(edgeCounts.has(key))edgeCounts.delete(key);else edgeCounts.set(key,[a,b]);
   }
   const outer=[...edgeCounts.values()];
+  const fades=new Map();
   const fadeAt=p=>{
+    const key=pointKey(p);
+    if(fades.has(key))return fades.get(key);
     let distance=Infinity;
     for(const [a,b] of outer) {
       const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy)));
       distance=Math.min(distance,Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy));
     }
-    const t=Math.min(1,distance/180);return t*t*(3-2*t);
+    const t=distance<.001?0:Math.min(1,distance/180),fade=t*t*(3-2*t);
+    fades.set(key,fade);return fade;
   };
   const colour = new THREE.Color(), snow = new THREE.Color(0xE8EEF3);
   const shadeFor = sample => {

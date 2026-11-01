@@ -25,7 +25,7 @@ export function MainMenu({ show }) {
         <div className="disclaimer">
           Technical Demo {VERSION}
           <br/>
-          Copyright &copy; {year} Think Code Learn Ltd t/a Revelation Games</div>
+          &copy; {year} chrismdp ltd. A <a href="https://www.chrismdp.com" target="_blank" rel="noreferrer">Chris Parsons</a> project.</div>
       </menu>
     </div>);
 }

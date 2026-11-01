@@ -78,6 +78,7 @@ export function currentActivity(ecs, id, t, personName = id => ecs.nameable?.[id
 // Above-head text describes present action. Panels retain route/material detail.
 export function headActivity(ecs, id, t, personName, debug = false) {
   const task = ecs.planner?.[id]?.task;
+  if(!debug && task?.[0]=="socialise")return null;
   if (!debug && (!task || ["walk_to", "wait_for", "leave_edge", "home_downtime"].includes(task[0]) ||
     task[0] == "socialise" && ecs.planner[id].world.social?.stage != "visiting")) return null;
   return currentActivity(ecs, id, t, personName, debug);

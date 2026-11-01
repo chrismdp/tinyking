@@ -1,4 +1,5 @@
 import { finishTransition } from "game/history_scope";
+import { exchangeNews, listenerNewsScore, beginSocialSpeech } from "game/news";
 import { DAYS_IN_SEASON } from "game/time";
 import { advanceOffscreenNeeds } from "game/needs";
 import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
@@ -98,8 +99,12 @@ export function eligiblePartner(s, a, b, deliberate = false) {
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
-export function compareSocial(s, a, b, c) {
-  return Number(romanticInterest(s, a, c)) - Number(romanticInterest(s, a, b)) || (s.ecs.relationships[a].known[c]?.goodwill || 0) - (s.ecs.relationships[a].known[b]?.goodwill || 0);
+export function compareSocial(s, a, b, c, newsScores=new Map()) {
+  const score=id=>{
+    if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
+    return newsScores.get(id);
+  };
+  return Number(romanticInterest(s, a, c)) - Number(romanticInterest(s, a, b)) || (s.ecs.relationships[a].known[c]?.goodwill || 0) - (s.ecs.relationships[a].known[b]?.goodwill || 0) || score(c)-score(b);
 }
 export function canCourt(s, a, b, deliberate = false) {
   return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b, deliberate);
@@ -403,6 +408,16 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
     like: 1,
     love: 4
   }[disposition(s, to, from)] * conversations);
+  const visits=[s.ecs.planner?.[a]?.world.social,s.ecs.planner?.[b]?.world.social];
+  const exchanged=!summary && visits.some(v=>v?.newsExchanged);
+  const spoken=exchanged?[]:exchangeNews(s,a,b);
+  if(!summary) {
+    for(const v of visits)if(v)v.newsExchanged=true;
+    for(const [speaker,listener] of [[a,b],[b,a]]) {
+      const line=spoken.find(l=>l.speakerId==speaker);
+      beginSocialSpeech(s,speaker,listener,line&&(s.events||[]).find(e=>e.id==line.eventId));
+    }
+  }
   return true;
 }
 
@@ -520,6 +535,10 @@ function advanceSeasonRules(s, season, summary) {
     })).sort((a, b) => Number(singles.has(b.id)) - Number(singles.has(a.id)) || a.order - b.order).map(p => p.id);
     for (const a of order) {
       if (paired.has(a)) continue;
+      const newsScores=new Map(),newsScore=id=>{
+        if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
+        return newsScores.get(id);
+      };
       const locals = byVillage.get(ecs.village[a]?.villageId) || [];
       const known = ecs.relationships[a].known,
         seekingPartner = singles.has(a);
@@ -538,7 +557,7 @@ function advanceSeasonRules(s, season, summary) {
         if (!local && !seeking) continue;
         const interest = seeking && mutualAttraction(s, a, id),
           score = known[id]?.goodwill || 0;
-        if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && id.localeCompare(b) < 0)) {
+        if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
           b = id;
           best = score;
           bestInterest = interest;
@@ -663,6 +682,7 @@ export function historyStep(worldHexState, season) {
   }));
   for (const [id, k] of Object.entries(worldHexState.knowledge || {})) copy.knowledge[id] = {
     ...k,
+    ...(k.spokenSources?{spokenSources:{...k.spokenSources}}:{}),
     events: [...(k.events || [])]
   };
   for (const [id, v] of Object.entries(worldHexState.villages || {})) copy.villages[id] = {

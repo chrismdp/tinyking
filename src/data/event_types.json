@@ -10,7 +10,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} built a {building}"
+    "chat": "{a} built a {building}",
+    "valence": 1
   },
   "founding": {
     "sentence": "{a} and {b} founded {village} beside an accessible route",
@@ -23,7 +24,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "household_arrival": {
     "sentence": "{a} established a household in {village}",
@@ -35,7 +37,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "green_moved": {
     "sentence": "The community moved its green for more gathering space",
@@ -57,7 +60,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "expansion": {
     "sentence": "{a} added a {addition} using {timber} timber",
@@ -69,7 +73,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "departure": {
     "sentence": "{a} left for {toWorld}{journey_reason}",
@@ -143,7 +148,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} {defiance_spoken} {b}"
+    "chat": "{a} {defiance_spoken} {b}",
+    "valence": -1
   },
   "commons_cut": {
     "sentence": "{a} cut common woodland without permission",
@@ -155,7 +161,8 @@
       "ring": "social"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": -1
   },
   "commons_warning": {
     "sentence": "{a} warned {b} about cutting village commons (−{loss} goodwill)",
@@ -169,7 +176,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} warned {b} about cutting village commons"
+    "chat": "{a} warned {b} about cutting village commons",
+    "valence": -1
   },
   "commons_report": {
     "sentence": "{a} reported the cutting to elder {b} (−{loss} goodwill)",
@@ -184,7 +192,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} reported {c}’s cutting to elder {b}"
+    "chat": "{a} reported {c}’s cutting to elder {b}",
+    "valence": -1
   },
   "village_oath": {
     "sentence": "{a} swore the local oath with elder {b}",
@@ -224,7 +233,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} helped {b} with {favour_kind}"
+    "chat": "{a} helped {b} with {favour_kind}",
+    "valence": 1
   },
   "harvest": {
     "sentence": "{a} brought in {quantity} grain",
@@ -236,7 +246,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "fire": {
     "sentence": "A fire broke out{fire_place}",
@@ -272,7 +283,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "marriage": {
     "sentence": "{a} and {b} married{village_suffix}",
@@ -285,7 +297,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "death": {
     "sentence": "{a} died{cause_suffix}",
@@ -342,7 +355,8 @@
       }
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": -1
   },
   "reconciliation": {
     "sentence": "{a} made peace with {b}",
@@ -355,7 +369,8 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "gift": {
     "sentence": "{a} gave {gift_item} to {b}",
@@ -368,7 +383,8 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "settlement": {
     "sentence": "{a} founded a household in {village}",
@@ -380,7 +396,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "household_join": {
     "sentence": "{a} joined the household of {b}",
@@ -393,7 +410,8 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "succession": {
     "sentence": "{b} {succession_account} {a}",
@@ -419,7 +437,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "inheritance": {
     "sentence": "{b} inherited {estate} from {a}",

@@ -2906,6 +2906,29 @@ for etype in EVENT_TYPES:
             variants=["{event."+wording+"} {event.when}."])
         rows[-1]["level"]={"ring":"public","below":"hide"}
 
+# Evening callers use the existing physical villager-started chat.
+situation("campfire","company","npc",base_all=[PHASE_OPEN],
+    icons=[T("village"),R("npc")],use_key="campfire:{context.encounter_number}",
+    variants=["Good evening. Your fire looked welcoming.","Evening. It is good to share a fire."])
+for r in rows[-2:]:
+    r["level"]={"ring":"public","below":"hide"}
+
+# World speech uses the same event account, spoken by an actual NPC pair.
+for etype in EVENT_TYPES:
+    situation("overheard_news", "catalogue_"+etype, "npc",
+        base_all=[PHASE_BUBBLE,P("event_type_is",event="event",type=etype)],
+        bindings={"event":{"source":"npc_known_unheard_event_for_question"}},
+        icons=[{"kind":"event","ref":"event"}],
+        facts=[F("event",["id","type","people","day"],"past")],
+        disc_events=["event"],use_key="overheard:{npc.id}:{event.id}",
+        variants=["{event.account_sentence}."])
+    rows[-1]["level"]={"ring":"public","below":"hide"}
+for st in ("spring","summer","autumn","winter"):
+    situation("overheard_topic",st,"npc",base_all=[PHASE_BUBBLE,SEASON(st)],
+        icons=[T("season")],use_key="overheard_season:{context.game_hour}",
+        variants=["The "+st+" days are here."])
+    rows[-1]["level"]={"ring":"public","below":"hide"}
+
 # Explicit mood authoring. Refusals remain optional to answer.
 for r in rows:
     evasive_player=r["speaker"]=="player" and r["family"]=="direct_answer" and r["situation"] in ["fallback_answer_"+x for x in ("origin","news","family","work","subject")]

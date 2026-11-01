@@ -81,7 +81,7 @@ people present. Sealed backstory stays hidden. See [the core loop](design.md#sea
 
 ## Event accounts and audiences
 
-The shared event catalogue is `src/data/event_types.json`. It defines each type’s wording, topic icon, participant roles, ordinary disclosure and feed membership. The news feed and chat read this table. `tools/chat-design/gen_lines.py` generates both NPC accounts and player Tell rows from it. The catalogue preserves existing event producers and initial audiences. It adds no event occurrence, private event or automatic news exchange.
+The shared event catalogue is `src/data/event_types.json`. It defines each type’s wording, topic icon, participant roles, ordinary disclosure and feed membership. The news feed and chat read this table. `tools/chat-design/gen_lines.py` generates NPC accounts, player Tell rows and overheard event lines from it. The catalogue preserves existing event producers and initial audiences. It adds no event occurrence or private event.
 
 One policy, `canDiscloseEvent`, governs NPC speech, player Tell and legacy Ask about. Public events include weddings, births, deaths, completed buildings, household arrivals and oaths. Social trust admits moves, help and woodland incidents. Personal trust admits inheritance, household joining, gifts, reconciliation, quarrels and defiance. A public legacy answer discloses its event without disclosing an unrelated family tree.
 
@@ -89,4 +89,21 @@ A quarrel between current spouses needs Intimate trust, or Personal trust for a 
 
 Player Tell uses only known, unsealed, permitted records. A card carries the catalogue topic and every participant. Anonymous witnesses can tell what happened without naming unknown people. New listeners learn through `learnEvent`, which keeps family reactions once per learner. Spoken sources retain the first teller, day and line. Retelling records the player as the new listener’s source while preserving the player’s earlier source.
 
-Mood preferences are stable calculations from each person’s personality, tastes, identity and opinion seed. Learned mood scores live beside topic evidence in personal knowledge. Existing save and traveller knowledge records carry that evidence and spoken event sources. NPC visits still change relationships without exchanging old news.
+Mood preferences are stable calculations from each person’s personality, tastes, identity and opinion seed. Learned mood scores live beside topic evidence in personal knowledge. Existing save and traveller knowledge records carry that evidence and spoken event sources.
+
+
+## News between villagers
+
+Each encounter permits one unheard event from each villager after the first completed half-hour. Both choose before either learns, so a story cannot bounce straight back. An interrupted walk or unfinished half-hour transfers nothing. Player interactions retain their explicit spoken disclosures.
+
+The seasonal encounter represents six half-hours and permits at most one event in each direction. A hostile encounter represents one half-hour. A quarrel ends the exchange. These limits also bound older anecdotes. They do not multiply the initial event audience.
+
+`canDiscloseEvent` filters every candidate before preferences apply. The catalogue marks good and unflattering news with `valence`. Unflattering news favours listeners with distant or hostile bonds towards the subjects. Good news favours listeners with close bonds. Trust and recency also weight the choice. Companion selection checks the latest permitted unheard account before ranking otherwise equal listeners. News preferences break ties between otherwise equal social companions. Partner attraction and existing friendship retain priority. Hard exclusions remain exclusions regardless of preference.
+
+`learnEvent` applies the existing kin reactions only on first learning. `spokenSources` records the teller, day and catalogue account. Later hearing preserves that first source. Visits between villages and existing traveller bundles carry the same event IDs and personal knowledge. Seasonal copies own their source maps. Temporary indexes group repeated stories by type and participants. Selection scores only the newest unheard account in each group. These indexes do not enter saves.
+
+## Hearing and evening callers
+
+During a live conversation, each villager shows a catalogue line about the actual season or the event they just told. Event speech lasts up to half an hour while the social task continues. The player hears within 120 world units, in the same interior, with no building wall across the line of hearing. The disclosure policy also applies to the player. Sleep prevents hearing. The simulation records learning and its source. Rendering reads speech without changing knowledge.
+
+From 18:00 to 21:00, the player can receive a caller near their own home fire, camp or journey camp. Each evening has a seeded 45% opportunity. An available friendly adult, friend or homeless stranger can use a real route and start the ordinary paused chat. Friends receive priority. Work, needs, existing visits and insufficient travel time exclude a candidate. Only one caller can set out in an evening, and an existing caller prevents another. Sleep, leaving the fire, hunger or tiredness cancels a pending caller. No new traveller is created for a visit.

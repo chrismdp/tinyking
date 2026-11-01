@@ -8,7 +8,7 @@ The panel shows the remaining patience slots. The NPC's actual ring and goodwill
 
 The person sheet starts with unknown topic and mood tastes. A pop reveals only the tested taste. Pops do not change the player's regard in version one. The reaction text states the NPC's name and the signed change.
 
-The shipped data contains 1,365 authored rows in `src/data/conversation_lines.json`. The engine binds each row to people, events, activities, needs and knowledge. A missing binding or false condition rejects the row. Selection chooses a purpose and a real situation, then uses seeded weights for the wording. Spoken IDs cannot repeat during a chat. Catalogue account IDs include the event identity, so different events of one type remain available. The NPC avoids their last wording for that situation on the next encounter.
+The shipped data contains 1,405 authored rows in `src/data/conversation_lines.json`. The engine binds each row to people, events, activities, needs and knowledge. A missing binding or false condition rejects the row. Selection chooses a purpose and a real situation, then uses seeded weights for the wording. Spoken IDs cannot repeat during a chat. Catalogue account IDs include the event identity, so different events of one type remain available. The NPC avoids their last wording for that situation on the next encounter.
 
 Each NPC question, name request, offer, referral or warning declares `expects` in the catalogue. Player answers declare `answers`. A direct answer stays among the next choices even when the row is full, the player is tired, another subject is selected, or ordinary topics have been spent. The chat finishes its pending exchange before applying its usual closing rule.
 
@@ -30,7 +30,7 @@ Each catalogue line declares a `level`, the closeness or village standing that i
 
 Pushing a stranger for work costs two goodwill and gets a rebuff. Ordinary help enquiries retain the introduction rule for timid or proud listeners. An intrusive death question or flirt needs Personal closeness. Below that level, it costs three goodwill and adds a grievance. Asking to speak in confidence stays hidden until Intimate closeness. Safe lines apply their normal effects and matching scores.
 
-A grievance cannot match another icon. It uses one slot until the conversation closes and costs an extra two goodwill when added. Woodland defiance keeps the warning's existing costs and adds this extra loss. The defiance event records the player, witness, village, chosen line and spoken words. Both participants know it. An event sentence and authored account support later disclosure. NPC gossip spreading and overheard snippets remain separate work.
+A grievance cannot match another icon. It uses one slot until the conversation closes and costs an extra two goodwill when added. Woodland defiance keeps the warning's existing costs and adds this extra loss. The defiance event records the player, witness, village, chosen line and spoken words. Both participants know it. An event sentence and authored account support later disclosure. Villagers can pass this permitted account through later conversations and audible snippets.
 
 When the NPC asks for an answer, the direct answer leads the choices. At most one maternal family-search question appears beside it. A full or tired row still permits the required answer.
 
@@ -60,4 +60,19 @@ Telling new news teaches the listener that event and records the player as its s
 
 A quarrel between current spouses is a family matter. A third-party listener needs Intimate trust. A rival can hear it at Personal trust. Close kin and Personal or Intimate friends of either spouse are excluded even when the teller trusts them. Participants can discuss their own quarrel at the ordinary Personal level. Other quarrels retain the Personal rule. This adds no affair, marital satisfaction or private event system.
 
-Initial event audiences remain unchanged. A relative can already know an event from its occurrence even when a later teller withholds it. Unknown types and sealed backstory cannot enter ordinary disclosure. NPC news exchange, gossip preferences, overheard event speech and campfire visits remain deferred.
+Initial event audiences remain unchanged. A relative can already know an event from its occurrence even when a later teller withholds it. Unknown types and sealed backstory cannot enter ordinary disclosure. Villager news exchange uses this same policy. Private events and sealed backstory remain outside ordinary speech.
+
+
+## News that travels and overheard speech
+
+After the first completed half-hour, a villager visit permits one unheard event in each direction. Seasonal encounters permit the same budget for six half-hours. Every choice uses the existing disclosure policy. Good news favours listeners close to its subjects. Unflattering news favours distant or hostile listeners. Preferences cannot override excluded kin, friends or insufficient trust. Among equal social companions, permitted news also helps choose whom to visit.
+
+Talking villagers show short catalogue speech about the current season or the event they actually told. The old generic chatting bubble is hidden. Event lines keep the speaker's knowledge of names, so an anonymous account stays anonymous. Snippets expire after half an hour or when the social task stops.
+
+The player can hear within 120 world units when both people share an interior and no building wall blocks the sound. The player must also qualify under the event's disclosure policy. A sleeping player hears nothing. The simulation teaches the spoken event once and records the speaker as source. Drawing or rereading a bubble teaches nothing. An overheard story can later appear among the player's Tell cards.
+
+## Evening visits
+
+From 18:00 to 21:00, an available adult can approach the player's home fire, camp or journey camp. Friendly villagers, friends and homeless strangers can qualify. Friends receive priority. Each evening has a seeded 45% opportunity and permits only one caller. An existing caller prevents another from waiting.
+
+The caller walks a reachable route with time left for conversation. Arrival opens the existing villager-started paused panel with an authored fire greeting. Sleep, leaving the fire or the caller's needs cancels the approach. A caller creates no completed contact before the player answers. The game uses existing people, including visiting travellers. It creates nobody to fill a quiet evening.

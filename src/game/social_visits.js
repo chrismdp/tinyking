@@ -1,6 +1,7 @@
 import { DAYS_IN_SEASON } from "game/time";
 import { LOCOMOTION_RATIO } from "game/locomotion";
 import { conversationPositions } from "game/conversation";
+import { inviteToFire } from "game/campfire_visits";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -8,7 +9,7 @@ import { advanceSeason, retryCourtships, eligiblePartner, romanticInterest, comp
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
 const idle = (p, child) => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
-  !p.world.currentJob && !p.world.claimedFarmable && !p.world.helpingFriend && (!p.world.gardenHelp || child) && !p.world.worldJourney && !p.world.worldArrival && !p.world.social &&
+  !p.world.currentJob && !p.world.claimedFarmable && !p.world.helpingFriend && !p.world.chatVisit && !p.world.customsVisit && (!p.world.gardenHelp || child) && !p.world.worldJourney && !p.world.worldArrival && !p.world.social &&
   (["wait_for", "socialise"].includes(p.task?.[0]) || p.task?.[0] == "walk_to" && p.task[1] == "meet" || child && !p.plan?.length && (!p.task || p.task[0] == "tend_garden"));
 export const socialTask = p => ["socialise", "play_together"].includes(p.task?.[0]) || p.task?.[0] == "walk_to" &&
   ["socialDestination", p.world.social?.partnerId, p.world.social?.homeId].includes(p.task[1]);
@@ -34,6 +35,7 @@ export function socialHour(s) {
       s.ecs.personable[v.partnerId]?.dead || (!s.ecs.planner[v.partnerId]?.world.social || s.ecs.planner[v.partnerId].world.social.stage == "returning"))) returnFromVisit(s, id);
   }
   if (hour < 9 || hour >= 21) return;
+  inviteToFire(s,idle);
   const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], s.ecs.personable[id].age < 18));
   startChildPlay(s, ids, hour);
   const adults = ids.filter(id => s.ecs.personable[id].age >= 18 && !s.ecs.planner[id].world.social);
@@ -43,6 +45,7 @@ export function socialHour(s) {
   // Allow a wish to meet a partner, or an existing relationship, to motivate travel.
   for (const a of adults) {
     if (used.has(a)) continue;
+    const newsScores=new Map();
     const pa = s.ecs.spatial[a], from = navAt(s, pa);
     if (!from) continue;
     const candidates = adults.filter(b => {
@@ -53,7 +56,7 @@ export function socialHour(s) {
       return (nearby || s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId || eligiblePartner(s, a, b) || bond && bond.ring != "public") &&
         !(s.social.avoidance?.[[a, b].sort().join(":")] > s.days) &&
         s.social.lastVisits?.[[a, b].sort().join(":")] != Math.floor(s.days);
-    }).sort((b, c) => compareSocial(s, a, b, c) || (pa.x - s.ecs.spatial[b].x) ** 2 + (pa.y - s.ecs.spatial[b].y) ** 2 - (pa.x - s.ecs.spatial[c].x) ** 2 - (pa.y - s.ecs.spatial[c].y) ** 2 || b.localeCompare(c));
+    }).sort((b, c) => compareSocial(s, a, b, c, newsScores) || (pa.x - s.ecs.spatial[b].x) ** 2 + (pa.y - s.ecs.spatial[b].y) ** 2 - (pa.x - s.ecs.spatial[c].x) ** 2 - (pa.y - s.ecs.spatial[c].y) ** 2 || b.localeCompare(c));
     const b = candidates.find(b => {
       const to = navAt(s, s.ecs.spatial[b]);
       const route = to && path(s, from, to);

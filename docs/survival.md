@@ -9,8 +9,9 @@ zero, including the starving flag.
 The food chain is sow → grow for 4.5 growing days → harvest six grain per slot →
 haul loose grain to a household container or stockpile → fetch a portion → eat.
 Sowing consumes one grain per slot. Only sown slots grow; harvested slots cannot
-produce again until replanted. Crops, wild food and trees pause in winter, and
-crop progress displays that pause.
+produce again until replanted. Crops, wild food and trees stop growing in winter.
+Crop progress displays that pause. Remaining wild roots can still be gathered in winter.
+Depleted roots regrow after winter.
 
 The planner first looks for held food, then loose or stored food, then reachable
 wild food. Existing sleep, work and hauling priorities remain in place. Berries

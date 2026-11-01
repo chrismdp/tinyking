@@ -248,6 +248,7 @@ export function release_job(state, actorId, world, dt, firstRun, key) {
 // about the first job. take_job will happen in the same frame as the plan
 // though, so we're good I think.
 export function complete_job(state, actorId, world, dt, firstRun, key) {
+  if(key == "find_food" && state.ecs.personable[actorId].hunger > .9) return Task.ABORT;
   const jobs = jobQueueFor(state.ecs, actorId);
   const idx = jobs.findIndex(j => j.job.key == key && j.assignedId == actorId);
   if (idx == -1) {
@@ -257,7 +258,7 @@ export function complete_job(state, actorId, world, dt, firstRun, key) {
   }
   jobs[idx].progress = 1;
   jobs.splice(idx, 1);
-  if (world.ordered) for (const job of jobs) job.failed = false;
+  if (world.ordered) for (const job of jobs) if(job.job.key != "find_food") job.failed = false;
 }
 
 export function wait_for(state, actorId, world, dt, firstRun, time) {
@@ -265,7 +266,7 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
     world.wait_until = state.days + time;
   }
   if (state.days <= world.wait_until) return Task.CONTINUE;
-  if (world.ordered && !world.currentJob) for (const job of jobQueueFor(state.ecs, actorId)) job.failed = false;
+  if (world.ordered && !world.currentJob) for (const job of jobQueueFor(state.ecs, actorId)) if(job.job.key != "find_food") job.failed = false;
   return Task.FINISH;
 }
 
@@ -795,6 +796,8 @@ export function make_meal_space(state, actorId, world) {
   return Task.FINISH;
 }
 
+export function meal_unavailable() { return Task.ABORT; }
+
 export function eat(state, actorId, world, dt, firstRun, thing) {
   if (firstRun) {
     const holder = state.ecs.holder[actorId];
@@ -1035,6 +1038,8 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const gone = reasonGone(state, r);
   if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(state, r); return Task.ABORT; }
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+  if(firstRun)delete order.failureReason;
+  const fail = reason => { order.failureReason = reason; return Task.ABORT; };
   const store = householdStore(state, r.householdId);
   const receiver = favourReceiver(state, r);
   const walk = target => {
@@ -1047,13 +1052,14 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const cargo = r.cargo[0];
   if (cargo) {
     const holder = ecs.haulable[cargo].heldBy;
-    if (holder && holder != actorId) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    if (holder && holder != actorId) { return fail("The cut harvest is no longer available. Cancel this favour."); }
     const result = walk(holder == actorId ? receiver : cargo);
+    if (result == Task.ABORT) return fail("The route to the harvest or household store is blocked. Move closer and try the favour again.");
     if (result != Task.FINISH) return result;
     const target = ecs.spatial[holder == actorId ? receiver : cargo];
-    if (math.squaredDistance(ecs.spatial[actorId], target) > 100 || !fenceHandoffClear(state, ecs.spatial[actorId], target)) return Task.ABORT;
+    if (math.squaredDistance(ecs.spatial[actorId], target) > 100 || !fenceHandoffClear(state, ecs.spatial[actorId], target)) return fail("A fence blocks the harvest handover. Move to the gate and try the favour again.");
     if (!holder) {
-      if (!give(ecs, cargo, actorId)) return Task.ABORT;
+      if (!give(ecs, cargo, actorId)) return fail("Your hands are full. Deliver or give away carried goods before continuing this favour.");
       removeFromSpace(state, cargo); state.redraws.push(cargo, actorId);
       order.detail = "Carrying the family harvest home";
       return Task.CONTINUE;
@@ -1077,7 +1083,7 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
       if(!space.includes(cargo))space.push(cargo);
       state.redraws.push(cargo, actorId, store);
     } else {
-      if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
+      if (!containerHasSpace(ecs.container[store])) return fail("The household store is full. Let the family use its grain before continuing.");
       world.places.favourStore = store;
       if (drop_entity_into_container(state, actorId, world, dt, true, "favourStore", type, cargo) == Task.ABORT) return Task.ABORT;
     }
@@ -1099,23 +1105,27 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   }
   if (finishFavour(state, r)) return Task.FINISH;
   if (r.kind == "harvest") {
-    if (r.progress >= r.quantity) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    if (r.progress >= r.quantity) { return fail("The cut harvest is no longer available. Cancel this favour."); }
     const farm = ecs.farmable?.[r.targetId];
-    if (!farm || claim_farmable(state, actorId, world, dt, true, r.targetId) == Task.ABORT) return Task.ABORT;
+    if (!farm || claim_farmable(state, actorId, world, dt, true, r.targetId) == Task.ABORT) return fail("Another worker is using the harvest field. Let them finish this patch.");
     world.claimedFarmable = r.targetId;
     if (r.slot == null || farm.slots[r.slot]?.state != "harvestable") {
       r.slot = farm.slots.findIndex(slot => slot.state == "harvestable" && (!slot.workerId || slot.workerId == actorId));
       delete order.workRemaining;
     }
-    if (r.slot < 0) return Task.ABORT;
+    if (r.slot < 0) return fail("No ripe patch is free. Let the family finish its current patch.");
     farm.slots[r.slot].workerId = actorId;
     const point = { ...triangleCenters(ecs.spatial[r.targetId])[r.slot], idx: r.slot, id: r.targetId, result: "harvested" };
     world.places.favourSlot = point;
     const result = walk(point);
+    if (result == Task.ABORT) return fail("The walking route to the harvest patch is blocked. Move closer and try the favour again.");
     if (result != Task.FINISH) return result;
     const work = perform_subtask_in_slot(state, actorId, world, dt, !r.working || firstRun, r.targetId, "favourSlot");
     r.working = work == Task.CONTINUE;
-    if (work == Task.ABORT) return work;
+    if (work == Task.ABORT) return fail(!harvestFits(state,r.targetId,farm.slots[r.slot].amount) ?
+      "Not enough room in the household store for a whole crop patch. Let the family use its grain." :
+      math.squaredDistance(ecs.spatial[actorId],point)>100 ? "The harvest patch is out of reach. Move closer and try the favour again." :
+        "Another worker is using the harvest patch. Let them finish this patch.");
     if (work == Task.FINISH) {
       r.slot = null; delete order.workRemaining;
       release_farmable(state, actorId, world, dt, true, r.targetId); world.claimedFarmable = null;

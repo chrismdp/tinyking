@@ -71,6 +71,7 @@ export function TaskPanel() {
   const goals=peopleGoals(state);
   const garden=person.age<18 && gardenHelp(state,id,null,true);
   const hungry = person.hunger > 0.9;
+  const foodOrder = jobs.find(j=>j.job.key=="find_food");
   const tired = tirednessSpeed(person) < 1;
   const status = person.dead ? "Dead" : person.hunger > 2.5 ? "Starving" : hungry ? "Hungry" : "Fed";
   const member = Object.values(state.villages || {}).some(v => membership(state, id, v.id));
@@ -85,12 +86,12 @@ export function TaskPanel() {
       {hungry && <div className="hunger" aria-label={status + " — working more slowly"}>
         <div className="hunger-line"><span>{status}</span><span>Working more slowly</span></div>
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
-        {needsAction && <small>You stay here. Choose Find food to go for a meal.</small>}
+        {needsAction && <small>{foodOrder?.waiting || (foodOrder ? "Your Find food order is queued." : "You stay here. Choose Find food to go for a meal.")}</small>}
       </div>}
       {tired && <div className="hunger tiredness" role="status">Tired: working slowly</div>}
       {((needsAction && hungry) || (!sleeping && person.tiredness > .9)) && <div className="need-actions" role="status">
         {person.tiredness > .9 && <small>Tired · choose Rest to go to your bed.</small>}
-        {needsAction && hungry && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
+        {needsAction && hungry && !foodOrder && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
         {person.tiredness > .9 && <button onClick={() => state.ui.actions.choose_job(id, { key: "rest" }, id)}>Rest</button>}
       </div>}
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}

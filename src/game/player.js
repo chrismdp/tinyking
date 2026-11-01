@@ -55,5 +55,6 @@ export const player_jobs = () => [
 
 export const ordered_meal = () => [
   [world => world.feeling.hungry, () => [["find_food"]]],
-  [() => true, () => [["set_label"]]]
+  [world => !world.feeling.hungry, () => [["set_label"]]],
+  [() => true, () => [["meal_unavailable"]]]
 ];

@@ -1,3 +1,4 @@
+import { harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
 import { isResident } from "game/residents";
 import { topController } from "game/playable";
@@ -226,6 +227,9 @@ export function favourWaiting(s, task) {
   if (r.kind != "food" && !containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
   if (r.kind == "harvest") {
     const field = ecs.farmable?.[r.targetId];
+    const ripe=field?.slots.filter(slot=>slot.state=="harvestable") || [];
+    if(!r.cargo.length && ripe.length && !ripe.some(slot=>harvestFits(s,r.targetId,slot.amount))) return "Not enough room in the household store for a whole crop patch. Let the family use its grain, then continue the harvest.";
+    if(!r.cargo.length && ripe.length && ripe.every(slot=>slot.workerId && slot.workerId!=s.ui.playerId)) return "Waiting for the family to finish this patch";
     // A claim protects new crop work, not the return trip with cut grain.
     if (!r.cargo.length && field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
   } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;

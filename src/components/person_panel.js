@@ -126,12 +126,14 @@ export function PersonPanel({ entityId }) {
   const successor = owner && personComponent(state, "personable", owner) ? heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner) : null;
   const occupation = personComponent(state, "personable", entityId).age < 18 ? "Child" : trade ? titleCase(trade) :
     personComponent(state, "household", houseId)?.farming ? "Farming household" : null;
-  const activity = !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
+  const approach = ecs.manager[player]?.jobs.find(j=>j.job.key=="chat" && j.targetId==entityId);
+  const approachMessage = approach?.waiting || (state.ui.talkResult?.personId==entityId ? state.ui.talkResult.message : null);
+  const activity = approachMessage ? null : !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
       <p className="person-meta">{identified ? <>{personComponent(state, "personable", entityId).age} years · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
-    {state.ui.talkResult?.personId == entityId && <p className="talk-result" role="status">{state.ui.talkResult.message}</p>}
+    {approachMessage && <p className="talk-result" role="status">{approachMessage}</p>}
     <div className="person-body">
       {!dead && personComponent(state, "kinship", player)?.spouse == entityId && <p className="talk-note">You are married.</p>}
       {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && personComponent(state, "personable", player).age >= 18 && <div className="court-actions" aria-label="Courtship"><button disabled={!left || !eligiblePartner(state,player,entityId,true)} onClick={() => queue("court")}>Court</button><button disabled={!left || !canMarryPlayer(state,player,entityId)} onClick={() => queue("marry")}>Ask to marry</button></div>}

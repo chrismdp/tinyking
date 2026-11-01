@@ -121,7 +121,12 @@ function updatePlannerFrame(state, frameMod) {
     // Re-plan
     if (!planner.plan) {
       if (planner.task) {
-        htn.finishTask(planner, planner.task);
+        // A meal has already consumed real food. A new need must not apply
+        // its predicted fed/rested effect before the timed care finishes.
+        if (["eat", "sleep"].includes(planner.task[0])) {
+          htn.runTask(state, planner, deltaTime(frameMod, SPEED[state.game_speed]), false);
+          if (planner.task) continue;
+        } else htn.finishTask(planner, planner.task);
       }
       const queue = jobQueueFor(state.ecs, planner.id);
       const jobs = state.ecs.manager[state.ui.playerId]?.ordered ?

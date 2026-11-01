@@ -72,3 +72,17 @@ it('names the real fuel receiver for a full pantry and keeps normal room-store d
   expect(html).toContain('Household stores · tile 3, 0');
   expect(html).not.toContain('Workshop fuel');
 });
+
+it('uses the same actual harvest blockage in the request and task, instead of the original ready-crop reason', () => {
+  const w=setup(),s=w.state,r=s.favours.requests.f;
+  Object.assign(r,{kind:'harvest',status:'accepted',reason:'The family crop is ready',quantity:3});
+  s.ecs.farmable={[r.targetId]:{houseId:r.householdId,slots:[{state:'harvestable',amount:6}]}};
+  s.ecs.container[r.householdId].amounts.grain=8;
+  const {favourWaiting}=require('game/favours');
+  const task={id:'harvest',job:{key:'favour'},favourId:r.id,targetId:r.targetId};
+  task.waiting=task.detail=favourWaiting(s,task);s.ecs.manager[w.player].jobs=[task];
+  const requestHTML=render(s,<RequestList/>),taskHTML=render(s,<TaskPanel/>);
+  expect(requestHTML).toContain(task.waiting);
+  expect(taskHTML).toContain(task.waiting);
+  expect(requestHTML).not.toContain('The family crop is ready');
+});

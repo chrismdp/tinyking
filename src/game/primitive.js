@@ -2,6 +2,8 @@ import { nothing } from "immer";
 
 export const MAX_SUBTASKS = 3;
 
+export function meal_unavailable() {}
+
 export function forage(world) {
   world.holding.forage = true;
 }

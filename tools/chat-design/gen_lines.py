@@ -2638,7 +2638,7 @@ situation(
 situation(
     "need_question", "anyone", "player",
     base_all=[PHASE_PLAYER, PLAYER_ADULT], base_none=NOT_PRACTICAL,
-    forbid=["asked:need"], add=["asked:need"], icons=[T("help")],
+    forbid=["asked:need"], add=["asked:need", "offered_help"], icons=[T("help")],
     facts=[F("player", ["age"])],
     use_key="ask_need:{player.id}:{npc.id}:{context.encounter_number}",
     risks=["Help can land badly with them."], reveals=["That you are looking for work to do"],

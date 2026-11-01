@@ -14,11 +14,12 @@ it("names the real meal that delays a queued conversation",()=>{
   s.ecs.planner[person].world.feeling.hungry=true;
   expect(openingGuidance(s).text).toContain("finishes a meal");
 });
-it("guides three actual conversations, shelter supplies and building, then sleep, and returns to people after the first night",()=>{
-  const {state:s,player:p,person:n,parent,sibling,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};s.ecs.playable[p].arrivedAt=0;s.days=.4;
+it("guides two actual conversations, shelter supplies and building, then sleep, and returns to people after the first night",()=>{
+  const {state:s,player:p,person:n,parent,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};s.ecs.playable[p].arrivedAt=0;s.days=.4;
   s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
   s.knowledge={[p]:{people:{},feelings:{}}};
-  for(const id of [n,parent,sibling]) {
+  // Replay finding 3: home guidance begins after two chats, including after day one.
+  for(const id of [n,parent]) {
     expect(openingGuidance(s).action).toContain("Chat with");
     s.knowledge[p].people[id]={conversation:{day:s.days}};
   }

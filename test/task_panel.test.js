@@ -102,3 +102,14 @@ it("explains tired slowdown next to hunger during active work and keeps Rest vis
   expect(render()).not.toContain("Tired: working slowly");
   expect(render()).toContain("~150m left");
 });
+
+it("keeps failed meal recovery visible without recommending another Find food",()=>{
+  const {state:s,player:p}=require("./support/people").peopleWorld();
+  s.ecs.personable[p].hunger=2.79;
+  const reason="No accessible meal was found. Choose Move here to look for wild roots.";
+  s.ecs.manager[p].jobs=[{id:"food",job:{key:"find_food"},targetId:p,waiting:reason,detail:reason,failed:true}];
+  const html=renderToStaticMarkup(<GameState.Provider value={s}><TaskPanel/></GameState.Provider>);
+  expect(html).toContain(reason);
+  expect(html).not.toContain("Choose Find food to go for a meal");
+  expect(html).not.toMatch(/<button[^>]*>Find food<\/button>/);
+});

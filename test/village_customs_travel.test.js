@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community, attach } from "./support/travel";
 import { acceptTravel, completeTravel, departNpc, advanceWorldClock } from "game/travel";
 import { neighbours, worldKey } from "game/travel_geometry";
@@ -25,7 +26,7 @@ it("does not copy a host's oath onto a visiting NPC or recognise a temporary gue
   for(const person of b.ids)b.s.ecs.village[person].memberships={secret:{day:0}};
   attach(s,b.s);
   s.ecs.village[id].memberships={own:{day:0}};
-  departNpc(s,id,{to:next});s.days+=3;await advanceWorldClock(s);
+  departNpc(s,id,{to:next});s.days+=DAYS_IN_SEASON;await advanceWorldClock(s);
   const dest=s.travel.maps[next];
   expect(dest.residents[id]).toBe(true);
   expect(membership(dest,id,"own")).toBe("oath");

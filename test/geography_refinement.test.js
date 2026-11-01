@@ -145,9 +145,10 @@ it("one real spring calendar leaves alpine crops and forage frozen after lowland
   expect(s.snow[sites[1]]).toBeGreaterThan(.5);
   expect(s.snow[sites[0]]).toBe(0);
   expect(forageAvailable(s,{...s.ecs.forageable[high.plant],amount:1})).toBe(false);
-  expect(forageAvailable(s,{...s.ecs.forageable[high.plant],kind:"roots",amount:1})).toBe(true);
+  expect(forageAvailable(s,{...s.ecs.forageable[high.plant],kind:"roots",amount:1})).toBe(false);
   for(let h=0;h<112;h++) grow();
   expect(growingAt(s,high.farm)).toBe(true);
+  expect(forageAvailable(s,{...s.ecs.forageable[high.plant],kind:"roots",amount:1})).toBe(true);
   expect(s.ecs.farmable[high.farm].slots[0].growth).toBeGreaterThan(7/3);
   expect(s.snow[sites[1]]).toBeLessThan(.05);
   expect(s.snow[sites[2]]).toBeGreaterThan(.9);

@@ -1,3 +1,4 @@
+import { toggleWorldMap } from "game/realm_map";
 import { chooseLine, closeChat, selectChatSubject } from "game/chat";
 import { PanelBoundary } from "./panel_boundary";
 import { personComponent } from "game/residents";
@@ -16,7 +17,7 @@ import { walk_to } from "game/tasks";
 import { updateEnvironment, advanceEnvironment } from "game/environment";
 import { canPlaceField, reserveFieldPlot, reserveRoad } from "game/land_use";
 import { growingAt, frozenAt } from "game/climate";
-import { initialiseTravel, acceptTravel } from "game/travel";
+import { initialiseTravel, acceptTravel, planJourney, stopJourney } from "game/travel";
 import { name } from "game/name";
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
@@ -241,6 +242,12 @@ export function World() {
         } finally { state.generating = false; }
         renderUI();
       },
+      toggle_world_map: () => { toggleWorldMap(state); setPopupInfo({}); renderUI(); },
+      plan_journey: key => {
+        if (planJourney(state,key)) { state.renderer?.resumeFollow(); setPopupInfo({}); state.ui.show.world_overview=false; }
+        renderUI();
+      },
+      stop_journey: () => { if (!state.worldBusy) stopJourney(state); renderUI(); },
       travel: tileId => {
         if (introActive(state)||state.worldBusy) return;
         if (acceptTravel(state,tileId)) { state.renderer?.resumeFollow(); setPopupInfo({}); state.ui.show.world_overview=false; }

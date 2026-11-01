@@ -116,15 +116,15 @@ function oathCareWorld(unready) {
   return {s,actor,elder,meal,orders,page};
 }
 
-it("lets actual NPC sleep and ordinary player food/rest recover oath readiness without granting contact or rights",async()=>{
+it("lets actual NPC sleep recover oath readiness without automatic player care or granting contact or rights",async()=>{
   const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
   const result=await waitForOathReadiness(page,elder,"village");
   expect(result.initial.readiness.ok).toBe(false);expect(result.after.readiness.ok).toBe(true);
-  expect(orders).toEqual(["find_food","rest"]);
-  expect(s.ecs.good[meal]).toBeUndefined();
+  expect(orders).toEqual([]);
+  expect(s.ecs.good[meal]).toMatchObject({type:"forage",amount:1});
   expect(s.ecs.personable[elder].tiredness).toBeLessThan(.2);
-  expect(s.ecs.personable[actor].tiredness).toBeLessThan(.2);
+  expect(s.ecs.personable[actor].energy).toBeGreaterThanOrEqual(0);
   expect(s.ecs.planner[elder].world.feeling.tired).toBe(false);
   expect(s.game_speed).toBe("paused");expect(s.ecs.manager[actor].jobs).toEqual([]);
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
@@ -136,17 +136,18 @@ it("leaves ready parties and their supplies alone before the real oath request",
   expect(orders).toEqual([]);expect(JSON.stringify(s)).toBe(before);
 });
 
-it("returns the old overview driver through the visible You button before local clicks, without touching game outcomes",async()=>{
+it("closes the separate world map before local clicks, without touching game outcomes",async()=>{
   const {s,page}=view(),before=JSON.stringify(s);
-  s.renderer={overview:true};
-  const click=jest.fn(async()=>{s.renderer.overview=false;});
+  const previous=s.ui.show;
+  s.ui.show={world_overview:true};
+  const click=jest.fn(async()=>{s.ui.show.world_overview=false;});
   page.getByRole=jest.fn(()=>({click}));
   page.waitForFunction=async fn=>expect(fn()).toBe(true);
   await returnToLocalView(page);
-  expect(page.getByRole).toHaveBeenCalledWith("button",{name:"Recenter on you",exact:true});
+  expect(page.getByRole).toHaveBeenCalledWith("button",{name:"Close world map",exact:true});
   expect(click).toHaveBeenCalledTimes(1);
   await returnToLocalView(page);expect(click).toHaveBeenCalledTimes(1);
-  delete s.renderer;expect(JSON.stringify(s)).toBe(before);
+  s.ui.show=previous;expect(JSON.stringify(s)).toBe(before);
 });
 
 it("chooses a real farming household for the storyboard when no fuel favour exists", () => {
@@ -270,7 +271,7 @@ it("waits through real delivery progress without extending a stalled favour's ti
   await expect(waitForFavourDelivery(page,"harvest")).rejects.toThrow("ended without delivery");
 });
 
-it.each([true,false])("waits for native care before approach, requiring visible slots: %s", async requireSlots => {
+it.each([true,false])("waits for NPC readiness without ordering player care, requiring visible slots: %s", async requireSlots => {
   const {waitForChatReadiness}=require("../scripts/acceptance-selection");
   const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
@@ -278,8 +279,8 @@ it.each([true,false])("waits for native care before approach, requiring visible 
   global.document={querySelectorAll:()=>requireSlots ? [{textContent:"Chat",disabled:false}] : []};
   try {
     await waitForChatReadiness(page,elder,{requireSlots});
-    expect(orders).toEqual(["find_food","rest"]);
-    expect(s.ecs.good[meal]).toBeUndefined();
+    expect(orders).toEqual([]);
+    expect(s.ecs.good[meal]).toMatchObject({type:"forage",amount:1});
     for(const id of [actor,elder])expect(s.ecs.planner[id].world.feeling).toMatchObject({hungry:false,tired:false});
     expect(s.game_speed).toBe("paused");
     expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);

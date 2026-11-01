@@ -5,11 +5,6 @@ import { villageArea } from "game/settlement_details";
 import { villageElder } from "game/village_customs";
 
 export const reachKey = h => h.x + "," + h.y;
-export const mapLayers = s => ({ communities: true, weather: false, wind: false, ...s.ui?.mapLayers });
-export function setMapLayer(s, layer, checked) {
-  if (!["communities", "weather", "wind"].includes(layer)) return;
-  s.ui.mapLayers = { ...mapLayers(s), [layer]: checked };
-}
 export function inspectRealm(s, key, villageId = null) {
   if (!s.world.hexes.some(h => reachKey(h) == key)) return;
   s.ui.realmSelection = { reachKey: key, villageId };
@@ -47,4 +42,26 @@ export function reachFacts(s, h) {
     visited: key == reachKey(s.world.home) || !!s.travel?.maps?.[key],
     terrain: h.ocean ? "Ocean" : climateSummary(h), temperature: h.temperature, moisture: h.moisture,
     weather: s.weather?.[key], communities: knownCommunities(s, key) };
+}
+
+export function toggleWorldMap(s) {
+  if (!s.travel || s.generating || s.transition || s.intro?.active || s.ui.show.main_menu || s.ui.show.mapgen) return;
+  s.ui.show.world_overview = !s.ui.show.world_overview;
+}
+export function handleWorldMapKey(event, s) {
+  const target = event.target;
+  if (event.code != "KeyM" || event.repeat || event.ctrlKey || event.altKey || event.metaKey ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || target?.isContentEditable) return;
+  toggleWorldMap(s);
+  event.preventDefault();
+  s.ui.actions?.end_turn?.();
+}
+export function worldMapRoads(s) {
+  const roads = new Map();
+  for (const trip of s.travel?.routeHistory || []) {
+    if (!trip.borderKey) continue;
+    const ends = trip.borderKey.split("/").sort();
+    if (ends.length == 2) roads.set(ends.join("/"), ends);
+  }
+  return [...roads.values()];
 }

@@ -24,7 +24,7 @@ const MORALITY_MARK = { good: "#f2c14e", evil: "#7a3fa0" };
 // NOTE: The world of world hexes, seen from above: each coloured by its
 // biome, marked gold (good) or purple (evil), and with labels its three
 // axis values. The world hex being played is outlined.
-export function Overworld({ world, size, labels, weather }) {
+export function Overworld({ world, size, labels, weather, onSelect, known, communities = [], roads = [], route = [], selected }) {
   const home = homeOf(world);
   const scale = size / HEX_SIZE;
   const corners = Hex().corners().map(c => (c.x * scale).toFixed(1) + "," + (c.y * scale).toFixed(1)).join(" ");
@@ -39,13 +39,21 @@ export function Overworld({ world, size, labels, weather }) {
 
   const hex = (h, isHome) => (
     <g key={h.x + "," + h.y} transform={"translate(" + (h.at.x * scale).toFixed(1) + "," + (h.at.y * scale).toFixed(1) + ")"}
-      className={isHome ? "home" : ""}>
+      className={isHome ? "home" : known?.has(h.x + "," + h.y) ? "known-hex" : ""}
+      role={!isHome && onSelect ? "button" : undefined} tabIndex={!isHome && onSelect ? 0 : undefined}
+      aria-label={!isHome && onSelect ? "Select Reach " + h.x + ", " + h.y : undefined}
+      onClick={!isHome && onSelect ? () => onSelect(h) : undefined}
+      onKeyDown={!isHome && onSelect ? e => { if (["Enter", " "].includes(e.key)) { e.preventDefault(); onSelect(h); } } : undefined}
+      style={isHome ? {pointerEvents:"none"} : undefined}>
       <title>{labelOf(h) + ": " + h.morality + ", " + h.temperature + ", " + h.moisture + (isHome ? " (you are here)" : "")}</title>
       <polygon points={corners} fill={isHome ? "none" : css(colourOf(h))}
-        stroke={isHome ? "#d93b30" : "rgba(0, 0, 0, 0.35)"} strokeWidth={isHome ? 3 : 1}/>
-      { !isHome && !h.ocean && MORALITY_MARK[h.morality] &&
+        stroke={isHome ? "#d93b30" : "rgba(0, 0, 0, 0.35)"} strokeWidth={isHome ? 3 : 1} opacity={!isHome && known && !known.has(h.x + "," + h.y) ? .5 : 1}/>
+      {!isHome && known?.has(h.x + "," + h.y) && <polygon points={corners} fill="none" stroke="#f9edc9" strokeWidth={2} pointerEvents="none"/>}
+      {!isHome && selected == h.x + "," + h.y && <polygon points={corners} fill="none" stroke="#ffe180" strokeWidth={2} strokeDasharray="3 2" pointerEvents="none"/>}
+      {!isHome && communities.filter(v=>v.reachKey == h.x + "," + h.y).map((v,i)=><text key={v.id} textAnchor="middle" y={i*8} fontSize={7} fill={ink(colourOf(h))}>{v.name}</text>)}
+      { !onSelect && !isHome && !h.ocean && MORALITY_MARK[h.morality] &&
         <circle cx={0} cy={-size * 0.62} r={size * 0.1} fill={MORALITY_MARK[h.morality]} stroke="rgba(0, 0, 0, 0.4)"/> }
-      { !isHome && !weather && (labels || h.ocean) &&
+      { !onSelect && !isHome && !weather && (labels || h.ocean) &&
         <text textAnchor="middle" fontSize={line * 0.95} fill={ink(colourOf(h))}>
           { h.ocean ? <>
             <tspan x={0} y={labels ? -line * 0.6 : line * 0.3}>ocean</tspan>
@@ -79,6 +87,11 @@ export function Overworld({ world, size, labels, weather }) {
   return (
     <svg className="overworld" width={width} height={height} viewBox={[left, top, width, height].join(" ")}>
       { placed.map(h => hex(h, false)) }
+      {roads.map(([a,b]) => {
+        const A=placed.find(h=>h.x+","+h.y==a),B=placed.find(h=>h.x+","+h.y==b);
+        return A && B && <line className="world-road" key={a+"/"+b} x1={A.at.x*scale} y1={A.at.y*scale} x2={B.at.x*scale} y2={B.at.y*scale} stroke="#777267" strokeWidth={3} pointerEvents="none"/>;
+      })}
+      {route.length > 1 && <polyline className="world-route" points={route.map(k=>placed.find(h=>h.x+","+h.y==k)).filter(Boolean).map(h=>[h.at.x*scale,h.at.y*scale].join(",")).join(" ")} fill="none" stroke="#ffcf58" strokeWidth={3} strokeDasharray="5 3" pointerEvents="none"/>}
       { hex(placed.find(h => h.x == home.x && h.y == home.y), true) }
     </svg>
   );
@@ -88,7 +101,13 @@ Overworld.propTypes = {
   world: PropTypes.object.isRequired,
   size: PropTypes.number.isRequired,
   labels: PropTypes.bool,
-  weather: PropTypes.object
+  weather: PropTypes.object,
+  onSelect: PropTypes.func,
+  known: PropTypes.instanceOf(Set),
+  communities: PropTypes.array,
+  roads: PropTypes.array,
+  route: PropTypes.array,
+  selected: PropTypes.string
 };
 
 export function BiomeKey() {

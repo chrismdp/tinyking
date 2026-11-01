@@ -51,7 +51,7 @@ export function playerDay(s) {
   w.restHome=deliveryHome(s,a);
   w.restBed=e.sleepable?.[w.restHome]?w.restHome:Object.keys(e.sleepable || {}).find(id=>householdAccess(e,a,id) && (e.interior?.[id]?.buildingId==w.restHome || e.building?.[w.restHome]?.rooms?.includes(id)));
   // Once each evening, physically return home. Later evening visits remain free.
-  if((hour>=18 || hour<6) && w.returnedNight!==night && !w.currentJob && p.task?.[0]!="sleep" && w.currentJob!="rest") {
+  if(!s.travel?.journey && (hour>=18 || hour<6) && w.returnedNight!==night && !w.currentJob && p.task?.[0]!="sleep" && w.currentJob!="rest") {
     w.duskHome=w.restHome;
     if(w.duskHome){w.returnedNight=night;p.task=null;p.plan=null;}
   }

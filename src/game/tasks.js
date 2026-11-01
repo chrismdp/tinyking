@@ -756,7 +756,7 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 export function sleep(state, actorId, world, dt, firstRun) {
   const person=state.ecs.personable[actorId];
   if(Number.isFinite(person.energy)) {
-    const home=world.restBed || world.restHome || world.places.sleep;
+    const home=world.journeyCamp ? world.places.sleep : world.restBed || world.restHome || world.places.sleep;
     const bed=state.ecs.sleepable?.[home];
     if(firstRun || world.sleepStart==null) {
       world.sleepStart=state.days;world.sleepHours=0;
@@ -776,6 +776,7 @@ export function sleep(state, actorId, world, dt, firstRun) {
   }
   enterHome(state, actorId, world.places.sleep);
   person.tiredness -= dt * SLEEP_REPLENISH;
+  if (world.journeyCamp) person.tiredness = Math.max(.1, person.tiredness);
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
 

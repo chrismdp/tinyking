@@ -1,3 +1,4 @@
+jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() + "/node_modules/three/build/three.module.js"));
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { GameState } from "../src/components/contexts";
@@ -9,6 +10,15 @@ it.each([[false, "Click to skip"], [true, "Tap to skip"]])("offers a full-screen
   expect(html).toContain('id="intro-skip"');
   expect(html).toContain(hint);
   expect(html).toContain("<button");
+});
+
+it("shows a travel arrival's own line instead of the opening story", () => {
+  const { OPENING_NARRATIVE, HOP_NARRATIVE } = require("../src/game/guidance");
+  const render = intro => renderToStaticMarkup(<GameState.Provider value={{ intro, ui: { actions: { skip_intro() {} } } }}><IntroOverlay/></GameState.Provider>);
+  expect(render({ active: true })).toContain(OPENING_NARRATIVE.slice(0, 20));
+  const hop = render({ active: true, narrative: HOP_NARRATIVE });
+  expect(hop).toContain(HOP_NARRATIVE.slice(0, 20));
+  expect(hop).not.toContain("Mother sent me");
 });
 
 jest.mock("components/intro_overlay", () => require("../src/components/intro_overlay"), { virtual: true });

@@ -1,7 +1,7 @@
 import { DAYS_IN_SEASON, day_of_season, hour_of_day, season } from "game/time";
 import { recordEvent, knownEvents, learnEvent } from "game/events";
 import { eventSentence } from "game/events";
-import { displayName } from "game/knowledge";
+import { personLabel } from "game/knowledge";
 import { addGoodwill } from "game/people";
 import { isResident } from "game/residents";
 import { squaredDistance } from "game/math";
@@ -104,10 +104,50 @@ export function attendFestival(s,villageId) {
   if(!target)return false;
   enqueueTask(s,{key:"move_to_here"},target);return true;
 }
-const PAGE_EVENTS=new Set(["birth","marriage","death","move","world_move","household_join","household_arrival","arrival","departure","return","harvest","fire","favour","festival","house_built","building_built","expansion","founding","green_moved","inheritance","succession"]);
-export function seasonLines(s,n,actor=s.ui.playerId) {
-  return knownEvents(s,actor).filter(e=>PAGE_EVENTS.has(e.type)&&e.day>=n*DAYS_IN_SEASON&&e.day<(n+1)*DAYS_IN_SEASON)
-    .sort((a,b)=>a.day-b.day||a.id.localeCompare(b.id)).map(e=>({id:e.id,text:eventSentence(s,e,id=>displayName(s,id,s.personName)).replace(/ in the (spring|summer|autumn|winter) of year -?\d+\.$/,".")}));
+const LIFE_EVENTS = new Set(["birth", "marriage", "death", "move", "world_move", "household_join", "household_arrival", "arrival", "departure", "world_visit", "return", "fire", "quarrel", "reconciliation", "founding", "inheritance", "succession"]);
+const BUILD_EVENTS = new Set(["house_built", "building_built", "expansion", "green_moved"]);
+export const SEASON_PAGE_LINES = 6;
+export function seasonLines(s, n, actor = s.ui.playerId) {
+  const start = n * DAYS_IN_SEASON, end = start + DAYS_IN_SEASON;
+  const events = knownEvents(s, actor).filter(e => e.day >= start && e.day < end)
+    .sort((a,b) => a.day-b.day || a.id.localeCompare(b.id, undefined, {numeric:true}));
+  const row = (id, text, section, records) => ({id, text, section, eventIds:records.map(e=>e.id)});
+  const life = events.filter(e=>LIFE_EVENTS.has(e.type)).map(e=>row(e.id,
+    eventSentence(s,e,id=>personLabel(s,id,s.personName,actor)).replace(/ in the (spring|summer|autumn|winter) of year -?\d+\.$/, "."), "life", [e]));
+  const work = [], harvest = events.filter(e=>e.type=="harvest"), builds = events.filter(e=>BUILD_EVENTS.has(e.type));
+  const favours = events.filter(e=>e.type=="favour" && e.people[0]!=actor);
+  if (harvest.length) work.push(row("harvest", "The harvest came in: " + harvest.reduce((sum,e)=>sum+e.quantity,0) + " grain over " + harvest.length + (harvest.length==1 ? " load." : " loads."), "work", harvest));
+  if (builds.length) work.push(row("buildings", builds.length + (builds.length==1 ? " building project was completed." : " building projects were completed."), "work", builds));
+  if (favours.length) work.push(row("favours", "Neighbours completed " + favours.length + (favours.length==1 ? " favour." : " favours."), "work", favours));
+  const own = events.filter(e=>e.people[0]==actor && ["festival","favour"].includes(e.type));
+  const festivals = [...new Set(own.filter(e=>e.type=="festival").map(e=>e.title))];
+  const helped = own.filter(e=>e.type=="favour").length;
+  const met = Object.entries(s.knowledge?.[actor]?.people || {}).filter(([id,p])=>id!=actor && p.conversation?.day>=start && p.conversation.day<end && !s.ecs.personable?.[id]?.unrevealed).length;
+  const personal = [];
+  if (festivals.length || helped || met) {
+    const parts = [...festivals.map(title=>"attended the " + title)];
+    if (helped) parts.push("did " + helped + (helped==1 ? " favour" : " favours"));
+    if (met) parts.push("spoke with " + met + (met==1 ? " person" : " people"));
+    personal.push(row("your-season", "You " + parts.join("; ") + ".", "player", own));
+  }
+  // Keep work and the actor's season visible even when village life is busy.
+  if (life.length + work.length + personal.length <= SEASON_PAGE_LINES) return [...life, ...work, ...personal];
+  const shownLife = life.slice(0, SEASON_PAGE_LINES - work.length - personal.length - 1);
+  const more = life.length - shownLife.length;
+  return [...shownLife, ...work, ...personal, row("more", "And " + more + " more pieces of news.", "more", [])];
+}
+// Suggestions rank only personally known needs and the family names already given.
+export function festivalPeople(s, candidates) {
+  const a = s.ui.playerId, k = s.knowledge?.[a], relatives = s.backstories?.[a]?.relatives || [];
+  const knownFavours = new Set(k?.favours || []);
+  const rank = id => {
+    if (k?.people?.[id] && relatives.some(r=>r.id==id) && !k?.maternalFamily?.met?.includes(id)) return 4;
+    const bond = s.ecs.relationships?.[a]?.known[id];
+    if (["personal","intimate"].includes(bond?.ring)) return 3;
+    if (Object.values(s.favours?.requests || {}).some(r=>knownFavours.has(r.id) && r.giverId==id && ["offered","accepted"].includes(r.status))) return 2;
+    return personLabel(s,id) != "a person" && (bond || k?.people?.[id] && !k.people[id].nameOnly) ? 1 : 0;
+  };
+  return candidates.filter(id=>!s.ecs.personable[id]?.unrevealed).sort((x,y)=>rank(y)-rank(x) || x.localeCompare(y, undefined, {numeric:true})).slice(0,4);
 }
 // Pause at dawn, after the festival night and before the new day's work.
 export function seasonTurnAt(s,to) {

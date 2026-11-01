@@ -7,7 +7,7 @@ import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
 import { withFenceCache } from "game/fences";
 import { gardenHelp, withGardenHelpIndex, refreshGardenHelpIndex } from "game/household_routines";
-import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
+import { advanceWorldClock, completeTravel, departNpc, updateJourney } from "game/travel";
 import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
@@ -116,9 +116,9 @@ function updatePlannerFrame(state, frameMod) {
     // Re-plan
     if (!planner.plan) {
       if (planner.task) {
-        // A meal has already consumed real food. A new need must not apply
+        // A player's meal has already consumed real food. A new need must not apply
         // its predicted fed/rested effect before the timed care finishes.
-        if (["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
+        if (planner.id == state.ui.playerId && ["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
           htn.runTask(state, planner, deltaTime(frameMod, SPEED[state.game_speed]), false);
           if (planner.task) continue;
         } else htn.finishTask(planner, planner.task);
@@ -229,6 +229,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
       if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
       playerDay(state);
       updateCustoms(state);
+      updateJourney(state);
       updatePlanners(state, frameMod);
       if (state.chat?.active) { if(onHour) onHour(); return; }
       // All edge completions belong to the map where planners just ran.

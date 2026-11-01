@@ -7,9 +7,8 @@ into long belts. Slow warping bends their spines. Broad envelopes limit mountain
 extent and leave lowlands between ranges. Rounded cross-sections and variations
 along each crest make summits and saddles. Smaller ridges join the shoulders as
 spurs. A separate slow field supplies rolling country. Coastal relief fades
-towards sea level. Local maps and coarse realm meshes sample this same field.
-The realm lattice has triangle edges about 312 units long. These samples retain
-the broad range profiles.
+towards sea level. Local maps sample this field independently. The separate world map uses biome
+colours and does not construct coarse 3D terrain.
 
 Steep ground becomes mountain terrain. Gentle ground above altitude 780 becomes
 exposed stone, which remains walkable. Gentle uplands can support vegetation and
@@ -67,8 +66,7 @@ and moisture bands into up to four named biomes. Moisture band centres are
 or measured rainfall. The model has no soil, runoff or seasonal moisture budget.
 
 Generation stores each finished tile's climate and mixture. Later building pads
-refresh habitat where altitude changes. Detailed and coarse ground use the same
-palette at physical coordinates. Generated ground
+refresh habitat where altitude changes. Detailed ground uses the habitat palette at physical coordinates. Generated ground
 has no regional morality tint. Tree establishment and forage density blend the
 habitat profiles. Deterministic draws select individual plant types. Real trees
 retain wood, clearance, ownership and the existing per-species woodland capacity.
@@ -78,9 +76,7 @@ substitutes for resource entities.
 
 The seasonal snowline interpolates between the existing temperature bands using
 sea-level warmth. Physical altitude then decides freezing for crops, forage and
-snow. Both terrain views use that climate. The active coarse surface reads actual
-local snow accumulation. Remote coarse terrain uses seasonal cover because no
-local weather history exists there. Precipitation near the camera uses that
+snow. Local terrain uses that climate and actual local snow accumulation. Precipitation near the camera uses that
 point's freezing condition. Hourly pressure, wind and storms retain their rules.
 Named climate categories remain supported for small legacy fixtures.
 

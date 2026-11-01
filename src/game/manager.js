@@ -195,7 +195,7 @@ function reachableShelterLog(state, actorId) {
 
 // Shared by queue readiness, runtime failure and the person sheet result.
 export function chatUnfriendly(state, actor, target) {
-  if(!state.ecs.personable?.[target])return null;
+  if(!state.ecs.personality?.[target])return null;
   const hate=disposition(state,target,actor)=="hate",regard=state.ecs.relationships?.[target]?.known[actor]?.goodwill||0;
   if(hate)return "They will not come out to talk. A gift they like or an offered favour can improve goodwill, but their tastes and disposition will not change. Try another neighbour.";
   if(regard<0)return "They will not come out to talk while they feel unfriendly. Rebuild goodwill with a gift they like or an offered favour, then try again.";
@@ -234,7 +234,8 @@ export function expireChatApproach(state) {
   const actor=state.ui.playerId,jobs=state.ecs.manager?.[actor]?.jobs||[];
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
-  if(!job || !state.ecs.personable?.[job.targetId])return;
+  // A vanished person keeps the queue's own "Target gone" reason.
+  if(!job || !state.ecs.personable?.[job.targetId] || !state.ecs.spatial?.[job.targetId])return;
   job.approachAt ??= state.days;
   if(state.days-job.approachAt<1/24)return;
   const reason=chatIntentUnavailable(state,actor,job.targetId,job.chatIntent) || chatUnavailable(state,actor,job.targetId) ||

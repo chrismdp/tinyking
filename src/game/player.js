@@ -6,6 +6,7 @@ export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30,
 
 // The player chooses meals and sleep. Villagers retain their household routines.
 export const player = () => [
+  [world => world.journeyCamp, () => [["sleep"]]],
   [world => world.stationaryPlayer === false, () => [["person"]]],
   [world => world.capturedAttentionOf, id => [["release_attention",id],["player"]]],
   [world => world.currentJob, key => [["release_job",key],["player"]]],

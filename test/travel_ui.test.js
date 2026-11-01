@@ -28,7 +28,7 @@ it("offers an explicit named Travel action, one season, needs and unfinished-wor
   expect(html).toContain("Reach ");
   expect(html).toContain("grassland");
   expect(html).toContain("one season");
-  expect(html).toContain("Hunger and tiredness");
+  expect(html).toContain("Walking uses a little energy");
   expect(html).toContain("cancels unfinished local tasks and favours");
   expect(html).toContain(">Travel</button>");
   expect(html).toContain(">Stay here</button>");
@@ -36,6 +36,7 @@ it("offers an explicit named Travel action, one season, needs and unfinished-wor
   html = render(s, <TravelOffer entityId={id} />);
   expect(html).toContain("cannot cross the sea on foot");
   expect(html).not.toContain(">Travel</button>");
+  s.ui.show.world_overview=true;
   expect(render(s, <TravelOverview />)).toContain("You are here");
 });
 it("labels the departure walk separately from its one-season journey without a false total ETA or percentage", () => {

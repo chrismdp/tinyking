@@ -1,3 +1,4 @@
+import { Hex } from "game/hex";
 import { personComponent } from "game/residents";
 // Ambient names follow the same introductions and learned-person records as the
 // family panel. A raw name resolver may format a permitted identity, never decide
@@ -39,4 +40,29 @@ export function knownKinship(state, viewer, a, b) {
     if(to==id)reached.add(from);
   }
   return reached.has(b);
+}
+
+// Describe a witnessed person without granting an introduction or hidden kinship.
+export function personLabel(state, id, resolve = state.personName, viewer = state.ui?.playerId) {
+  const named = displayName({...state, ui:{...state.ui, playerId:viewer}}, id, resolve);
+  if (named != "an unknown person") return named;
+  if (personComponent(state, "personable", id)?.unrevealed) return "a person";
+  const learned = state.knowledge?.[viewer]?.people?.[id];
+  const relative = learned && state.backstories?.[viewer]?.relatives?.find(r => r.id == id);
+  if (relative) return "your " + relative.term + " " + relative.name;
+  const person = personComponent(state, "personable", id), n = personComponent(state, "nameable", id);
+  if (!person || person.unrevealed) return "a person";
+  const child = person.age < 18;
+  const who = n?.male == null ? (child ? "a child" : "a person") : child ? (n.male ? "a boy" : "a girl") : (n.male ? "a man" : "a woman");
+  const house = personComponent(state, "household", id)?.houseId, at = state.ecs.spatial?.[house];
+  const seen = at && state.ecs.playable?.[viewer]?.known?.some(h => String(Hex(h)) == String(Hex().fromPoint(at)));
+  const home = seen && state.ecs.nameable?.[house]?.nickname;
+  if (home) return who + " of " + home;
+  const body=state.ecs.spatial?.[id], eye=state.ecs.spatial?.[viewer];
+  if (body && eye && Math.hypot(body.x-eye.x,body.y-eye.y)<=300) {
+    const hair=["red","brown","black","blond","strawberry blond","pink","blue"][person.hair];
+    if (hair) return who + " with " + hair + " hair";
+    if (Number.isFinite(person.body)) return who + " in " + ((person.body & 255) > (person.body >> 16 & 255) ? "blue" : "brown");
+  }
+  return who;
 }

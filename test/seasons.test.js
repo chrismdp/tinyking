@@ -69,3 +69,46 @@ it('releases a villager work assignment and patch claim before gathering',()=>{
  s.ecs.farmable={field:{claimerId:npc,slots:[{workerId:npc}]}};s.ecs.planner[npc].world.claimedFarmable='field';s.ecs.planner[npc].world.currentJob='create_field';
  updateFestival(s);expect(job.assignedId).toBeNull();expect(s.ecs.farmable.field.claimerId).toBeNull();expect(s.ecs.farmable.field.slots[0].workerId).toBeUndefined();
 });
+it('puts life news first, groups thirteen harvests and ends with the player season',()=>{
+ const {state:s,villager:a,npc}=fixture();s.ecs.playable={[a]:{known:[]}};
+ s.ecs.nameable[npc].male=false;
+ const add=(type,people,details={})=>{const e=recordEvent(s,type,people,[],details);learnEvent(s,a,e);return e;};
+ for(let i=0;i<13;i++)add('harvest',[npc],{quantity:6});
+ const wedding=add('marriage',[a,npc]);const quarrel=add('quarrel',[npc,a]);const peace=add('reconciliation',[npc,a]);
+ add('festival',[a,npc],{title:'Seedwake Fair'});add('favour',[a,npc],{kind:'wood',goodwill:12});
+ s.knowledge[a].people={[npc]:{conversation:{day:2}}};s.personName=id=>id==npc?'Ada':'Will';
+ const rows=seasonLines(s,0);
+ expect(rows.slice(0,3).map(r=>r.id)).toEqual([wedding.id,quarrel.id,peace.id]);
+ expect(rows.find(r=>r.section=='work').text).toBe('The harvest came in: 78 grain over 13 loads.');
+ expect(rows.at(-1).section).toBe('player');
+ expect(rows.at(-1).text).toMatch(/Seedwake Fair.*1 favour.*1 person/);
+ expect(rows.some(r=>r.text.includes('an unknown person'))).toBe(false);
+});
+it('caps busy news, preserves work and personal news, and counts only omitted known records',()=>{
+ const {state:s,villager:a,npc}=fixture();
+ for(let i=0;i<12;i++){const e=recordEvent(s,'death',[npc],[],{audienceIds:[]});learnEvent(s,a,e);}
+ recordEvent(s,'fire',[npc],[],{sealed:true});
+ const rows=seasonLines(s,0);
+ expect(rows.length).toBeLessThanOrEqual(6);
+ expect(rows.at(-1).text).toBe('And 7 more pieces of news.');
+ expect(rows[0].text).toMatch(/a (woman|person)/i);
+ expect(rows.map(r=>r.text).join(' ')).not.toMatch(/unknown person|fire/);
+});
+it('uses a family-goal name only when it was already given to this actor',()=>{
+ const {state:s,villager:a,npc}=fixture();
+ s.backstories={[a]:{relatives:[{id:npc,term:'aunt',name:'Ada Clefobto'}]}};
+ s.knowledge={[a]:{people:{[npc]:{nameOnly:true}},events:[]}};
+ const e=recordEvent(s,'arrival',[npc],[],{worldHex:'here',audienceIds:[]});learnEvent(s,a,e);
+ expect(seasonLines(s,0)[0].text).toContain('your aunt Ada Clefobto');
+ expect(seasonLines(s,0)[0].text).not.toContain('unknown person');
+});
+it('describes witnessed strangers by a visible house without naming or introducing them',()=>{
+ const {state:s,villager:a,npc}=fixture();s.ecs.nameable[npc].male=false;
+ s.ecs.household={[npc]:{houseId:'house'}};s.ecs.spatial.house={...s.ecs.spatial[npc]};s.ecs.nameable.house={nickname:'the Clefobto house'};
+ s.ecs.playable={[a]:{known:[require('game/hex').Hex().fromPoint(s.ecs.spatial.house)]}};
+ const e=recordEvent(s,'quarrel',[npc,a],[],{audienceIds:[]});learnEvent(s,a,e);
+ expect(seasonLines(s,0)[0].text).toContain('a woman of the Clefobto house');
+ expect(s.knowledge[a].people[npc]).toBeUndefined();
+ s.ecs.playable[a].known=[];
+ expect(seasonLines(s,0)[0].text).not.toContain('Clefobto');
+});

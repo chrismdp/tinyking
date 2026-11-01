@@ -36,16 +36,22 @@ Local temperature and altitude control freezing, snow and crop growth. Weather
 retains the hourly pressure model. Rain, snow, wind and storms affect presentation.
 They do not introduce injury, warmth or storm damage.
 
-A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
+A journey plans adjacent land hops. The normal planner walks through each hex
+to its exit, using the road where available. Each hop advances one season and
+arrives at the matching edge at dawn. At dusk, the traveller camps at their
+position and resumes at dawn. Visited maps retain their people, buildings,
+stores and ownership. Only the current hex runs live. Away communities advance
+through seasonal history. Their snapshots still remain in memory until per-hex
+storage and eviction are implemented. See [travel](travel.md).
 
 Each season lasts seven days. The last evening brings a village festival.
 After its night, a page shows only real events the player knows. Begin the new
 season to continue from dawn.
 
-The gameplay camera provides a continuous 3D [realm view](realm-map.md). Zooming
-out inspects public terrain and weather, plus communities that the current person
-actually discovered. Realm fits the world and You restores local camera follow.
-Inspection adds no orders, detailed maps, journeys or elapsed time.
+The gameplay camera has a fixed local zoom limit. A separate top-down
+[world map](realm-map.md) opens with World map or M. It shows biomes, known
+hexes, discovered communities, recorded roads and a planned journey.
+Opening it does not pause time or generate detailed maps.
 
 ## People and history
 
@@ -107,14 +113,14 @@ time together. Harvest Hearth honours real harvests and favours from the year.
 Longest-night Vigil remembers the year's recorded dead. Every door is open.
 The gathering changes no household access or legal ownership.
 
-Villagers walk there and remain available for chat. Attendance gives two goodwill
+Villagers walk there and remain available for chat. The festival panel offers one Attend action and at most four nearby people, prioritising the player’s family search, friends and known favours. Other people remain clickable in the world. Attendance gives two goodwill
 with villagers present, once per season. Midsummer conversations use the existing
 marriage rules, including consent, kin exclusions, housing and two seasons of courtship.
 The player receives no forced wedding. Authored chat openings live in the generated catalogue.
 
 After festival night, the season-turn page pauses at dawn. It shows known births,
 marriages, deaths, moves, harvests, buildings, favours and other recorded events.
-Sealed family secrets and unheard events stay hidden. A quiet season can have no news.
+Life events come first, routine work is grouped by kind, and a short account of the player’s own season follows. The page has at most six entries, with an overflow count for extra known news. Sealed family secrets and unheard events stay hidden. A quiet season can have no news.
 The player must choose Begin to start the new season.
 
 ## Marriage, ownership and succession

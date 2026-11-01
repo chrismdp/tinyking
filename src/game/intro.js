@@ -69,10 +69,10 @@ function along(points, t) {
   }
 }
 
-export function startIntro(state, { skip = false } = {}) {
+export function startIntro(state, { skip = false, narrative = null } = {}) {
   goalEvidence(state,state.ui.playerId);
   const route = arrivalRoute(state);
-  state.intro = { ...route, active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
+  state.intro = { ...route, ...(narrative ? { narrative } : {}), active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
   state.ui.selected = null;
   state.ui.show.speed_controls = false;
   move(state, route.points[0]);

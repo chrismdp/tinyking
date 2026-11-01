@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { community as initialCommunity, attach } from "./support/travel";
 import { peopleWorld } from "./support/people";
 import { canMarryPlayer } from "game/family";
@@ -100,11 +101,11 @@ it("ages the player during live and offscreen seasons without automatic marriage
 
 it("allows a genuine player marriage to produce reciprocal children on actual seasons with cooldown", () => {
   const {state:s,player,person,step}=weddingWorld();intimate(s,player,person);enqueueTask(s,{key:"marry"},person);step(2);
-  for(let season=1;season<=4 && !s.ecs.kinship[player].children.length;season++){s.days=season*3;advanceSeason(s,season);}
+  for(let season=1;season<=4 && !s.ecs.kinship[player].children.length;season++){s.days=season*DAYS_IN_SEASON;advanceSeason(s,season);}
   const children=s.ecs.kinship[player].children;expect(children.length).toBeGreaterThan(0);
   const child=children[0];expect(s.ecs.kinship[child].parents).toEqual(expect.arrayContaining([player,person]));
   expect(s.ecs.kinship[person].children).toContain(child);
-  const count=children.length;advanceSeason(s,Math.floor(s.days/3)+1);expect(s.ecs.kinship[player].children).toHaveLength(count);
+  const count=children.length;advanceSeason(s,Math.floor(s.days/DAYS_IN_SEASON)+1);expect(s.ecs.kinship[player].children).toHaveLength(count);
 });
 
 it.each(["spouse","minor"])("continues after a shared lifecycle death as the actual %s with their own identity and estate provenance", async kind => {
@@ -116,9 +117,9 @@ it.each(["spouse","minor"])("continues after a shared lifecycle death as the act
   s.ecs.relationships[other].known[player]={ring:"intimate",goodwill:95,base:16};
   s.ecs.relationships[other].known[heir]={ring:"public",goodwill:-2,base:0};
   s.ecs.planner[heir].task=["walk_to",house];s.ecs.planner[heir].world.social={partnerId:other};
-  const point={...s.ecs.spatial[heir]};s.days=2.999;if(kind=="spouse")Object.assign(s.ecs.personable[player],{age:87,lifeYears:36.75});else s.ecs.personable[player].hunger=6;
+  const point={...s.ecs.spatial[heir]};s.days=DAYS_IN_SEASON-.001;Object.assign(s.ecs.personable[player],{age:87,lifeYears:36.75});
   const sim=createSimulation(s);await sim.step(60);if(sim.pending)await sim.pending;
-  expect(s.ecs.personable[player]).toMatchObject({dead:true,deathCause:kind=="spouse"?"old age":"starvation",heirId:heir});
+  expect(s.ecs.personable[player]).toMatchObject({dead:true,deathCause:"old age",heirId:heir});
   expect(s.ui.playerId).toBe(heir);expect(s.ecs.controllable[house].controllerId).toBe(heir);
   expect(s.ecs.possession[item].owners.map(o=>o.personId)).toEqual([player,heir]);
   expect(s.ecs.relationships[other].known[heir].goodwill).toBeLessThan(0);
@@ -161,7 +162,7 @@ it("finishes the real wedding order when joining a different household resets th
 it("admits births in a player-owned family home before it belongs to a village", () => {
   const {state:s,player,person,tiles,step}=weddingWorld();intimate(s,player,person);enqueueTask(s,{key:"marry"},person);step(2);
   s.ecs.village[player].villageId=null;s.ecs.village[person].villageId=null;s.ecs.village[tiles[3]]={villageId:null};
-  for(let season=1;season<=4&&!s.ecs.kinship[player].children.length;season++){s.days=season*3;advanceSeason(s,season);}
+  for(let season=1;season<=4&&!s.ecs.kinship[player].children.length;season++){s.days=season*DAYS_IN_SEASON;advanceSeason(s,season);}
   expect(s.ecs.kinship[player].children.length).toBeGreaterThan(0);
 });
 

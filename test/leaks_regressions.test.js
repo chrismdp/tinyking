@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from './support/people';
 import { community, attach } from './support/travel';
 import { walk_to } from 'game/tasks';
@@ -42,7 +43,7 @@ it('does not mutate the active player discovery record through an imported remot
   const destination=worldKey(neighbours(s.world.home)[0]);
   const other=community({namespace:'away-',key:destination,player:false});attach(s,other.s);
   die(s,b);s.ecs.playable[a].known=[{x:100,y:100}];
-  departNpc(s,c,{to:destination,side:0});s.days+=3;await advanceWorldClock(s);
+  departNpc(s,c,{to:destination,side:0});s.days+=DAYS_IN_SEASON;await advanceWorldClock(s);
   const remote=s.travel.maps[destination],before=JSON.stringify(s.ecs.playable[a]);
   expect(remote.ecs.playable[a]).toBe(s.ecs.playable[a]);
   remote.redraws=[];

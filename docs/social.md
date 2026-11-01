@@ -6,7 +6,7 @@ Generation starts with founding households and advances 180 seasons, or 45 game 
 
 ## Records
 
-Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. Each person's `state.knowledge[id].events` contains the event identities they know. Ask about copies relevant events from the speaker's knowledge.
+Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. Each person's `state.knowledge[id].events` contains the event identities they know. Ask about copies relevant events from the speaker's knowledge. Completed-contact bookkeeping itself copies no events or possessions. Warnings, reports, oaths, gifts, courtship, play and household invitations therefore disclose no family history. A spoken family answer grants only its stated facts; a disclosed possession event can identify that item.
 
 A personal item has an ECS identity and a `possession` component. It contains `name`, `kind`, `ownerId`, `maker`, `originalOwner` and `owners`. Each entry in `owners` contains `personId`, `day` and `reason`. `carried` separates personal belongings from the two working hands. Personal items never enter commodity totals. A gift transfers the same unique item and appends its new owner. Splitting an ordinary stack preserves its good metadata.
 

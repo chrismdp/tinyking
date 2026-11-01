@@ -379,7 +379,14 @@ export function askAbout(state, actorId, personId, aboutId) {
   knowledge.kinLinks ||= {};
   for(const id of disclosed)for(const relative of closeFamily(state,id).filter(r=>disclosed.includes(r)))
     knowledge.kinLinks[id+":"+relative] = {speaker_id:id,relative_id:relative,day:state.days,speakerId:personId};
-  for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) learnEvent(state, actorId, event);
+  for (const event of knownEvents(state, personId, aboutId)) if (canDiscloseEvent(state, personId, actorId, event)) {
+    learnEvent(state, actorId, event);
+    const learned=learnPerson(state,actorId,personId);
+    for(const itemId of event.items || [])if(state.ecs.possession?.[itemId]?.ownerId==personId){
+      learned.possessions ||= [];
+      if(!learned.possessions.includes(itemId))learned.possessions.push(itemId);
+    }
+  }
   completeConversation(state, actorId, personId);
   recogniseConversation(state,actorId,personId,knownEvents(state,personId,aboutId).filter(e=>canDiscloseEvent(state,personId,actorId,e)));
   return { ok: true, ring: bond.ring };
@@ -416,26 +423,15 @@ export function giftOptions(state, actorId) {
 
 // Names, gossip and seasonal encounters do not count as a completed conversation.
 // Call only after actual timed, proximate conversation succeeds.
-export function completeConversation(state, actorId, personId, bulkDisclosure = true) {
+// Contact grants no history: spoken answers disclose their specific facts.
+export function completeConversation(state, actorId, personId) {
   state.social ||= {};
   (state.social.contacts ||= {})[[actorId,personId].sort().join(":")]=state.days;
   const learned = learnPerson(state, actorId, personId);
   const a = state.ecs.spatial?.[actorId], b = state.ecs.spatial?.[personId];
   learned.conversation = { day: state.days, ...(a && b ? { position: { x: a.x, y: a.y }, otherPosition: { x: b.x, y: b.y } } : {}) };
-  if (!bulkDisclosure) return;
-  const rank = RINGS.indexOf(personComponent(state, "relationships", personId).known[actorId]?.ring);
-  const disclosed=[];
-  if (rank < 1) return;
-  const family = new Set([personId, ...closeFamily(state, personId)]);
-  for (const event of knownEvents(state, personId).filter(e => e.people.some(id => family.has(id)))) {
-    if (canDiscloseEvent(state, personId, actorId, event)) {learnEvent(state, actorId, event);disclosed.push(event);}
-  }
-  recogniseConversation(state,actorId,personId,disclosed);
-  learned.possessions ||= [];
-  for (const p of Object.values(state.ecs.possession || {})) {
-    if (p.ownerId == personId && (p.kind == "tool" || rank >= 2) && !learned.possessions.includes(p.id)) learned.possessions.push(p.id);
-  }
 }
+
 export function canDiscloseEvent(state, speaker, viewer, event) {
   const rank = RINGS.indexOf(state.ecs.relationships[speaker]?.known[viewer]?.ring);
   return rank >= (["quarrel", "reconciliation", "gift", "courtship"].includes(event.type) ? 2 : 1);

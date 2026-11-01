@@ -83,7 +83,8 @@ it("feeds the player automatically, displays an interruption and resumes partial
   newEntities(state, [{ spatial: { ...state.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 2, growth: 0 } }]);
   step(0.1);
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
-  expect(html).toContain("Stopped to eat");
+  expect(html).toContain("Looking for a meal");
+  expect(html).not.toContain("Stopped to eat");
   expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["create_field", "move_to_here"]);
   step(4);
   expect(state.ecs.personable[player].hunger).toBeLessThan(0.5);

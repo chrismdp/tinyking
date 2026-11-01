@@ -53723,14 +53723,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -53824,14 +53817,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -53925,14 +53911,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54044,14 +54023,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54170,14 +54142,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54278,14 +54243,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54404,14 +54362,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54514,14 +54465,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54615,14 +54559,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54716,14 +54653,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54817,14 +54747,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -54925,14 +54848,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55033,14 +54949,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55134,14 +55043,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55235,14 +55137,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55336,14 +55231,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55437,14 +55325,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55545,14 +55426,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55653,14 +55527,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55761,14 +55628,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55862,14 +55722,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -55963,14 +55816,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56064,14 +55910,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56165,14 +56004,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56273,14 +56105,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56381,14 +56206,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56482,14 +56300,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56583,14 +56394,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56684,14 +56488,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56785,14 +56582,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -56893,14 +56683,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57001,14 +56784,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57111,14 +56887,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57221,14 +56990,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57331,14 +57093,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57448,14 +57203,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57558,14 +57306,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57668,14 +57409,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57778,14 +57512,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -57895,14 +57622,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58005,14 +57725,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58115,14 +57828,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58225,14 +57931,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58342,14 +58041,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58452,14 +58144,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58562,14 +58247,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58681,14 +58359,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58791,14 +58462,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -58901,14 +58565,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59011,14 +58668,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59121,14 +58771,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59223,14 +58866,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59325,14 +58961,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59426,14 +59055,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59527,14 +59149,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59626,14 +59241,7 @@
      "args": {}
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59729,14 +59337,7 @@
      "args": {}
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59853,14 +59454,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -59968,14 +59562,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68106,14 +67693,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68182,14 +67762,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68258,14 +67831,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68334,14 +67900,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68417,14 +67976,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68500,14 +68052,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68583,14 +68128,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68659,14 +68197,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68735,14 +68266,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68811,14 +68335,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68887,14 +68404,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -68970,14 +68480,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69053,14 +68556,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69129,14 +68625,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69205,14 +68694,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69281,14 +68763,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69364,14 +68839,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69447,14 +68915,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69523,14 +68984,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69608,14 +69062,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69693,14 +69140,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69791,14 +69231,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69889,14 +69322,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -69987,14 +69413,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70085,14 +69504,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70177,14 +69589,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70273,14 +69678,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70366,14 +69764,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70459,14 +69850,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -70559,14 +69943,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -132611,14 +131988,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -132694,14 +132064,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -132777,14 +132140,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -132860,14 +132216,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -132943,14 +132292,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133038,14 +132380,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133134,14 +132469,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133231,14 +132559,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133321,14 +132642,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133411,14 +132725,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -133501,14 +132808,7 @@
      }
     }
    ],
-   "none": [
-    {
-     "test": "chat_mode_is",
-     "args": {
-      "mode": "practical_only"
-     }
-    }
-   ]
+   "none": []
   },
   "tags": {
    "require": [],
@@ -140325,6 +139625,116 @@
   ],
   "disclosure": {
    "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "player.leave_taking.fallback_goodbye.base.01",
+  "speaker": "player",
+  "family": "leave_taking",
+  "situation": "fallback_goodbye",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'll let you get on.",
+  "facts": [
+   {
+    "ref": "chat",
+    "fields": [
+     "phase"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [],
+  "use_key": "goodbye:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "None: end the conversation politely."
+   ],
+   "reveals": [
+    "Nothing new"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "player.leave_taking.fallback_goodbye.base.02",
+  "speaker": "player",
+  "family": "leave_taking",
+  "situation": "fallback_goodbye",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd best be going. Goodbye.",
+  "facts": [
+   {
+    "ref": "chat",
+    "fields": [
+     "phase"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [],
+  "use_key": "goodbye:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "None: end the conversation politely."
+   ],
+   "reveals": [
+    "Nothing new"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
    "people": [],
    "events": [],
    "requests": [],

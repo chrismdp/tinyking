@@ -109,6 +109,7 @@ export function eat(world, expected, thing) {
     return nothing;
   }
   world.holding[thing] = false;
+  if(!expected && thing=="meal"){world.holding[world.mealType]=false;delete world.mealType;}
   world.feeling.hungry = false;
 }
 
@@ -172,3 +173,8 @@ export function make_meal_space() {}
 
 export function work_field() {}
 export function household_fuel() {}
+
+export function recover_meal(world, expected) {
+  world.holding.meal=true;
+  if(!expected)delete world.mealSearch;
+}

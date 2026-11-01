@@ -1034,7 +1034,7 @@ situation(
 def player_wx(sit, base, variants, icons=None):
     situation(
         "season_talk", sit, "player",
-        base_all=[PHASE_PLAYER] + base, base_none=NOT_PRACTICAL,
+        base_all=[PHASE_PLAYER] + base, base_none=[],
         bindings={"observation": {"source": "player_observed_local_weather"}},
         add=["season_mentioned"], facts=[F("observation", ["weather_type", "season", "season_part", "game_hour", "world_hex"])],
         icons=icons or [T("season")],
@@ -1230,7 +1230,7 @@ def topic_risk(icons):
 def lands_q(sit, purpose, icons, variants, base=(), bindings=None, facts=None, effects=()):
     situation(
         "lands_question", sit, "player",
-        base_all=[PHASE_PLAYER] + list(base), base_none=NOT_PRACTICAL,
+        base_all=[PHASE_PLAYER] + list(base), base_none=[],
         bindings=bindings or {}, forbid=["asked:lands_" + sit], add=["asked:lands_" + sit],
         facts=facts or [F("player_knowledge", ["heard_places"])], icons=icons,
         use_key="ask_lands:{player.id}:{npc.id}:" + sit + ":{context.encounter_number}",
@@ -2637,7 +2637,7 @@ situation(
 # the request itself: only the asker, in their own chat, can offer it.
 situation(
     "need_question", "anyone", "player",
-    base_all=[PHASE_PLAYER, PLAYER_ADULT], base_none=NOT_PRACTICAL,
+    base_all=[PHASE_PLAYER, PLAYER_ADULT], base_none=[],
     forbid=["asked:need"], add=["asked:need", "offered_help"], icons=[T("help")],
     facts=[F("player", ["age"])],
     use_key="ask_need:{player.id}:{npc.id}:{context.encounter_number}",
@@ -2750,6 +2750,14 @@ npc_refusal("need_news", "none_known", [P("no_known_live_request_elsewhere", spe
 # =====================================================================
 # LEAVE-TAKING (closing lines carry no icons: the row has closed)
 # =====================================================================
+situation(
+    "leave_taking", "fallback_goodbye", "player",
+    base_all=[PHASE_PLAYER], icons=[],
+    facts=[F("chat", ["phase"])],
+    use_key="goodbye:{npc.id}:{player.id}:{context.encounter_number}",
+    risks=["None: end the conversation politely."], reveals=["Nothing new"],
+    variants=["I'll let you get on.", "I'd best be going. Goodbye."])
+
 def leave(sit, speaker, base, variants, facts=None, use_key=None, effects=None, none=()):
     situation(
         "leave_taking", sit, speaker,

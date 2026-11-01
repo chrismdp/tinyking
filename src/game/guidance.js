@@ -31,6 +31,7 @@ export function openingGuidance(state) {
   const deferred=(person.hunger>.9 && jobs.find(j=>j.waiting&&j.job.key=="find_food")) || jobs.find(j=>j.waiting&&j.job.key=="chat");
   if(deferred)return {actorId,key:"deferred",text:deferred.waiting};
   if(state.game_speed=="paused" && jobs.length) return {actorId,key:"resume",text:"Choose Normal speed to continue your tasks.",action:"Normal speed",speed:"normal"};
+  if(person.hunger>.9 && ecs.planner[actorId]?.world.mealFailure)return {actorId,key:"food_failed",text:ecs.planner[actorId].world.mealFailure};
   if(person.hunger>.9) return jobs.some(j=>j.job.key=="find_food")?{actorId,key:"eating",text:"Keep the game running until your Find food task finishes."}:{actorId,key:"food",text:"Choose Find food to go for a meal before your next conversation.",action:"Find food",job:"find_food"};
   if(person.tiredness>.9 && (state.days%1*24>=20 || state.days%1*24<9)) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:{actorId,key:"sleep",text:"Choose Rest to sleep before your next conversation.",action:"Rest",job:"rest"};
   if (state.renderer?.overview) return {actorId,key:"return",text:"Choose You to return to your character."};

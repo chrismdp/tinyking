@@ -142,6 +142,10 @@ export function chatChoices(s) {
       if(at>=0)result[at]=best;
     }
   }
+  if(!result.some(l=>previewLine(s,l).fits)) {
+    const goodbye=variants(s,c,lineCandidates(s,c,"leave_taking","player")).find(l=>previewLine(s,l).fits);
+    if(goodbye)return [goodbye];
+  }
   return result;
 }
 function effects(s,c,line) {
@@ -259,6 +263,7 @@ export function chooseLine(s,key) {
   const line=chatChoices(s).find(l=>l.key==key);if(!line)return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
+  if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}
   if(!c.endReason)reply(s,c.reply);
   if(!c.endReason && !c.closingReply && c.finishAfterReply)endChat(s,c.row.length+patience(s,c.actorId,c.npcId).resting>=patience(s,c.actorId,c.npcId).max?"row_full":"exchange_complete");
   if(!c.endReason && !c.closingReply && patience(s,c.actorId,c.npcId).max==2)endChat(s,"tired");

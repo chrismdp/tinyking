@@ -87,12 +87,13 @@ it("keeps a first introduction personal, but answers an explicit help question w
   expect(s.chat.active.transcript.some(l=>l.family=="favour_ask")).toBe(true);
   expect(chatChoices(s).some(l=>l.family=="favour_accept")).toBe(true);
 });
-it("explains a ripe harvest blocked by insufficient room for the whole patch",()=>{
+it("keeps accepted ripe harvests ready when pantry space shrinks",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld(),h=tiles[3];
   s.ecs.household[h]={fields:[],storeId:h};s.ecs.container={[h]:{capacity:10,amounts:{grain:8}}};
   const [field]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[2]]},farmable:{houseId:h,slots:[{state:"harvestable",amount:6}]},controllable:{controllerId:n}}]);
   const r={id:"harvest",status:"accepted",kind:"harvest",householdId:h,targetId:field,actorId:p,progress:0,quantity:1,cargo:[]};s.favours={requests:{harvest:r}};
-  expect(favourWaiting(s,{favourId:r.id})).toMatch(/room.*whole.*patch/i);
+  expect(favourWaiting(s,{favourId:r.id})).toBeNull();
+  expect(s.ecs.container[h]).toMatchObject({capacity:10,amounts:{grain:8}});
 });
 it("does not call the row full after the closing reply clears its icons",()=>{
   const {state:s,player:p,person:n}=peopleWorld();s.ecs.spatial[p]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};openChat(s,p,n);

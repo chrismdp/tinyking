@@ -63,8 +63,9 @@ export function TaskPanel() {
   const current = jobs.find(j => j.assignedId == id && !j.waiting);
   const currentWood = current && woodTask(state, current, true);
   const sleeping = planner.task?.[0] == "sleep" || planner.plan?.some(task => task[0] == "sleep");
-  const eating = !sleeping && (["eat", "forage"].includes(planner.task?.[0]) || planner.world.playerWorking && planner.world.feeling?.hungry && !planner.world.currentJob);
-  const needsAction = !current && !eating && !sleeping;
+  const eating = !sleeping && (planner.task?.[0]=="eat" || planner.task?.[0]=="recover_meal" && planner.world.mealSearch?.phase=="eat");
+  const findingFood = !sleeping && !eating && planner.world.feeling?.hungry && !planner.world.currentJob && planner.world.playerWorking;
+  const needsAction = !eating && !sleeping;
   const activity = currentActivity(ecs, id, key => messages.tasks[key.split(".")[1]], other => displayName(state, other, other => name(ecs.nameable[other])), state.ui.debug);
   const homeId=ecs.household?.[id]?.houseId;
   const stage = ecs.shelter?.[homeId]?.stage;
@@ -86,7 +87,7 @@ export function TaskPanel() {
       {hungry && <div className="hunger" aria-label={status + " — working more slowly"}>
         <div className="hunger-line"><span>{status}</span><span>Working more slowly</span></div>
         <div className="meter"><span style={{ width: Math.min(100, person.hunger / 6 * 100) + "%" }}/></div>
-        {needsAction && <small>{foodOrder?.waiting || (foodOrder ? "Your Find food order is queued." : "You stay here. Choose Find food to go for a meal.")}</small>}
+        {needsAction && <small>{foodOrder?.waiting || planner.world.mealFailure || (foodOrder ? "Your Find food order is queued." : "You stay here. Choose Find food to go for a meal.")}</small>}
       </div>}
       {tired && <div className="hunger tiredness" role="status">Tired: working slowly</div>}
       {((needsAction && hungry) || (!sleeping && person.tiredness > .9)) && <div className="need-actions" role="status">
@@ -94,6 +95,7 @@ export function TaskPanel() {
         {needsAction && hungry && !foodOrder && <button onClick={() => state.ui.actions.choose_job(id, { key: "find_food" }, id)}>Find food</button>}
         {person.tiredness > .9 && <button onClick={() => state.ui.actions.choose_job(id, { key: "rest" }, id)}>Rest</button>}
       </div>}
+      {findingFood && <p role="status">Looking for a meal · your work resumes after you eat.</p>}
       {eating && <div className="meal-interruption" role="status"><strong>Stopped to eat</strong><small>Your tasks resume afterwards.</small></div>}
       {garden && <button onClick={()=>state.ui.actions.choose_job(id,{key:"tend_garden"},garden)}>Help at home</button>}
       <ol className="queue">{jobs.map((job, index) => {

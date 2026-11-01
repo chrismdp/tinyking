@@ -4,7 +4,8 @@ import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { giftOptions, addGoodwill, meet } from "game/people";
-import { enqueueTask, playerOrderAllowed } from "game/manager";
+import { taskPlace } from "game/task_places";
+import { enqueueTask, playerOrderAllowed, canReachTask } from "game/manager";
 import { recordEvent } from "game/events";
 import { take } from "game/holder";
 import { containerHasSpace } from "game/container";
@@ -66,6 +67,7 @@ export function reasonGone(s, r, food) {
   const store = householdStore(s, r.householdId);
   if (!ecs.container?.[store] || !ecs.spatial[store] || !ecs.spatial[r.targetId]) return "The household target is gone";
   if (r.kind == "harvest") {
+    if (r.status=="offered" && harvestOfferQuantity(s,r.targetId)<r.quantity) return "The household no longer has room for this harvest";
     if (r.produced > r.delivered + r.cargo.reduce((n, id) => n + (ecs.good[id]?.amount || 0), 0)) return "Harvest cargo no longer available";
     if (!ecs.farmable?.[r.targetId] || ecs.farmable[r.targetId].houseId != r.householdId) return "The family field is gone";
     if (r.progress < r.quantity && !(r.status == "accepted" && r.progress > 0) && !ecs.farmable[r.targetId].slots.some(slot => slot.state == "harvestable")) return "The harvest need is already met";
@@ -97,6 +99,16 @@ export function cancelFavour(s, r) {
   releaseFavourCargo(s, r);
 }
 
+// Quote only complete patches that the household can store at offer time.
+export function harvestOfferQuantity(s, field) {
+  let amount=0, quantity=0;
+  for(const slot of s.ecs.farmable[field]?.slots || []) {
+    if(slot.state!="harvestable" || quantity>=3)continue;
+    if(harvestFits(s,field,amount+slot.amount)){amount+=slot.amount;quantity++;}
+  }
+  return quantity;
+}
+
 export function updateFavours(s) {
   const ecs = s.ecs, player = s.ui?.playerId;
   if (!player || !ecs.personable?.[player]) return;
@@ -119,7 +131,8 @@ export function updateFavours(s) {
         status: "offered", cargo: [], createdDay: s.days, ...extra };
     };
     const field = (h.fields || []).find(id => ecs.farmable?.[id]?.houseId == house && ecs.farmable[id].slots.some(slot => slot.state == "harvestable"));
-    if (field) offer("harvest", field, Math.min(3, ecs.farmable[field].slots.filter(slot => slot.state == "harvestable").length), "The family crop is ready");
+    const quantity=field && harvestOfferQuantity(s,field);
+    if (quantity) offer("harvest", field, quantity, "The family crop is ready");
     const w = ecs.workplace?.[h.workplaceId];
     if (w && FUEL_TRADES[w.trade] && !(w.fuelHours > 0) && !(ecs.container[h.storeId].amounts.wood >= 1)) {
       offer("wood", h.storeId, 1, `The ${FUEL_TRADES[w.trade]} needs fuel · one log fuels four hours of work`, { workplaceId: h.workplaceId });
@@ -224,16 +237,34 @@ export function favourWaiting(s, task) {
   const ecs = s.ecs;
   const store = ecs.container?.[householdStore(s, r.householdId)];
   if (!store) return "The household target is gone";
-  if (r.kind != "food" && !containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
+  if (r.kind == "wood" && !containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
   if (r.kind == "harvest") {
     const field = ecs.farmable?.[r.targetId];
     const ripe=field?.slots.filter(slot=>slot.state=="harvestable") || [];
-    if(!r.cargo.length && ripe.length && !ripe.some(slot=>harvestFits(s,r.targetId,slot.amount))) return "Not enough room in the household store for a whole crop patch. Let the family use its grain, then continue the harvest.";
     if(!r.cargo.length && ripe.length && ripe.every(slot=>slot.workerId && slot.workerId!=s.ui.playerId)) return "Waiting for the family to finish this patch";
     // A claim protects new crop work, not the return trip with cut grain.
     if (!r.cargo.length && field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
   } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;
   return null;
+}
+// Give a blocked harvest an actual reachable, explored approach and a name.
+export function harvestApproach(s, r) {
+  const point=s.ecs.spatial[r.targetId], actor=s.ui.playerId;
+  if(!point)return null;
+  const known=s.ecs.playable?.[actor]?.known || [];
+  const candidates=Object.keys(s.ecs.walkable || {}).filter(id=>{
+    const at=Hex().fromPoint(s.ecs.spatial[id]);
+    return !s.ecs.mappable?.[id]?.buildingPlot && !s.ecs.mappable?.[id]?.cropPlot &&
+      !(s.space[at] || []).some(other=>s.ecs.farmable?.[other]) &&
+      known.some(k=>k.x==at.x && k.y==at.y);
+  });
+  candidates.sort((a,b)=>Math.hypot(s.ecs.spatial[a].x-point.x,s.ecs.spatial[a].y-point.y)-Math.hypot(s.ecs.spatial[b].x-point.x,s.ecs.spatial[b].y-point.y));
+  const id=candidates.find(id=>canReachTask(s,actor,id));
+  return id ? {id,label:"clear ground "+taskPlace(s,id)} : null;
+}
+export function harvestRouteReason(s,r,stage) {
+  const approach=harvestApproach(s,r);
+  return `The route to the ${stage} is blocked. `+(approach ? `Choose Move to field approach to reach ${approach.label}, then continue the favour.` : "Show field to inspect it. No explored approach is reachable; explore around the field first.");
 }
 export const favourTitle = r => r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";
 export const favourQuantity = r => `${r.quantity} ${r.kind == "harvest" ? "crop patches" : r.kind == "wood" ? "log" : "food portions"}`;

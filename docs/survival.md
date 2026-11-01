@@ -28,12 +28,22 @@ Sowing spends one whole grain per patch. Harvesting performs real work and carri
 the grain home. A Personal friend can help during the normal field claim.
 Moving from camp to a shelter keeps the fields in the household.
 
-Harvesting requires pantry space for the whole patch yield. Grain already cut
+Ordinary household harvesting requires pantry space for the whole patch yield. Grain already cut
 and waiting for delivery also uses that space. Full stores leave ripe crops in
-the field, as the offscreen household summary does.
+the field, as the offscreen household summary does. Accepted harvest favours keep
+their promise: if the pantry fills, the helper leaves real grain beside the
+store under the household's ownership.
 
 Hungry people can put down non-food cargo to free a hand for a meal. A failed
 food walk clears the cached destination so another source can be chosen.
+
+A working player checks real held food, stores, loose food and wild plants in
+one meal search, including at night. Missing gruel does not fail Find food
+before roots are checked. A new search clears old food destinations and walking
+failures; a failed source is skipped for the rest of that search. After four
+game hours without reaching food, the panel explains the obstruction and gives
+a recovery action. Only a running, timed meal says Stopped to eat. Cancelling
+the last work order stops a food approach; a meal already being eaten finishes.
 
 ## Hunger
 
@@ -55,7 +65,7 @@ clear starvation immediately. The selected-person panel shows the current stage.
 
 Density is expected forage plants per grassland tile; berries is their share,
 with roots making up the remainder. Each depleted plant replaces one meal after
-the listed number of growing days. No wild food can be gathered in winter.
+the listed number of growing days. Berries cannot be gathered in winter; remaining wild roots can.
 At least three plants are placed within three reachable tiles of the start,
 including desert starts.
 

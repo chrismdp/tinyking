@@ -81,6 +81,18 @@ class Frontier {
   }
 }
 
+// Grey through roads are half price. Dirt tracks slide towards half price as
+// they wear, so walkers keep to them. The cap stops costs going negative.
+export const ROAD_DISCOUNT = 0.5, MAX_TRACK_DISCOUNT = 0.5;
+
+export function stepCost(state, id) {
+  const walk = state.ecs.walkable[id];
+  const crowded = tileContents(state, id).length > 1 ? 0.2 : 1;
+  const wear = Math.min(1, Object.values(walk.worn || {}).reduce((t, w) => t + w, 0) * 0.01);
+  const discount = state.ecs.mappable?.[id]?.throughRoute?.length ? ROAD_DISCOUNT : 1 - MAX_TRACK_DISCOUNT * wear;
+  return HEX_SIZE / ((walk.speed || 1) * crowded) * discount;
+}
+
 export function path(state, start, goal, stepAllowed = () => true) {
   const openSet = new Frontier();
   const closed = new Set();
@@ -105,14 +117,7 @@ export function path(state, start, goal, stepAllowed = () => true) {
       const n = state.ecs.walkable[current].neighbours[side];
       // A route never needs to loop; disconnected searches remain finite.
       if (closed.has(String(n)) || routeBlocked(state,n,start,goal) || !stepAllowed(current,n)) { continue; }
-      if (!(n in costs)) {
-        const otherPenalty = tileContents(state,n).length > 1 ?
-          0.2 : 1;
-        // Wear discounts at most half a grassland edge. Unbounded rewards
-        // made costs negative and sent hungry people on map-wide detours.
-        const wornIncentive = Math.min(1, Object.values(state.ecs.walkable[n].worn).reduce((t, w) => t + w, 0) * 0.01) * HEX_SIZE * 0.5;
-        costs[n] = (HEX_SIZE / ((state.ecs.walkable[n].speed || 1) * otherPenalty)) - wornIncentive;
-      }
+      if (!(n in costs)) costs[n] = stepCost(state, n);
       const tentativeScore = gScore[current] + costs[n];
       if (!(n in gScore) || tentativeScore < gScore[n]) {
         cameFrom[n] = { id: current, exit: +side };

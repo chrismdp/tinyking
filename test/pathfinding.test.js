@@ -1,4 +1,4 @@
-import { Grid, Hex, ALL_SIX } from "game/map";
+import { Grid, Hex, ALL_SIX, HEX_SIZE } from "game/map";
 import * as sut from "game/pathfinding";
 
 describe("pathfinding", () => {
@@ -140,4 +140,18 @@ it("does not reward a worn detour over an adjacent destination", () => {
   s.ecs.walkable[3].neighbours = { 0: "4" };
   s.ecs.walkable[4].neighbours = { 0: "1" };
   expect(sut.path(s, "0", "1").map(p => p.id)).toEqual(["0", "1"]);
+});
+
+describe('road and track discounts', () => {
+  const tile = (extra = {}) => ({ ecs: { walkable: { t: { worn: {}, speed: 1, neighbours: {}, ...extra.walk } }, mappable: { t: { ...extra.map } }, spatial: {} } });
+  it('makes a grey through road half price to walk', () => {
+    expect(sut.stepCost(tile({ map: { throughRoute: [0, 3] } }), 't')).toBeCloseTo(HEX_SIZE * 0.5, 10);
+  });
+  it('discounts dirt tracks on a sliding scale with wear, up to half price', () => {
+    expect(sut.stepCost(tile({ walk: { worn: { '0,3': 40 } } }), 't')).toBeCloseTo(HEX_SIZE * 0.8, 10);
+    expect(sut.stepCost(tile({ walk: { worn: { '0,3': 100, '1,4': 50 } } }), 't')).toBeCloseTo(HEX_SIZE * 0.5, 10);
+  });
+  it('gives open ground no discount', () => {
+    expect(sut.stepCost(tile(), 't')).toBeCloseTo(HEX_SIZE, 10);
+  });
 });

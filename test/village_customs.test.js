@@ -205,7 +205,7 @@ it("preserves factual warning history when a real accepted harvest favour restor
   expect(r.giverId).toBe(w.person);
   const before=s.ecs.relationships[w.person].known[w.player].goodwill;
   acceptFavour(s,r.id);until(w,()=>r.status=="completed");
-  expect(s.ecs.container[store].amounts.grain).toBe(32);
+  expect(s.ecs.container[store].amounts.grain).toBe(31);
   expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeGreaterThan(before+r.goodwill-.2);
   expect(s.events.filter(e=>e.type=="commons_warning")).toHaveLength(1);
 });

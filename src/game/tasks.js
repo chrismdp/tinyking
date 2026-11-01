@@ -1,8 +1,8 @@
 import { FIELD_STATES, ownsField, harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
 import { recordProduction, recordMeetingUse, completeTradeProduction, consumeStored, growthRecord } from "game/settlement_growth";
-import { resourcePermission, observeChop, customsVisitTarget, arriveCustoms, customsVisitFailed, openOath } from "game/village_customs";
-import { speechPosition, SPEECH_REACH } from "game/conversation";
+import { resourcePermission, observeChop, customsVisitTarget, arriveCustoms, customsVisitFailed } from "game/village_customs";
+import { doorstep, speechPosition, SPEECH_REACH } from "game/conversation";
 import { goalEvidence } from "game/guidance";
 import { HUMAN_SPEED } from "game/locomotion";
 import { fenceFootprints, fenceRevision, fenceRoute, clearFencePoint, fenceHandoffClear } from "game/fences";
@@ -36,7 +36,7 @@ import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, loca
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { familyConversation } from "game/family";
-import { CHAT_APPROACH_JOBS, oathUnavailable } from "game/manager";
+import { CHAT_APPROACH_JOBS, chatIntentUnavailable, chatUnfriendly, completeChatOrder } from "game/manager";
 import { TALK_MINUTES } from "game/player";
 
 export const GLEANING_SHARE = 0.05;
@@ -871,6 +871,77 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
   return Task.FINISH;
 }
 
+// Walk before asking for attention, so an indoor neighbour answers at the door.
+export function approach_chat(state, actorId, world, dt, firstRun, targetId) {
+  const e=state.ecs,target=e.planner[targetId],unfriendly=chatUnfriendly(state,actorId,targetId);
+  if(!target||e.personable[targetId]?.dead||unfriendly)return Task.ABORT;
+  const order=jobQueueFor(e,actorId).find(j=>j.assignedId==actorId);
+  const reason=chatIntentUnavailable(state,actorId,targetId,order?.chatIntent);
+  if(reason&&math.squaredDistance(e.spatial[actorId],e.spatial[targetId])<=SPEECH_REACH**2){state.ui.talkResult={personId:targetId,message:reason};return Task.ABORT;}
+  const home=e.interior?.[targetId]?.buildingId;
+  if(home&&home!=e.interior?.[actorId]?.buildingId || world.doorCall?.targetId==targetId) {
+    if(!world.doorCall||world.doorCall.targetId!=targetId) {
+      const point=doorstep(state,home),outside=doorstep(state,home,10);
+      if(!point)return Task.ABORT;
+      world.doorCall={targetId,home,point,outside};
+    }
+    const call=world.doorCall;
+    if(math.squaredDistance(e.spatial[actorId],call.point)>10**2) {
+      const result=walk_to(state,actorId,world,dt,!call.walked,call.point);call.walked=true;
+      return result==Task.ABORT?result:Task.CONTINUE;
+    }
+    if(!call.knocked) {
+      call.knocked=true;state.ui.talkResult={personId:targetId,message:"Knock, knock. Waiting for an answer at the door."};
+      return Task.CONTINUE;
+    }
+    if(target.task?.[0]=="sleep") {
+      state.ui.talkResult={personId:targetId,message:"No answer. They are asleep. Try in the morning after 6am."};
+      const job=jobQueueFor(e,actorId).find(j=>j.assignedId==actorId);
+      if(job)completeChatOrder(state,job.id);
+      delete world.doorCall;return Task.CONTINUE;
+    }
+    if(target.world.feeling.hungry||target.world.feeling.tired)return Task.CONTINUE;
+    if(!call.coming) {
+      world.chatActivity=snapshotActivity(state,targetId);target.world.capturedBy=actorId;world.capturedAttentionOf=targetId;
+      target.task=null;target.plan=null;call.coming=true;
+      state.ui.talkResult={personId:targetId,message:"They heard your knock and are coming to the door."};
+    }
+    const result=walk_to(state,targetId,target.world,dt,!call.outsideWalk,call.outside);call.outsideWalk=true;
+    if(result==Task.ABORT)return result;
+    if(result!=Task.FINISH)return Task.CONTINUE;
+    delete world.doorCall;
+  } else {
+    if(target.world.capturedBy!=actorId) {
+      if(target.world.feeling.hungry||target.world.feeling.tired||target.world.capturedBy)return Task.CONTINUE;
+      world.chatActivity=snapshotActivity(state,targetId);target.world.capturedBy=actorId;
+      world.capturedAttentionOf=targetId;replan(target);
+    }
+    if(math.squaredDistance(e.spatial[actorId],e.spatial[targetId])>SPEECH_REACH**2) {
+      const point=speechPosition(state,actorId,targetId);if(!point)return Task.ABORT;
+      const key=[targetId,point.x,point.y].join(":");
+      const result=walk_to(state,actorId,world,dt,world.chatWalk!=key,point);world.chatWalk=key;
+      return result==Task.ABORT?result:Task.CONTINUE;
+    }
+  }
+  world.capturedAttentionOf=targetId;
+  return Task.FINISH;
+}
+
+export function chat_visit(state, actorId, world, dt) {
+  const visit=world.chatVisit,e=state.ecs,target=visit?.actorId;
+  if(!visit||e.personable[actorId]?.dead||e.personable[target]?.dead||world.feeling.hungry||world.feeling.tired)return Task.ABORT;
+  if(e.planner[target]?.world.feeling.hungry||e.planner[target]?.world.feeling.tired||e.interior?.[target])return Task.CONTINUE;
+  if(math.squaredDistance(e.spatial[actorId],e.spatial[target])>SPEECH_REACH**2) {
+    const point=speechPosition(state,actorId,target);if(!point)return Task.ABORT;
+    const key=[target,point.x,point.y].join(":");
+    const result=walk_to(state,actorId,world,dt,world.chatVisitWalk!=key,point);world.chatVisitWalk=key;
+    if(result==Task.ABORT) {delete world.chatVisit;return Task.ABORT;}
+    return Task.CONTINUE;
+  }
+  if(openChat(state,target,actorId,{...visit,initiatedBy:actorId}))delete world.chatVisit;
+  return Task.CONTINUE;
+}
+
 export function get_attention(state, actorId, world, dt, firstRun, targetId) {
   const target = state.ecs.planner[targetId];
   if (!target) {
@@ -878,7 +949,7 @@ export function get_attention(state, actorId, world, dt, firstRun, targetId) {
   }
   const approach=state.ecs.manager?.[actorId]?.jobs.find(j => CHAT_APPROACH_JOBS.includes(j.job.key) && j.targetId == targetId && j.assignedId==actorId);
   const approachingChat=!!approach;
-  if(approach && approach.job.key!="chat" && oathUnavailable(state,actorId,targetId,approach.job.key))return Task.ABORT;
+  if(approach && chatIntentUnavailable(state,actorId,targetId,approach.chatIntent))return Task.ABORT;
   if(approachingChat && state.ecs.interior?.[targetId] && state.ecs.interior[targetId].buildingId!=state.ecs.interior?.[actorId]?.buildingId)return Task.ABORT;
   if(approachingChat)world.chatActivity = snapshotActivity(state, targetId);
   if (target.world.feeling?.hungry || target.world.feeling?.tired || target.world.capturedBy && target.world.capturedBy != actorId) return Task.CONTINUE;
@@ -945,17 +1016,13 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
   if (key == "chat") {
     if (world.chatOpened && state.chat?.active) return Task.CONTINUE;
     if (world.chatOpened) { delete world.chatOpened; delete world.chatActivity; return Task.FINISH; }
-    if (openChat(state, actorId, personId)) { world.chatOpened = true; return Task.CONTINUE; }
+    if (openChat(state, actorId, personId,{intent:jobQueueFor(ecs,actorId).find(j=>j.assignedId==actorId)?.chatIntent})) { world.chatOpened = true; return Task.CONTINUE; }
     state.ui.talkResult = { personId, message: "They need a rest before talking. Try another neighbour." };
     return Task.FINISH;
   }
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
   if (["court", "marry", "play", "invite_home"].includes(key)) result = familyConversation(state,actorId,personId,key);
-  if (["village_oath", "village_leave"].includes(key)) {
-    result = openOath(state, actorId, personId, key == "village_leave");
-    if (result.ok) return Task.CONTINUE;
-  }
   if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
   if (key == "give_gift") {
     const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
@@ -1311,7 +1378,7 @@ export function customs_visit(state, actorId, world, dt) {
     const result = walk_to(state, actorId, world, dt, world.customsWalk != key, point);
     world.customsWalk = key;
     if (result == Task.ABORT) customsVisitFailed(state, actorId);
-  } else if (arriveCustoms(state, actorId, dt) && !state.customs.dialogue) {
+  } else if (arriveCustoms(state, actorId, dt)) {
     delete world.customsVisit;
     const p = state.ecs.planner[actorId]; p.task = null; p.plan = null;
   }

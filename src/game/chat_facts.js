@@ -5,7 +5,7 @@ import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
 import { localWeather } from "game/weather";
 import { season, time, day_of_season, year } from "game/time";
-import { villageElder, membership, resourcePermission } from "game/village_customs";
+import { villageElder, membership, resourcePermission, customsIntentUnavailable, warningConsequences, OATH_RIGHTS } from "game/village_customs";
 import { householdStore, householdFood, reasonGone, canRequestForHousehold, favourSource, FUEL_TRADES, nearbyRequester } from "game/favours";
 import { growingAt, frozenAt, climateTile } from "game/climate";
 import { Hex } from "game/hex";
@@ -125,6 +125,11 @@ export function sourceValues(s,c,b,d) {
   const request=r=>r?{...r,house_direction:localDirection(e.spatial[n],e.spatial[r.householdId]),quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade]}:null;
   const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
+  case "customs_chat": {
+    const context=c.context;if(!context)return [];
+    const i=s.customs?.incidents.find(i=>i.id==context.incidentId);
+    return [{...context,rights:OATH_RIGHTS,result:context.result||"Very well.",...(i?warningConsequences(s,i):{})}];
+  }
   case "maternal_recognised":return c.familyRecognition?[c.familyRecognition]:[];
   case "maternal_introduction":return [maternalIntroduction(s,p,n)].filter(Boolean);
   case "maternal_search":return familySearchFacts(s,p,n);
@@ -202,6 +207,10 @@ export function predicate(s,c,b,{test,args:a={}}) {
   switch(test) {
   case "family_search_answer":return b.relative?.answer==a.value;
   case "phase_is":return c.phase==a.phase;
+  case "customs_chat_kind_is":return c.context?.kind==a.value;
+  case "customs_eligible":return !c.context&&!customsIntentUnavailable(s,c.actorId,c.npcId,a.kind)&&
+    (a.kind=="leave"?!!membership(s,c.actorId,e.village[c.npcId]?.villageId):!membership(s,c.actorId,e.village[c.npcId]?.villageId));
+  case "answer_expected_is":return c.expectation==a.value;
   case "closing_reply_is":return c.closingReply==a.value;
   case "question_is":return c.question?.family==a.family&&c.question?.situation==a.situation;
   case "relative_known_dead":return !!s.knowledge?.[viewer]?.events?.some(id=>(s.events||[]).some(e=>e.id==id&&e.type=="death"&&e.people[0]==person));

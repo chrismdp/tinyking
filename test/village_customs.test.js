@@ -1,9 +1,10 @@
+import { respond, discussOath } from "./support/customs_chat";
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
 import { householdAccess } from "game/playable";
-import { commonLand, resourcePermission, villageElder, observeChop, updateCustoms, answerCustoms, oathEligibility, membership } from "game/village_customs";
+import { commonLand, resourcePermission, villageElder, observeChop, updateCustoms, oathEligibility, membership } from "game/village_customs";
 import { chatRecord } from "game/chat_patience";
 
 function world() {
@@ -72,17 +73,17 @@ it("needs actual nearby observation; no generation, clearance, remote or member 
 });
 it("walks a real witness to the chopping player, interrupts once, and needs explicit acknowledgement",()=>{
   const w=world(),s=w.state,job=order(w),start={...s.ecs.spatial[w.person]};
-  until(w,()=>!!s.customs?.dialogue);
-  const d=s.customs.dialogue;
+  until(w,()=>!!s.chat?.active?.context);
+  const d=s.chat?.active?.context;
   expect(d.speakerId).toBe(w.person);
   expect(Math.hypot(s.ecs.spatial[w.person].x-start.x,s.ecs.spatial[w.person].y-start.y)).toBeGreaterThan(10);
   expect(Math.hypot(s.ecs.spatial[w.person].x-s.ecs.spatial[w.player].x,s.ecs.spatial[w.person].y-s.ecs.spatial[w.player].y)).toBeLessThanOrEqual(70);
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
-  expect(answerCustoms(s,"acknowledge")).toBe(true);
+  expect(respond(s,"acknowledge")).toBe(true);
   expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-3);
   expect(s.knowledge[w.player].people[w.person].conversation).toBeDefined();
-  expect(answerCustoms(s,"acknowledge")).toBe(false);
+  expect(respond(s,"acknowledge")).toBe(false);
   w.step(.1);
   expect(s.ecs.manager[w.player].jobs).toEqual([]);
 });
@@ -90,19 +91,19 @@ it("observes once per explicit order, and repeat deliberate cutting carries the 
   const w=world(),s=w.state,job=order(w);
   observeChop(s,w.player,w.tree,job);observeChop(s,w.player,w.tree,job);
   expect(s.customs.incidents).toHaveLength(1);
-  until(w,()=>!!s.customs?.dialogue);answerCustoms(s,"refuse");
+  until(w,()=>!!s.chat?.active?.context);respond(s,"refuse");
   until(w,()=>s.customs.incidents[0].status=="done");
-  order(w);until(w,()=>!!s.customs?.dialogue);
-  const before=s.ecs.relationships[s.customs.dialogue.speakerId].known[w.player]?.goodwill||0;
-  const speaker=s.customs.dialogue.speakerId;
-  answerCustoms(s,"acknowledge");
+  order(w);until(w,()=>!!s.chat?.active?.context);
+  const before=s.ecs.relationships[s.chat?.active?.context.speakerId].known[w.player]?.goodwill||0;
+  const speaker=s.chat?.active?.context.speakerId;
+  respond(s,"acknowledge");
   expect(s.ecs.relationships[speaker].known[w.player].goodwill).toBe(before-6);
 });
 it("elder learns only after a physical timed report; bystanders get no penalty",()=>{
   const w=world(),s=w.state;order(w);
-  until(w,()=>!!s.customs?.dialogue);
+  until(w,()=>!!s.chat?.active?.context);
   expect(s.ecs.relationships[w.parent].known[w.player]).toBeUndefined();
-  answerCustoms(s,"acknowledge");
+  respond(s,"acknowledge");
   expect(s.ecs.relationships[w.parent].known[w.player]).toBeUndefined();
   until(w,()=>s.customs.incidents[0].status=="done");
   expect(s.ecs.relationships[w.parent].known[w.player].goodwill).toBeLessThan(-1.8);
@@ -113,11 +114,11 @@ it("elder learns only after a physical timed report; bystanders get no penalty",
   expect(s.knowledge[w.person].people[w.parent].conversation).toBeDefined();
 });
 it("revalidates dead/moved witnesses and releases a dialogue when its speaker leaves",()=>{
-  const w=world(),s=w.state;order(w);until(w,()=>!!s.customs?.dialogue);
+  const w=world(),s=w.state;order(w);until(w,()=>!!s.chat?.active?.context);
   s.ecs.personable[w.person].dead=true;updateCustoms(s);
-  expect(s.customs.dialogue).toBeFalsy();
+  expect(s.chat?.active?.context).toBeFalsy();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
-  expect(s.ecs.planner[w.player].world.customsHold).toBeFalsy();
+  expect(s.ecs.planner[w.player].world.capturedBy).toBeFalsy();
 });
 it("requires adult household eligibility, an actual elder conversation and achievable earned trust",()=>{
   const w=world(),s=w.state;
@@ -152,7 +153,7 @@ it("queues an observed offence through urgent work and reaches an otherwise idle
   const position={...s.ecs.spatial[w.player]};
   s.ecs.planner[w.player].task=null;s.ecs.planner[w.player].plan=null;
   s.ecs.planner[w.person].world.currentJob=null;
-  until(w,()=>!!s.customs.dialogue);
+  until(w,()=>!!s.chat?.active?.context);
   expect(s.ecs.spatial[w.player].x).toBe(position.x);
   expect(s.ecs.spatial[w.player].y).toBe(position.y);
 });
@@ -161,7 +162,7 @@ it("does not complete a blocked approach or a report from a dead witness",()=>{
   observeChop(s,w.player,w.tree,job);
   s.ecs.walkable[w.tiles[3]].neighbours={};
   updateCustoms(s);w.step(.05);
-  expect(s.customs.dialogue).toBeFalsy();
+  expect(s.chat?.active?.context).toBeFalsy();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
   s.ecs.personable[w.person].dead=true;updateCustoms(s);
   expect(s.events.some(e=>e.type=="commons_report")).toBe(false);
@@ -173,27 +174,27 @@ it("receives and declines an oath through a real visit, then swears and leaves e
   const people=require("game/people");
   people.chat(s,w.player,w.parent);people.addGoodwill(s,w.player,w.parent,12);
   expect(oathEligibility(s,w.player,"village").ok).toBe(true);
-  enqueueTask(s,{key:"village_oath"},w.parent);
-  until(w,()=>s.customs?.dialogue?.kind=="oath");
+  enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
+  until(w,()=>s.chat?.active?.context?.kind=="oath");
   expect(membership(s,w.player,"village")).toBe(null);
-  answerCustoms(s,"decline");
+  respond(s,"decline");
   expect(membership(s,w.player,"village")).toBe(null);
-  enqueueTask(s,{key:"village_oath"},w.parent);
-  until(w,()=>s.customs?.dialogue?.kind=="oath");
-  expect(answerCustoms(s,"accept")).toBe(true);
+  enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
+  until(w,()=>s.chat?.active?.context?.kind=="oath");
+  expect(respond(s,"accept")).toBe(true);
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(true);
   expect(s.ecs.manager[w.player].jobs).toEqual([]);
   const [permittedTree]=newEntities(s,[{spatial:{...s.ecs.spatial[w.tree]},tree:{},good:{type:"wood",amount:1}}]);
   enqueueTask(s,{key:"cut_tree_down"},permittedTree);until(w,()=>!s.ecs.good[permittedTree]);
   expect(s.customs.incidents).toEqual([]);
-  enqueueTask(s,{key:"village_leave"},w.parent);
-  until(w,()=>s.customs?.dialogue?.kind=="leave");answerCustoms(s,"leave");
+  enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"leave"});
+  until(w,()=>s.chat?.active?.context?.kind=="leave");respond(s,"leave");
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(false);
   expect(s.events.filter(e=>e.type=="village_oath")).toHaveLength(1);
   expect(s.events.filter(e=>e.type=="village_leave")).toHaveLength(1);
 });
 it("preserves factual warning history when a real accepted harvest favour restores goodwill",()=>{
-  const w=world(),s=w.state;order(w);until(w,()=>!!s.customs?.dialogue);answerCustoms(s,"acknowledge");
+  const w=world(),s=w.state;order(w);until(w,()=>!!s.chat?.active?.context);respond(s,"acknowledge");
   const { updateFavours,acceptFavour }=require("game/favours");
   const [store,field]=newEntities(s,[
     {spatial:{...s.ecs.spatial[w.house]},container:{amounts:{grain:30},capacity:100},controllable:{controllerId:w.person}},
@@ -224,7 +225,7 @@ it("keeps building clearance privileged and creates neither offence nor resource
   expect(Object.keys(s.ecs.haulable || {})).toHaveLength(before);
 });
 it("replaces a dead elder during a pending report without a self-conversation or double loss",()=>{
-  const w=world(),s=w.state;order(w);until(w,()=>!!s.customs?.dialogue);answerCustoms(s,"acknowledge");
+  const w=world(),s=w.state;order(w);until(w,()=>!!s.chat?.active?.context);respond(s,"acknowledge");
   const before=s.ecs.relationships[w.person].known[w.player].goodwill;
   s.ecs.personable[w.parent].dead=true;updateCustoms(s);
   expect(villageElder(s,"village")).toBe(w.person);
@@ -241,26 +242,26 @@ it("rechecks private tree permission in the actual work task",()=>{
   expect(job.waiting).toBeTruthy();
 });
 it("blocks an oath from a distance, rechecks trust on acceptance, and cancels on elder departure",()=>{
-  const w=world(),s=w.state,{openOath}=require("game/village_customs");
-  expect(openOath(s,w.player,w.parent).ok).toBe(false);
+  const w=world(),s=w.state;
+  expect(discussOath(s,w.player,w.parent).ok).toBe(false);
   const people=require("game/people");
   people.chat(s,w.player,w.parent);people.addGoodwill(s,w.player,w.parent,12);
-  enqueueTask(s,{key:"village_oath"},w.parent);until(w,()=>s.customs?.dialogue?.kind=="oath");
+  enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});until(w,()=>s.chat?.active?.context?.kind=="oath");
   s.ecs.relationships[w.parent].known[w.player].goodwill=0;
-  expect(answerCustoms(s,"accept")).toBe(false);
+  expect(respond(s,"accept")).toBe(false);
   expect(membership(s,w.player,"village")).toBe(null);
   s.ecs.village[w.parent].villageId="elsewhere";updateCustoms(s);
-  expect(s.customs.dialogue).toBeFalsy();
-  expect(s.ecs.planner[w.player].world.customsHold).toBeFalsy();
+  expect(s.chat?.active?.context).toBeFalsy();
+  expect(s.ecs.planner[w.player].world.capturedBy).toBeFalsy();
 });
 it("groups observed pre-warning cutting into one warning incident",()=>{
   const w=world(),s=w.state,first=order(w);
   observeChop(s,w.player,w.tree,first);
   const second=order(w);observeChop(s,w.player,w.tree,second);
   expect(s.customs.incidents).toHaveLength(1);
-  until(w,()=>!!s.customs?.dialogue);answerCustoms(s,"acknowledge");
+  until(w,()=>!!s.chat?.active?.context);respond(s,"acknowledge");
   w.step(.2);
-  expect(s.customs.dialogue).toBeFalsy();
+  expect(s.chat?.active?.context).toBeFalsy();
   expect(s.events.filter(e=>e.type=="commons_warning")).toHaveLength(1);
 });
 it("routes towards the offender's new position rather than completing contact at the old tree",()=>{
@@ -270,8 +271,8 @@ it("routes towards the offender's new position rather than completing contact at
   s.ecs.manager[w.player].jobs=[];s.ecs.planner[w.player].world.currentJob=null;
   s.ecs.planner[w.player].task=null;s.ecs.planner[w.player].plan=null;
   Object.assign(s.ecs.spatial[w.player],s.ecs.spatial[w.tiles[5]]);
-  until(w,()=>!!s.customs?.dialogue);
-  const d=s.customs.dialogue,a=s.ecs.spatial[w.player],b=s.ecs.spatial[d.speakerId];
+  until(w,()=>!!s.chat?.active?.context);
+  const d=s.chat?.active?.context,a=s.ecs.spatial[w.player],b=s.ecs.spatial[d.speakerId];
   expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeLessThanOrEqual(70);
   expect(s.knowledge?.[w.player]?.people?.[d.speakerId]?.conversation).toBeUndefined();
 });
@@ -321,4 +322,13 @@ it("removes joining advice from permitted common trees and names when the elder 
   delete s.ecs.village[w.player].memberships;
   chatRecord(s,w.player,w.parent).resting=99;
   expect(render(<VillageMembership personId={w.parent}/>)).toMatch(/ready in \d+ game hours/);
+});
+
+it("still opens an answerable warning with spent patience and changes no hidden tastes",()=>{
+  const w=world(),s=w.state;chatRecord(s,w.player,w.person).resting=99;
+  order(w);until(w,()=>s.chat?.active?.context?.kind=="warning");
+  expect(s.game_speed).toBe("paused");expect(s.chat.active.row.map(i=>i.key)).toEqual(["village","woodland"]);
+  const {chatChoices}=require("game/chat");expect(chatChoices(s).map(l=>l.text)).toEqual(["Fair enough. I'll stop.","I don't agree."]);
+  expect(respond(s,"refuse")).toBe(true);expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-3);
+  expect(s.knowledge[w.player].people[w.person].topicTastes).toBeUndefined();
 });

@@ -1,4 +1,4 @@
-import { oathEligibility, oathReadiness, villageElder, membership } from "game/village_customs";
+import { customsIntentUnavailable } from "game/village_customs";
 import { nightTime } from "game/home";
 import { ownsField } from "game/farming";
 export { fieldOrders } from "game/farming";
@@ -8,17 +8,13 @@ import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource, deliveryHome } from "game/construction";
 import { forageAvailable } from "game/ecology";
 import { topController, householdAccess } from "game/playable";
+import { disposition } from "game/people";
 import { giftOptions } from "game/people";
 
-export const CHAT_APPROACH_JOBS = ["chat", "village_oath", "village_leave"];
-export function oathUnavailable(state, actor, target, key) {
-  const village=state.ecs.village?.[target]?.villageId;
-  if(villageElder(state,village)!=target)return "Speak with the current elder.";
-  const eligibility=key=="village_leave" ? {ok:!!membership(state,actor,village),reason:"You are not a member here."} : oathEligibility(state,actor,village);
-  return !eligibility.ok ? eligibility.reason : !oathReadiness(state,actor,target).ok ? oathReadiness(state,actor,target).reason : null;
-}
+export const CHAT_APPROACH_JOBS = ["chat"];
+export const chatIntentUnavailable = (state,actor,target,intent) => intent?customsIntentUnavailable(state,actor,target,intent):null;
 
-export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel", "village_leave"];
+export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "find_food", "rest", "travel"];
 export function playerOrderAllowed(state, key) {
   const p = state.ecs.personable[state.ui.playerId];
   return p && !p.dead && ((p.age ?? 18) >= 18 || CHILD_ORDERS.includes(key));
@@ -56,8 +52,8 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   if(job.key == "move_to_here")delete state.ui.talkResult;
   if(CHAT_APPROACH_JOBS.includes(job.key)) {
     delete state.ui.talkResult;
-    const reason = (job.key!="chat" && oathUnavailable(state,state.ui.playerId,targetId,job.key)) || chatUnavailable(state, state.ui.playerId, targetId);
-    if(reason && (job.key!="chat" || state.ecs.planner?.[targetId]?.task?.[0] == "sleep" || nightTime(state.days))) {
+    const reason = chatIntentUnavailable(state,state.ui.playerId,targetId,metadata.chatIntent) || chatUnavailable(state, state.ui.playerId, targetId);
+    if(reason && (metadata.chatIntent || chatUnfriendly(state,state.ui.playerId,targetId) || state.ecs.planner?.[targetId]?.task?.[0] == "sleep" || nightTime(state.days))) {
       entry.failed = true; entry.waiting = entry.detail = reason;
       state.ui.talkResult = {personId:targetId,message:reason};
       return entry;
@@ -86,6 +82,8 @@ function interruptOrder(state) {
     for (const slot of farm.slots) if (slot.workerId == id) delete slot.workerId;
   }
   world.currentJob = null;
+  delete world.doorCall;
+  delete world.chatWalk;
   delete world.chatOpened;
   delete world.chatActivity;
   world.capturedAttentionOf = null;
@@ -165,7 +163,7 @@ function waitingReason(state, actorId, job) {
   }
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home", "village_oath", "village_leave"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if(job.job.key=="chat" && chatUnavailable(state, actorId, target)) return chatUnavailable(state, actorId, target);
   if (job.job.key == "give_gift") {
     const item=job.giftItem, cargo=ecs.haulable?.[item];
@@ -193,11 +191,20 @@ function reachableShelterLog(state, actorId) {
 }
 
 // Shared by queue readiness, runtime failure and the person sheet result.
+export function chatUnfriendly(state, actor, target) {
+  if(!state.ecs.personality?.[target])return null;
+  const hate=disposition(state,target,actor)=="hate",regard=state.ecs.relationships?.[target]?.known[actor]?.goodwill||0;
+  if(hate)return "They will not come out to talk. A gift they like or an offered favour can improve goodwill, but their tastes and disposition will not change. Try another neighbour.";
+  if(regard<0)return "They will not come out to talk while they feel unfriendly. Rebuild goodwill with a gift they like or an offered favour, then try again.";
+  return null;
+}
 export function chatUnavailable(state, actor, target) {
-  const ecs=state.ecs, planner=ecs.planner?.[target];
+  const ecs=state.ecs, planner=ecs.planner?.[target],unfriendly=chatUnfriendly(state,actor,target);
+  if(unfriendly)return unfriendly;
+  // An indoor sleeper is reached by knocking, rather than waiting outside.
+  const home=ecs.interior?.[target]?.buildingId;
+  if(home && ecs.spatial[home] && home!=ecs.interior?.[actor]?.buildingId)return null;
   if(planner?.task?.[0] == "sleep") return "They are asleep. Try after 6am when they have finished resting, or choose another neighbour.";
-  if(ecs.interior?.[target] && ecs.interior[target].buildingId != ecs.interior?.[actor]?.buildingId)
-    return nightTime(state.days) ? "They are indoors for the night. Try after 6am, when they come outside." : "They are indoors. Choose another neighbour; try again when they come outside.";
   if(planner?.world.feeling?.tired) return "They are still resting. Try again after they have rested, or choose another neighbour.";
   if(planner?.world.feeling?.hungry) return "They are still eating or looking for a meal. Try again after their meal, or choose another neighbour.";
   return null;
@@ -218,15 +225,16 @@ function failChatApproach(state, job, reason) {
   state.ui.talkResult={personId:job.targetId,message:reason,recovery:!chatUnavailable(state,state.ui.playerId,job.targetId) && state.ecs.personable[state.ui.playerId].hunger<=.9 && state.ecs.personable[state.ui.playerId].tiredness<=.9 ? "move_closer" : null};
 }
 export function expireChatApproach(state) {
-  if(state.chat?.active || state.customs?.dialogue)return;
+  if(state.chat?.active)return;
   const actor=state.ui.playerId,jobs=state.ecs.manager?.[actor]?.jobs||[];
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
-  if(!job)return;
+  // A vanished person keeps the queue's own "Target gone" reason.
+  if(!job || !state.ecs.personable?.[job.targetId] || !state.ecs.spatial?.[job.targetId])return;
   job.approachAt ??= state.days;
   if(state.days-job.approachAt<1/24)return;
   const person=state.ecs.personable[actor];
-  const reason=(job.job.key!="chat" && oathUnavailable(state,actor,job.targetId,job.job.key)) || chatUnavailable(state,actor,job.targetId) ||
+  const reason=chatIntentUnavailable(state,actor,job.targetId,job.chatIntent) || chatUnavailable(state,actor,job.targetId) ||
     (person.hunger>.9?"You need a meal before walking over. Choose Find food, then try Chat again.":
       person.tiredness>.9?"You need rest before walking over. Choose Rest, then try Chat again.":
         "You could not reach them within an hour. Move closer, then choose Chat again, or try another neighbour.");
@@ -291,9 +299,7 @@ const retrySteps = {
   court: "Chat to learn their feelings, then try Court again.",
   marry: "Chat to learn their feelings before asking to marry again.",
   play: "Choose another nearby child and try Play together again.",
-  invite_home: "Finish a house with room, then invite a willing adult friend again.",
-  village_oath: "Chat with the local elder to earn trust, then offer your oath again.",
-  village_leave: "Select the elder of your community and choose Leave again."
+  invite_home: "Finish a house with room, then invite a willing adult friend again."
 };
 function runtimeWaiting(state, id, job) {
   if(job.favourId && job.failureReason)return job.failureReason;
@@ -319,7 +325,6 @@ function runtimeWaiting(state, id, job) {
     chat:"They cannot stop to talk now", ask_about:"They cannot stop to answer now", give_gift:"The gift or recipient is unavailable",
     court:"They cannot accept courtship now", marry:"Marriage needs two willing unmarried adults with mutual close feelings",
     play:"Your playmate cannot play now", invite_home:"The invitation needs a willing adult friend and room at home",
-    village_oath:"The elder cannot accept your oath yet", village_leave:"There is no current membership to leave",
     move_to_here:"The walking route is blocked"
   }[key] || "This order's target or access changed";
   return reason+". "+(retrySteps[key] || "Cancel the order and select a reachable target again.");
@@ -329,7 +334,7 @@ export function deferPlayerTask(state) {
   const job = state.ecs.manager[id].jobs.find(j => j.assignedId == id);
   if (!job) return;
   if(CHAT_APPROACH_JOBS.includes(job.job.key)) {
-    failChatApproach(state,job,(job.job.key!="chat" && oathUnavailable(state,id,job.targetId,job.job.key)) || chatUnavailable(state,id,job.targetId) || "They cannot stop to talk now. Choose another neighbour or try Chat again later.");
+    failChatApproach(state,job,chatIntentUnavailable(state,id,job.targetId,job.chatIntent) || chatUnavailable(state,id,job.targetId) || "They cannot stop to talk now. Choose another neighbour or try Chat again later.");
     return;
   }
   const blocked = waitingReason(state, id, job);

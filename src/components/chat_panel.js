@@ -1,3 +1,4 @@
+import { warningConsequences, villageElder } from "game/village_customs";
 import React from "react";
 import PropTypes from "prop-types";
 import { GameState } from "components/contexts";
@@ -5,8 +6,8 @@ import { TOPICS, chatChoices, previewLine, iconKey, chatPersonName, topicScore }
 import { patience } from "game/chat_patience";
 import { displayName } from "game/knowledge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSitemap, faHammer, faSeedling, faUtensils, faCloudSun, faHome, faChurch, faComments, faHandsHelping, faUser } from "@fortawesome/free-solid-svg-icons";
-const pictures={family:faSitemap,work:faHammer,harvest:faSeedling,food:faUtensils,season:faCloudSun,village:faHome,faith:faChurch,gossip:faComments,help:faHandsHelping};
+import { faSitemap, faHammer, faSeedling, faUtensils, faCloudSun, faHome, faChurch, faComments, faHandsHelping, faUser, faTree } from "@fortawesome/free-solid-svg-icons";
+const pictures={woodland:faTree,family:faSitemap,work:faHammer,harvest:faSeedling,food:faUtensils,season:faCloudSun,village:faHome,faith:faChurch,gossip:faComments,help:faHandsHelping};
 const signed=n=>n>0?"+"+n:String(n);
 function Words({text}) {return text.split(/(\*[^*]+\*)/).map((part,i)=>part.startsWith("*")?<em key={i}>{part.slice(1,-1)}</em>:part);}
 Words.propTypes={text:PropTypes.string};
@@ -28,8 +29,10 @@ export function ChatPanel() {
   const p=patience(s,c.actorId,c.npcId),choices=chatChoices(s),latest=[...c.transcript].reverse().find(l=>l.speaker=="npc"&&l.family!="leave_taking"),farewell=[...c.transcript].reverse().find(l=>l.speaker=="npc"&&l.family=="leave_taking"),pops=c.lastPops||[];
   const person=displayName(s,c.npcId,id=>s.personName?.(id)||s.ecs.nameable[id]?.nickname||chatPersonName(s,id)),free=p.max-p.resting-c.row.length;
   const known=s.knowledge?.[c.actorId]?.people?.[c.npcId]?.topicTastes||{};
+  const incident=c.context?.kind=="warning"&&s.customs?.incidents.find(i=>i.id==c.context.incidentId);
+  const losses=incident&&warningConsequences(s,incident),elderWitness=incident&&villageElder(s,c.context.villageId)==c.npcId;
   return <><div className="chat-backdrop"/><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={"Conversation with "+person} className="chat-panel" onKeyDown={e=>{if(e.key=="Escape")s.ui.actions.close_chat();}}>
-    <header><div><small>World paused</small><h2>{person}</h2></div><button onClick={s.ui.actions.close_chat}>End chat</button></header>
+    <header><div><small>World paused</small><h2>{person}</h2></div><button disabled={c.expectation=="warning"} onClick={s.ui.actions.close_chat}>End chat</button></header>
     <div className="chat-patience"><strong>Patience: {p.max} slots · {free} free</strong><small>{c.row.filter(i=>i.life>0).length} live · {c.row.filter(i=>!i.life).length} faded · {p.resting} resting</small></div>
     {p.tired&&<p>{"You're tired: short conversations"}</p>}
     {c.earlyHelpReaction&&<p role="status">{c.earlyHelpReaction}</p>}
@@ -38,6 +41,7 @@ export function ChatPanel() {
     <div className="chat-reactions" aria-live="polite">{pops.map((i,n)=><span key={n} className={i.score>0?"positive":i.score<0?"negative":"neutral"}>{i.kind=="topic"?TOPICS[i.key]:chatPersonName(s,i.personId)} matched · {i.listenerId==c.actorId?"Your":person.split(" ")[0]+"’s"} regard {signed(i.amount)}</span>)}</div>
     {!!c.lastFades?.length&&<small>{c.lastFades.length} unmatched {c.lastFades.length==1?"icon faded":"icons faded"} out of the row.</small>}
     {latest?.family=="favour_ask" && c.transcript.filter(l=>l.family=="maternal_recognition").map(l=><p className="family-welcome" key={l.id}>{l.text}</p>)}
+    {losses&&!c.context.resolved&&<p>Goodwill −{losses.witness} with {elderWitness?"the elder, who saw you cutting":"this villager"}{!elderWitness&&<>; −{losses.elder} with the elder when told</>}. Cutting again after a warning costs more. Your cutting has stopped. Unclaimed woodland is free to use.</p>}
     {latest&&<p className="chat-speech" data-line-id={latest.id}><Words text={latest.text}/></p>}
     {farewell&&<p data-line-id={farewell.id}><Words text={farewell.text}/></p>}
     <p className="chat-next" role="status">{c.endReason?"Choose End chat to return to the village.":"Choose a line below."}</p>

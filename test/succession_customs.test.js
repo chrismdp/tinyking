@@ -1,10 +1,11 @@
+import { respond, discussOath } from "./support/customs_chat";
 import { community } from "./support/travel";
 import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
 import { advanceSeason } from "game/social";
 import { resolveSuccession } from "game/succession";
 import { enqueueTask } from "game/manager";
-import { resourcePermission, membership, answerCustoms, villageElder } from "game/village_customs";
+import { resourcePermission, membership, villageElder } from "game/village_customs";
 import { Hex } from "game/hex";
 
 function fixture() {
@@ -44,15 +45,15 @@ it.each(["warning","oath"])("releases an actual held %s encounter before a pause
     const {chatChoices,chooseLine,closeChat}=require("game/chat");
     chooseLine(s,chatChoices(s)[0].key);closeChat(s);
     until(()=>!!s.knowledge?.[a]?.people?.[c]?.conversation);
-    enqueueTask(s,{key:"village_oath"},c);
+    enqueueTask(s,{key:"chat"},c,{chatIntent:"oath"});
   }
-  until(()=>s.customs?.dialogue?.kind==kind);
-  const speaker=s.customs.dialogue.speakerId;expect(s.ecs.planner[speaker].world.customsHold).toBe(true);
+  until(()=>s.chat?.active?.context?.kind==kind);
+  const speaker=s.chat?.active?.context.speakerId;expect(s.ecs.planner[speaker].world.capturedBy).toBe(a);
   s.ui.resourceOrder={job:{key:"cut_tree_down"},targetId:tree,villageId:"v"};s.ui.customsResult={speakerId:speaker,message:"Old actor"};
   await succeed();
-  expect(s.ui.playerId).toBe(b);expect(s.game_speed).toBe("paused");expect(s.customs.dialogue).toBeUndefined();
-  expect(s.ecs.planner[speaker].world.customsHold).toBeUndefined();expect(s.ecs.planner[speaker].world.customsVisit).toBeUndefined();
-  expect(s.ui.resourceOrder).toBeNull();expect(s.ui.customsResult).toBeNull();expect(answerCustoms(s,"accept")).toBe(false);
+  expect(s.ui.playerId).toBe(b);expect(s.game_speed).toBe("paused");expect(s.chat?.active?.context).toBeUndefined();
+  expect(s.ecs.planner[speaker].world.capturedBy).toBeFalsy();expect(s.ecs.planner[speaker].world.customsVisit).toBeUndefined();
+  expect(s.ui.resourceOrder).toBeNull();expect(s.ui.customsResult).toBeNull();expect(respond(s,"accept")).toBe(false);
   expect(membership(s,b,"v")).toBeNull();expect(membership(s,b,"own")).toBe("oath");
   expect(s.ecs.manager[a].jobs).toEqual([]);
   if(kind=="warning")expect(s.customs.incidents.every(i=>i.actorId!=a || i.status=="done")).toBe(true);

@@ -98,7 +98,7 @@ it("foraging ahead of a collected commodity gift preserves the promised item and
   const f = economy(), { s, p, camp, tiles, world } = f;
   s.ecs.container[camp].amounts = { wood: 1, grain: 10 };
   const [npc, plant] = newEntities(s, [
-    { spatial: { ...s.ecs.spatial[tiles[5]] }, personable: { age: 30, hunger: 0, tiredness: 0 }, controllable: {}, holder: { capacity: 2, held: [] }, planner: { world: { customsHold: true, places: {}, no_place_for: {}, feeling: {}, holding: {} } }, manager: { jobs: [] } },
+    { spatial: { ...s.ecs.spatial[tiles[5]] }, personable: { age: 30, hunger: 0, tiredness: 0 }, controllable: {}, holder: { capacity: 2, held: [] }, planner: { world: { capturedBy: p, places: {}, no_place_for: {}, feeling: {}, holding: {} } }, manager: { jobs: [] } },
     { spatial: { ...s.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 } }
   ]);
   s.ecs.controllable[npc].controllerId = npc;
@@ -148,7 +148,7 @@ it("rejects a whole delivery when only fractional storage space remains", () => 
 it("recovers a promised gift set down to make room for a meal", () => {
   const f=economy(2),{s,p,camp,tiles}=f;
   s.ecs.container[camp].amounts={wood:2,grain:10};
-  const [npc]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},personable:{age:30,hunger:0,tiredness:0},controllable:{},holder:{capacity:2,held:[]},planner:{world:{customsHold:true,places:{},no_place_for:{},feeling:{},holding:{}}},manager:{jobs:[]}}]);
+  const [npc]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},personable:{age:30,hunger:0,tiredness:0},controllable:{},holder:{capacity:2,held:[]},planner:{world:{capturedBy:p,places:{},no_place_for:{},feeling:{},holding:{}}},manager:{jobs:[]}}]);
   s.ecs.controllable[npc].controllerId=npc;
   for(const key of ["relationships","personality","kinship"])s.ecs[key]={};
   for(const id of [p,npc]){s.ecs.relationships[id]={known:{}};s.ecs.personality[id]={traits:[],likes:[],dislikes:[]};s.ecs.kinship[id]={parents:[],children:[]};}

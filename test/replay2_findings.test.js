@@ -1,10 +1,11 @@
+import { respond, discussOath } from "./support/customs_chat";
 import { peopleWorld } from './support/people';
 import { newEntities } from 'game/entities';
 import { completeConversation } from 'game/people';
 import { openChat, chatChoices, chooseLine, previewLine, patience } from 'game/chat';
 import { enqueueTask, expireChatApproach } from 'game/manager';
 import { updateFavours, acceptFavour, favourWaiting } from 'game/favours';
-import { observeChop, updateCustoms, openOath, answerCustoms, oathEligibility } from 'game/village_customs';
+import { observeChop, updateCustoms, oathEligibility } from 'game/village_customs';
 import { learnEvent } from 'game/events';
 
 function harvestWorld() {
@@ -41,8 +42,8 @@ it('an oath response records contact and rights without unspoken family events',
   const w=oathWorld(),s=w.state;
   s.ecs.spatial[w.player]={...s.ecs.spatial[w.parent],x:s.ecs.spatial[w.parent].x-45};
   const event={id:'old-marriage',type:'marriage',people:[w.parent,w.person],day:-20};s.events=[event];learnEvent(s,w.parent,event);
-  expect(openOath(s,w.player,w.parent).ok).toBe(true);
-  expect(answerCustoms(s,'accept')).toBe(true);
+  expect(discussOath(s,w.player,w.parent).ok).toBe(true);
+  expect(respond(s,'accept')).toBe(true);
   expect(s.knowledge[w.player].events||[]).not.toContain(event.id);
 });
 it('offers no harvest beyond capacity, and limits a smaller offer to whole patches that fit',()=>{
@@ -75,13 +76,13 @@ it('checks oath eligibility again at enqueue instead of starting an ineligible a
   const w=oathWorld(),s=w.state;
   expect(oathEligibility(s,w.player,'village').ok).toBe(true);
   s.ecs.relationships[w.parent].known[w.player].goodwill=9.9;
-  const job=enqueueTask(s,{key:'village_oath'},w.parent);
+  const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ui.talkResult.message).toMatch(/9.9.*10 goodwill/);
 });
 it('ends an oath approach within the same one hour bound as Chat, releasing attention',()=>{
   const w=oathWorld(),s=w.state;
-  const job=enqueueTask(s,{key:'village_oath'},w.parent);expireChatApproach(s);
+  const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});expireChatApproach(s);
   s.days+=1.1/24;expireChatApproach(s);
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ui.talkResult.message).toMatch(/within an hour|rest|meal/);
@@ -113,12 +114,12 @@ it('keeps an actual Social-trust woodland warning out of family news and milesto
  const [tree]=newEntities(s,[{spatial:{...s.ecs.spatial[w.tiles[4]]},tree:{},good:{type:'wood',amount:3}}]);
  s.ecs.spatial[w.player]={...s.ecs.spatial[tree]};
  s.ecs.relationships[w.parent].known[w.player]={ring:'social',goodwill:16,base:16};
- for(const id of [w.person,w.sibling])s.ecs.planner[id].world.customsHold=true;
+ for(const id of [w.person,w.sibling])s.ecs.planner[id].world.capturedBy="busy";
  const birth={id:'henry-old-birth',type:'birth',people:[w.person,w.parent],day:-200};s.events=[birth];learnEvent(s,w.parent,birth);
  const order=enqueueTask(s,{key:'cut_tree_down'},tree);observeChop(s,w.player,tree,order);updateCustoms(s);
- for(let minute=0;minute<60 && !s.customs.dialogue;minute++)w.step(1/60);
- expect(s.customs.dialogue).toMatchObject({kind:'warning',speakerId:w.parent});
- expect(answerCustoms(s,'acknowledge')).toBe(true);
+ for(let minute=0;minute<60 && !s.chat?.active?.context;minute++)w.step(1/60);
+ expect(s.chat?.active?.context).toMatchObject({kind:'warning',speakerId:w.parent});
+ expect(respond(s,'acknowledge')).toBe(true);
  expect(s.knowledge[w.player].events).not.toContain(birth.id);
  expect(require('game/guidance').peopleGoals(s).completed).not.toContain('story');
  expect(s.knowledge[w.player].people[w.parent].conversation).toBeDefined();
@@ -132,11 +133,11 @@ it('rechecks pantry room before accepting a stale spoken harvest offer',()=>{
 });
 it('receives the oath at the receipt trust of 10.1 before normal drift removes eligibility',()=>{
  const w=oathWorld(),s=w.state,start=s.days;
- const order=enqueueTask(s,{key:'village_oath'},w.parent);
- for(let minute=0;minute<60 && !s.customs?.dialogue;minute++)w.step(1/60);
- expect(s.customs?.dialogue).toMatchObject({kind:'oath',speakerId:w.parent});
+ const order=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
+ for(let minute=0;minute<60 && !s.chat?.active?.context;minute++)w.step(1/60);
+ expect(s.chat?.active?.context).toMatchObject({kind:'oath',speakerId:w.parent});
  expect(s.days-start).toBeLessThan(1/24);
- expect(answerCustoms(s,'accept')).toBe(true);
+ expect(respond(s,'accept')).toBe(true);
  expect(s.ecs.village[w.player].memberships.village).toBeDefined();
  expect(s.ecs.manager[w.player].jobs).not.toContain(order);
 });

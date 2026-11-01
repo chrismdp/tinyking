@@ -2976,6 +2976,105 @@ situation("maternal_recognition", "welcome_kin", "npc", base_all=[PHASE_REPLY],
     use_key="maternal_recognition:{player.id}:{npc.id}",
     disc_people=["npc"], variants=["Then you are my {relative.inverse}! Your mother is my own kin. Welcome, child; you have found family here."])
 
+# Village customs are ordinary authored openings and responses. Their icons
+# seed the row; these consequential exchanges retain their exact fixed costs.
+for kind,text in [
+    ("warning", "Please leave our woodland alone. These trees belong to our village. You need our leave to cut them. Speak to our elder if you want to settle here."),
+    ("oath", "Will you swear our local oath? {customs.rights}"),
+    ("leave", "Do you wish to leave? {customs.rights} Your past help and offences stay in people's memories.")]:
+    situation("village_"+kind, "opening", "npc",
+        base_all=[P("customs_chat_kind_is",value=kind)],
+        bindings={"customs":{"source":"customs_chat"}}, icons=[T("village"),T("woodland")],
+        use_key="customs:"+kind+":{context.encounter_number}", variants=[text])
+    rows[-1]["expects"]=kind;rows[-1]["score"]=False
+    if kind=="warning": rows[-1]["effects"]=[{"op":"begin_woodland_warning"}]
+for kind,choice,text in [
+    ("warning","acknowledge","Fair enough. I'll stop."), ("warning","refuse","I don't agree."),
+    ("oath","accept","I swear the local oath."), ("oath","decline","I'd rather not swear it."),
+    ("leave","leave","I'll leave the village."), ("leave","decline","I'll stay in the village.")]:
+    situation("customs_answer", "fallback_"+choice+"_"+kind, "player",
+        base_all=[PHASE_PLAYER,P("answer_expected_is",value=kind)], icons=[T("village")],
+        use_key="customs_answer:"+kind+":"+choice+":{context.encounter_number}",
+        effects=[{"op":"customs_response","choice":choice},{"op":"set_reply_purpose","purpose":"customs_acknowledged"}],variants=[text])
+    rows[-1]["answers"]=[kind];rows[-1]["score"]=False
+situation("customs_acknowledged", "fallback_result", "npc", base_all=[PHASE_REPLY],
+    bindings={"customs":{"source":"customs_chat"}}, icons=[T("village")],
+    use_key="customs_result:{context.encounter_number}", variants=["{customs.result}"])
+rows[-1]["score"]=False
+for kind,text in [("oath","I would like to swear the local oath."),("leave","I wish to discuss leaving the village.")]:
+    situation("customs_question",kind,"player",base_all=[PHASE_PLAYER,P("customs_eligible",kind=kind)],icons=[T("village")],
+        use_key="customs_question:"+kind+":{context.encounter_number}",
+        effects=[{"op":"begin_customs_chat","kind":kind},{"op":"set_reply_purpose","purpose":"village_"+kind}],variants=[text])
+    rows[-1]["score"]=False
+
+# Explicit response contracts. These always-available answers also let a player
+# decline to disclose something; they never invent family, news or travel facts.
+for answer, text, topic in [
+    ("name", "I'm {player.first_name}. Pleased to meet you.", "village"),
+    ("weather", "A day for a short chat, I think.", "season"),
+    ("wellbeing", "I'll manage. Thank you for asking.", "season"),
+    ("origin", "I'd rather not speak of where I've been.", "village"),
+    ("village_impression", "I'm still getting to know the place.", "village"),
+    ("purpose", "I came to talk, if you've a moment.", "village"),
+    ("news", "I've no news I wish to share.", "gossip"),
+    ("family", "I'd rather keep my family to myself.", "family"),
+    ("work", "I'd rather talk of something besides my work.", "work"),
+    ("subject", "I'd rather leave their story for another day.", "gossip"),
+    ("referral", "Thank you. I'll ask there.", "help"),
+    ("offer", "I can't take that on just now.", "help"),
+    ("acknowledgement", "I see. Thank you for telling me.", "village"),
+    ("invitation", "Thank you. I'll have a look.", "work"),
+]:
+    situation("introduction" if answer=="name" else "direct_answer", "fallback_answer_"+answer, "player",
+        base_all=[PHASE_PLAYER, P("answer_expected_is", value=answer)], icons=[T(topic)],
+        use_key="answer:"+answer+":{context.encounter_number}",
+        effects=([{"op":"learn_identity", "viewer":"npc", "person":"player"}] if answer=="name" else [])+
+            [{"op":"set_reply_purpose", "purpose":"answer_acknowledged"}], variants=[text])
+    rows[-1]["answers"]=[answer]
+situation("answer_acknowledged", "fallback_answer", "npc", base_all=[PHASE_REPLY], icons=[T("village")],
+    use_key="answer_ack:{context.encounter_number}", variants=["All right, then.", "Very well."])
+
+# Authoring rules for the existing voices. The generated catalogue carries the
+# contract, so the runtime never guesses what a question means from its text.
+for r in rows:
+    if r["speaker"]=="player":
+        if r["family"] in ("favour_accept", "favour_decline"): r["answers"]=["offer"]
+        if r["family"]=="referral_reply": r["answers"]=["referral"]
+        if r["family"]=="introduction" and r["situation"].startswith("player_name"): r["answers"]=["name"]
+        if r["family"]=="player_family": r["answers"]=["family"]
+        if r["family"]=="help_offer": r["answers"]=["purpose"]
+        continue
+    if r["family"]=="overheard_hint" and "?" in r["text"]: r["expects"]="offer"
+    if r["family"] in ("leave_taking", "overheard_hint") or r.get("expects"): continue
+    low=r["text"].lower()
+    if r["family"]=="help_refusal": r["expects"]="name"
+    elif r["family"]=="favour_ask" and any(e["op"]=="set_pending_offer" for e in r["effects"]): r["expects"]="offer"
+    elif any(e["op"]=="record_heard_need" for e in r["effects"]) or (r["family"],r["situation"])==("maternal_whereabouts","referral"): r["expects"]="referral"
+    elif r["family"]=="family_question": r["expects"]="family"
+    elif r["family"]=="visit_news" and "?" in low: r["expects"]="acknowledgement"
+    elif "how do you find" in low: r["expects"]="village_impression"
+    elif any(t in low for t in ("come and look", "come and see", "have a look", "welcome to watch")): r["expects"]="invitation"
+    elif any(t in low for t in ("mind the common woods", "mind which of it is common", "keep your hands off", "leave it be", "bring it all to our store", "bring it to the store")): r["expects"]="acknowledgement"
+    elif low.startswith("mind ") or "stand clear of the forge" in low: r["expects"]="acknowledgement"
+    elif r["family"]=="greeting" and r["situation"] in ("first_meeting_hostile","hostile_known"): r["expects"]="purpose"
+    elif "out with your news" in low: r["expects"]="news"
+    elif "out with it" in low: r["expects"]="purpose"
+    elif r["family"]=="elder_answer" and low.startswith("ask "): r["expects"]="referral"
+    elif r["family"]=="maternal_whereabouts" and r["situation"]=="unknown": r["expects"]="referral"
+    elif r["family"]=="need_news" and "ask about" in low: r["expects"]="referral"
+    elif "?" in low or "say your piece" in low or "say what you want" in low:
+        if any(t in low for t in ("who are you", "you'd be", "it's {player.first_name}, isn't it?")): r["expects"]="name"
+        elif "who's {subject" in low: r["expects"]="subject"
+        elif any(t in low for t in ("keeping", "how are", "how's", "how’s")): r["expects"]="wellbeing"
+        elif any(t in low for t in ("news",)): r["expects"]="news"
+        elif any(t in low for t in ("not from", "new to", "somewhere else", "what's it like out")): r["expects"]="origin"
+        elif any(t in low for t in ("wet", "weather", "lovely", "grey old", "you're out", "out in")): r["expects"]="weather"
+        elif any(t in low for t in ("your work", "what of you")): r["expects"]="work"
+        elif r["family"]=="greeting" or "why do you ask" in low or "something else" in low or "need something made" in low: r["expects"]="purpose"
+        else: r["expects"]="acknowledgement"
+    elif r["family"]=="favour_ask" and r["situation"]=="child": r["expects"]="referral"
+    elif r["family"]=="favour_ask" and r["situation"]=="not_yet": r["expects"]="name"
+
 # ---------- weights ----------
 groups = {}
 for r in rows:

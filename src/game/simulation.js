@@ -105,7 +105,6 @@ function updatePlannerFrame(state, frameMod) {
       }
     }
 
-    if (planner.world.customsHold) continue;
 
     if (planner.world.ordered && planner.world.currentJob) {
       const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
@@ -121,9 +120,9 @@ function updatePlannerFrame(state, frameMod) {
     // Re-plan
     if (!planner.plan) {
       if (planner.task) {
-        // A meal has already consumed real food. A new need must not apply
+        // A player's meal has already consumed real food. A new need must not apply
         // its predicted fed/rested effect before the timed care finishes.
-        if (["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
+        if (planner.id == state.ui.playerId && ["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
           htn.runTask(state, planner, deltaTime(frameMod, SPEED[state.game_speed]), false);
           if (planner.task) continue;
         } else htn.finishTask(planner, planner.task);
@@ -148,13 +147,14 @@ function updatePlannerFrame(state, frameMod) {
       htn.runTask(state, planner, dt, false);
       if(state.chat?.active)return;
     }
-    while (!planner.world.customsHold && !planner.task && planner.plan) {
+    while (!planner.task && planner.plan) {
       if (planner.plan.length > 0) {
         planner.task = planner.plan.shift();
         if (topController(state.ecs, planner.id) == state.ui.playerId) {
           // console.log("NEW TASK", planner.id, planner.task);
         }
         htn.runTask(state, planner, dt, true);
+        if(state.chat?.active)return;
         // TODO: Make sure this happens only once
         state.redraws.push(planner.id);
       } else {

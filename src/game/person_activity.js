@@ -18,7 +18,8 @@ function activity(ecs, id, t, personName) {
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return null;
   const [key, target, place] = task;
-  if (world?.customsHold) return "Speaking about village customs";
+  if (key == "approach_chat" && world.doorCall?.knocked) return "Knocking at the door";
+  if (key == "chat_visit") return "Coming over to talk";
   if (key == "customs_visit") return world.customsVisit?.kind == "report" ? "Reporting to the village elder" : "Approaching a woodland cutter";
   if (key == "walk_to" && world?.worldArrival) return "Arriving from another community";
   if (["walk_to", "leave_edge"].includes(key) && (world?.worldJourney || keyOfTravel(ecs,id))) return "Travelling to another community";

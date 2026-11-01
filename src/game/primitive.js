@@ -178,3 +178,6 @@ export function recover_meal(world, expected) {
   world.holding.meal=true;
   if(!expected)delete world.mealSearch;
 }
+
+export function approach_chat(world, expected, targetId) { world.capturedAttentionOf=targetId; }
+export function chat_visit() {}

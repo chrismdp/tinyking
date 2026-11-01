@@ -215,15 +215,18 @@ it("stops waiting for a hungry chat target within one game hour and gives a next
   expect(order.assignedId).toBeFalsy();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
-it("explains an indoor target instead of capturing them for an impossible outdoor handoff",()=>{
-  const {state:s,player:p,person:n}=peopleWorld();
-  s.ecs.interior ||= {};s.ecs.interior[n]={buildingId:"private-house"};
-  const order=enqueueTask(s,{key:"chat"},n);
-  order.assignedId=p;
-  expect(tasks.get_attention(s,p,s.ecs.planner[p].world,0,true,n)).toBe(require("game/htn").Task.ABORT);
-  require("game/manager").deferPlayerTask(s);
-  expect(order.waiting).toMatch(/indoors|outside/i);
+it("knocks for an indoor target and opens at the doorstep without premature contact",()=>{
+  const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;
+  const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},building:{entrance:3},household:{},controllable:{controllerId:n}}]);
+  s.ecs.household[n].houseId=home;s.ecs.spatial[n]={...s.ecs.spatial[home]};
+  s.ecs.interior={[n]:{buildingId:home}};s.ecs.planner[n].task=["home_downtime",1];s.ecs.planner[n].plan=[];
+  enqueueTask(s,{key:"chat"},n);
+  for(let i=0;i<2500&&!s.ui.talkResult?.message.includes("Knock");i++)w.step(.005);
+  expect(s.ui.talkResult.message).toMatch(/Knock/);
   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+  for(let i=0;i<2500&&!s.chat?.active;i++)w.step(.005);
+  expect(s.chat.active.npcId).toBe(n);expect(s.ecs.interior[n]).toBeUndefined();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
 it("bounds a chat approach behind a deferred food order during player care",()=>{

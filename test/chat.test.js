@@ -4,7 +4,7 @@ import { peopleWorld } from "./support/people";
 import { GameState } from "../src/components/contexts";
 import { ChatPanel } from "../src/components/chat_panel";
 import { talk, get_attention } from "game/tasks";
-import { openChat, chooseLine, closeChat, chatChoices, speakLine, patience, recoverSlots, topicScore } from "game/chat";
+import { openChat, chooseLine, closeChat, chatChoices, speakLine, patience, recoverSlots, topicScore, previewLine } from "game/chat";
 import { serialiseGame, restoreGame } from "game/save_game";
 import { recordEvent } from "game/events";
 import { updateFavours, visibleFavours, acceptFavour } from "game/favours";
@@ -14,6 +14,8 @@ jest.mock("game/name", () => ({ name: n => n?.nickname || "?", firstName: n => n
 const markup = s => renderToStaticMarkup(<GameState.Provider value={s}><ChatPanel/></GameState.Provider>);
 function contact() {
   const w = peopleWorld();
+  w.state.world={home:{x:0,y:0},hexes:[{x:0,y:0,biome:"grassland",temperature:"temperate",moisture:"normal"}]};
+  w.state.weather={"0,0":{type:"clear"}};
   w.state.ui.actions={close_chat:()=>closeChat(w.state)};
   w.state.ecs.spatial[w.player] = { ...w.state.ecs.spatial[w.person], x: w.state.ecs.spatial[w.person].x - 45 };
   return w;
@@ -58,7 +60,7 @@ it("pops against the hearer, reveals only the tested taste and fades after three
 });
 it("spends remaining cells on close, recovers with elapsed hours, and restores all chat records", () => {
   const {state:s,player:p,person:n}=contact(); openChat(s,p,n);
-  chooseLine(s,chatChoices(s)[0].key); closeChat(s);
+  closeChat(s);
   const spent=patience(s,p,n).resting;
   expect(spent).toBeGreaterThan(0);
   recoverSlots(s,3); expect(patience(s,p,n).resting).toBe(spent);
@@ -67,6 +69,16 @@ it("spends remaining cells on close, recovers with elapsed hours, and restores a
   expect(restored.chat).toEqual(s.chat);
   expect(restored.knowledge).toEqual(s.knowledge);
   expect(topicScore(s,n,"work")).toBe(0);
+});
+it("restores an active paused chat without replaying its spoken effects",()=>{
+  const {state:s,player:p,person:n}=contact();openChat(s,p,n);
+  chooseLine(s,chatChoices(s)[0].key);
+  const restored=restoreGame(serialiseGame(s));
+  expect(restored.chat.active).toEqual(s.chat.active);
+  expect(restored.ecs.relationships).toEqual(s.ecs.relationships);
+  closeChat(restored);
+  expect(restored.game_speed).toBe("fast");
+  expect(restored.chat.history[0].lines.slice(0,s.chat.active.transcript.length)).toEqual(s.chat.active.transcript);
 });
 it("requires acquaintance and spoken favour disclosure before accepting real work", () => {
   const {state:s,player:p,person:n,tiles}=contact();
@@ -80,6 +92,7 @@ it("requires acquaintance and spoken favour disclosure before accepting real wor
   chooseLine(s,chatChoices(s).find(l=>l.family=="favour_accept").key);
   expect(r.status).toBe("accepted"); expect(r.deliveryAuthorised).toBe(true);
   expect(s.ecs.manager[p].jobs.some(j=>j.favourId==r.id)).toBe(true);
+  expect(s.knowledge[p].people[n].traits).toEqual([]);
 });
 it("does not passively reveal visits and allows a real notable visitor as an opener", () => {
   const {state:s,player:p,person:n,parent}=contact();
@@ -97,6 +110,7 @@ it("does not passively reveal visits and allows a real notable visitor as an ope
 });
 it("keeps the entire world still while reading, even if speed is changed", () => {
   const w=contact(),s=w.state;openChat(s,w.player,w.person);
+  s.game_speed="fast";
   const before=serialiseGame(s); w.step(2);
   expect(serialiseGame(s)).toBe(before);
 });
@@ -107,16 +121,42 @@ it("ends a full row without partial insertion and preserves spent slots on reope
   expect(s.chat.active.endReason).toBe("row_full");expect(s.chat.active.row).toHaveLength(4);
   closeChat(s);expect(patience(s,p,n).free).toBe(0);expect(openChat(s,p,n)).toBe(false);
 });
-it("keeps unrelated tastes hidden, charges neutral pops and scores the player's hearing in their direction", () => {
+// Chris's revised v1 rule: both speakers' matches affect only NPC regard.
+it("keeps unrelated tastes hidden and scores NPC replies against the NPC's tastes", () => {
   const {state:s,player:p,person:n}=contact();openChat(s,p,n);s.chat.active.row=[];
   const line=(id,speaker,topic)=>({id,key:id,useKey:id,speaker,text:id,icons:[{kind:"topic",key:topic}],effects:[],tags:{},disclosure:{}});
   const before=s.ecs.relationships[n].known[p].goodwill;
   speakLine(s,line("one","npc","food"));speakLine(s,line("two","player","food"));
   expect(s.ecs.relationships[n].known[p].goodwill).toBe(before-.25);
   expect(s.knowledge[p].people[n].topicTastes).toEqual({food:0});
-  s.ecs.personality[p].traits=["cheerful"];
+  s.ecs.personality[p].traits=["gloomy"];
+  s.ecs.personality[n].traits=["cheerful"];
   speakLine(s,line("three","player","food"));const own=s.ecs.relationships[p].known[n].goodwill;
-  speakLine(s,line("four","npc","food"));expect(s.ecs.relationships[p].known[n].goodwill).toBe(own+1);
+  const npcBefore=s.ecs.relationships[n].known[p].goodwill;
+  speakLine(s,line("four","npc","food"));
+  expect(s.ecs.relationships[p].known[n].goodwill).toBe(own);
+  expect(s.ecs.relationships[n].known[p].goodwill).toBe(npcBefore+1);
+  expect(s.knowledge[p].people[n].topicTastes).toEqual({food:1});
+});
+it("marks each matching icon on a choice before it is spoken, without exposing hidden tastes",()=>{
+  const {state:s,player:p,person:n}=contact();
+  s.world={home:{x:0,y:0}};s.weather={"0,0":{type:"clear"}};openChat(s,p,n);
+  s.chat.active.row=[{kind:"topic",key:"season",life:3}];
+  const choice={icons:[{kind:"topic",key:"work"},{kind:"topic",key:"season"}]};
+  expect(previewLine(s,choice).matchingKeys).toEqual(["topic:season"]);
+  s.chat.active.focus="season";
+  const html=markup(s);
+  expect(html).toContain('data-matches="true"');
+  expect(html).toContain("Matches row");
+  expect(s.knowledge[p].people[n].topicTastes).toBeUndefined();
+});
+it("uses the same NPC portrait reaction whichever side completes it",()=>{
+  const {state:s,player:p,person:n}=contact();openChat(s,p,n);s.chat.active.row=[];
+  const line=(id,speaker)=>({id,key:id,useKey:id,speaker,text:id,icons:[{kind:"person",personId:n}],effects:[],tags:{},disclosure:{}});
+  const before=s.ecs.relationships[n].known[p].goodwill,own=s.ecs.relationships[p].known[n].goodwill;
+  speakLine(s,line("portrait-p","player"));speakLine(s,line("portrait-n","npc"));
+  expect(s.ecs.relationships[n].known[p].goodwill).toBe(before+1);
+  expect(s.ecs.relationships[p].known[n].goodwill).toBe(own);
 });
 it("never repeats an ID within a chat and avoids the last greeting for that situation next visit", () => {
   const {state:s,player:p,person:n}=contact();
@@ -149,11 +189,23 @@ it("retells a real quarrel through learnEvent and applies its family reaction on
   expect(line).toBeDefined();const before=s.ecs.relationships[n].known[outsider].goodwill;
   chooseLine(s,line.key);
   expect(s.knowledge[n].events).toContain(event.id);
-  expect(s.ecs.relationships[n].known[outsider].goodwill).toBeLessThanOrEqual(before-3);
+  const popAmount=s.chat.active.transcript.flatMap(l=>l.pops).reduce((sum,pop)=>sum+pop.amount,0);
+  expect(s.ecs.relationships[n].known[outsider].goodwill).toBeCloseTo(before-3+popAmount);
   expect(s.chat.active.transcript.some(l=>l.family=="gossip_reaction")).toBe(true);
   expect(chooseLine(s,line.key)).toBe(false);
   expect(s.knowledge[n].events.filter(id=>id==event.id)).toHaveLength(1);
   expect(s.knowledge[p].people[sibling]).toBeUndefined();
+});
+it("does not name unknown people when retelling an anonymously witnessed event",()=>{
+  const {state:s,player:p,person:n,parent,sibling}=contact();
+  for(const [a,b] of [[p,n],[n,p]])s.ecs.relationships[a].known[b]={ring:"social",goodwill:16,base:16};
+  const event=recordEvent(s,"birth",[sibling,parent,n]);
+  expect(s.knowledge[p].events).toContain(event.id);
+  s.knowledge[n].events=s.knowledge[n].events.filter(id=>id!=event.id);
+  openChat(s,p,n);s.chat.active.focus="news";
+  expect(s.knowledge[p].people[parent]).toBeUndefined();
+  expect(s.knowledge[p].people[sibling]).toBeUndefined();
+  expect(chatChoices(s).some(l=>l.family=="gossip_tell")).toBe(false);
 });
 it("bases common-woodland talk on real tree permissions rather than a tree sharing a ground tile ID", () => {
   const {state:s,player:p,person:n,tiles}=contact();
@@ -163,4 +215,68 @@ it("bases common-woodland talk on real tree permissions rather than a tree shari
   expect(require("game/village_customs").resourcePermission(s,p,tree).kind).toBe("common");
   const c={actorId:p,npcId:n,tags:[]};
   expect(require("game/chat_facts").predicate(s,c,{village:{id:"village"}},{test:"village_has_common_woodland",args:{village:"village"}})).toBe(true);
+});
+it("does not narrate a chapel walk when the approach snapshot was a walk to the well",()=>{
+  const {state:s,player:p,person:n}=contact();
+  const {predicate}=require("game/chat_facts");
+  const c={actorId:p,npcId:n,activity:{key:"walk_to_place",place_name:"well"}};
+  expect(predicate(s,c,{}, {test:"activity_snapshot_is",args:{person:"npc",activity:"walk_to_place",place_kind:"chapel"}})).toBe(false);
+  c.activity={key:"fell"};
+  expect(predicate(s,c,{}, {test:"activity_snapshot_was_work",args:{person:"npc"}})).toBe(true);
+});
+it("seeds matching icons and offers weather, lands and help without needing prior discoveries",()=>{
+  const {state:s,player:p,person:n,tiles}=contact();
+  s.world={home:{x:0,y:0},hexes:[]};s.weather={"0,0":{type:"clear"}};
+  s.villages.village={id:"village",name:"Withyford",houses:[tiles[3]],sharedPlaces:[]};
+  openChat(s,p,n);
+  expect(s.chat.active.row.length).toBeGreaterThanOrEqual(2);
+  const choices=chatChoices(s);
+  expect(choices.length).toBeGreaterThanOrEqual(3);
+  expect(choices.some(l=>l.family=="season_talk")).toBe(true);
+  expect(choices.some(l=>l.family=="lands_question")).toBe(true);
+  expect(choices.some(l=>l.family=="need_question")).toBe(true);
+  expect(choices.some(l=>previewLine(s,l).matches>0)).toBe(true);
+});
+it("offers a visible matching first turn when a tradesperson opens with work and their portrait",()=>{
+  const {state:s,player:p,person:n}=contact();
+  s.ecs.profession ||= {};s.ecs.profession[n]={trade:"carpenter"};
+  openChat(s,p,n);
+  s.chat.active.row=[{kind:"topic",key:"work",life:3},{kind:"person",personId:n,life:3}];
+  for(let encounter=1;encounter<=12;encounter++) {
+    s.chat.active.encounter=encounter;
+    expect(Math.max(...chatChoices(s).map(l=>previewLine(s,l).matches))).toBe(2);
+  }
+  expect(markup(s)).toContain("Matches row");
+});
+it("answers a work question with the actual trade before unrelated household observations",()=>{
+  const {state:s,player:p,person:n}=contact();
+  s.ecs.profession ||= {};s.ecs.profession[n]={trade:"carpenter"};
+  s.ecs.planner[n].task=["trade_work"];
+  openChat(s,p,n);s.chat.active.focus="work";
+  const line=chatChoices(s).find(l=>l.family=="work_question"&&["general","personal"].includes(l.situation));
+  expect(line).toBeDefined();chooseLine(s,line.key);
+  expect(s.chat.active.transcript.filter(l=>l.speaker=="npc").at(-1).situation).toBe("trade_carpenter");
+});
+it("names a real open request in a help answer and makes its giver the next conversation hint",()=>{
+  const {state:s,player:p,person:n,parent,tiles}=contact();
+  s.world={home:{x:0,y:0},hexes:[]};s.weather={"0,0":{type:"clear"}};
+  const house=tiles[4];s.ecs.container ||= {};s.ecs.container[house]={amounts:{},capacity:20};
+  s.ecs.household[house]={storeId:house,fields:[]};
+  s.ecs.household[parent].houseId=house;s.ecs.controllable[house]={controllerId:parent};
+  s.ecs.relationships[n].known[parent]={ring:"social",goodwill:16,base:16};
+  s.ecs.relationships[n].known[p]={ring:"social",goodwill:16,base:16};
+  updateFavours(s);openChat(s,p,n);
+  chooseLine(s,chatChoices(s).find(l=>l.family=="need_question").key);
+  const r=Object.values(s.favours.requests).find(r=>r.status=="offered");
+  expect(s.chat.active.transcript.some(l=>l.family=="need_news"&&l.text.includes("Edith"))).toBe(true);
+  expect(s.knowledge[p].heardNeeds[r.id]).toMatchObject({askerId:parent});
+  expect(s.knowledge[p].offers?.[r.id]).toBeUndefined();
+  expect(s.knowledge[p].people[parent].conversation).toBeUndefined();
+  closeChat(s);s.intro={active:false};s.ui.show={};s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
+  expect(require("game/guidance").openingGuidance(s)).toMatchObject({targetId:parent,action:expect.stringContaining("Edith")});
+});
+it.each([5,6])("reports all six travel directions from hex geometry on row %s",y=>{
+  const {state:s}=contact();s.world={home:{x:5,y}};s.map={worldKey:"5,"+y};
+  const {neighbours,SIDE_NAMES,worldKey}=require("game/travel_geometry"),{eventFact}=require("game/chat_facts");
+  neighbours(s.world.home).forEach((hex,side)=>expect(eventFact(s,{day:s.days,fromWorld:worldKey(hex)}).from_direction).toBe(SIDE_NAMES[side]));
 });

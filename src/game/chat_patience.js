@@ -1,5 +1,6 @@
 // Recovery is integrated before each relationship drift interval, including
 // offscreen seasons. Fractional credit is measured in cells, not clock hours.
+export const MIN_CHAT_SLOTS=3;
 export function slotRate(s, actor, npc) {
   const b=s.ecs.relationships?.[npc]?.known[actor], g=b?.goodwill || 0;
   switch(b?.ring) {
@@ -16,7 +17,7 @@ export function chatRecord(s,actor,npc) {
 export function patience(s,actor,npc) {
   const [max,hours]=slotRate(s,actor,npc), r=s.chat?.pairs?.[actor+":"+npc];
   const resting=Math.min(max,r?.resting || 0),free=max-resting;
-  return {max,hours,resting,free,readyIn:Math.max(0,2-free-(r?.credit||0))*hours};
+  return {max,hours,resting,free,readyIn:Math.max(0,MIN_CHAT_SLOTS-free-(r?.credit||0))*hours};
 }
 export function recoverSlots(s,hours) {
   if(hours<=0 || s.chat?.active)return;

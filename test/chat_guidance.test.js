@@ -8,3 +8,9 @@ it("keeps one concrete conversation hint after the first contact and after openi
   expect(openingGuidance(s).text).not.toContain("first acquaintance");
   expect(openingGuidance(s).action).toContain("Chat with");
 });
+it("names the real meal that delays a queued conversation",()=>{
+  const {state:s,player,person}=peopleWorld();s.intro={active:false};s.ui.show={};
+  s.ecs.manager[player].jobs=[{job:{key:"chat"},targetId:person}];
+  s.ecs.planner[person].world.feeling.hungry=true;
+  expect(openingGuidance(s).text).toContain("finishes a meal");
+});

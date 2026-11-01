@@ -42,6 +42,13 @@ it('shows explicit acceptance, queue reward and clear completed/expired outcomes
   s.favours.requests.f.status = 'expired'; s.favours.requests.f.outcome = 'The requester died · no goodwill';
   expect(render(s, <RequestList/>)).toContain('The requester died');
 });
+it('links a heard offer back to its real conversation without accepting it', () => {
+  const w=setup(),s=w.state;
+  const html=render(s,<RequestList/>);
+  expect(html).toContain('Chat with Agnes Miller');
+  expect(s.favours.requests.f.status).toBe('offered');
+  expect(s.ecs.manager[w.player].jobs).toEqual([]);
+});
 
 it('keeps the compact current task favour-aware without claiming a walking-only completion estimate', () => {
   const w = setup(), s = w.state;

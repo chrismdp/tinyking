@@ -2,7 +2,7 @@ import { FOODS } from "game/goods";
 import { isResident } from "game/residents";
 import { topController } from "game/playable";
 import { Hex } from "game/hex";
-import { giftOptions, beginInteraction, addGoodwill } from "game/people";
+import { giftOptions, addGoodwill, meet } from "game/people";
 import { enqueueTask, playerOrderAllowed } from "game/manager";
 import { recordEvent } from "game/events";
 import { take } from "game/holder";
@@ -165,7 +165,8 @@ export function acceptFavour(s, id, personId) {
   const task=enqueueTask(s,{key:"favour"},r.targetId,{favourId:id,forId:giverId,expectedGoodwill:r.goodwill});
   if(!task)return null;
   if(giverId!=r.giverId){r.offeredBy=r.giverId;r.giverId=giverId;}
-  beginInteraction(s,s.ui.playerId,giverId);
+  meet(s,s.ui.playerId,giverId);
+  meet(s,giverId,s.ui.playerId);
   r.deliveryAuthorised=true;
   r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;r.taskId=task.id;
   return task;

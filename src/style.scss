@@ -1160,6 +1160,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .chat-transcript {padding-left:20px;li{margin:10px 0;}small{display:block;color:#c1b481;}}
 }
 .chat-icon { display:inline-flex; align-items:center; gap:5px; border:1px solid #a99d6b; background:#3b4a3d; border-radius:5px; padding:6px; font-size:13px; svg { width:17px; } small {font-weight:bold;} &.faded {color:#c1c2b7;background:#44483f;border-color:#777;} }
+.chat-icon.matching { border:2px solid #f2d577; background:#525138; color:#fff5cf; }
 .topic-tastes {display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
 .chat-reactions {display:flex;flex-wrap:wrap;gap:5px;font-size:14px;min-height:20px;.positive{color:#a6e69c;}.negative{color:#ffafa4;}.neutral{color:#d0cbbc;}}
 @media (max-width:600px) {

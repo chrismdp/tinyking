@@ -7,6 +7,8 @@ import { villageElder, membership, resourcePermission } from "game/village_custo
 import { householdStore, householdFood, reasonGone, canRequestForHousehold, favourSource, FUEL_TRADES, nearbyRequester } from "game/favours";
 import { growingAt, frozenAt, climateTile } from "game/climate";
 import { Hex } from "game/hex";
+import { currentReach, worldDirection, localDirection, countryWords, placeFact, discoveredVillage, knownPlaces, ownTrips, visitedVillage, landsFact, landsTold } from "game/chat_lands";
+import { patience } from "game/chat_patience";
 
 export const VISITS=["visit","world_visit","return"];
 const trades={baker:"oven",smith:"forge",carpenter:"workshop",weaver:"loom",tanner:"tan-yard",miller:"mill"};
@@ -45,7 +47,7 @@ export function personFact(s,id) {
   return {id,first_name:full?.split(" ")[0],family_name:full?.split(" ").slice(1).join(" "),name:full,village:v,household:h,
     village_name:s.villages?.[v]?.name,age_words:words(Math.floor(e.personable[id].age)),trade:e.profession?.[id]?.trade,
     workplace_name:trades[e.profession?.[id]?.trade],children_words:words((e.kinship[id]?.children||[]).filter(c=>living(s,c)).length),
-    him_her:n.male?"him":"her",boy_girl:n.male?"boy":"girl",son_daughter:n.male?"son":"daughter",
+    him_her:n.male?"him":"her",he_she:n.male?"he":"she",boy_girl:n.male?"boy":"girl",son_daughter:n.male?"son":"daughter",
     arrived_when:e.playable?.[id]?.arrivedAt!=null?relativeDate(s,{day:e.playable[id].arrivedAt}):undefined};
 }
 export function kinLinks(s,id) {
@@ -67,18 +69,13 @@ function homeFact(s,id) {
 export function eventFact(s,e) {
   if(!e)return null;
   const item=e.items?.[0],good=e.gifts?.[0]?.type||s.ecs.good?.[item]?.type;
-  const direction=(world)=>{
-    if(!world)return undefined;
-    const a=String(s.travel?.active||s.map?.worldKey||"0,0").split(",").map(Number),b=String(world).split(",").map(Number),dx=b[0]-a[0],dy=b[1]-a[1];
-    if(!Number.isFinite(dx+dy))return undefined;
-    return Math.abs(dx)>Math.abs(dy)*1.5?(dx>0?"east":"west"):dy>0?(dx>0?"south-east":"south-west"):(dx>0?"north-east":"north-west");
-  };
+  const far=e.fromWorld==currentReach(s)?e.toWorld:e.fromWorld;
   return {...e,when:relativeDate(s,e),when_exact:relativeDate(s,e,true),village:e.villageId,
     item_name:s.ecs.possession?.[item]?.name,item_phrase:s.ecs.possession?.[item]?.name || (good?"some "+good:undefined),
     building_name:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill",alehouse:"alehouse"})[e.kind],
     addition_phrase:({"Rear work bay":"a work bay at the back","Long rear wing":"a long wing at the back"})[e.addition],
     from_village_name:s.villages?.[e.fromVillage]?.name,to_village_name:s.villages?.[e.toVillage]?.name,village_name:s.villages?.[e.villageId]?.name,
-    from_direction:direction(e.fromWorld),to_direction:direction(e.toWorld)};
+    from_direction:worldDirection(s,e.fromWorld),to_direction:worldDirection(s,e.toWorld),far_direction:worldDirection(s,far),far_country_words:countryWords(s,far)};
 }
 export function snapshotActivity(s,id) {
   const e=s.ecs,p=e.planner?.[id],w=p?.world||{},task=p?.task||[],[key,target,place]=task;
@@ -93,24 +90,38 @@ export function snapshotActivity(s,id) {
   if(!key||["wait_for","home_downtime","idle_person"].includes(key))activity="idle";
   const held=(e.holder?.[id]?.held||[]).map(x=>e.good?.[x]?.type).filter(Boolean);
   return {key:activity,target,task:[...task],social:w.social?{...w.social}:null,held:[...held],held_phrase:held.length?(held[0]=="wood"?"a log":"some "+held[0]):undefined,
-    partner:personFact(s,w.social?.partnerId),place_name:e.meetingPlace?.[target]?.kind,work_noun:trades[e.profession?.[id]?.trade]||({plough:"field",sow:"field",harvest:"field",chop_tree:"felling"})[activity]};
+    partner:personFact(s,w.social?.partnerId),place_name:e.meetingPlace?.[target]?.kind,work_noun:activity=="trade_work"?trades[e.profession?.[id]?.trade]:({plough:"field",sow:"field",harvest:"field",fell:"felling",forage:"foraging",garden:"garden",tend_field:"field",helping_friend:"work",carry_home:"carrying",collect_wood:"woodpile"})[activity]};
 }
 export function baseBindings(s,c) {
   const tod=time(s.days);
   return {player:personFact(s,c.actorId),npc:personFact(s,c.npcId),contact:{id:c.actorId+":"+c.npcId},
-    context:{salute:tod=="morning"?"Morning":tod=="afternoon"?"Afternoon":"Evening",time_of_day:tod,season:season(s.days),world_key:s.travel?.active||s.map?.worldKey||"local",encounter_number:c.encounter,game_hour:Math.floor(s.days*24)}};
+    context:{salute:tod=="morning"?"Morning":tod=="afternoon"?"Afternoon":"Evening",time_of_day:tod,season:season(s.days),weather_phrase:({clear:"this fine weather",cloudy:"this grey weather",rain:"this rain",snow:"this snow",storm:"this wind"})[localWeather(s)?.type],world_key:currentReach(s),encounter_number:c.encounter,game_hour:Math.floor(s.days*24)}};
 }
 const requests=(s,n)=>Object.values(s.favours?.requests||{}).filter(r=>r.householdId==s.ecs.household?.[n]?.houseId);
 export function newsEvents(s,c,visits=false) {
   return knownEvents(s,c.npcId).filter(e=>visits?relevantVisit(s,c.npcId,c.actorId,e):!VISITS.includes(e.type)&&!heard(s,c.actorId,e)&&canDiscloseEvent(s,c.npcId,c.actorId,e)&&
     (c.subjectId?e.people.includes(c.subjectId):e.villageId==s.ecs.village?.[c.npcId]?.villageId)).sort((a,b)=>b.day-a.day||a.id.localeCompare(b.id));
 }
+export function knownOpenRequests(s,npc) {
+  return Object.values(s.favours?.requests||{}).filter(r=>r.status=="offered"&&!reasonGone(s,r)&&living(s,r.giverId)&&
+    (s.ecs.village?.[r.giverId]?.villageId==s.ecs.village?.[npc]?.villageId||residents(s,r.householdId).some(id=>RINGS.indexOf(s.ecs.relationships?.[npc]?.known[id]?.ring)>=1||closeFamily(s,npc).includes(id))));
+}
+function elsewhereRequests(s,c) {
+  const k=s.knowledge?.[c.actorId];
+  return knownOpenRequests(s,c.npcId).filter(r=>r.householdId!=s.ecs.household?.[c.npcId]?.houseId&&r.householdId!=s.ecs.household?.[c.actorId]?.houseId&&!k?.offers?.[r.id]&&!k?.heardNeeds?.[r.id]);
+}
+function tellableTravel(s,c) {
+  return knownEvents(s,c.npcId).filter(e=>["world_visit","world_move","return"].includes(e.type)&&e.people[0]!=c.npcId&&e.fromWorld&&e.toWorld&&
+    (knows(s,c.actorId,e.people[0])||notable(s,e.people[0])&&knows(s,c.npcId,e.people[0]))&&
+    (VISITS.includes(e.type)||canDiscloseEvent(s,c.npcId,c.actorId,e)));
+}
 // Bind one source at a time. Multiple real events/relatives remain distinct
 // candidates; an absent source rejects the row, including in negative tests.
 export function sourceValues(s,c,b,d) {
   const e=s.ecs,p=c.actorId,n=c.npcId,ref=x=>x?.split(".").reduce((v,k)=>v?.[k],b),person=x=>ref(x)?.id;
   const events=(type,id)=>knownEvents(s,n,id).filter(x=>x.type==type).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
-  const request=r=>r?{...r,quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade]}:null;
+  const request=r=>r?{...r,house_direction:localDirection(e.spatial[n],e.spatial[r.householdId]),quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade]}:null;
+  const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
   case "npc_activity_at_approach":return [c.activity];
   case "npc_current_profession":case "player_known_trade_of_npc": {const j=e.profession?.[n],w=e.workplace?.[e.household?.[e.household?.[n]?.houseId]?.workplaceId];return j?[{...j,trade:j.trade,workplace_name:trades[j.trade],since_when:w?.builtDay!=null?relativeDate(s,{day:w.builtDay}):undefined}]:[];}
@@ -138,12 +149,20 @@ export function sourceValues(s,c,b,d) {
   case "npc_bond_with_subject": {const bond=e.relationships[n]?.known[c.subjectId];return bond?[{...bond,dislikes:disposition(s,n,c.subjectId)=="hate"||bond.goodwill<0}]:[];}
   case "npc_known_unheard_event_for_question":return newsEvents(s,c).map(x=>eventFact(s,x));
   case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).map(x=>eventFact(s,x));
-  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>canDiscloseEvent(s,p,n,x)&&(!VISITS.includes(x.type)||s.knowledge?.[p]?.spokenSources?.[x.id])&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
+  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>x.people.every(id=>knows(s,p,id))&&canDiscloseEvent(s,p,n,x)&&(!VISITS.includes(x.type)||s.knowledge?.[p]?.spokenSources?.[x.id])&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   case "event_just_told_by_player":return [eventFact(s,(s.events||[]).find(x=>x.id==c.toldEventId))].filter(Boolean);
   case "event_person":return [personFact(s,ref(d.event)?.people[d.index])].filter(Boolean);
   case "event_other_participant":return (ref(d.event)?.people||[]).filter(id=>id!=person(d.person)).map(id=>personFact(s,id));
   case "event_participant_who_is_close_kin_of":return (ref(d.event)?.people||[]).filter(id=>closeFamily(s,person(d.person)).includes(id)).map(id=>personFact(s,id));
   case "live_request_for_npc_household":return requests(s,n).filter(r=>r.status=="offered"&&!reasonGone(s,r)).map(request);
+  case "npc_known_live_request_elsewhere":return elsewhereRequests(s,c).map(request);
+  case "local_lands": {const lands=landsFact(s,n);return [{...lands,open_count_words:words(lands.open_count)}];}
+  case "npc_local_other_village_unknown_to_player":return Object.keys(s.villages||{}).filter(id=>id!=e.village?.[n]?.villageId&&!s.knowledge?.[p]?.villages?.includes(id)).map(place).filter(Boolean);
+  case "player_known_other_village":return [...knownPlaces(s,p)].filter(id=>id!=e.village?.[n]?.villageId).map(place).filter(Boolean);
+  case "place_asked_by_player":return [place(c.subjectPlaceId)].filter(Boolean);
+  case "npc_own_world_trip":return ownTrips(s,n).map(x=>eventFact(s,x));
+  case "npc_own_world_trip_to_reach":return ownTrips(s,n).filter(x=>x.fromWorld==ref(d.reach)||x.toWorld==ref(d.reach)).map(x=>eventFact(s,x));
+  case "npc_known_world_travel_by_other":return tellableTravel(s,c).filter(x=>!heard(s,p,x)).map(x=>eventFact(s,x));
   case "player_heard_live_offer_from_npc":return requests(s,n).filter(r=>r.status=="offered"&&s.knowledge?.[p]?.offers?.[r.id]?.speakerId==n).map(request);
   case "player_accepted_request_for_npc_household":return requests(s,n).filter(r=>r.status=="accepted"&&r.actorId==p).map(request);
   case "player_accepted_request_elsewhere":return Object.values(s.favours?.requests||{}).filter(r=>r.actorId==p&&r.status=="accepted"&&r.householdId!=e.household?.[n]?.houseId).map(request);
@@ -170,6 +189,10 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const weather=()=>localWeather(s)?.type;
   const kin=p=>kinLinks(s,p), field=get(a.field), states=field?.slots||[];
   const value=x=>get(x)??x;
+  const identity=x=>get(x)?.id??get(x)??x;
+  const otherVillages=()=>Object.keys(s.villages||{}).filter(id=>id!=identity(a.village));
+  const lands=()=>landsFact(s,c.npcId),told=f=>landsTold(s,viewer||c.actorId,id(a.speaker)||c.npcId,f);
+  const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
   case "phase_is":return c.phase==a.phase;
   case "npc_first_encounter":return !c.knewBefore;
@@ -185,8 +208,10 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "goodwill_below":return g<a.value;
   case "profession_is":return e.profession?.[person]?.trade==a.trade;
   case "has_profession":return !!e.profession?.[person]?.trade;
-  case "activity_snapshot_is":return c.activity.key==a.activity || ({plough:"plough_field",sow:"sow_field",harvest:"harvest_field",tend:"tend_garden",garden:"garden",visiting:"socialise",returning:"return_from_visit",helping_you:"help_friend_work"})[c.activity.key]==a.activity;
-  case "activity_snapshot_was_work":return ["trade_work","plough","sow","harvest","tend","garden","chop_tree","forage","helping_you","carry_home","collect_log"].includes(c.activity.key);
+  case "activity_snapshot_is":return c.activity.key==a.activity && (!a.place_kind || c.activity.place_name==a.place_kind);
+  case "activity_snapshot_was_work":return ["trade_work","plough","sow","harvest","tend_field","garden","fell","forage","helping_friend","carry_home","collect_wood"].includes(c.activity.key);
+  case "activity_holds_good":return c.activity.held?.some(type=>a.goods.includes(type));
+  case "free_cells_at_least": {const p=patience(s,c.actorId,c.npcId);return p.max-p.resting-c.row.length>=a.count;}
   case "weather_is":return weather()==a.type;
   case "weather_in":return a.types.includes(weather());
   case "snow_lying_at": {const at=e.spatial?.[person],tile=at&&(s.space?.[Hex().fromPoint(at)]||[]).find(id=>e.walkable[id]);return tile&&(s.snow?.[tile]||0)>=a.min_depth;}
@@ -207,12 +232,15 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "field_has_state":return states.filter(x=>x.state==a.state).length>=a.min;
   case "field_all_states_in":return states.length>0&&states.every(x=>a.states.includes(x.state));
   case "household_has_no_field":return !!home&&!(e.household?.[home.id]?.fields||[]).length;
+  case "household_has_field":return !!e.household?.[identity(a.household)]?.fields?.length;
+  case "household_has_live_request":case "household_has_no_live_request": {const has=Object.values(s.favours?.requests||{}).some(r=>r.householdId==identity(a.household)&&r.status=="offered"&&!reasonGone(s,r));return test=="household_has_live_request"?has:!has;}
   case "household_store_full": {const st=e.container?.[householdStore(s,home?.id)];return !!st&&Object.values(st.amounts).reduce((a,b)=>a+b,0)>=st.capacity;}
   case "household_food_per_resident_at_least":return !!home&&(householdFood(s).get(home.id)||0)>=residents(s,home.id).length*a.value;
   case "household_food_per_resident_below":return !!home&&(householdFood(s).get(home.id)||0)<residents(s,home.id).length*a.value;
   case "household_has_pasture":return sourceValues(s,c,b,{source:"npc_household_pasture"}).length>0;
   case "player_construction_in_progress":return sourceValues(s,c,b,{source:"player_construction_site"}).length>0;
   case "player_has_queued_order":return (e.manager?.[c.actorId]?.jobs||[]).some(j=>j.job.key==a.key);
+  case "player_queue_empty":return !(e.manager?.[id(a.actor)]?.jobs||[]).some(j=>j.job.key!="chat");
   case "player_field_has_state":return (b.pfield?[b.pfield]:sourceValues(s,c,b,{source:"player_field"})).some(f=>f.slots.filter(x=>x.state==a.state).length>=a.min);
   case "knows_village_name":return !!s.knowledge?.[viewer]?.villages?.includes(value(a.village)) || !!s.knowledge?.[viewer]?.people?.[c.npcId]?.conversation;
   case "not_resident_of_village":return e.village?.[person]?.villageId!=value(a.village);
@@ -250,6 +278,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "bond_goodwill_at_least":return get(a.bond)?.goodwill>=a.value;
   case "bond_dislikes":return !!get(a.bond)?.dislikes;
   case "event_type_is":return event?.type==a.type;
+  case "event_type_in":return !!event&&a.types.includes(event.type);
   case "event_detail_is":return !!event&&event[a.field]==value(a.value);
   case "event_participant_is":return event?.people?.[a.index]==person;
   case "event_participant":return !!event?.people.includes(person);
@@ -294,6 +323,37 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "player_declined_offer_without_reoffer":return !!s.knowledge?.[c.actorId]?.declinedOffers?.[request?.id]&&!c.tags.includes("offered_help");
   case "request_covers_whole_need":return request?.kind=="harvest"?request.quantity>=(e.farmable?.[request.targetId]?.slots||[]).filter(x=>x.state=="harvestable").length:request?.kind=="wood";
   case "no_live_request_for_household":return !reqs.some(r=>["offered","accepted"].includes(r.status)&&!reasonGone(s,r));
+  case "npc_knows_of_request":return !!request&&knownOpenRequests(s,id(a.speaker)).some(r=>r.id==request.id);
+  case "no_known_live_request_elsewhere":return !elsewhereRequests(s,c).length;
+  case "request_household_is_player_household":return !!request&&request.householdId==e.household?.[c.actorId]?.houseId;
+  case "different_village_id":return identity(a.a)!=identity(a.b);
+  case "no_other_local_village":return !otherVillages().length;
+  case "other_local_village_exists":return !!otherVillages().length;
+  case "other_local_villages_all_known_to":return otherVillages().every(id=>s.knowledge?.[viewer]?.villages?.includes(id));
+  case "player_discovered_village":return discoveredVillage(s,viewer,identity(a.village));
+  case "village_on_current_map":case "village_not_on_current_map": {const local=!!s.villages?.[identity(a.village)];return test=="village_on_current_map"?local:!local;}
+  case "village_smaller_than": {const count=x=>s.villages?.[identity(x)]?.houses?.length??get(x)?.house_count;return count(a.a)!=null&&count(a.b)!=null&&count(a.a)<count(a.b);}
+  case "npc_visited_village":return visitedVillage(s,person,identity(a.village));
+  case "npc_not_visited_village":return !visitedVillage(s,person,identity(a.village));
+  case "npc_has_world_trip":return !!ownTrips(s,person).length;
+  case "npc_has_no_world_trip":return !ownTrips(s,person).length;
+  case "npc_no_world_trip_to_reach":return !ownTrips(s,person).some(e=>e.fromWorld==value(a.reach)||e.toWorld==value(a.reach));
+  case "npc_own_world_trips_all_told":return ownTrips(s,id(a.speaker)).every(tripTold);
+  case "npc_knows_no_world_travel":return !knownEvents(s,id(a.speaker)).some(e=>["world_visit","world_move","return"].includes(e.type)&&e.fromWorld&&e.toWorld);
+  case "npc_knows_no_tellable_world_travel":return !tellableTravel(s,c).some(e=>!heard(s,viewer,e));
+  case "lands_beyond_all_told":return !!(ownTrips(s,c.npcId).length||tellableTravel(s,c).length)&&ownTrips(s,c.npcId).every(tripTold)&&tellableTravel(s,c).every(e=>heard(s,c.actorId,e));
+  case "lands_fact_told":return told(a.fact);
+  case "lands_country_all_told": {const l=lands();return told("country_here")&&(!l.mountain_direction||told("mountains"))&&(!l.water_direction||told("water"))&&(l.tree_count<20||told("woods"));}
+  case "lands_roads_all_told": {const l=lands();return told("ways_out")&&(!l.sea_count||told("sea"))&&(!l.closed_land_count||told("no_road_side"));}
+  case "local_terrain_present":return a.terrain.some(t=>lands().terrain.includes(t));
+  case "local_tree_count_at_least":return lands().tree_count>=a.count;
+  case "map_open_side_count_is":return lands().open_count==a.count;
+  case "map_open_side_count_at_least":return lands().open_count>=a.count;
+  case "map_sea_side_count_at_least":return lands().sea_count>=a.count;
+  case "map_closed_side_count_at_least":return lands().closed_count>=a.count;
+  case "map_closed_land_side_count_at_least":return lands().closed_land_count>=a.count;
+  case "reach_temperature_is":return lands().temperature==a.value;
+  case "reach_moisture_is":return lands().moisture==a.value;
   case "request_heard_from":return !!request&&s.knowledge?.[c.actorId]?.offers?.[request.id]?.speakerId==person;
   case "player_has_favour_supply":return !!request&&!!favourSource(s,request);
   case "player_queue_length_at_least":return (e.manager?.[c.actorId]?.jobs||[]).length>=a.count;

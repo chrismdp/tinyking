@@ -135,6 +135,7 @@ export function TaskPanel() {
     </div>
     {canFoundHousehold(state) && <button onClick={()=>state.ui.actions.found_household()}>Found a household</button>}
     <button className="your-family" onClick={()=>state.ui.actions.show_family(id)}>Your family</button>
+    {goals.family && <p className="family-goal" role="status">{goals.family.text}</p>}
     <details className="people-goals"><summary>Life here · {goals.completed.length}/4</summary><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</details>
     <RequestList/>
     <footer><strong>{displayName(state, id, id => name(ecs.nameable[id]))}</strong><small>Owner: {ecs.controllable?.[homeId]?.controllerId && ecs.personable[ecs.controllable[homeId].controllerId] ? displayName(state,ecs.controllable[homeId].controllerId,other=>name(ecs.nameable[other])) : "No owned household"}</small><small>Your heir: {heirFor(state,id) ? displayName(state,heirFor(state,id),other=>name(ecs.nameable[other])) : "No living heir"}</small><small>You · {member ? "Village member" : "Stranger"} · {location}</small><small>Family · {!ecs.kinship?.[id] ? "Stranger" : person.age < 18 ? "Child" : ecs.kinship[id].spouse && !ecs.personable[ecs.kinship[id].spouse]?.dead ? "Married" : "Unmarried"}</small>

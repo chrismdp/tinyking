@@ -152208,5 +152208,357 @@
     }
    ]
   }
+ },
+ {
+  "id": "player.maternal_search.named_relative.base.01",
+  "speaker": "player",
+  "family": "maternal_search",
+  "situation": "named_relative",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_search"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Do you know my {relative.term}, {relative.name}?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_search:{relative.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "ask_maternal_relative"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "maternal_whereabouts"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.maternal_whereabouts.known.base.01",
+  "speaker": "npc",
+  "family": "maternal_whereabouts",
+  "situation": "known",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_search_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "family_search_answer",
+     "args": {
+      "value": "known"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know {relative.name}. The household lives in {relative.village_name}, {relative.where_phrase}.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_whereabouts:{relative.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "learn_family_whereabouts"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.maternal_whereabouts.referral.base.01",
+  "speaker": "npc",
+  "family": "maternal_whereabouts",
+  "situation": "referral",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_search_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "family_search_answer",
+     "args": {
+      "value": "referral"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I cannot place {relative.name}, but {relative.contact_name} knows the family. Ask there.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_whereabouts:{relative.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.maternal_whereabouts.unknown.base.01",
+  "speaker": "npc",
+  "family": "maternal_whereabouts",
+  "situation": "unknown",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_search_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "family_search_answer",
+     "args": {
+      "value": "unknown"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I do not know {relative.name}, I am afraid. Try another neighbour.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_whereabouts:{relative.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "player.maternal_introduction.mothers_child.base.01",
+  "speaker": "player",
+  "family": "maternal_introduction",
+  "situation": "mothers_child",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_introduction"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I am {relative.mother_name}'s child.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_introduction:{player.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "recognise_maternal_kin"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "maternal_recognition"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.maternal_recognition.welcome_kin.base.01",
+  "speaker": "npc",
+  "family": "maternal_recognition",
+  "situation": "welcome_kin",
+  "weight": 1,
+  "bindings": {
+   "relative": {
+    "source": "maternal_recognised"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Then you are my {relative.inverse}! Your mother is my own kin. Welcome, child; you have found family here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "maternal_recognition:{player.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "npc"
+   ],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
  }
 ]

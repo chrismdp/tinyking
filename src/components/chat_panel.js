@@ -37,6 +37,7 @@ export function ChatPanel() {
     <p className="chat-rule">Match two icons to discover a taste. Green raises {person.split(" ")[0]}’s regard for you; red lowers it. Icons fade after three lines.</p>
     <div className="chat-reactions" aria-live="polite">{pops.map((i,n)=><span key={n} className={i.score>0?"positive":i.score<0?"negative":"neutral"}>{i.kind=="topic"?TOPICS[i.key]:chatPersonName(s,i.personId)} matched · {i.listenerId==c.actorId?"Your":person.split(" ")[0]+"’s"} regard {signed(i.amount)}</span>)}</div>
     {!!c.lastFades?.length&&<small>{c.lastFades.length} unmatched {c.lastFades.length==1?"icon faded":"icons faded"} out of the row.</small>}
+    {latest?.family=="favour_ask" && c.transcript.filter(l=>l.family=="maternal_recognition").map(l=><p className="family-welcome" key={l.id}>{l.text}</p>)}
     {latest&&<p className="chat-speech" data-line-id={latest.id}><Words text={latest.text}/></p>}
     {farewell&&<p data-line-id={farewell.id}><Words text={farewell.text}/></p>}
     <p className="chat-next" role="status">{c.endReason?"Choose End chat to return to the village.":"Choose a line below."}</p>

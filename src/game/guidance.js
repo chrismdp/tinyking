@@ -1,3 +1,4 @@
+import { familyGoal, backstoryFor } from "game/mother_family";
 import { patience } from "game/chat_patience";
 import { localDirection, worldDirection } from "game/chat_lands";
 import { visibleFavours, reasonGone } from "game/favours";
@@ -6,7 +7,7 @@ import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 
-export const OPENING_NARRATIVE = "This is a strange land, but I feel like I was born to be here. First things first: win over the locals.";
+export const OPENING_NARRATIVE = "This is a strange land, but I feel like I was born to be here. Mother sent me here to find her family and honest work.";
 // Per actor and per guidance key. Future family guidance can reuse this small
 // dismissed/seen store without adding a quest engine or duplicating outcomes.
 export function guidanceState(state, key = "opening") {
@@ -92,6 +93,8 @@ export function openingGuidance(state) {
     if(n=="an unknown person") text=anyContact?"Chat with the nearby neighbour to meet someone new.":"Chat with the nearby neighbour to make your first acquaintance.";
     if(walking) text="Let your character walk over to start the conversation.";
     if(accepted) text="Chat with the nearby neighbour while your harvest waits.";
+    const relative=backstoryFor(state)?.relatives.find(r=>!familyGoal(state).met.includes(r.id));
+    if(relative)text="Ask the neighbours whether they know your "+relative.term+" "+relative.name+".";
     return {actorId,key:"chat",targetId:target,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
   }
   return {actorId,key:"explore",text:"Select the edge of visible ground and choose Move here to find another neighbour."};
@@ -121,7 +124,7 @@ export function peopleGoals(s) {
   }
   const completed=Object.keys(PEOPLE_GOALS).filter(key=>g.earned[key]);
   const next=Object.keys(PEOPLE_GOALS).find(key=>!g.earned[key]);
-  return {completed,labels:completed.map(key=>PEOPLE_GOALS[key]),hint:{trust:"Chat with someone in your arrival village and earn their trust.",story:"Ask a trusted local about a relative to learn their story.",help:"Friends can help once your building has materials or your field needs work.",wedding:"Keep an eye out for a live wedding between other people."}[next] || "Your life here is yours to shape."};
+  return {family:familyGoal(s),completed,labels:completed.map(key=>PEOPLE_GOALS[key]),hint:{trust:"Chat with someone in your arrival village and earn their trust.",story:"Ask a trusted local about a relative to learn their story.",help:"Friends can help once your building has materials or your field needs work.",wedding:"Keep an eye out for a live wedding between other people."}[next] || "Your life here is yours to shape."};
 }
 export function recogniseConversation(s,actor,speaker,events) {
   const g=goalEvidence(s,actor),k=s.knowledge[actor];

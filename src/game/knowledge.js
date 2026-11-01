@@ -5,7 +5,7 @@ import { personComponent } from "game/residents";
 export function displayName(state, id, resolve = state.personName) {
   const ecs = state.ecs, viewer = state.ui?.playerId;
   const known = !personComponent(state, "personable", id) || id == viewer || ecs.relationships?.[viewer]?.known[id] || state.knowledge?.[viewer]?.people?.[id];
-  return known && personComponent(state, "nameable", id) ? resolve?.(id) || personComponent(state, "nameable", id).nickname || "an unknown person" : "an unknown person";
+  return known && !personComponent(state,"personable",id)?.unrevealed && !state.knowledge?.[viewer]?.people?.[id]?.nameOnly && personComponent(state, "nameable", id) ? resolve?.(id) || personComponent(state, "nameable", id).nickname || "an unknown person" : "an unknown person";
 }
 
 // NPC conversations already have dated, canonical contact records. On taking

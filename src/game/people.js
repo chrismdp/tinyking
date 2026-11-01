@@ -218,6 +218,16 @@ export function siblingsOf(state, id) {
     .filter(other => other != id);
 }
 
+// Recognition uses the close adult kin starting bond, including fixed tastes
+// and the ordinary slot displacement rules. It is a baseline, not a reward.
+export function welcomeCloseKin(state, observer, other) {
+  meet(state,observer,other);
+  const rank=Math.min(2,relationshipCap(state,observer,other)),goodwill=rank?GOODWILL_STEPS[rank]+STARTING_BUFFER:0;
+  const list=state.ecs.relationships[observer].known;
+  list[other]={ring:list[other].ring,goodwill,base:goodwill};
+  moveTo(list,other,rank);
+}
+
 export function initializeRelationships(state, seed) {
   state.peopleSeed = seed;
   calibrateOpinions(state);
@@ -275,21 +285,23 @@ export function feelingHint(state, a, aboutId) {
 // Unknown nodes keep their links through opaque local ids, without identifying data.
 export function knownFamilyTree(state, viewerId, personId) {
   const kinship = id => personComponent(state, "kinship", id);
+  const allowed = id => !personComponent(state,"personable",id)?.unrevealed;
   const selected = new Set([personId]);
   const follow = (id, field, depth) => {
     if (!depth) return;
-    for (const other of (kinship(id)?.[field] || [])) {
+    for (const other of (kinship(id)?.[field] || []).filter(allowed)) {
       selected.add(other);
       follow(other, field, depth - 1);
     }
   };
   follow(personId, "parents", 2);
   follow(personId, "children", 2);
-  for (const id of siblingsOf(state, personId)) selected.add(id);
-  for (const id of [...selected]) if (kinship(id)?.spouse) selected.add(kinship(id).spouse);
+  for (const id of siblingsOf(state, personId).filter(allowed)) selected.add(id);
+  for (const id of [...selected]) if (kinship(id)?.spouse && allowed(kinship(id).spouse)) selected.add(kinship(id).spouse);
   const known = personComponent(state, "relationships", viewerId).known;
   const learned = state.knowledge?.[viewerId]?.people || {};
-  const visible = id => viewerId == personId || id == viewerId || !!known[id] || !!learned[id];
+  const anonymousSubject = viewerId!=personId && learned[personId]?.nameOnly;
+  const visible = id => !anonymousSubject && (viewerId == personId || id == viewerId || !!known[id] || !!learned[id]);
   let nextUnknown = 0;
   const aliases = Object.fromEntries([...selected].map(id => [id, visible(id) ? id : "unknown-" + (++nextUnknown)]));
   const nodes = {};
@@ -438,7 +450,7 @@ export function completeConversation(state, actorId, personId, bulkDisclosure = 
 }
 export function canDiscloseEvent(state, speaker, viewer, event) {
   const rank = RINGS.indexOf(state.ecs.relationships[speaker]?.known[viewer]?.ring);
-  return rank >= (["quarrel", "reconciliation", "gift", "courtship"].includes(event.type) ? 2 : 1);
+  return !event.sealed && rank >= (["quarrel", "reconciliation", "gift", "courtship"].includes(event.type) ? 2 : 1);
 }
 
 export const RELATIONSHIP_NAMES = { public: "Acquaintance", social: "Familiar acquaintance", personal: "Friend", intimate: "Closest friend" };

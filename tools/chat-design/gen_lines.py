@@ -2944,6 +2944,30 @@ for sit, dispositions in voiced.items():
             r=copy.deepcopy(model);r["id"]=f"npc.{model['family']}.{sit}.{voice}.{i:02d}";r["text"]=text
             r["when"]["all"].append(P("disposition_is",person="npc",towards="player",value=voice));rows.append(r)
 
+# The arrival family's names are knowledge, not faces or map discoveries.
+situation("maternal_search", "named_relative", "player", base_all=[PHASE_PLAYER],
+    bindings={"relative":{"source":"maternal_search"}}, icons=[T("family")],
+    use_key="maternal_search:{relative.id}:{npc.id}",
+    effects=[{"op":"ask_maternal_relative"},{"op":"set_reply_purpose","purpose":"maternal_whereabouts"}],
+    variants=["Do you know my {relative.term}, {relative.name}?"])
+for answer, text in [
+    ("known", "I know {relative.name}. The household lives in {relative.village_name}, {relative.where_phrase}."),
+    ("referral", "I cannot place {relative.name}, but {relative.contact_name} knows the family. Ask there."),
+    ("unknown", "I do not know {relative.name}, I am afraid. Try another neighbour.")]:
+    situation("maternal_whereabouts", answer, "npc", base_all=[PHASE_REPLY,P("family_search_answer",value=answer)],
+        bindings={"relative":{"source":"maternal_search_question"}}, icons=[T("family")],
+        use_key="maternal_whereabouts:{relative.id}:{npc.id}",
+        effects=[{"op":"learn_family_whereabouts"}] if answer=="known" else [], variants=[text])
+situation("maternal_introduction", "mothers_child", "player", base_all=[PHASE_PLAYER],
+    bindings={"relative":{"source":"maternal_introduction"}}, icons=[T("family")],
+    use_key="maternal_introduction:{player.id}:{npc.id}",
+    effects=[{"op":"recognise_maternal_kin"},{"op":"set_reply_purpose","purpose":"maternal_recognition"}],
+    variants=["I am {relative.mother_name}'s child."])
+situation("maternal_recognition", "welcome_kin", "npc", base_all=[PHASE_REPLY],
+    bindings={"relative":{"source":"maternal_recognised"}}, icons=[T("family")],
+    use_key="maternal_recognition:{player.id}:{npc.id}",
+    disc_people=["npc"], variants=["Then you are my {relative.inverse}! Your mother is my own kin. Welcome, child; you have found family here."])
+
 # ---------- weights ----------
 groups = {}
 for r in rows:

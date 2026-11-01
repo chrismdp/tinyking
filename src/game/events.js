@@ -13,6 +13,7 @@ export function closeFamily(state, id) {
 const eventSets = new WeakMap();
 
 export function learnEvent(state, viewerId, event) {
+  if(event.sealed)return;
   state.knowledge ||= {};
   const knowledge = state.knowledge[viewerId] ||= { people: {}, feelings: {} };
   knowledge.events ||= [];
@@ -86,6 +87,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
+  if(event.sealed)return event;
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));
   const rings = ["public", "social", "personal", "intimate"];
   const { personable, playable, spatial, village, relationships } = state.ecs;
@@ -115,10 +117,11 @@ export function recordEvent(state, type, people, items = [], details = {}) {
 
 export function knownEvents(state, viewerId, aboutId) {
   const ids = new Set(state.knowledge?.[viewerId]?.events || []);
-  return (state.events || []).filter(e => ids.has(e.id) && (!(viewerId == state.ui?.playerId && ["visit", "world_visit", "return"].includes(e.type)) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
+  return (state.events || []).filter(e => !e.sealed && ids.has(e.id) && (!(viewerId == state.ui?.playerId && ["visit", "world_visit", "return"].includes(e.type)) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
 }
 
 export function eventSentence(state, event, displayName) {
+  if(event.sealed)return "";
   const n = id => displayName(id), [a, b] = event.people;
   const when = ["spring", "summer", "autumn", "winter"][((event.season % 4) + 4) % 4] + " of year " + (Math.floor(event.season / 4) + 1);
   const village = state.villages?.[event.villageId]?.name;

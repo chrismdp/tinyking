@@ -37,7 +37,9 @@ export function heirFor(state, id) {
     {personable:ecs.personable[p],kinship:ecs.kinship?.[p]} : directory[p];
   const kin = records(id)?.kinship;
   if (!kin) return null;
-  const alive = p => p && p != id && records(p)?.personable && !records(p).personable.dead;
+  // Backstory-only people have no playable home or journey yet. Their kin
+  // links still lead to resident heirs, without choosing an unplayable actor.
+  const alive = p => p && p != id && records(p)?.personable && !records(p).personable.dead && !records(p).personable.offMap;
   const oldest = ids => ids.filter(alive).sort((a,b) => records(b).personable.age-records(a).personable.age || a.localeCompare(b))[0];
   if (alive(kin.spouse)) return kin.spouse;
   const child = oldest(kin.children);

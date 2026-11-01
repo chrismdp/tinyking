@@ -1026,6 +1026,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .court-actions { margin: 12px 0; }
 .court-actions small { flex-basis: 100%; }
 .family-status { margin: 12px 0; padding: 10px; border: 1px solid #78686b; }
+.family-goal { min-height: 0; overflow: auto; touch-action: pan-y; margin: 0; padding: 10px 15px; font-size: 14px; line-height: 1.45; border-top: 1px solid #78686b; }
+.family-welcome { color: #ffe29a; }
 .people-goals { padding: 8px 15px; font-size: 13px; border-top: 1px solid #78686b; }
 .people-goals summary { min-height: 44px; cursor: pointer; }
 .succession-message { position: absolute; top: 65px; left: 10px; right: 10px; max-width: 420px; padding: 12px; background: #453a3d; color: #f7f1e7; border: 1px solid #e2c879; z-index: 24; pointer-events: auto; }
@@ -1061,7 +1063,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 
 @media (max-width: 700px), (max-height: 500px) {
-  #task-panel.collapsed > .your-family, #task-panel.collapsed > .people-goals { display: none; }
+  #task-panel.collapsed > .your-family, #task-panel.collapsed > .family-goal, #task-panel.collapsed > .people-goals { display: none; }
 }
 .resource-rights, .membership-info { padding: 12px; margin: 10px 0; border: 1px solid #bda36d; border-radius: 6px; background: #342e2d; line-height: 1.4;
   p { margin: 8px 0; } small { color: #dfd1ae; } button { margin-top: 8px; min-height: 44px; } summary { cursor: pointer; min-height: 34px; }

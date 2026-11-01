@@ -1,3 +1,5 @@
+import { personComponent } from "game/residents";
+import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 /* global require */
 import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
@@ -41,20 +43,20 @@ export function relativeDate(s,e,exact=false) {
   return `${words(year(s.days)-sy)} years back, in the ${st}`;
 }
 export function personFact(s,id) {
-  if(!s.ecs.personable?.[id])return null;
-  const e=s.ecs,n=e.nameable[id]||{},v=e.village?.[id]?.villageId,h=e.household?.[id]?.houseId;
+  if(!personComponent(s,"personable",id)||personComponent(s,"personable",id).unrevealed)return null;
+  const e=s.ecs,n=personComponent(s,"nameable",id)||{},p=personComponent(s,"personable",id),v=e.village?.[id]?.villageId,h=e.household?.[id]?.houseId;
   const full=s.personName?.(id) || n.nickname || (n.type=="person" && n.seed!=null ? require("game/name").name(n) : null) || (n.firstName ? [n.firstName,n.familyName].filter(Boolean).join(" ") : undefined);
   return {id,first_name:full?.split(" ")[0],family_name:full?.split(" ").slice(1).join(" "),name:full,village:v,household:h,
-    village_name:s.villages?.[v]?.name,age_words:words(Math.floor(e.personable[id].age)),trade:e.profession?.[id]?.trade,
+    village_name:s.villages?.[v]?.name,age_words:words(Math.floor(p.age)),trade:e.profession?.[id]?.trade,
     workplace_name:trades[e.profession?.[id]?.trade],children_words:words((e.kinship[id]?.children||[]).filter(c=>living(s,c)).length),
     him_her:n.male?"him":"her",he_she:n.male?"he":"she",boy_girl:n.male?"boy":"girl",son_daughter:n.male?"son":"daughter",
     arrived_when:e.playable?.[id]?.arrivedAt!=null?relativeDate(s,{day:e.playable[id].arrivedAt}):undefined};
 }
 export function kinLinks(s,id) {
-  const k=s.ecs.kinship?.[id]||{parents:[],children:[]};
+  const k=personComponent(s,"kinship",id)||{parents:[],children:[]};
   const pairs=[...(k.spouse?[[k.spouse,"spouse"]]:[]),...k.parents.map(x=>[x,"parent"]),...k.children.map(x=>[x,"child"]),...siblingsOf(s,id).map(x=>[x,"sibling"]),
     ...k.parents.flatMap(p=>(s.ecs.kinship[p]?.parents||[]).map(x=>[x,"grandparent"])),...k.children.flatMap(p=>(s.ecs.kinship[p]?.children||[]).map(x=>[x,"grandchild"]))];
-  return pairs.filter(([r])=>s.ecs.personable[r]).map(([r,kind])=>{
+  return pairs.filter(([r])=>personComponent(s,"personable",r)&&!personComponent(s,"personable",r).unrevealed).map(([r,kind])=>{
     const male=s.ecs.nameable[r]?.male, inv=s.ecs.nameable[id]?.male;
     const term=(kind,m)=>({spouse:m?"husband":"wife",parent:m?"father":"mother",child:m?"son":"daughter",sibling:m?"brother":"sister",grandparent:m?"grandfather":"grandmother",grandchild:m?"grandson":"granddaughter"}[kind]);
     return {id:id+":"+r+":"+kind,speaker_id:id,relative_id:r,kinship:kind,kin_term:term(kind,male),inverse_term:term(({parent:"child",child:"parent",grandparent:"grandchild",grandchild:"grandparent"})[kind]||kind,inv)};
@@ -123,6 +125,10 @@ export function sourceValues(s,c,b,d) {
   const request=r=>r?{...r,house_direction:localDirection(e.spatial[n],e.spatial[r.householdId]),quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade]}:null;
   const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
+  case "maternal_recognised":return c.familyRecognition?[c.familyRecognition]:[];
+  case "maternal_introduction":return [maternalIntroduction(s,p,n)].filter(Boolean);
+  case "maternal_search":return familySearchFacts(s,p,n);
+  case "maternal_search_question":return c.familySearch?[c.familySearch]:[];
   case "npc_activity_at_approach":return [c.activity];
   case "npc_current_profession":case "player_known_trade_of_npc": {const j=e.profession?.[n],w=e.workplace?.[e.household?.[e.household?.[n]?.houseId]?.workplaceId];return j?[{...j,trade:j.trade,workplace_name:trades[j.trade],since_when:w?.builtDay!=null?relativeDate(s,{day:w.builtDay}):undefined}]:[];}
   case "npc_household_field":return (e.household?.[e.household?.[n]?.houseId]?.fields||[]).map(id=>({id,...e.farmable[id],ripe_words:words(e.farmable[id].slots.filter(x=>x.state=="harvestable").length),ploughable_words:words(e.farmable[id].slots.filter(x=>["empty","harvested","rotten"].includes(x.state)).length)}));
@@ -194,6 +200,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const lands=()=>landsFact(s,c.npcId),told=f=>landsTold(s,viewer||c.actorId,id(a.speaker)||c.npcId,f);
   const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
+  case "family_search_answer":return b.relative?.answer==a.value;
   case "phase_is":return c.phase==a.phase;
   case "closing_reply_is":return c.closingReply==a.value;
   case "question_is":return c.question?.family==a.family&&c.question?.situation==a.situation;

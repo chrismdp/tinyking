@@ -82,19 +82,35 @@ export function createRealmTerrain(state, ground) {
   const boundaries = new Map(), chunks = [];
   const material = new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
   let mesh;
+  // Only the world's external edges fade. Shared reach borders retain their
+  // colour. This geometry-time distance is reused by seasonal snow updates.
+  const edgeCounts=new Map();
+  for(const r of layout.reaches)for(let i=0;i<r.border.length;i++) {
+    const a=r.border[i],b=r.border[(i+1)%r.border.length],key=[pointKey(a),pointKey(b)].sort().join(";");
+    if(edgeCounts.has(key))edgeCounts.delete(key);else edgeCounts.set(key,[a,b]);
+  }
+  const outer=[...edgeCounts.values()];
+  const fadeAt=p=>{
+    let distance=Infinity;
+    for(const [a,b] of outer) {
+      const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy)));
+      distance=Math.min(distance,Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy));
+    }
+    const t=Math.min(1,distance/180);return t*t*(3-2*t);
+  };
   const colour = new THREE.Color(), snow = new THREE.Color(0xE8EEF3);
   const shadeFor = sample => {
     const {habitat,terrain,base,p,elevation}=sample;
-    if(terrain.includes("water"))return colour.copy(base);
+    if(terrain.includes("water"))return colour.copy(base).multiplyScalar(sample.fade);
     const id=(state.space?.[String(Hex().fromPoint(p))] || []).find(id=>state.ecs.mappable[id]);
     const depth=id && state.snow?.[id]!=null ? state.snow[id] : Math.max(0,Math.min(1,(elevation-snowlineAt(habitat,state.days))/140));
-    return colour.copy(base).lerp(snow,depth);
+    return colour.copy(base).lerp(snow,depth).multiplyScalar(sample.fade);
   };
   const sampleAt = (h,p,elevation) => {
     const point=global(p),terrain=terrainAt(terrainKey(point));
     const habitat=habitatAt(state.world,point,elevation) || {...h,elevation};
     const base=habitatColour(habitat,terrain,point);
-    return {p,elevation,habitat,terrain,base};
+    return {p,elevation,habitat,terrain,base,fade:fadeAt(p)};
   };
   const triangle = (a,b,c,h) => {
     // Force upward winding for every band, independently of perimeter order.

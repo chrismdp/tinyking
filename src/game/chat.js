@@ -1,3 +1,4 @@
+import { recogniseMaternalKin, firstFamilyRequest } from "game/mother_family";
 import LINES from "data/conversation_lines.json";
 import { addGoodwill, meet, disposition, RINGS, completeConversation } from "game/people";
 import { learnEvent } from "game/events";
@@ -23,7 +24,7 @@ export function iconScore(s,icon,speaker,listener) {
   return [0,1,2,2][Math.max(0,RINGS.indexOf(b?.ring))];
 }
 const knowledge=(s,id)=>{s.knowledge ||= {};return s.knowledge[id] ||= {people:{},feelings:{}};};
-function learnIdentity(s,viewer,id) {if(!id)return;const k=knowledge(s,viewer);(k.people ||= {})[id] ||= {traits:[]};}
+function learnIdentity(s,viewer,id) {if(!id)return;const k=knowledge(s,viewer);(k.people ||= {})[id] ||= {traits:[]};delete k.people[id].nameOnly;}
 function interpolate(text,b) {
   let missing=false;
   const result=text.replace(/\{([^}|]+)(\|cap)?\}/g,(_,path,cap)=>{let value=path.split(".").reduce((v,k)=>v?.[k],b);if(value==null){missing=true;return "";}value=String(value);return cap?value.charAt(0).toUpperCase()+value.slice(1):value;});
@@ -114,7 +115,7 @@ export function chatChoices(s) {
   let all=available;
   if(c.closingReply) return all.filter(l=>(c.closingReply=="offer"?["favour_accept","favour_decline"]:["referral_reply"]).includes(l.family));
   if (c.focus) {
-    const focus={family:["family_question","player_family"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"]}[c.focus];
+    const focus={family:["maternal_introduction","maternal_search","family_question","player_family"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"]}[c.focus];
     all=all.filter(l=>focus.includes(l.family)||c.focus=="season"&&l.family=="lands_question"&&l.situation=="country");
   }
   // Practical lines remain reachable; the list otherwise favours a visible
@@ -141,6 +142,12 @@ export function chatChoices(s) {
       if(at>=0)result[at]=best;
     }
   }
+  // The opening goal always has a reachable line, including under Family.
+  if(!c.focus || c.focus=="family") {
+    const practical=all.filter(l=>["maternal_introduction","maternal_search"].includes(l.family)&&previewLine(s,l).fits).sort((a,b)=>Number(b.family=="maternal_introduction")-Number(a.family=="maternal_introduction"));
+    const unique=[...new Map(practical.map(l=>[l.useKey,l])).values()].slice(0,3);
+    if(unique.length)return [...unique,...result.filter(l=>!unique.some(x=>x.useKey==l.useKey))].slice(0,4);
+  }
   return result;
 }
 function effects(s,c,line) {
@@ -162,6 +169,9 @@ function effects(s,c,line) {
   for(const op of line.effects||[]) {
     const k=knowledge(s,ref(op.viewer)||c.actorId);
     switch(op.op) {
+    case "recognise_maternal_kin":c.familyRecognition=b.relative;recogniseMaternalKin(s,c.actorId,c.npcId);break;
+    case "ask_maternal_relative":c.familySearch=b.relative;break;
+    case "learn_family_whereabouts": {const r=b.relative;if(r){(k.familyWhereabouts ||= {})[r.id]={villageId:r.village_id,direction:r.direction,day:s.days,speakerId:c.npcId};k.villages ||= [];if(r.village_id&&!k.villages.includes(r.village_id))k.villages.push(r.village_id);}break;}
     case "learn_identity":learnIdentity(s,ref(op.viewer),ref(op.person));break;
     case "set_reply_purpose":c.reply=op.purpose;break;
     case "set_chat_mode":c.mode=op.mode;break;
@@ -249,7 +259,11 @@ export function reply(s,requested) {
   if(requested=="introduction_reply"&&c.completed)line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
-  if(line){speakLine(s,line);if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)endChat(s,"no_news");}
+  if(line){speakLine(s,line);
+    if(requested=="maternal_recognition"&&firstFamilyRequest(s,c.actorId,c.npcId)) {
+      const offer=pickNpc(s,c,"favour_ask",true);if(offer)speakLine(s,offer);
+    }
+    if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)endChat(s,"no_news");}
   else endChat(s,"no_news");
   c.phase="player_turn";
 }

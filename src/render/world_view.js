@@ -76,10 +76,10 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const realmOverlay = realm && createRealmOverlay(state, realm);
   let sea = null;
   if (realm) {
-    scene.background.setHex(0x263D59);
+    scene.background.setHex(0x000000);
     scene.add(realm.mesh, realmOverlay.mesh);
     terrain.mesh.children.forEach(child => { child.visible = false; });
-    sea = new THREE.Mesh(new THREE.PlaneGeometry(realm.layout.radius * 8, realm.layout.radius * 8), new THREE.MeshLambertMaterial({ color: 0x2F4999 }));
+    sea = new THREE.Mesh(new THREE.PlaneGeometry(realm.layout.radius * 8, realm.layout.radius * 8), new THREE.MeshLambertMaterial({ color: 0x000000 }));
     sea.rotation.x = -Math.PI / 2; sea.position.set(realm.layout.centre.x, -3, realm.layout.centre.y); scene.add(sea);
     camera.far = realm.layout.radius * 16 / Math.min(1, camera.aspect); camera.updateProjectionMatrix();
   }
@@ -630,6 +630,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         if (lod.people) followPerson(id);
         else if (objects[id]) objects[id].visible = false;
       }
+      if (realm) { realm.mesh.visible = lod.overview; terrain.mesh.visible = !lod.overview; }
       if (realm) for (const id in objects) if (!people.has(id) && !forest.has(id) && !instances.has(id)) objects[id].visible = lod.props && isKnown(state.ecs.spatial[id]);
 
       for (const id of selected) {

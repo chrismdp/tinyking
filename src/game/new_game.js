@@ -1,3 +1,4 @@
+import { seedMotherFamily } from "game/mother_family";
 import { startIntro } from "game/intro";
 
 export function openCharacter(state) {
@@ -17,6 +18,7 @@ export function closeCharacter(state) {
 export function startGame(state, options = {}) {
   if (state.generating || !state.ecs.personable?.[state.ui.playerId]) return false;
   Object.assign(state.ui.show, { main_menu: false, mapgen: false, tutorial: false, clock: true, speed_controls: true });
+  seedMotherFamily(state,state.ui.playerId,state.map?.seed);
   state.game_speed = "normal";
   startIntro(state, options);
   return true;

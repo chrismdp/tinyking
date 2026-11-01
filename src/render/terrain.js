@@ -24,6 +24,7 @@ export function createTerrain(state, ground) {
   const colours = new Float32Array(tiles.length * VERTICES_PER_HEX * 3);
   const baseColours = new Float32Array(colours.length);
   const snowLevels = new Uint8Array(tiles.length);
+  const fades = new Float32Array(tiles.length * VERTICES_PER_HEX).fill(1);
   let snowRevision = -1;
   const snowWhite = new THREE.Color(0xE8EEF3);
   const offsets = Hex().corners();
@@ -106,7 +107,33 @@ export function createTerrain(state, ground) {
   const shown = new Set();
   let dirty = true;
 
+  // Each boundary corner meets three hexes. Interpolated vertex colours fade
+  // the last fan into black; discovery alone rebuilds these cached colours.
+  const atPoint = new Map(tiles.map(id=>[String(Hex().fromPoint(state.ecs.spatial[id])),id]));
+  const cornerNeighbours=tiles.map(id=>{
+    const centre=state.ecs.spatial[id];
+    return offsets.map((c,k)=>[offsets[(k+5)%6],offsets[(k+1)%6]].map(d=>atPoint.get(String(Hex().fromPoint({x:centre.x+c.x+d.x,y:centre.y+c.y+d.y})))));
+  });
+  const refreshColours = () => {
+    tiles.forEach((id,i)=>{
+      for(let k=0;k<6;k++) {
+        const fade=cornerNeighbours[i][k].every(other=>shown.has(other))?1:0;
+        // fan k stores the next corner then this corner
+        fades[i*18+k*3+2]=fade;
+        fades[i*18+((k+5)%6)*3+1]=fade;
+      }
+      const level=snowLevels[i]/50;
+      for(let v=0;v<VERTICES_PER_HEX;v++) {
+        const at=(i*VERTICES_PER_HEX+v)*3,shade=v%3==0?1:CORNER_SHADE,fade=fades[i*VERTICES_PER_HEX+v];
+        colours[at]=(baseColours[at]*(1-level)+snowWhite.r*shade*level)*fade;
+        colours[at+1]=(baseColours[at+1]*(1-level)+snowWhite.g*shade*level)*fade;
+        colours[at+2]=(baseColours[at+2]*(1-level)+snowWhite.b*shade*level)*fade;
+      }
+    });
+    geometry.attributes.color.needsUpdate=true;
+  };
   const applyIndex = () => {
+    refreshColours();
     let n = 0;
     let m = 0;
     for (const id of shown) {
@@ -122,7 +149,7 @@ export function createTerrain(state, ground) {
     index.needsUpdate = true;
     geometry.setDrawRange(0, n);
     skirtIndex.needsUpdate = true;
-    skirtGeometry.setDrawRange(0, m);
+    skirtGeometry.setDrawRange(0, 0);
     dirty = false;
   };
 
@@ -158,7 +185,7 @@ export function createTerrain(state, ground) {
           }
           changed = true;
         });
-        if (changed) geometry.attributes.color.needsUpdate = true;
+        if (changed) refreshColours();
         snowRevision = state.snowRevision;
       }
       if (dirty) {

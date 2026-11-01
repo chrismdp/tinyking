@@ -753,6 +753,7 @@ export function sleep(state, actorId, world, dt) {
   const person = state.ecs.personable[actorId];
   enterHome(state, actorId, world.places.sleep);
   person.tiredness -= dt * SLEEP_REPLENISH;
+  if (world.journeyCamp) person.tiredness = Math.max(.1, person.tiredness);
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
 

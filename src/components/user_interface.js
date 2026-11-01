@@ -1,5 +1,6 @@
 import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
+import { TravelOverview } from "./travel";
 import { RealmControls } from "./realm_controls";
 import { WeddingNotice } from "./wedding_notice";
 import { CustomsEncounter } from "./village_customs";
@@ -38,7 +39,7 @@ export function UserInterface() {
   if (state.transition) return <div id="ui"><div className="travel-loading" role="status">{state.transition?.label || "News from the neighbouring communities…"}<small>Time and needs are paused while the world is prepared.</small></div></div>;
   if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
-    <div id="ui" className={state.renderer?.overview ? "realm-inspecting" : ""}>
+    <div id="ui">
       {state.chat?.active && <ChatPanel/>}
       {show.clock && <Clock/>}
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}
@@ -52,7 +53,7 @@ export function UserInterface() {
       {show.info && <PanelBoundary key={show.info} onClose={()=>state.ui.actions.change_visibility({info:null})}><Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window></PanelBoundary>}
       {show.mapgen && <PanelBoundary onClose={()=>state.ui.actions.change_visibility({mapgen:false})}><Window windowId="mapgen" x={60} y={70}><CustomGame/></Window></PanelBoundary>}
       <PanelBoundary key={(state.ui?.familyPersonId ? "family:" : "person:") + (state.ui?.familyPersonId || show.selected_person)} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.change_visibility({selected_person:null});}}>{state.ui?.familyPersonId ? <React.Suspense fallback={null}><FamilyTree entityId={state.ui.familyPersonId} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.end_turn();}} onSelect={id=>{state.ui.familyPersonId=null;state.ui.actions.select_entity(id,false);}}/></React.Suspense> : show.selected_person && <SelectedPerson entityId={show.selected_person}/>}</PanelBoundary>
-      {show.speed_controls && <><OpeningGuidance/><RealmControls/><PanelBoundary><TaskPanel/></PanelBoundary><SpeedControls/><PanelBoundary><EventFeed/></PanelBoundary></>}
+      {show.speed_controls && <><OpeningGuidance/><RealmControls/><TravelOverview/><PanelBoundary><TaskPanel/></PanelBoundary><SpeedControls/><PanelBoundary><EventFeed/></PanelBoundary></>}
     </div>
   );
 }

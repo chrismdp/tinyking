@@ -5,7 +5,7 @@ import { updateEnvironment } from "game/environment";
 import { stationarySupplies } from "game/stationary_care";
 import { withFenceCache } from "game/fences";
 import { gardenHelp, withGardenHelpIndex, refreshGardenHelpIndex } from "game/household_routines";
-import { advanceWorldClock, completeTravel, departNpc } from "game/travel";
+import { advanceWorldClock, completeTravel, departNpc, updateJourney } from "game/travel";
 import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
@@ -229,6 +229,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
       if (arriving) return;
       if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
       updateCustoms(state);
+      updateJourney(state);
       updatePlanners(state, frameMod);
       if (state.chat?.active) { if(onHour) onHour(); return; }
       // All edge completions belong to the map where planners just ran.

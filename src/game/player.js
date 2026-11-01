@@ -6,6 +6,7 @@ export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30,
 
 // Keep the villager survival routines, with orders scoped to this character.
 export const player = () => [
+  [world => world.journeyCamp, () => [["sleep"]]],
   [world => world.stationaryPlayer === false, () => [["person"]]],
   [world => world.stationaryPlayer && !world.playerWorking && (world.feeling.hungry || world.feeling.tired), () => [["stationary_needs"]]],
   [world => world.stationaryPlayer && world.playerWorking && world.feeling.hungry && !world.mealFailure && !world.currentJob && !world.capturedAttentionOf && !world.claimedFarmable && !world.capturedBy, () => [["recover_meal"],["eat","meal"]]],

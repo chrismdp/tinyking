@@ -4,32 +4,27 @@ Click any walkable boundary tile. Its popup names the adjacent **Reach x, y**,
 biome and selected side, and describes the journey and cancellation policy. Press
 **Travel** explicitly, or **Stay here** to close it. Ordinary tile orders remain
 below the invitation. Ocean and the finite world's rim explain their block in the
-same popup. The clock opens the continuous 3D realm overview and shows the
-current reach. A boundary corner belongs to the side with the greatest outward
+same popup. The clock and World map button open the separate [world map](realm-map.md). M also opens or closes it. A boundary corner belongs to the side with the greatest outward
 projection; exact ties choose the lowest side index. World sides are east,
 south-east, south-west, west, north-west and north-east.
 
-## Inspecting the realm
+## Planning a journey
 
-The gameplay camera zooms continuously from the local scene through village and
-reach views to the finite realm. Realm fits the whole world. You returns
-to normal local distance, preserves the viewing direction and resumes soft
-camera follow. Wheel, drag, rotation keys and touch pan, pinch and twist work at
-all scales. Zooming and panning suspend follow while inspecting.
+Open World map and select a land hex. Plan journey chooses a shortest route of
+adjacent land hexes with surveyed passes. Planning creates no detailed map.
+The map draws biome colours, your current hex, personally known hexes,
+discovered communities, recorded border roads and the remaining journey route.
+The map does not pause time. Closing it unmounts its SVG and stops all map work.
+New-game and debug previews keep their existing SVG overview.
 
-The overview reads the existing world terrain field and hourly weather. Its
-Communities, Weather and Wind layers change presentation only. Wind arrows point
-in the model's actual direction and show its strength. Distant lighting keeps
-the landscape readable without changing the calendar or local night/weather.
-People and small props stop drawing at distance; their simulation continues.
-
-Clicking an overview reach or a discovered community selects information. It
-never orders movement, generates a detailed map, starts travel or advances time.
-Unexplored reaches show public terrain, climate and weather. Community names and
-areas require the current person's map-specific discovery. Household owners and
-recognised elders use that person's real identity knowledge. Elders recognise
-customs. The view gives them no territorial ownership or political title.
-The old SVG remains available in new-game and debug previews.
+A journey walks through every hex. The planner walks to the next surveyed pass,
+then performs the hop. Its existing pathfinder favours worn roads.
+The edge-tile Travel invitation also creates a journey to the adjacent hex.
+The task panel and world map state how many seasons remain.
+Stop journey here cancels the remaining route. Selecting another destination
+changes course from the current hex. Cancelling the Travel task also stops the
+route. An unreachable next local pass leaves a paused journey that you can stop
+or replace.
 
 ## Walking and arrival
 
@@ -44,11 +39,14 @@ legal owners and provenance. Uncarried property remains on its map.
 The normal ordered HTN queue performs `walk_to` followed by `leave_edge`:
 pathfinding reaches the selected tile, then the character physically steps off
 its navigation mesh. A cancelled Travel queue entry cancels departure. Only after
-crossing does the global calendar advance exactly three days (one season).
+crossing does the calendar hop one season. The date advances three days and the
+arrival clock becomes 6am. This crosses exactly one seasonal boundary, even
+when the departure hour differs. The traveller receives one seasonal ageing and
+goodwill update. The partial-hour clock restarts at dawn.
 
 Normal needs continue during the walk out. Hunger and tiredness are frozen on the
 off-map journey, while generation runs, and through the 5.2-second arrival.
-No food, healing or inventory is supplied. Every arrival uses the opposite side's
+No food, healing or inventory is supplied. Every arrival starts at dawn and uses the opposite side's
 deterministic boundary → middle → camp route and the opening's put-down/fire/
 bedroll sequence, skip control and standing handover. A first visit creates one
 empty camp. Returning retains that camp's identity, location and stores, and the
@@ -63,6 +61,16 @@ clearing. Ocean has no pass. Continuous coastline generation otherwise stays in
 use. Passes can clear narrow paths across intervening terrain where necessary.
 These are initial geography/resources, not journey supplies; returning does not
 regrow used resources or refill a store.
+
+## Camping during a journey
+
+At 8pm, a traveller makes camp at their actual position. The camp uses the
+existing bundle, fire and bedroll. The character stays there and sleeps through
+the existing sleep task. Hunger and tiredness retain their current rules.
+At 6am, the character packs that temporary camp and resumes the same Travel task.
+A stopped journey leaves its bedroll available for ordinary rest.
+The remaining route and temporary camp survive saving and restoring.
+The arrival camp remains separate from this temporary journey camp.
 
 ## Identity and ownership
 
@@ -100,7 +108,7 @@ sheets remain readable, with “Away in another world hex” and no talk control
 
 ## Time and autonomous visits
 
-Live `socialHour` performs the active map's normal seasonal update. At each
+Live `socialHour` performs the active map's normal seasonal update. Only the active hex runs live planners, hourly needs and village routines. At each
 crossed season, `advanceWorldClock` calls the existing pure `historyStep` once for
 every other generated map. Travel first removes the player, then calls it once
 for all existing maps, including the departed map. An already-generated
@@ -206,3 +214,16 @@ namespaced vegetation and carried/ground goods have finite deterministic transfo
 The map-transfer UI callback closes any local popup opened during the departure
 walk, as well as the original invitation. Skipping arrival cannot restore that
 old popup or leave executable old-map targets in the new map.
+
+## Memory limit still outstanding
+
+Away maps still remain in `travel.maps`. They run no live simulation, but their
+ECS, terrain data and histories stay in memory and in the full save.
+Per-hex storage and eviction remain unfinished. The existing save worker still
+compresses and stores the complete game in one transaction.
+
+Eviction needs persistent map records plus a consistent world manifest. Seasonal
+updates, remote inheritance, NPC transfers, discovery and succession all need
+access to those records. A hop and a full save must commit the same versions.
+A reload must retain every away map and exactly one resident copy of a traveller.
+This build keeps the existing complete snapshots until that transfer is implemented.

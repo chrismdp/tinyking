@@ -4,9 +4,12 @@ import { householdAccess } from "game/playable";
 import { Hex } from "game/hex";
 import { generateMap } from "game/map";
 import { historyStep } from "game/history";
-import { startIntro } from "game/intro";
+import { startIntro, introActive, CAMP_LAYOUT } from "game/intro";
+import { newEntities, deleteEntity } from "game/entities";
+import { routeCrossing } from "game/geography";
+import { DAYS_IN_SEASON, HOUR, season } from "game/time";
 import { updateWeather } from "game/weather";
-import { cancelLocalTasksForTravel, enqueueTask, canReachTask } from "game/manager";
+import { cancelLocalTasksForTravel, enqueueTask, canReachTask, cancelTask } from "game/manager";
 import { releaseFriendWork } from "game/friend_help";
 import { transferPossession, repairHouseholds } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -332,7 +335,108 @@ export function releaseLocalWork(s, id) {
   for (const bed of Object.values(s.ecs.sleepable || {})) bed.occupiers = bed.occupiers.filter(p => p != id);
   for (const manager of Object.values(s.ecs.manager || {})) for (const job of manager.jobs) if (job.assignedId == id) job.assignedId = null;
 }
+// A route reads coarse land/pass data only. It never generates detailed maps.
+export function journeyRoute(s, destination) {
+  const start = s.travel.active, hexes = new Map(s.world.hexes.map(h => [worldKey(h), h]));
+  if (!hexes.has(destination) || hexes.get(destination).ocean) return null;
+  const queue = [start], previous = new Map([[start, null]]);
+  for (let i = 0; i < queue.length; i++) {
+    const key = queue[i];
+    if (key == destination) {
+      const route = [];
+      for (let at = key; at != null; at = previous.get(at)) route.unshift(at);
+      return route;
+    }
+    for (const [side, next] of neighbours(hexes.get(key)).entries()) {
+      const to = worldKey(next);
+      if (previous.has(to) || !hexes.has(to) || hexes.get(to).ocean) continue;
+      const map = key == start ? s.map : s.travel.maps[key]?.map;
+      if (map?.entrances && !map.entrances[side]) continue;
+      if (!map && s.world.landSeed && !routeCrossing({ ...s.world, home: hexes.get(key) }, side)) continue;
+      previous.set(to, key); queue.push(to);
+    }
+  }
+  return null;
+}
+export const journeyText = journey => {
+  const n = journey?.route?.length || 0;
+  return n + (n == 1 ? " season remains" : " seasons remain");
+};
+function packJourneyCamp(s, journey) {
+  if (!journey?.campId) return;
+  const planner = s.ecs.planner[s.ui.playerId];
+  delete planner.world.journeyCamp;
+  delete planner.world.places.sleep;
+  planner.task = null; planner.plan = null;
+  if (s.ecs.camp?.[journey.campId]) deleteEntity(s, journey.campId);
+  delete journey.campId;
+}
+export function stopJourney(s) {
+  const journey = s.travel?.journey;
+  if (!journey || s.transition) return;
+  // Keep the bedroll available if the player stops for the night. It becomes
+  // their ordinary camp for resting in this hex.
+  const planner = s.ecs.planner[s.ui.playerId];
+  delete planner.world.journeyCamp;
+  for (const job of [...s.ecs.manager[s.ui.playerId].jobs]) if (job.job.key == "travel") cancelTask(s, job.id);
+  s.travel.journey = null;
+}
+function queueJourneyHop(s) {
+  const journey = s.travel.journey;
+  const side = neighbours(s.world.home).findIndex(h => worldKey(h) == journey.route[0]);
+  const tile = s.map.entrances?.[side]?.tileIds[0];
+  if (!tile || !queueTravel(s, tile)) { journey.paused = true; return false; }
+  journey.orderId = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "travel")?.id;
+  return true;
+}
+export function planJourney(s, destination) {
+  if (!s.travel || s.transition || s.worldBusy || introActive(s)) return false;
+  const route = journeyRoute(s, destination);
+  if (!route || route.length < 2) return false;
+  const side = neighbours(s.world.home).findIndex(h => worldKey(h) == route[1]);
+  const tile = s.map.entrances?.[side]?.tileIds[0];
+  if (!tile || !canReachTask(s, s.ui.playerId, tile) || s.ecs.personable[s.ui.playerId]?.dead) return false;
+  packJourneyCamp(s, s.travel.journey);
+  s.travel.journey = { actorId: s.ui.playerId, route: route.slice(1), destination };
+  return queueJourneyHop(s);
+}
+// Called before planners, including after restore. Arrival hands the next walk
+// back to the same ordered HTN queue; no middle hex is skipped.
+export function updateJourney(s) {
+  const journey = s.travel?.journey;
+  if (!journey || s.transition || introActive(s)) return;
+  if (journey.actorId != s.ui.playerId || s.ecs.personable[s.ui.playerId]?.dead) { s.travel.journey = null; return; }
+  const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "travel");
+  if (journey.orderId && !job) { stopJourney(s); return; }
+  if (!journey.orderId && !journey.paused) queueJourneyHop(s);
+  if (journey.paused) return;
+  const hour = s.days % 1 * 24, dark = hour >= 20 || hour < 6;
+  if (!dark) { packJourneyCamp(s, journey); return; }
+  if (journey.campId) return;
+  const id = s.ui.playerId, planner = s.ecs.planner[id], point = s.ecs.spatial[id];
+  // Finish an actual edge crossing before attempting to camp off the nav mesh.
+  if (planner.task?.[0] == "leave_edge") return;
+  releaseLocalWork(s, id);
+  if (job) job.assignedId = null;
+  planner.task = null; planner.plan = null; planner.world.currentJob = null;
+  const [camp] = newEntities(s, [{ spatial: { x: point.x, y: point.y, immovable: true },
+    nameable: { nickname: "Journey camp" }, camp: { bundle: { ...CAMP_LAYOUT.bundle }, journey: true },
+    sleepable: { capacity: 1, level: 0, occupiers: [] }, controllable: { controllerId: id }, village: { villageId: null } }]);
+  journey.campId = camp;
+  planner.world.places.sleep = camp;
+  planner.world.journeyCamp = true;
+  s.redraws.push(camp, id);
+}
 export function acceptTravel(s, tileId) {
+  const d = destinationFor(s, tileId);
+  if (!d || d.blocked || s.transition || s.worldBusy || introActive(s) || s.ecs.personable[s.ui.playerId]?.dead || !canReachTask(s, s.ui.playerId, tileId)) return false;
+  packJourneyCamp(s, s.travel.journey);
+  s.travel.journey = { actorId: s.ui.playerId, destination: d.key, route: [d.key] };
+  const queued = queueTravel(s, tileId);
+  s.travel.journey.orderId = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "travel")?.id;
+  return queued;
+}
+function queueTravel(s, tileId) {
   const d = destinationFor(s, tileId);
   if (s.ecs.personable[s.ui.playerId]?.dead || !d || d.blocked || s.transition || !canReachTask(s, s.ui.playerId, tileId)) return false;
   const id = s.ui.playerId;
@@ -355,7 +459,7 @@ export function acceptTravel(s, tileId) {
   }, tileId, {
     destination: d.key,
     side: d.side,
-    detail: "Walking to " + hexName(d.hex) + " · one season off-map"
+    detail: "Walking to the edge for " + hexName(d.hex) + " · " + journeyText(s.travel.journey)
   });
   return true;
 }
@@ -547,7 +651,8 @@ export async function completeTravel(s, order) {
     const j = s.travel,
       from = j.active,
       id = s.ui.playerId,
-      departure = s.days;
+      departure = s.days,
+      arrival = Math.floor(departure) + DAYS_IN_SEASON + 6 * HOUR;
     recordEvent(s, "departure", [id], [], {
       fromWorld: from,
       toWorld: order.destination
@@ -559,17 +664,18 @@ export async function completeTravel(s, order) {
     };
     const bundle = takeTraveller(s, id);
     bundle.from = from;
-    ageTraveller(s, bundle, Math.floor((departure + 3) / 3), {
+    ageTraveller(s, bundle, Math.floor(arrival / DAYS_IN_SEASON), {
       player: true
     });
     // Keep the actual bundle visible to the same estate lifecycle as NPC cargo
     // throughout the season and any destination generation.
-    const trip = { bundle, from, to: order.destination, side: order.side, due: departure + 3, player: true };
+    const trip = { bundle, from, to: order.destination, side: order.side, due: arrival, player: true };
     j.transit.push(trip);
     j.maps[from] = localSnapshot(s);
     publish(s, j);
     // Exactly one crossed season; the departed map is now off-screen.
-    s.days = departure + 3;
+    s.days = arrival;
+    if (s.simulationClock) { s.simulationClock.hour = 0; s.simulationClock.winter = season(arrival) == "winter"; }
     j.days = s.days;
     await advanceWorldClock(s, {
       travelling: true
@@ -585,6 +691,11 @@ export async function completeTravel(s, order) {
     await receiveNpcs(s, j);
     enterMap(s, order.destination, bundle, (order.side + 3) % 6);
     j.transit = j.transit.filter(t => t != trip);
+    if (j.journey?.actorId == id) {
+      if (j.journey.route[0] == order.destination) j.journey.route.shift();
+      delete j.journey.orderId;
+      if (!j.journey.route.length) j.journey = null;
+    }
     j.lastJourney = {
       from,
       to: order.destination,

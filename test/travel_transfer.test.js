@@ -49,7 +49,8 @@ it.each([false, true])("settles real borrowed working-hand cargo only if its liv
   const before = s.days, identity = { ...s.ecs.personable[player] };
   await travel(s, 0);
   const legalOwner = death ? heir : owner;
-  expect(s.days).toBe(before + 3);
+  expect(s.days).toBe(Math.floor(before) + 3.25);
+  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
   expect(s.ecs.personable[player]).toEqual(identity);
   expect(topController(s.ecs, player)).toBe(player);
   expect(s.travel.people[owner].personable.dead || false).toBe(death);
@@ -126,7 +127,8 @@ it.each(["normal", "Skip"])("retains the seen route and camp immediately after %
   else for (let i = 0; i < 53; i++) updateIntro(s, .1);
   expect(s.intro.active).toBe(false);
   expect(s.intro.elapsed).toBe(INTRO_TIMING.duration);
-  expect(s.days).toBe(before + 3);
+  expect(s.days).toBe(Math.floor(before) + 3.25);
+  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
   expect(s.game_speed).toBe("paused");
   expect(s.ecs.personable[player]).toEqual(needs);
   expect(s.ecs.manager[player].jobs).toEqual([]);

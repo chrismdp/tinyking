@@ -158,7 +158,8 @@ it("moves the same player and real carried cargo across all six facing edges, on
     expect(acceptTravel(s, tile)).toBe(true);
     const order = s.ecs.manager[id].jobs[0];
     await completeTravel(s, order);
-    expect(s.days).toBe(before + 3);
+    expect(s.days).toBe(Math.floor(before) + 3.25);
+  expect(Math.floor(s.days / 3)).toBe(Math.floor(before / 3) + 1);
     expect(season(s.days)).toBe("summer");
     expect(year(s.days)).toBe(1);
     expect(s.weather).toEqual(weatherForWorld(s.world, 13, s.days));

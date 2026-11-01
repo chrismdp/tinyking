@@ -1,3 +1,4 @@
+import { journeyText } from "game/travel";
 import { canFoundHousehold } from "game/family";
 import { heirFor } from "game/possessions";
 import { gardenHelp } from "game/household_routines";
@@ -22,7 +23,7 @@ import { harvestCounts, harvestPhase } from "game/harvest_task";
 
 export const TASK_TITLES = {
   plough_field: "Plough field", sow_field: "Sow field", tend_field: "Tend field", harvest_field: "Harvest field",
-  find_food: "Find food", rest: "Rest", travel: "Travel · one season", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
+  find_food: "Find food", rest: "Rest", travel: "Travel", cut_tree_down: "Chop wood", forage: "Forage & eat", move_to_here: "Move here",
   chat: "Chat", court: "Court", marry: "Ask to marry", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
   village_oath: "Discuss the local oath", village_leave: "Discuss leaving the village",
   create_field: "Create Field", create_stockpile: "Create Stockpile"
@@ -123,7 +124,7 @@ export function TaskPanel() {
             {job.waiting && !harvest && <small className="task-waiting">{job.detail || job.waiting}</small>}
             {job.waiting == "Waiting for logs" && <small>For more wood, choose Move here at the edge of visible land. Explore beyond the gold village boundary. Select an unclaimed tree and choose Cut down. Carry the logs home.</small>}
             {active && !harvest && <>{wood && !wood.detail.startsWith(wood.phase) && <small>{wood.phase}</small>}
-              <div className="task-progress"><span>{travelling ? "Walking to the edge · one season on the road" : wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : request || travelling ? "" : ` · ~${minutes}m left`}</span></div>
+              <div className="task-progress"><span>{travelling ? (state.travel?.journey?.campId ? "Camped until dawn · " : "Walking to the edge · ") + (state.travel?.journey ? journeyText(state.travel.journey) : "one season on the road") : wood ? wood.detail : detail}</span><span>{progress != null && `${progress}%${wood?.progressLabel || ""}`}{wood ? (wood.time && `${progress != null ? " · " : ""}${wood.time}`) : request || travelling ? "" : ` · ~${minutes}m left`}</span></div>
               {progress != null && <div className="meter" role="progressbar" aria-label={wood?.phase || title} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: progress + "%" }}/></div>}</>}
           </div>
           <div className="task-tools">

@@ -1,6 +1,3 @@
-import { createRealmTerrain, overviewLevel } from "render/realm_terrain";
-import { createRealmOverlay } from "render/realm_overlay";
-import { inspectRealm } from "game/realm_map";
 import { villageArea } from "game/settlement_details";
 import { label } from "render/labels";
 import { commonBoundary } from "render/customs_bounds";
@@ -27,7 +24,7 @@ import { createInstances } from "render/instances";
 import { villageModel, fenceModel, animateWorkplace } from "render/villages";
 import { createForest } from "render/forest";
 import { introActive, arrivalTiles } from "game/intro";
-import { createCameraRig, arrivalShot } from "render/camera";
+import { createCameraRig, arrivalShot, MAX_GAMEPLAY_DISTANCE } from "render/camera";
 import { createWeatherView } from "render/weather";
 import { weatherLight, skyAt, SUNSET_TINT, NIGHT_TINT } from "render/sky";
 
@@ -72,17 +69,6 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let terrain = createTerrain(state, ground);
   let geography = state.map.geography;
   scene.add(terrain.mesh);
-  const realm = state.travel && state.world.landSeed ? createRealmTerrain(state, ground) : null;
-  const realmOverlay = realm && createRealmOverlay(state, realm);
-  let sea = null;
-  if (realm) {
-    scene.background.setHex(0x000000);
-    scene.add(realm.mesh, realmOverlay.mesh);
-    terrain.mesh.children.forEach(child => { child.visible = false; });
-    sea = new THREE.Mesh(new THREE.PlaneGeometry(realm.layout.radius * 8, realm.layout.radius * 8), new THREE.MeshLambertMaterial({ color: 0x000000 }));
-    sea.rotation.x = -Math.PI / 2; sea.position.set(realm.layout.centre.x, -3, realm.layout.centre.y); scene.add(sea);
-    camera.far = realm.layout.radius * 16 / Math.min(1, camera.aspect); camera.updateProjectionMatrix();
-  }
   const forest = createForest();
   scene.add(forest.mesh);
   const weatherView = createWeatherView(ground);
@@ -108,7 +94,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       const p=state.ecs.spatial[centre];
       name.position.set(p.x,ground.heightAt(p.x,p.y)+90,p.y);
-      name.visible=isKnown(p) && !introActive(state) && (!realm || rig.distance < 2200);
+      name.visible=isKnown(p) && !introActive(state);
     }
     const villageId=state.ecs.village?.[state.ui.selected]?.villageId;
     const key=[villageId,state.landUseRevision,state.ui.playerId,knownCount,revealAll,[...arrivalKnown].join("|")].join(":");
@@ -384,8 +370,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   const light = () => {
     const sky = skyAt(state.days);
-    const overviewLight = realm ? (isOverview() && rig.distance < 2200 ? 1 : THREE.MathUtils.smoothstep(rig.distance, 1800, 6500)) : 0;
-    const night = sky.night * (1 - overviewLight), sunset = sky.sunset * (1 - overviewLight);
+    const { night, sunset } = sky;
     const cloud = weatherLight((weatherAtPoint(state, { x:rig.pose.x, y:rig.pose.z }) || {}).type);
     const tint = WHITE.clone().lerp(SUNSET, sunset).lerp(NIGHT, night * 1.6);
     tint.lerp(new THREE.Color(0xB7C2CE), cloud.grey);
@@ -393,7 +378,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     sun.intensity = SUN * (1 - night * 1.2) * cloud.sun;
     hemisphere.color.copy(tint);
     hemisphere.intensity = SKY * (1 - night * 0.9) * cloud.sky;
-    return 1 - overviewLight;
+    return 1;
   };
 
   const pickables = () => [settlementOverlay, terrain.mesh, forest.mesh, instances.mesh, ...Object.entries(objects)
@@ -434,11 +419,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const wholeMapDistance = () => (circumradius + HEX_SIZE * 4) /
     (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect));
 
-  const realmDistance = () => realm ? realm.fitDistance(camera.aspect,camera.fov,rig.pose.yaw,.95,Math.max(.5,(canvas.clientHeight-190)/canvas.clientHeight)) : wholeMapDistance();
-  const isOverview = () => realm && (rig.distance >= 2200);
   const rig = createCameraRig(camera, canvas, {
-    bounds: realm ? { centre: realm.layout.centre, apothem: realm.layout.radius } : { centre: middle, apothem },
-    enabled: () => !introActive(state),
+    bounds: { centre: middle, apothem },
+    enabled: () => !introActive(state) && !state.ui.show?.world_overview,
     followTarget: () => revealAll ? null : state.ecs.spatial[state.ui.playerId],
     usableRect: () => {
       const width = canvas.clientWidth, height = canvas.clientHeight;
@@ -455,18 +438,9 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       return rect;
     },
-    maxDistance: () => realm ? realm.layout.radius * 12 / Math.min(1,camera.aspect) : Math.max(3600, wholeMapDistance() * 1.5),
-    groundHeight: (x, z) => realm ? realm.heightAt(x, z) : ground.heightAt(x, z),
+    maxDistance: () => revealAll ? Math.max(MAX_GAMEPLAY_DISTANCE, wholeMapDistance() * 1.5) : MAX_GAMEPLAY_DISTANCE,
+    groundHeight: (x, z) => ground.heightAt(x, z),
     onClick: e => {
-      if (realm) {
-        const rect = canvas.getBoundingClientRect(), ray = new THREE.Raycaster();
-        ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1, -(e.clientY-rect.top)/rect.height*2+1), camera);
-        const selection = realmOverlay.pick(ray);
-        if (isOverview()) {
-          if (selection) inspectRealm(state, selection.reachKey, selection.villageId);
-          return;
-        }
-      }
       const id = pick(e.clientX, e.clientY);
       if (id) {
         onSelect(id, e.pointerType == "touch");
@@ -474,30 +448,15 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
   });
 
-  // Precision follows the visible scale: a five-unit near plane cannot
-  // distinguish sea from low coast at 100,000 units. Keep local/arrival
-  // clearance, and bring the near plane out only when the camera pulls back.
-  const syncDepth = () => {
-    if (!realm) return;
-    const near = Math.max(5,(rig.distance-5000)*.02);
-    const far = Math.max(12000,rig.distance+realm.layout.radius*6);
-    if(camera.near!=near || camera.far!=far) {
-      camera.near=near;camera.far=far;camera.updateProjectionMatrix();
-    }
-  };
   const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y).toPoint();
   rig.tilt(0.8);
   rig.lookAt(start.x, start.y, 1000);
 
   let lastFrame = performance.now();
   let besidePanel = false;
-  let wasOverview = false;
-  let fittedRealm = false;
   let weatherHabitat=null,weatherPoint=null;
-  let snowDay = Math.floor(state.days), realmSnowRevision=state.snowRevision;
-  let reportView = true;
-  const viewMetrics = () => ({ distance:rig.distance, pose:rig.pose, level:overviewLevel(rig.distance), render:{...renderer.info?.render}, memory:{...renderer.info?.memory}, programs:renderer.info?.programs?.length,
-    terrainTriangles:realm?.triangles, terrainBuildMs:realm?.constructionMs, days:state.days, active:state.travel?.active, maps:Object.keys(state.travel?.maps || {}).length, directory:Object.keys(state.travel?.people || {}).length,
+  const viewMetrics = () => ({ distance:rig.distance, pose:rig.pose, render:{...renderer.info?.render}, memory:{...renderer.info?.memory}, programs:renderer.info?.programs?.length,
+    days:state.days, active:state.travel?.active, maps:Object.keys(state.travel?.maps || {}).length, directory:Object.keys(state.travel?.people || {}).length,
     residents:Object.values(state.residents || {}).filter(Boolean).length, position:{...state.ecs.spatial[state.ui.playerId]}, jobs:state.ecs.manager?.[state.ui.playerId]?.jobs.length, nightLights:nightLights.metrics });
   const fitMap = () => {
     camera.far = Math.max(12000, wholeMapDistance() * 2);
@@ -509,18 +468,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   return {
     camera,
     recenter() {
-      fittedRealm = false; reportView = true; state.ui.realmSelection = null;
-      rig.returnTo(state.ecs.spatial[state.ui.playerId] || start); syncDepth();
+      rig.returnTo(state.ecs.spatial[state.ui.playerId] || start);
     },
-    showRealm() {
-      if (!realm) return;
-      fittedRealm = true; reportView = true; rig.suspendFollow();
-      state.ui.realmSelection = null;
-      rig.tilt(.95); rig.lookAt(realm.layout.centre.x, realm.layout.centre.y, realmDistance()); syncDepth();
-    },
-    get overview() { return !!isOverview(); },
-    get mapLevel() { return overviewLevel(rig.distance); },
-    get realmTerrain() { return realm; },
     get metrics() { return viewMetrics(); },
     resumeFollow() { rig.resumeFollow(); },
     suspendFollow() { rig.suspendFollow(); },
@@ -529,8 +478,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     get terrain() { return terrain; },
     // Observer control for reproducible village inspection and captures.
     focusOn(point, distance = 1000) {
-      fittedRealm = false; rig.suspendFollow();
-      rig.shot({ x: point.x, z: point.y, y: realm ? realm.heightAt(point.x,point.y) : ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 }); syncDepth();
+      rig.suspendFollow();
+      rig.shot({ x: point.x, z: point.y, y: ground.heightAt(point.x, point.y), distance, yaw: 0, pitch: 0.8 });
     },
     frame() {
       const now = performance.now();
@@ -542,7 +491,6 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         scene.remove(terrain.mesh);
         terrain.dispose();
         terrain = createTerrain(state, ground);
-        if (realm) { terrain.mesh.children.forEach(child => { child.visible = false; }); realm.refreshGround(); realm.refreshSnow(); }
         scene.add(terrain.mesh);
         state.redraws.push(...Object.keys(state.ecs.spatial));
         showKnown();
@@ -550,8 +498,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       if (controlledId != state.ui.playerId) {
         state.redraws.push(controlledId,state.ui.playerId,...people);
         controlledId = state.ui.playerId; knownCount = -1;
-        if (realm && state.ecs.spatial[controlledId]) rig.returnTo(state.ecs.spatial[controlledId]);
-        else rig.resumeFollow(true);
+        rig.resumeFollow(true);
       }
       const fences = fenceFootprints(state), version = fenceRevision(fences);
       if (version != fencesVersion) {
@@ -603,7 +550,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       updateSettlements();
       terrain.update();
-      const lod = realm ? overviewLevel(rig.distance) : { people:true, props:true };
+      const lod = { people: true, props: true };
       forest.mesh.visible = lod.props; instances.mesh.visible = lod.props;
       forest.setDistant(rig.distance > 3000);
       if (lod.props) forest.update();
@@ -630,8 +577,6 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         if (lod.people) followPerson(id);
         else if (objects[id]) objects[id].visible = false;
       }
-      if (realm) { realm.mesh.visible = lod.overview; terrain.mesh.visible = !lod.overview; }
-      if (realm) for (const id in objects) if (!people.has(id) && !forest.has(id) && !instances.has(id)) objects[id].visible = lod.props && isKnown(state.ecs.spatial[id]);
 
       for (const id of selected) {
         const marker = objects[id] && objects[id].getObjectByName("marker");
@@ -651,22 +596,13 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         }
         rig.shot(shot);
       } else rig.update(dt);
-      syncDepth();
       if (lod.people) showActivities();
-      if (realm) {
-        const overview = isOverview();
-        if (overview && !wasOverview) { state.ui.actions?.dismiss_travel?.(); if(state.ui.show)state.ui.show.selected_person = null; state.ui.selected = null; }
-        wasOverview = overview;
-        const day = Math.floor(state.days);
-        if (day != snowDay || realmSnowRevision!=state.snowRevision) { realm.refreshSnow(); snowDay = day; realmSnowRevision=state.snowRevision; }
-        realmOverlay.update(camera,canvas,{...overviewLevel(rig.distance),overview});
-      }
       lastIntro = state.intro;
       wasArriving = arriving;
-      weatherView.mesh.visible = !realm || rig.distance < 6500;
+      weatherView.mesh.visible = true;
       if (weatherView.mesh.visible) {
         const pose=rig.pose,point={x:pose.x,y:pose.z};
-        const elevation=realm ? realm.heightAt(point.x,point.y) : ground.heightAt(point.x,point.y);
+        const elevation=ground.heightAt(point.x,point.y);
         if(!weatherPoint || point.x!==weatherPoint.x || point.y!==weatherPoint.y || elevation!==weatherPoint.elevation) {
           weatherPoint={...point,elevation};weatherHabitat=localHabitat(state.world,point,elevation);
         }
@@ -677,18 +613,12 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       }
       nightLights.update(state, { x:rig.pose.x, y:rig.pose.z }, now / 1000, lod.props ? localLight : 0);
       renderer.render(scene, camera);
-      if (realm && reportView) { performance.mark?.("tinyking-map-view",{detail:viewMetrics()}); reportView=false; }
     },
     resize(width, height) {
       renderer.setSize(width, height);
       camera.aspect = width / Math.max(1, height);
       camera.updateProjectionMatrix();
-      if (realm) {
-        camera.far = realm.layout.radius * 16 / Math.min(1,camera.aspect); camera.updateProjectionMatrix();
-        if (fittedRealm) rig.lookAt(realm.layout.centre.x,realm.layout.centre.y,realmDistance());
-      }
       if (revealAll) fitMap();
-      syncDepth();
     },
     screenPosition(id) {
       const s = state.ecs.spatial[id];
@@ -733,7 +663,6 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       instances.dispose();
       weatherView.dispose();
       nightLights.dispose();
-      if (realm) { realm.dispose(); realmOverlay.dispose(); sea.geometry.dispose(); sea.material.dispose(); }
       for (const name of villageLabels.values()) { settlementOverlay.remove(name); models.disposeObject(name); }
       villageLabels.clear();
       if (areaOutline) models.disposeObject(areaOutline);

@@ -34,12 +34,18 @@ Local temperature and altitude control freezing, snow and crop growth. Weather
 retains the hourly pressure model. Rain, snow, wind and storms affect presentation.
 They do not introduce injury, warmth or storm damage.
 
-A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
+A journey plans adjacent land hops. The normal planner walks through each hex
+to its exit, using the road where available. Each hop advances one season and
+arrives at the matching edge at dawn. At dusk, the traveller camps at their
+position and resumes at dawn. Visited maps retain their people, buildings,
+stores and ownership. Only the current hex runs live. Away communities advance
+through seasonal history. Their snapshots still remain in memory until per-hex
+storage and eviction are implemented. See [travel](travel.md).
 
-The gameplay camera provides a continuous 3D [realm view](realm-map.md). Zooming
-out inspects public terrain and weather, plus communities that the current person
-actually discovered. Realm fits the world and You restores local camera follow.
-Inspection adds no orders, detailed maps, journeys or elapsed time.
+The gameplay camera has a fixed local zoom limit. A separate top-down
+[world map](realm-map.md) opens with World map or M. It shows biomes, known
+hexes, discovered communities, recorded roads and a planned journey.
+Opening it does not pause time or generate detailed maps.
 
 ## People and history
 

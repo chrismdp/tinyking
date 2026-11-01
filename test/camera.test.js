@@ -144,3 +144,18 @@ it("zooms into realm inspection without follow drift and returns to the same ori
   expect(rig.distance).toBe(1000);expect(rig.following).toBe(true);expect(rig.pose.yaw).toBe(yaw);
   rig.dispose();delete global.window;
 });
+
+it("has a fixed gameplay zoom limit at every screen aspect", () => {
+  const {MAX_GAMEPLAY_DISTANCE}=require("render/camera");
+  global.window=new EventTarget();
+  for(const [width,height] of [[1440,900],[390,664]]) {
+    const dom=new EventTarget();Object.assign(dom,{clientWidth:width,clientHeight:height,style:{}});
+    const camera=new THREE.PerspectiveCamera(40,width/height,5,12000);
+    const rig=createCameraRig(camera,dom,{bounds:{centre:{x:0,y:0},apothem:2000},groundHeight:()=>0,onClick(){}});
+    rig.zoomBy(1000);rig.update(0);
+    expect(rig.distance).toBe(MAX_GAMEPLAY_DISTANCE);
+    rig.zoomBy(2);expect(rig.distance).toBe(MAX_GAMEPLAY_DISTANCE);
+    rig.dispose();
+  }
+  delete global.window;
+});

@@ -136,17 +136,18 @@ it("leaves ready parties and their supplies alone before the real oath request",
   expect(orders).toEqual([]);expect(JSON.stringify(s)).toBe(before);
 });
 
-it("returns the old overview driver through the visible You button before local clicks, without touching game outcomes",async()=>{
+it("closes the separate world map before local clicks, without touching game outcomes",async()=>{
   const {s,page}=view(),before=JSON.stringify(s);
-  s.renderer={overview:true};
-  const click=jest.fn(async()=>{s.renderer.overview=false;});
+  const previous=s.ui.show;
+  s.ui.show={world_overview:true};
+  const click=jest.fn(async()=>{s.ui.show.world_overview=false;});
   page.getByRole=jest.fn(()=>({click}));
   page.waitForFunction=async fn=>expect(fn()).toBe(true);
   await returnToLocalView(page);
-  expect(page.getByRole).toHaveBeenCalledWith("button",{name:"Recenter on you",exact:true});
+  expect(page.getByRole).toHaveBeenCalledWith("button",{name:"Close world map",exact:true});
   expect(click).toHaveBeenCalledTimes(1);
   await returnToLocalView(page);expect(click).toHaveBeenCalledTimes(1);
-  delete s.renderer;expect(JSON.stringify(s)).toBe(before);
+  s.ui.show=previous;expect(JSON.stringify(s)).toBe(before);
 });
 
 it("chooses a real farming household for the storyboard when no fuel favour exists", () => {

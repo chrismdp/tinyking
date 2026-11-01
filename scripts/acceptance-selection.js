@@ -441,26 +441,19 @@ async function assertFamilySurfaceClear(page) {
 }
 module.exports.assertFamilySurfaceClear=assertFamilySurfaceClear;
 
-// Overview is intentionally inspection-only. Older mechanical drivers zoomed
-// out past its threshold, then tried local orders. Return with the same visible
-// You control as a player before resuming their real map clicks.
+// Close the separate map through its visible control before local map clicks.
 async function returnToLocalView(page) {
-  if (!await page.evaluate(() => !!window.tinyking.renderer.overview)) return;
-  await page.getByRole("button", {name:"Recenter on you", exact:true}).click({noWaitAfter:true});
-  await page.waitForFunction(() => !window.tinyking.renderer.overview);
+  if (!await page.evaluate(() => !!window.tinyking.ui.show.world_overview)) return;
+  await page.getByRole("button", {name:"Close world map", exact:true}).click({noWaitAfter:true});
+  await page.waitForFunction(() => !window.tinyking.ui.show.world_overview);
 }
 module.exports.returnToLocalView = returnToLocalView;
 
 module.exports.earnTimberRights=earnTimberRights;
 
-// The real Realm control hides local models while the same simulation runs.
-// Return through You before entity selection, map orders or evidence.
-// Global care/speed controls remain available; no clock/results are assigned.
+// Local work remains visible while the current hex runs.
 async function observeWork(page,observe) {
-  await page.getByRole("button",{name:"Fit the whole realm",exact:true}).click({noWaitAfter:true});
-  await page.waitForFunction(()=>window.tinyking.renderer.overview);
-  try { return await observe(); }
-  finally { await returnToLocalView(page); }
+  return await observe();
 }
 module.exports.observeWork=observeWork;
 

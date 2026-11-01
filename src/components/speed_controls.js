@@ -18,8 +18,24 @@ SpeedButton.propTypes = {
   click: PropTypes.func.isRequired
 };
 
+// Space toggles pause, resuming at the speed the game had. Typing is left alone.
+export function handleSpaceKey(e, state) {
+  const target = e.target;
+  if (e.code != "Space" || e.repeat || /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName) || target?.isContentEditable) return false;
+  e.preventDefault();
+  if (state.game_speed != "paused") state.ui.lastSpeed = state.game_speed;
+  state.ui.actions.set_speed(state.game_speed == "paused" ? state.ui.lastSpeed || "normal" : "paused");
+  return true;
+}
+
 export function SpeedControls() {
   const state = React.useContext(GameState);
+
+  React.useEffect(() => {
+    const key = e => handleSpaceKey(e, state);
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [state]);
 
   const set_speed = React.useCallback(speedClass => () =>
     state.ui.actions.set_speed(speedClass), [state.ui.actions]);

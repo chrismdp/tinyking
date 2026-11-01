@@ -4,6 +4,7 @@ import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
 import { householdAccess } from "game/playable";
 import { commonLand, resourcePermission, villageElder, observeChop, updateCustoms, answerCustoms, oathEligibility, membership } from "game/village_customs";
+import { chatRecord } from "game/chat_patience";
 
 function world() {
   const w = peopleWorld(), { state:s, player, person, parent, sibling, tiles } = w;
@@ -275,13 +276,13 @@ it("routes towards the offender's new position rather than completing contact at
   expect(s.knowledge?.[w.player]?.people?.[d.speakerId]?.conversation).toBeUndefined();
 });
 
-it("gives honest elder progress and daily Chat routes without promising a stocked household favour",()=>{
+it("gives honest elder progress and Chat routes without promising a stocked household favour",()=>{
   const w=world(),s=w.state;
   const reason=oathEligibility(s,w.player,"village").reason;
   expect(reason).toContain("0.0 / 10 goodwill");
   expect(reason).toContain("Chat");
   expect(reason).toContain("when offered");
-  expect(reason).toContain("daily");
+  expect(reason).toContain("patience, which recovers over time");
 });
 
 it("shows the elder's actual request and conversation availability without granting either",()=>{
@@ -292,9 +293,10 @@ it("shows the elder's actual request and conversation availability without grant
   s.ui.actions={};
   const render=()=>renderToStaticMarkup(<GameState.Provider value={s}><VillageMembership personId={w.parent}/></GameState.Provider>);
   expect(render()).toContain("This household offers no favours just now.");
-  expect(render()).toContain("2 conversations left today.");
-  s.talking={[w.parent]:{[w.player]:{day:Math.floor(s.days),used:2}}};
-  expect(render()).toContain("No conversations left today.");
+  expect(render()).toMatch(/Patience: (\d+) \/ \1 slots free/);
+  expect(render()).not.toContain("today");
+  chatRecord(s,w.player,w.parent).resting=99;
+  expect(render()).toMatch(/Patience: 0 \/ \d+ slots free · ready in \d+ game hours/);
   expect(oathEligibility(s,w.player,"village").ok).toBe(false);
 });
 
@@ -305,7 +307,7 @@ it("keeps goodwill below the oath threshold visibly below 10",()=>{
   expect(oathEligibility(s,w.player,"village").reason).toContain("9.9 / 10 goodwill");
 });
 
-it("removes joining advice from permitted common trees and names tomorrow's Chat reset",()=>{
+it("removes joining advice from permitted common trees and names when the elder can chat again",()=>{
   const React=require("react"),{renderToStaticMarkup}=require("react-dom/server");
   const {GameState}=require("../src/components/contexts");
   const {ResourceRights,VillageMembership}=require("../src/components/village_customs");
@@ -317,6 +319,6 @@ it("removes joining advice from permitted common trees and names tomorrow's Chat
   expect(render(<ResourceRights entityId={w.tree}/>)).toContain("You may cut this tree.");
   expect(render(<ResourceRights entityId={w.tree}/>)).not.toContain("Speak with the elder about joining");
   delete s.ecs.village[w.player].memberships;
-  s.talking={[w.parent]:{[w.player]:{day:Math.floor(s.days),used:2}}};
-  expect(render(<VillageMembership personId={w.parent}/>)).toContain("Return tomorrow for another Chat.");
+  chatRecord(s,w.player,w.parent).resting=99;
+  expect(render(<VillageMembership personId={w.parent}/>)).toMatch(/ready in \d+ game hours/);
 });

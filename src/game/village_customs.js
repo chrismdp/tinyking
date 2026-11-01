@@ -91,7 +91,7 @@ export function oathEligibility(s,actorId,villageId) {
   else if(house && s.ecs.village?.[house]?.villageId && s.ecs.village[house].villageId!=villageId)reason="Your household belongs to another village. Make your own home here first.";
   else if(!s.knowledge?.[actorId]?.people?.[elder]?.conversation || (s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0)<OATH_TRUST) {
     const goodwill=s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0;
-    reason=`${(Math.floor(goodwill*10)/10).toFixed(1)} / ${OATH_TRUST} goodwill with the elder. Complete a Chat and earn their trust. Chat has a daily limit. Gifts help according to their tastes. Do favours when offered. Unclaimed woodland is free to use.`;
+    reason=`${(Math.floor(goodwill*10)/10).toFixed(1)} / ${OATH_TRUST} goodwill with the elder. Complete a Chat and earn their trust. Each Chat uses their patience, which recovers over time. Gifts help according to their tastes. Do favours when offered. Unclaimed woodland is free to use.`;
   }
   else if(!readiness.ok)reason=readiness.reason;
   return {ok:!reason,reason,elderId:elder,readiness};

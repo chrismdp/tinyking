@@ -209,7 +209,7 @@ export function updateCustoms(s) {
     if(!alive(s,i.actorId)){if(i.witnessId)release(s,i.witnessId);i.status="done";continue;}
     if(i.status=="approach" && !localAdult(s,i.witnessId,i.villageId)) {release(s,i.witnessId);i.witnessId=null;i.status="queued";}
     if(i.status=="queued") {
-      const witness=i.observers.filter(id=>localAdult(s,id,i.villageId) && available(s,id)).sort((a,b)=>distance(s,a,i.actorId)-distance(s,b,i.actorId))[0];
+      const witness=i.observers.filter(id=>localAdult(s,id,i.villageId) && available(s,id) && oathReadiness(s,i.actorId,id).ok).sort((a,b)=>distance(s,a,i.actorId)-distance(s,b,i.actorId))[0];
       if(witness) {i.witnessId=witness;i.status="approach";assign(s,witness,i,"warning");}
     }
     if(i.status=="report") {
@@ -228,7 +228,7 @@ export function customsVisitTarget(s,id) {
   if(!i)return null;
   const target=visit.kind=="warning"?i.actorId:i.reportTarget;
   const valid=localAdult(s,id,i.villageId) && alive(s,target) && (visit.kind=="warning" || villageElder(s,i.villageId)==target);
-  if(!valid || s.ecs.planner[id].world.feeling.hungry || s.ecs.planner[id].world.feeling.tired) {release(s,id);if(i.status=="approach")i.status="queued";return null;}
+  if(!valid || s.ecs.planner[id].world.feeling.hungry || s.ecs.planner[id].world.feeling.tired || visit.kind=="warning" && !oathReadiness(s,target,id).ok) {release(s,id);if(i.status=="approach")i.status="queued";return null;}
   return {target,incident:i,kind:visit.kind};
 }
 function applyReport(s,i,elder) {

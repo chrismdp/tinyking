@@ -1,4 +1,4 @@
-import { handleSpaceKey } from "components/speed_controls";
+import { handleSpaceKey } from "game/speed_keys";
 
 function game(speed) {
   const state = { game_speed: speed, ui: { actions: {} } };

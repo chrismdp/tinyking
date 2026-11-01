@@ -424,3 +424,13 @@ it("never labels independently known people as kin or grants traits merely for t
   expect(html).toContain('class="kin">Sister');expect(html).toContain('>Brave<');
   expect(html).not.toContain('class="kin">Mother');
 });
+
+it("uses the queue's current approach reason instead of an obsolete person-sheet result",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  const reason="They are indoors. Choose another neighbour; try again when they come outside.";
+  s.ecs.manager[p].jobs=[{job:{key:"chat"},targetId:n,waiting:reason}];
+  s.ui.talkResult={personId:n,message:"They are still resting"};
+  const html=render(s,<PersonPanel entityId={n}/>);
+  expect(html).toContain(reason);
+  expect(html).not.toContain("They are still resting");
+});

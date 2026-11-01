@@ -5,7 +5,7 @@ import { GameState } from "components/contexts";
 import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { Hex } from "game/hex";
-import { canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
+import { harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
 import { harvestCounts } from "game/harvest_task";
 import { patience } from "game/chat_patience";
 
@@ -13,6 +13,7 @@ export function RequestCard({ request: r, personId }) {
   const s = React.useContext(GameState);
   const giverId = r.status == "offered" && personId && canRequestForHousehold(s, r, personId) ? personId : r.giverId;
   const giver = displayName(s, giverId, id => name(s.ecs.nameable[id]));
+  const approach=r.kind=="harvest" && r.status=="accepted" && harvestApproach(s,r);
   const receipt = r.receipts?.[r.receipts.length - 1];
   const receiver = r.kind == "wood" ? receipt?.targetId || favourReceiver(s, r) : r.targetId;
   const fuelDelivery = r.kind == "wood" && receiver == r.workplaceId;
@@ -20,8 +21,10 @@ export function RequestCard({ request: r, personId }) {
   const home = s.ecs.spatial[householdStore(s, r.householdId)], destination = home && Hex().fromPoint(home);
   return <article className={"favour-request " + r.status} data-favour-id={r.id}>
     <strong>{giver}</strong><h4>{favourTitle(r)} · {favourQuantity(r)}</h4>
-    <p>{r.reason}</p><small>{r.kind == "harvest" ? "Family field" : fuelDelivery ? "Workshop fuel" : "Household stores"}{at && ` · tile ${at.x}, ${at.y}`}</small>
+    <p>{r.status=="accepted" ? favourWaiting(s,{favourId:r.id}) || s.ecs.manager[s.ui.playerId].jobs.find(j=>j.favourId==r.id)?.waiting || r.reason : r.reason}</p><small>{r.kind == "harvest" ? "Family field" : fuelDelivery ? "Workshop fuel" : "Household stores"}{at && ` · tile ${at.x}, ${at.y}`}</small>
     {fuelDelivery && ["offered", "accepted"].includes(r.status) && <small>Household store is full · bring the log to the {FUEL_TRADES[s.ecs.workplace?.[r.workplaceId]?.trade]}.</small>}
+    {r.kind == "harvest" && point && <button onClick={()=>{s.ui.actions.select_entity(r.targetId,false);s.renderer?.focusOn(point);}}>Show field</button>}
+    {approach && <button onClick={()=>s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},approach.id)}>Move to field approach</button>}
     {r.kind == "harvest" && destination && <small>Deliver to household · tile {destination.x}, {destination.y}</small>}
     {r.kind == "harvest" && <small>Keep a small share as seed grain. Carry the rest home.</small>}
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>

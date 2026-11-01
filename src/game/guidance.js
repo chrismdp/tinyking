@@ -1,4 +1,9 @@
 import { familyGoal, backstoryFor } from "game/mother_family";
+import { chatUnavailable, canReachTask } from "game/manager";
+import { ownsField } from "game/farming";
+import { householdAccess } from "game/playable";
+import { canPlaceField } from "game/land_use";
+import { designationPlants } from "game/designation";
 import { patience } from "game/chat_patience";
 import { localDirection, worldDirection } from "game/chat_lands";
 import { visibleFavours, reasonGone } from "game/favours";
@@ -27,6 +32,7 @@ export function openingGuidance(state) {
   const deferred=(person.hunger>.9 && jobs.find(j=>j.waiting&&j.job.key=="find_food")) || jobs.find(j=>j.waiting&&j.job.key=="chat");
   if(deferred)return {actorId,key:"deferred",text:deferred.waiting};
   if(state.game_speed=="paused" && jobs.length) return {actorId,key:"resume",text:"Choose Normal speed to continue your tasks.",action:"Normal speed",speed:"normal"};
+  if(person.hunger>.9 && ecs.planner[actorId]?.world.mealFailure)return {actorId,key:"food_failed",text:ecs.planner[actorId].world.mealFailure};
   if(person.hunger>.9) return jobs.some(j=>j.job.key=="find_food")?{actorId,key:"eating",text:"Keep the game running until your Find food task finishes."}:{actorId,key:"food",text:"Choose Find food to go for a meal before your next conversation.",action:"Find food",job:"find_food"};
   if(person.tiredness>.9 && (state.days%1*24>=20 || state.days%1*24<9)) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:{actorId,key:"sleep",text:"Choose Rest to sleep before your next conversation.",action:"Rest",job:"rest"};
   if (state.renderer?.overview) return {actorId,key:"return",text:"Choose You to return to your character."};
@@ -38,10 +44,19 @@ export function openingGuidance(state) {
     if(feeling?.tired) return {actorId,key:"waiting_rest",text:"Keep the game running while your neighbour finishes resting."};
     return {actorId,key:"approach",text:"Let your character walk over to start the conversation."};
   }
+  if(task?.job.key=="move_to_here" && !task.waiting)return {actorId,key:"moving",text:"Let your character finish walking to the selected ground."};
+  const result=state.ui.talkResult;
+  if(result?.recovery=="move_closer" && ecs.spatial[result.personId]) {
+    const point=ecs.spatial[result.personId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
+    const tile=Object.keys(ecs.walkable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&!ecs.mappable[id]?.buildingPlot&&!ecs.mappable[id]?.cropPlot)
+      .sort((a,b)=>Math.hypot(ecs.spatial[a].x-point.x,ecs.spatial[a].y-point.y)-Math.hypot(ecs.spatial[b].x-point.x,ecs.spatial[b].y-point.y)).find(id=>canReachTask(state,actorId,id));
+    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to ground #"+tile+" by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
+  }
   const arrived=ecs.playable?.[actorId]?.arrivedAt;
   const firstDay=arrived!=null && state.days<Math.floor(arrived)+1+6/24;
   const contacts=Object.values(state.knowledge?.[actorId]?.people||{}).filter(p=>p.conversation).length;
-  if(firstDay && contacts>=3 && (person.age??18)>=18) {
+  const completedFavour=Object.values(state.favours?.requests||{}).some(r=>r.actorId==actorId&&r.status=="completed");
+  if((contacts>=2 || completedFavour) && (person.age??18)>=18) {
     const owned=id=>ecs.controllable?.[id] && topController(ecs,id)==actorId;
     const shelter=Object.keys(ecs.shelter||{}).find(owned);
     const site=Object.keys(ecs.construction||{}).find(owned);
@@ -60,8 +75,27 @@ export function openingGuidance(state) {
       return tile?{actorId,key:"shelter",text:"Select Grassland #"+tile+" near camp and choose Build shelter before night.",action:"Show shelter tile",selectId:tile}:
         {actorId,key:"shelter",text:"Build shelter needs an available site on explored ground. Explore empty grass within three tiles of camp; select a tile to see its shelter requirements."};
     }
-    return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
+    if(firstDay || person.tiredness>.9) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
       {actorId,key:"sleep",text:"Choose Rest to sleep in your shelter.",action:"Rest",job:"rest"};
+  }
+  const hasSeed=Object.keys(ecs.good||{}).some(id=>ecs.good[id].type=="grain"&&ecs.good[id].amount>=1&&householdAccess(ecs,actorId,id)) ||
+    Object.keys(ecs.container||{}).some(id=>ecs.container[id].amounts.grain>=1&&householdAccess(ecs,actorId,id));
+  if(hasSeed && (person.age??18)>=18) {
+    const fields=Object.keys(ecs.farmable||{}).filter(id=>ownsField(state,actorId,id));
+    const field=fields.find(id=>ecs.farmable[id].slots.some(slot=>slot.state=="ploughed")) || fields.find(id=>ecs.farmable[id].slots.some(slot=>["empty","harvested","rotten"].includes(slot.state)));
+    if(field) {
+      const sow=ecs.farmable[field].slots.some(slot=>slot.state=="ploughed"),job=sow?"sow_field":"plough_field",label=sow?"Sow":"Plough";
+      return jobs.some(j=>j.job.key==job&&j.targetId==field)?{actorId,key:"seed_work",text:"Keep the game running to "+label.toLowerCase()+" your field."}:
+        {actorId,key:sow?"seed_sow":"seed_plough",text:"Select your field #"+field+" and choose "+label+(sow?" to plant your seed grain.":" to prepare a patch for your seed grain."),action:"Show field",selectId:field};
+    }
+    if(!fields.length) {
+      if(jobs.some(j=>j.job.key=="create_field"))return {actorId,key:"seed_work",text:"Keep the game running to clear your new field."};
+      const at=ecs.spatial[actorId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
+      const tile=Object.keys(ecs.mappable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&canPlaceField(state,id)&&designationPlants(state,actorId,id)!==null)
+        .sort((a,b)=>Math.hypot(ecs.spatial[a].x-at.x,ecs.spatial[a].y-at.y)-Math.hypot(ecs.spatial[b].x-at.x,ecs.spatial[b].y-at.y))[0];
+      return tile?{actorId,key:"seed_field",text:"You have seed grain. Select Grassland #"+tile+" and choose Create Field.",action:"Show field tile",selectId:tile}:
+        {actorId,key:"seed_explore",text:"You have seed grain. Choose Move here at the edge of visible land to find unused grass for Create Field."};
+    }
   }
   if(accepted && !task?.waiting) return {actorId,key:"working",text:"Keep the game running to finish your favour delivery."};
   if(accepted && task?.waiting && accepted.kind!="harvest") return {actorId,key:"supply",text:accepted.kind=="wood" ? "Select an unclaimed tree and choose Cut down to supply your promised log." : "Select a forage plant and choose Forage to supply your promised food."};
@@ -69,7 +103,7 @@ export function openingGuidance(state) {
     const r=state.favours?.requests[l.requestId];
     return r?.status=="offered"&&!reasonGone(state,r)&&!state.knowledge?.[actorId]?.offers?.[r.id]&&!ecs.personable[r.giverId]?.dead&&patience(state,actorId,r.giverId).free>=patience(state,actorId,r.giverId).minimum;
   });
-  if(lead && (!firstDay || contacts>=3)) {
+  if(lead && (!firstDay || contacts>=2)) {
     const r=state.favours.requests[lead.requestId],giver=r.giverId,n=displayName(state,giver),point=ecs.spatial[giver];
     const explored=point&&(ecs.playable?.[actorId]?.known||[]).some(h=>String(Hex(h))==String(Hex().fromPoint(point)));
     if(!ecs.planner?.[giver]||!explored) {
@@ -85,7 +119,7 @@ export function openingGuidance(state) {
   const candidates=Object.keys(ecs.planner||{}).filter(id=>id!=actorId&&!ecs.personable[id]?.dead&&ecs.spatial[id]&&explored.has(String(Hex().fromPoint(ecs.spatial[id])))&&patience(state,actorId,id).free>=patience(state,actorId,id).minimum);
   candidates.sort((a,b)=>Math.hypot(ecs.spatial[a].x-player.x,ecs.spatial[a].y-player.y)-Math.hypot(ecs.spatial[b].x-player.x,ecs.spatial[b].y-player.y));
   const target=candidates.find(id=>!state.knowledge?.[actorId]?.people?.[id]?.conversation) || candidates.sort((a,b)=>(state.chat?.pairs?.[actorId+":"+a]?.encounters||0)-(state.chat?.pairs?.[actorId+":"+b]?.encounters||0))[0];
-  if(target) {
+  if(target && !chatUnavailable(state,actorId,target)) {
     const n=displayName(state,target);
     const walking=task?.job.key=="chat";
     const anyContact=Object.values(state.knowledge?.[actorId]?.people||{}).some(p=>p.conversation);
@@ -97,6 +131,7 @@ export function openingGuidance(state) {
     if(relative)text="Ask the neighbours whether they know your "+relative.term+" "+relative.name+".";
     return {actorId,key:"chat",targetId:target,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
   }
+  if(candidates.length)return {actorId,key:"neighbours_busy",text:chatUnavailable(state,actorId,target)};
   return {actorId,key:"explore",text:"Select the edge of visible ground and choose Move here to find another neighbour."};
 }
 

@@ -188,7 +188,7 @@ it("the player's forage order carries a portion home for winter", () => {
   expect(state.ecs.manager[villager].jobs).toEqual([]);
 });
 
-it("winter offers no wild meals and crops keep only their growing-season progress", () => {
+it("winter pauses berries and crops until their growing season", () => {
   const { state, villager, tiles } = hungryVillage();
   // Initial layout: a public lane around the middle crop tile. The old row
   // placed the only food behind a field, which through-walkers now skirt.
@@ -208,7 +208,7 @@ it("winter offers no wild meals and crops keep only their growing-season progres
     controllable: { controllerId: villager }
   }, {
     spatial: { ...state.ecs.spatial[tiles[2]], immovable: true },
-    forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 }
+    forageable: { kind: "berries", biome: "grassland", amount: 1, growth: 0 }
   }]);
   advance(state, 2.9);
   expect(state.ecs.farmable[field].slots[0].state).toBe("sown");

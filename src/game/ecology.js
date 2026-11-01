@@ -112,7 +112,7 @@ export function generateForage(state, seed, start = state.map && state.map.playe
   }
 }
 
-export const forageAvailable = (state, plant) => plant && plant.amount > 0 && growingAt(state,plant.id);
+export const forageAvailable = (state, plant) => plant && plant.amount > 0 && (plant.kind == "roots" || growingAt(state,plant.id));
 
 export function updateEcology(state) {
   for (const plant of Object.values(state.ecs.forageable || {})) {

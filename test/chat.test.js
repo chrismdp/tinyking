@@ -88,6 +88,10 @@ it("requires acquaintance and spoken favour disclosure before accepting real wor
   const r=Object.values(s.favours.requests)[0]; expect(r).toBeDefined();
   expect(visibleFavours(s)).toEqual([]); expect(acceptFavour(s,r.id,n)).toBeNull();
   openChat(s,p,n); chooseLine(s,chatChoices(s).find(l=>l.family=="introduction").key);
+  // Replay finding 4: a request now follows an explicit help question.
+  expect(chatChoices(s).some(l=>l.family=="favour_accept")).toBe(false);
+  s.chat.active.focus="help";
+  chooseLine(s,chatChoices(s).find(l=>l.family=="need_question").key);
   expect(chatChoices(s).some(l=>l.family=="favour_accept")).toBe(true);
   chooseLine(s,chatChoices(s).find(l=>l.family=="favour_accept").key);
   expect(r.status).toBe("accepted"); expect(r.deliveryAuthorised).toBe(true);

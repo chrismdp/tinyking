@@ -57,7 +57,7 @@ existing home; the arrival rest at another pass does not create a duplicate camp
 All land passes are established during generation, independently of the eventual
 arrival side. A pass has two inward walkable tiles, a farm-sized clearing, six
 reachable trees, three nearby forage plants and a walkable connection to a
-village. Seasonal availability still applies: winter forage cannot be eaten.
+village. Seasonal availability still applies. Berries are unavailable in winter. Remaining roots can still be gathered.
 A coastal land hex without a natural three-house site receives an inland village
 clearing. Ocean has no pass. Continuous coastline generation otherwise stays in
 use. Passes can clear narrow paths across intervening terrain where necessary.

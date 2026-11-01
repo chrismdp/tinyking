@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { GameState } from "components/contexts";
+import { handleSpaceKey } from "game/speed_keys";
 
 function SpeedButton({ icon, game_speed, click }) {
   const state = React.useContext(GameState);
@@ -17,16 +18,6 @@ SpeedButton.propTypes = {
   game_speed: PropTypes.string.isRequired,
   click: PropTypes.func.isRequired
 };
-
-// Space toggles pause, resuming at the speed the game had. Typing is left alone.
-export function handleSpaceKey(e, state) {
-  const target = e.target;
-  if (e.code != "Space" || e.repeat || /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName) || target?.isContentEditable) return false;
-  e.preventDefault();
-  if (state.game_speed != "paused") state.ui.lastSpeed = state.game_speed;
-  state.ui.actions.set_speed(state.game_speed == "paused" ? state.ui.lastSpeed || "normal" : "paused");
-  return true;
-}
 
 export function SpeedControls() {
   const state = React.useContext(GameState);

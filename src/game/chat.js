@@ -1,4 +1,5 @@
 import { recogniseMaternalKin, firstFamilyRequest } from "game/mother_family";
+import { completeChatOrder } from "game/manager";
 import LINES from "data/conversation_lines.json";
 import { addGoodwill, meet, disposition, RINGS, completeConversation } from "game/people";
 import { learnEvent } from "game/events";
@@ -148,6 +149,10 @@ export function chatChoices(s) {
     const unique=[...new Map(practical.map(l=>[l.useKey,l])).values()].slice(0,3);
     if(unique.length)return [...unique,...result.filter(l=>!unique.some(x=>x.useKey==l.useKey))].slice(0,4);
   }
+  if(!result.some(l=>previewLine(s,l).fits)) {
+    const goodbye=variants(s,c,lineCandidates(s,c,"leave_taking","player")).find(l=>previewLine(s,l).fits);
+    if(goodbye)return [goodbye];
+  }
   return result;
 }
 function effects(s,c,line) {
@@ -256,7 +261,7 @@ export function speakLine(s,line) {
 export function reply(s,requested) {
   const c=s.chat.active;c.phase="reply";
   let line;
-  if(requested=="introduction_reply"&&c.completed)line=pickNpc(s,c,"favour_ask",true);
+  if(requested=="need_news" || requested=="introduction_reply" && c.knewBefore && c.completed)line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
   if(line){speakLine(s,line);
@@ -272,8 +277,9 @@ export function chooseLine(s,key) {
   const line=chatChoices(s).find(l=>l.key==key);if(!line)return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
+  if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}
   if(!c.endReason)reply(s,c.reply);
-  if(!c.endReason && !c.closingReply && c.finishAfterReply)endChat(s,"row_full");
+  if(!c.endReason && !c.closingReply && c.finishAfterReply)endChat(s,c.row.length+patience(s,c.actorId,c.npcId).resting>=patience(s,c.actorId,c.npcId).max?"row_full":"exchange_complete");
   if(!c.endReason && !c.closingReply && patience(s,c.actorId,c.npcId).max==2)endChat(s,"tired");
   c.focus=null;
   return true;
@@ -298,6 +304,8 @@ export function closeChat(s) {
   pair.resting=Math.min(p.max,p.resting+c.row.length);
   (s.chat.history ||= []).push({actorId:c.actorId,npcId:c.npcId,day:s.days,encounter:c.encounter,endReason:c.endReason,lines:c.transcript});
   const target=s.ecs.planner?.[c.npcId];if(target?.world.capturedBy==c.actorId)target.world.capturedBy=null;
+  const taskId=c.taskId || s.ecs.manager?.[c.actorId]?.jobs.find(j=>j.job.key=="chat"&&j.targetId==c.npcId)?.id;
+  if(taskId)completeChatOrder(s,taskId);
   s.game_speed=c.previousSpeed;delete s.chat.active;
   s.redraws?.push(c.actorId,c.npcId);
 }
@@ -311,7 +319,7 @@ export function openChat(s,actor,npc) {
   if(patience(s,actor,npc).free<patience(s,actor,npc).minimum)return false;
   const knewBefore=!!e.relationships[npc]?.known[actor],pair=chatRecord(s,actor,npc);
   const c=s.chat.active={actorId:actor,npcId:npc,encounter:++pair.encounters,knewBefore,phase:"opening",tags:[],row:[],usedIds:[],transcript:[],
-    subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary"};
+    taskId:e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary"};
   meet(s,actor,npc);meet(s,npc,actor);s.game_speed="paused";
   let line=pickNpc(s,c,"visit_news");
   if(line&&line.icons.length>=patience(s,actor,npc).free)line=null;

@@ -16,7 +16,7 @@ export function taskPlace(state, targetId) {
     .sort((a, b) => a.distance - b.distance);
   const village = villages[0];
   if (village?.distance <= 3) {
-    const inside = village.distance <= 1 || village.houses.some(id => ecs.spatial[id] &&
+    const inside = village.distance <= 1 || (village.houses || []).some(id => ecs.spatial[id] &&
       at.distance(Hex().fromPoint(ecs.spatial[id])) == 0);
     return (inside ? "in " : "near ") + village.name;
   }

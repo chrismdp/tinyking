@@ -27,7 +27,10 @@ it("lets a met adult ask for a real shared household need, with the normal rewar
   expect(canRequestForHousehold(s,r,w.person)).toBe(false);
   enqueueTask(s,{key:"chat"},w.person);until(w,()=>!!s.chat?.active);
   // Contact and the offer now require a player line in the paused chat.
-  const chat=require("game/chat");chat.chooseLine(s,chat.chatChoices(s).find(l=>l.family=="introduction").key);chat.closeChat(s);
+  const chat=require("game/chat");chat.chooseLine(s,chat.chatChoices(s).find(l=>l.family=="introduction").key);
+  // Replay finding 4: ask explicitly before the household offers its work.
+  s.chat.active.focus="help";
+  chat.chooseLine(s,chat.chatChoices(s).find(l=>l.family=="need_question").key);chat.closeChat(s);
   expect(s.knowledge[w.player].people[w.person].conversation).toBeDefined();
   // A real prior directional loss, repaired by real fuel delivery.
   addGoodwill(s,w.player,w.person,-3);

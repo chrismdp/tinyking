@@ -8,10 +8,11 @@ export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30,
 export const player = () => [
   [world => world.stationaryPlayer === false, () => [["person"]]],
   [world => world.stationaryPlayer && !world.playerWorking && (world.feeling.hungry || world.feeling.tired), () => [["stationary_needs"]]],
+  [world => world.stationaryPlayer && world.playerWorking && world.feeling.hungry && !world.mealFailure && !world.currentJob && !world.capturedAttentionOf && !world.claimedFarmable && !world.capturedBy, () => [["recover_meal"],["eat","meal"]]],
   ...person().filter(([, actions]) => !actions(null).some(task => ["store_held", "farm", "work_trade", "haul", "idle_person", "social_visit", "tend_garden", "child_idle", "begin_friend_help", "arrive_home"].includes(task[0])))
     .map(([condition, actions]) => {
       const need = actions(null).some(task => ["find_food", "go_to_sleep"].includes(task[0]));
-      return [world => (!need || !world.stationaryPlayer || world.playerWorking) && (actions(null).some(task => task[0] == "check_jobs") || condition(world)), value => actions(value).map(([key, ...args]) =>
+      return [world => (!need || !world.stationaryPlayer || world.playerWorking) && !(need && actions(null).some(task=>task[0]=="find_food") && world.mealFailure) && (actions(null).some(task => task[0] == "check_jobs") || condition(world)), value => actions(value).map(([key, ...args]) =>
         [key == "person" ? "player" : key == "check_jobs" ? "player_jobs" : key, ...args])];
     }),
   [() => true, () => [["wait_for", 1 / 48]]]
@@ -54,6 +55,8 @@ export const player_jobs = () => [
 ];
 
 export const ordered_meal = () => [
+  [world=>world.stationaryPlayer && world.feeling.hungry,()=>[["recover_meal"],["eat","meal"]]],
   [world => world.feeling.hungry, () => [["find_food"]]],
-  [() => true, () => [["set_label"]]]
+  [world => !world.feeling.hungry, () => [["set_label"]]],
+  [() => true, () => [["meal_unavailable"]]]
 ];

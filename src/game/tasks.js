@@ -12,7 +12,7 @@ import { designationPlants } from "game/designation";
 import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
-import { FUEL_TRADES, FUEL_HOURS, fuelReady, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
+import { FUEL_TRADES, FUEL_HOURS, harvestRouteReason, fuelReady, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -36,6 +36,7 @@ import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, loca
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { familyConversation } from "game/family";
+import { CHAT_APPROACH_JOBS, oathUnavailable } from "game/manager";
 import { TALK_MINUTES } from "game/player";
 
 export const GLEANING_SHARE = 0.05;
@@ -248,6 +249,7 @@ export function release_job(state, actorId, world, dt, firstRun, key) {
 // about the first job. take_job will happen in the same frame as the plan
 // though, so we're good I think.
 export function complete_job(state, actorId, world, dt, firstRun, key) {
+  if(key == "find_food" && state.ecs.personable[actorId].hunger > .9) return Task.ABORT;
   const jobs = jobQueueFor(state.ecs, actorId);
   const idx = jobs.findIndex(j => j.job.key == key && j.assignedId == actorId);
   if (idx == -1) {
@@ -257,7 +259,7 @@ export function complete_job(state, actorId, world, dt, firstRun, key) {
   }
   jobs[idx].progress = 1;
   jobs.splice(idx, 1);
-  if (world.ordered) for (const job of jobs) job.failed = false;
+  if (world.ordered) for (const job of jobs) if(job.job.key != "find_food") job.failed = false;
 }
 
 export function wait_for(state, actorId, world, dt, firstRun, time) {
@@ -265,7 +267,7 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
     world.wait_until = state.days + time;
   }
   if (state.days <= world.wait_until) return Task.CONTINUE;
-  if (world.ordered && !world.currentJob) for (const job of jobQueueFor(state.ecs, actorId)) job.failed = false;
+  if (world.ordered && !world.currentJob) for (const job of jobQueueFor(state.ecs, actorId)) if(job.job.key != "find_food") job.failed = false;
   return Task.FINISH;
 }
 
@@ -464,7 +466,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
   if (!slot || (slot.workerId && slot.workerId != actorId)) return Task.ABORT;
   const candidates = { harvested: ["harvestable"], ploughed: ["empty", "harvested", "rotten"], sown: ["ploughed"] };
   if (!candidates[subtask.result]?.includes(slot.state)) return Task.FINISH;
-  if (subtask.result == "harvested" && !harvestFits(state,targetId,slot.amount)) return Task.ABORT;
+  if (subtask.result == "harvested" && !(request?.status=="accepted" && request.kind=="harvest" && request.targetId==targetId) && !harvestFits(state,targetId,slot.amount)) return Task.ABORT;
   if (assisting && math.squaredDistance(state.ecs.spatial[actorId], subtask) > 100) return Task.ABORT;
   slot.workerId = actorId;
   if (workComplete(state, actorId, world, dt, firstRun, SUBTASK_TIMES[subtask.result])) {
@@ -782,7 +784,7 @@ export function pick_up_from_container(state, actorId, world, dt, firstRun, plac
 export function make_meal_space(state, actorId, world) {
   const ecs=state.ecs, holder=ecs.holder[actorId];
   if(holder.held.length<holder.capacity)return Task.FINISH;
-  const cargo=holder.held.filter(id=>!FOODS.includes(ecs.good[id]?.type));
+  const cargo=holder.held.filter(id=>!FOODS.includes(ecs.good[id]?.type) || !householdAccess(ecs,actorId,id));
   const id=cargo.find(id=>!promisedGift(ecs,id)) || cargo[0];
   if(!id)return Task.ABORT;
   take(ecs,id);
@@ -795,7 +797,59 @@ export function make_meal_space(state, actorId, world) {
   return Task.FINISH;
 }
 
+// Player care must exhaust real sources before failing an order. The old HTN
+// search aborted at each missing food type and could defer Find food on gruel
+// before ever trying roots. Keep the chosen source and timed meal across frames.
+export function recover_meal(state, actorId, world, dt, firstRun) {
+  const ecs=state.ecs;
+  if(firstRun){
+    world.mealSearch={started:state.days,rejected:{}};
+    world.blockedWalkEdges={};world.failedWalkTargets={};
+    for(const key of Object.keys(world.places))if(key=="forage_plant" || /^(container_with |stockpile_with |haulable_with )/.test(key))delete world.places[key];
+  }
+  const search=world.mealSearch;
+  const unavailable=reason=>{
+    world.mealFailure=reason;
+    const order=jobQueueFor(ecs,actorId).find(j=>j.job.key=="find_food");
+    if(order){order.waiting=order.detail=reason;order.failed=true;}
+    return Task.ABORT;
+  };
+  if(state.days-search.started>4/24)return unavailable("Food recovery could not reach a meal within four hours. Select nearby Wild roots and choose Forage, or Move here onto clear ground to try another route.");
+  if(!search.source) {
+    const held=ecs.holder[actorId].held.find(id=>FOODS.includes(ecs.good[id]?.type) && householdAccess(ecs,actorId,id));
+    if(held){world.mealType=ecs.good[held].type;delete world.mealFailure;return Task.FINISH;}
+    if(make_meal_space(state,actorId,world)==Task.ABORT)return unavailable("Your hands contain food you cannot use. Put down borrowed crop before finding your own meal.");
+    // Cache rejection only for this search. A failed earlier work journey must
+    // not suppress a reachable meal after cancellation or a changed approach.
+    const lookup={...world,places:{},no_place_for:{},failedWalkTargets:search.rejected};
+    for(const [kind,filter] of [["container","container_with"],["stockpile","stockpile_slot_with"],["loose","haulable_with_good"]]) {
+      for(const type of FOODS)if(find_place(state,actorId,lookup,0,true,"meal",filter,type)!=Task.ABORT){search.source=lookup.places.meal;search.kind=kind;search.type=type;break;}
+      if(search.source)break;
+    }
+    if(!search.source && find_place(state,actorId,lookup,0,true,"meal","forage_plant")!=Task.ABORT){search.source=lookup.places.meal;search.kind="forage";search.type="forage";}
+    if(!search.source)return unavailable(Object.keys(search.rejected).length ? "Food was found, but its walking route or access is blocked. Move here onto nearby clear ground, then choose Find food again; remaining wild roots are public food." : "No accessible meal was found. Choose Move here at the edge of explored ground to look for wild roots. Remaining roots can be gathered in winter; depleted plants regrow in spring.");
+    search.phase="walk";search.beginWalk=true;
+  }
+  world.places.mealSource=search.source;
+  const reject=()=>{search.rejected[search.source.id || search.source]=true;delete search.source;delete world.places.mealSource;return Task.CONTINUE;};
+  if(search.phase=="walk") {
+    const result=walk_to(state,actorId,world,dt,search.beginWalk,"mealSource");search.beginWalk=false;
+    if(result==Task.ABORT)return reject();
+    if(result!=Task.FINISH)return result;
+    search.phase="collect";search.beginCollect=true;
+  }
+  const collect={container:pick_up_from_container,stockpile:pick_up_from_stockpile,loose:pick_up_entity_with_good,forage};
+  const result=collect[search.kind](state,actorId,world,dt,search.beginCollect,"mealSource",search.type);search.beginCollect=false;
+  if(result==Task.ABORT)return reject();
+  if(result==Task.CONTINUE)return result;
+  world.mealType=search.type;world.holding[search.type]=true;delete world.mealFailure;
+  return Task.FINISH;
+}
+
+export function meal_unavailable() { return Task.ABORT; }
+
 export function eat(state, actorId, world, dt, firstRun, thing) {
+  if(thing=="meal")thing=world.mealType;
   if (firstRun) {
     const holder = state.ecs.holder[actorId];
     const id = holder.held.find(e => state.ecs.good[e]?.type == thing && (!state.ecs.controllable[e] || householdAccess(state.ecs, actorId, e)));
@@ -810,6 +864,7 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
 
   world.mealRemaining -= dt;
   if (world.mealRemaining > 1e-12) return Task.CONTINUE;
+  delete world.mealFailure;
   state.ecs.personable[actorId].hunger = 0;
   state.ecs.personable[actorId].starving = false;
   return Task.FINISH;
@@ -820,7 +875,9 @@ export function get_attention(state, actorId, world, dt, firstRun, targetId) {
   if (!target) {
     throw "Cannot get_attention for non-planner " + targetId;
   }
-  const approachingChat=state.ecs.manager?.[actorId]?.jobs.some(j => j.job.key == "chat" && j.targetId == targetId);
+  const approach=state.ecs.manager?.[actorId]?.jobs.find(j => CHAT_APPROACH_JOBS.includes(j.job.key) && j.targetId == targetId && j.assignedId==actorId);
+  const approachingChat=!!approach;
+  if(approach && approach.job.key!="chat" && oathUnavailable(state,actorId,targetId,approach.job.key))return Task.ABORT;
   if(approachingChat && state.ecs.interior?.[targetId] && state.ecs.interior[targetId].buildingId!=state.ecs.interior?.[actorId]?.buildingId)return Task.ABORT;
   if(approachingChat)world.chatActivity = snapshotActivity(state, targetId);
   if (target.world.feeling?.hungry || target.world.feeling?.tired || target.world.capturedBy && target.world.capturedBy != actorId) return Task.CONTINUE;
@@ -1035,6 +1092,8 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const gone = reasonGone(state, r);
   if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(state, r); return Task.ABORT; }
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
+  if(firstRun)delete order.failureReason;
+  const fail = reason => { order.failureReason = reason; return Task.ABORT; };
   const store = householdStore(state, r.householdId);
   const receiver = favourReceiver(state, r);
   const walk = target => {
@@ -1047,20 +1106,21 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const cargo = r.cargo[0];
   if (cargo) {
     const holder = ecs.haulable[cargo].heldBy;
-    if (holder && holder != actorId) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    if (holder && holder != actorId) { return fail("The cut harvest is no longer available. Cancel this favour."); }
     const result = walk(holder == actorId ? receiver : cargo);
+    if (result == Task.ABORT) return fail(harvestRouteReason(state,r,"harvest or household store"));
     if (result != Task.FINISH) return result;
     const target = ecs.spatial[holder == actorId ? receiver : cargo];
-    if (math.squaredDistance(ecs.spatial[actorId], target) > 100 || !fenceHandoffClear(state, ecs.spatial[actorId], target)) return Task.ABORT;
+    if (math.squaredDistance(ecs.spatial[actorId], target) > 100 || !fenceHandoffClear(state, ecs.spatial[actorId], target)) return fail("A fence blocks the harvest handover. Move to the gate and try the favour again.");
     if (!holder) {
-      if (!give(ecs, cargo, actorId)) return Task.ABORT;
+      if (!give(ecs, cargo, actorId)) return fail("Your hands are full. Deliver or give away carried goods before continuing this favour.");
       removeFromSpace(state, cargo); state.redraws.push(cargo, actorId);
       order.detail = "Carrying the family harvest home";
       return Task.CONTINUE;
     }
     const type = ecs.good[cargo].type, amount = ecs.good[cargo].amount;
     const fromId = topController(ecs, cargo), use = receiver == r.workplaceId ? "fuel" :
-      r.kind == "food" && !containerHasSpace(ecs.container[store]) ? "handed_over" : "stored";
+      ["food","harvest"].includes(r.kind) && !containerHasSpace(ecs.container[store]) ? "handed_over" : "stored";
     if (use == "fuel") {
       // The one physical owned log is consumed here, never added beyond store
       // capacity. No fuel is credited until real custody and reach pass above.
@@ -1070,6 +1130,7 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
       state.redraws.push(actorId, receiver);
     } else if (use == "handed_over") {
       take(ecs, cargo);
+      delete ecs.haulable[cargo].reservedFor;
       Object.assign(ecs.spatial[cargo], { x:target.x, y:target.y });
       ecs.household[cargo] = { id:cargo, houseId:r.householdId };
       ecs.controllable[cargo].controllerId = topController(ecs, r.householdId);
@@ -1077,7 +1138,7 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
       if(!space.includes(cargo))space.push(cargo);
       state.redraws.push(cargo, actorId, store);
     } else {
-      if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
+      if (!containerHasSpace(ecs.container[store])) return fail("The household store is full. Let the family use its grain before continuing.");
       world.places.favourStore = store;
       if (drop_entity_into_container(state, actorId, world, dt, true, "favourStore", type, cargo) == Task.ABORT) return Task.ABORT;
     }
@@ -1099,23 +1160,27 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   }
   if (finishFavour(state, r)) return Task.FINISH;
   if (r.kind == "harvest") {
-    if (r.progress >= r.quantity) { order.detail = "Harvest cargo no longer available"; return Task.ABORT; }
+    if (r.progress >= r.quantity) { return fail("The cut harvest is no longer available. Cancel this favour."); }
     const farm = ecs.farmable?.[r.targetId];
-    if (!farm || claim_farmable(state, actorId, world, dt, true, r.targetId) == Task.ABORT) return Task.ABORT;
+    if (!farm || claim_farmable(state, actorId, world, dt, true, r.targetId) == Task.ABORT) return fail("Another worker is using the harvest field. Let them finish this patch.");
     world.claimedFarmable = r.targetId;
     if (r.slot == null || farm.slots[r.slot]?.state != "harvestable") {
       r.slot = farm.slots.findIndex(slot => slot.state == "harvestable" && (!slot.workerId || slot.workerId == actorId));
       delete order.workRemaining;
     }
-    if (r.slot < 0) return Task.ABORT;
+    if (r.slot < 0) return fail("No ripe patch is free. Let the family finish its current patch.");
     farm.slots[r.slot].workerId = actorId;
     const point = { ...triangleCenters(ecs.spatial[r.targetId])[r.slot], idx: r.slot, id: r.targetId, result: "harvested" };
     world.places.favourSlot = point;
     const result = walk(point);
+    if (result == Task.ABORT) return fail(harvestRouteReason(state,r,"harvest patch"));
     if (result != Task.FINISH) return result;
     const work = perform_subtask_in_slot(state, actorId, world, dt, !r.working || firstRun, r.targetId, "favourSlot");
     r.working = work == Task.CONTINUE;
-    if (work == Task.ABORT) return work;
+    if (work == Task.ABORT) return fail(!harvestFits(state,r.targetId,farm.slots[r.slot].amount) ?
+      "Not enough room in the household store for a whole crop patch. Let the family use its grain." :
+      math.squaredDistance(ecs.spatial[actorId],point)>100 ? "The harvest patch is out of reach. Move closer and try the favour again." :
+        "Another worker is using the harvest patch. Let them finish this patch.");
     if (work == Task.FINISH) {
       r.slot = null; delete order.workRemaining;
       release_farmable(state, actorId, world, dt, true, r.targetId); world.claimedFarmable = null;

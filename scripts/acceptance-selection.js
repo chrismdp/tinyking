@@ -30,7 +30,7 @@ function fuelFriend(s) {
   if (!candidates.length) throw new Error("Seed 13 has no attainable local fuel-friend scenario at this time");
   const r = candidates[0];
   return { person: r.giverId, favourId: r.id, home: s.ecs.household[r.giverId].houseId,
-    rule: "Assisted read-only selection: nearest living adult fuel requester whose generated disposition towards the player is love (16 initial goodwill); two consenting Chats plus the real +12 fuel favour can reach Personal, allowing ordinary drift. The material-ready third Chat refreshes contact. No seed search or personality edits.",
+    rule: "Assisted read-only selection: nearest living adult fuel requester whose generated disposition towards the player is love (16 initial goodwill); scoring Chat lines plus the real +12 fuel favour can reach Personal, allowing ordinary drift. The material-ready third Chat refreshes contact. No seed search or personality edits.",
     candidates: candidates.map(r => ({ person: r.giverId, favourId: r.id })) };
 }
 // Exercise physical approaches on a detached snapshot. A tile-level path alone
@@ -72,31 +72,163 @@ function harvestFriend(s) {
   return {...selected,controller:s.ecs.controllable[selected.person].controllerId,rule:"Read-only selection of the nearest independent living householder whose fixed tastes allow friendship, with one physically reachable growing field, including every crop patch, delivery route and storage for the full eighteen-grain favour. Spring growth, conversations, harvest work and delivery run normally."};
 }
 
-// Reach the original Love-plus-two-Chats trust level through actual conversations.
-// A nearby compatible farmer can earn it too, without changing fixed tastes.
-async function chatForTrust(page,person,goal) {
-  const visits=[];
-  for(;;) {
-    const before=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,goodwill:s.ecs.relationships[id].known[s.ui.playerId]?.goodwill || 0};},person);
-    if(before.goodwill>=goal)return visits;
-    const chat=page.getByRole("button",{name:"Chat",exact:true});
-    if(!await chat.isEnabled()) {
-      await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
-      await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),before.day,{timeout:180000});
-      await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
-      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-      continue;
+// Score only what the panel shows: matches and already discovered tastes.
+// Unknown tastes stay unknown; never inspect the NPC's fixed personality.
+function chooseVisibleLine(choices, accept = false) {
+  const usable = choices.filter(c => !c.disabled && c.family != "favour_decline" && (accept || c.family != "favour_accept"));
+  if (accept && usable.some(c => c.family == "favour_accept")) return usable.find(c => c.family == "favour_accept");
+  const introduction = usable.find(c => c.family == "introduction");
+  if (introduction) return introduction;
+  return usable.sort((a,b) => b.score-a.score || b.matches-a.matches)[0];
+}
+async function chatState(page, person) {
+  return page.evaluate(id => {
+    const s = window.tinyking, c = s.chat?.active;
+    return { day:s.days, bond:s.ecs.relationships[id].known[s.ui.playerId],
+      contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation, tastes:s.knowledge?.[s.ui.playerId]?.people?.[id]?.topicTastes,
+      active:c && JSON.parse(JSON.stringify(c)), history:s.chat?.history?.at(-1), result:s.ui.talkResult };
+  }, person);
+}
+// A queued approach is complete only when the paused panel is on screen.
+async function waitForChatPanel(page, person) {
+  await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
+  console.log("CHAT approach "+person);
+  try {
+    await page.waitForFunction(id => {
+      const s=window.tinyking;
+      return s.chat?.active?.npcId==id || !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat" && j.targetId==id);
+    },person,{timeout:180000});
+  } catch(error) {
+    const approach=await page.evaluate(id=>{const s=window.tinyking,p=s.ui.playerId;return {day:s.days,speed:s.game_speed,jobs:s.ecs.manager[p].jobs,player:s.ecs.planner[p],npc:s.ecs.planner[id],positions:[s.ecs.spatial[p],s.ecs.spatial[id]],needs:[s.ecs.personable[p],s.ecs.personable[id]]};},person);
+    throw new Error("Chat approach failed: "+error.message+" · "+JSON.stringify(approach));
+  }
+  if (!await page.locator(".chat-panel").count()) throw new Error("Chat approach ended without a panel: "+JSON.stringify(await chatState(page,person)));
+  await page.locator(".chat-panel").waitFor();
+  console.log("CHAT panel open "+person);
+}
+async function finishChatPanel(page, person, { acceptFavourId, onOpen, maxLines=12 } = {}) {
+  const before = await chatState(page,person);
+  if (!before.active || before.active.npcId != person) throw new Error("Expected this person's open Chat panel");
+  if(onOpen)await onOpen();
+  // Prove the application's pause with its normal ticker running first.
+  await page.evaluate(()=>new Promise(resolve=>window.requestAnimationFrame(()=>window.requestAnimationFrame(resolve))));
+  if((await chatState(page,person)).day!==before.day || !await page.evaluate(()=>window.tinyking.game_speed=="paused"))throw new Error("The native Chat panel did not pause the world");
+  // The world is already paused. Avoid redrawing its unchanged 3D scene under
+  // every dialog interaction; all choices still use the real visible buttons.
+  await page.evaluate(()=>window.tinyking.ticker.stop());
+  try {
+    const selected=[];
+    for(let turn=0;selected.length<maxLines && turn<maxLines*2;turn++) {
+      const state=await chatState(page,person);
+      if(state.active.endReason)break;
+      const choices=await page.locator(".chat-choices > button").evaluateAll(buttons=>buttons.map(b=>{
+        const icons=[...b.querySelectorAll(".choice-icons .chat-icon")];
+        const matches=icons.filter(i=>i.dataset.matches=="true");
+        const score=matches.reduce((sum,i)=>sum+([...i.querySelectorAll("small")].map(e=>e.textContent).filter(t=>/^[+-]?\d+(\.\d+)?$/.test(t)).map(Number).at(-1)||0),0);
+        return {id:b.dataset.lineId,family:b.dataset.family,disabled:b.disabled,matches:matches.length,score};
+      }));
+      const request=acceptFavourId && await page.evaluate(id=>{
+        const s=window.tinyking,r=s.favours.requests[id];
+        return {kind:r.kind,heard:s.knowledge?.[s.ui.playerId]?.offers?.[id]?.speakerId==s.chat.active.npcId};
+      },acceptFavourId);
+      const accept=!!request?.heard;
+      const eligible=choices.filter(c=>c.family!="favour_accept" || c.id.startsWith("player.favour_accept."+request?.kind+"."));
+      const line=chooseVisibleLine(eligible,accept);
+      if(!line)break;
+      // When seeking a request, ask through the actual Help subject after the
+      // introduction. The offer must be spoken before its acceptance can appear.
+      if(acceptFavourId && !accept && line.family!="introduction" && state.active.focus!="help") {
+        const details=page.locator(".chat-scroll details");
+        if(await details.getAttribute("open")===null)await details.locator("summary").click({noWaitAfter:true});
+        await page.getByRole("button",{name:"Help",exact:true}).click({noWaitAfter:true});
+        continue;
+      }
+      const spokenLine=acceptFavourId && !accept && line.family!="introduction"
+        ? eligible.find(c=>!c.disabled && ["need_question","help_offer"].includes(c.family)) || line : line;
+      await page.locator(`.chat-choices > button[data-line-id="${spokenLine.id}"]`).click({noWaitAfter:true});
+      selected.push(spokenLine);
+      console.log("CHAT line "+spokenLine.id);
+      await page.waitForFunction(({count})=>window.tinyking.chat.active.transcript.length>count,{count:state.active.transcript.length});
+      if(acceptFavourId && await page.evaluate(id=>window.tinyking.favours.requests[id]?.status=="accepted",acceptFavourId))break;
     }
-    await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
-    await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat" && j.targetId==id);},person,{timeout:180000});
+    const spoken=await chatState(page,person);
+    if(spoken.day!==before.day)throw new Error("Game time advanced inside the paused Chat panel");
+    if(!selected.length || !spoken.active.completed)throw new Error("Chat did not complete a chosen exchange: "+JSON.stringify(spoken));
+    await page.getByRole("button",{name:"End chat",exact:true}).click({noWaitAfter:true});
+    await page.locator(".chat-panel").waitFor({state:"detached"});
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-    const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge[s.ui.playerId].people[id]?.conversation,result:s.ui.talkResult};},person);
-    visits.push(earned);
-    if(!earned.contact || earned.contact.day<before.day || !(earned.bond.goodwill>before.goodwill))throw new Error("The actual farmer conversation did not earn trust: "+JSON.stringify(visits));
+    const after=await chatState(page,person);
+    return {...after,nativePauseVerified:true,selected,pops:spoken.active.transcript.flatMap(l=>l.pops||[]),transcript:spoken.active.transcript,
+      accepted:acceptFavourId ? await page.evaluate(id=>window.tinyking.favours.requests[id]?.status=="accepted",acceptFavourId) : undefined};
+  } finally {
+    await page.evaluate(()=>window.tinyking.ticker.start()).catch(()=>{});
   }
 }
-module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend };
-module.exports.chatForTrust=chatForTrust;
+async function waitForChatReadiness(page,person,{requireSlots=true}={}) {
+  await page.evaluate(()=>{window.chatCareAttempted={};window.chatCareOrders=[];window.tinyking.ui.actions.set_speed("fast");});
+  await page.waitForFunction(({id,requireSlots})=>{
+    const s=window.tinyking,actor=s.ui.playerId,p=s.ecs.personable[actor],jobs=s.ecs.manager[actor].jobs;
+    const pending=jobs.some(j=>["find_food","rest"].includes(j.job.key));
+    for(const [amount,key] of [["hunger","find_food"],["tiredness","rest"]]) {
+      if(p[amount]<=.9)delete window.chatCareAttempted[key];
+      if(p[amount]>.9 && !pending && !window.chatCareAttempted[key]) {
+        window.chatCareAttempted[key]=true;
+        window.chatCareOrders.push({day:s.days,key});s.ui.actions.choose_job(actor,{key},actor);
+      }
+    }
+    const needs=id=>{const f=s.ecs.planner[id].world.feeling;return f?.hungry || f?.tired;};
+    const button=[...document.querySelectorAll(".person-window button")].find(b=>b.textContent=="Chat");
+    const moving=["walk_to","eat","sleep"].includes(s.ecs.planner[id].task?.[0]);
+    if(requireSlots && (!button || button.disabled) || s.ecs.manager[actor].jobs.some(j=>["find_food","rest"].includes(j.job.key)) || needs(actor) || needs(id) || moving || s.ecs.interior[id])return false;
+    s.ui.actions.set_speed("paused");return true;
+  },{id:person,requireSlots},{timeout:180000});
+  return page.evaluate(()=>window.chatCareOrders);
+}
+async function readyChat(page,person) {
+  await page.evaluate(id=>window.tinyking.ui.actions.select_entity(id,false),person);
+  await page.getByRole("button",{name:"Chat",exact:true}).waitFor();
+  await waitForChatReadiness(page,person);
+  await page.getByRole("button",{name:"Chat",exact:true}).click({noWaitAfter:true});
+}
+async function chatVisit(page,person,options) {
+  await readyChat(page,person);
+  // Preserve the existing handover ordering when other real work is queued.
+  await page.evaluate(id=>{const s=window.tinyking,jobs=s.ecs.manager[s.ui.playerId].jobs,visit=jobs.find(j=>j.job.key=="chat" && j.targetId==id);if(visit)s.ui.actions.reorder_task(visit.id,0);},person);
+  await waitForChatPanel(page,person);
+  return finishChatPanel(page,person,options);
+}
+// Real pops replace the former flat +2 reward. A neutral or negative exchange
+// is retained in the evidence; a bounded set of visits must earn actual trust.
+async function chatForTrust(page,person,goal) {
+  const visits=[];
+  for(let visit=0;visit<16;visit++) {
+    const before=await chatState(page,person);
+    if((before.bond?.goodwill||0)>=goal && before.contact)return visits;
+    const earned=await chatVisit(page,person);
+    visits.push(earned);
+    if(!earned.contact || earned.contact.day<before.day)throw new Error("No spoken contact: "+JSON.stringify(visits));
+    console.log("CHAT "+person+" goodwill "+(earned.bond?.goodwill||0)+"; "+earned.pops.length+" pops; End chat closed");
+    if((earned.bond?.goodwill||0)>=goal)return visits;
+  }
+  throw new Error("Visible Chat choices did not earn "+goal+" goodwill in sixteen visits: "+JSON.stringify(visits));
+}
+module.exports = { snapshot, shelterCandidates, fuelFriend, harvestFriend, chooseVisibleLine, waitForChatPanel, finishChatPanel, chatVisit, chatForTrust, waitForChatReadiness };
+
+// A harvest includes many physical round trips and normal meals/nights.
+// Keep the old three-minute stall limit, renewed only by real crop/delivery
+// progress. No timer is renewed by UI activity, care, or a waiting message.
+async function waitForFavourDelivery(page,id) {
+  for(;;) {
+    const before=await page.evaluate(id=>{const r=window.tinyking.favours.requests[id];return {status:r.status,progress:r.progress,delivered:r.delivered,outcome:r.outcome};},id);
+    if(before.status=="completed")return before;
+    if(before.status!="accepted")throw new Error("Favour ended without delivery: "+JSON.stringify(before));
+    await page.waitForFunction(({id,progress,delivered})=>{
+      const r=window.tinyking.favours.requests[id];
+      return r.status!="accepted" || r.progress>progress || r.delivered>delivered;
+    },{id,progress:before.progress,delivered:before.delivered},{timeout:180000});
+  }
+}
+module.exports.waitForFavourDelivery=waitForFavourDelivery;
 
 // Explore reachable known frontiers. Selection reads no hidden tree positions.
 // The movement callback uses real map clicks in the mechanical driver.
@@ -173,25 +305,40 @@ async function earnTimberRights(page,common) {
   const elder=await page.evaluate(v=>window.tinykingCustoms.villageElder(window.tinyking,v),common.villageId);
   const result={villageId:common.villageId,elderId:elder,chats:[],readiness:[],refusals:[],initial:await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation};},elder)};
   const earnTrust=async()=>{
-    for(;;) {
-      const status=await page.evaluate(({elder,villageId})=>{const s=window.tinyking;return {day:s.days,eligible:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId),goodwill:s.ecs.relationships[elder].known[s.ui.playerId]?.goodwill || 0,contact:s.knowledge?.[s.ui.playerId]?.people?.[elder]?.conversation};},{elder,villageId:common.villageId});
-      if(status.contact && status.goodwill>=OATH_TRUST)break;
-      const chat=page.getByRole("button",{name:"Chat",exact:true});
-      if(!await chat.isEnabled()) {
-        // A real night and ordinary care restore the existing daily patience.
-        await page.evaluate(()=>{const s=window.tinyking;for(const key of ["find_food","rest"])s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");});
-        await page.waitForFunction(day=>Math.floor(window.tinyking.days)>Math.floor(day),status.day,{timeout:180000});
-        await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>["find_food","rest"].includes(j.job.key));},null,{timeout:180000});
-        await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-        continue;
+    if(!result.chats.length)result.chats.push(await chatVisit(page,elder,{maxLines:8}));
+    result.gifts ||= [];
+    // Chat no longer awards a flat +2. Use the existing physical gift route
+    // for the remaining trust, preserving the actual oath's ten-goodwill gate.
+    for(let gift=0;gift<5;gift++) {
+      const bond=await chatState(page,elder);
+      if(bond.contact && bond.bond.goodwill>=OATH_TRUST)return;
+      await page.evaluate(id=>window.tinyking.ui.actions.select_entity(id,false),elder);
+      const hasWood=await page.evaluate(()=>{
+        const s=window.tinyking,actor=s.ui.playerId,owned=id=>s.ecs.controllable[id]?.controllerId==actor;
+        return Object.entries(s.ecs.good).some(([id,g])=>g.type=="wood" && g.amount>=1 && s.ecs.haulable[id] && owned(id)) ||
+          Object.entries(s.ecs.container).some(([id,c])=>c.amounts.wood>=1 && owned(id));
+      });
+      if(!hasWood) {
+        const timber=await page.evaluate(timberSurvey,[]);
+        if(!timber.trees.length)throw new Error("No discovered permitted timber for an actual trust gift");
+        await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.choose_job(s.ui.playerId,{key:"cut_tree_down"},id);s.ui.actions.set_speed("fast");},timber.trees[0]);
+        await observeWork(page,()=>page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="cut_tree_down");},null,{timeout:180000}));
+        await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.set_speed("paused");s.ui.actions.select_entity(id,false);},elder);
       }
-      await chat.click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
-      await page.waitForFunction(id=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat"&&j.targetId==id);},elder,{timeout:180000});
-      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
-      const earned=await page.evaluate(id=>{const s=window.tinyking;return {day:s.days,bond:s.ecs.relationships[id].known[s.ui.playerId],contact:s.knowledge?.[s.ui.playerId]?.people?.[id]?.conversation,result:s.ui.talkResult};},elder);
-      result.chats.push(earned);
-      if(!earned.contact || earned.contact.day<status.day || !(earned.bond?.goodwill>status.goodwill))throw new Error("The actual elder conversation did not earn further trust: "+JSON.stringify(result));
+      await observeWork(page,()=>waitForChatReadiness(page,elder,{requireSlots:false}));
+      await page.evaluate(id=>window.tinyking.ui.actions.select_entity(id,false),elder);
+      const count=await page.evaluate(id=>{const s=window.tinyking;return s.events.filter(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id).length;},elder);
+      await page.getByRole("button",{name:"Give a gift",exact:true}).click({noWaitAfter:true});
+      await page.locator(".talk-chooser > button").filter({hasText:/^Wood/}).first().click({noWaitAfter:true});
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+      await observeWork(page,()=>page.waitForFunction(({id,count})=>{const s=window.tinyking;return s.events.filter(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id).length>count;},{id:elder,count},{timeout:180000}));
+      await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.set_speed("paused");s.ui.actions.select_entity(id,false);},elder);
+      const proof=await page.evaluate(id=>{const s=window.tinyking,event=s.events.findLast(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id),a=event.positions[s.ui.playerId],b=event.positions[id];return {event,distance:Math.hypot(a.x-b.x,a.y-b.y),bond:s.ecs.relationships[id].known[s.ui.playerId]};},elder);
+      if(proof.distance>10 || !proof.event.gifts.some(g=>g.type=="wood" && g.ownerId==elder))throw new Error("Trust gift lacked its physical ownership receipt: "+JSON.stringify(proof));
+      result.gifts.push(proof);
+      console.log("GIFT "+elder+" goodwill "+proof.bond.goodwill+"; actual handoff "+proof.distance);
     }
+    if((await chatState(page,elder)).bond.goodwill<OATH_TRUST)throw new Error("Actual gifts did not earn the oath's required trust: "+JSON.stringify(result));
   };
   await earnTrust();
   try {
@@ -299,9 +446,37 @@ module.exports.assertFamilySurfaceClear=assertFamilySurfaceClear;
 // You control as a player before resuming their real map clicks.
 async function returnToLocalView(page) {
   if (!await page.evaluate(() => !!window.tinyking.renderer.overview)) return;
-  await page.getByRole("button", {name:"Recenter on you", exact:true}).click();
+  await page.getByRole("button", {name:"Recenter on you", exact:true}).click({noWaitAfter:true});
   await page.waitForFunction(() => !window.tinyking.renderer.overview);
 }
 module.exports.returnToLocalView = returnToLocalView;
 
 module.exports.earnTimberRights=earnTimberRights;
+
+// The real Realm control hides local models while the same simulation runs.
+// Return through You before entity selection, map orders or evidence.
+// Global care/speed controls remain available; no clock/results are assigned.
+async function observeWork(page,observe) {
+  await page.getByRole("button",{name:"Fit the whole realm",exact:true}).click({noWaitAfter:true});
+  await page.waitForFunction(()=>window.tinyking.renderer.overview);
+  try { return await observe(); }
+  finally { await returnToLocalView(page); }
+}
+module.exports.observeWork=observeWork;
+
+// Cold world generation is separate from gameplay. Retain measured slow
+// starts in the log; this budget stays within the overall twenty-minute run.
+async function waitForStartMenu(page) {
+  const start=Date.now();
+  await page.getByText("Start new game",{exact:true}).waitFor({timeout:300000});
+  const seconds=(Date.now()-start)/1000;
+  console.log((seconds>120?"SLOW STARTUP ":"STARTUP ")+"menu ready after "+seconds+" seconds");
+}
+async function waitForCharacter(page) {
+  const start=Date.now();
+  await page.locator(".character canvas").waitFor({timeout:300000});
+  await page.waitForFunction(()=>window.tinyking?.renderer && !window.tinyking.generating && window.tinyking.redraws.length==0,null,{timeout:300000});
+  console.log("STARTUP character/world ready after "+((Date.now()-start)/1000)+" seconds");
+}
+module.exports.waitForStartMenu=waitForStartMenu;
+module.exports.waitForCharacter=waitForCharacter;

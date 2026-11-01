@@ -8,7 +8,7 @@ import { habitatAt, localHabitat, climateAt } from "game/biome_field";
 import { foundHousehold } from "game/family";
 import { expandedFootprint, expansionFits } from "game/settlement_growth";
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
-import { resourcePermission, answerCustoms, commonLand, villageElder, membership, oathEligibility } from "game/village_customs";
+import { resourcePermission, commonLand, villageElder, membership, oathEligibility } from "game/village_customs";
 import { updateRoadWear, recordRoadUse } from "game/road_wear";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -274,13 +274,12 @@ export function World() {
       found_household: () => {if(introActive(state)||state.worldBusy)return;foundHousehold(state);renderUI();},
       confirm_resource_order: () => {
         const order = state.ui.resourceOrder;
-        if (!order || state.customs?.dialogue) return;
+        if (!order || state.chat?.active) return;
         const permission = resourcePermission(state, state.ui.playerId, order.targetId);
         if (permission.kind != "private" || permission.permitted) enqueueTask(state, order.job, order.targetId);
         delete state.ui.resourceOrder; renderUI();
       },
       dismiss_resource_order: () => { delete state.ui.resourceOrder; renderUI(); },
-      answer_customs: choice => { answerCustoms(state, choice); renderUI(); },
       dismiss_customs: () => { delete state.ui.customsResult; renderUI(); },
       choose_chat_line: key => { chooseLine(state,key); renderUI(); },
       close_chat: () => { closeChat(state); renderUI(); },

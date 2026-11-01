@@ -1,7 +1,8 @@
+import { respond, discussOath } from "./support/customs_chat";
 import {peopleWorld} from './support/people';
 import {newEntities} from 'game/entities';
 import {enqueueTask} from 'game/manager';
-import {observeChop, updateCustoms, arriveCustoms, dialogueValid} from 'game/village_customs';
+import {observeChop, updateCustoms, arriveCustoms, customsChatValid } from 'game/village_customs';
 import {HOUR} from 'game/time';
 
 function warningWorld(need) {
@@ -13,7 +14,7 @@ function warningWorld(need) {
  ]);
  Object.assign(s.villages.village,{id:'village',houses:[house],sharedPlaces:[]});
  for(const id of [w.person,w.parent,w.sibling])s.ecs.household[id].houseId=house;
- for(const id of [w.person,w.sibling])s.ecs.planner[id].world.customsHold=true;
+ for(const id of [w.person,w.sibling])s.ecs.planner[id].world.capturedBy="busy";
  s.ecs.household[w.player]={houseId:null};s.ecs.village[w.player]={villageId:null};
  Object.assign(s.ecs.spatial[w.player],s.ecs.spatial[tree]);
  Object.assign(s.ecs.spatial[w.parent],s.ecs.spatial[tree],{x:s.ecs.spatial[tree].x-45});
@@ -27,7 +28,7 @@ it.each([['hungry','eat'],['tired','sleep']])('does not repeatedly open and inva
  const w=warningWorld(need),s=w.state,planner=s.ecs.planner[w.player];
  planner.task=[task,'grain'];planner.plan=[];
  expect(arriveCustoms(s,w.parent,HOUR/60)).toBe(false);
- expect(s.customs.dialogue).toBeUndefined();
+ expect(s.chat?.active?.context).toBeUndefined();
  expect(planner.task).toEqual([task,'grain']);
  expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBeUndefined();
 });
@@ -39,8 +40,8 @@ it('lets the receipt-hungry timber worker finish roots and a meal before a queue
  for(let minute=0;minute<180 && s.ecs.personable[w.player].hunger>.3;minute++)w.step(1/60);
  expect(s.ecs.personable[w.player].hunger).toBeLessThan(.3);
  expect(s.ecs.forageable[w.root].amount).toBe(0);
- for(let minute=0;minute<30 && !s.customs.dialogue;minute++)w.step(1/60);
- expect(s.customs.dialogue).toMatchObject({kind:'warning'});
- expect(dialogueValid(s)).toBe(true);
+ for(let minute=0;minute<30 && !s.chat?.active?.context;minute++)w.step(1/60);
+ expect(s.chat?.active?.context).toMatchObject({kind:'warning'});
+ expect(customsChatValid(s)).toBe(true);
  expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBeUndefined();
 });

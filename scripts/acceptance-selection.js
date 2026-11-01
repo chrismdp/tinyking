@@ -350,23 +350,23 @@ async function earnTimberRights(page,common) {
       // Necessary care can outlast the goodwill margin. Earn any missing
       // trust through the same real Chat path before discussing the oath.
       await earnTrust();
-      await page.getByRole("button",{name:"Discuss the local oath",exact:true}).click();
+      await page.getByRole("button",{name:"Chat about the local oath",exact:true}).click();
       await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
       await page.waitForFunction(id=>{
         const s=window.tinyking;
-        const opened=s.customs?.dialogue?.kind=="oath" && s.customs.dialogue.speakerId==id;
-        if(opened && !window.tinykingCustoms.oathEligibility(s,s.ui.playerId,s.customs.dialogue.villageId).readiness.ok)return false;
-        if(!opened && s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="village_oath" && j.targetId==id))return false;
+        const opened=s.chat?.active?.context?.kind=="oath" && s.chat.active.context.speakerId==id;
+        if(opened && !window.tinykingCustoms.oathEligibility(s,s.ui.playerId,s.chat.active.context.villageId).readiness.ok)return false;
+        if(!opened && s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat" && j.chatIntent=="oath" && j.targetId==id))return false;
         s.ui.actions.set_speed("paused");return true;
       },elder,{timeout:180000});
-      const outcome=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,opened:s.customs?.dialogue?.kind=="oath",eligibility:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,v),talkResult:s.ui.talkResult};},common.villageId);
+      const outcome=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,opened:s.chat?.active?.context?.kind=="oath",eligibility:window.tinykingCustoms.oathEligibility(s,s.ui.playerId,v),talkResult:s.ui.talkResult};},common.villageId);
       if(outcome.opened)break;
       result.refusals.push(outcome);
       const needsRefusal=/^(You need|The elder needs) (food|rest|food and rest) before this conversation\./.test(outcome.talkResult?.message || "");
       if(attempt || outcome.eligibility.readiness.ok && !needsRefusal)throw new Error("The actual oath approach ended without a ready dialogue");
     }
-    await page.getByRole("dialog",{name:"Local oath",exact:true}).waitFor();
-    await page.getByRole("button",{name:"Swear the local oath",exact:true}).click();
+    await page.locator(".chat-panel").waitFor();
+    await page.getByRole("button",{name:/^I swear the local oath/,exact:true}).click();
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     result.earned=await page.evaluate(v=>{const s=window.tinyking;return {day:s.days,membership:window.tinykingCustoms.membership(s,s.ui.playerId,v),event:s.events.filter(e=>e.type=="village_oath"&&e.people[0]==s.ui.playerId&&e.villageId==v).at(-1)};},common.villageId);
     if(result.earned.membership!=="oath" || !result.earned.event)throw new Error("The local oath was not earned: "+JSON.stringify(result));

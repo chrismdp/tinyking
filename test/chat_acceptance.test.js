@@ -69,6 +69,16 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
       s.ecs.personable[sibling].dead=true;
       const death=recordEvent(s,"death",[sibling]);s.knowledge[p].events=[death.id];
     }
+    if(row.family=="customs_question") {
+      // New elder questions require their real household, prior contact and
+      // earned trust; the generic news fixture above has no village elder.
+      const {newEntities}=require("game/entities");
+      const [house]=newEntities(s,[{spatial:{...s.ecs.spatial[n]},building:{},household:{},village:{villageId:"village"},controllable:{controllerId:n}}]);
+      s.villages.village={id:"village",houses:[house],elderId:n};s.ecs.household[n].houseId=house;
+      s.ecs.household[p]={houseId:null};s.ecs.village[p]={villageId:null};s.ecs.relationships[n].known[p]={ring:"social",goodwill:12,base:12};
+      s.knowledge[p].people[n]={traits:[],conversation:{day:s.days}};
+      if(row.situation=="leave")s.ecs.village[p].memberships={village:{day:0}};
+    }
     const q=lineCandidates(s,c,row.family,"player").find(l=>l.id==row.id);
     expect({id:row.id,reachable:!!q}).toEqual({id:row.id,reachable:true});
     if(exhausted) {

@@ -64,3 +64,12 @@ it("finds the deferred food reason behind a different deferred task",()=>{
   s.ecs.manager[p].jobs=[{job:{key:"build_shelter"},waiting:"Waiting for logs"},{job:{key:"find_food"},waiting:"No accessible meal. Choose Forage."}];
   expect(openingGuidance(s).text).toBe("No accessible meal. Choose Forage.");
 });
+it("offers another available neighbour when the nearest person is unfriendly",()=>{
+  const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};
+  s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
+  s.ecs.spatial[n]={...s.ecs.spatial[p],x:s.ecs.spatial[p].x+40};
+  s.ecs.relationships[n].known[p]={ring:"public",goodwill:-3,base:0};
+  const hint=openingGuidance(s);
+  expect(hint.targetId).toBeDefined();expect(hint.targetId).not.toBe(n);
+  expect(require("game/manager").chatUnavailable(s,p,hint.targetId)).toBeNull();
+});

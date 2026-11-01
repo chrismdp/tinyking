@@ -19,7 +19,8 @@ export function patience(s,actor,npc) {
   const tiredness=s.ecs.personable?.[actor]?.tiredness || 0;
   const max=tiredness>1.8?2:tiredness>1.2?Math.max(2,Math.floor(usualMax/2)):usualMax;
   const minimum=Math.min(MIN_CHAT_SLOTS,max);
-  const resting=Math.min(max,r?.resting || 0),free=max-resting;
+  const reserve=s.chat?.active?.required&&s.chat.active.actorId==actor&&s.chat.active.npcId==npc?2:0;
+  const resting=Math.min(Math.max(0,max-reserve),r?.resting || 0),free=max-resting;
   return {max,minimum,hours,resting,free,tired:tiredness>1.2,readyIn:Math.max(0,minimum-free-(r?.credit||0))*hours};
 }
 export function recoverSlots(s,hours) {

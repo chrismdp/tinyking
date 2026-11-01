@@ -306,7 +306,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.first_meeting.weather.03",
@@ -880,7 +881,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.greeting.first_meeting.base.01",
@@ -1440,7 +1442,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "origin"
  },
  {
   "id": "npc.greeting.first_meeting.base.04",
@@ -2804,7 +2807,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.02",
@@ -3230,7 +3234,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.05",
@@ -3372,7 +3377,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.06",
@@ -3798,7 +3804,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.09",
@@ -3940,7 +3947,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.10",
@@ -4385,7 +4393,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.13",
@@ -4539,7 +4548,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.activity.14",
@@ -4962,7 +4972,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.greeting.first_meeting.cheerful.03",
@@ -5279,7 +5290,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.first_meeting.gloomy.02",
@@ -6168,7 +6180,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "origin"
  },
  {
   "id": "npc.greeting.first_meeting.timid.02",
@@ -6310,7 +6323,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.first_meeting.timid.03",
@@ -6751,7 +6765,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.greeting.first_meeting.hardworking.01",
@@ -7492,7 +7507,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.first_meeting.pious.02",
@@ -7786,7 +7802,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "origin"
  },
  {
   "id": "npc.greeting.first_meeting.worldly.02",
@@ -7919,7 +7936,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "news"
  },
  {
   "id": "npc.greeting.first_meeting.generous.01",
@@ -8356,7 +8374,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting.greedy.02",
@@ -9056,7 +9075,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.met_no_exchange.activity.01",
@@ -9603,7 +9623,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting_hostile.base.02",
@@ -9748,7 +9769,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting_hostile.base.03",
@@ -9874,7 +9896,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting_hostile.base.04",
@@ -10013,7 +10036,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting_hostile.proud.01",
@@ -10134,7 +10158,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.first_meeting_hostile.gloomy.01",
@@ -10257,7 +10282,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.weather.01",
@@ -10884,7 +10910,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.acquaintance.weather.05",
@@ -11184,7 +11211,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.acquaintance.weather.07",
@@ -11335,7 +11363,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.greeting.acquaintance.base.01",
@@ -11479,7 +11508,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.acquaintance.base.02",
@@ -11623,7 +11653,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.acquaintance.season.01",
@@ -12090,7 +12121,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "village_impression"
  },
  {
   "id": "npc.greeting.acquaintance.activity.01",
@@ -12706,7 +12738,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.activity.05",
@@ -12857,7 +12890,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.greeting.acquaintance.activity.06",
@@ -13461,7 +13495,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.activity.10",
@@ -13612,7 +13647,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.greeting.acquaintance.activity.11",
@@ -14422,7 +14458,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.acquaintance.gloomy.01",
@@ -15505,7 +15542,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.acquaintance.timid.02",
@@ -15823,7 +15861,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.lazy.01",
@@ -15980,7 +16019,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.hardworking.01",
@@ -16288,7 +16328,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.acquaintance.generous.01",
@@ -16586,7 +16627,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.acquaintance.worldly.01",
@@ -16728,7 +16770,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "news"
  },
  {
   "id": "npc.greeting.acquaintance.night.01",
@@ -16880,7 +16923,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.familiar.weather.01",
@@ -17612,7 +17656,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.greeting.familiar.base.01",
@@ -17748,7 +17793,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.familiar.base.02",
@@ -17884,7 +17930,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.familiar.season.01",
@@ -21186,7 +21233,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.familiar.timid.01",
@@ -21329,7 +21377,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.familiar.timid.02",
@@ -21929,7 +21978,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.familiar.generous.02",
@@ -22063,7 +22113,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.familiar.brave.01",
@@ -22197,7 +22248,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "news"
  },
  {
   "id": "npc.greeting.familiar.worldly.01",
@@ -22331,7 +22383,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "news"
  },
  {
   "id": "npc.greeting.familiar.greedy.01",
@@ -22465,7 +22518,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.familiar.pious.01",
@@ -22608,7 +22662,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.weather.01",
@@ -23352,7 +23407,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.base.02",
@@ -23488,7 +23544,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.base.03",
@@ -23624,7 +23681,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.activity.01",
@@ -25988,7 +26046,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.gloomy.01",
@@ -26709,7 +26768,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.friend.lazy.01",
@@ -27284,7 +27344,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.friend.worldly.01",
@@ -27418,7 +27479,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "news"
  },
  {
   "id": "npc.greeting.close.weather.01",
@@ -27987,7 +28049,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.close.base.03",
@@ -28123,7 +28186,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.close.activity.01",
@@ -30916,7 +30980,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "wellbeing"
  },
  {
   "id": "npc.greeting.cool.base.01",
@@ -31363,7 +31428,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.cool.base.04",
@@ -31640,7 +31706,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.cool.proud.01",
@@ -31802,7 +31869,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.cool.gloomy.01",
@@ -31945,7 +32013,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.greeting.hostile_known.base.01",
@@ -32067,7 +32136,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.hostile_known.base.02",
@@ -32183,7 +32253,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.hostile_known.base.03",
@@ -32299,7 +32370,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.hostile_known.base.04",
@@ -32425,7 +32497,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.greeting.hostile_known.proud.01",
@@ -32546,7 +32619,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.recall.favour_thanks_harvest.base.01",
@@ -33890,7 +33964,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name.base.02",
@@ -33975,7 +34052,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name.base.03",
@@ -34060,7 +34140,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name.base.04",
@@ -34145,7 +34228,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_new.base.01",
@@ -34253,7 +34339,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_new.base.02",
@@ -34361,7 +34450,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_new.base.03",
@@ -34469,7 +34561,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_camp.base.01",
@@ -34569,7 +34664,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_camp.base.02",
@@ -34669,7 +34767,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_name_camp.base.03",
@@ -34769,7 +34870,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "name"
+  ]
  },
  {
   "id": "player.introduction.player_asks_name.base.01",
@@ -47017,7 +47121,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.work_talk.idle.base.01",
@@ -60889,7 +60994,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "weather"
  },
  {
   "id": "npc.season_talk.rain.base.03",
@@ -65332,7 +65438,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.season_talk.snow_lying.base.02",
@@ -66234,7 +66341,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.village_talk.size.small.01",
@@ -66993,7 +67101,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.elder_answer.elder_intro.base.01",
@@ -67437,7 +67546,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.village_talk.founded.base.01",
@@ -71802,7 +71912,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.local.base.02",
@@ -71996,7 +72107,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.local.elder.01",
@@ -72328,7 +72440,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.far_not_been.base.01",
@@ -72425,7 +72538,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.far_not_been.base.02",
@@ -72626,7 +72740,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.far_not_been.timid.01",
@@ -72730,7 +72845,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_place.far_been_that_way.base.01",
@@ -75579,7 +75695,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_beyond.went_out.brave.01",
@@ -76394,7 +76511,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_beyond.unknown.base.02",
@@ -76650,7 +76768,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_beyond.unknown.worldly.01",
@@ -77219,7 +77338,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_country.country_here.cold.01",
@@ -78744,7 +78864,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.lands_country.all_told.base.01",
@@ -89791,7 +89912,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "family"
  },
  {
   "id": "npc.family_question.npc_asks.base.02",
@@ -89879,7 +90001,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "family"
  },
  {
   "id": "npc.family_question.npc_asks.base.03",
@@ -89967,7 +90090,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "family"
  },
  {
   "id": "npc.family_question.npc_asks.warm.01",
@@ -90063,7 +90187,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "family"
  },
  {
   "id": "player.player_family.no_kin.base.01",
@@ -90147,7 +90272,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.no_kin.base.02",
@@ -90231,7 +90359,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.no_kin.arrived.01",
@@ -90322,7 +90453,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.spouse.base.01",
@@ -90413,7 +90547,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.spouse.base.02",
@@ -90504,7 +90641,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.child.base.01",
@@ -90596,7 +90736,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.child.base.02",
@@ -90688,7 +90831,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.parent.base.01",
@@ -90778,7 +90924,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.player_family.parent.base.02",
@@ -90868,7 +91017,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "family"
+  ]
  },
  {
   "id": "player.gossip_question.news_of.base.01",
@@ -92743,7 +92895,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.event_news.unknown_subject.base.03",
@@ -92917,7 +93070,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "subject"
  },
  {
   "id": "npc.relationship_answer.refuse_trust.base.01",
@@ -93486,7 +93640,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.relationship_answer.unknown_subject.base.04",
@@ -93685,7 +93840,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.relationship_answer.close.base.02",
@@ -94620,7 +94776,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.relationship_answer.passing.base.01",
@@ -95359,7 +95516,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.relationship_answer.dislike.timid.01",
@@ -101724,7 +101882,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.event_news.building.self.01",
@@ -109546,7 +109705,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.gossip_reaction.new.gloomy.01",
@@ -110185,7 +110345,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.gossip_reaction.kin_quarrel.base.02",
@@ -110305,7 +110466,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.gossip_reaction.kin_gift.base.01",
@@ -110425,7 +110587,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.gossip_reaction.kin_gift.base.02",
@@ -112167,7 +112330,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.visit_to_me_opening.cheerful.01",
@@ -112337,7 +112501,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.visit_known_host.base.01",
@@ -113183,7 +113348,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.visit_known_host_opening.base.02",
@@ -114345,7 +114511,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.notable_head.base.01",
@@ -115165,7 +115332,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.notable_trade_opening.base.02",
@@ -116136,7 +116304,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.went_visiting.base.01",
@@ -116897,7 +117066,8 @@
    ],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.visit_news.returned_opening.base.02",
@@ -118380,7 +118550,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.overheard_hint.harvest.gloomy.01",
@@ -121858,7 +122029,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.generic.base.02",
@@ -121944,7 +122118,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.generic.base.03",
@@ -122030,7 +122207,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.generic.base.04",
@@ -122116,7 +122296,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_harvest.base.01",
@@ -122211,7 +122394,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_harvest.base.02",
@@ -122306,7 +122492,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_wood.base.01",
@@ -122401,7 +122590,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_wood.base.02",
@@ -122496,7 +122688,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_food.base.01",
@@ -122591,7 +122786,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "player.help_offer.noticed_food.base.02",
@@ -122686,7 +122884,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "purpose"
+  ]
  },
  {
   "id": "npc.favour_ask.harvest.base.01",
@@ -122843,7 +123044,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.base.02",
@@ -123000,7 +123202,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.base.03",
@@ -123157,7 +123360,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.base.04",
@@ -123314,7 +123518,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.proud.01",
@@ -123478,7 +123683,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.humble.01",
@@ -123642,7 +123848,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.cheerful.01",
@@ -123806,7 +124013,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.gloomy.01",
@@ -123970,7 +124178,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.harvest.lazy.01",
@@ -124134,7 +124343,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_oven.base.01",
@@ -124306,7 +124516,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_oven.base.02",
@@ -124478,7 +124689,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_oven.humble.01",
@@ -124657,7 +124869,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_oven.proud.01",
@@ -124836,7 +125049,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_forge.base.01",
@@ -125008,7 +125222,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_forge.base.02",
@@ -125180,7 +125395,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_forge.cheerful.01",
@@ -125359,7 +125575,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.wood_forge.lazy.01",
@@ -125538,7 +125755,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.base.01",
@@ -125696,7 +125914,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.base.02",
@@ -125854,7 +126073,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.whole.01",
@@ -126018,7 +126238,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.humble.01",
@@ -126183,7 +126404,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.proud.01",
@@ -126348,7 +126570,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.food.gloomy.01",
@@ -126513,7 +126736,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "offer"
  },
  {
   "id": "npc.favour_ask.no_need.base.01",
@@ -127075,7 +127299,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.favour_ask.child.base.02",
@@ -127154,7 +127379,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.favour_ask.not_yet.base.01",
@@ -127233,7 +127459,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.favour_ask.not_yet.base.02",
@@ -127312,7 +127539,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "player.favour_accept.harvest.base.01",
@@ -127436,7 +127664,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.harvest.base.02",
@@ -127560,7 +127791,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.harvest.base.03",
@@ -127684,7 +127918,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.wood.base.01",
@@ -127808,7 +128045,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.wood.base.02",
@@ -127932,7 +128172,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.wood.base.03",
@@ -128056,7 +128299,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.food.base.01",
@@ -128180,7 +128426,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.food.base.02",
@@ -128304,7 +128553,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_accept.food.has_supply.01",
@@ -128441,7 +128693,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_decline.decline.base.01",
@@ -128537,7 +128792,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_decline.decline.base.02",
@@ -128633,7 +128891,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_decline.decline.base.03",
@@ -128729,7 +128990,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "player.favour_decline.decline.busy.01",
@@ -128838,7 +129102,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "offer"
+  ]
  },
  {
   "id": "npc.favour_accepted.harvest.base.01",
@@ -128927,7 +129194,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.favour_accepted.harvest.base.02",
@@ -129927,7 +130195,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.favour_accepted.food.humble.01",
@@ -133037,7 +133306,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.known.02",
@@ -133214,7 +133484,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.known.03",
@@ -133391,7 +133662,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.unknown.01",
@@ -133568,7 +133840,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.unknown.02",
@@ -133745,7 +134018,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.away.01",
@@ -133929,7 +134203,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.away.02",
@@ -134113,7 +134388,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.gloomy.01",
@@ -134297,7 +134573,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.cheerful.01",
@@ -134481,7 +134758,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.generous.01",
@@ -134665,7 +134943,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.harvest.greedy.01",
@@ -134856,7 +135135,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.known.01",
@@ -135048,7 +135328,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.known.02",
@@ -135240,7 +135521,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.unknown.01",
@@ -135432,7 +135714,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.unknown.02",
@@ -135624,7 +135907,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.away.01",
@@ -135823,7 +136107,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_oven.cheerful.01",
@@ -136022,7 +136307,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.known.01",
@@ -136214,7 +136500,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.known.02",
@@ -136406,7 +136693,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.unknown.01",
@@ -136598,7 +136886,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.unknown.02",
@@ -136790,7 +137079,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.away.01",
@@ -136989,7 +137279,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.wood_forge.hardworking.01",
@@ -137188,7 +137479,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.known.01",
@@ -137366,7 +137658,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.known.02",
@@ -137544,7 +137837,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.unknown.01",
@@ -137722,7 +138016,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.unknown.02",
@@ -137900,7 +138195,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.away.01",
@@ -138085,7 +138381,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.generous.01",
@@ -138270,7 +138567,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.food.gloomy.01",
@@ -138455,7 +138753,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.own_need.base.01",
@@ -139335,7 +139634,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.need_news.none_known.cheerful.01",
@@ -142646,7 +142946,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "npc.help_refusal.before_introduction.timid.01",
@@ -142718,7 +143019,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "name"
  },
  {
   "id": "player.family_question.bereaved_relative.base.01",
@@ -144854,7 +145156,10 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "answers": [
+   "referral"
+  ]
  },
  {
   "id": "npc.field_talk.field_growing.extra.01",
@@ -147237,7 +147542,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.field_talk.field_growing.hate.03",
@@ -147344,7 +147650,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.field_talk.field_growing.hate.04",
@@ -147665,7 +147972,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "work"
  },
  {
   "id": "npc.field_talk.field_growing.like.03",
@@ -147986,7 +148294,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "npc.field_talk.field_growing.love.02",
@@ -148307,7 +148616,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "npc.field_talk.field_ripe.hate.01",
@@ -148407,7 +148717,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.field_talk.field_ripe.hate.02",
@@ -149207,7 +149518,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "npc.field_talk.field_bare.hate.01",
@@ -149608,7 +149920,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.field_talk.no_field.like.01",
@@ -150113,7 +150426,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "work"
  },
  {
   "id": "npc.work_talk.idle.like.02",
@@ -150566,7 +150880,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.work_talk.trade_baker.like.01",
@@ -150842,7 +151157,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "npc.work_talk.trade_smith.hate.01",
@@ -150973,7 +151289,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.work_talk.trade_smith.like.01",
@@ -151235,7 +151552,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "npc.work_talk.trade_carpenter.hate.01",
@@ -151366,7 +151684,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "purpose"
  },
  {
   "id": "npc.work_talk.trade_carpenter.like.01",
@@ -151628,7 +151947,8 @@
      ]
     }
    ]
-  }
+  },
+  "expects": "invitation"
  },
  {
   "id": "player.maternal_search.named_relative.base.01",
@@ -151808,7 +152128,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "npc.maternal_whereabouts.unknown.base.01",
@@ -151866,7 +152187,8 @@
    "events": [],
    "requests": [],
    "facts": []
-  }
+  },
+  "expects": "referral"
  },
  {
   "id": "player.maternal_introduction.mothers_child.base.01",
@@ -151977,6 +152299,1736 @@
    "people": [
     "npc"
    ],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.village_warning.opening.base.01",
+  "speaker": "npc",
+  "family": "village_warning",
+  "situation": "opening",
+  "weight": 1,
+  "bindings": {
+   "customs": {
+    "source": "customs_chat"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "customs_chat_kind_is",
+     "args": {
+      "value": "warning"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Please leave our woodland alone. These trees belong to our village. You need our leave to cut them. Speak to our elder if you want to settle here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   },
+   {
+    "kind": "topic",
+    "key": "woodland"
+   }
+  ],
+  "use_key": "customs:warning:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "begin_woodland_warning"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "expects": "warning",
+  "score": false
+ },
+ {
+  "id": "npc.village_oath.opening.base.01",
+  "speaker": "npc",
+  "family": "village_oath",
+  "situation": "opening",
+  "weight": 1,
+  "bindings": {
+   "customs": {
+    "source": "customs_chat"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "customs_chat_kind_is",
+     "args": {
+      "value": "oath"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Will you swear our local oath? {customs.rights}",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   },
+   {
+    "kind": "topic",
+    "key": "woodland"
+   }
+  ],
+  "use_key": "customs:oath:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "expects": "oath",
+  "score": false
+ },
+ {
+  "id": "npc.village_leave.opening.base.01",
+  "speaker": "npc",
+  "family": "village_leave",
+  "situation": "opening",
+  "weight": 1,
+  "bindings": {
+   "customs": {
+    "source": "customs_chat"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "customs_chat_kind_is",
+     "args": {
+      "value": "leave"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Do you wish to leave? {customs.rights} Your past help and offences stay in people's memories.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   },
+   {
+    "kind": "topic",
+    "key": "woodland"
+   }
+  ],
+  "use_key": "customs:leave:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "expects": "leave",
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_acknowledge_warning.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_acknowledge_warning",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "warning"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Fair enough. I'll stop.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:warning:acknowledge:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "acknowledge"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "warning"
+  ],
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_refuse_warning.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_refuse_warning",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "warning"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I don't agree.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:warning:refuse:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "refuse"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "warning"
+  ],
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_accept_oath.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_accept_oath",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "oath"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I swear the local oath.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:oath:accept:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "accept"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "oath"
+  ],
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_decline_oath.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_decline_oath",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "oath"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd rather not swear it.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:oath:decline:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "decline"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "oath"
+  ],
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_leave_leave.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_leave_leave",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "leave"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'll leave the village.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:leave:leave:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "leave"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "leave"
+  ],
+  "score": false
+ },
+ {
+  "id": "player.customs_answer.fallback_decline_leave.base.01",
+  "speaker": "player",
+  "family": "customs_answer",
+  "situation": "fallback_decline_leave",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "leave"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'll stay in the village.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_answer:leave:decline:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "customs_response",
+    "choice": "decline"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "customs_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "leave"
+  ],
+  "score": false
+ },
+ {
+  "id": "npc.customs_acknowledged.fallback_result.base.01",
+  "speaker": "npc",
+  "family": "customs_acknowledged",
+  "situation": "fallback_result",
+  "weight": 1,
+  "bindings": {
+   "customs": {
+    "source": "customs_chat"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{customs.result}",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_result:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "score": false
+ },
+ {
+  "id": "player.customs_question.oath.base.01",
+  "speaker": "player",
+  "family": "customs_question",
+  "situation": "oath",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "customs_eligible",
+     "args": {
+      "kind": "oath"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I would like to swear the local oath.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_question:oath:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "begin_customs_chat",
+    "kind": "oath"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "village_oath"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "score": false
+ },
+ {
+  "id": "player.customs_question.leave.base.01",
+  "speaker": "player",
+  "family": "customs_question",
+  "situation": "leave",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "customs_eligible",
+     "args": {
+      "kind": "leave"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I wish to discuss leaving the village.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "customs_question:leave:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "begin_customs_chat",
+    "kind": "leave"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "village_leave"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "score": false
+ },
+ {
+  "id": "player.introduction.fallback_answer_name.base.01",
+  "speaker": "player",
+  "family": "introduction",
+  "situation": "fallback_answer_name",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "name"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'm {player.first_name}. Pleased to meet you.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer:name:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "learn_identity",
+    "viewer": "npc",
+    "person": "player"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "name"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_weather.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_weather",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "weather"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "A day for a short chat, I think.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "answer:weather:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "weather"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_wellbeing.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_wellbeing",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "wellbeing"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'll manage. Thank you for asking.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "answer:wellbeing:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "wellbeing"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_origin.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_origin",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "origin"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd rather not speak of where I've been.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer:origin:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "origin"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_village_impression.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_village_impression",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "village_impression"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'm still getting to know the place.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer:village_impression:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "village_impression"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_purpose.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_purpose",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "purpose"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I came to talk, if you've a moment.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer:purpose:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "purpose"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_news.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_news",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "news"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I've no news I wish to share.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "answer:news:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "news"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_family.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_family",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "family"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd rather keep my family to myself.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "answer:family:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "family"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_work.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_work",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "work"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd rather talk of something besides my work.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "answer:work:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "work"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_subject.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_subject",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "subject"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I'd rather leave their story for another day.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   }
+  ],
+  "use_key": "answer:subject:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "subject"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_referral.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_referral",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "referral"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. I'll ask there.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "answer:referral:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "referral"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_offer.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_offer",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "offer"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I can't take that on just now.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "answer:offer:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "offer"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_acknowledgement.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_acknowledgement",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "acknowledgement"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I see. Thank you for telling me.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer:acknowledgement:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "acknowledgement"
+  ]
+ },
+ {
+  "id": "player.direct_answer.fallback_answer_invitation.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "fallback_answer_invitation",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "invitation"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. I'll have a look.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "answer:invitation:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "answer_acknowledged"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "invitation"
+  ]
+ },
+ {
+  "id": "npc.answer_acknowledged.fallback_answer.base.01",
+  "speaker": "npc",
+  "family": "answer_acknowledged",
+  "situation": "fallback_answer",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "All right, then.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer_ack:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.answer_acknowledged.fallback_answer.base.02",
+  "speaker": "npc",
+  "family": "answer_acknowledged",
+  "situation": "fallback_answer",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Very well.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "answer_ack:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
    "events": [],
    "requests": [],
    "facts": []

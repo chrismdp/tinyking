@@ -50,11 +50,12 @@ it("a normal ordered field claim invites a Personal friend without a fabricated 
   s.ecs.controllable[friend].controllerId = friend;
   enqueueTask(s, { key: "plough_field" }, field);
   // Inspect the offer at the first claim, then let the helper perform real work.
-  s.ecs.planner[friend].world.customsHold = true;
+  s.ecs.planner[friend].task=["wait_for",1];s.ecs.planner[friend].plan=[];
+  s.ecs.planner[friend].world.wait_until=s.days+1;
   f.step(1);
   expect(s.ecs.planner[p].world.claimedFarmable).toBe(field);
   expect(friendWork(s, friend)).toMatchObject({ kind: "field", targetId: field });
-  delete s.ecs.planner[friend].world.customsHold;
+  s.ecs.planner[friend].task=null;s.ecs.planner[friend].plan=null;
   let helped=false;
   for(let i=0;i<180;i++){f.step(1);helped ||= s.ecs.planner[friend].task?.[0]=="help_friend_work";}
   expect(helped).toBe(true);

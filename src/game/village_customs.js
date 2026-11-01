@@ -1,3 +1,4 @@
+import { closeChat, startVillagerChat } from "game/chat";
 import { Hex } from "game/hex";
 import { isResident } from "game/residents";
 import { householdAccess } from "game/playable";
@@ -74,7 +75,7 @@ export function villageElder(s,villageId) {
 }
 export function oathReadiness(s,actorId,speakerId) {
   // Needs are latched by the native planner sensors and cleared by actual
-  // meals/sleep. Use that same contract as dialogueValid, without a new cutoff.
+  // meals/sleep. Use that same contract as customsChatValid, without a new cutoff.
   for(const [id,who] of [[actorId,"You need"],[speakerId,"The elder needs"]]) {
     const feeling=s.ecs.planner[id]?.world.feeling;
     const needs=[feeling?.hungry && "food",feeling?.tired && "rest"].filter(Boolean);
@@ -118,54 +119,34 @@ export function observeChop(s,actorId,targetId,order) {
 }
 function available(s,id) {
   const p=s.ecs.planner?.[id],w=p?.world;
-  return p && !w.ordered && !w.capturedBy && !w.customsHold && !w.customsVisit && !w.feeling.hungry && !w.feeling.tired && !w.currentJob && !w.claimedFarmable &&
+  return p && !w.ordered && !w.capturedBy && !w.chatVisit && !w.customsVisit && !w.feeling.hungry && !w.feeling.tired && !w.currentJob && !w.claimedFarmable &&
     !w.helpingFriend && !w.social && !w.worldJourney && !w.worldArrival && !(s.ecs.holder?.[id]?.held || []).length &&
     (!p.task || ["wait_for","home_downtime","socialise"].includes(p.task[0]) || p.task[0]=="walk_to" && p.task[1]=="meet");
 }
 function release(s,id) {
   const p=s.ecs.planner?.[id];if(!p)return;
-  delete p.world.customsVisit;delete p.world.customsHold;p.task=null;p.plan=null;
+  delete p.world.customsVisit;delete p.world.chatVisit;if(p.world.capturedBy)p.world.capturedBy=null;p.task=null;p.plan=null;
 }
-function closeDialogue(s) {
-  const d=s.customs?.dialogue;if(!d)return;
-  if(d.kind!="warning") {
-    const job=s.ecs.manager[d.actorId]?.jobs.find(j=>j.assignedId==d.actorId && ["village_oath","village_leave"].includes(j.job.key));
-    if(job)cancelTask(s,job.id);
-  }
-  release(s,d.speakerId);release(s,d.actorId);delete s.customs.dialogue;
-}
-export function dialogueValid(s,d=s.customs?.dialogue) {
+export function customsChatValid(s,d=s.chat?.active?.context) {
   return !!d && alive(s,d.actorId) && localAdult(s,d.speakerId,d.villageId) && distance(s,d.actorId,d.speakerId)<=SPEECH_REACH &&
-    oathReadiness(s,d.actorId,d.speakerId).ok &&
-    (d.kind=="warning" || villageElder(s,d.villageId)==d.speakerId);
+    oathReadiness(s,d.actorId,d.speakerId).ok && (d.kind=="warning" || villageElder(s,d.villageId)==d.speakerId);
 }
-function explainReadiness(s,d) {
-  if(!d || d.kind=="warning")return;
-  const readiness=oathReadiness(s,d.actorId,d.speakerId);
-  if(!readiness.ok)s.ui.customsResult={speakerId:d.speakerId,message:readiness.reason};
+export function customsChatContext(s,actorId,speakerId,kind) {
+  return {kind,actorId,speakerId,villageId:s.ecs.village?.[speakerId]?.villageId};
 }
-function holdDialogue(s,d) {
-  customs(s).dialogue=d;
-  beginInteraction(s,d.actorId,d.speakerId);
-  for(const id of [d.actorId,d.speakerId]) {const p=s.ecs.planner[id];p.world.customsHold=true;p.task=null;p.plan=null;}
-}
-export function openOath(s,actorId,speakerId,leave=false) {
+export function customsIntentUnavailable(s,actorId,speakerId,kind) {
   const villageId=s.ecs.village?.[speakerId]?.villageId;
-  if(villageElder(s,villageId)!=speakerId || distance(s,actorId,speakerId)>SPEECH_REACH)return {ok:false,message:"Speak with the current elder in person."};
-  const eligibility=leave ? {ok:!!membership(s,actorId,villageId),reason:"You are not a member here."} : oathEligibility(s,actorId,villageId);
-  if(!eligibility.ok)return {ok:false,message:eligibility.reason};
-  const readiness=oathReadiness(s,actorId,speakerId);
-  if(!readiness.ok)return {ok:false,message:readiness.reason};
-  if(s.customs?.dialogue)return {ok:false,message:"Finish the current conversation first."};
-  holdDialogue(s,{kind:leave?"leave":"oath",actorId,speakerId,villageId});
-  return {ok:true,message:"The elder explains your rights and obligations."};
+  if(villageElder(s,villageId)!=speakerId)return "Speak with the current elder.";
+  const eligibility=kind=="leave"?{ok:!!membership(s,actorId,villageId),reason:"You are not a member here."}:oathEligibility(s,actorId,villageId);
+  return !eligibility.ok?eligibility.reason:!oathReadiness(s,actorId,speakerId).ok?oathReadiness(s,actorId,speakerId).reason:null;
 }
 export function warningConsequences(s,incident) {
   const repeat=s.customs.incidents.some(other=>other!=incident && other.actorId==incident.actorId && other.villageId==incident.villageId && other.warnedDay!=null && other.warnedDay<=incident.day);
   return {witness:repeat?REPEAT_LOSS:WARNING_LOSS,elder:repeat?REPEAT_ELDER_LOSS:ELDER_LOSS};
 }
-export function answerCustoms(s,choice) {
-  const d=s.customs?.dialogue;if(!dialogueValid(s,d)){explainReadiness(s,d);closeDialogue(s);return false;}
+export function applyCustomsResponse(s,chat,choice) {
+  const d=chat.context;
+  if(!customsChatValid(s,d)||d.resolved)return false;
   if(!["acknowledge","refuse","accept","decline","leave"].includes(choice))return false;
   const c=customs(s),i=c.incidents.find(i=>i.id==d.incidentId);
   if(d.kind=="warning") {
@@ -193,24 +174,31 @@ export function answerCustoms(s,choice) {
     }
   }
   for(const [a,b] of [[d.actorId,d.speakerId],[d.speakerId,d.actorId]]) {beginInteraction(s,a,b);completeConversation(s,a,b);}
-  closeDialogue(s);return true;
+  d.result=choice=="decline" ? d.kind=="oath" ? "Very well. You have made no oath." : "Very well. You remain a village member." : s.ui.customsResult.message;
+  d.resolved=true;return true;
 }
 export function updateCustoms(s) {
-  if(!s.customs)return;
-  const c=s.customs;
-  if(c.dialogue && !dialogueValid(s)) {
-    const i=c.incidents.find(i=>i.id==c.dialogue.incidentId);
-    if(i)i.status="queued";
-    explainReadiness(s,c.dialogue);
-    closeDialogue(s);
+  if(!s.customs&&!s.chat?.active?.context)return;
+  const c=customs(s);
+  const d=s.chat?.active?.context;
+  if(d&&!customsChatValid(s,d)) {
+    const i=c.incidents.find(i=>i.id==d.incidentId);
+    if(i&&!d.resolved)i.status="queued";
+    const readiness=oathReadiness(s,d.actorId,d.speakerId);
+    if(d.kind!="warning"&&!readiness.ok)s.ui.customsResult={speakerId:d.speakerId,message:readiness.reason};
+    closeChat(s,{interrupted:true});release(s,d.speakerId);
   }
   for(const i of c.incidents) {
-    if(i.status=="done" || i.status=="dialogue")continue;
+    if(i.status=="done" || i.status=="chat")continue;
     if(!alive(s,i.actorId)){if(i.witnessId)release(s,i.witnessId);i.status="done";continue;}
     if(i.status=="approach" && !localAdult(s,i.witnessId,i.villageId)) {release(s,i.witnessId);i.witnessId=null;i.status="queued";}
     if(i.status=="queued") {
       const witness=i.observers.filter(id=>localAdult(s,id,i.villageId) && available(s,id) && oathReadiness(s,i.actorId,id).ok).sort((a,b)=>distance(s,a,i.actorId)-distance(s,b,i.actorId))[0];
-      if(witness) {i.witnessId=witness;i.status="approach";assign(s,witness,i,"warning");}
+      if(witness) {
+        i.witnessId=witness;i.status="approach";
+        startVillagerChat(s,witness,{actorId:i.actorId,openingFamily:"village_warning",required:true,
+          context:{...customsChatContext(s,i.actorId,witness,"warning"),incidentId:i.id}});
+      }
     }
     if(i.status=="report") {
       if(!localAdult(s,i.witnessId,i.villageId)){i.status="done";continue;}
@@ -226,9 +214,9 @@ function assign(s,id,i,kind) {
 export function customsVisitTarget(s,id) {
   const visit=s.ecs.planner[id]?.world.customsVisit,i=s.customs?.incidents.find(i=>i.id==visit?.incidentId);
   if(!i)return null;
-  const target=visit.kind=="warning"?i.actorId:i.reportTarget;
-  const valid=localAdult(s,id,i.villageId) && alive(s,target) && (visit.kind=="warning" || villageElder(s,i.villageId)==target);
-  if(!valid || s.ecs.planner[id].world.feeling.hungry || s.ecs.planner[id].world.feeling.tired || visit.kind=="warning" && !oathReadiness(s,target,id).ok) {release(s,id);if(i.status=="approach")i.status="queued";return null;}
+  const target=i.reportTarget;
+  const valid=localAdult(s,id,i.villageId) && alive(s,target) && villageElder(s,i.villageId)==target;
+  if(!valid || s.ecs.planner[id].world.feeling.hungry || s.ecs.planner[id].world.feeling.tired) {release(s,id);return null;}
   return {target,incident:i,kind:visit.kind};
 }
 function applyReport(s,i,elder) {
@@ -240,16 +228,8 @@ function applyReport(s,i,elder) {
 }
 export function arriveCustoms(s,id,dt) {
   const v=customsVisitTarget(s,id);if(!v)return false;
-  const {target,incident:i,kind}=v;
+  const {target,incident:i}=v;
   if(distance(s,id,target)>SPEECH_REACH || s.ecs.interior?.[id]?.buildingId!=s.ecs.interior?.[target]?.buildingId)return false;
-  if(kind=="warning") {
-    if(s.customs.dialogue)return false;
-    // Remove every still-forbidden common cutting order, including queued repeats.
-    stopForbiddenCutting(s,i.actorId);
-    i.status="dialogue";
-    holdDialogue(s,{kind:"warning",actorId:i.actorId,speakerId:id,villageId:i.villageId,incidentId:i.id});
-    return true;
-  }
   const targetPlanner=s.ecs.planner[target];
   if(!available(s,target)){s.ecs.planner[id].world.customsReportTime=0;return false;}
   const w=s.ecs.planner[id].world;
@@ -263,10 +243,9 @@ export function arriveCustoms(s,id,dt) {
 }
 export function customsVisitFailed(s,id) {
   const v=customsVisitTarget(s,id);if(!v)return;
-  if(v.kind=="warning")v.incident.status="queued";
   release(s,id);
 }
 
-function stopForbiddenCutting(s,actorId) {
+export function stopForbiddenCutting(s,actorId) {
   for(const job of [...s.ecs.manager[actorId].jobs])if(job.job.key=="cut_tree_down" && !job.gatheredDone && !resourcePermission(s,actorId,job.targetId).permitted)cancelTask(s,job.id);
 }

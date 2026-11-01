@@ -37,5 +37,12 @@ for r in rows:
         if not 2 <= n <= 3: problems.append(("opening icon count", r["id"], n))
         if n == 3 and not any(p["test"] == "free_cells_at_least" and p["args"].get("count", 0) >= 5 for p in r["when"]["all"]):
             problems.append(("three-icon opening without room", r["id"]))
+answers={a for r in rows if r["speaker"]=="player" for a in r.get("answers",[])}
+for r in rows:
+    if r.get("expects") and r["expects"] not in answers: problems.append(("unanswerable expectation",r["id"],r["expects"]))
+    if r["speaker"]=="npc" and r["family"]!="leave_taking" and "?" in r["text"] and not r.get("expects"):
+        problems.append(("question without expectation",r["id"]))
 for p in problems: print(p)
 print(len(problems), "problems;", len(rows), "rows")
+
+sys.exit(1 if problems else 0)

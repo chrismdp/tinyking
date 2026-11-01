@@ -105,7 +105,6 @@ function updatePlannerFrame(state, frameMod) {
       }
     }
 
-    if (planner.world.customsHold) continue;
 
     if (planner.world.ordered && planner.world.currentJob) {
       const job = jobQueueFor(state.ecs, id).find(j => j.assignedId == id);
@@ -148,13 +147,14 @@ function updatePlannerFrame(state, frameMod) {
       htn.runTask(state, planner, dt, false);
       if(state.chat?.active)return;
     }
-    while (!planner.world.customsHold && !planner.task && planner.plan) {
+    while (!planner.task && planner.plan) {
       if (planner.plan.length > 0) {
         planner.task = planner.plan.shift();
         if (topController(state.ecs, planner.id) == state.ui.playerId) {
           // console.log("NEW TASK", planner.id, planner.task);
         }
         htn.runTask(state, planner, dt, true);
+        if(state.chat?.active)return;
         // TODO: Make sure this happens only once
         state.redraws.push(planner.id);
       } else {

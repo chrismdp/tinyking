@@ -1,3 +1,4 @@
+import { buildingFootprint } from "game/tree_clearance";
 import { Hex } from "game/hex";
 import { fenceFootprints, fenceRoute } from "game/fences";
 import { path } from "game/pathfinding";
@@ -32,4 +33,12 @@ export function speechPosition(state, actor, target) {
     if (nav && fenceRoute(state,a,point)) return point;
   }
   return null;
+}
+
+// Door geometry shares the rendered building's footprint and entrance rotation.
+export function doorstep(state, home, offset=50) {
+  const f=buildingFootprint(state,home);if(!f)return null;
+  const angle=Number.isFinite(f.angle)?f.angle:0,d=f.halfDepth+offset;
+  const point={x:f.x+Math.sin(angle)*d,y:f.y+Math.cos(angle)*d};
+  return (state.space[Hex().fromPoint(point)]||[]).some(id=>state.ecs.walkable[id])?point:null;
 }

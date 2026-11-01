@@ -50,13 +50,19 @@ it("actually ends a timed-out approach and preserves its single reason",()=>{
   expect(s.ui.talkResult.message).toBe(job.detail);
   expect(readyPlayerTasks(s)).not.toContain(job);
 });
-it("declines a night visit before walking and tells the player when to return",()=>{
-  const {state:s,player:p,person:n}=peopleWorld();s.days=1/24;
-  s.ecs.interior={[n]:{buildingId:"home"}};s.ecs.planner[n].task=["sleep"];
-  const job=enqueueTask(s,{key:"chat"},n);
-  expect(s.ecs.manager[p].jobs).not.toContain(job);
-  expect(s.ui.talkResult.message).toMatch(/6am|morning/);
+it("knocks on a sleeping neighbour's real door at night and returns without contact",()=>{
+  const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;s.days=1/24;
+  const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},building:{entrance:3},household:{},controllable:{controllerId:n}}]);
+  s.ecs.household[n].houseId=home;s.ecs.spatial[n]={...s.ecs.spatial[home]};
+  s.ecs.interior={[n]:{buildingId:home}};s.ecs.planner[n].task=["sleep"];s.ecs.planner[n].plan=[];
+  s.ecs.personable[n].tiredness=1.5;s.ecs.planner[n].world.feeling.tired=true;
+  const before={...s.ecs.spatial[p]},job=enqueueTask(s,{key:"chat"},n);
+  expect(s.ecs.manager[p].jobs).toContain(job);
+  for(let i=0;i<2500&&!s.ui.talkResult?.message.includes("No answer");i++)w.step(.005);
+  expect(s.ecs.manager[p].jobs).not.toContain(job);expect(s.ecs.spatial[p]).not.toEqual(before);
+  expect(s.ui.talkResult.message).toMatch(/No answer.*morning/);
   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
 it("leads to a concrete shelter after two chats even after arrival day",()=>{
   const {state:s,player:p,person:n,parent,tiles}=peopleWorld();s.intro={active:false};s.days=4.4;

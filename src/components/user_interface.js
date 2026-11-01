@@ -2,7 +2,7 @@ import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
 import { RealmControls } from "./realm_controls";
 import { WeddingNotice } from "./wedding_notice";
-import { CustomsEncounter } from "./village_customs";
+import { ResourceNotice } from "./village_customs";
 import { openingGuidance } from "game/guidance";
 import { EventFeed } from "./event_feed";
 import React from "react";
@@ -44,7 +44,7 @@ export function UserInterface() {
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}
       {state.ui?.successionMessage && <aside className="succession-message" role="status"><button aria-label="Dismiss succession message" onClick={()=>{state.ui.successionMessage=null;state.ui.actions.end_turn();}}>×</button>{state.ui.successionMessage}</aside>}
       {!state.ui?.familyPersonId && <WeddingNotice/>}
-      <PanelBoundary key={state.ui?.resourceOrder?.targetId || "customs"} onClose={()=>{state.ui.resourceOrder=null;state.ui.actions.end_turn();}}><CustomsEncounter/></PanelBoundary>
+      <PanelBoundary key={state.ui?.resourceOrder?.targetId || "customs"} onClose={()=>{state.ui.resourceOrder=null;state.ui.actions.end_turn();}}><ResourceNotice/></PanelBoundary>
       {state.travelError && <div className="travel-loading" role="alert">Travel stopped: {state.travelError}</div>}
       {("main_menu" in show) && <MainMenu show={show.main_menu}/>}
       {show.game_over && <GameOver/>}

@@ -1,15 +1,16 @@
+import { respond, discussOath } from "./support/customs_chat";
 jest.mock("components/contexts",()=>require("../src/components/contexts"),{virtual:true});
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { GameState } from "../src/components/contexts";
-import { VillageMembership, CustomsEncounter } from "../src/components/village_customs";
+import { VillageMembership, ResourceNotice } from "../src/components/village_customs";
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
 import { talk } from "game/tasks";
 import { Task } from "game/htn";
 import { SPEECH_REACH } from "game/conversation";
-import { oathEligibility, openOath, dialogueValid, answerCustoms, updateCustoms, membership, resourcePermission } from "game/village_customs";
+import { oathEligibility, customsChatValid, updateCustoms, membership, resourcePermission } from "game/village_customs";
 
 function readyWorld({party,need,member=false,child=false,distant=false}={}) {
   const w=peopleWorld(),s=w.state;
@@ -43,12 +44,10 @@ function readyWorld({party,need,member=false,child=false,distant=false}={}) {
 }
 function completeTalk(w,key) {
   const s=w.state,world=s.ecs.planner[w.player].world;
-  let result;
-  for(let minute=0;minute<60;minute++) {
-    result=talk(s,w.player,world,1/1440,minute==0,w.parent,key);
-    if(result!=Task.CONTINUE || s.customs?.dialogue)return result;
-  }
-  throw new Error("The real timed conversation did not finish");
+  const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:key});
+  if(!s.ecs.manager[w.player].jobs.includes(job))return Task.FINISH;
+  job.assignedId=w.player;world.currentJob="chat";
+  return talk(s,w.player,world,1/1440,true,w.parent,"chat");
 }
 const facts=s=>JSON.stringify({knowledge:s.knowledge,bonds:s.ecs.relationships,rights:s.ecs.village,events:s.events,patience:s.talking,needs:s.ecs.personable});
 const render=(s,child)=>renderToStaticMarkup(<GameState.Provider value={s}>{child}</GameState.Provider>);
@@ -58,10 +57,10 @@ it.each([["elder","tired","The elder needs rest"],["elder","hungry","The elder n
   expect(oathEligibility(s,w.player,"village")).toMatchObject({ok:false,reason:expect.stringContaining(message)});
   const html=render(s,<VillageMembership personId={w.parent}/>);
   expect(html).toContain(message);expect(html).toContain("disabled=\"\"");
-  expect(completeTalk(w,"village_oath")).toBe(Task.FINISH);
+  expect(completeTalk(w,"oath")).toBe(Task.FINISH);
   expect(s.ui.talkResult.message).toContain(message);
-  expect(s.customs?.dialogue).toBeUndefined();
-  for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.customsHold).toBeFalsy();
+  expect(s.chat?.active?.context).toBeUndefined();
+  for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
   expect(facts(s)).toBe(before);
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(false);
   expect(s.knowledge?.[w.parent]?.people?.[w.player]?.conversation).toBeUndefined();
@@ -71,10 +70,10 @@ it("opens a valid ready dialogue and earns only common rights through the actual
   const w=readyWorld(),s=w.state;
   const before=JSON.stringify({contact:s.knowledge[w.player].people[w.parent].conversation,rights:s.ecs.village,events:s.events});
   expect(oathEligibility(s,w.player,"village").ok).toBe(true);
-  expect(completeTalk(w,"village_oath")).toBe(Task.CONTINUE);
-  expect(dialogueValid(s)).toBe(true);
+  expect(completeTalk(w,"oath")).toBe(Task.CONTINUE);
+  expect(customsChatValid(s)).toBe(true);
   expect(JSON.stringify({contact:s.knowledge[w.player].people[w.parent].conversation,rights:s.ecs.village,events:s.events})).toBe(before);
-  expect(answerCustoms(s,"accept")).toBe(true);
+  expect(respond(s,"accept")).toBe(true);
   expect(membership(s,w.player,"village")).toBe("oath");
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(true);
   expect(resourcePermission(s,w.player,w.house)).toMatchObject({kind:"private",permitted:false});
@@ -86,15 +85,15 @@ it.each([["elder","tired","The elder needs rest"],["actor","hungry","You need fo
   const w=readyWorld({party,need,member:true,child:true}),s=w.state,before=facts(s);
   const html=render(s,<VillageMembership personId={w.parent}/>);
   expect(html).toContain(message);expect(html).toContain("disabled=\"\"");
-  expect(completeTalk(w,"village_leave")).toBe(Task.FINISH);
+  expect(completeTalk(w,"leave")).toBe(Task.FINISH);
   expect(s.ui.talkResult.message).toContain(message);
-  expect(s.customs?.dialogue).toBeUndefined();expect(facts(s)).toBe(before);
+  expect(s.chat?.active?.context).toBeUndefined();expect(facts(s)).toBe(before);
 });
 
 it("still lets a ready child member leave through the existing dialogue policy",()=>{
   const w=readyWorld({member:true,child:true}),s=w.state;
-  expect(openOath(s,w.player,w.parent,true).ok).toBe(true);
-  expect(answerCustoms(s,"leave")).toBe(true);
+  expect(discussOath(s,w.player,w.parent,true).ok).toBe(true);
+  expect(respond(s,"leave")).toBe(true);
   expect(membership(s,w.player,"village")).toBe(null);
 });
 
@@ -106,7 +105,7 @@ it("returns a clear refusal when a real queued approach reaches an elder who bec
   w.step(.98); // The first native hourly needs update is one minute away.
   expect(oathEligibility(s,w.player,"village").ok).toBe(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
-  const job=enqueueTask(s,{key:"village_oath"},w.parent);
+  const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
   for(let i=0;i<900 && s.ecs.manager[w.player].jobs.includes(job);i++)w.step(.01);
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ecs.planner[w.parent].world.feeling.tired).toBe(true);
@@ -114,10 +113,10 @@ it("returns a clear refusal when a real queued approach reaches an elder who bec
   const a=s.ecs.spatial[w.player],b=s.ecs.spatial[w.parent];
   expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeLessThanOrEqual(SPEECH_REACH);
   for(const id of [w.player,w.parent]) {
-    expect(s.ecs.planner[id].world.customsHold).toBeFalsy();
+    expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
     expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
   }
-  expect(s.customs?.dialogue).toBeUndefined();
+  expect(s.chat?.active?.context).toBeUndefined();
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
 });
 
@@ -125,15 +124,38 @@ it.each(["update","answer"])("explains native fatigue cancellation via %s withou
   const w=readyWorld(),s=w.state;
   // INITIAL fatigue is below the native sensor boundary at opening.
   s.ecs.personable[w.parent].tiredness=.8999;
-  expect(openOath(s,w.player,w.parent).ok).toBe(true);
+  expect(discussOath(s,w.player,w.parent).ok).toBe(true);
   const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
-  w.step(61/60); // Native sensor has fired; the next customs tick is pending.
+  const day=s.days;w.step(61/60);
+  expect(s.days).toBe(day); // Chat now pauses needs and time.
+  // A restored/external state can still invalidate an open conversation.
+  s.ecs.planner[w.parent].world.feeling.tired=true;
   expect(s.ecs.planner[w.parent].world.feeling.tired).toBe(true);
-  expect(s.customs.dialogue).toBeDefined();
-  if(path=="answer")expect(answerCustoms(s,"accept")).toBe(false);
+  expect(s.chat?.active?.context).toBeDefined();
+  if(path=="answer")expect(respond(s,"accept")).toBe(false);
   else updateCustoms(s);
-  expect(s.customs.dialogue).toBeUndefined();
-  expect(render(s,<CustomsEncounter/>)).toContain("The elder needs rest");
-  for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.customsHold).toBeFalsy();
+  expect(s.chat?.active?.context).toBeUndefined();
+  expect(render(s,<ResourceNotice/>)).toContain("The elder needs rest");
+  for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
+});
+
+it("offers the eligible oath in ordinary chat and explains all rights before acceptance",()=>{
+  const w=readyWorld(),s=w.state,{openChat,chatChoices,chooseLine}=require("game/chat");
+  expect(openChat(s,w.player,w.parent)).toBe(true);
+  const question=chatChoices(s).find(l=>l.family=="customs_question"&&l.situation=="oath");
+  expect(question).toBeDefined();expect(chooseLine(s,question.key)).toBe(true);
+  expect(s.chat.active.transcript.at(-1).text).toContain(require("game/village_customs").OATH_RIGHTS);
+  expect(resourcePermission(s,w.player,w.tree).permitted).toBe(false);
+  expect(respond(s,"accept")).toBe(true);expect(membership(s,w.player,"village")).toBe("oath");
+});
+it.each([false,true])("acknowledges declining a customs offer without repeating old warning news: member %s",member=>{
+  const w=readyWorld({member}),s=w.state;
+  s.ui.customsResult={speakerId:w.parent,message:"Old woodland warning"};
+  expect(discussOath(s,w.player,w.parent,member).ok).toBe(true);
+  const c=s.chat.active;expect(respond(s,"decline")).toBe(true);
+  const answer=c.transcript.find(l=>l.family=="customs_acknowledged");
+  expect(answer.text).not.toContain("Old woodland warning");
+  expect(answer.text).toMatch(member?/remain.*member/:/no oath/);
+  expect(membership(s,w.player,"village")).toBe(member?"oath":null);
 });

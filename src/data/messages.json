@@ -132,8 +132,6 @@
     "marry": "Ask to marry",
     "play": "Play together",
     "invite_home": "Invite to your household",
-    "village_oath": "Offer your oath",
-    "village_leave": "Leave the village",
     "tend_garden": "Help at home"
   },
   "tasks": {
@@ -173,9 +171,7 @@
     "court": "Courting",
     "marry": "Discussing marriage",
     "play": "Playing together",
-    "invite_home": "Inviting a friend home",
-    "village_oath": "Discussing the local oath",
-    "village_leave": "Discussing leaving the village"
+    "invite_home": "Inviting a friend home"
   },
   "rooms": {
     "sleeping_quarters": {

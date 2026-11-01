@@ -32,7 +32,7 @@ it("opens the paused chat at real speech reach through the planner, offers lines
   expect(s.knowledge[p].people[n].conversation).toBeUndefined();
   chooseLine(s,chatChoices(s)[0].key);
   expect(s.knowledge[p].people[n].conversation).toBeDefined();
-  closeChat(s); expect(s.game_speed).toBe("fast");
+  closeChat(s); expect(s.game_speed).toBe("normal");
 });
 it("rejects remote entry and never introduces an unreachable stranger", () => {
   const {state:s, player:p,person:n}=peopleWorld();
@@ -78,7 +78,7 @@ it("restores an active paused chat without replaying its spoken effects",()=>{
   expect(restored.chat.active).toEqual(s.chat.active);
   expect(restored.ecs.relationships).toEqual(s.ecs.relationships);
   closeChat(restored);
-  expect(restored.game_speed).toBe("fast");
+  expect(restored.game_speed).toBe("normal");
   expect(restored.chat.history[0].lines.slice(0,s.chat.active.transcript.length)).toEqual(s.chat.active.transcript);
 });
 it("requires acquaintance and spoken favour disclosure before accepting real work", () => {
@@ -115,7 +115,7 @@ it("does not passively reveal visits and allows a real notable visitor as an ope
 });
 it("keeps the entire world still while reading, even if speed is changed", () => {
   const w=contact(),s=w.state;openChat(s,w.player,w.person);
-  s.game_speed="fast";
+  s.game_speed="normal";
   const before=serialiseGame(s); w.step(2);
   expect(serialiseGame(s)).toBe(before);
 });

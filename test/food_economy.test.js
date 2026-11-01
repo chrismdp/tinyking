@@ -1,6 +1,6 @@
 import { economy } from "./support/economy";
 import { newEntities } from "game/entities";
-import { enqueueTask, reorderTask } from "game/manager";
+import { enqueueTask } from "game/manager";
 import { give } from "game/holder";
 import * as tasks from "game/tasks";
 import { Task } from "game/htn";
@@ -90,29 +90,7 @@ it("eats a chosen stored portion without losing full non-food hands", () => {
   expect(Object.values(s.ecs.good).filter(g=>g.type=="wood").reduce((n,g)=>n+g.amount,0)+(s.ecs.container[camp].amounts.wood || 0)).toBe(2);
 });
 
-it("foraging ahead of a collected commodity gift preserves the promised item and completes both orders", () => {
-  const f = economy(), { s, p, camp, tiles, world } = f;
-  s.ecs.container[camp].amounts = { wood: 1, grain: 10 };
-  const [npc, plant] = newEntities(s, [
-    { spatial: { ...s.ecs.spatial[tiles[5]] }, personable: { age: 30, hunger: 0, tiredness: 0 }, controllable: {}, holder: { capacity: 2, held: [] }, planner: { world: { capturedBy: p, places: {}, no_place_for: {}, feeling: {}, holding: {} } }, manager: { jobs: [] } },
-    { spatial: { ...s.ecs.spatial[tiles[1]], immovable: true }, forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 } }
-  ]);
-  s.ecs.controllable[npc].controllerId = npc;
-  s.ecs.planner[npc].id = npc;
-  // Gift dialogue needs ordinary social records.
-  for (const key of ["relationships", "personality", "kinship"]) s.ecs[key] = {};
-  for (const id of [p, npc]) { s.ecs.relationships[id] = { known: {} }; s.ecs.personality[id] = { traits: [], likes: [], dislikes: [] }; s.ecs.kinship[id] = { parents: [], children: [] }; }
-  const gift = enqueueTask(s, { key: "give_gift" }, npc, { gift: { sourceId: camp, type: "wood" } });
-  for (let i = 0; i < 60 && !gift.giftItem; i++) f.step(1);
-  expect(gift.giftItem).toBeTruthy();
-  const forage = enqueueTask(s, { key: "forage" }, plant);
-  reorderTask(s, forage.id, 0);
-  f.step(4 * 60);
-  expect(s.ecs.manager[p].jobs).toEqual([]);
-  expect(s.ecs.good[gift.giftItem].type).toBe("wood");
-  expect(s.ecs.controllable[gift.giftItem].controllerId).toBe(npc);
-  expect(world.currentJob).toBeFalsy();
-});
+
 
 it("offscreen sowing consumes a full seed per slot and meals include bread and flour", () => {
   const { s, p, camp, tiles } = economy();
@@ -142,7 +120,7 @@ it("rejects a whole delivery when only fractional storage space remains", () => 
   expect(s.ecs.holder[p].held).toContain(wood);
 });
 
-it("recovers a promised gift set down to make room for a meal", () => {
+it("offers collected gifts as successive orders after making room for a meal", () => {
   const f=economy(2),{s,p,camp,tiles}=f;
   s.ecs.container[camp].amounts={wood:2,grain:10};
   const [npc]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},personable:{age:30,hunger:0,tiredness:0},controllable:{},holder:{capacity:2,held:[]},planner:{world:{capturedBy:p,places:{},no_place_for:{},feeling:{},holding:{}}},manager:{jobs:[]}}]);
@@ -152,7 +130,6 @@ it("recovers a promised gift set down to make room for a meal", () => {
   const first=enqueueTask(s,{key:"give_gift"},npc,{gift:{sourceId:camp,type:"wood"}});
   for(let i=0;i<60&&!first.giftItem;i++)f.step(1);
   const second=enqueueTask(s,{key:"give_gift"},npc,{gift:{sourceId:camp,type:"wood"}});
-  reorderTask(s,second.id,0);
   for(let i=0;i<60&&!second.giftItem;i++)f.step(1);
   expect(s.ecs.holder[p].held).toEqual(expect.arrayContaining([first.giftItem,second.giftItem]));
   s.ecs.personable[p].energy=20;
@@ -160,5 +137,6 @@ it("recovers a promised gift set down to make room for a meal", () => {
   f.step(180);
   expect(s.ecs.personable[p].energy).toBeGreaterThan(20);
   expect(s.ecs.manager[p].jobs).toEqual([]);
+  for(const gift of [first,second]){enqueueTask(s,{key:"give_gift"},npc,{gift:gift.gift,giftItem:gift.giftItem});f.step(180);}
   for(const gift of [first,second])expect(s.ecs.controllable[gift.giftItem].controllerId).toBe(npc);
 });

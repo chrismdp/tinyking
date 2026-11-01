@@ -7,12 +7,12 @@ function game(speed) {
 }
 const key = (target = { tagName: "DIV" }, extra = {}) => ({ code: "Space", target, repeat: false, preventDefault: jest.fn(), ...extra });
 
-it("pauses a running game and resumes at the speed it had", () => {
-  const s = game("fast");
+it("pauses a running game and resumes at normal speed", () => {
+  const s = game("normal");
   expect(handleSpaceKey(key(), s)).toBe(true);
   expect(s.game_speed).toBe("paused");
   handleSpaceKey(key(), s);
-  expect(s.game_speed).toBe("fast");
+  expect(s.game_speed).toBe("normal");
 });
 
 it("resumes at normal speed when nothing was running before", () => {

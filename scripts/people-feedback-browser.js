@@ -35,7 +35,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
       const watch=()=>{const o=window.arrivalIdle,p=s.ecs.spatial[id];o.maxDisplacement=Math.max(o.maxDisplacement,Math.hypot(p.x-origin.x,p.y-origin.y));
         if(s.days-start>=8/24){s.ui.actions.set_speed("paused");o.end=s.days;o.needs={...s.ecs.personable[id]};o.jobs=JSON.parse(JSON.stringify(s.ecs.manager[id].jobs));return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);
     });
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     await page.waitForFunction(()=>window.arrivalIdle.end,null,{timeout:60000});
     report.arrivalIdle=await page.evaluate(()=>window.arrivalIdle);
     assert.equal(report.arrivalIdle.maxDisplacement,0,"Original eight-hour uncommanded observation stays still through hunger");
@@ -43,10 +43,10 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert.equal(await page.locator(".meal-interruption").count(),0,"An unmet need is not an eating task");
     await shot("desktop-idle-hungry");
     await page.setViewportSize({width:390,height:664});
-    const expand=page.getByRole("button",{name:"Expand task list",exact:true});if(await expand.isVisible())await expand.click();
+    const expand=page.getByRole("button",{name:"Journal · J",exact:true});if(await expand.isVisible())await expand.click();
     await shot("phone-idle-hungry");
     await page.getByRole("button",{name:"Find food",exact:true}).click();
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     await page.waitForFunction(()=>{const s=window.tinyking,id=s.ui.playerId;return s.ecs.personable[id].hunger<.2 && !s.ecs.manager[id].jobs.some(j=>j.job.key=="find_food");},null,{timeout:60000});
     await page.getByRole("button",{name:"Pause",exact:true}).click();
     report.explicitFood=await page.evaluate(()=>{const s=window.tinyking,id=s.ui.playerId;return {day:s.days,position:{...s.ecs.spatial[id]},needs:{...s.ecs.personable[id]},jobs:s.ecs.manager[id].jobs};});
@@ -62,7 +62,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
     assert.equal(await page.locator(".feeling-line").count(),0);
     await shot("desktop-before-talk");
     await page.getByRole("button",{name:"Chat",exact:true}).click();
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     await page.waitForFunction(id=>window.tinyking.knowledge?.[window.tinyking.ui.playerId]?.people?.[id]?.conversation,person,{timeout:60000});
     await page.getByRole("button",{name:"Pause",exact:true}).click();
     report.talk=await page.evaluate(id=>{const s=window.tinyking;return {person:id,day:s.days,position:{...s.ecs.spatial[s.ui.playerId]},target:{...s.ecs.spatial[id]},needs:{...s.ecs.personable[s.ui.playerId]},record:s.knowledge[s.ui.playerId].people[id],learnedEvents:(s.events||[]).filter(e=>(s.knowledge[s.ui.playerId].events||[]).includes(e.id)&&e.people.includes(id)),possessions:Object.values(s.ecs.possession||{}).filter(p=>p.ownerId==id),copy:document.querySelector(".relationship").textContent,bio:document.querySelector(".biography").textContent};},person);
@@ -81,7 +81,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         requestAnimationFrame(watch);
       };requestAnimationFrame(watch);
     });
-    await page.getByRole("button", { name: "Fast speed", exact: true }).click();
+    await page.locator("#speed-controls").getByRole("button", { name: "Normal speed", exact: true }).click();
     await page.waitForFunction(() => window.feedbackIdle.end, null, { timeout: 60000 });
     report.idle = await page.evaluate(() => window.feedbackIdle);
     assert.equal(report.idle.maxDisplacement, 0, "Uncommanded player stays where left over two hours");
@@ -124,7 +124,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
       for(const target of [...fields,green])s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},target);
       return {pair,fields,green,start:s.days,before:{...s.ecs.spatial[s.ui.playerId]}};
     });
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.length;},null,{timeout:120000});
     await page.getByRole("button",{name:"Pause",exact:true}).click();
     report.visibilityJourney.arrival=await page.evaluate(green=>{const s=window.tinyking;s.renderer.focusOn(s.ecs.spatial[green],900);return {day:s.days,position:{...s.ecs.spatial[s.ui.playerId]},target:{...s.ecs.spatial[green]},knownTiles:s.ecs.playable[s.ui.playerId].known.length};},report.visibilityJourney.green);
@@ -147,7 +147,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         requestAnimationFrame(watch);
       };requestAnimationFrame(watch);
     },report.scheduledObservation);
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     await page.waitForFunction(()=>window.feedbackPreparation.end,null,{timeout:120000});
     report.preparation=await page.evaluate(()=>window.feedbackPreparation);
     await page.setViewportSize({width:1440,height:900});
@@ -196,7 +196,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
           if(kind&&s.renderer.objectOf(id)?.visible&&!o.capturedKinds[kind]&&!o.capture){o.capturedKinds[kind]=true;o.capture={kind,id,day:s.days};s.ui.actions.set_speed("paused");}
           if(person.age<18)o.childCounts[key]=(o.childCounts[key]||0)+1;(o.actors[id]||=([]));if(!o.actors[id].includes(key))o.actors[id].push(key);}}
         if(s.days-o.start>=1){s.ui.actions.set_speed("paused");o.end=s.days;o.needsAfter={};o.gardens={};o.storesAfter={};for(const id of Object.keys(o.needsBefore))o.needsAfter[id]={hunger:s.ecs.personable[id].hunger,tiredness:s.ecs.personable[id].tiredness,dead:!!s.ecs.personable[id].dead};for(const [id,f]of Object.entries(s.ecs.farmable))if(s.ecs.backyard?.[id]||f.slots.some(slot=>slot.tendedBy&&s.ecs.personable[slot.tendedBy]?.age<18))o.gardens[id]=f.slots;for(const [id,c]of Object.entries(s.ecs.container))o.storesAfter[id]={...c.amounts};o.conversations=Object.entries(s.social.contacts||{}).filter(([,day])=>day>=o.start);return;}requestAnimationFrame(watch);};requestAnimationFrame(watch);});
-    await page.getByRole("button",{name:"Fast speed",exact:true}).click();
+    await page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true}).click();
     while(true){
       await page.waitForFunction(()=>window.feedbackObserve.end||window.feedbackObserve.capture,null,{timeout:120000});
       const capture=await page.evaluate(()=>window.feedbackObserve.capture);
@@ -208,7 +208,7 @@ const report = { errors: [], samples: [], frames: [], assistance: "Seed 13 norma
         await page.setViewportSize({width:390,height:664});await shot("phone-"+capture.kind);await page.setViewportSize({width:1440,height:900});
         await page.evaluate(()=>window.tinyking.ui.actions.change_visibility({selected_person:null}));await shot("desktop-"+capture.kind+"-world");
         await page.setViewportSize({width:390,height:664});await shot("phone-"+capture.kind+"-world");await page.setViewportSize({width:1440,height:900});
-        await page.evaluate(()=>{const s=window.tinyking;delete window.feedbackObserve.capture;s.ui.actions.change_visibility({selected_person:null});s.ui.actions.set_speed("fast");});
+        await page.evaluate(()=>{const s=window.tinyking;delete window.feedbackObserve.capture;s.ui.actions.change_visibility({selected_person:null});s.ui.actions.set_speed("normal");});
       }
       if(await page.evaluate(()=>!!window.feedbackObserve.end))break;
     }

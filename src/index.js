@@ -14,10 +14,10 @@ import messages from "data/messages.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDice, faUser, faShieldAlt, faRandom, faMountain } from "@fortawesome/free-solid-svg-icons";
-import { faPlay, faPause, faFastForward } from "@fortawesome/free-solid-svg-icons";
+import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
 import { faCaretLeft, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faDice, faTimes, faPlay, faPause, faFastForward, faShieldAlt, faUser, faRandom, faMountain, faCaretLeft, faCaretRight);
+library.add(faDice, faTimes, faPlay, faPause, faShieldAlt, faUser, faRandom, faMountain, faCaretLeft, faCaretRight);
 
 const locale = window.locale || "en";
 

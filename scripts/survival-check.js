@@ -12,7 +12,7 @@ const { homeOf } = require("../src/game/overworld");
 
 async function run(seed) {
   const started = performance.now();
-  const state = { ecs: { nextId: 1 }, space: {}, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, space: {}, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "normal" };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
@@ -47,7 +47,7 @@ async function run(seed) {
   // Six game minutes per step; routes still visit every waypoint.
   const end = state.days + 24;
   while (state.days < end - 1e-9) {
-    simulation.step(6);
+    simulation.step(10*(6), 0);
     state.redraws.length = 0;
   }
   const alive = people.filter(id => !state.ecs.personable[id].dead).length;

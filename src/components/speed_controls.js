@@ -8,7 +8,7 @@ import { handleSpaceKey } from "game/speed_keys";
 
 function SpeedButton({ icon, game_speed, click }) {
   const state = React.useContext(GameState);
-  return (<button aria-label={{ paused: "Pause", normal: "Normal speed", fast: "Fast speed" }[game_speed]} onClick={click(game_speed)} disabled={state.game_speed == game_speed}>
+  return (<button aria-label={{ paused: "Pause", normal: "Normal speed" }[game_speed]} onClick={click(game_speed)} disabled={state.game_speed == game_speed}>
     <FontAwesomeIcon icon={icon}/>
   </button>);
 }
@@ -35,6 +35,5 @@ export function SpeedControls() {
     <SpeedButton icon="pause" game_speed="paused" click={set_speed}/>
     <button className="debug-toggle" aria-label="Debug activities" aria-pressed={!!state.ui.debug} onClick={() => state.ui.actions.toggle_debug()}>Debug</button>
     <SpeedButton icon="play" game_speed="normal" click={set_speed}/>
-    <SpeedButton icon="fast-forward" game_speed="fast" click={set_speed}/>
   </div>);
 }

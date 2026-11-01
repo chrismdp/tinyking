@@ -5,7 +5,7 @@ import { createSimulation } from "game/simulation";
 export function peopleWorld() {
   const { state, villager: player, tiles } = rowOfTiles(6);
   state.ui.playerId = player;
-  state.game_speed = "fast";
+  state.game_speed = "normal";
   state.peopleSeed = 13;
   state.opinionThresholds = { hate: -100, love: 100 };
   state.villages = { village: { name: "Withyford" } };
@@ -43,6 +43,6 @@ export function peopleWorld() {
   state.ecs.controllable[tiles[3]] = { controllerId: parent };
   state.ecs.playable[player] = { known: [] };
   const sim = createSimulation(state);
-  const step = hours => { for (let i = 0; i < hours * 60; i++) sim.step(1); };
+  const step = hours => { for (let i = 0; i < hours * 60; i++) sim.step(10*(1), 0); };
   return { state, player, person, parent, sibling, tiles, step };
 }

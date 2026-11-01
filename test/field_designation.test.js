@@ -7,7 +7,7 @@ import { HOUR } from "game/time";
 import { walk_to, create_field } from "game/tasks";
 import { canPlaceField, fieldAtTile, reserveRoad } from "game/land_use";
 
-it("leaves an unfinished plot for a real meal without transit wear, and cancellation leaves no field reservation", () => {
+it("leaves an unfinished plot for collapse without transit wear, and cancellation leaves no field reservation", () => {
   const { state, player, tiles, step } = peopleWorld();
   const task = enqueueTask(state, { key: "create_field" }, tiles[0]);
   step(0.05);
@@ -15,8 +15,9 @@ it("leaves an unfinished plot for a real meal without transit wear, and cancella
   expect(progress).toBeGreaterThan(0);
   expect(progress).toBeLessThan(1);
   state.ecs.personable[player].energy = 20;
-  const [food]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:player}}]);
-  enqueueTask(state,{key:"eat_food"},food,{foodType:"forage"});
+  const [camp]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},camp:{},sleepable:{capacity:1,occupiers:[]},controllable:{controllerId:player}}]);
+  state.ecs.household[player].houseId=camp;
+  state.ecs.personable[player].tiredness=2;
   step(0.5);
   expect(Hex().fromPoint(state.ecs.spatial[player]).equals(Hex().fromPoint(state.ecs.spatial[tiles[0]]))).toBe(false);
   expect(task.progress).toBe(progress);

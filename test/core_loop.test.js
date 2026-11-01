@@ -11,7 +11,7 @@ import { enqueueTask, readyPlayerTasks } from 'game/manager';
 
 export function playerFixture() {
   const f=rowOfTiles(4), s=f.state, a=f.villager;
-  s.ui.playerId=a;s.game_speed='fast';s.days=.4;
+  s.ui.playerId=a;s.game_speed='normal';s.days=.4;
   s.ecs.personable={[a]:{age:24,hunger:.5,tiredness:.2}};
   s.ecs.planner={[a]:{id:a,world:{actorId:a,ordered:true,stationaryPlayer:true,places:{},no_place_for:{},feeling:{},holding:{},days:s.days}}};
   s.ecs.manager={[a]:{ordered:true,jobs:[]}};
@@ -94,19 +94,19 @@ it.each(['recover_meal','walk_to'])('loads legacy %s care without inventing food
  expect(loaded.ecs.personable[a].energy).toBe(0);expect(loaded.ecs.personable[a].hunger).toBeUndefined();
  expect(loaded.ecs.manager[a].jobs).toEqual([]);expect(loaded.ecs.planner[a].task).toBeNull();expect(Object.keys(loaded.ecs.good || {})).toHaveLength(0);
 });
-it('retires a consumed owned meal through Fast six-minute simulation steps',()=>{
+it('retires a consumed owned meal through explicit six-minute simulation steps',()=>{
  const {state:s,villager:a}=playerFixture();s.ecs.personable[a].energy=20;
  const [meal]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},good:{type:'forage',amount:1},haulable:{},controllable:{controllerId:a}}]);
  const job=enqueueTask(s,{key:'eat_food'},meal,{foodType:'forage'}),sim=require('game/simulation').createSimulation(s);
- for(let i=0;i<10;i++)sim.step(6);
+ for(let i=0;i<10;i++)sim.step(10*(6), 0);
  expect(s.ecs.manager[a].jobs).not.toContain(job);expect(s.ecs.good[meal]).toBeUndefined();expect(s.ecs.personable[a].energy).toBe(55);
 });
 it('retires an already consumed meal when Rest interrupts its remaining time',()=>{
  const {state:s,villager:a}=playerFixture();s.ecs.personable[a].energy=20;
  const [meal]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},good:{type:'grain',amount:2},haulable:{},controllable:{controllerId:a}}]);
- const order=enqueueTask(s,{key:'eat_food'},meal,{foodType:'grain'}),sim=require('game/simulation').createSimulation(s);sim.step(6);
+ const order=enqueueTask(s,{key:'eat_food'},meal,{foodType:'grain'}),sim=require('game/simulation').createSimulation(s);sim.step(10*(6), 0);
  expect(s.ecs.personable[a].energy).toBe(55);expect(s.ecs.good[meal].amount).toBe(1);
- enqueueTask(s,{key:'rest'},a);sim.step(6);
+ enqueueTask(s,{key:'rest'},a);sim.step(10*(6), 0);
  expect(s.ecs.manager[a].jobs).not.toContain(order);expect(s.ecs.good[meal].amount).toBe(1);
 });
 it('lets a collapsed player keep walking home instead of restarting that walk every frame',()=>{
@@ -122,7 +122,7 @@ it('reaches home and sleeps after collapse with another ready order queued',()=>
  const [camp]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},camp:{ownerId:a},controllable:{controllerId:a}}]);
  s.ecs.household={[a]:{houseId:camp}};s.ecs.personable[a].tiredness=2;s.ecs.personable[a].energy=10;
  const order=enqueueTask(s,{key:'move_to_here'},tiles[1]),sim=require('game/simulation').createSimulation(s);
- for(let i=0;i<45;i++)sim.step(6);
+ for(let i=0;i<45;i++)sim.step(10*(6), 0);
  expect(Math.hypot(s.ecs.spatial[a].x-s.ecs.spatial[camp].x,s.ecs.spatial[a].y-s.ecs.spatial[camp].y)).toBeLessThan(10);expect(s.ecs.personable[a].energy).toBeGreaterThan(10);
  expect(s.ecs.planner[a].task[0]).toBe('sleep');expect(s.ecs.manager[a].jobs).toContain(order);
 });

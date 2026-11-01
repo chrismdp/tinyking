@@ -74,7 +74,7 @@ it("camps at the actual dusk position, holds still overnight and resumes the sam
   const camp=s.travel.journey.campId;
   expect(s.ecs.spatial[camp]).toMatchObject({x:point.x,y:point.y});
   expect(s.ecs.camp[camp]).toBeDefined();expect(s.ecs.sleepable[camp].capacity).toBe(1);
-  const simulation=createSimulation(s);simulation.step(1);
+  const simulation=createSimulation(s);simulation.step(10*(1), 0);
   expect(s.ecs.spatial[ids[0]]).toEqual(point);
   expect(s.ecs.planner[ids[0]].task?.[0]).toBe("sleep");
   const restored=restoreGame(serialiseGame(s));
@@ -93,7 +93,7 @@ it("runs only the current hex live between seasonal history steps", async () => 
   const {s}=community();const away=community({namespace:"away-",key:"6,5",player:false}).s;
   const snapshot=attach(s,away), before=JSON.stringify(snapshot);
   const simulation=createSimulation(s);
-  for(let i=0;i<90;i++)await simulation.step(1);
+  for(let i=0;i<90;i++)await simulation.step(10*(1), 0);
   expect(s.days).toBeGreaterThan(.375);
   expect(JSON.stringify(snapshot)).toBe(before);
   expect(s.travel.historyCalls).toEqual([]);

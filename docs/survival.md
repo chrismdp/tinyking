@@ -5,9 +5,9 @@ Chatting costs no energy. Walking uses a little energy. Carrying uses more.
 Chopping, gathering, construction and field work use nine energy per game hour.
 
 Work runs at full speed above 40 energy, 80% below 40, and 50% below 20.
-At zero, the player cannot start or continue physical work. The queue keeps its
+At zero, the player cannot start or continue physical work. The current order keeps its
 progress. Eating or sleeping makes the work available again.
-The HUD always shows energy, including when the task list is collapsed.
+The HUD always shows energy, in a compact strip above the map controls.
 
 At 6pm, darkness stops physical work. The player walks to their own home or camp.
 Work resumes after dawn, at 6am. The player can still chat and visit in the evening.
@@ -42,7 +42,7 @@ Accepted harvest favours can leave household-owned grain beside a full pantry.
 
 Choose Rest to walk home and sleep. A bed restores 12.5 energy per hour.
 A camp bedroll or rough ground restores eight energy per hour.
-Sleep lasts at least six hours and continues through the night.
+Daytime sleep lasts at least six hours. Sleep at night continues until dawn, even after a late bedtime. The screen fades to dark while the simulation runs through the night in small steps. Hourly needs, weather, visits and festivals keep their normal rules. At dawn the screen returns with a short morning line. Staying awake keeps normal speed. Pause stops time, including during sleep. Space toggles Pause and Normal.
 Sleeping late reduces the recovery ceiling by seven energy per hour after 10pm,
 with a minimum ceiling of 55. Missing a second night causes collapse and a
 55-energy ceiling. Sleep reduces tiredness too.

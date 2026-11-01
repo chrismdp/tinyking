@@ -17,7 +17,7 @@ const CHROME = "/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrom
 const copy = state => structuredClone({ ecs: state.ecs, space: state.space, days: state.days, villages: state.villages, map: state.map, world: state.world, weather: state.weather });
 
 async function fixtures() {
-  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days: 0.375, game_speed: "normal" };
   const result = await generateMap(state, 1, async () => {});
   state.ui.playerId = result.playerId; state.map = result.map;
   state.weatherOverride = "clear"; updateWeather(state, 0);
@@ -31,7 +31,7 @@ async function fixtures() {
   let forge, farms, evening, fieldId, greenId, maxGathered = 0, familyWorkers = 0;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   while (state.days < 3) {
-    simulation.step(3);
+    simulation.step(10*(3), 0);
     if (!forge && state.ecs.planner[smith].task?.[0] == "trade_work") forge = copy(state);
     const working = Object.keys(state.ecs.farmable).filter(id => {
       const field = state.ecs.farmable[id];
@@ -121,7 +121,7 @@ async function fixtures() {
       await page.waitForTimeout(500);
     }
     async function shot(name) {
-      const collapse = page.getByRole("button", { name: "Collapse task list", exact: true });
+      const collapse = page.getByRole("button", { name: "Close journal", exact: true });
       if (await collapse.count()) await collapse.click();
       await page.waitForTimeout(8000);
       await page.screenshot({ path: path.join(SHOTS, name + ".png") });

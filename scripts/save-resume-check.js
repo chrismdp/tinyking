@@ -22,9 +22,9 @@ const base = process.argv[2] || "http://localhost:8150/";
   const advance = async frames => page.evaluate(async frames => {
     const s = window.tinyking;
     s.ticker.stop();
-    s.game_speed = "fast";
+    s.game_speed = "normal";
     const sim = window.tinykingSettlement.createSimulation(s, { onDay: () => s.persistence.request() });
-    for (let i = 0; i < frames && s.ecs.manager[s.ui.playerId].jobs.length; i++) await sim.step(1);
+    for (let i = 0; i < frames && s.ecs.manager[s.ui.playerId].jobs.length; i++) await sim.step(10*(1), 0);
     s.game_speed = "paused";
     s.renderer.frame();
     s.ui.actions.end_turn();

@@ -8,7 +8,7 @@ import { chat } from "game/people";
 jest.mock("data/male_names.csv", () => ["Will", "Will", "Will"], { virtual: true });
 jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: true });
 it("round-trips a played seed-13 world, offscreen maps, travel, knowledge, ownership and orders, then simulates identically", async () => {
-  const state = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} }, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} }, game_speed: "normal" };
   const generated = await generateMap(state, 13, async () => {});
   state.map = generated.map;
   state.ui.playerId = generated.playerId;
@@ -19,17 +19,17 @@ it("round-trips a played seed-13 world, offscreen maps, travel, knowledge, owner
   const destination = Object.values(state.map.entrances).map(e => destinationFor(state, e.tileIds[0])).find(d => !d.blocked);
   await completeTravel(state, { destination: destination.key, side: destination.side });
   skipIntro(state);
-  state.game_speed = "fast";
+  state.game_speed = "normal";
   enqueueTask(state, { key: "rest" }, state.map.homeId);
   const original = createSimulation(state);
-  for (let i = 0; i < 17; i++) await original.step(1);
+  for (let i = 0; i < 17; i++) await original.step(10*(1), 0);
   expect(Object.keys(state.travel.maps).length).toBeGreaterThanOrEqual(2);
   const restored = restoreGame(serialiseGame(state));
   expect(gameData(restored)).toEqual(gameData(state));
   // The save must retain shared objects used by the travel directory and maps.
   expect(restored.ecs).toBe(restored.travel.maps[restored.travel.active].ecs);
   const loaded = createSimulation(restored);
-  for (let i = 0; i < 180; i++) { await original.step(1); await loaded.step(1); }
+  for (let i = 0; i < 180; i++) { await original.step(10*(1), 0); await loaded.step(10*(1), 0); }
   expect(gameData(restored)).toEqual(gameData(state));
 }, 15000);
 it("preserves undefined, non-finite planner values and shared references, excluding render resources", () => {

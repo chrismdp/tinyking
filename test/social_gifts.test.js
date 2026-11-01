@@ -87,9 +87,9 @@ it("keeps the delivered food identity and owner in the receipt after consumption
   expect(s.events.find(e => e.type == "gift").gifts).toContainEqual({ id: item, type: "grain", ownerId: person });
 });
 
-it('preserves a physically collected unique gift through reordered gathering and resumes the same-item delivery', () => {
+it('preserves a physically collected unique gift through replacement gathering and a fresh same-item delivery', () => {
   const { state: s, player, person, tiles, step } = peopleWorld();
-  const { enqueueTask, reorderTask } = require('game/manager');
+  const { enqueueTask } = require('game/manager');
   const item = createPossession(s, player, 'Engraved family brooch', 'heirloom');
   s.ecs.possession[item].inscription = 'Keep this in the family';
   const [camp, plant] = newEntities(s, [
@@ -97,19 +97,20 @@ it('preserves a physically collected unique gift through reordered gathering and
     { spatial: { ...s.ecs.spatial[tiles[0]] }, forageable: { kind: 'berries', biome: 'grassland', amount: 2, growth: 0 } }
   ]);
   const choice = giftChoices(s, player).find(c => c.gift.sourceId == item).gift;
-  const gift = enqueueTask(s, { key: 'give_gift' }, person, { gift: choice });
+  let gift = enqueueTask(s, { key: 'give_gift' }, person, { gift: choice });
   for (let i=0;i<100 && !gift.giftItem;i++) step(.01);
   expect(gift.giftItem).toBe(item);
   expect(s.ecs.haulable[item].heldBy).toBe(player);
   const collected = JSON.parse(JSON.stringify(s.ecs.possession[item]));
   const good = { ...s.ecs.good[item] };
-  const gather = enqueueTask(s, { key: 'forage' }, plant); reorderTask(s, gather.id, 0);
+  const gather = enqueueTask(s, { key: 'forage' }, plant);
   for (let i=0;i<400 && s.ecs.manager[player].jobs.includes(gather);i++) step(.01);
   expect(gather.progress).toBe(1);
   expect(s.ecs.possession[item]).toEqual(collected);
   expect(s.ecs.good[item]).toEqual(good);
   expect(s.ecs.haulable[item].heldBy).toBe(player);
   expect(s.ecs.container[camp].amounts).toEqual({ forage: 1 });
+  gift=enqueueTask(s,{key:"give_gift"},person,{gift:choice,giftItem:item});
   step(4);
   expect(gift.progress).toBe(1);
   expect(s.ecs.good[item]).toEqual(good);

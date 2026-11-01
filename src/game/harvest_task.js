@@ -8,14 +8,13 @@ export function harvestCounts(state, request) {
 
 export function harvestPhase(state, job, request, active) {
   if (request.status != "accepted") return request.outcome || request.status;
-  if (job.waiting) return job.detail || job.waiting;
   const planner = state.ecs.planner[state.ui.playerId];
   if (planner.task?.[0] == "sleep" || planner.plan?.some(task => task[0] == "sleep")) return "Stopped to sleep · harvest resumes afterwards";
   if (planner.task?.[0]=="eat_food") return "Eating · harvest resumes afterwards";
+  if (job.waiting) return job.detail || job.waiting;
   if (!planner.world.currentJob && planner.world.feeling?.hungry) return "Looking for a meal · harvest resumes after eating";
   if (!active || planner.task?.[0] != "do_favour") {
-    return state.ecs.manager[state.ui.playerId].jobs[0] != job ?
-      "Harvest paused · another task comes first" : "Harvest queued · work and delivery remain";
+    return "Harvest ready · work and delivery remain";
   }
   const cargo = request.cargo[0];
   if (cargo) return state.ecs.haulable?.[cargo]?.heldBy == state.ui.playerId ?

@@ -78,13 +78,13 @@ Relationships are one-way. Each observer has their own goodwill and limited slot
 
 Traits and tastes set directional dispositions. Hate permits Public, liking permits Personal, and love permits Intimate. Goodwill never changes those tastes. Ring displacement and drift still apply. A player can feel differently from the person they court.
 
-Selecting a stranger does not introduce them. Names, biographies, events and possession stories use the current actor's actual knowledge. Completed conversations record spoken contact. A queued, unreachable or refused visit does not. An identified family story requires actual disclosure, rather than an anonymous tree or access to global history.
+Selecting a stranger does not introduce them. Names, biographies, events and possession stories use the current actor's actual knowledge. Completed conversations record spoken contact. An ordered, unreachable or refused visit does not. An identified family story requires actual disclosure, rather than an anonymous tree or access to global history.
 
 The family tree shows known people and connected unknown relatives. Its cards retain readable sizes. The viewport scrolls and can centre on the selected person, owner or heir when they are in the known tree. Household owner and heir text follows the real inheritance function and the current actor's knowledge.
 
 ## Orders, needs and help
 
-Orders belong to the current player. They use the same planner as village work. The task panel supports ordering, cancellation, waiting reasons and progress from real work. A building without materials waits. It never gathers wood automatically.
+Orders belong to the current player. They use the same planner as village work. A new order cancels the current order. Delivered goods and completed work stay done. A compact strip shows energy, current activity and Stop. The Journal opens with its button or J and contains family goals, Life here, favours and work details. A building without materials waits. It never gathers wood automatically.
 
 Energy is the player's daily work budget. Physical work spends it. Chatting is free.
 Low energy slows work. At zero, work waits for food or sleep. Eat consumes a
@@ -99,7 +99,7 @@ requests, and ripe crops cause harvest requests. Missed meals cannot kill them.
 
 Playable children keep explicit movement, conversation, gifts, Eat, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
 
-Favours come from actual household harvest, food or fuel needs. Acceptance through a chat line queues physical work and authorises delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
+Favours come from actual household harvest, food or fuel needs. Acceptance through a chat line starts physical work in place of the current order and authorises delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
 
 A fed, rested Personal friend can contribute real work to a funded building or an owned field. The friend keeps their home, belongings, controller and priorities. There is no Recruit action. Household access follows actual residence. Legal ownership, residence, social trust and person-scoped local rights remain separate. Succession does not copy a predecessor's oaths, discoveries, goodwill or community permissions onto another person.
 
@@ -125,7 +125,7 @@ The player must choose Begin to start the new season.
 
 ## Marriage, ownership and succession
 
-The player deliberately chooses Court or Ask to marry in a person's panel. Each action queues a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat changes the NPC's regard through matching icons. Courtship can build mutual Intimate regard with a compatible person.
+The player deliberately chooses Court or Ask to marry in a person's panel. Each action orders a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat changes the NPC's regard through matching icons. Courtship can build mutual Intimate regard with a compatible person.
 
 Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. Player proposals also reject any recorded direct ancestor or descendant beyond the two generations shown in the tree. NPC cousin compatibility keeps its existing two-generation rule. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
 
@@ -137,7 +137,7 @@ One inheritance rule applies to assets, visible heir labels and gameplay success
 
 On death, possessions retain their identities and append inheritance provenance. Death, inheritance and gameplay succession produce social events. Dead actors lose active work and cannot finish a gift, promise or asynchronous departure. Their unfinished favours cancel without rewards. Borrowed harvest returns to the ground under its actual ownership. Heirs keep their own belongings and outstanding personal orders. Their former autonomous walks, visits and play stop when control changes.
 
-The successor keeps their existing appearance, age, personality, needs, kin, relationships, household, knowledge, custody and position. The controls, camera, selected person, inventory and task panel follow them. A successor in another visited world hex activates that existing map after normal calendar catch-up. Control transfer adds no journey season. Pending road commitments are retained as a visible paused journey when a traveller becomes the player.
+The successor keeps their existing appearance, age, personality, needs, kin, relationships, household, knowledge, custody and position. The controls, camera, selected person, inventory and status strip follow them. A successor in another visited world hex activates that existing map after normal calendar catch-up. Control transfer adds no journey season. Pending road commitments are retained as a visible paused journey when a traveller becomes the player.
 
 With no living heir, a deterministic new stranger arrives through the existing two-hex camp sequence in the same world. They have a new identity and tastes, no family estate and no followers. Old villages, buildings, ownership, people and stories remain. Shelter limits and camp lookup use the current owner. Another family's camp keeps its bed when the stranger builds.
 
@@ -145,14 +145,14 @@ A completed player-owned house can found a small village. Willing unmarried adul
 
 ## Small optional people goals
 
-The task panel contains one next hint and a collapsed list of completed milestones. Each actor earns their own evidence:
+The Journal contains one next hint and completed milestones. Each actor earns their own evidence:
 
 - Someone in the nearest village at arrival trusts them after actual conversation.
 - A speaker discloses an identifiable event from a family's life.
 - A friend physically contributes to their work without a request.
 - They witness a live wedding between other people.
 
-These records travel with the person. Old history, an anonymous family tree, a queued action or someone else's global event does not complete them. An heir and a new stranger keep their own evidence. The game does not force a friendship or wedding to complete a goal.
+These records travel with the person. Old history, an anonymous family tree, an unfinished order or someone else's global event does not complete them. An heir and a new stranger keep their own evidence. The game does not force a friendship or wedding to complete a goal.
 
 ## Deferred work
 

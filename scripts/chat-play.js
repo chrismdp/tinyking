@@ -14,7 +14,7 @@ const actions=[];
   console.log("READY");
   const lines=readline.createInterface({input:process.stdin});
   const pause=async()=>{const b=page.getByRole("button",{name:"Pause",exact:true});if(await b.count()&&!await b.isDisabled())await b.click();};
-  const run=async()=>{if(await page.locator(".chat-panel").count())return;const b=page.getByRole("button",{name:"Fast speed",exact:true});if(!await b.isDisabled())await b.click();};
+  const run=async()=>{if(await page.locator(".chat-panel").count())return;const b=page.locator("#speed-controls").getByRole("button",{name:"Normal speed",exact:true});if(!await b.isDisabled())await b.click();};
   const settled=async(until,timeout=30000)=>{
     try {await page.waitForFunction(arg=>{const s=window.tinyking;if(!s?.ecs?.manager)return false;return arg=="chat"?!!s.chat?.active||!s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="chat"):arg=="favour"?Object.values(s.favours?.requests||{}).some(r=>r.actorId==s.ui.playerId&&r.status=="completed"):!!s.chat?.active||!s.ecs.manager[s.ui.playerId].jobs.length;},until,{timeout});}
     finally {if(!await page.locator(".chat-panel").count())await pause();}

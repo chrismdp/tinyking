@@ -58,7 +58,7 @@ it("processes simultaneous real player and NPC edge completions on their departu
   expect(leave_edge(s, npc, s.ecs.planner[npc].world, 0, false, edge, intent)).toBe(1);
   s.game_speed = "paused";
   const sim = createSimulation(s);
-  await sim.step(0); skipIntro(s); await sim.step(0);
+  await sim.step(10*(0), 0); skipIntro(s); await sim.step(10*(0), 0);
   expect(s.pendingNpcDepartures).toEqual([]);
   expect(s.travel.transit.filter(t => t.bundle.id == npc).length).toBeLessThanOrEqual(1);
   s.days += DAYS_IN_SEASON; await advanceWorldClock(s);
@@ -100,7 +100,7 @@ it("offscreen old age uses the live death rule and settles the estate", () => {
   s.ecs.kinship[actor].spouse = heir; s.ecs.kinship[heir].spouse = actor;
   const item = createPossession(s, actor, "Hungry householder's ring");
   const live = structuredClone(s); live.ecs.planner = {};
-  createSimulation(live).step(60);
+  createSimulation(live).step(10*(60), 0);
   const away = historyStep(s, 1);
   expect(live.ecs.personable[actor].deathCause).toBe("old age");
   expect(away.ecs.personable[actor]).toMatchObject({ dead: true, deathCause: "old age", heirId: heir });
@@ -139,7 +139,7 @@ it("offscreen and live food shortages keep people and their estate alive",()=>{
   const {s,ids:[,actor]}=community();delete s.travel;
   s.ecs.personable[actor].hunger=5.99;
   const item=createPossession(s,actor,"Householder's ring");
-  const live=structuredClone(s);live.ecs.planner={};createSimulation(live).step(60);
+  const live=structuredClone(s);live.ecs.planner={};createSimulation(live).step(10*(60), 0);
   const away=historyStep(s,1);
   for(const world of [live,away]) {
     expect(world.ecs.personable[actor].dead).toBeFalsy();

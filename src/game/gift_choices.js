@@ -1,7 +1,7 @@
 import { Hex } from "game/hex";
 import { giftOptions } from "game/people";
 
-// Group only equivalent goods at the same location. Each button still queues
+// Group only equivalent goods at the same location. Each button still orders
 // one original owned source; its displayed total never becomes a delivery amount.
 export function giftChoices(state, actorId) {
   const ecs = state.ecs, choices = new Map();

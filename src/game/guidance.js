@@ -33,7 +33,7 @@ export function openingGuidance(state) {
   const person=ecs.personable[actorId],jobs=ecs.manager?.[actorId]?.jobs||[];
   const deferred=jobs.find(j=>j.waiting&&j.job.key=="chat");
   if(deferred)return {actorId,key:"deferred",text:deferred.waiting};
-  if(state.game_speed=="paused" && jobs.length)return {actorId,key:"resume",text:"Choose Normal speed to continue your tasks.",action:"Normal speed",speed:"normal"};
+  if(state.game_speed=="paused" && jobs.length)return {actorId,key:"resume",text:"Choose Normal speed to continue your activity.",action:"Normal speed",speed:"normal"};
   if(person.energy<20)return {actorId,key:"energy",text:"Low energy slows work. Eat food you own, or Rest. Chatting costs no energy."};
   if(state.days%1*24>=18 || state.days%1*24<6)return {actorId,key:"evening",text:"Work ends at dusk. Rest by your fire, or visit and talk. Sleep early for a better morning."};
   if (state.ui.familyPersonId) return {actorId,key:"family",text:"Close the family tree to return to your conversations."};

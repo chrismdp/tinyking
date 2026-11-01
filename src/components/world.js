@@ -41,7 +41,7 @@ import { GameState } from "components/contexts";
 import { UserInterface } from "components/user_interface";
 import { DebugWorldgen } from "components/debug_worldgen";
 import { Info } from "components/info";
-import { playerOrderAllowed, enqueueTask, reorderTask, cancelTask, cancelJob } from "game/manager";
+import { playerOrderAllowed, enqueueTask, cancelTask, cancelJob } from "game/manager";
 
 import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
@@ -65,7 +65,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
-  const simulation = createSimulation(state, { onHour: renderUI, onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
+  const simulation = createSimulation(state, { onSleep: renderUI, onHour: renderUI, onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
   let uiTime = 0;
   state.ticker.add(() => {
     if (performance.now() - uiTime > 250) { uiTime = performance.now(); renderUI(); }
@@ -198,6 +198,7 @@ export function World() {
       },
       set_speed: (speedClass) => {
         if (introActive(state)||state.worldBusy||state.chat?.active) return;
+        if (!["paused", "normal"].includes(speedClass)) return;
         state.game_speed = speedClass;
         renderUI();
       },
@@ -302,7 +303,6 @@ export function World() {
         enqueueTask(state, { key: key == "ask_about" ? "chat" : key }, personId, metadata);
         renderUI();
       },
-      reorder_task: (id, index) => { if (introActive(state)||state.worldBusy) return; reorderTask(state, id, index); renderUI(); },
       cancel_task: id => { if (introActive(state)||state.worldBusy) return; cancelTask(state, id); renderUI(); },
       cancel_job: (managerId, key, targetId) => {
         if (introActive(state)||state.worldBusy) return;

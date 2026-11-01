@@ -17,7 +17,7 @@ const URL = process.argv[2] || "http://localhost:8119/";
 const observations = [];
 
 async function fixtures() {
-  const state = { ecs: { nextId: 1 }, days: 0.375, ui: {}, redraws: [], game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, days: 0.375, ui: {}, redraws: [], game_speed: "normal" };
   const generated = await generateMap(state, 13, async () => {});
   state.map = generated.map;
   const player = state.ui.playerId = generated.playerId;
@@ -34,7 +34,7 @@ async function fixtures() {
   const snapshots = {};
   const sim = createSimulation(state);
   for (let i = 0; i < 10000 && Object.keys(snapshots).length < 3; i++) {
-    sim.step(1);
+    sim.step(10*(1), 0);
     const [task, target] = state.ecs.planner[person].task || [];
     if (task == "trade_work" && !snapshots.forge) snapshots.forge = save();
     if (task == "eat" && !snapshots.eating) snapshots.eating = save();
@@ -74,7 +74,7 @@ async function run(browser, phone, data) {
   const click = async locator => phone ? locator.tap() : locator.click();
   const speed = async n => {
     if (phone && await page.locator(".people-sheet").count()) await click(page.locator(".people-sheet .sheet-close"));
-    const button = page.locator("#speed-controls button").nth(n);
+    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed"][n], exact: true });
     if (await button.isEnabled()) await click(button);
   };
   const focus = async id => {
@@ -200,7 +200,7 @@ async function run(browser, phone, data) {
     const subjectButton = page.locator(".talk-chooser > button").nth(subjectIndex);
     const fullSubjectName = await subjectButton.innerText();
     await click(subjectButton);
-    await speed(2);
+    await speed(1);
     await page.waitForFunction(({ person, subject }) => window.tinyking.knowledge[window.tinyking.ui.playerId]?.feelings[person]?.[subject] == "personal", { person, subject }, { timeout: 120000 });
     await speed(0);
     await openPerson();
@@ -236,7 +236,7 @@ async function run(browser, phone, data) {
       const s = window.tinyking; return s.ecs.manager[s.ui.playerId].jobs[0];
     });
     assert.equal(metadata.gift.sourceId, held);
-    await speed(2);
+    await speed(1);
     const delivery = await page.evaluate(() => Promise.race([window.fixtureGiftDelivery, new Promise((_, reject) => setTimeout(() => reject(new Error("Gift UI transfer timed out")), 120000))]));
     await speed(0);
     assert.equal(delivery.owner, person); assert.equal(delivery.amount, 1);

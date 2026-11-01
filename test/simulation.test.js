@@ -15,23 +15,23 @@ describe("simulation step", () => {
     const state = villageState("normal");
     createSimulation(state).step(2);
     expect(state.days).toBeCloseTo(0.375 + 2 * (1 / 60) * SPEED.normal / 86400, 12);
-    expect(deltaTime(1, SPEED.fast)).toBeCloseTo(1 / 1440, 12);
+    expect(deltaTime(10, SPEED.normal)).toBeCloseTo(1 / 1440, 12);
   });
 
   it("does nothing while paused", () => {
     const state = villageState("paused");
-    createSimulation(state).step(6);
+    createSimulation(state).step(10*(6), 0);
     expect(state.days).toEqual(0.375);
   });
 
   it("makes people hungrier and more tired each game hour and reports the hour", () => {
-    const state = villageState("fast");
+    const state = villageState("normal");
     let hours = 0;
     const simulation = createSimulation(state, { onHour: () => hours++ });
 
-    // NOTE: 66 game minutes at fast speed
+    // NOTE: 66 game minutes through explicit simulation steps
     for (let i = 0; i < 11; i++) {
-      simulation.step(6);
+      simulation.step(10*(6), 0);
     }
 
     expect(hours).toEqual(1);
@@ -69,7 +69,7 @@ describe("a player villager the planner cannot plan for", () => {
     // Idle plans now always succeed; exercise the actual solver-failure fallback.
     const solve = jest.spyOn(htn, "solve").mockReturnValue([]);
 
-    expect(() => createSimulation(state).step(1)).not.toThrow();
+    expect(() => createSimulation(state).step(10*(1), 0)).not.toThrow();
 
     expect(warn).toHaveBeenCalled();
     expect(state.ecs.planner[1].task).toEqual(["wait_for", time.HOUR * 0.5]);
@@ -79,7 +79,7 @@ describe("a player villager the planner cannot plan for", () => {
 });
 
 it("refreshes world weather and snow on the hour, including every hour in a long step", () => {
-  const state = villageState("fast");
+  const state = villageState("normal");
   state.world = { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, temperature: "cold", moisture: "wet", biome: "snowfield" }] };
   state.map = { seed: 13 };
   state.ecs.mappable = { 2: { terrain: "mountain", temperature: "cold" } };
@@ -87,11 +87,11 @@ it("refreshes world weather and snow on the hour, including every hour in a long
   expect(state.weather["0,0"].type).toBeDefined();
   expect(state.snow[2]).toBe(0);
   const before = state.weather;
-  simulation.step(1);
+  simulation.step(10*(1), 0);
   expect(state.weather).toBe(before);
   let hours = 0;
   const longStep = createSimulation(state, { onHour: () => hours++ });
-  longStep.step(180);
+  longStep.step(10*(180), 0);
   expect(hours).toBe(3);
   expect(state.weather).not.toBe(before);
   expect(state.ecs.personable[1].hunger).toBeCloseTo(3 * time.HOUR);
@@ -106,14 +106,14 @@ it("drifts relationships once per crossed hour, and leaves them alone while paus
   };
   state.opinionThresholds = { hate: -1, love: 1 };
   const simulation = createSimulation(state);
-  simulation.step(180);
+  simulation.step(10*(180), 0);
   expect(state.ecs.relationships[1].known[2].goodwill).toBe(10.25);
-  state.game_speed = "fast";
-  simulation.step(180*7/3);
+  state.game_speed = "normal";
+  simulation.step(10*(180*7/3), 0);
   expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(10.175);
   expect(state.ecs.relationships[1].known[2].ring).toBe("social");
   // The same seasonal drift now spans seven hours followed by twenty-eight.
-  simulation.step(720*7/3);
+  simulation.step(10*(720*7/3), 0);
   expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9.875);
   expect(state.ecs.relationships[1].known[2].ring).toBe("public");
 });

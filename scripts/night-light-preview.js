@@ -13,12 +13,12 @@ const phase = process.argv[2] || "before";
   fs.mkdirSync(out, { recursive: true });
   const fixturePath = path.join(out, "fixture.json");
   if (!fs.existsSync(fixturePath)) {
-    const s = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 21 / 24, game_speed: "fast" };
+    const s = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 21 / 24, game_speed: "normal" };
     const result = await generateMap(s, 13, async () => {});
     s.map = result.map; s.ui.playerId = result.playerId;
     startIntro(s, { skip: true });
     const sim = createSimulation(s);
-    for (let i = 0; i < 120; i++) await sim.step(1);
+    for (let i = 0; i < 120; i++) await sim.step(10*(1), 0);
     assert(occupiedHomes(s).size > 0, "real villagers must have entered their homes");
     fs.writeFileSync(fixturePath, JSON.stringify({ ecs: s.ecs, days: s.days, space: s.space, playerId: s.ui.playerId, occupied: [...occupiedHomes(s)] }));
   }

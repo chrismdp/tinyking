@@ -12,7 +12,7 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const key = p => Hex().fromPoint(p).toString();
 
 async function world(seed) {
-  const s = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "fast" };
+  const s = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "normal" };
   const result = await generateMap(s, seed, async () => {});
   s.map = result.map; s.ui.playerId = result.playerId;
   startIntro(s, { skip: true });
@@ -71,7 +71,7 @@ async function probe(seed) {
   let meals = 0, gatherings = 0, maxActualDistance = 0, minActualSeparation = Infinity, minActualBodyClearance = Infinity;
   const sim = createSimulation(s);
   while (s.days < 3) {
-    sim.step(3);
+    sim.step(10*(3), 0);
     const gathered = [];
     for (const id of ids) {
       const person = s.ecs.personable[id], task = s.ecs.planner[id]?.task?.[0];

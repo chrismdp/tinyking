@@ -19,7 +19,7 @@ export function community({
     ui: {
       show: {}
     },
-    game_speed: "fast",
+    game_speed: "normal",
     peopleSeed: 13,
     opinionThresholds: {
       hate: -100,

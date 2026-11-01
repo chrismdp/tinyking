@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { GameState } from "../src/components/contexts";
-import { TaskPanel } from "../src/components/task_panel";
+import { ActivityDetails } from "../src/components/status_strip";
 import { rowOfTiles } from "./support/world";
 import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
@@ -12,11 +12,11 @@ import { woodTask } from "game/wood_task";
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 
-const render = state => renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+const render = state => renderToStaticMarkup(<GameState.Provider value={state}><ActivityDetails/></GameState.Provider>);
 function arrival() {
   const { state, villager: player, tiles } = rowOfTiles(9);
   Object.assign(state.ui, { playerId: player, actions: {} });
-  state.game_speed = "fast";
+  state.game_speed = "normal";
   Object.assign(state.ecs, {
     personable: { [player]: { hunger: 0, tiredness: 0 } }, nameable: { [player]: { nickname: "Will" } },
     planner: { [player]: { id: player, world: { places: {}, no_place_for: {}, feeling: {}, holding: {}, days: state.days, ordered: true } } },
@@ -30,7 +30,7 @@ function arrival() {
   const sim = createSimulation(state);
   const until = condition => {
     for (let n = 0; n < 5000; n++) {
-      sim.step(1);
+      sim.step(10*(1), 0);
       if (condition()) return;
     }
     throw new Error("Planner did not reach expected phase: " + JSON.stringify(state.ecs.planner[player]));
@@ -88,28 +88,11 @@ it("renders the actual chop, collection, return journeys and delivered counts un
   expect(render(state)).toContain('aria-valuenow="50"');
   until(() => !state.ecs.manager[player].jobs.length);
   expect(render(state)).not.toContain("Chop wood");
-  expect(render(state)).toContain("0 IN QUEUE");
+  expect(render(state)).toBe("");
   expect(Object.values(state.ecs.haulable).filter(h => !h.heldBy)).toHaveLength(2);
 });
 
-it("labels an interrupted delivery honestly and resumes it after a chosen meal", () => {
-  const { state, player, tree, camp, until, planner } = arrival();
-  const job = enqueueTask(state, { key: "cut_tree_down" }, tree);
-  until(() => job.gatheredDone && !state.ecs.holder[player].held.length);
-  state.ecs.personable[player].energy = 20;
-  state.ecs.container[camp]={capacity:10,amounts:{grain:1}};
-  enqueueTask(state,{key:"eat_food"},camp,{foodType:"grain"});
-  until(() => !job.assignedId && ["eat_food"].includes(planner.task?.[0]));
-  const paused = render(state);
-  expect(paused).toContain("Wood delivery paused");
-  const woodRow=paused.match(/<li class="task"[^]*?Chop wood[^]*?<\/li>/)?.[0];
-  expect(woodRow).not.toMatch(/~1m/);
-  expect(woodRow).not.toContain('class="task current"');
-  until(() => job.assignedId == player && !!state.ecs.holder[player].held.length);
-  expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
-  expect(render(state)).toContain("Carrying wood home");
-  until(() => !state.ecs.manager[player].jobs.length);
-});
+
 
 it("keeps waiting construction distinct from active wood delivery and actual building progress", () => {
   const { state, player, tree, tiles, until } = arrival();
@@ -118,10 +101,12 @@ it("keeps waiting construction distinct from active wood delivery and actual bui
   const job = enqueueTask(state, { key: "cut_tree_down" }, tree);
   until(() => job.gatheredDone && !!state.ecs.holder[player].held.length);
   const html = render(state);
-  expect(html).toMatch(/class="task waiting"[^]*?Waiting for logs · 0 of 4/);
+  expect(state.ecs.construction[site].delivered).toBe(0);
+  expect(html).not.toContain("Build the lean-to");
   expect(html).toMatch(/class="task current"[^]*?Carrying wood home/);
   // A separate construction diagnostic starts with enough delivered logs.
   state.ecs.construction[site].delivered = 4;
+  enqueueTask(state,{key:"build_shelter"},site);
   until(() => state.ecs.construction[site]?.work > 0);
   expect(render(state)).toContain("Building");
   expect(render(state)).toMatch(/% · ~\d+m left/);

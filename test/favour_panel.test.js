@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { peopleWorld } from './support/people';
 import { GameState } from '../src/components/contexts';
 import { RequestList, PersonRequests } from '../src/components/favour_requests';
-import { TaskPanel } from '../src/components/task_panel';
+import { ActivityDetails, StatusStrip } from '../src/components/status_strip';
 import { acceptFavour } from 'game/favours';
 
 jest.mock('components/contexts', () => require('../src/components/contexts'), { virtual: true });
@@ -31,11 +31,11 @@ it('uses known-person naming and hides unlearned requests in the compact list', 
   html = render(w.state, <RequestList/>);
   expect(html).not.toContain('The oven needs fuel');
 });
-it('shows explicit acceptance, queue reward and clear completed/expired outcomes', () => {
+it('shows explicit acceptance, order reward and clear completed/expired outcomes', () => {
   const w = setup(), s = w.state;
   acceptFavour(s, 'f');
-  expect(render(s, <TaskPanel/>)).toContain('Deliver wood');
-  expect(render(s, <TaskPanel/>)).toContain('Favour · +12 goodwill');
+  expect(render(s, <ActivityDetails/>)).toContain('Deliver wood');
+  expect(render(s, <ActivityDetails/>)).toContain('Favour · +12 goodwill');
   expect(render(s, <PersonRequests personId={w.person}/>)).toContain('Accepted');
   s.favours.requests.f.status = 'completed'; s.favours.requests.f.outcome = 'Completed · +12 goodwill with the requester';
   expect(render(s, <RequestList/>)).toContain('Completed · +12 goodwill');
@@ -53,9 +53,10 @@ it('links a heard offer back to its real conversation without accepting it', () 
 it('keeps the compact current task favour-aware without claiming a walking-only completion estimate', () => {
   const w = setup(), s = w.state;
   const task = acceptFavour(s, 'f'); task.assignedId = w.player;
-  const html = render(s, <TaskPanel/>);
-  expect(html).toContain('Energy 100 / 100 · Deliver wood');
-  const item = html.slice(html.indexOf('<li class="task'), html.indexOf('</li>'));
+  const html = render(s, <ActivityDetails/>);
+  expect(render(s,<StatusStrip/>)).toContain('Energy 100 / 100');
+  expect(html).toContain('Deliver wood');
+  const item = html.slice(html.indexOf('<article class="task'), html.indexOf('</article>'));
   expect(item).not.toContain('m left');
 });
 
@@ -81,7 +82,7 @@ it('uses the same actual harvest blockage in the request and task, instead of th
   const {favourWaiting}=require('game/favours');
   const task={id:'harvest',job:{key:'favour'},favourId:r.id,targetId:r.targetId};
   task.waiting=task.detail=favourWaiting(s,task);s.ecs.manager[w.player].jobs=[task];
-  const requestHTML=render(s,<RequestList/>),taskHTML=render(s,<TaskPanel/>);
+  const requestHTML=render(s,<RequestList/>),taskHTML=render(s,<ActivityDetails/>);
   expect(requestHTML).toContain(task.waiting);
   expect(taskHTML).toContain(task.waiting);
   expect(requestHTML).not.toContain('The family crop is ready');

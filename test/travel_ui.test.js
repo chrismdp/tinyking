@@ -41,8 +41,8 @@ it("offers an explicit named Travel action, one season, needs and unfinished-wor
 });
 it("labels the departure walk separately from its one-season journey without a false total ETA or percentage", () => {
   const {
-    TaskPanel
-  } = require("../src/components/task_panel");
+    ActivityDetails
+  } = require("../src/components/status_strip");
   const {
       s,
       ids
@@ -57,7 +57,7 @@ it("labels the departure walk separately from its one-season journey without a f
     assignedId: id,
     progress: 0
   }];
-  const html = render(s, <TaskPanel />);
+  const html = render(s, <ActivityDetails />);
   expect(html).toContain("Walking to the edge");
   expect(html).toContain("one season");
   expect(html).not.toContain("m left");

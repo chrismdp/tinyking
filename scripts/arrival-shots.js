@@ -15,7 +15,7 @@ const URL = process.argv[2] || "http://localhost:8101/";
 const SHOTS = path.resolve(__dirname, "../shots");
 
 async function snapshots() {
-  const state = { ecs: { nextId: 1 }, days: 0.375, ui: { show: {} }, redraws: [], game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, days: 0.375, ui: { show: {} }, redraws: [], game_speed: "normal" };
   const result = await generateMap(state, 13, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
@@ -38,7 +38,7 @@ async function snapshots() {
     haulable: {}, good: { type: "wood", amount: 1 }, controllable: { controllerId: player } })));
   const sim = createSimulation(state);
   for (let n = 0; n < 3000 && !shots.hut; n++) {
-    sim.step(1);
+    sim.step(10*(1), 0);
     if (!shots.construction && state.ecs.construction[site]?.delivered >= 2) shots.construction = save();
     if (!shots["lean-to"] && state.ecs.shelter[site].stage == "lean-to") {
       shots["lean-to"] = save();
@@ -78,14 +78,14 @@ async function snapshots() {
         state.redraws = Array.from({ length: state.ecs.nextId - 1 }, (_, i) => "" + (i + 1));
         state.ui.actions.change_visibility({ selected_person: player });
       }, { snapshot, player });
-      if (phone && label == "tasks") await page.getByRole("button", { name: "Expand task list" }).click();
-      if (phone && label == "construction") await page.getByRole("button", { name: "Collapse task list" }).click();
-      if (phone && label == "hunger") await page.getByRole("button", { name: "Expand task list" }).click();
+      if (phone && label == "tasks") await page.getByRole("button", { name: "Journal · J" }).click();
+      if (phone && label == "construction") await page.getByRole("button", { name: "Close journal" }).click();
+      if (phone && label == "hunger") await page.getByRole("button", { name: "Journal · J" }).click();
       await page.waitForTimeout(1500);
       await page.screenshot({ path: path.join(SHOTS, `${phone ? "phone" : "desktop"}-${label}.png`) });
       // Every rendered interactive control on the phone must be touch-sized.
       if (phone) {
-        const tiny = await page.locator("#task-panel button, #speed-controls button").evaluateAll(buttons => buttons.filter(b => {
+        const tiny = await page.locator("#status-strip button, #journal button, #speed-controls button").evaluateAll(buttons => buttons.filter(b => {
           const r = b.getBoundingClientRect();
           return r.width && r.height && (r.width < 44 || r.height < 44);
         }).map(b => b.getAttribute("aria-label") || b.textContent));
@@ -97,7 +97,7 @@ async function snapshots() {
       await page.setViewportSize({ width: 844, height: 390 });
       await page.waitForTimeout(1000);
       await page.screenshot({ path: path.join(SHOTS, "phone-landscape.png") });
-      await page.getByRole("button", { name: "Collapse task list" }).click();
+      await page.getByRole("button", { name: "Close journal" }).click();
       // A touch tap uses the camera module's selection path.
       const at = await page.evaluate(id => {
         const s = window.tinyking;

@@ -36,7 +36,7 @@ function routeMinutes(state, playerId, targetId) {
   return Math.max(1, Math.ceil(minutes));
 }
 
-// Both the queue and the character label read these same planner facts.
+// Both the Journal detail and the character label read these same planner facts.
 export function woodPhase(ecs, id, job, active = true) {
   if (job.job.key != "cut_tree_down" || job.waiting) return null;
   if (job.gatheredDone) {

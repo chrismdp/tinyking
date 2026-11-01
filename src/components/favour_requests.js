@@ -41,7 +41,7 @@ RequestCard.propTypes = { request: PropTypes.object.isRequired, personId: PropTy
 
 function Requests({ requests, personId }) {
   return <div className="request-content">{requests.length ? requests.map(r => <RequestCard key={r.id} request={r} personId={personId}/>) : <p className="request-note">No requests just now. Meet people nearby.</p>}
-    <p className="request-note">Accepting a spoken chat offer adds a favour to your queue. Goodwill comes when the work is done.</p></div>;
+    <p className="request-note">Accepting a spoken chat offer starts that favour in place of your current order. Goodwill comes when the work is done.</p></div>;
 }
 Requests.propTypes = { requests: PropTypes.array.isRequired, personId: PropTypes.string };
 export function RequestList() {

@@ -759,6 +759,8 @@ export function sleep(state, actorId, world, dt, firstRun) {
     const home=world.journeyCamp ? world.places.sleep : world.restBed || world.restHome || world.places.sleep;
     const bed=state.ecs.sleepable?.[home];
     if(firstRun || world.sleepStart==null) {
+      // A new Rest cannot inherit the dawn target of a cancelled sleep.
+      if(firstRun)delete world.sleepDawn;
       world.sleepStart=state.days;world.sleepHours=0;
       const hour=state.days%1*24,late=hour<6?hour+2:Math.max(0,hour-22);
       world.sleepCeiling=person.collapsed?55:Math.max(55,100-late*7);
@@ -770,7 +772,8 @@ export function sleep(state, actorId, world, dt, firstRun) {
     person.tiredness=Math.max(.1,person.tiredness-dt*SLEEP_REPLENISH);
     world.sleepHours+=dt*24;
     const hour=state.days%1*24;
-    if(world.sleepHours<6 || hour<6 || hour>=21)return Task.CONTINUE;
+    if(world.sleepDawn != null ? state.days < world.sleepDawn - 1e-9 : world.sleepHours<6 || hour<6 || hour>=18)return Task.CONTINUE;
+    delete world.sleepDawn;
     delete world.sleepStart;delete world.forcedRest;delete person.collapsed;
     return Task.FINISH;
   }
@@ -1186,7 +1189,7 @@ export function end_visit() {}
 
 
 // An accepted favour advances through ordinary walking, collection, crop work
-// and household storage. Persistent cargo IDs survive meals and reordered work.
+// and household storage. Persistent cargo IDs survive meals and other work.
 export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const ecs = state.ecs, r = state.favours?.requests[requestId];
   if (firstRun && r) r.working = false;
@@ -1419,7 +1422,7 @@ export function customs_visit(state, actorId, world, dt) {
   return Task.CONTINUE;
 }
 
-// One ordered field visit retains real slot work across meals and queue changes.
+// One ordered field visit retains real slot work across breaks and new orders.
 export function work_field(state, actorId, world, dt, firstRun, field, key) {
   const ecs=state.ecs, farm=ecs.farmable?.[field];
   if(!ownsField(state,actorId,field))return Task.ABORT;

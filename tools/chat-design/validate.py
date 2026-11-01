@@ -6,6 +6,14 @@ ids = collections.Counter(r["id"] for r in rows)
 for k, v in ids.items():
     if v > 1: problems.append(("dup id", k))
 for r in rows:
+    level=r.get("level",{})
+    if level.get("ring") not in ("public","social","personal","intimate") or level.get("below") not in ("hide","risk"):
+        problems.append(("invalid level",r["id"],level))
+    if level.get("standing","stranger") not in ("stranger","oath-sworn"):
+        problems.append(("invalid standing",r["id"],level))
+    if level.get("below")=="risk" and not any(x["family"]==level.get("rebuff","level_rebuff") and x["speaker"]=="npc" for x in rows):
+        problems.append(("missing rebuff",r["id"]))
+    if r.get("defiant") and r["speaker"]!="player": problems.append(("non-player defiance",r["id"]))
     bound = COMMON | set(r["bindings"])
     # nested refs like activity.partner, event.x are fields of a bound root
     for ph in re.findall(r"\{([^}]+)\}", r["text"]):

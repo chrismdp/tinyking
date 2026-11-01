@@ -6,8 +6,8 @@ export function slotRate(s, actor, npc) {
   switch(b?.ring) {
   case "intimate": return g>=90 ? [12,.5] : g>=75 ? [11,.75] : [10,1];
   case "personal": return g>=45 ? [9,1.5] : [8,2];
-  case "social": return g>=20 ? [7,3] : [6,4];
-  default: return g>=5 ? [5,5] : [4,6];
+  case "social": return g>=20 ? [8,3] : [7,4];
+  default: return g>=5 ? [6,5] : [6,6];
   }
 }
 export function chatRecord(s,actor,npc) {

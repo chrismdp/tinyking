@@ -65,7 +65,7 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
       if(pred.test=="season_is")s.days=["spring","summer","autumn","winter"].indexOf(pred.args.season)*7;
     }
     if(row.situation=="player_asks_name") {delete s.knowledge[p].people[n];delete s.ecs.relationships[p].known[n];c.tags=[];}
-    if(row.situation=="bereaved_relative") {
+    if(["bereaved_relative","death"].includes(row.situation)) {
       s.ecs.personable[sibling].dead=true;
       const death=recordEvent(s,"death",[sibling]);s.knowledge[p].events=[death.id];
     }
@@ -79,6 +79,9 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
       s.knowledge[p].people[n]={traits:[],conversation:{day:s.days}};
       if(row.situation=="leave")s.ecs.village[p].memberships={village:{day:0}};
     }
+    // Catalogue coverage tests each hidden line at its declared level; the
+    // row-rule regressions separately prove it is hidden below that level.
+    if(row.level.below=="hide"&&row.level.ring!="public")s.ecs.relationships[n].known[p]={ring:row.level.ring,goodwill:65};
     const q=lineCandidates(s,c,row.family,"player").find(l=>l.id==row.id);
     expect({id:row.id,reachable:!!q}).toEqual({id:row.id,reachable:true});
     if(exhausted) {
@@ -87,7 +90,7 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
         for(const l of lineCandidates(s,c,f,"npc"))s.chat.pairs[p+":"+n].used[l.useKey]=true;
       c.phase="player_turn";
     }
-    const expected=q.effects.find(e=>e.op=="set_reply_purpose")?.purpose;
+    const expected=q.risk?.rebuff||q.effects.find(e=>e.op=="set_reply_purpose")?.purpose;
     const a=answer(s,q);
     expect({id:q.id,answer:a?.family}).toEqual({id:q.id,answer:expected});
     // Subtopics must remain exact; a family-labelled sibling story is still

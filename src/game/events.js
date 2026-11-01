@@ -139,6 +139,8 @@ export function eventSentence(state, event, displayName) {
     world_visit: () => n(a) + " arrived from " + event.fromWorld + " to meet people",
     return: () => n(a) + " returned home from " + event.fromWorld,
     world_move: () => n(a) + " settled in " + event.toWorld + " after marrying",
+    defiance: () => event.reason=="woodland" ? n(a)+" refused to heed "+n(b)+"'s warning about the village woodland" :
+      event.reason=="death" ? n(a)+" pressed "+n(b)+" about a death" : event.reason=="flirt" ? n(a)+" made an unwelcome advance to "+n(b) : n(a)+" offended "+n(b)+" in conversation",
     commons_cut: () => n(a) + " cut common woodland without permission",
     commons_warning: () => n(a) + " warned " + n(b) + " about cutting village commons (−" + event.loss + " goodwill)",
     commons_report: () => n(a) + " reported the cutting to elder " + n(b) + " (−" + event.loss + " goodwill)",

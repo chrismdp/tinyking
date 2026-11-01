@@ -72,7 +72,7 @@ export function eventFact(s,e) {
   if(!e)return null;
   const item=e.items?.[0],good=e.gifts?.[0]?.type||s.ecs.good?.[item]?.type;
   const far=e.fromWorld==currentReach(s)?e.toWorld:e.fromWorld;
-  return {...e,when:relativeDate(s,e),when_exact:relativeDate(s,e,true),village:e.villageId,
+  return {...e,account:({woodland:"refused to heed the woodland warning from",death:"pressed for an account of a death from",flirt:"made an unwelcome advance to",disagreement:"defied",intrusion:"offended"})[e.reason],when:relativeDate(s,e),when_exact:relativeDate(s,e,true),village:e.villageId,
     item_name:s.ecs.possession?.[item]?.name,item_phrase:s.ecs.possession?.[item]?.name || (good?"some "+good:undefined),
     building_name:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill",alehouse:"alehouse"})[e.kind],
     addition_phrase:({"Rear work bay":"a work bay at the back","Long rear wing":"a long wing at the back"})[e.addition],

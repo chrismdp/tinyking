@@ -5,6 +5,7 @@ import { addBidirectionalLink, removeBidirectionalLink, path } from "game/pathfi
 import { reserveBuildingClearance } from "game/tree_clearance";
 import { generateVillageLife } from "game/villages";
 import { createSimulation } from "game/simulation";
+import { DAYS_IN_SEASON } from "game/time";
 import { topController } from "game/playable";
 import { solve } from "game/htn";
 import { find_place } from "game/tasks";
@@ -100,7 +101,7 @@ it("gives every household a plot, 1–2 owned historical crops and 1–2 backyar
 });
 
 it("keeps winter crops dormant and deterministically varies growing-season progress", async () => {
-  const s = await world(2, 9.375);
+  const s = await world(2, 3 * DAYS_IN_SEASON + 0.375);
   const farms = Object.values(s.ecs.farmable || {});
   expect(farms.length).toBeGreaterThan(0);
   const growth = farms.map(f => f.slots[0].growth);
@@ -306,7 +307,8 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
   let stored = false;
   let previous = s.ecs.container[h.storeId].amounts.grain;
   const sim = createSimulation(s);
-  while (s.days < 8) {
+  // One crop takes a season and a half to ripen, plus ploughing and hauling.
+  while (s.days < 8 / 3 * DAYS_IN_SEASON) {
     sim.step(6);
     for (const id of family) {
       const p = s.ecs.planner[id];

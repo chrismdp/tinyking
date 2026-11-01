@@ -23,10 +23,10 @@ jobs:
       - run: npm ci
       - run: npx jest
       - run: npm run build
-      - uses: cloudflare/wrangler-action@v3
+      - name: Deploy to Cloudflare
         # NOTE: tests and build still run on every push; deploying waits for the token
         if: env.CLOUDFLARE_API_TOKEN != ''
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # The action's bundled wrangler predates assets-only Workers, so run a pinned one.
+        run: npx --yes wrangler@4.156.0 deploy

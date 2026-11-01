@@ -329,6 +329,7 @@ it("still opens an answerable warning with spent patience and changes no hidden 
   order(w);until(w,()=>s.chat?.active?.context?.kind=="warning");
   expect(s.game_speed).toBe("paused");expect(s.chat.active.row.map(i=>i.key)).toEqual(["village","woodland"]);
   const {chatChoices}=require("game/chat");expect(chatChoices(s).map(l=>l.text)).toEqual(["Fair enough. I'll stop.","I don't agree."]);
-  expect(respond(s,"refuse")).toBe(true);expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-3);
+  expect(respond(s,"refuse")).toBe(true);expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-5);
+  expect(s.events.find(e=>e.type=="defiance")).toMatchObject({people:[w.player,w.person],reason:"woodland"});
   expect(s.knowledge[w.player].people[w.person].topicTastes).toBeUndefined();
 });

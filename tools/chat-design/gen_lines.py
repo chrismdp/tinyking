@@ -2780,15 +2780,6 @@ leave("row_full", "npc", [END("row_full")], [
     V("Well. That's that.", "gloomy", TR("gloomy")),
     V("Well! My head's full. Another time.", "cheerful", TR("cheerful")),
 ])
-leave("faded", "npc", [END("all_faded")], [
-    "Well. I'll get on.",
-    "I'd best be getting on.",
-    "Right, then.",
-    "Well, then. I've things to do.",
-    V("*Turning back to the {activity.work_noun}.*", "working", P("activity_snapshot_was_work", person="npc"), facts=[ACT_FACT]),
-    V("I suppose I'd better get back to it.", "lazy", TR("lazy")),
-    V("Was there something else? No? Then I'll get on.", "brave", TR("brave")),
-])
 leave("player_farewell", "player", [END("player_ended")], [
     "I'll let you get on.",
     "I'd best be going.",
@@ -2997,6 +2988,9 @@ for kind,choice,text in [
         use_key="customs_answer:"+kind+":"+choice+":{context.encounter_number}",
         effects=[{"op":"customs_response","choice":choice},{"op":"set_reply_purpose","purpose":"customs_acknowledged"}],variants=[text])
     rows[-1]["answers"]=[kind];rows[-1]["score"]=False
+    if kind=="warning" and choice=="refuse":
+        rows[-1]["defiant"]=True
+        rows[-1]["defianceReason"]="woodland"
 situation("customs_acknowledged", "fallback_result", "npc", base_all=[PHASE_REPLY],
     bindings={"customs":{"source":"customs_chat"}}, icons=[T("village")],
     use_key="customs_result:{context.encounter_number}", variants=["{customs.result}"])
@@ -3084,6 +3078,57 @@ for st, text, topics in [
 ]:
     situation("festival", st, "npc", base_all=[PHASE_OPEN, SEASON(st), P("festival_active")],
               icons=[T(t) for t in topics], use_key="festival:"+st+":{context.game_hour}", variants=[text])
+
+# ---------- closeness, standing and risky speech ----------
+# Levels use the listener's directional ring. Public conversation stays open;
+# private questions disappear, while social overreach remains a visible choice.
+# Ordinary help enquiries retain Chris's specific introduction/trait rule.
+situation("level_rebuff", "fallback_boundary", "npc", base_all=[PHASE_REPLY],
+    icons=[T("village")], use_key="rebuff:{context.encounter_number}:{context.game_hour}",
+    variants=["We do not know each other well enough for that.", "That is more than I care to discuss with you."])
+situation("confidence_question", "private", "player", base_all=[PHASE_PLAYER], icons=[T("family"),R("npc")],
+    use_key="confidence:{npc.id}:{context.encounter_number}",
+    effects=[{"op":"set_reply_purpose","purpose":"confidence_reply"}], variants=["May I speak to you in confidence?"])
+situation("confidence_reply", "fallback_private", "npc", base_all=[PHASE_REPLY], icons=[T("family")],
+    use_key="confidence_reply:{context.encounter_number}", variants=["You can speak freely with me."])
+situation("flirt", "company", "player", base_all=[PHASE_PLAYER,NPC_ADULT,PLAYER_ADULT], icons=[T("family"),R("npc")],
+    use_key="flirt:{npc.id}:{context.encounter_number}",
+    effects=[{"op":"set_reply_purpose","purpose":"flirt_reply"}], variants=["I rather like being here with you."])
+situation("flirt_reply", "fallback_company", "npc", base_all=[PHASE_REPLY], icons=[T("family"),R("npc")],
+    use_key="flirt_reply:{context.encounter_number}", variants=["Stay and talk a little, then."])
+player_family_q("death", ["How did {relative.first_name} die?"], icons=[T("family"),R("relative")],
+    base=[P("relative_known_dead",viewer="player",person="relative")],
+    bindings={"link":{"source":"player_known_kin_link_of_npc"},"relative":{"source":"link_relative","link":"link"}},
+    purpose="death_reply", key="death_question:{npc.id}:{relative.id}:{context.encounter_number}")
+situation("death_reply", "fallback_remembrance", "npc", base_all=[PHASE_REPLY], icons=[T("family")],
+    use_key="death_reply:{context.encounter_number}", variants=["I'd rather remember their life. Thank you for listening."])
+situation("village_question", "commons_leave", "player", base_all=[PHASE_PLAYER], icons=[T("village"),T("woodland")],
+    use_key="commons_leave:{npc.id}:{context.encounter_number}",
+    effects=[{"op":"set_reply_purpose","purpose":"commons_answer"}], variants=["May I gather from your village's woodland?"])
+situation("commons_answer", "fallback_rights", "npc", base_all=[PHASE_REPLY], icons=[T("village"),T("woodland")],
+    use_key="commons_answer:{context.encounter_number}", variants=["As a village member, you may gather the commons. Private trees and stores still need their owner's leave."])
+
+# A defiant deed is already a real event with a witness. These account lines
+# prepare it for ordinary disclosure; passing gossip between NPCs is step 5b.
+gossip_report("defiance", "defiance", ["{a.first_name} {event.account} {b.first_name} {event.when}."],
+    [T("gossip"),R("a"),R("b")], {"a":0,"b":1}, fields=("id","type","people","reason","statement","day"))
+
+for r in rows:
+    r["level"]={"ring":"public","below":"hide"}
+    if r["speaker"]!="player":
+        continue
+    if r["family"]=="need_question":
+        r["level"]={"ring":"public","below":"risk","introduced":True,"traits":["timid","proud"],"cost":2,"rebuff":"help_refusal"}
+    elif r["family"]=="help_offer":
+        r["level"]={"ring":"social","below":"risk","cost":2,"introduced":True,"traits":["timid","proud"],"introRebuff":"help_refusal"}
+    elif r["family"]=="confidence_question":
+        r["level"]={"ring":"intimate","below":"hide"}
+    elif r["family"]=="flirt":
+        r["level"]={"ring":"personal","below":"risk","cost":3,"grievance":True,"reason":"flirt"}
+    elif r["family"]=="family_question" and r["situation"]=="death":
+        r["level"]={"ring":"personal","below":"risk","cost":3,"grievance":True,"reason":"death"}
+    elif r["family"]=="village_question" and r["situation"]=="commons_leave":
+        r["level"]={"ring":"public","standing":"oath-sworn","below":"risk","cost":2}
 
 # ---------- weights ----------
 groups = {}

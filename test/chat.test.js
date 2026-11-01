@@ -40,7 +40,7 @@ it("rejects remote entry and never introduces an unreachable stranger", () => {
   expect(openChat(s,p,n)).toBe(false);
   expect(s.knowledge?.[p]?.people?.[n]).toBeUndefined();
 });
-it("pops against the hearer, reveals only the tested taste and fades after three subsequent lines", () => {
+it("pops against the hearer, reveals only the tested taste and keeps unmatched icons until paired", () => {
   const {state:s,player:p,person:n}=contact(); openChat(s,p,n);
   s.chat.active.row=[];
   s.ecs.personality[n].traits=["hard-working"];
@@ -54,9 +54,10 @@ it("pops against the hearer, reveals only the tested taste and fades after three
   expect(s.chat.active.row).toHaveLength(0);
   speakLine(s,line("c","npc",[work]));
   for(let i=0;i<3;i++)speakLine(s,line("empty"+i,"player",[]));
-  expect(s.chat.active.lastFades[0]).toMatchObject({life:0});
+  expect(s.chat.active.row).toEqual([work]);
+  expect(s.chat.active.endReason).toBeUndefined();
+  speakLine(s,line("d","player",[work]));
   expect(s.chat.active.row).toEqual([]);
-  expect(s.chat.active.endReason).toBe("all_faded");
 });
 it("spends remaining cells on close, recovers with elapsed hours, and restores all chat records", () => {
   const {state:s,player:p,person:n}=contact(); openChat(s,p,n);
@@ -120,9 +121,9 @@ it("keeps the entire world still while reading, even if speed is changed", () =>
 });
 it("ends a full row without partial insertion and preserves spent slots on reopening", () => {
   const {state:s,player:p,person:n}=contact();openChat(s,p,n);s.chat.active.row=[];
-  const line={id:"full",key:"full",useKey:"full",speaker:"player",text:"full",icons:["work","family","season","food"].map(key=>({kind:"topic",key})),effects:[],tags:{},disclosure:{}};
+  const line={id:"full",key:"full",useKey:"full",speaker:"player",text:"full",icons:["work","family","season","food","harvest","village"].map(key=>({kind:"topic",key})),effects:[],tags:{},disclosure:{}};
   expect(speakLine(s,line)).toBe(true);
-  expect(s.chat.active.endReason).toBe("row_full");expect(s.chat.active.row).toHaveLength(4);
+  expect(s.chat.active.endReason).toBe("row_full");expect(s.chat.active.row).toHaveLength(6);
   closeChat(s);expect(patience(s,p,n).free).toBe(0);expect(openChat(s,p,n)).toBe(false);
 });
 // Chris's revised v1 rule: both speakers' matches affect only NPC regard.

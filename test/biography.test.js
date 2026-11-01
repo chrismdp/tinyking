@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from "./support/people";
 import { biography } from "game/biography";
 import { beginInteraction, askAbout } from "game/people";
@@ -24,7 +25,7 @@ it("does not disclose a private quarrel at acquaintance trust, and learns it at 
 
 it("uses learned parent loss without claiming care; keeps the exact date after kin move or die", () => {
   const { state: s, player, person, parent, sibling, tiles } = peopleWorld();
-  s.days = -15;
+  s.days = -5 * DAYS_IN_SEASON;
   const death = recordEvent(s, "death", [parent]);
   s.ecs.personable[parent].dead = true;
   s.ecs.household[sibling].houseId = tiles[5];

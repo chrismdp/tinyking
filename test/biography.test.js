@@ -1,6 +1,5 @@
 import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from "./support/people";
-import { DAYS_IN_SEASON } from "game/time";
 import { biography } from "game/biography";
 import { beginInteraction, askAbout } from "game/people";
 import { recordEvent, learnEvent } from "game/events";

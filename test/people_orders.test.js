@@ -241,3 +241,14 @@ it("lets a player leave their own interior to approach an outdoor neighbour",()=
   expect(require("game/manager").readyPlayerTasks(s)).toContain(order);
   expect(tasks.get_attention(s,p,s.ecs.planner[p].world,0,true,n)).not.toBe(require("game/htn").Task.ABORT);
 });
+it("opens the next chat after cancelling a just-closed chat while paused",()=>{
+  const {state:s,player:p,person:n,parent,step}=peopleWorld();
+  s.ecs.spatial[p]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};
+  const first=enqueueTask(s,{key:"chat"},n);
+  step(.1);expect(s.chat.active.npcId).toBe(n);
+  closeChat(s);s.game_speed="paused";
+  cancelTask(s,first.id);
+  enqueueTask(s,{key:"chat"},parent);
+  s.game_speed="fast";step(.1);
+  expect(s.chat?.active?.npcId).toBe(parent);
+});

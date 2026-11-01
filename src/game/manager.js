@@ -65,6 +65,8 @@ function interruptOrder(state) {
     for (const slot of farm.slots) if (slot.workerId == id) delete slot.workerId;
   }
   world.currentJob = null;
+  delete world.chatOpened;
+  delete world.chatActivity;
   world.capturedAttentionOf = null;
   world.claimedFarmable = null;
   world.subtasks = null;

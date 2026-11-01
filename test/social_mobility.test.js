@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from "./support/people";
 import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason } from "game/social";
 import { meet } from "game/people";
@@ -238,7 +239,7 @@ it("counts an earlier birth before a second couple can exceed the six-resident h
   s.ecs.personable[child].age = 12; s.ecs.kinship[child] = { parents: [a, b], children: [], spouse: null };
   s.ecs.kinship[a].children = [child]; s.ecs.kinship[b].children = [child];
   // This deterministic season gives both existing, unrelated couples a birth opportunity.
-  s.days = 42; advanceSeason(s, 14);
+  s.days = 14*DAYS_IN_SEASON; advanceSeason(s, 14);
   const residents = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable[id] && s.ecs.household[id]?.houseId == tiles[3]);
   expect(s.events.filter(e => e.type == "birth")).toHaveLength(1);
   expect(residents).toHaveLength(6);
@@ -247,7 +248,7 @@ it("counts an earlier birth before a second couple can exceed the six-resident h
 
 it("builds mutual intimacy from first acquaintance through spaced real cross-community visits", () => {
   const { state: s, a, b, parent, kin, tiles } = communities();
-  // Sparse-contact fixture: one free day per season; other days have ordered
+  // Sparse-contact fixture: one free day every three days; other days have ordered
   // routines. Every hour, meal, sleep, route and conversation runs normally.
   s.ecs.personable[parent].dead = true; s.ecs.personable[kin].dead = true;
   s.opinionThresholds = { hate: -100, love: -99 };
@@ -267,7 +268,8 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   let travelled = false, intimacy, quietUntil = -Infinity;
   // The existing wedding deadline includes the deliberate week apart. Meal
   // and travel timing can reach Intimate late in the initial 28-day window.
-  while (s.days < (intimacy ? quietUntil + 6 : start + 28)) {
+  while (s.days < (intimacy ? quietUntil + 2*DAYS_IN_SEASON : start + 28)) {
+    if(s.seasonTurn)require("game/seasons").finishSeasonTurn(s);
     const free = Math.floor(s.days) % 3 == 0 && s.days >= quietUntil;
     for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;
     simulation.step(6);
@@ -286,10 +288,10 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   expect(s.ecs.relationships[b].known[a].ring).toBe("intimate");
   const wedding = s.events.find(e => e.type == "marriage" && e.people.includes(a) && e.people.includes(b));
   expect(wedding).toBeDefined();
-  expect(wedding.day - intimacy).toBeGreaterThanOrEqual(6);
+  expect(wedding.day - intimacy).toBeGreaterThanOrEqual(2*DAYS_IN_SEASON);
   const recent = visits.filter(e => e.day <= wedding.day).at(-1);
-  expect(wedding.day - recent.day).toBeLessThanOrEqual(3);
-  expect(wedding.day).toBeLessThanOrEqual(quietUntil + 6);
+  expect(wedding.day - recent.day).toBeLessThanOrEqual(DAYS_IN_SEASON);
+  expect(wedding.day).toBeLessThanOrEqual(quietUntil + 2*DAYS_IN_SEASON);
 });
 
 it("requires fresh contact to marry and clears courtship progress when mutual intimacy ends", () => {
@@ -297,15 +299,15 @@ it("requires fresh contact to marry and clears courtship progress when mutual in
   intimate(s, a, b);
   const key = [a, b].sort().join(":");
   s.social = { courtships: { [key]: 0 }, contacts: { [key]: -10 }, avoidance: {} };
-  s.days = 9; advanceSeason(s, 3);
+  s.days = 3*DAYS_IN_SEASON; advanceSeason(s, 3);
   expect(s.social.courtships[key]).toBe(0);
   expect(s.ecs.kinship[a].spouse).toBeNull();
   s.ecs.relationships[b].known[a].ring = "personal";
-  s.social.contacts[key] = 12; s.days = 12; advanceSeason(s, 4);
+  s.social.contacts[key] = 4*DAYS_IN_SEASON; s.days = 4*DAYS_IN_SEASON; advanceSeason(s, 4);
   expect(s.social.courtships[key]).toBeUndefined();
   expect(s.ecs.kinship[a].spouse).toBeNull();
   s.ecs.relationships[b].known[a].ring = "intimate";
-  s.social.contacts[key] = 15; s.days = 15; advanceSeason(s, 5);
+  s.social.contacts[key] = 5*DAYS_IN_SEASON; s.days = 5*DAYS_IN_SEASON; advanceSeason(s, 5);
   expect(s.social.courtships[key]).toBe(5);
   expect(s.ecs.kinship[a].spouse).toBeNull();
 });
@@ -314,8 +316,8 @@ it("marries a mature mutual Intimate couple after fresh contact between seasonal
   const {state:s,a,b}=communities();
   intimate(s,a,b);
   const key=[a,b].sort().join(':');
-  s.days=9.5;
-  s.social={lastSeason:3,courtships:{[key]:0},contacts:{[key]:9.5},avoidance:{}};
+  s.days=3*DAYS_IN_SEASON+.5;
+  s.social={lastSeason:3,courtships:{[key]:0},contacts:{[key]:s.days},avoidance:{}};
   socialHour(s);
   expect(s.ecs.kinship[a].spouse).toBe(b);
   expect(s.events.find(e=>e.type=='marriage'&&e.people.includes(a)&&e.people.includes(b))).toBeDefined();

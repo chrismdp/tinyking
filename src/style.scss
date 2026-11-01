@@ -1175,3 +1175,22 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 
 #game #ui.realm-inspecting #opening-guidance { display:flex; }
 #ui:has(.tree-window) #opening-guidance { display:flex; top:auto; bottom:6px; z-index:110; }
+
+.energy-budget { padding: .65rem .85rem; background: #243a32; border-bottom: 1px solid #56614a; color: #f3ecd7;
+  > div:first-child { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+  small { font-size: .7rem; }
+  .meter { height: 7px; background: #14251f; margin: .4rem 0; border-radius: 4px; overflow: hidden; }
+  .meter span { display: block; height: 100%; background: #d6b967; }
+  .energy-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+}
+.festival-notice { position: absolute; top: 160px; left: 390px; max-width: 330px; max-height: 48vh; overflow: auto; background: #302a20f2; color: #f3ecd7; padding: 16px; border: 1px solid #bd9a52; pointer-events: auto; border-radius: 8px;
+  p { margin: .4rem 0; line-height: 1.45; } button { margin: 3px; }
+}
+.season-turn { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; background: #111b18ed; pointer-events: auto; color: #342a20;
+  article { width: min(580px, 90vw); max-height: 85vh; overflow: auto; background: #f1e5cc; padding: clamp(20px, 4vw, 46px); border-radius: 8px; box-shadow: 0 12px 80px #0009; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: .8rem; }
+  h1 { font: 2rem Georgia, serif; margin: .5rem 0; }
+  li { margin: .8rem 0; line-height: 1.5; }
+  button { background: #344e40; color: #fff3da; padding: .7rem 1.3rem; border-radius: 4px; }
+}
+@media(max-width:700px) { .festival-notice { left: 8px; top: 80px; max-width: 230px; max-height: 20vh; } .energy-budget > div:first-child { display: block; } }

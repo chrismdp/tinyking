@@ -119,14 +119,14 @@ it("keeps a fed rested uncommanded player exactly where left while nearby NPCs m
   step(8);
   expect(s.ecs.spatial[person]).not.toEqual(npcStart);
   expect(s.ecs.spatial[player]).toEqual(start);
-  expect(s.ecs.personable[player].hunger).toBeGreaterThan(0.3);
+  expect(s.ecs.personable[player].energy).toBe(100);
   enqueueTask(s, { key: "move_to_here" }, tiles[2]);
   step(1);
   expect(s.ecs.spatial[player]).not.toEqual(start);
 });
 
 it("shows real food-seeking and sleep walks while a timber order is interrupted", () => {
-  const { state: s, player, person } = peopleWorld(), p = s.ecs.planner[player];
+  const { state: s, person:player, parent:person } = peopleWorld(), p = s.ecs.planner[player];
   s.ecs.manager[player].jobs.push({ assignedId: player, targetId: person, job: { key: "cut_tree_down" } });
   p.world.feeling.hungry = true; p.task = ["walk_to", "food"];
   expect(currentActivity(s.ecs, player, t)).toBe("Getting food");
@@ -143,27 +143,13 @@ it("does not relocate an uncommanded hungry tired player for remote food or a be
   const start = { ...s.ecs.spatial[player] };
   step(8);
   expect(s.ecs.spatial[player]).toEqual(start);
-  expect(s.ecs.personable[player].hunger).toBeGreaterThan(1.5);
+  expect(s.ecs.personable[player].energy).toBe(52);
   expect(s.ecs.personable[player].tiredness).toBeGreaterThan(1.5);
   expect(s.ecs.container[store].amounts.grain).toBe(2);
   expect(s.ecs.manager[player].jobs).toHaveLength(0);
 });
 
-it("eats a real owned meal within reach and rests by a reachable bed without changing idle position", () => {
-  const { state: s, player, step } = peopleWorld();
-  const { newEntities } = require("game/entities");
-  const [store] = newEntities(s, [{ spatial: { ...s.ecs.spatial[player] }, container: { capacity: 10, amounts: { grain: 1 } }, controllable: { controllerId: player } }]);
-  newEntities(s, [{ spatial: { ...s.ecs.spatial[player] }, sleepable: { capacity: 1, occupiers: [] }, controllable: { controllerId: player } }]);
-  s.villages.village.sharedPlaces = [];
-  s.days = 19 / 24; s.ecs.planner[player].world.days = s.days;
-  s.ecs.personable[player].hunger = 1.2; s.ecs.personable[player].tiredness = 1.2;
-  const start = { ...s.ecs.spatial[player] };
-  step(12);
-  expect(s.ecs.spatial[player]).toEqual(start);
-  expect(s.ecs.container[store].amounts.grain).toBe(0);
-  expect(s.ecs.personable[player].hunger).toBeLessThan(.6);
-  expect(s.ecs.personable[player].tiredness).toBeLessThan(.3);
-});
+
 
 it("explicit food and rest orders allow physical self-care and complete without discarding other work", () => {
   const { state: s, player, tiles, step } = peopleWorld();
@@ -172,11 +158,12 @@ it("explicit food and rest orders allow physical self-care and complete without 
   newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[2]] }, sleepable: { capacity: 1, occupiers: [] }, controllable: { controllerId: player } }]);
   s.villages.village.sharedPlaces = [];
   s.ecs.personable[player].hunger = 1.2;
-  const food = enqueueTask(s, { key: "find_food" }, player);
+  const food = enqueueTask(s,{key:"eat_food"},store,{foodType:"grain"});
   const move = enqueueTask(s, { key: "move_to_here" }, tiles[4]);
   step(5);
   expect(s.ecs.container[store].amounts.grain).toBe(1);
   expect(food.progress).toBe(1); expect(move.progress).toBe(1);
+  step(5); // Rest now spans the actual night, ending after dawn.
   s.ecs.personable[player].tiredness = 1.2;
   const rest = enqueueTask(s, { key: "rest" }, player);
   step(12);
@@ -191,31 +178,5 @@ it("an idle player cannot eat a nearby stranger's stores", () => {
   s.ecs.personable[player].hunger = 1.2;
   step(2);
   expect(s.ecs.container[store].amounts.grain).toBe(1);
-  expect(s.ecs.personable[player].hunger).toBeGreaterThan(1.2);
-});
-
-it("cancelling the only explicit order also stops its automatic food trip, leaving the player where cancelled", () => {
-  const { state: s, player, tiles, step } = peopleWorld();
-  const { newEntities } = require("game/entities"), { cancelTask } = require("game/manager");
-  newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] }, container: { capacity: 10, amounts: { grain: 1 } }, controllable: { controllerId: player } }]);
-  s.ecs.personable[player].hunger = 1.2;
-  const order = enqueueTask(s, { key: "move_to_here" }, tiles[4]);
-  step(.1);
-  cancelTask(s, order.id);
-  const at = { ...s.ecs.spatial[player] };
-  step(2);
-  expect(s.ecs.spatial[player]).toEqual(at);
-  expect(s.ecs.manager[player].jobs).toHaveLength(0);
-  expect(s.ecs.personable[player].hunger).toBeGreaterThan(1.2);
-});
-
-it("explains unmet idle needs and offers explicit care without claiming an eating interruption", () => {
-  const { state: s, player } = peopleWorld();
-  const { TaskPanel } = require("../src/components/task_panel");
-  s.ecs.personable[player].hunger = 1.2; s.ecs.personable[player].tiredness = 1.2;
-  s.ecs.planner[player].world.feeling.hungry = true;
-  const html = renderToStaticMarkup(<GameState.Provider value={s}><TaskPanel/></GameState.Provider>);
-  expect(html).toContain("You stay here. Choose Find food");
-  expect(html).toContain(">Find food</button>"); expect(html).toContain(">Rest</button>");
-  expect(html).not.toContain("Stopped to eat");
+  expect(s.ecs.personable[player].energy).toBe(52);
 });

@@ -31,17 +31,12 @@ it("guides two actual conversations, shelter supplies and building, then sleep, 
   s.ecs.manager[p].jobs=[{job:{key:"build_shelter"},targetId:site}];
   expect(openingGuidance(s).text).toContain("finish your shelter");
   delete s.ecs.construction[site];s.ecs.shelter[site].stage="lean-to";s.ecs.manager[p].jobs=[];
+  s.days=17.5/24;
   expect(openingGuidance(s)).toMatchObject({key:"sleep",job:"rest"});
   s.days=1.4;
   expect(openingGuidance(s).action).toContain("Chat with");
 });
-it("uses the deferred food task's reason and next step, even while paused",()=>{
-  const {state:s,player:p}=peopleWorld();s.intro={active:false};s.game_speed="paused";
-  s.ecs.personable[p].hunger=1.2;
-  const reason="No accessible meal was found. Select a ripe forage plant and choose Forage.";
-  s.ecs.manager[p].jobs=[{job:{key:"find_food"},failed:true,waiting:reason}];
-  expect(openingGuidance(s).text).toBe(reason);
-});
+
 it("gives chat guidance while the world is paused for chat",()=>{
   const {state:s,player:p}=peopleWorld();s.intro={active:false};s.game_speed="paused";
   s.ecs.manager[p].jobs=[{job:{key:"chat"}}];s.chat={active:{npcId:"someone"}};
@@ -59,11 +54,7 @@ it("points to an eligible explored shelter tile and explains how to select it",(
   expect(require("game/construction").canPlaceShelter(s,hint.selectId)).toBe(true);
   expect(hint.text).toContain("#"+hint.selectId);
 });
-it("finds the deferred food reason behind a different deferred task",()=>{
-  const {state:s,player:p}=peopleWorld();s.intro={active:false};s.ecs.personable[p].hunger=1.2;
-  s.ecs.manager[p].jobs=[{job:{key:"build_shelter"},waiting:"Waiting for logs"},{job:{key:"find_food"},waiting:"No accessible meal. Choose Forage."}];
-  expect(openingGuidance(s).text).toBe("No accessible meal. Choose Forage.");
-});
+
 it("offers another available neighbour when the nearest person is unfriendly",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};
   s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));

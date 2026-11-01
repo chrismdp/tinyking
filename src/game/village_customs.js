@@ -78,8 +78,8 @@ export function oathReadiness(s,actorId,speakerId) {
   // meals/sleep. Use that same contract as customsChatValid, without a new cutoff.
   for(const [id,who] of [[actorId,"You need"],[speakerId,"The elder needs"]]) {
     const feeling=s.ecs.planner[id]?.world.feeling;
-    const needs=[feeling?.hungry && "food",feeling?.tired && "rest"].filter(Boolean);
-    if(needs.length)return {ok:false,reason:`${who} ${needs.join(" and ")} before this conversation. ${id==actorId ? "Choose Find food or Rest as needed" : "Let the elder eat and rest"}, then try again.`};
+    const needs=[id!=actorId && feeling?.hungry && "food",id!=actorId && feeling?.tired && "rest"].filter(Boolean);
+    if(needs.length)return {ok:false,reason:`${who} ${needs.join(" and ")} before this conversation. ${id==actorId ? "Choose Rest" : "Let the elder eat and rest"}, then try again.`};
   }
   return {ok:true};
 }

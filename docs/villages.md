@@ -1,3 +1,5 @@
+Current player controls use the [energy budget](survival.md). Villagers keep real meals, but missed meals never cause starvation deaths. Older dated survival evidence below describes the earlier design.
+
 # Village life
 
 Every generated village household farms one or two fields. Each field uses the

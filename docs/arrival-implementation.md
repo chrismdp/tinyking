@@ -1,3 +1,5 @@
+> Historical implementation record. The 1 November 2026 [core loop](design.md) replaces player hunger and automatic care with energy. See [energy](survival.md) for current controls.
+
 # The arrival, piece 1
 
 The player arrives at an edge camp with a campfire and bedroll, no stores,

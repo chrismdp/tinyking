@@ -2,7 +2,7 @@ import { Hex } from "game/hex";
 import { HOUR, DAYS_IN_SEASON, season } from "game/time";
 import crops from "data/crops.json";
 
-// The existing twelve-day year: summer lifts the snowline, winter lowers it.
+// The twenty-eight-day year: summer lifts the snowline, winter lowers it.
 // Altitude is physical ground height; biome temperature remains a visual/ecology band.
 export function snowlineAt(tile, days) {
   const warmth = Math.sin(2 * Math.PI * (days - DAYS_IN_SEASON / 2) / (4 * DAYS_IN_SEASON));

@@ -16,15 +16,15 @@ function goods(f, types) {
   return newEntities(f.s, types.map(type => ({ spatial: { ...f.s.ecs.spatial[f.p] }, good: { type, amount: 1 }, haulable: {}, controllable: { controllerId: f.p } })));
 }
 
-it.each(["bread", "flour"])("eats %s in live orders, stationary care and household food accounting", type => {
+it.each(["bread", "flour"])("eats %s in chosen meals, nearby supply sensing and household food accounting", type => {
   const f = economy(), { s, p, camp } = f;
   s.ecs.container[camp].amounts = { [type]: 5 };
   expect(stationarySupplies(s, p).meal).toMatchObject({ type, kind: "container" });
   expect(householdFood(s).get(camp)).toBe(5);
-  s.ecs.personable[p].hunger = 2;
-  enqueueTask(s, { key: "find_food" }, p);
+  s.ecs.personable[p].energy = 20;
+  enqueueTask(s,{key:"eat_food"},camp,{foodType:type});
   f.step(90);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
+  expect(s.ecs.personable[p].energy).toBeGreaterThan(20);
   expect(s.ecs.container[camp].amounts[type]).toBe(4);
 });
 
@@ -82,16 +82,12 @@ it("leaves a ripe slot intact when household storage cannot fit the yield, inclu
   expect(Object.values(s.ecs.good).reduce((n,g) => n + g.amount, 0)).toBe(6);
 });
 
-it.each([false, true])("makes room for a meal with full non-food hands (ordered=%s)", ordered => {
-  const f = economy(), { s, p, camp, world } = f;
-  for (const id of goods(f, ["wood", "wood"])) give(s.ecs, id, p);
-  world.holding.wood = true;
-  s.ecs.personable[p].hunger = 2;
-  if (ordered) enqueueTask(s, { key: "find_food" }, p);
-  f.step(90);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
-  expect(s.ecs.container[camp].amounts.grain).toBe(99);
-  expect(Object.values(s.ecs.good).filter(g => g.type == "wood").reduce((n,g) => n + g.amount, 0) + (s.ecs.container[camp].amounts.wood || 0)).toBe(2);
+it("eats a chosen stored portion without losing full non-food hands", () => {
+  const f=economy(),{s,p,camp}=f;
+  for(const id of goods(f,["wood","wood"]))give(s.ecs,id,p);
+  s.ecs.personable[p].energy=20;enqueueTask(s,{key:"eat_food"},camp,{foodType:"grain"});f.step(90);
+  expect(s.ecs.personable[p].energy).toBeGreaterThan(20);expect(s.ecs.container[camp].amounts.grain).toBe(99);
+  expect(Object.values(s.ecs.good).filter(g=>g.type=="wood").reduce((n,g)=>n+g.amount,0)+(s.ecs.container[camp].amounts.wood || 0)).toBe(2);
 });
 
 it("foraging ahead of a collected commodity gift preserves the promised item and completes both orders", () => {
@@ -126,10 +122,11 @@ it("offscreen sowing consumes a full seed per slot and meals include bread and f
   s.ecs.container[camp].amounts = { grain: .25, bread: 1, flour: 3 };
   s.settlement = { lastSeason: 0, journeys: [], sites: {}, estatesInitialized: false };
   s.ecs.growth = { [camp]: { id: camp, builtDay: -10, stage: 0, production: 0, lastProduction: 0, supportedSeasons: 0, additions: [], meetings: {} } };
-  s.days = 3;
+  s.days = 7;
   settleSeason(s, 1, true);
   expect(s.ecs.farmable[field].slots.map(slot => slot.state)).toEqual(["empty", "empty"]);
   expect(s.ecs.household[camp].livelihood.grainSown).toBe(0);
+  s.needsUpdatedAt=0;
   advanceOffscreenNeeds(s,3);
   expect(s.ecs.household[camp].livelihood.foodConsumed).toBe(3);
   expect(s.ecs.container[camp].amounts.bread).toBe(0);
@@ -158,9 +155,10 @@ it("recovers a promised gift set down to make room for a meal", () => {
   reorderTask(s,second.id,0);
   for(let i=0;i<60&&!second.giftItem;i++)f.step(1);
   expect(s.ecs.holder[p].held).toEqual(expect.arrayContaining([first.giftItem,second.giftItem]));
-  s.ecs.personable[p].hunger=2;
+  s.ecs.personable[p].energy=20;
+  enqueueTask(s,{key:"eat_food"},camp,{foodType:"grain"});
   f.step(180);
-  expect(s.ecs.personable[p].hunger).toBeLessThan(.3);
+  expect(s.ecs.personable[p].energy).toBeGreaterThan(20);
   expect(s.ecs.manager[p].jobs).toEqual([]);
   for(const gift of [first,second])expect(s.ecs.controllable[gift.giftItem].controllerId).toBe(npc);
 });

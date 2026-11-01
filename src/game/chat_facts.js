@@ -4,7 +4,7 @@ import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
 import { localWeather } from "game/weather";
-import { season, time, day_of_season, year } from "game/time";
+import { season, time, seasonPart, year, DAYS_IN_SEASON } from "game/time";
 import { villageElder, membership, resourcePermission, customsIntentUnavailable, warningConsequences, OATH_RIGHTS } from "game/village_customs";
 import { householdStore, householdFood, reasonGone, canRequestForHousehold, favourSource, FUEL_TRADES, nearbyRequester } from "game/favours";
 import { growingAt, frozenAt, climateTile } from "game/climate";
@@ -36,7 +36,7 @@ export function relativeDate(s,e,exact=false) {
   if(exact)return `the ${st} of year ${sy}`;
   if(Math.floor(s.days)==Math.floor(day))return `earlier this ${st}`;
   if(Math.floor(s.days)-Math.floor(day)==1)return "yesterday";
-  const ago=Math.floor(s.days/3)-Math.floor(day/3);
+  const ago=Math.floor(s.days/DAYS_IN_SEASON)-Math.floor(day/DAYS_IN_SEASON);
   if(ago==0)return `earlier this ${st}`;
   if(ago<4)return `last ${st}`;
   if(ago<8)return `the ${st} before last`;
@@ -206,6 +206,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
   case "family_search_answer":return b.relative?.answer==a.value;
+  case "festival_active":return !!s.ecs.planner?.[c.npcId]?.world.festivalPlace;
   case "phase_is":return c.phase==a.phase;
   case "customs_chat_kind_is":return c.context?.kind==a.value;
   case "customs_eligible":return !c.context&&!customsIntentUnavailable(s,c.actorId,c.npcId,a.kind)&&
@@ -237,8 +238,8 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "snow_lying_at": {const at=e.spatial?.[person],tile=at&&(s.space?.[Hex().fromPoint(at)]||[]).find(id=>e.walkable[id]);return tile&&(s.snow?.[tile]||0)>=a.min_depth;}
   case "time_of_day_in":return a.values.includes(time(s.days));
   case "season_is":return season(s.days)==a.season;
-  case "season_part_is":return ["early","mid","late"][day_of_season(s.days)]==a.part;
-  case "season_part_in":return a.parts.includes(["early","mid","late"][day_of_season(s.days)]);
+  case "season_part_is":return seasonPart(s.days)==a.part;
+  case "season_part_in":return a.parts.includes(seasonPart(s.days));
   case "ground_frozen_at":return frozenAt(climateTile(s,person),s.days);
   case "crops_growing_at":return !!field&&growingAt(s,field.id);
   case "crops_not_growing_at":return !!field&&!growingAt(s,field.id);
@@ -328,7 +329,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "is_current_elder":return notable(s,person)&&villageElder(s,e.village?.[person]?.villageId)==person;
   case "is_household_head":return !!e.household?.[person]?.houseId&&e.controllable?.[e.household[person].houseId]?.controllerId==person;
   case "no_relevant_unheard_visit":return !newsEvents(s,c,true).length;
-  case "no_visit_events_known_this_season":return !knownEvents(s,id(a.speaker)).some(x=>VISITS.includes(x.type)&&x.season==Math.floor(s.days/3));
+  case "no_visit_events_known_this_season":return !knownEvents(s,id(a.speaker)).some(x=>VISITS.includes(x.type)&&x.season==Math.floor(s.days/DAYS_IN_SEASON));
   case "request_status_is":return request?.status==a.status;
   case "request_accepted_by":return request?.actorId==id(a.actor);
   case "request_kind_is":return request?.kind==a.kind;

@@ -109,11 +109,11 @@ it("drifts relationships once per crossed hour, and leaves them alone while paus
   simulation.step(180);
   expect(state.ecs.relationships[1].known[2].goodwill).toBe(10.25);
   state.game_speed = "fast";
-  simulation.step(180);
+  simulation.step(180*7/3);
   expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(10.175);
   expect(state.ecs.relationships[1].known[2].ring).toBe("social");
-  // At 0.025 per hour, the original 0.375 decay takes fifteen hours.
-  simulation.step(720);
+  // The same seasonal drift now spans seven hours followed by twenty-eight.
+  simulation.step(720*7/3);
   expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9.875);
   expect(state.ecs.relationships[1].known[2].ring).toBe("public");
 });

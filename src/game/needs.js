@@ -1,18 +1,17 @@
-import { HOUR } from "game/time";
+import { HOUR, DAYS_IN_SEASON } from "game/time";
 import { isResident } from "game/residents";
-import { die } from "game/possessions";
+
 import { householdAccess } from "game/playable";
 import { consumeStored } from "game/settlement_growth";
 import { FOODS } from "game/goods";
 
-// The same physiological clock and death rule apply on and off screen.
+// Resident needs share the hourly clock. Missed meals never cause death.
 export function updateNeeds(state, elapsed = HOUR) {
   for (const [id, person] of Object.entries(state.ecs.personable || {})) {
     if (person.dead || !isResident(state, id)) continue;
     person.tiredness += elapsed;
-    person.hunger += elapsed;
-    person.starving = person.hunger > 2.5;
-    if (person.hunger > 6 + 1e-12) die(state, id, "starvation");
+    if (!Number.isFinite(person.energy)) person.hunger = (person.hunger || 0) + elapsed;
+    delete person.starving;
   }
   state.needsUpdatedAt = state.days;
 }
@@ -21,7 +20,7 @@ export function updateNeeds(state, elapsed = HOUR) {
 // Missing meals accrue hunger; neither a season nor map activation resets it.
 export function advanceOffscreenNeeds(state, end) {
   if (!state.map || state.generatingHistory) return; // no physiology in prehistory or on the road
-  const now = state.days, from = state.needsUpdatedAt ?? state.environmentUpdatedAt ?? end - 3;
+  const now = state.days, from = state.needsUpdatedAt ?? state.environmentUpdatedAt ?? end - DAYS_IN_SEASON;
   const stores = Object.keys(state.ecs.container || {});
   const supplies = new Map(Object.keys(state.residents || state.ecs.personable).map(id => [id,
     stores.filter(store => state.ecs.controllable?.[store] && householdAccess(state.ecs, id, store))]));

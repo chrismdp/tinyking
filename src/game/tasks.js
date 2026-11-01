@@ -1,3 +1,4 @@
+import { spendEnergy, eatOwnedFood } from "game/energy";
 import { FIELD_STATES, ownsField, harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
 import { recordProduction, recordMeetingUse, completeTradeProduction, consumeStored, growthRecord } from "game/settlement_growth";
@@ -182,7 +183,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
     // only at the journey's endpoints. Crossing that tile still wears it.
     const visitingWork = (next.entrance == null || next.exit == null) && world.ordered &&
       jobQueueFor(state.ecs, actorId).some(job => job.workTileId == next.id &&
-        (job.assignedId == actorId || !world.currentJob && (world.feeling?.hungry || world.feeling?.tired)));
+        (job.assignedId == actorId || ["rest","eat_food"].includes(world.currentJob)));
     if (!enteringPlot && !leavingPlot && !visitingWork) {
       recordRoadUse(state,next.id,next.entrance,next.exit);
     }
@@ -218,6 +219,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
       s.x += dx * speed;
       s.y += dy * speed;
     }
+    spendEnergy(state,actorId,dt*24,weightCost<1?3:1);
   }
   return Task.CONTINUE;
 }
@@ -271,11 +273,12 @@ export function wait_for(state, actorId, world, dt, firstRun, time) {
   return Task.FINISH;
 }
 
-// Timed work consumes effort, so changes in hunger or tiredness take effect mid-task too.
+// Timed effort follows player energy or NPC meal and sleep factors.
 function workComplete(state, actorId, world, dt, firstRun, duration) {
   if (firstRun) world.workRemaining = duration;
   const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId);
   if (firstRun && order && order.workRemaining != null) world.workRemaining = order.workRemaining;
+  if (!world.capturedAttentionOf) spendEnergy(state,actorId,dt*24);
   world.workRemaining -= dt * careSpeed(state.ecs.personable && state.ecs.personable[actorId]);
   if (order) {
     order.workRemaining = Math.max(0, world.workRemaining);
@@ -480,6 +483,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
     slot.state = subtask.result;
     delete slot.workerId;
     if (subtask.result == "harvested") {
+      recordEvent(state,"harvest",[actorId],[],{fieldId:targetId,quantity:slot.amount});
       const goods = newEntities(state, Array.from({ length: slot.amount }, () => ({
         spatial: { x: subtask.x, y: subtask.y, immovable: false },
         good: { type: slot.content, amount: 1 }, haulable: { heldBy: null },
@@ -749,11 +753,41 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
 // NOTE: compensate for getting tireder through sleep
 const SLEEP_REPLENISH = 3 * 1.3333;
 
-export function sleep(state, actorId, world, dt) {
-  const person = state.ecs.personable[actorId];
+export function sleep(state, actorId, world, dt, firstRun) {
+  const person=state.ecs.personable[actorId];
+  if(Number.isFinite(person.energy)) {
+    const home=world.restBed || world.restHome || world.places.sleep;
+    const bed=state.ecs.sleepable?.[home];
+    if(firstRun || world.sleepStart==null) {
+      world.sleepStart=state.days;world.sleepHours=0;
+      const hour=state.days%1*24,late=hour<6?hour+2:Math.max(0,hour-22);
+      world.sleepCeiling=person.collapsed?55:Math.max(55,100-late*7);
+      world.places.sleep=home;
+    }
+    enterHome(state,actorId,home);
+    const comfortable=bed && !state.ecs.camp?.[home] && (bed.occupiers?.includes(actorId)||bed.occupiers?.length<bed.capacity);
+    person.energy=Math.min(world.sleepCeiling,person.energy+dt*24*(comfortable?12.5:8));
+    person.tiredness=Math.max(.1,person.tiredness-dt*SLEEP_REPLENISH);
+    world.sleepHours+=dt*24;
+    const hour=state.days%1*24;
+    if(world.sleepHours<6 || hour<6 || hour>=21)return Task.CONTINUE;
+    delete world.sleepStart;delete world.forcedRest;delete person.collapsed;
+    return Task.FINISH;
+  }
   enterHome(state, actorId, world.places.sleep);
   person.tiredness -= dt * SLEEP_REPLENISH;
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
+}
+
+export function settle_fire() {}
+export function eat_food(state,actorId,world,dt,firstRun,source,type) {
+  if(firstRun){
+    if(!eatOwnedFood(state,source,type))return Task.ABORT;
+    const order=jobQueueFor(state.ecs,actorId).find(job=>job.assignedId==actorId&&job.job.key=="eat_food");
+    if(order)order.foodConsumed=true;
+    world.eatingUntil=state.days+time.HOUR/4;
+  }
+  return state.days<world.eatingUntil?Task.CONTINUE:Task.FINISH;
 }
 
 export function pick_up_from_container(state, actorId, world, dt, firstRun, place, thing) {
@@ -857,8 +891,8 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
       world.holding[thing] = false;
       return Task.ABORT;
     }
-    take(state.ecs, id, null);
-    deleteEntity(state, id);
+    if(state.ecs.good[id].amount>1)state.ecs.good[id].amount--;
+    else {take(state.ecs, id, null);deleteEntity(state, id);}
     world.mealRemaining = time.HOUR;
   }
 
@@ -1492,3 +1526,5 @@ export function household_fuel(state, actorId, world, dt, firstRun, workplaceId)
   if(work==Task.FINISH){world.fuelGathered=world.gathered;delete world.fuelTree;}
   return work==Task.ABORT?work:Task.CONTINUE;
 }
+
+export function festival_wait(state, actorId, world) { return world.festivalPlace ? Task.CONTINUE : Task.FINISH; }

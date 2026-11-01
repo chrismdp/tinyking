@@ -1,3 +1,5 @@
+> Historical implementation record. The 1 November 2026 [core loop](design.md) replaces player hunger and automatic care with energy. See [energy](survival.md) for current controls.
+
 # Make camp after arriving
 
 The opening starts without a camp entity, campfire or bedroll on the map.

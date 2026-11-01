@@ -1,7 +1,7 @@
 {
   "grain": {
     "colour": "E2C879",
-    "growingTime": 4.5,
+    "growingTime": 10.5,
     "harvestableAmount": 6
   }
 }

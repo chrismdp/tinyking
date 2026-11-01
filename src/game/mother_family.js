@@ -1,3 +1,4 @@
+import { DAYS_IN_SEASON } from "game/time";
 /* global require */
 import MersenneTwister from "mersenne-twister";
 import { newEntities } from "game/entities";
@@ -74,7 +75,7 @@ export function seedMotherFamily(s,actor,seed) {
         if(parents.some(parent=>kin(s,other).parents.includes(parent))){welcomeCloseKin(s,id,other);welcomeCloseKin(s,other,id);}
         else {meet(s,id,other);meet(s,other,id);}
       }
-      recordEvent(s,"household_arrival",[id],[],{audienceIds:[],day:s.days-3,season:-1,villageId:village,place:house});
+      recordEvent(s,"household_arrival",[id],[],{audienceIds:[],day:s.days-DAYS_IN_SEASON,season:-1,villageId:village,place:house});
       s.redraws?.push(id);
       siblings.push(id);
     }
@@ -88,15 +89,15 @@ export function seedMotherFamily(s,actor,seed) {
   kin(s,queenId).children=[halfBrotherId];kin(s,halfBrotherId).parents=[queenId,fatherId];
   const b=(s.backstories ||= {})[actor]={motherId,fatherId,queenId,halfBrotherId,homeVillageId:village,relatives:[]};
   // Chronology uses the game's accelerated age scale, before arrival.
-  const birth=-Math.max(3,(e.personable[actor].age-18)/2+2)*12;
-  const hidden=(type,people,day,details={})=>recordEvent(s,type,people,[],{sealed:true,audienceIds:[],day,season:Math.floor(day/3),...details});
-  hidden("marriage",[fatherId,motherId],birth-3,{title:"old king"});
+  const birth=-Math.max(3,(e.personable[actor].age-18)/2+2)*4*DAYS_IN_SEASON;
+  const hidden=(type,people,day,details={})=>recordEvent(s,type,people,[],{sealed:true,audienceIds:[],day,season:Math.floor(day/DAYS_IN_SEASON),...details});
+  hidden("marriage",[fatherId,motherId],birth-DAYS_IN_SEASON,{title:"old king"});
   hidden("birth",[actor,motherId,fatherId],birth);
   hidden("separation",[fatherId,motherId],birth+1,{reason:"The king was forbidden to keep the marriage"});
   hidden("exile",[motherId],birth+2,{reason:"The king sent her away",destination:"far away, beyond this region"});
-  hidden("marriage",[fatherId,queenId],birth+3);
+  hidden("marriage",[fatherId,queenId],birth+DAYS_IN_SEASON);
   hidden("birth",[halfBrotherId,queenId,fatherId],birth+6,{title:"current king"});
-  hidden("death",[fatherId],-3,{cause:"old age"});
+  hidden("death",[fatherId],-DAYS_IN_SEASON,{cause:"old age"});
   const relatives=[...parents.filter(id=>alive(s,id)&&e.household?.[id]?.houseId),...siblingsOf(s,motherId).filter(id=>alive(s,id)&&e.household?.[id]?.houseId)];
   for(const id of relatives) {
     const grandparent=parents.includes(id),male=personComponent(s,"nameable",id).male;

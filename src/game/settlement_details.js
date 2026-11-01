@@ -1,8 +1,9 @@
+import { DAYS_IN_SEASON } from "game/time";
 import { Hex, Grid } from "game/hex";
 import { displayName } from "game/knowledge";
 
 export function historicalDate(day) {
-  const season=Math.floor(day/3);
+  const season=Math.floor(day/DAYS_IN_SEASON);
   return ["Spring","Summer","Autumn","Winter"][((season%4)+4)%4]+", year "+(Math.floor(season/4)+1);
 }
 export function villageArea(s,id) {

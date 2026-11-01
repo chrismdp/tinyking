@@ -364,6 +364,7 @@ export function openChat(s,actor,npc,options={}) {
     taskId:!options.initiatedBy&&e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary"};
   meet(s,actor,npc);meet(s,npc,actor);s.game_speed="paused";
   if(e.planner[npc])e.planner[npc].world.capturedBy=actor;
+  if((!options.openingFamily || options.openingFamily=="greeting") && s.ecs.planner?.[npc]?.world.festivalPlace)options={...options,openingFamily:"festival"};
   let line=options.openingFamily?pickNpc(s,c,options.openingFamily):pickNpc(s,c,"visit_news");
   if(!options.openingFamily&&line&&line.icons.length>=patience(s,actor,npc).free)line=null;
   line ||= pickNpc(s,c,"recall");

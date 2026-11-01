@@ -1,3 +1,4 @@
+import { SeasonTurn, FestivalNotice } from "./season_turn";
 import { ChatPanel } from "./chat_panel";
 import { PanelBoundary } from "./panel_boundary";
 import { RealmControls } from "./realm_controls";
@@ -39,6 +40,8 @@ export function UserInterface() {
   if (introActive(state)) return <div id="ui"><IntroOverlay/></div>;
   return (
     <div id="ui" className={state.renderer?.overview ? "realm-inspecting" : ""}>
+      <SeasonTurn/>
+      {!state.seasonTurn && <FestivalNotice/>}
       {state.chat?.active && <ChatPanel/>}
       {show.clock && <Clock/>}
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}

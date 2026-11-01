@@ -34252,7 +34252,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -34363,7 +34363,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -34474,7 +34474,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -68082,7 +68082,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     }
    ],
@@ -69331,7 +69331,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -69422,7 +69422,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -69513,7 +69513,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     },
     {
@@ -90389,7 +90389,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 24
+      "days": 56
      }
     }
    ],
@@ -132645,7 +132645,7 @@
      "test": "arrived_within_days",
      "args": {
       "person": "player",
-      "days": 12
+      "days": 28
      }
     }
    ],
@@ -154019,6 +154019,254 @@
    }
   ],
   "use_key": "answer_ack:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.festival.spring.base.01",
+  "speaker": "npc",
+  "family": "festival",
+  "situation": "spring",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "spring"
+     }
+    },
+    {
+     "test": "festival_active",
+     "args": {}
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Seedwake at last. Bring your plans to the green; there is room for another pair of hands.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   },
+   {
+    "kind": "topic",
+    "key": "work"
+   }
+  ],
+  "use_key": "festival:spring:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.festival.summer.base.01",
+  "speaker": "npc",
+  "family": "festival",
+  "situation": "summer",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "summer"
+     }
+    },
+    {
+     "test": "festival_active",
+     "args": {}
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The midsummer fires are lit. Sit with us; this is an evening for promises and company.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "festival:summer:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.festival.autumn.base.01",
+  "speaker": "npc",
+  "family": "festival",
+  "situation": "autumn",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "autumn"
+     }
+    },
+    {
+     "test": "festival_active",
+     "args": {}
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Come to the Harvest Hearth. Tonight we thank the hands that brought the grain home.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "harvest"
+   },
+   {
+    "kind": "topic",
+    "key": "village"
+   }
+  ],
+  "use_key": "festival:autumn:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.festival.winter.base.01",
+  "speaker": "npc",
+  "family": "festival",
+  "situation": "winter",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "winter"
+     }
+    },
+    {
+     "test": "festival_active",
+     "args": {}
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Stay for the longest night. Every door is open; we keep the names of those we lost.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "faith"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "festival:winter:{context.game_hour}",
   "tradeoff": {
    "risks": [],
    "reveals": [],

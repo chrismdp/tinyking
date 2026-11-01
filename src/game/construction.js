@@ -1,3 +1,4 @@
+import { spendEnergy } from "game/energy";
 import { TIMBER } from "game/goods";
 import { setTileElevation } from "game/biome_field";
 import { householdStore } from "game/favours";
@@ -140,6 +141,7 @@ export function workOnShelter(state, actorId, world, dt, firstRun, targetId) {
   const stage = STAGES[site.stage];
   if (site.delivered < stage.logs) return Task.ABORT;
   const job = ecs.manager[topController(ecs, actorId)].jobs.find(j => j.targetId == targetId);
+  spendEnergy(state,actorId,dt / HOUR);
   site.work += dt / HOUR * careSpeed(ecs.personable[actorId]);
   if (job) {
     job.detail = "Building";

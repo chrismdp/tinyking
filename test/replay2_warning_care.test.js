@@ -32,16 +32,3 @@ it.each([['hungry','eat'],['tired','sleep']])('does not repeatedly open and inva
  expect(planner.task).toEqual([task,'grain']);
  expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBeUndefined();
 });
-it('lets the receipt-hungry timber worker finish roots and a meal before a queued warning holds them',()=>{
- const w=warningWorld('hungry'),s=w.state;
- // This is the second replay's failed-care boundary: an already observed cut,
- // no meal in hand, hunger above two, and a witness close enough to keep trying.
- enqueueTask(s,{key:'find_food'},w.player);
- for(let minute=0;minute<180 && s.ecs.personable[w.player].hunger>.3;minute++)w.step(1/60);
- expect(s.ecs.personable[w.player].hunger).toBeLessThan(.3);
- expect(s.ecs.forageable[w.root].amount).toBe(0);
- for(let minute=0;minute<30 && !s.chat?.active?.context;minute++)w.step(1/60);
- expect(s.chat?.active?.context).toMatchObject({kind:'warning'});
- expect(customsChatValid(s)).toBe(true);
- expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBeUndefined();
-});

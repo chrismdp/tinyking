@@ -1,3 +1,5 @@
+> Historical implementation record. The 1 November 2026 [core loop](design.md) replaces player hunger and automatic care with energy. See [energy](survival.md) for current controls.
+
 # Reading people's lives
 
 Relationship copy describes one person's opinion of another. Public is an acquaintance; Social is a familiar acquaintance; Personal is a friend; Intimate is one of their closest friends. Intimate alone says nothing about romance. Gossip stores the speaker's disclosed ring at that time. It does not inspect the other direction or silently refresh the report.

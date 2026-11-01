@@ -9,7 +9,7 @@ jest.mock("components/contexts", () => ({ GameState: require("react").createCont
 jest.mock("components/name", () => ({ Name: () => "Villager" }), { virtual: true });
 jest.mock("components/trait_list", () => ({ TraitList: () => null }), { virtual: true });
 
-it.each([[0.9, "Fed"], [1, "Hungry"], [3, "Starving"]])("shows hunger %s as %s in the selected-person panel", (hunger, stage) => {
+it.each([[0.9, "Fed"], [1, "Ready for a meal"], [3, "Ready for a meal"]])("shows hunger %s as %s in the selected-person panel", (hunger, stage) => {
   const state = { ecs: { personable: { 1: { hunger } } } };
   const html = renderToStaticMarkup(<GameState.Provider value={state}><SelectedPerson entityId="1"/></GameState.Provider>);
   expect(html).toContain(stage);

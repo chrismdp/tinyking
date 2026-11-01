@@ -100,15 +100,16 @@ it('helps field slots with actual work and preserves the player harvest, without
   expect(s.ecs.controllable[field].controllerId).toBe(w.player);
 });
 
-it('keeps a hungry player eating while the independent helper contributes', () => {
+it('keeps a player eating chosen food while the independent helper contributes', () => {
   const w = world(), s = w.state;
   const [food] = newEntities(s, [{ spatial: { ...s.ecs.spatial[w.player] }, good: { type: 'grain', amount: 1 }, haulable: {}, controllable: { controllerId: w.player } }]);
   give(s.ecs, food, w.player); s.ecs.planner[w.player].world.holding.grain = true;
-  s.ecs.personable[w.player].hunger = 1.2;
+  s.ecs.personable[w.player].energy = 20;
+  enqueueTask(s,{key:"eat_food"},food,{foodType:"grain"});
   let ate = false, helped = false;
-  for (let i = 0; i < 160; i++) { w.step(.02); ate ||= s.ecs.planner[w.player].task?.[0] == 'eat'; helped ||= s.ecs.planner[w.person].task?.[0] == 'help_friend_work'; }
+  for (let i = 0; i < 160; i++) { w.step(.02); ate ||= s.ecs.planner[w.player].task?.[0] == 'eat_food'; helped ||= s.ecs.planner[w.person].task?.[0] == 'help_friend_work'; }
   expect(ate).toBe(true); expect(helped).toBe(true);
-  expect(s.ecs.personable[w.player].hunger).toBeLessThan(.5);
+  expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
 });
 
 it('keeps helper capacity at one and lets its own queued job take precedence', () => {

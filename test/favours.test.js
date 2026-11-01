@@ -82,10 +82,11 @@ it('keeps harvest counts honest while reordered, waiting, interrupted and resume
   expect(taskMarkup(s)).toContain('Household store is full');
   expect(taskMarkup(s)).toContain('0 crop portions carried home');
   s.ecs.container[w.store].capacity = 100;
-  s.ecs.personable[w.player].hunger = 1.2;
-  advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'eat');
+  s.ecs.personable[w.player].energy = 20;
+  enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
+  advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'eat_food');
   html = taskMarkup(s);
-  expect(html).toContain('Stopped to eat · harvest resumes afterwards');
+  expect(html).toContain('Eating · harvest resumes afterwards');
   expect(html).toContain('1/3 patches harvested');
   advanceUntil(w, () => r.status == 'completed');
   expect(s.ecs.manager[w.player].jobs).not.toContain(favour);
@@ -102,6 +103,7 @@ it('shows sleep as an interruption before returning to the unfinished harvest', 
   s.ecs.planner[w.player].world.days = s.days;
   s.ecs.personable[w.player].tiredness = 1.1;
   acceptFavour(s, r.id);
+  enqueueTask(s,{key:'rest'},w.player);
   advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'sleep');
   expect(taskMarkup(s)).toContain('Stopped to sleep · harvest resumes afterwards');
   expect(taskMarkup(s)).toContain('0/3 patches harvested');
@@ -271,9 +273,10 @@ it('resumes after a meal, and cancellation leaves collected goods without goodwi
   const task = acceptFavour(s, r.id);
   for (let i = 0; i < 100 && !r.cargo.length; i++) w.step(.02);
   expect(r.cargo).toHaveLength(1);
-  s.ecs.personable[w.player].hunger = 1.2;
+  s.ecs.personable[w.player].energy = 20;
+  enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
   w.step(3);
-  expect(s.ecs.personable[w.player].hunger).toBeLessThan(.5);
+  expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
   expect(r.status).toBe('completed');
   expect(task.progress).toBe(1);
   // A separate accepted request cannot refund goods or claim completion on cancel.
@@ -316,9 +319,10 @@ it('never eats borrowed harvest during a real meal interruption and releases fam
   const borrowed = r.cargo.find(id => s.ecs.haulable[id]?.heldBy == w.player);
   expect(borrowed).toBeDefined();
   expect(s.ecs.controllable[borrowed].controllerId).toBe(w.person);
-  s.ecs.personable[w.player].hunger = 1.2;
-  for (let i = 0; i < 500 && s.ecs.personable[w.player].hunger > .5; i++) w.step(.01);
-  expect(s.ecs.personable[w.player].hunger).toBeLessThan(.5);
+  s.ecs.personable[w.player].energy = 20;
+  enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
+  for (let i = 0; i < 500 && s.ecs.personable[w.player].energy <= 20; i++) w.step(.01);
+  expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(5);
   expect(s.ecs.good[borrowed] || s.ecs.container[w.store].amounts.grain > 30).toBeTruthy();
   cancelTask(s, task.id);
@@ -384,12 +388,13 @@ it('applies existing ring capacities when completing a favour', () => {
   expect(s.ecs.relationships[w.player].known[w.person].ring).toBe('public');
 });
 
-it('sleeps automatically before resuming an accepted favour', () => {
+it('sleeps on request before resuming an accepted favour', () => {
   const w = favourWorld(), s = w.state, r = w.request('wood');
   s.villages = {};
   s.days = 20/24; s.ecs.planner[w.player].world.days = s.days;
   s.ecs.personable[w.player].tiredness = 1.1;
   const task = acceptFavour(s, r.id);
+  enqueueTask(s,{key:'rest'},w.player);
   let slept = false;
   for (let i = 0; i < 700; i++) { w.step(.02); slept ||= s.ecs.planner[w.player].task?.[0] == 'sleep'; }
   expect(slept).toBe(true);
@@ -493,6 +498,8 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(task.progress).toBe(1);
   expect(Math.hypot(s.ecs.spatial[w.player].x - s.ecs.spatial[w.workplace].x,
     s.ecs.spatial[w.player].y - s.ecs.spatial[w.workplace].y)).toBeLessThanOrEqual(10);
+  pantry.amounts.bread--;
+  expect(r.thanksFood).toMatchObject({type:"bread",amount:1,sourceId:w.store});
   expect(s.ecs.container[w.store]).toEqual(pantry);
   expect(s.ecs.good[w.log]).toBeUndefined();
   expect(s.ecs.haulable[w.log]).toBeUndefined();
@@ -501,7 +508,7 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(r.receipts).toEqual([expect.objectContaining({ itemId: w.log, fromId: w.player,
     targetId: w.workplace, type: 'wood', amount: 1, use: 'fuel' })]);
   expect(s.ecs.household[w.house].estateAccount).toEqual({ initial: { wood: 0, grain: 70, bread: 30 },
-    produced: {}, received: { wood: 1 }, consumed: { wood: 1 } });
+    produced: {}, received: { wood: 1 }, consumed: { wood: 1 }, given:{bread:1} });
   const earned = s.ecs.relationships[w.person].known[w.player].goodwill;
   expect(earned).toBeCloseTo(12, 0);
   expect(do_favour(s, w.player, s.ecs.planner[w.player].world, HOUR, true, r.id)).toBe(require('game/htn').Task.ABORT);
@@ -522,6 +529,7 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   trade_work(s, w.person, world, HOUR / 2, true, w.workplace);
   expect(s.ecs.workplace[w.workplace].fuelHours).toBeCloseTo(3.5);
   expect(s.ecs.workplace[w.workplace].workHours).toBeCloseTo(.5);
+  expect(r.thanksFood).toMatchObject({type:"bread",amount:1,sourceId:w.store});
   expect(s.ecs.container[w.store]).toEqual(pantry);
   expect(s.ecs.growth?.[w.workplace]?.production || 0).toBe(0);
   for (let i = 0; i < 7; i++) trade_work(s, w.person, {}, HOUR / 2, true, w.workplace);
@@ -529,6 +537,7 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(s.ecs.workplace[w.workplace].workHours).toBeCloseTo(4);
   expect(fuelReady(s, w.workplace)).toBe(false);
   expect(trade_work(s, w.person, {}, HOUR / 2, true, w.workplace)).toBe(require('game/htn').Task.ABORT);
+  expect(r.thanksFood).toMatchObject({type:"bread",amount:1,sourceId:w.store});
   expect(s.ecs.container[w.store]).toEqual(pantry);
   expect(s.ecs.household[w.house].estateAccount.consumed).toEqual({ wood: 1 });
 });
@@ -583,7 +592,7 @@ it('keeps spare-capacity room delivery as stored wood, then consumes it for real
   s.ecs.household[w.house].estateAccount.initial = { wood: 0, flour: 70, bread: 28 };
   acceptFavour(s, r.id);
   advanceUntil(w, () => r.status == 'completed');
-  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 1, flour: 70, bread: 28 } });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 1, flour: 70, bread: 27 } });
   expect(s.ecs.workplace[w.workplace].fuelHours || 0).toBe(0);
   expect(s.ecs.good[w.log]).toBeUndefined();
   expect(r.receipts).toEqual([expect.objectContaining({ itemId: w.log, fromId: w.player,
@@ -596,10 +605,10 @@ it('keeps spare-capacity room delivery as stored wood, then consumes it for real
   s.days = Math.floor(s.days) + 10 / 24;
   trade_work(s, w.person, {}, HOUR / 2, true, w.workplace);
   expect(s.ecs.workplace[w.workplace]).toMatchObject({ fuelHours: 3.5, workHours: .5 });
-  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, flour: 69, bread: 30 } });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, flour: 69, bread: 29 } });
   expect(s.ecs.household[w.house].estateAccount).toEqual({
     initial: { wood: 0, flour: 70, bread: 28 }, received: { wood: 1 },
-    consumed: { wood: 1, flour: 1 }, produced: { bread: 2 }
+    consumed: { wood: 1, flour: 1 }, produced: { bread: 2 }, given:{bread:1}
   });
   expect(s.ecs.growth[w.workplace].production).toBe(2);
 });
@@ -615,7 +624,7 @@ it('rechecks the actual receiver if normal production fills the pantry after acc
   advanceUntil(w, () => r.status == 'completed');
   expect(task.targetId).toBe(w.store);
   expect(r.receipts[0]).toMatchObject({ itemId: w.log, targetId: w.workplace, use: 'fuel', amount: 1 });
-  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, grain: 70, bread: 30 } });
+  expect(s.ecs.container[w.store]).toMatchObject({ capacity: 100, amounts: { wood: 0, grain: 70, bread: 29 } });
   expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
 });

@@ -7,6 +7,7 @@ import { firstFreeJob } from "game/manager";
 const always = () => true;
 
 export const person = () => [
+  [world=>world.festivalPlace, place=>[["walk_to",place],["festival_wait"]]],
   [world => world.worldArrival, entry => [["walk_to", entry?.tileId], ["end_world_arrival"]]],
   [world => world.worldJourney, trip => [["set_label"], ["walk_to", trip?.tileId], ["leave_edge", trip?.tileId, trip]]],
   [world => world.helpingFriend, () => [["end_friend_help"], ["person"]]],

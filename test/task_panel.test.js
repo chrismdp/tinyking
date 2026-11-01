@@ -9,18 +9,18 @@ jest.mock("game/name", () => ({ name: n => n.nickname }));
 jest.mock("components/name", () => ({ Name: ({ nameable }) => nameable.nickname }), { virtual: true });
 jest.mock("components/trait_list", () => ({ TraitList: () => null }), { virtual: true });
 
-it("shows the approved task layout, amount, hunger warning, favour metadata and player status", () => {
+it("shows the approved task layout, amount, energy budget, favour metadata and player status", () => {
   const state = { ui: { playerId: "p", actions: {} }, ecs: {
     manager: { p: { jobs: [{ id: "t1", job: { key: "cut_tree_down" }, targetId: "tree", assignedId: "p", progress: 0.6, detail: "3 of 5 logs" },
       { id: "t2", job: { key: "forage" }, targetId: "bush", forId: "a", expectedGoodwill: "about +9 goodwill" }] } },
-    personable: { p: { hunger: 1.2 } }, nameable: { p: { nickname: "Will Ashdown" }, a: { nickname: "Agnes Miller" } },
+    personable: { p: { energy: 12 } }, nameable: { p: { nickname: "Will Ashdown" }, a: { nickname: "Agnes Miller" } },
     spatial: { tree: { x: 0, y: 0 }, bush: { x: 100, y: 100 } }, planner: { p: { world: {}, task: ["chop_tree", "tree"] } },
     shelter: {}
   } };
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/><SelectedPerson entityId="p"/></GameState.Provider>);
   expect(html.match(/Will Ashdown/g)).toHaveLength(1);
-  for (const text of ["Your tasks", "2 IN QUEUE", "Hungry", "Working more slowly", "Chop wood", "3 of 5 logs", "60%",
-    "Forage &amp; eat", "For Agnes Miller", "Favour · about +9 goodwill", "Drag ⠿ to reorder · × to cancel · You do each job.",
+  for (const text of ["Your tasks", "2 IN QUEUE", "Energy 12 / 100", "Low energy", "Chop wood", "3 of 5 logs", "60%",
+    "Forage", "For Agnes Miller", "Favour · about +9 goodwill", "Drag ⠿ to reorder · × to cancel · You do each job.",
     "Will Ashdown", "You · Stranger · Camp at the edge", "Cancel Chop wood", "Move earlier", "Move later"]) expect(html).toContain(text);
 });
 
@@ -55,7 +55,7 @@ it("dims waiting work and highlights the assigned chop task instead of the first
 
 it("does not claim a hungry player stopped to eat while they are sleeping", () => {
   const state = { ui: { playerId: "p", actions: {} }, ecs: {
-    manager: { p: { jobs: [] } }, personable: { p: { hunger: 1.2 } }, nameable: { p: { nickname: "Will" } },
+    manager: { p: { jobs: [] } }, personable: { p: { energy: 12 } }, nameable: { p: { nickname: "Will" } },
     spatial: {}, planner: { p: { world: { feeling: { hungry: true }, label: "sleeping" }, task: ["sleep"], plan: [] } }
   } };
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
@@ -83,33 +83,4 @@ it("shows death without work, food, rest or queue instructions even with stale p
   const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
   expect(html).toContain("Dead");
   for (const instruction of ["Working more slowly", "Find food", "Rest", "Stopped to eat", "resume", "Needs food", "Needs rest", "Choose an action", "You do each job"]) expect(html).not.toContain(instruction);
-});
-
-it("explains tired slowdown next to hunger during active work and keeps Rest visible", () => {
-  const state = { ui: { playerId: "p", actions: {} }, ecs: {
-    manager: { p: { jobs: [{ id: "build", job: { key: "build_shelter" }, targetId: "site", assignedId: "p" }] } },
-    personable: { p: { hunger: 1, tiredness: 1.3 } }, nameable: { p: { nickname: "Will" } },
-    spatial: {}, planner: { p: { world: {}, task: ["work_shelter", "site"] } },
-    construction: { site: { stage: "lean-to", delivered: 4, work: 0 } }
-  } };
-  const render = () => renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
-  expect(render()).toContain("Hungry");
-  expect(render()).toContain("Tired: working slowly");
-  expect(render()).toMatch(/<button[^>]*>Rest<\/button>/);
-  // Two hours of building / (.8 hunger * .5 tiredness) = 300 rounded minutes.
-  expect(render()).toContain("~300m left");
-  state.ecs.personable.p.tiredness = 0;
-  expect(render()).not.toContain("Tired: working slowly");
-  expect(render()).toContain("~150m left");
-});
-
-it("keeps failed meal recovery visible without recommending another Find food",()=>{
-  const {state:s,player:p}=require("./support/people").peopleWorld();
-  s.ecs.personable[p].hunger=2.79;
-  const reason="No accessible meal was found. Choose Move here to look for wild roots.";
-  s.ecs.manager[p].jobs=[{id:"food",job:{key:"find_food"},targetId:p,waiting:reason,detail:reason,failed:true}];
-  const html=renderToStaticMarkup(<GameState.Provider value={s}><TaskPanel/></GameState.Provider>);
-  expect(html).toContain(reason);
-  expect(html).not.toContain("Choose Find food to go for a meal");
-  expect(html).not.toMatch(/<button[^>]*>Find food<\/button>/);
 });

@@ -44,7 +44,7 @@ it("grows a productive occupied home and adjacent workshop in stages, and consum
   const [work]=newEntities(s,[{spatial:{...Hex(5,3).toPoint(),immovable:true},workplace:{houseId:house,trade:"carpenter"},controllable:{controllerId:house},village:{villageId:"v"}}]);
   h.workplaceId=work; h.trade="carpenter";
   for(let season=0;season<8;season++) {
-    s.days=season*3;
+    s.days=season*7;
     recordProduction(s,work,people[0],"planks",2);
     settleSeason(s,season,false);
   }
@@ -67,7 +67,7 @@ it("leaves unsupported, empty, blocked and poor households small", () => {
     if(kind=="empty")for(const id of people)s.ecs.personable[id].dead=true;
     if(kind=="blocked")newEntities(s,[{spatial:{...s.ecs.spatial[house],y:s.ecs.spatial[house].y-53,immovable:true},workplace:{houseId:"other",trade:"weaver"}}]);
     for(let season=0;season<6;season++) {
-      s.days=season*3;
+      s.days=season*7;
       if(kind!="unsupported")recordProduction(s,house,people[0],"grain",6);
       settleSeason(s,season,false);
     }
@@ -81,9 +81,9 @@ it("expands a pub from actual meetings and keeps summary catch-up immutable and 
   s.villages.v.sharedPlaces.push(pub);
   s.ecs.container[s.ecs.household[house].storeId].amounts.wood=80;
   for(let season=1;season<=4;season++) {
-    s.days=season*3-.2;
+    s.days=season*7-.2;
     for(const p of people)recordMeetingUse(s,pub,p);
-    s.days=season*3;
+    s.days=season*7;
     settleSeason(s,season,false);
   }
   expect(s.ecs.growth[pub].stage).toBeGreaterThan(0);
@@ -103,9 +103,9 @@ it("expands through completed trade work across actual seasonal boundaries", () 
   s.ecs.spatial[people[0]]={...s.ecs.spatial[work]};
   const initialOwner=s.ecs.controllable[house].controllerId, rooms=[...s.ecs.building[house].rooms];
   for(let period=0;period<8;period++) {
-    s.days=period*3+.5;
+    s.days=period*7+.5;
     trade_work(s,people[0],{ordered:false},HOUR/2,true,work);
-    s.days=(period+1)*3;settleSeason(s,period+1,false);
+    s.days=(period+1)*7;settleSeason(s,period+1,false);
   }
   expect(s.ecs.growth[house].stage).toBe(2);
   expect(s.ecs.growth[work].stage).toBe(2);
@@ -121,7 +121,7 @@ it("keeps a full store within capacity during summary harvest and preserves the 
   const {s,house}=fixture(),h=s.ecs.household[house],store=s.ecs.container[h.storeId];
   store.capacity=20;store.amounts={grain:19};
   const [field]=newEntities(s,[{spatial:{...Hex(5,4).toPoint(),immovable:true},farmable:{houseId:house,slots:[{state:"harvestable",amount:6,content:"grain",growth:4.5}]},controllable:{controllerId:house}}]);
-  h.fields=[field];s.days=3;settleSeason(s,1,true);
+  h.fields=[field];s.days=7;settleSeason(s,1,true);
   expect(Object.values(store.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(20);
   expect(s.ecs.farmable[field].slots[0].state).toBe("harvestable");
 });
@@ -175,7 +175,7 @@ it("does not repeat a failed historical field layout until its real spatial inpu
   for(const tile of Object.values(s.ecs.mappable))tile.route=[0,1,2,3,4,5];
   const layout=jest.spyOn(villages,"generateVillageLife");
   try {
-    s.days=3;settleSeason(s,1,false);
+    s.days=7;settleSeason(s,1,false);
     expect(s.ecs.household[house].fields).toHaveLength(0);
     s.days=6;settleSeason(s,2,false);
     expect(layout).toHaveBeenCalledTimes(1);
@@ -191,7 +191,7 @@ it("requires the same real forge fuel during summary work as live work",()=>{
     const {s,house}=fixture(),h=s.ecs.household[house],store=s.ecs.container[h.storeId];
     store.amounts={grain:60,wood};
     const [work]=newEntities(s,[{spatial:{...Hex(5,3).toPoint(),immovable:true},workplace:{houseId:house,trade:"smith"},controllable:{controllerId:house},village:{villageId:"v"}}]);
-    h.workplaceId=work;h.trade="smith";s.days=3;
+    h.workplaceId=work;h.trade="smith";s.days=7;
     settleSeason(s,1,true);
     expect(s.ecs.growth[work].production).toBe(wood?2:0);
     expect(s.ecs.container[h.storeId].amounts.wood).toBe(0);
@@ -220,7 +220,7 @@ it("records the actual return trips needed to bring a tree's wood home in two wo
   const {s,house}=fixture(),store=s.ecs.container[s.ecs.household[house].storeId];
   store.amounts={wood:0,grain:60};
   const [tree]=newEntities(s,[{spatial:{...Hex(5,4).toPoint(),immovable:true},good:{type:"wood",amount:3}}]);
-  s.days=3;settleSeason(s,1,true);
+  s.days=7;settleSeason(s,1,true);
   const trip=s.settlement.journeys.find(j=>j.reason=="household timber");
   expect(trip.count).toBe(2);
   expect(store.amounts.wood).toBe(3);
@@ -233,7 +233,7 @@ it("collects needed timber before optional harvest fills the household store",()
   store.capacity=20;store.amounts={wood:0,grain:14};
   const [tree]=newEntities(s,[{spatial:{...Hex(5,4).toPoint(),immovable:true},good:{type:"wood",amount:3}}]);
   const [field]=newEntities(s,[{spatial:{...Hex(5,5).toPoint(),immovable:true},farmable:{houseId:house,slots:[{state:"harvestable",content:"grain",amount:6,growth:4.5}]},controllable:{controllerId:house}}]);
-  h.fields=[field];s.days=3;settleSeason(s,1,true);
+  h.fields=[field];s.days=7;settleSeason(s,1,true);
   expect(store.amounts.wood).toBe(3);
   expect(s.ecs.good[tree]).toBeUndefined();
   expect(s.ecs.farmable[field].slots[0].state).toBe("harvestable");
@@ -259,7 +259,7 @@ it("cannot collect the same physical timber twice across households in one summa
   expect(other).toBeTruthy();
   for(const home of [house,other])s.ecs.container[s.ecs.household[home].storeId].amounts={wood:0,grain:60};
   const [tree]=newEntities(s,[{spatial:{...Hex(6,5).toPoint(),immovable:true},good:{type:"wood",amount:3}}]);
-  s.days=3;settleSeason(s,1,true);
+  s.days=7;settleSeason(s,1,true);
   const wood=[house,other].reduce((n,home)=>n+(s.ecs.container[s.ecs.household[home].storeId].amounts.wood || 0),0);
   expect(wood).toBe(3);
   expect(s.ecs.good[tree]).toBeUndefined();

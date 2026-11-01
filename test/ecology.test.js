@@ -1,22 +1,25 @@
 import { rowOfTiles } from "./support/world";
 import { newEntities, deleteEntity } from "game/entities";
 import { initializeEcology, generateForage, updateEcology, BIOME_ECOLOGY, TREE_SEED_REACH } from "game/ecology";
-import { Hex } from "game/hex";
-import { HOUR } from "game/time";
+import { Hex, Grid } from "game/hex";
+import { HOUR, DAYS_IN_SEASON } from "game/time";
 
-function wood(biome = "jungle", cleared = true) {
+function wood(biome = "jungle", cleared = true, allLand = false) {
   const { state, tiles } = rowOfTiles(8);
   state.world = { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, biome, moisture: biome == "jungle" ? "wet" : "normal", temperature: "hot" }] };
   state.map = { seed: 1234, playerStartTile: { x: 0, y: 0 } };
   for (const id of tiles) state.ecs.mappable[id].biome = biome;
   const [mature] = newEntities(state, [{
     spatial: { ...state.ecs.spatial[tiles[3]], immovable: true }, good: { type: "wood", amount: 3 },
-    tree: { stage: "mature", growth: 6, fullLogs: 3, biome }
+    tree: { stage: "mature", growth: 2*DAYS_IN_SEASON, fullLogs: 3, biome }
   }]);
   const others = newEntities(state, Array.from({ length: 23 }, (_, i) => ({
     spatial: { ...state.ecs.spatial[tiles[i % tiles.length]], immovable: true },
     good: { type: "wood", amount: 3 }
   })));
+  // Regrowth can seed in any direction. Surround the source with real land,
+  // instead of relying on one particular dated random angle hitting a thin row.
+  if(allLand)for(const hex of Grid.hexagon({center:Hex().fromPoint(state.ecs.spatial[mature]),radius:2}))if(!state.space[hex])newEntities(state,[{spatial:{...hex.toPoint(),immovable:true},mappable:{terrain:"grassland",biome},walkable:{speed:1,neighbours:{},worn:{}}}]);
   initializeEcology(state, 1234);
   if (cleared) for (const id of others) deleteEntity(state, id);
   return { state, tiles, mature };
@@ -30,9 +33,9 @@ function hours(state, count) {
 }
 
 it("new saplings appear only within seed reach of a mature tree, then grow young and mature", () => {
-  const { state, mature } = wood();
+  const { state, mature } = wood("jungle",true,true);
   const source = { ...state.ecs.spatial[mature] };
-  hours(state, 48);
+  hours(state, 48*DAYS_IN_SEASON/3);
   const saplings = Object.keys(state.ecs.tree).filter(id => id != mature);
   expect(saplings.length).toBeGreaterThan(0);
   for (const id of saplings) {
@@ -42,10 +45,10 @@ it("new saplings appear only within seed reach of a mature tree, then grow young
     expect(state.ecs.good[id].amount).toBe(0);
   }
   const tree = saplings[0];
-  hours(state, 72);
+  hours(state, 24*DAYS_IN_SEASON);
   expect(state.ecs.tree[tree].stage).toBe("young");
   expect(state.ecs.good[tree].amount).toBeLessThan(state.ecs.tree[tree].fullLogs);
-  hours(state, 72);
+  hours(state, 24*DAYS_IN_SEASON);
   expect(state.ecs.tree[tree].stage).toBe("mature");
   expect(state.ecs.good[tree].amount).toBe(state.ecs.tree[tree].fullLogs);
 });
@@ -53,8 +56,8 @@ it("new saplings appear only within seed reach of a mature tree, then grow young
 it("young trees cannot seed a bare plain", () => {
   const { state, mature } = wood();
   state.ecs.tree[mature].stage = "young";
-  state.ecs.tree[mature].growth = 3;
-  hours(state, 48);
+  state.ecs.tree[mature].growth = DAYS_IN_SEASON;
+  hours(state, 48*DAYS_IN_SEASON/3);
   expect(Object.keys(state.ecs.tree)).toEqual([mature]);
 });
 
@@ -70,7 +73,7 @@ it("stops at each biome's natural tree density, including repeated hourly update
 
 it("neither trees nor depleted forage grow during winter", () => {
   const { state, tiles, mature } = wood();
-  state.days = 9;
+  state.days = 3*DAYS_IN_SEASON;
   state.ecs.tree[mature].stage = "sapling";
   state.ecs.tree[mature].growth = 1;
   const [bush] = newEntities(state, [{
@@ -92,7 +95,7 @@ it("depleted forage slowly regrows outside winter", () => {
   }]);
   hours(state, 24);
   expect(state.ecs.forageable[plant].amount).toBe(0);
-  hours(state, 60);
+  hours(state, 60*DAYS_IN_SEASON/3);
   expect(state.ecs.forageable[plant].amount).toBe(1);
 });
 
@@ -124,7 +127,7 @@ it("uses the generated woodland density as its cap, leaving room only after tree
 });
 
 it("does not exceed a neighbouring biome's zero natural tree density", () => {
-  const { state, mature } = wood();
+  const { state, mature } = wood("jungle",true,true);
   const source = Hex().fromPoint(state.ecs.spatial[mature]).toString();
   for (const [key, tile] of Object.entries(state.ecology.tiles)) {
     if (key != source) tile.biome = "taiga";
@@ -137,7 +140,7 @@ it("does not exceed a neighbouring biome's zero natural tree density", () => {
 it.each(["camp", "shelter"])("keeps regrowing trees out of the player's %s", component => {
   const { state, tiles, mature } = wood();
   newEntities(state, tiles.map(id => ({ spatial: { ...state.ecs.spatial[id], immovable: true }, [component]: {} })));
-  hours(state, 48);
+  hours(state, 48*DAYS_IN_SEASON/3);
   expect(Object.keys(state.ecs.tree)).toEqual([mature]);
 });
 

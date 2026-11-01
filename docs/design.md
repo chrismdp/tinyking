@@ -1,8 +1,10 @@
 # Tiny King: game design
 
-Status: phase one, 31 October 2026. This describes the implemented game. The separate [phase-two proposal](phase-two.md) remains a design only. Quests remain deferred.
+Status: core loop, 1 November 2026. This describes the implemented game. The separate [phase-two proposal](phase-two.md) remains a design only. Quests remain deferred.
 
 ## A life among people
+
+A stranger arrives, finds their mother’s family, and becomes part of a village whose people they come to love, and grieve.
 
 You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and forty-five years of history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
 
@@ -36,6 +38,10 @@ They do not introduce injury, warmth or storm damage.
 
 A deliberate journey uses the normal planner to walk off a map edge. The journey takes one season. Visited maps retain their people, events, buildings, stores and ownership. Other communities advance through the same seasonal rules while offscreen. New maps use deterministic history. See [travel](travel.md).
 
+Each season lasts seven days. The last evening brings a village festival.
+After its night, a page shows only real events the player knows. Begin the new
+season to continue from dawn.
+
 The gameplay camera provides a continuous 3D [realm view](realm-map.md). Zooming
 out inspects public terrain and weather, plus communities that the current person
 actually discovered. Realm fits the world and You restores local camera follow.
@@ -47,7 +53,7 @@ Each person has a stable identity, parents, spouse, children, developmental age,
 
 Generated history contains only the existing residents. The newly created stranger does not age, marry, die, meet villagers or inherit property during those forty-five years. Their lifecycle starts at arrival. After arrival, their actual person ages in live play and on the road. Reference-only people do not take a second local seasonal update.
 
-Children reach developmental age 18 in two game years. Adults then gain two displayed years per game year. Old-age deaths use the shared seasonal probability from age 60 and the final age-88 boundary. Starvation can also kill a person after prolonged neglect.
+Children reach developmental age 18 in two game years. Adults then gain two displayed years per game year. Old-age deaths use the shared seasonal probability from age 60 and the final age-88 boundary. Missed meals never cause starvation deaths.
 
 NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and two seasons of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
 
@@ -74,19 +80,42 @@ The family tree shows known people and connected unknown relatives. Its cards re
 
 Orders belong to the current player. They use the same planner as village work. The task panel supports ordering, cancellation, waiting reasons and progress from real work. A building without materials waits. It never gathers wood automatically.
 
-An idle player stays where left. They can eat accessible food or rest in an available bed at that position. They do not walk away to seek care while idle. Find food and Rest are explicit orders. Running orders retain automatic meals and sleep, then resume.
+Energy is the player's daily work budget. Physical work spends it. Chatting is free.
+Low energy slows work. At zero, work waits for food or sleep. Eat consumes a
+specific carried or owned portion. The player never searches for a meal automatically.
+Rest walks home and sleeps. A bed restores more energy than rough ground or a
+camp bedroll. Late nights and collapse reduce the next morning's recovery.
+At dusk, physical work stops and the player walks home to their fire or camp.
+Evening conversations and visits remain available. See [energy](survival.md).
 
-Hunger and missed sleep slow walking and work for everyone. Their speed factors multiply, and task estimates use that same factor. Tiredness permits full speed through 1.2 days, then gives 50% speed above 1.2 and 25% above 1.8. This leaves time for conversations, a shelter and sleep on the first day. Skipping that night slows the following day. The task panel explains the slowdown and offers Rest, including during work.
+Villagers retain real meals and household larders. Low reserves cause food
+requests, and ripe crops cause harvest requests. Missed meals cannot kill them.
 
-The arrival camp has a bedroll that permits sleep before building. It restores tiredness at the same rate as a bed or completed shelter. Building a shelter replaces that camp sleeping place. Without an accessible sleeping place, tiredness keeps rising. Rest uses the existing rules for access and walking to a bed.
-
-Playable children keep explicit movement, conversation, gifts, Find food, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
+Playable children keep explicit movement, conversation, gifts, Eat, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
 
 Favours come from actual household harvest, food or fuel needs. Acceptance through a chat line queues physical work and authorises delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
 
 A fed, rested Personal friend can contribute real work to a funded building or an owned field. The friend keeps their home, belongings, controller and priorities. There is no Recruit action. Household access follows actual residence. Legal ownership, residence, social trust and person-scoped local rights remain separate. Succession does not copy a predecessor's oaths, discoveries, goodwill or community permissions onto another person.
 
 Local elders can receive an independent adult's oath after actual conversation and enough goodwill. The oath grants common gathering rights, without private property access. Actual household residence can also give local recognition. Leaving ends common gathering rights. These rights belong to the person. See [village customs](village-customs.md).
+
+## Seasons and gatherings
+
+Each village gathers at its green on the last evening of each seven-day season.
+Seedwake Fair welcomes spring sowing. Midsummer Gathering gives courting couples
+time together. Harvest Hearth honours real harvests and favours from the year.
+Longest-night Vigil remembers the year's recorded dead. Every door is open.
+The gathering changes no household access or legal ownership.
+
+Villagers walk there and remain available for chat. Attendance gives two goodwill
+with villagers present, once per season. Midsummer conversations use the existing
+marriage rules, including consent, kin exclusions, housing and two seasons of courtship.
+The player receives no forced wedding. Authored chat openings live in the generated catalogue.
+
+After festival night, the season-turn page pauses at dawn. It shows known births,
+marriages, deaths, moves, harvests, buildings, favours and other recorded events.
+Sealed family secrets and unheard events stay hidden. A quiet season can have no news.
+The player must choose Begin to start the new season.
 
 ## Marriage, ownership and succession
 

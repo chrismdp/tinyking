@@ -9,7 +9,7 @@ it("shows the actual inherited centre household without disclosing an unknown pe
   expect(centreHousehold(s,"v")).toEqual({houseId:"house",ownerId:"heir",name:"an unknown person"});
   s.ecs.relationships.p.known.heir={};
   expect(centreHousehold(s,"v").name).toBe("Martha");
-  expect(historicalDate(-540)).toBe("Spring, year -44");
+  expect(historicalDate(-180*7)).toBe("Spring, year -44");
 });
 
 it("only puts learned construction events in a biography and reports their real date", () => {

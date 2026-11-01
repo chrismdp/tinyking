@@ -44,7 +44,7 @@ it("draws picked bushes bare, reuses plant geometry, and instances bushes", () =
   const bare = foragePlant(FLAT_GROUND, state, "1");
   expect(bare.geometry).not.toBe(a.geometry);
   expect(bare.geometry.attributes.position.count).toBeLessThan(a.geometry.attributes.position.count);
-  state.days = 9;
+  state.days = 21;
   expect(foragePlant(FLAT_GROUND, state, "2").geometry).toBe(bare.geometry);
   forest.dispose();
 });

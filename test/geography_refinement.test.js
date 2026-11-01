@@ -123,12 +123,12 @@ it("roads and field designation use reciprocal reservations", () => {
 function climateSetup() {
   const {s,tiles}=plots();
   s.world={home:{x:0,y:0},hexes:[{x:0,y:0,temperature:"temperate",moisture:"wet",biome:"grassland"}]};
-  s.map={seed:13};s.days=12;s.weatherOverride="rain";
+  s.map={seed:13};s.days=28;s.weatherOverride="rain";
   s.ecs.farmable={};s.ecs.forageable={};
   for(const [i,elevation] of [20,460,1100].entries()) {
     const id=tiles[i];Object.assign(s.ecs.mappable[id],{elevation,temperature:"temperate",climateTemperature:"temperate"});
     const [farm,plant]=newEntities(s,[{spatial:{...s.ecs.spatial[id],immovable:true},farmable:{slots:[{state:"sown",content:"grain",growth:0}]}},
-      {spatial:{...s.ecs.spatial[id],immovable:true},forageable:{kind:"roots",biome:"grassland",amount:0,growth:0}}]);
+      {spatial:{...s.ecs.spatial[id],immovable:true},forageable:{kind:"berries",biome:"grassland",amount:0,growth:0}}]);
     s.ecs.mappable[id].farm=farm;s.ecs.mappable[id].plant=plant;
   }
   s.environmentUpdatedAt=s.days;
@@ -138,30 +138,31 @@ function climateSetup() {
 it("one real spring calendar leaves alpine crops and forage frozen after lowlands thaw, then thaws the valley below snowy peaks", () => {
   const {s,sites}=climateSetup();
   const grow=()=>{s.days+=HOUR;updateCrops(s);updateEcology(s);updateWeather(s);};
-  for(let h=0;h<24;h++) grow();
+  for(let h=0;h<56;h++) grow();
   const [low,high,peak]=sites.map(id=>s.ecs.mappable[id]);
-  expect(s.ecs.farmable[low.farm].slots[0].growth).toBeCloseTo(1);
+  expect(s.ecs.farmable[low.farm].slots[0].growth).toBeCloseTo(7/3);
   expect(s.ecs.farmable[high.farm].slots[0].growth).toBe(0);
   expect(s.snow[sites[1]]).toBeGreaterThan(.5);
   expect(s.snow[sites[0]]).toBe(0);
   expect(forageAvailable(s,{...s.ecs.forageable[high.plant],amount:1})).toBe(false);
-  for(let h=0;h<48;h++) grow();
+  expect(forageAvailable(s,{...s.ecs.forageable[high.plant],kind:"roots",amount:1})).toBe(true);
+  for(let h=0;h<112;h++) grow();
   expect(growingAt(s,high.farm)).toBe(true);
-  expect(s.ecs.farmable[high.farm].slots[0].growth).toBeGreaterThan(1);
+  expect(s.ecs.farmable[high.farm].slots[0].growth).toBeGreaterThan(7/3);
   expect(s.snow[sites[1]]).toBeLessThan(.05);
   expect(s.snow[sites[2]]).toBeGreaterThan(.9);
   expect(s.ecs.farmable[peak.farm].slots[0].growth).toBe(0);
-  s.days=8.5;
+  s.days=8.5*7/3;
   expect(growingAt(s,low.farm)).toBe(true);
   expect(growingAt(s,high.farm)).toBe(false);
 });
 
 it("offscreen seasonal updates use the same hours and never reapply them", () => {
   const {s,sites}=climateSetup();
-  advanceEnvironment(s,15);
+  advanceEnvironment(s,35);
   const before=JSON.stringify({farms:s.ecs.farmable,snow:s.snow,plants:s.ecs.forageable});
-  expect(s.ecs.farmable[s.ecs.mappable[sites[0]].farm].slots[0].growth).toBeCloseTo(3);
-  expect(s.ecs.farmable[s.ecs.mappable[sites[1]].farm].slots[0].growth).toBeGreaterThan(1);
-  advanceEnvironment(s,15);
+  expect(s.ecs.farmable[s.ecs.mappable[sites[0]].farm].slots[0].growth).toBeCloseTo(7);
+  expect(s.ecs.farmable[s.ecs.mappable[sites[1]].farm].slots[0].growth).toBeGreaterThan(7/3);
+  advanceEnvironment(s,35);
   expect(JSON.stringify({farms:s.ecs.farmable,snow:s.snow,plants:s.ecs.forageable})).toBe(before);
 });

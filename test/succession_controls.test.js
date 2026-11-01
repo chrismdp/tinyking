@@ -30,7 +30,7 @@ it("lets an inherited child move, talk and play explicitly while refusing adult 
   chooseLine(s,chatChoices(s)[0].key);closeChat(s);step(2);expect(chat.progress).toBe(1);
   const play=enqueueTask(s,{key:"play"},person);step(2);expect(play.progress).toBe(1);
   for(const key of ["cut_tree_down","build_shelter","create_field","court","marry"])expect(enqueueTask(s,{key},person)).toBeNull();
-  expect(enqueueTask(s,{key:"find_food"},player)).not.toBeNull();expect(enqueueTask(s,{key:"rest"},player)).not.toBeNull();
+  expect(enqueueTask(s,{key:"eat_food"},player)).not.toBeNull();expect(enqueueTask(s,{key:"rest"},player)).not.toBeNull();
 });
 it("cancels dead actor promises without rewards, releases attention and keeps heir commitments and custody", async () => {
   const {s,ids:[player,heir,giver]}=community();s.ecs.kinship[player].spouse=heir;s.ecs.kinship[heir].spouse=player;
@@ -113,6 +113,6 @@ it("keeps an in-transit heir's recorded position and custody and pauses their re
   const point={...s.ecs.spatial[b]},day=s.days;departNpc(s,b,{to:other.s.map.worldKey,side:0});die(s,a);await resolveSuccession(s);
   expect(s.ui.playerId).toBe(b);expect(s.days).toBe(day);expect(s.ecs.spatial[b]).toEqual(point);
   expect(s.ecs.holder[b].held).toEqual([cargo]);expect(s.ecs.controllable[cargo].controllerId).toBe(c);
-  expect(s.ecs.personable[b].pendingJourney).toMatchObject({to:other.s.map.worldKey,due:day+3});
+  expect(s.ecs.personable[b].pendingJourney).toMatchObject({to:other.s.map.worldKey,due:day+7});
   expect(s.travel.transit.some(t=>t.bundle.id==b)).toBe(false);
 });

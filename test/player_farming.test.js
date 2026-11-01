@@ -28,6 +28,8 @@ it("registers a created camp field and completes plough, sow, tend and harvest o
   f.step(300);
   expect(farm.slots.every(slot => slot.state == "sown")).toBe(true);
   expect(s.ecs.container[camp].amounts.grain).toBe(seed - 2);
+  // A new day is required: the earlier field work uses the first afternoon.
+  enqueueTask(s,{key:"rest"},p);f.step(12*60);
   const growth = farm.slots.reduce((n,slot) => n + slot.growth, 0);
   enqueueTask(s, { key: "tend_field" }, field);
   f.step(120);
@@ -77,7 +79,7 @@ it("includes a created camp field in the offscreen household summary", () => {
   expect(create_field(s,p,s.ecs.planner[p].world,HOUR,true,tiles[1])).toBe(Task.FINISH);
   const field=s.ecs.household[camp].fields[0];
   s.settlement={lastSeason:0,journeys:[],sites:{},estatesInitialized:false};
-  s.days=3;
+  s.days=7;
   require("game/settlement").settleSeason(s,1,true);
   expect(s.ecs.farmable[field].slots.every(slot=>slot.state=="sown")).toBe(true);
   expect(s.ecs.household[camp].livelihood.grainSown).toBe(19);

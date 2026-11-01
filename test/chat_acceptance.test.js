@@ -62,7 +62,7 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
     for(const pred of row.when.all) {
       if(pred.test=="has_trait")s.ecs.personality[p].traits=[pred.args.trait];
       if(pred.test=="weather_is") {s.world={home:{x:0,y:0}};s.weather={"0,0":{type:pred.args.type}};}
-      if(pred.test=="season_is")s.days=9;
+      if(pred.test=="season_is")s.days=["spring","summer","autumn","winter"].indexOf(pred.args.season)*7;
     }
     if(row.situation=="player_asks_name") {delete s.knowledge[p].people[n];delete s.ecs.relationships[p].known[n];c.tags=[];}
     if(row.situation=="bereaved_relative") {

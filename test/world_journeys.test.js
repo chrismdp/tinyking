@@ -8,6 +8,7 @@ import { newEntities } from "game/entities";
 import { createPossession } from "game/possessions";
 import { createSimulation } from "game/simulation";
 import { skipIntro, updateIntro } from "game/intro";
+import { HOP_NARRATIVE } from "game/guidance";
 import { Hex } from "game/hex";
 import { weatherForWorld } from "game/weather";
 import { season, year } from "game/time";
@@ -165,6 +166,7 @@ it("moves the same player and real carried cargo across all six facing edges, on
     expect(s.weather).toEqual(weatherForWorld(s.world, 13, s.days));
     expect(s.travel.active).toBe(destKey);
     expect(s.intro.tileIds).toEqual(s.map.entrances[(side + 3) % 6].tileIds);
+    expect(s.intro.narrative).toBe(HOP_NARRATIVE);
     expect(s.ecs.playable[id]).toBeDefined();
     expect(Object.keys(s.ecs.playable).filter(p => s.residents[p])).toEqual([id]);
     expect(JSON.stringify(s.ecs.possession[item])).toBe(provenance);

@@ -12,6 +12,8 @@ import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 
+// A season on the road ends at dawn on the edge of new country.
+export const HOP_NARRATIVE = "A season on the road. I reach new country at first light.";
 export const OPENING_NARRATIVE = "This is a strange land, but I feel like I was born to be here. Mother sent me here to find her family and honest work.";
 // Per actor and per guidance key. Future family guidance can reuse this small
 // dismissed/seen store without adding a quest engine or duplicating outcomes.

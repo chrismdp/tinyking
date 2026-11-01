@@ -3,7 +3,7 @@ import { GameState } from "./contexts";
 import { hexName, journeyRoute, journeyText } from "game/travel";
 import { worldKey } from "game/travel_geometry";
 import { knownCommunities, reachFacts, inspectRealm, worldMapRoads } from "game/realm_map";
-import { Overworld, BiomeKey } from "components/overworld";
+import { Overworld, BiomeKey } from "./overworld";
 
 export function TravelOverview() {
   const s = React.useContext(GameState);

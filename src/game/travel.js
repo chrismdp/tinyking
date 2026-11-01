@@ -5,6 +5,7 @@ import { Hex } from "game/hex";
 import { generateMap } from "game/map";
 import { historyStep } from "game/history";
 import { startIntro, introActive, CAMP_LAYOUT } from "game/intro";
+import { HOP_NARRATIVE } from "game/guidance";
 import { newEntities, deleteEntity } from "game/entities";
 import { routeCrossing } from "game/geography";
 import { DAYS_IN_SEASON, HOUR, season } from "game/time";
@@ -582,7 +583,7 @@ export function enterMap(s, key, bundle, side) {
     }
   };
   s.intro = null;
-  startIntro(s);
+  startIntro(s, { narrative: HOP_NARRATIVE });
   s.ui.show.selected_person = null;
   s.ui.familyPersonId = null;
   s.ui.selected = null;

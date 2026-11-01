@@ -1057,7 +1057,8 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
       return Task.CONTINUE;
     }
     const type = ecs.good[cargo].type, amount = ecs.good[cargo].amount;
-    const fromId = topController(ecs, cargo), use = receiver == r.workplaceId ? "fuel" : "stored";
+    const fromId = topController(ecs, cargo), use = receiver == r.workplaceId ? "fuel" :
+      r.kind == "food" && !containerHasSpace(ecs.container[store]) ? "handed_over" : "stored";
     if (use == "fuel") {
       // The one physical owned log is consumed here, never added beyond store
       // capacity. No fuel is credited until real custody and reach pass above.
@@ -1065,6 +1066,14 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
       take(ecs, cargo); deleteEntity(state, cargo);
       ecs.workplace[receiver].fuelHours = FUEL_HOURS;
       state.redraws.push(actorId, receiver);
+    } else if (use == "handed_over") {
+      take(ecs, cargo);
+      Object.assign(ecs.spatial[cargo], { x:target.x, y:target.y });
+      ecs.household[cargo] = { id:cargo, houseId:r.householdId };
+      ecs.controllable[cargo].controllerId = topController(ecs, r.householdId);
+      const space=state.space[Hex().fromPoint(target)];
+      if(!space.includes(cargo))space.push(cargo);
+      state.redraws.push(cargo, actorId, store);
     } else {
       if (!containerHasSpace(ecs.container[store])) return Task.ABORT;
       world.places.favourStore = store;

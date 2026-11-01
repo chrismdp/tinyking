@@ -251,6 +251,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "village_has_elder":return !!villageElder(s,id(a.village));
   case "village_has_common_woodland":return Object.keys(e.tree||{}).some(tree=>{const permission=resourcePermission(s,c.actorId,tree);return permission.kind=="common" && permission.villageId==id(a.village);});
   case "kin_link_known_to":return linkKnown(s,viewer,link);
+  case "subject_is_close_kin_of":return closeFamily(s,person).includes(c.subjectId);
   case "kinship_is":return link?.kinship==a.kind;
   case "kinship_not_in":return !!link&&!a.kinds.includes(link.kinship);
   case "person_alive":return alive(person);

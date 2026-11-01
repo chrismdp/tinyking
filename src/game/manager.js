@@ -198,11 +198,64 @@ export function readyPlayerTasks(state) {
   return ready ? [ready] : [];
 }
 
+// Runtime failures need a useful instruction even when the target still exists.
+// Keep these specific to the ordered activity; the planner retries after another
+// task or an explicit requeue, rather than leaving an unexplained failed order.
+const retrySteps = {
+  move_to_here: "Select nearby clear ground and choose Move here again.",
+  forage: "Deliver or give away what you carry, then choose Forage again.",
+  cut_tree_down: "Deliver or give away what you carry, then queue Cut down again.",
+  build_shelter: "Select your shelter site and queue Build shelter again.",
+  create_field: "Select unused grass near your home and choose Create field again.",
+  create_stockpile: "Select unused grass and choose Create stockpile again.",
+  plough_field: "Let the other worker finish, then queue Plough again.",
+  sow_field: "Help with a harvest for seed grain, then queue Sow again.",
+  harvest_field: "Let the household use its stored crop, then queue Harvest again.",
+  tend_field: "Select your household field and queue Tend again.",
+  tend_garden: "Select a sown household garden and queue Help at home again.",
+  find_food: "Select a ripe forage plant and choose Forage.",
+  rest: "Select your camp bedroll or completed shelter and choose Rest again.",
+  travel: "Select a reachable map edge and choose Travel again.",
+  favour: "Read the request's supply hint; gather its goods or cancel the favour.",
+  chat: "Let them finish eating or resting, then choose Chat again.",
+  ask_about: "Let them finish eating or resting, then choose Chat and ask about them.",
+  give_gift: "Choose an owned item you can reach, then offer the gift again.",
+  court: "Chat to learn their feelings, then try Court again.",
+  marry: "Chat to learn their feelings before asking to marry again.",
+  play: "Choose another nearby child and try Play together again.",
+  invite_home: "Finish a house with room, then invite a willing adult friend again.",
+  village_oath: "Chat with the local elder to earn trust, then offer your oath again.",
+  village_leave: "Select the elder of your community and choose Leave again."
+};
+function runtimeWaiting(state, id, job) {
+  const ecs=state.ecs,key=job.job.key,target=job.targetId;
+  const holder=ecs.holder?.[id];
+  if(holder && holder.held.length>=holder.capacity && ["forage","cut_tree_down","build_shelter","give_gift","harvest_field","sow_field"].includes(key))
+    return "Your hands are full. Deliver or give away carried goods, then queue this task again.";
+  if(["plough_field","sow_field","harvest_field"].includes(key) && ecs.farmable?.[target]?.claimerId && ecs.farmable[target].claimerId!=id)
+    return "Another worker is using this field. Let them finish, then queue this field task again.";
+  const reason={
+    forage:"The plant or carrying space changed", cut_tree_down:"The tree, carrying space or delivery route changed",
+    build_shelter:"The site's materials or access changed", create_field:"This plot cannot be made into a field",
+    create_stockpile:"This plot cannot hold a stockpile", plough_field:"No patch is available for ploughing",
+    sow_field:"No patch or accessible seed grain is available", harvest_field:"No ripe patch fits in the household store",
+    tend_field:"No sown patch needs tending now", tend_garden:"No household garden patch needs tending now",
+    find_food:"No accessible meal was found", rest:"No reachable sleeping place is available",
+    travel:"The edge route or travel requirements changed", favour:"The favour's goods or work are temporarily unavailable",
+    chat:"They cannot stop to talk now", ask_about:"They cannot stop to answer now", give_gift:"The gift or recipient is unavailable",
+    court:"They cannot accept courtship now", marry:"Marriage needs two willing unmarried adults with mutual close feelings",
+    play:"Your playmate cannot play now", invite_home:"The invitation needs a willing adult friend and room at home",
+    village_oath:"The elder cannot accept your oath yet", village_leave:"There is no current membership to leave",
+    move_to_here:"The walking route is blocked"
+  }[key] || "This order's target or access changed";
+  return reason+". "+(retrySteps[key] || "Cancel the order and select a reachable target again.");
+}
 export function deferPlayerTask(state) {
   const id = state.ui.playerId;
   const job = state.ecs.manager[id].jobs.find(j => j.assignedId == id);
   if (!job) return;
-  const reason = waitingReason(state, id, job) || "Can't do this yet";
+  const blocked = waitingReason(state, id, job);
+  const reason = blocked ? blocked.replace(/\.$/, "")+". "+(retrySteps[job.job.key] || "Cancel this order and choose a reachable target again.") : runtimeWaiting(state,id,job);
   interruptOrder(state);
   job.waiting = job.detail = reason;
   job.failed = !job.favourId;

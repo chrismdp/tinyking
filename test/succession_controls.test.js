@@ -24,7 +24,10 @@ it("lets an inherited child move, talk and play explicitly while refusing adult 
   const {state:s,player,person,tiles,step}=peopleWorld();s.ecs.personable[player].age=10;s.ecs.personable[person].age=11;
   const move=enqueueTask(s,{key:"move_to_here"},tiles[1]);step(1);expect(move.progress).toBe(1);
   const position={...s.ecs.spatial[player]};step(1);expect(s.ecs.spatial[player]).toEqual(position);
-  const chat=enqueueTask(s,{key:"chat"},person);step(2);expect(chat.progress).toBe(1);
+  const chat=enqueueTask(s,{key:"chat"},person);step(2);
+  expect(s.chat.active.npcId).toBe(person);
+  const {chatChoices,chooseLine,closeChat}=require("game/chat");
+  chooseLine(s,chatChoices(s)[0].key);closeChat(s);step(2);expect(chat.progress).toBe(1);
   const play=enqueueTask(s,{key:"play"},person);step(2);expect(play.progress).toBe(1);
   for(const key of ["cut_tree_down","build_shelter","create_field","court","marry"])expect(enqueueTask(s,{key},person)).toBeNull();
   expect(enqueueTask(s,{key:"find_food"},player)).not.toBeNull();expect(enqueueTask(s,{key:"rest"},player)).not.toBeNull();

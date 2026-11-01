@@ -4,8 +4,8 @@ import { learnEvent } from "game/events";
 import { recogniseConversation } from "game/guidance";
 import { acceptFavour } from "game/favours";
 import { hashUnit } from "game/math";
-import { patience, chatRecord, MIN_CHAT_SLOTS } from "game/chat_patience";
-import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact } from "game/chat_facts";
+import { patience, chatRecord } from "game/chat_patience";
+import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
 import { SPEECH_REACH } from "game/conversation";
 export { patience, recoverSlots } from "game/chat_patience";
 export const TOPICS={family:"Family",work:"Work",harvest:"Harvest",food:"Food",season:"Season",village:"Village",faith:"Faith",gossip:"Gossip",help:"Help"};
@@ -181,6 +181,8 @@ function effects(s,c,line) {
 }
 export function speakLine(s,line) {
   const c=s.chat.active;if(c.endReason||!previewLine(s,line).fits)return false;
+  const earlyHelp=line.speaker=="player" && ["need_question","help_offer"].includes(line.family) &&
+    !knows(s,c.npcId,c.actorId) && s.ecs.personality[c.npcId].traits.some(t=>["timid","proud"].includes(t));
   const old=[...c.row],fresh=[],pops=[];
   for(const i of line.icons) {
     const at=old.findIndex(x=>x.life>0&&iconKey(x)==iconKey(i));
@@ -205,12 +207,17 @@ export function speakLine(s,line) {
   for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
   c.tags=c.tags.filter(t=>!line.tags?.remove?.includes(t));
   effects(s,c,line);
+  if(earlyHelp) {
+    addGoodwill(s,c.actorId,c.npcId,-2);
+    c.earlyHelpReaction="Help before an introduction: −2 regard. Introduce yourself first.";
+    c.reply="help_refusal";
+  }
   if (line.speaker=="player") c.question={family:line.family,situation:line.situation,relativeId:line.b?.relative?.id};
   if(line.speaker=="player"&&!c.completed) {c.completed=true;completeConversation(s,c.actorId,c.npcId,false);pair.contacts=(pair.contacts||0)+1;recogniseConversation(s,c.actorId,c.npcId,[]);}
   const p=patience(s,c.actorId,c.npcId);
   pair.resting=p.resting;
   c.row=c.row.slice(0,Math.max(0,p.max-p.resting));
-  if(c.row.length+p.resting>=p.max)endChat(s,"row_full");
+  if(c.phase!="opening" && c.row.length+p.resting>=p.max)endChat(s,"row_full");
   else if(!c.row.length&&c.lastFades.length)endChat(s,"all_faded");
   return true;
 }
@@ -230,6 +237,7 @@ export function chooseLine(s,key) {
   c.lastPops=[];
   if(!speakLine(s,line))return false;
   if(!c.endReason)reply(s,c.reply);
+  if(!c.endReason && patience(s,c.actorId,c.npcId).max==2)endChat(s,"tired");
   c.focus=null;
   return true;
 }
@@ -263,7 +271,7 @@ export function openChat(s,actor,npc) {
   const flags=e.planner?.[npc]?.world.feeling;
   if(flags?.hungry||flags?.tired)return false;
   const key=[actor,npc].sort().join(":");if(s.social?.avoidance?.[key]>s.days)return false;
-  if(patience(s,actor,npc).free<MIN_CHAT_SLOTS)return false;
+  if(patience(s,actor,npc).free<patience(s,actor,npc).minimum)return false;
   const knewBefore=!!e.relationships[npc]?.known[actor],pair=chatRecord(s,actor,npc);
   const c=s.chat.active={actorId:actor,npcId:npc,encounter:++pair.encounters,knewBefore,phase:"opening",tags:[],row:[],usedIds:[],transcript:[],
     subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary"};

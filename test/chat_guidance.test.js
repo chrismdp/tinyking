@@ -14,3 +14,23 @@ it("names the real meal that delays a queued conversation",()=>{
   s.ecs.planner[person].world.feeling.hungry=true;
   expect(openingGuidance(s).text).toContain("finishes a meal");
 });
+it("guides three actual conversations, shelter supplies and building, then sleep, and returns to people after the first night",()=>{
+  const {state:s,player:p,person:n,parent,sibling,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};s.ecs.playable[p].arrivedAt=0;s.days=.4;
+  s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
+  s.knowledge={[p]:{people:{},feelings:{}}};
+  for(const id of [n,parent,sibling]) {
+    expect(openingGuidance(s).action).toContain("Chat with");
+    s.knowledge[p].people[id]={conversation:{day:s.days}};
+  }
+  expect(openingGuidance(s)).toMatchObject({key:"shelter",text:expect.stringContaining("Build shelter")});
+  const {newEntities}=require("game/entities");
+  const [site]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},shelter:{stage:null},construction:{stage:"lean-to",delivered:0,work:0},controllable:{controllerId:p}}]);
+  expect(openingGuidance(s).text).toContain("Cut down");
+  s.ecs.construction[site].delivered=4;
+  s.ecs.manager[p].jobs=[{job:{key:"build_shelter"},targetId:site}];
+  expect(openingGuidance(s).text).toContain("finish your shelter");
+  delete s.ecs.construction[site];s.ecs.shelter[site].stage="lean-to";s.ecs.manager[p].jobs=[];
+  expect(openingGuidance(s)).toMatchObject({key:"sleep",job:"rest"});
+  s.days=1.4;
+  expect(openingGuidance(s).action).toContain("Chat with");
+});

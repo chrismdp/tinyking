@@ -106,32 +106,39 @@ it("replans cached physical routes when fence dimensions change, with real gate 
   expect(Math.hypot(s.ecs.spatial[player].x-centre.x,s.ecs.spatial[player].y-centre.y)).toBeLessThan(10);
 });
 
-it("gives brief actor-specific guidance from real conversation/request outcomes, then stops", () => {
-  const {state:s,player,person:a}=peopleWorld();
+it("keeps concrete actor-specific guidance after conversations and dismissal", () => {
+  const {state:s,player,person:a,tiles}=peopleWorld();
   s.intro={active:false};
+  s.ecs.playable[player].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
   expect(openingGuidance(s).text).toMatch(/Chat/);
   s.knowledge={[player]:{people:{[a]:{conversation:{day:s.days}}}}};
   expect(openingGuidance(s).text).not.toMatch(/request|reward/);
-  s.favours={requests:{r:{id:"r",giverId:a,actorId:player,status:"offered",householdId: s.ecs.household[a].houseId}}};
-  s.knowledge[player].favours=["r"];
+  const house=s.ecs.household[a].houseId;
+  s.ecs.container ||= {};s.ecs.container[house]={amounts:{},capacity:20};s.ecs.household[house]={storeId:house,fields:[]};
+  require("game/favours").updateFavours(s);
+  const r=Object.values(s.favours.requests).find(r=>r.kind=="food");
+  s.knowledge[player].heardNeeds={[r.id]:{requestId:r.id,askerId:r.giverId}};
   expect(openingGuidance(s).text).toMatch(/help/i);
   dismissGuidance(s);
-  expect(openingGuidance(s)).toBeNull();
+  expect(openingGuidance(s).text).toMatch(/Chat.*help/i);
   s.ui.playerId=a;
   expect(openingGuidance(s).actorId).toBe(a);
 });
 
-it("keeps timed player speech physically separated and still requires genuine near contact", () => {
+it("keeps paused player speech physically separated and still requires genuine near contact", () => {
   const {state:s,player,person:a,step}=peopleWorld();
   const {enqueueTask}=require("game/manager");
   enqueueTask(s,{key:"chat"},a);
   let speech;
   for(let minute=0;minute<120&&!speech;minute++) {
     step(1/60);
-    if(s.ecs.planner[player].task?.[0]=="talk")speech=Math.hypot(s.ecs.spatial[player].x-s.ecs.spatial[a].x,s.ecs.spatial[player].y-s.ecs.spatial[a].y);
+    if(s.chat?.active)speech=Math.hypot(s.ecs.spatial[player].x-s.ecs.spatial[a].x,s.ecs.spatial[player].y-s.ecs.spatial[a].y);
   }
   expect(speech).toBeGreaterThan(30);expect(speech).toBeLessThanOrEqual(70);
-  step(.5);
+  const {chatChoices,chooseLine,closeChat}=require("game/chat");
+  expect(s.knowledge[player].people[a].conversation).toBeUndefined();
+  const beforeTime=s.days;step(.5);expect(s.days).toBe(beforeTime);
+  chooseLine(s,chatChoices(s)[0].key);closeChat(s);step(.5);
   expect(s.knowledge[player].people[a].conversation).toBeDefined();
   const before=s.ecs.relationships[a].known[player].goodwill;
   s.ecs.spatial[player].x+=200;

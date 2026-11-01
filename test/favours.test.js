@@ -802,3 +802,24 @@ it('keeps a started harvest favour available while its helper carries grain home
   expect(tasks.claim_farmable(s,w.person,other,0,true,w.field)).not.toBe(Task.ABORT);
   expect(s.ecs.farmable[w.field].claimerId).toBe(w.person);
 });
+it('delivers real food beside a store full of non-food goods without exceeding capacity or losing ownership',()=>{
+  const w=favourWorld(),s=w.state;
+  s.ecs.container[w.store].amounts={wood:100};updateFavours(s);
+  const r=w.request('food');expect(r).toBeDefined();
+  s.knowledge[w.player].favours.push(r.id);s.knowledge[w.player].offers[r.id]={speakerId:w.person,day:s.days};
+  const before=s.ecs.relationships[w.person].known[w.player]?.goodwill||0;
+  const task=acceptFavour(s,r.id);expect(task).not.toBeNull();
+  readyPlayerTasks(s);expect(task.waiting).toBeNull();
+  advanceUntil(w,()=>r.status=='completed');
+  expect(s.ecs.container[w.store]).toMatchObject({capacity:100,amounts:{wood:100}});
+  expect(r.receipts).toHaveLength(3);
+  for(const receipt of r.receipts) {
+    expect(receipt).toMatchObject({targetId:w.store,type:'grain',amount:1,use:'handed_over'});
+    expect(s.ecs.good[receipt.itemId]).toMatchObject({type:'grain',amount:1});
+    expect(s.ecs.household[receipt.itemId].houseId).toBe(w.house);
+    expect(s.ecs.haulable[receipt.itemId].heldBy).toBeFalsy();
+    expect(s.ecs.controllable[receipt.itemId].controllerId).toBe(w.person);
+  }
+  expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeGreaterThan(before);
+  expect(finishFavour(s,r)).toBe(false);
+});

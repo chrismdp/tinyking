@@ -15,9 +15,12 @@ export function chatRecord(s,actor,npc) {
   return s.chat.pairs[actor+":"+npc] ||= {actorId:actor,npcId:npc,resting:0,credit:0,encounters:0,used:{},last:{}};
 }
 export function patience(s,actor,npc) {
-  const [max,hours]=slotRate(s,actor,npc), r=s.chat?.pairs?.[actor+":"+npc];
+  const [usualMax,hours]=slotRate(s,actor,npc), r=s.chat?.pairs?.[actor+":"+npc];
+  const tiredness=s.ecs.personable?.[actor]?.tiredness || 0;
+  const max=tiredness>1.8?2:tiredness>1.2?Math.max(2,Math.floor(usualMax/2)):usualMax;
+  const minimum=Math.min(MIN_CHAT_SLOTS,max);
   const resting=Math.min(max,r?.resting || 0),free=max-resting;
-  return {max,hours,resting,free,readyIn:Math.max(0,MIN_CHAT_SLOTS-free-(r?.credit||0))*hours};
+  return {max,minimum,hours,resting,free,tired:tiredness>1.2,readyIn:Math.max(0,minimum-free-(r?.credit||0))*hours};
 }
 export function recoverSlots(s,hours) {
   if(hours<=0 || s.chat?.active)return;

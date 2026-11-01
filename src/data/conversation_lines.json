@@ -4,7 +4,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "first_meeting",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -37,6 +37,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -1148,7 +1157,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "first_meeting",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -1173,6 +1182,15 @@
      "test": "season_is",
      "args": {
       "season": "spring"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -4951,7 +4969,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "first_meeting",
-  "weight": 7,
+  "weight": 9,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -4991,6 +5009,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -8039,7 +8066,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "first_meeting",
-  "weight": 7,
+  "weight": 9,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -8079,6 +8106,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -9161,7 +9197,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "met_no_exchange",
-  "weight": 7,
+  "weight": 9,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -9201,6 +9237,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -10219,7 +10264,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "acquaintance",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -10268,6 +10313,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -11576,7 +11630,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "acquaintance",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -11617,6 +11671,15 @@
      "test": "season_part_is",
      "args": {
       "part": "early"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -11726,7 +11789,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "acquaintance",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -11767,6 +11830,15 @@
      "test": "season_part_is",
      "args": {
       "part": "late"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -14197,7 +14269,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "acquaintance",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -14239,6 +14311,15 @@
      "args": {
       "person": "npc",
       "trait": "cheerful"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -16806,7 +16887,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "familiar",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -16847,6 +16928,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -17801,7 +17891,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "familiar",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -17834,6 +17924,15 @@
      "test": "season_part_is",
      "args": {
       "part": "late"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -17943,7 +18042,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "familiar",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -17976,6 +18075,15 @@
      "test": "season_part_is",
      "args": {
       "part": "early"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -19987,7 +20095,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "familiar",
-  "weight": 7,
+  "weight": 9,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -20041,6 +20149,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -20486,7 +20603,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "familiar",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -20520,6 +20637,15 @@
      "args": {
       "person": "npc",
       "trait": "cheerful"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -22489,7 +22615,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "friend",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -22530,6 +22656,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -30058,7 +30193,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "close",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -30092,6 +30227,15 @@
      "args": {
       "person": "npc",
       "trait": "cheerful"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -31075,7 +31219,7 @@
   "speaker": "npc",
   "family": "greeting",
   "situation": "cool",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "activity": {
     "source": "npc_activity_at_approach"
@@ -31108,6 +31252,15 @@
      "test": "season_is",
      "args": {
       "season": "winter"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -53531,7 +53684,7 @@
   "speaker": "player",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "observation": {
     "source": "player_observed_local_weather"
@@ -53557,6 +53710,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -53843,7 +54005,7 @@
   "speaker": "player",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 3,
+  "weight": 5,
   "bindings": {
    "observation": {
     "source": "player_observed_local_weather"
@@ -53869,6 +54031,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -53953,7 +54124,7 @@
   "speaker": "player",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "observation": {
     "source": "player_observed_local_weather"
@@ -53986,6 +54157,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -54178,7 +54358,7 @@
   "speaker": "player",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 5,
+  "weight": 7,
   "bindings": {
    "observation": {
     "source": "player_observed_local_weather"
@@ -54211,6 +54391,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -56911,6 +57100,15 @@
      "args": {
       "season": "spring"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57012,6 +57210,15 @@
      "args": {
       "season": "spring"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57112,6 +57319,15 @@
      "test": "season_is",
      "args": {
       "season": "spring"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -57221,6 +57437,15 @@
       "person": "player",
       "trait": "cheerful"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57321,6 +57546,15 @@
      "test": "season_is",
      "args": {
       "season": "summer"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -57423,6 +57657,15 @@
      "args": {
       "season": "summer"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57523,6 +57766,15 @@
      "test": "season_is",
      "args": {
       "season": "summer"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -57632,6 +57884,15 @@
       "person": "player",
       "trait": "lazy"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57732,6 +57993,15 @@
      "test": "season_is",
      "args": {
       "season": "autumn"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -57834,6 +58104,15 @@
      "args": {
       "season": "autumn"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -57934,6 +58213,15 @@
      "test": "season_is",
      "args": {
       "season": "autumn"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -58043,6 +58331,15 @@
       "person": "player",
       "trait": "gloomy"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -58144,6 +58441,15 @@
      "args": {
       "season": "winter"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -58244,6 +58550,15 @@
      "test": "season_is",
      "args": {
       "season": "winter"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -58355,6 +58670,15 @@
        "late"
       ]
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -58455,6 +58779,15 @@
      "test": "season_part_is",
      "args": {
       "part": "late"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -58557,6 +58890,15 @@
      "args": {
       "part": "late"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -58658,6 +59000,15 @@
      "args": {
       "part": "early"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -58758,6 +59109,15 @@
      "test": "season_part_is",
      "args": {
       "part": "early"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -59692,7 +60052,7 @@
   "speaker": "npc",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 3,
+  "weight": 5,
   "bindings": {},
   "when": {
    "all": [
@@ -59714,6 +60074,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -59977,7 +60346,7 @@
   "speaker": "npc",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 5,
+  "weight": 7,
   "bindings": {},
   "when": {
    "all": [
@@ -60006,6 +60375,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -60178,7 +60556,7 @@
   "speaker": "npc",
   "family": "season_talk",
   "situation": "clear",
-  "weight": 5,
+  "weight": 7,
   "bindings": {},
   "when": {
    "all": [
@@ -60207,6 +60585,15 @@
       "values": [
        "morning",
        "afternoon"
+      ]
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
       ]
      }
     }
@@ -62795,6 +63182,15 @@
      "args": {
       "season": "spring"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -62884,6 +63280,15 @@
      "args": {
       "season": "spring"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -62972,6 +63377,15 @@
      "test": "season_is",
      "args": {
       "season": "spring"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -63069,6 +63483,15 @@
       "person": "npc",
       "trait": "cheerful"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63157,6 +63580,15 @@
      "test": "season_is",
      "args": {
       "season": "summer"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -63247,6 +63679,15 @@
      "args": {
       "season": "summer"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63335,6 +63776,15 @@
      "test": "season_is",
      "args": {
       "season": "summer"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -63434,6 +63884,15 @@
        "late"
       ]
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63530,6 +63989,15 @@
       "person": "npc",
       "trait": "lazy"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63618,6 +64086,15 @@
      "test": "season_is",
      "args": {
       "season": "autumn"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -63708,6 +64185,15 @@
      "args": {
       "season": "autumn"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63797,6 +64283,15 @@
      "args": {
       "season": "autumn"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -63885,6 +64380,15 @@
      "test": "season_is",
      "args": {
       "season": "autumn"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -63982,6 +64486,15 @@
       "person": "npc",
       "trait": "gloomy"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64070,6 +64583,15 @@
      "test": "season_is",
      "args": {
       "season": "winter"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -64164,6 +64686,15 @@
      "args": {
       "season": "winter"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64257,6 +64788,15 @@
      "args": {
       "season": "winter"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64345,6 +64885,15 @@
      "test": "season_is",
      "args": {
       "season": "winter"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -64442,6 +64991,15 @@
       "person": "npc",
       "trait": "pious"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64530,6 +65088,15 @@
      "test": "season_part_is",
      "args": {
       "part": "late"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -64620,6 +65187,15 @@
      "args": {
       "part": "late"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64708,6 +65284,15 @@
      "test": "season_part_is",
      "args": {
       "part": "late"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -64798,6 +65383,15 @@
      "args": {
       "part": "early"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64887,6 +65481,15 @@
      "args": {
       "part": "early"
      }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
+     }
     }
    ],
    "none": [
@@ -64975,6 +65578,15 @@
      "test": "season_part_is",
      "args": {
       "part": "early"
+     }
+    },
+    {
+     "test": "weather_in",
+     "args": {
+      "types": [
+       "clear",
+       "cloudy"
+      ]
      }
     }
    ],
@@ -94670,6 +95282,12 @@
      "args": {
       "mode": "practical_only"
      }
+    },
+    {
+     "test": "subject_is_close_kin_of",
+     "args": {
+      "person": "npc"
+     }
     }
    ]
   },
@@ -94793,6 +95411,12 @@
      "args": {
       "mode": "practical_only"
      }
+    },
+    {
+     "test": "subject_is_close_kin_of",
+     "args": {
+      "person": "npc"
+     }
     }
    ]
   },
@@ -94915,6 +95539,12 @@
      "test": "chat_mode_is",
      "args": {
       "mode": "practical_only"
+     }
+    },
+    {
+     "test": "subject_is_close_kin_of",
+     "args": {
+      "person": "npc"
      }
     }
    ]
@@ -142374,6 +143004,272 @@
   },
   "resolve": null,
   "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.relationship_answer.kin_public.base.01",
+  "speaker": "npc",
+  "family": "relationship_answer",
+  "situation": "kin_public",
+  "weight": 1,
+  "bindings": {
+   "subject": {
+    "source": "current_subject_known_to_player"
+   },
+   "bond": {
+    "source": "npc_bond_with_subject"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    },
+    {
+     "test": "knows_person",
+     "args": {
+      "viewer": "npc",
+      "person": "subject"
+     }
+    },
+    {
+     "test": "bond_ring_is",
+     "args": {
+      "bond": "bond",
+      "ring": "public"
+     }
+    },
+    {
+     "test": "subject_is_close_kin_of",
+     "args": {
+      "person": "npc"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{subject.first_name} is family. That does not mean we're close.",
+  "facts": [
+   {
+    "ref": "bond",
+    "fields": [
+     "ring",
+     "disposition",
+     "goodwill_sign"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "gossip"
+   },
+   {
+    "kind": "person",
+    "ref": "subject"
+   }
+  ],
+  "use_key": "opinion:{npc.id}:{player.id}:{subject.id}:{bond.ring}",
+  "tradeoff": {
+   "risks": [
+    "Gossip or the subject's portrait can land badly with them."
+   ],
+   "reveals": [
+    "How the speaker regards this person, from their real ring and disposition"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "record_feeling_disclosure",
+    "viewer": "player",
+    "speaker": "npc",
+    "about": "subject"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "bond",
+     "fields": [
+      "ring"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "npc.help_refusal.before_introduction.proud.01",
+  "speaker": "npc",
+  "family": "help_refusal",
+  "situation": "before_introduction",
+  "weight": 3,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "has_trait",
+     "args": {
+      "person": "npc",
+      "trait": "proud"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Your name first, if you please. Then we can speak of work.",
+  "facts": [
+   {
+    "ref": "npc",
+    "fields": [
+     "traits"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "early_help_refusal:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Asking before an introduction costs two goodwill."
+   ],
+   "reveals": [
+    "They want an introduction first"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  }
+ },
+ {
+  "id": "npc.help_refusal.before_introduction.timid.01",
+  "speaker": "npc",
+  "family": "help_refusal",
+  "situation": "before_introduction",
+  "weight": 3,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "has_trait",
+     "args": {
+      "person": "npc",
+      "trait": "timid"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I don't even know your name. Introduce yourself first.",
+  "facts": [
+   {
+    "ref": "npc",
+    "fields": [
+     "traits"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "early_help_refusal:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Asking before an introduction costs two goodwill."
+   ],
+   "reveals": [
+    "They want an introduction first"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
   "disclosure": {
    "to": "player",
    "people": [],

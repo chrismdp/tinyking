@@ -1,6 +1,8 @@
-import { patience, MIN_CHAT_SLOTS } from "game/chat_patience";
+import { patience } from "game/chat_patience";
 import { localDirection, worldDirection } from "game/chat_lands";
 import { visibleFavours, reasonGone } from "game/favours";
+import { STAGES, shelterLogSource } from "game/construction";
+import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 
@@ -32,13 +34,32 @@ export function openingGuidance(state) {
     if(feeling?.tired) return {actorId,key:"waiting_rest",text:"Keep the game running while your neighbour finishes resting."};
     return {actorId,key:"approach",text:"Let your character walk over to start the conversation."};
   }
+  const arrived=ecs.playable?.[actorId]?.arrivedAt;
+  const firstDay=arrived!=null && state.days<Math.floor(arrived)+1+6/24;
+  const contacts=Object.values(state.knowledge?.[actorId]?.people||{}).filter(p=>p.conversation).length;
+  if(firstDay && contacts>=3 && (person.age??18)>=18) {
+    const owned=id=>ecs.controllable?.[id] && topController(ecs,id)==actorId;
+    const shelter=Object.keys(ecs.shelter||{}).find(owned);
+    const site=Object.keys(ecs.construction||{}).find(owned);
+    if(site) {
+      const build=ecs.construction[site];
+      if(build.delivered<STAGES[build.stage].logs && !shelterLogSource(state,actorId))
+        return {actorId,key:"shelter_logs",text:"Select an unclaimed tree and choose Cut down for your shelter's logs."};
+      if(!jobs.some(j=>j.job.key=="build_shelter" && j.targetId==site))
+        return {actorId,key:"shelter",text:"Select your shelter site and choose Build shelter to finish it before night."};
+      return {actorId,key:"building",text:"Keep the game running to finish your shelter before night."};
+    }
+    if(!shelter) return {actorId,key:"shelter",text:"Select clear grass near camp and choose Build shelter before night."};
+    return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
+      {actorId,key:"sleep",text:"Choose Rest to sleep in your shelter.",action:"Rest",job:"rest"};
+  }
   if(accepted && !task?.waiting) return {actorId,key:"working",text:"Keep the game running to finish your favour delivery."};
   if(accepted && task?.waiting && accepted.kind!="harvest") return {actorId,key:"supply",text:accepted.kind=="wood" ? "Select an unclaimed tree and choose Cut down to supply your promised log." : "Select a forage plant and choose Forage to supply your promised food."};
   const lead=Object.values(state.knowledge?.[actorId]?.heardNeeds||{}).find(l=>{
     const r=state.favours?.requests[l.requestId];
-    return r?.status=="offered"&&!reasonGone(state,r)&&!state.knowledge?.[actorId]?.offers?.[r.id]&&!ecs.personable[r.giverId]?.dead&&patience(state,actorId,r.giverId).free>=MIN_CHAT_SLOTS;
+    return r?.status=="offered"&&!reasonGone(state,r)&&!state.knowledge?.[actorId]?.offers?.[r.id]&&!ecs.personable[r.giverId]?.dead&&patience(state,actorId,r.giverId).free>=patience(state,actorId,r.giverId).minimum;
   });
-  if(lead) {
+  if(lead && (!firstDay || contacts>=3)) {
     const r=state.favours.requests[lead.requestId],giver=r.giverId,n=displayName(state,giver),point=ecs.spatial[giver];
     const explored=point&&(ecs.playable?.[actorId]?.known||[]).some(h=>String(Hex(h))==String(Hex().fromPoint(point)));
     if(!ecs.planner?.[giver]||!explored) {
@@ -51,7 +72,7 @@ export function openingGuidance(state) {
   }
   const player=ecs.spatial[actorId];
   const explored=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>h.x+","+h.y));
-  const candidates=Object.keys(ecs.planner||{}).filter(id=>id!=actorId&&!ecs.personable[id]?.dead&&ecs.spatial[id]&&explored.has(String(Hex().fromPoint(ecs.spatial[id])))&&patience(state,actorId,id).free>=MIN_CHAT_SLOTS);
+  const candidates=Object.keys(ecs.planner||{}).filter(id=>id!=actorId&&!ecs.personable[id]?.dead&&ecs.spatial[id]&&explored.has(String(Hex().fromPoint(ecs.spatial[id])))&&patience(state,actorId,id).free>=patience(state,actorId,id).minimum);
   candidates.sort((a,b)=>Math.hypot(ecs.spatial[a].x-player.x,ecs.spatial[a].y-player.y)-Math.hypot(ecs.spatial[b].x-player.x,ecs.spatial[b].y-player.y));
   const target=candidates.find(id=>!state.knowledge?.[actorId]?.people?.[id]?.conversation) || candidates.sort((a,b)=>(state.chat?.pairs?.[actorId+":"+a]?.encounters||0)-(state.chat?.pairs?.[actorId+":"+b]?.encounters||0))[0];
   if(target) {

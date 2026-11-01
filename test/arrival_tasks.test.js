@@ -394,7 +394,7 @@ it("yields a runtime failure and retries after the character finishes another ta
   const forage = enqueueTask(state, { key: "forage" }, bush);
   const move = enqueueTask(state, { key: "move_to_here" }, tiles[1]);
   step(1);
-  expect(forage.waiting).toBe("Can't do this yet");
+  expect(forage.waiting).toBe("Your hands are full. Deliver or give away carried goods, then queue this task again.");
   expect(move.progress).toBe(1);
   state.ecs.holder[player].capacity = 2;
   step(3);
@@ -458,6 +458,6 @@ it("skips a chop delivery that cannot pick up its logs and runs later work", () 
   const chop = enqueueTask(state, { key: "cut_tree_down" }, tree);
   const next = enqueueTask(state, { key: "move_to_here" }, tiles[2]);
   step(2);
-  expect(chop.waiting).toBe("Can't do this yet");
+  expect(chop.waiting).toBe("Your hands are full. Deliver or give away carried goods, then queue this task again.");
   expect(next.progress).toBe(1);
 });

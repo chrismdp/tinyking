@@ -40,7 +40,10 @@ it.each(["warning","oath"])("releases an actual held %s encounter before a pause
   const {s,a,b,c,tree,until,succeed}=fixture();
   if(kind=="warning")enqueueTask(s,{key:"cut_tree_down"},tree);
   else {
-    enqueueTask(s,{key:"chat"},c);until(()=>!!s.knowledge?.[a]?.people?.[c]?.conversation);
+    enqueueTask(s,{key:"chat"},c);until(()=>!!s.chat?.active);
+    const {chatChoices,chooseLine,closeChat}=require("game/chat");
+    chooseLine(s,chatChoices(s)[0].key);closeChat(s);
+    until(()=>!!s.knowledge?.[a]?.people?.[c]?.conversation);
     enqueueTask(s,{key:"village_oath"},c);
   }
   until(()=>s.customs?.dialogue?.kind==kind);

@@ -7,7 +7,7 @@ import { name } from "game/name";
 import { Hex } from "game/hex";
 import { canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
 import { harvestCounts } from "game/harvest_task";
-import { patience, MIN_CHAT_SLOTS } from "game/chat_patience";
+import { patience } from "game/chat_patience";
 
 export function RequestCard({ request: r, personId }) {
   const s = React.useContext(GameState);
@@ -27,7 +27,7 @@ export function RequestCard({ request: r, personId }) {
     <div className="request-bottom"><span className="reward">+{r.goodwill} goodwill</span>
       {r.status == "offered" ? <span>Discuss this in Chat</span> : <strong className="request-state">{r.status[0].toUpperCase() + r.status.slice(1)}</strong>}
     </div>
-    {r.status=="offered"&&s.ecs.planner?.[giverId]&&<button disabled={patience(s,s.ui.playerId,giverId).free<MIN_CHAT_SLOTS} onClick={()=>s.ui.actions.talk_to(giverId,"chat")}>Chat with {giver}</button>}
+    {r.status=="offered"&&s.ecs.planner?.[giverId]&&<button disabled={patience(s,s.ui.playerId,giverId).free<patience(s,s.ui.playerId,giverId).minimum} onClick={()=>s.ui.actions.talk_to(giverId,"chat")}>Chat with {giver}</button>}
     {r.kind == "harvest" && ["accepted", "completed"].includes(r.status) ? <small>{harvestCounts(s, r)}</small> :
       r.status == "accepted" && <small>{r.progress}/{r.quantity} delivered · {r.delivered} carried home</small>}
     {!playerOrderAllowed(s,"favour") && <small>Adult work. Children can help at home when crops need care.</small>}

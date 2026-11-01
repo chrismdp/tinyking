@@ -223,7 +223,7 @@ export function favourWaiting(s, task) {
   const ecs = s.ecs;
   const store = ecs.container?.[householdStore(s, r.householdId)];
   if (!store) return "The household target is gone";
-  if (!containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
+  if (r.kind != "food" && !containerHasSpace(store) && favourReceiver(s, r) != r.workplaceId) return "Household store is full";
   if (r.kind == "harvest") {
     const field = ecs.farmable?.[r.targetId];
     // A claim protects new crop work, not the return trip with cut grain.

@@ -1,5 +1,5 @@
 import { chooseBiome, mixValue } from "game/biome_field";
-import { growingAt } from "game/climate";
+import { growingAt, frozenAt, climateTile } from "game/climate";
 import { treeAllowed } from "game/tree_clearance";
 import { Hex, Grid, HEX_SIZE, hexAtPoint } from "game/hex";
 import { newEntities } from "game/entities";
@@ -112,7 +112,9 @@ export function generateForage(state, seed, start = state.map && state.map.playe
   }
 }
 
-export const forageAvailable = (state, plant) => plant && plant.amount > 0 && (plant.kind == "roots" || growingAt(state,plant.id));
+// Roots can be dug in winter, but not from frozen ground.
+const thawedAt = (state, id) => climateTile(state,id).elevation == null || !frozenAt(climateTile(state,id), state.days);
+export const forageAvailable = (state, plant) => plant && plant.amount > 0 && (plant.kind == "roots" ? thawedAt(state,plant.id) : growingAt(state,plant.id));
 
 export function updateEcology(state) {
   for (const plant of Object.values(state.ecs.forageable || {})) {

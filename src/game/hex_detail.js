@@ -5,14 +5,21 @@ import { neighbours, worldKey } from "game/travel_geometry";
 // Social rings retain the audience for construction news. Current full bonds
 // and learned events are applied when the player opens the hex.
 export function captureDetailOrigins(s) {
-  const origins = {};
-  for (const [key, map] of Object.entries(s.travel.maps)) origins[key] = structuredClone({
+  const origins = {}, relationships = new WeakMap();
+  const constructionBonds = r => {
+    if (!relationships.has(r)) relationships.set(r, { id: r.id,
+      known: Object.fromEntries(Object.entries(r.known).filter(([, bond]) => bond.ring !== "public").map(([other, bond]) => [other, { ring: bond.ring }])) });
+    return relationships.get(r);
+  };
+  for (const [key, map] of Object.entries(s.travel.maps)) origins[key] = {
     ...map,
-    ecs: { ...map.ecs, relationships: Object.fromEntries(Object.entries(map.ecs.relationships).map(([id, r]) => [id, { id,
-      known: Object.fromEntries(Object.entries(r.known).filter(([, bond]) => bond.ring !== "public").map(([other, bond]) => [other, { ring: bond.ring }])) }])) },
+    ecs: { ...map.ecs, relationships: Object.fromEntries(Object.entries(map.ecs.relationships).map(([id, r]) => [id, constructionBonds(r)])) },
     events: [], knowledge: {}, social: { lastSeason: 0, courtships: {}, avoidance: {} }, days: .375
-  });
-  s.worldHistory.detailOrigins = origins;
+  };
+  // Clone the complete recipe graph once. Remote component heads shared by
+  // communities stay shared here, while all recipes are detached from play.
+  // prepareDetail still clones each build's mutable input independently.
+  s.worldHistory.detailOrigins = structuredClone(origins);
 }
 
 const preparations = new WeakMap();

@@ -158,3 +158,36 @@ it("carries heard news and its original source on an NPC's real world journey, t
   expect(dest.knowledge[local].spokenSources[event.id].speakerId).toBe(b);
   expect(dest.knowledge[b].spokenSources[event.id]).toEqual(original);
 });
+
+it("scores the latest learned permitted account after trust changes, hearing and a delayed import", () => {
+  const { listenerNewsScore } = require("game/news");
+  const { state:s, person:a, parent:b, sibling:c } = setup();
+  const publicNews = recordEvent(s,"defiance",[c],[],{audienceIds:[a]});
+  const privateNews = recordEvent(s,"gift",[c,a],[],{day:s.days-20,audienceIds:[a]});
+  // Learning order governs this companion score, even for older anecdotes.
+  expect(listenerNewsScore(s,a,b)).toBe(newsPreference(s,a,b,privateNews));
+  s.ecs.relationships[a].known[b].ring="public";
+  expect(listenerNewsScore(s,a,b)).toBe(newsPreference(s,a,b,publicNews));
+  s.ecs.relationships[a].known[b].ring="personal";
+  learnEvent(s,b,privateNews);
+  expect(listenerNewsScore(s,a,b)).toBe(newsPreference(s,a,b,publicNews));
+  learnEvent(s,b,publicNews);
+  s.knowledge[a].events.push("remote-news");
+  expect(listenerNewsScore(s,a,b)).toBe(0);
+  const imported={...publicNews,id:"remote-news",people:[c],day:s.days-30};
+  s.events.push(imported);
+  expect(listenerNewsScore(s,a,b)).toBe(newsPreference(s,a,b,imported));
+});
+
+it("keeps learning-order ties when a newer story in another group is already heard or sealed", () => {
+  const { state:s, person:a, parent:b, sibling:c } = setup();
+  const first=recordEvent(s,"harvest",[c],[],{day:2,audienceIds:[a]});
+  const second=recordEvent(s,"marriage",[c],[],{day:2,audienceIds:[a]});
+  const recent=recordEvent(s,"marriage",[c],[],{day:3,audienceIds:[a]});
+  const sealed=recordEvent(s,"harvest",[c],[],{day:4,sealed:true});
+  s.knowledge[a].events.push(sealed.id);
+  learnEvent(s,b,recent);
+  expect(chooseNews(s,a,b)?.id).toBe(first.id);
+  learnEvent(s,b,first);
+  expect(chooseNews(s,a,b)?.id).toBe(second.id);
+});

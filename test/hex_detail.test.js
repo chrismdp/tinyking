@@ -105,3 +105,22 @@ it("stores completed unopened detail separately, then applies current residents 
   expect(require("game/realm_map").reachFacts(loaded, reach).visited).toBe(true);
   expect(loaded.travel.unopenedHexes["6,5"]).toBeUndefined();
 });
+
+it("captures shared remote identities once while keeping construction inputs detached from live state", () => {
+  const { s } = fixture(), keys = Object.keys(s.travel.maps);
+  const home = s.travel.maps[keys[0]], away = s.travel.maps[keys[1]];
+  const id = Object.keys(home.residents)[0];
+  // Ordinary remote references point at the same published component heads.
+  for (const component of ["personable", "personality", "relationships"]) away.ecs[component][id] = home.ecs[component][id];
+  captureDetailOrigins(s);
+  const first = s.worldHistory.detailOrigins[keys[0]], second = s.worldHistory.detailOrigins[keys[1]];
+  for (const component of ["personable", "personality", "relationships"]) {
+    expect(first.ecs[component][id]).toBe(second.ecs[component][id]);
+    expect(first.ecs[component][id]).not.toBe(home.ecs[component][id]);
+  }
+  const before = structuredClone(first);
+  home.ecs.personable[id].age = 99;
+  home.ecs.personality[id].traits.push("changed during play");
+  home.ecs.relationships[id].known = {};
+  expect(first).toEqual(before);
+});

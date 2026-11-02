@@ -324,3 +324,20 @@ it("saves anonymous occurrence penalties and applies them once at an actual intr
   meet(restored,player,a);expect(restored.ecs.relationships[player].known[a].goodwill).toBe(-6);
   expect(restored.ecs.relationships[player].unmetGoodwill[a]).toBeUndefined();
 });
+
+it("reads fresh family links after an encounter scope ends or throws", () => {
+  const { withCloseFamilyIndex, closeFamily } = require("game/social_kin");
+  const { state:s, person:a, sibling:b, player } = peopleWorld();
+  for(const fail of [false,true]) {
+    try {
+      withCloseFamilyIndex(s, () => {
+        expect(closeFamily(s,a)).toContain(b);
+        if(fail)throw new Error("encounter interrupted");
+      });
+    } catch(error) { expect(error.message).toBe("encounter interrupted"); }
+    s.ecs.kinship[a].spouse=player;
+    expect(closeFamily(s,a)).toContain(player);
+    s.ecs.kinship[a].spouse=null;
+    expect(closeFamily(s,a)).not.toContain(player);
+  }
+});

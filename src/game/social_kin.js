@@ -1,10 +1,23 @@
 import { personComponent } from "game/residents";
 
+// Seasonal encounters read kinship; weddings and births run after this scope.
+const familyIndexes = new WeakMap();
+export function withCloseFamilyIndex(state, encounter) {
+  if (familyIndexes.has(state)) return encounter();
+  familyIndexes.set(state, new Map());
+  try { return encounter(); }
+  finally { familyIndexes.delete(state); }
+}
+
 export function closeFamily(state, id) {
+  const index = familyIndexes.get(state);
+  if (index?.has(id)) return index.get(id);
   const kin = personComponent(state, "kinship", id);
   if (!kin) return [];
-  return [...new Set([kin.spouse, ...kin.parents, ...kin.children,
+  const family = [...new Set([kin.spouse, ...kin.parents, ...kin.children,
     ...kin.parents.flatMap(p => personComponent(state, "kinship", p)?.children || [])])].filter(p => p && p != id);
+  index?.set(id, family);
+  return family;
 }
 
 export function relatedPeople(s, a, b, includeLineal = false, cache) {

@@ -191,3 +191,16 @@ it("keeps learning-order ties when a newer story in another group is already hea
   learnEvent(s,b,first);
   expect(chooseNews(s,a,b)?.id).toBe(second.id);
 });
+
+it("rechecks changed kinship on the next news choice", () => {
+  const { state:s, person:a, parent:b, sibling:c, player:p } = setup();
+  s.ecs.kinship[c].spouse=p;s.ecs.kinship[p].spouse=c;
+  s.ecs.relationships[a].known[b]={ring:"intimate",goodwill:70};
+  for(const id of [c,p])s.ecs.relationships[b].known[id]={ring:"public",goodwill:0};
+  const event=recordEvent(s,"quarrel",[c,p],[],{audienceIds:[a]});
+  expect(chooseNews(s,a,b)?.id).toBe(event.id);
+  s.ecs.kinship[b].children=[c];s.ecs.kinship[c].parents=[b];
+  expect(chooseNews(s,a,b)).toBeUndefined();
+  s.ecs.kinship[b].children=[];s.ecs.kinship[c].parents=[];
+  expect(chooseNews(s,a,b)?.id).toBe(event.id);
+});

@@ -1,5 +1,5 @@
 import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
-import { relatedPeople } from "game/social_kin";
+import { relatedPeople, withCloseFamilyIndex } from "game/social_kin";
 import { finishTransition } from "game/history_scope";
 import { exchangeNews, listenerNewsScore, beginSocialSpeech } from "game/news";
 import { DAYS_IN_SEASON } from "game/time";
@@ -477,68 +477,70 @@ function advanceSeasonRules(s, season, summary) {
   settleAdults(s, summary);
   const participants = ids.filter(id => alive(s, id));
   const roster = participants.filter(id => !ecs.playable?.[id]);
-  runSeasonSocialActions(s,participants,summary);
-  if (summary) {
-    const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
-    const byVillage = new Map(),
-      live = new Set(roster);
-    for (const id of roster) {
-      const village = ecs.village[id]?.villageId;
-      if (!byVillage.has(village)) byVillage.set(village, []);
-      byVillage.get(village).push(id);
-    }
-    const avoiding = new Map();
-    for (const key of Object.keys(s.social.avoidance)) if (s.social.avoidance[key] > s.days) {
-      const [a, b] = key.split(":");
-      if (!avoiding.has(a)) avoiding.set(a, new Set());
-      if (!avoiding.has(b)) avoiding.set(b, new Set());
-      avoiding.get(a).add(b);
-      avoiding.get(b).add(a);
-    }
-    // Only paired people change avoidance during this pass, and both have
-    // already left the candidate pool before their conversation starts.
-    const paired = new Set();
-    const order = roster.map(id => ({
-      id,
-      order: roll(s, season + ":order:" + id)
-    })).sort((a, b) => Number(singles.has(b.id)) - Number(singles.has(a.id)) || a.order - b.order).map(p => p.id);
-    for (const a of order) {
-      if (paired.has(a)) continue;
-      const newsScores=new Map(),newsScore=id=>{
-        if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
-        return newsScores.get(id);
-      };
-      const locals = byVillage.get(ecs.village[a]?.villageId) || [];
-      const known = ecs.relationships[a].known,
-        seekingPartner = singles.has(a);
-      const localOrFriend = new Set(locals);
-      for (const id of peopleInRings(s, a, ["social", "personal", "intimate"])) if (live.has(id)) localOrFriend.add(id);
-      const avoided = avoiding.get(a);
-      let b,
-        best = -Infinity,
-        bestInterest = false;
-      for (const pool of seekingPartner ? [localOrFriend, singles] : [localOrFriend]) for (const id of pool) {
-        const local = localOrFriend.has(id);
-        if (pool == singles && local) continue;
-        if (id == a || paired.has(id)) continue;
-        if (avoided?.has(id)) continue;
-        const seeking = seekingPartner && singles.has(id) && !related(s, a, id);
-        if (!local && !seeking) continue;
-        const interest = seeking && mutualAttraction(s, a, id),
-          score = known[id]?.goodwill || 0;
-        if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
-          b = id;
-          best = score;
-          bestInterest = interest;
-        }
+  withCloseFamilyIndex(s, () => {
+    runSeasonSocialActions(s,participants,summary);
+    if (summary) {
+      const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
+      const byVillage = new Map(),
+        live = new Set(roster);
+      for (const id of roster) {
+        const village = ecs.village[id]?.villageId;
+        if (!byVillage.has(village)) byVillage.set(village, []);
+        byVillage.get(village).push(id);
       }
-      if (!b) continue;
-      paired.add(a);
-      paired.add(b);
-      if (s.settlement && ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordJourney(s,{key:"visit:"+season+":"+a+":"+b,people:[a],from:routeTile(s,ecs.spatial[ecs.household[a]?.houseId]),to:routeTile(s,ecs.spatial[ecs.household[b]?.houseId]),reason:"visiting household",mainRoute:true,day:s.days,returnDay:s.days+.2,count:1});
-      chatTogether(s, a, b, true, 6);
+      const avoiding = new Map();
+      for (const key of Object.keys(s.social.avoidance)) if (s.social.avoidance[key] > s.days) {
+        const [a, b] = key.split(":");
+        if (!avoiding.has(a)) avoiding.set(a, new Set());
+        if (!avoiding.has(b)) avoiding.set(b, new Set());
+        avoiding.get(a).add(b);
+        avoiding.get(b).add(a);
+      }
+      // Only paired people change avoidance during this pass, and both have
+      // already left the candidate pool before their conversation starts.
+      const paired = new Set();
+      const order = roster.map(id => ({
+        id,
+        order: roll(s, season + ":order:" + id)
+      })).sort((a, b) => Number(singles.has(b.id)) - Number(singles.has(a.id)) || a.order - b.order).map(p => p.id);
+      for (const a of order) {
+        if (paired.has(a)) continue;
+        const newsScores=new Map(),newsScore=id=>{
+          if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
+          return newsScores.get(id);
+        };
+        const locals = byVillage.get(ecs.village[a]?.villageId) || [];
+        const known = ecs.relationships[a].known,
+          seekingPartner = singles.has(a);
+        const localOrFriend = new Set(locals);
+        for (const id of peopleInRings(s, a, ["social", "personal", "intimate"])) if (live.has(id)) localOrFriend.add(id);
+        const avoided = avoiding.get(a);
+        let b,
+          best = -Infinity,
+          bestInterest = false;
+        for (const pool of seekingPartner ? [localOrFriend, singles] : [localOrFriend]) for (const id of pool) {
+          const local = localOrFriend.has(id);
+          if (pool == singles && local) continue;
+          if (id == a || paired.has(id)) continue;
+          if (avoided?.has(id)) continue;
+          const seeking = seekingPartner && singles.has(id) && !related(s, a, id);
+          if (!local && !seeking) continue;
+          const interest = seeking && mutualAttraction(s, a, id),
+            score = known[id]?.goodwill || 0;
+          if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
+            b = id;
+            best = score;
+            bestInterest = interest;
+          }
+        }
+        if (!b) continue;
+        paired.add(a);
+        paired.add(b);
+        if (s.settlement && ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordJourney(s,{key:"visit:"+season+":"+a+":"+b,people:[a],from:routeTile(s,ecs.spatial[ecs.household[a]?.houseId]),to:routeTile(s,ecs.spatial[ecs.household[b]?.houseId]),reason:"visiting household",mainRoute:true,day:s.days,returnDay:s.days+.2,count:1});
+        chatTogether(s, a, b, true, 6);
+      }
     }
-  }
+  });
   updateCourtships(s,season,summary,roster);
   const birthVillages=Object.keys(s.villages || {});
   if(participants.some(id=>ecs.village[id]?.villageId==null && (ecs.building?.[ecs.household[id]?.houseId] || ecs.shelter?.[ecs.household[id]?.houseId]?.stage=="house")))birthVillages.push(null);

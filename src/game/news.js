@@ -20,10 +20,10 @@ function storyGroups(s,teller,index) {
   const ids=s.knowledge?.[teller]?.events||empty;
   let cache=stories.get(ids);
   if(!cache || cache.index!==index || cache.length>ids.length) {
-    cache={index,length:0,indexedSize:-1,groups:new Map(),byTrust:RINGS.map(()=>[]),missing:[],events:[],byRing:RINGS.map(()=>[])};
+    cache={index,length:0,indexedSize:-1,groups:new Map(),byTrust:RINGS.map(()=>[]),missing:[],events:[]};
     stories.set(ids,cache);
   }
-  if(cache.length===ids.length && cache.indexedSize===index.size)return cache;
+  if(cache.length===ids.length && (!cache.missing.length || cache.indexedSize===index.size))return cache;
   const pending=cache.missing;
   cache.missing=[];
   for(let order=cache.length;order<ids.length;order++)pending.push(order);
@@ -48,14 +48,7 @@ function storyGroups(s,teller,index) {
       if(other.day<event.day || other.day==event.day && group[mid]>order)lo=mid+1;else hi=mid;
     }
     group.splice(lo,0,order);
-    const rule=TYPES[event.type]?.disclosure;
-    if(rule) {
-      const bucket=cache.byRing[Math.max(0,RINGS.indexOf(rule.ring))];
-      // Previously missing events may arrive after newer learned accounts.
-      lo=0;hi=bucket.length;
-      while(lo<hi){const mid=(lo+hi)>>>1;if(bucket[mid]<order)lo=mid+1;else hi=mid;}
-      bucket.splice(lo,0,order);
-    }
+
   }
   for(const groups of cache.byTrust)groups.sort((a,b)=>cache.events[b[b.length-1]].day-cache.events[a[a.length-1]].day);
   return cache;
@@ -69,9 +62,9 @@ function eventIndex(s) {
   for(let i=index.size;i<events.length;i++)index.set(events[i].id,events[i]);
   return index;
 }
-export function newsPreference(s,teller,listener,event) {
+export function newsPreference(s,teller,listener,event,families) {
   const definition=TYPES[event.type];
-  if(!canDiscloseEvent(s,teller,listener,event))return 0;
+  if(!canDiscloseEvent(s,teller,listener,event,families))return 0;
   const trust=Math.max(0,RINGS.indexOf(s.ecs.relationships?.[teller]?.known[listener]?.ring));
   const subjects=event.people.filter(id=>id!=listener);
   const audience=subjects.length?subjects.reduce((sum,id)=>{
@@ -84,6 +77,7 @@ export function chooseNews(s,teller,listener) {
   const index=eventIndex(s),heard=membership(s.knowledge?.[listener]?.events||empty);
   const cache=storyGroups(s,teller,index);
   let best,bestOrder,bestScore=-Infinity;
+  const families=new Map();
   const trust=Math.max(0,RINGS.indexOf(personComponent(s,"relationships",teller)?.known[listener]?.ring));
   // Skip whole story groups whose minimum disclosure trust cannot hold.
   for(let ring=0;ring<=trust;ring++)for(const group of cache.byTrust[ring]) {
@@ -92,7 +86,7 @@ export function chooseNews(s,teller,listener) {
     if(newest<0)continue;
     const latest=cache.events[group[newest]];
     if(group.length===1 && heard.has(latest.id))continue;
-    const weight=newsPreference(s,teller,listener,latest);if(!weight)continue;
+    const weight=newsPreference(s,teller,listener,latest,families);if(!weight)continue;
     // Every account in this group has the same audience weight, and none
     // can be newer than latest. Do not scan old heard accounts that cannot win.
     const upper=weight*(1+1/(1+Math.max(0,s.days-latest.day)));
@@ -110,26 +104,17 @@ export function chooseNews(s,teller,listener) {
   return best;
 }
 export function listenerNewsScore(s,teller,listener) {
+  // Companion sorting needs a possible conversation, not a full story ranking
+  // for every candidate. Use the latest permitted unheard account here; rank
+  // all eligible stories only when this pair actually completes a contact.
   const index=eventIndex(s),from=s.knowledge?.[teller]?.events||empty,heard=membership(s.knowledge?.[listener]?.events||empty);
-  const cache=storyGroups(s,teller,index);
-  const trust=Math.max(0,RINGS.indexOf(personComponent(s,"relationships",teller)?.known[listener]?.ring));
-  const cursors=cache.byRing.map(bucket=>bucket.length-1);
-  // Merge eligible disclosure buckets in reverse learning order. Private
-  // stories cannot win for a public acquaintance; current family and regard
-  // rules are still checked for every eligible candidate.
-  for(;;) {
-    let order=-1,selected;
-    for(let ring=0;ring<=trust;ring++) {
-      const bucket=cache.byRing[ring];
-      while(cursors[ring]>=0 && heard.has(from[bucket[cursors[ring]]]))cursors[ring]--;
-      const next=bucket[cursors[ring]];
-      if(next>order){order=next;selected=ring;}
-    }
-    if(order<0)return 0;
-    cursors[selected]--;
-    const score=newsPreference(s,teller,listener,cache.events[order]);
+  for(let i=from.length-1;i>=0;i--) {
+    if(heard.has(from[i]))continue;
+    const event=index.get(from[i]);if(!event)continue;
+    const score=newsPreference(s,teller,listener,event);
     if(score)return score;
   }
+  return 0;
 }
 function namedEventPeople(s,speaker,event) {
   return (event?.people||[]).filter(id=>{

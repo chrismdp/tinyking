@@ -3,7 +3,12 @@ import { personComponent } from "game/residents";
 import { closeFamily, relatedPeople } from "game/social_kin";
 
 export const pairKey = (a,b) => [a,b].sort().join(":");
-export const boundValue = (bindings,path) => typeof path == "string" ? path.split(".").reduce((v,k)=>v?.[k],bindings) : path;
+export const boundValue = (bindings,path) => {
+  if(typeof path != "string")return path;
+  // Most authored arguments are a single role, with no nested field to walk.
+  if(!path.includes("."))return bindings?.[path];
+  return path.split(".").reduce((v,k)=>v?.[k],bindings);
+};
 export const boundId = (bindings,path) => {const v=boundValue(bindings,path);return v?.id ?? v;};
 const person = (s,id) => personComponent(s,"personable",id);
 const alive = (s,id) => !!person(s,id) && !person(s,id).dead;
@@ -23,7 +28,6 @@ export function maritalSatisfaction(s,id) {
 export function condition(s,b,{test,args:a={}}) {
   const id=path=>boundId(b,path),p=id(a.person),q=id(a.towards),x=id(a.a),y=id(a.b);
   const valid=(...ids)=>ids.every(v=>v!=null && !!person(s,v));
-  const g=goodwillTowards(s,p,q),r=bond(s,p,q)?.ring||"public";
   switch(test) {
   case "person_alive":return alive(s,p);
   case "person_dead":return !!person(s,p)?.dead;
@@ -31,11 +35,11 @@ export function condition(s,b,{test,args:a={}}) {
   case "age_below":return valid(p)&&person(s,p).age<a.age;
   case "has_trait":return valid(p)&&!!personComponent(s,"personality",p)?.traits.includes(a.trait);
   case "disposition_is":return valid(p,q)&&disposition(s,p,q)==a.value;
-  case "cold_towards":return valid(p,q)&&(disposition(s,p,q)=="hate"||g<0);
-  case "ring_is":return valid(p,q)&&r==a.ring;
-  case "ring_at_least":return valid(p,q)&&RINGS.includes(a.ring)&&RINGS.indexOf(r)>=RINGS.indexOf(a.ring);
-  case "goodwill_at_least":return valid(p,q)&&g>=a.value;
-  case "goodwill_below":return valid(p,q)&&g<a.value;
+  case "cold_towards":return valid(p,q)&&(disposition(s,p,q)=="hate"||goodwillTowards(s,p,q)<0);
+  case "ring_is":return valid(p,q)&&(bond(s,p,q)?.ring||"public")==a.ring;
+  case "ring_at_least":return valid(p,q)&&RINGS.includes(a.ring)&&RINGS.indexOf(bond(s,p,q)?.ring||"public")>=RINGS.indexOf(a.ring);
+  case "goodwill_at_least":return valid(p,q)&&goodwillTowards(s,p,q)>=a.value;
+  case "goodwill_below":return valid(p,q)&&goodwillTowards(s,p,q)<a.value;
   case "has_living_spouse":return alive(s,kin(s,p)?.spouse);
   case "spouses":return valid(x,y)&&kin(s,x)?.spouse==y;
   case "same_person":return valid(x,y)&&x==y;

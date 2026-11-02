@@ -490,7 +490,12 @@ export function completeConversation(state, actorId, personId) {
 
 // Current directional trust and current kin/bonds govern speech, not the
 // event's initial audience. Sealed backstory remains undisclosable.
-export function canDiscloseEvent(state, speaker, viewer, event) {
+const disclosureFamily = (state, id, families) => {
+  if (!families) return closeFamily(state, id);
+  if (!families.has(id)) families.set(id, closeFamily(state, id));
+  return families.get(id);
+};
+export function canDiscloseEvent(state, speaker, viewer, event, families) {
   const rule=EVENT_TYPES[event?.type]?.disclosure;
   if(!rule || event.sealed)return false;
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
@@ -498,7 +503,7 @@ export function canDiscloseEvent(state, speaker, viewer, event) {
   if(trust<RINGS.indexOf(rule.ring))return false;
   if(!family || family.between=="spouses" && !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
   if(event.people.includes(viewer))return true;
-  if(family.excludeKin && event.people.some(id=>closeFamily(state,id).includes(viewer)||closeFamily(state,viewer).includes(id)))return false;
+  if(family.excludeKin && event.people.some(id=>disclosureFamily(state,id,families).includes(viewer)||disclosureFamily(state,viewer,families).includes(id)))return false;
   if(family.excludeFriends && event.people.some(id=>rank(viewer,id)>=RINGS.indexOf(family.excludeFriends)))return false;
   const rival=event.people.some(id=>goodwillTowards(state,viewer,id)<0);
   return trust>=RINGS.indexOf(rival?family.rivalRing:family.ring);

@@ -63,7 +63,8 @@ export function playerDay(s) {
     if(person.energy<=0 && !w.energyEmpty && !s.travel?.journey && w.restHome) {
       pauseWork(s);w.energyEmpty=true;w.fireHome=w.restHome;
     }
-    if(hour>=23 || hour<6) {
+    // Late at night an idle player turns in; an order given now means staying up.
+    if((hour>=23 || hour<6) && !e.manager[a]?.jobs?.length) {
       pauseWork(s);w.forcedRest=true;delete w.fireHome;delete w.byFire;
     }
   }

@@ -84655,6 +84655,276 @@
   }
  },
  {
+  "id": "npc.family_answer.unhappy_marriage.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "unhappy_marriage",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "npc_undisclosed_kin_link"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "personal"
+     }
+    },
+    {
+     "test": "kinship_is",
+     "args": {
+      "link": "link",
+      "kind": "spouse"
+     }
+    },
+    {
+     "test": "person_alive",
+     "args": {
+      "person": "relative"
+     }
+    },
+    {
+     "test": "marital_satisfaction_below",
+     "args": {
+      "person": "npc",
+      "value": 30
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Things are not right between {relative.first_name} and me.",
+  "facts": [
+   {
+    "ref": "link",
+    "fields": [
+     "speaker_id",
+     "relative_id",
+     "kinship",
+     "relative_alive"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "disclose_link:{npc.id}:{player.id}:{relative.id}:{link.kinship}",
+  "tradeoff": {
+   "risks": [
+    "Family or the relative's portrait can land badly with them."
+   ],
+   "reveals": [
+    "One real family link, and that relative's name"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_subject",
+    "person": "relative"
+   },
+   {
+    "op": "learn_kin_link",
+    "viewer": "player",
+    "link": "link"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "relative"
+   ],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "link",
+     "fields": [
+      "speaker_id",
+      "relative_id",
+      "kinship"
+     ]
+    }
+   ]
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.family_answer.unhappy_marriage.base.02",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "unhappy_marriage",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "npc_undisclosed_kin_link"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "personal"
+     }
+    },
+    {
+     "test": "kinship_is",
+     "args": {
+      "link": "link",
+      "kind": "spouse"
+     }
+    },
+    {
+     "test": "person_alive",
+     "args": {
+      "person": "relative"
+     }
+    },
+    {
+     "test": "marital_satisfaction_below",
+     "args": {
+      "person": "npc",
+      "value": 30
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I am unhappy in my marriage to {relative.first_name}.",
+  "facts": [
+   {
+    "ref": "link",
+    "fields": [
+     "speaker_id",
+     "relative_id",
+     "kinship",
+     "relative_alive"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "disclose_link:{npc.id}:{player.id}:{relative.id}:{link.kinship}",
+  "tradeoff": {
+   "risks": [
+    "Family or the relative's portrait can land badly with them."
+   ],
+   "reveals": [
+    "One real family link, and that relative's name"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_subject",
+    "person": "relative"
+   },
+   {
+    "op": "learn_kin_link",
+    "viewer": "player",
+    "link": "link"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "relative"
+   ],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "link",
+     "fields": [
+      "speaker_id",
+      "relative_id",
+      "kinship"
+     ]
+    }
+   ]
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
   "id": "npc.family_answer.spouse_dated.base.01",
   "speaker": "npc",
   "family": "family_answer",
@@ -152931,6 +153201,370 @@
   }
  },
  {
+  "id": "npc.event_news.catalogue_affair.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_affair.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.event_news.catalogue_romance.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_romance.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
   "id": "npc.campfire.company.base.01",
   "speaker": "npc",
   "family": "campfire",
@@ -155574,6 +156208,158 @@
      "args": {
       "event": "event",
       "type": "inheritance"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_affair.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_romance.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
      }
     }
    ],

@@ -1,3 +1,5 @@
+import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
+import { relatedPeople } from "game/social_kin";
 import { finishTransition } from "game/history_scope";
 import { exchangeNews, listenerNewsScore, beginSocialSpeech } from "game/news";
 import { DAYS_IN_SEASON } from "game/time";
@@ -55,35 +57,9 @@ export function withSocialIndex(s, fn) {
 }
 // Recompute the shallow graph: imports/births can add a previously missing ancestor.
 export function related(s, a, b, includeLineal = false) {
-  const parents=id=>(s.ecs.kinship?.[id] || s.peopleDirectory?.[id]?.kinship || s.travel?.people?.[id]?.kinship)?.parents || [];
-  const cache = socialIndexes.get(s)?.ancestry;
-  const ancestors = root => {
-    if (cache?.has(root)) return cache.get(root);
-    const result = new Set(),
-      queue = [[root, 0]];
-    for (const [id, depth] of queue) if (depth < 2) for (const p of parents(id)) {
-      result.add(p);
-      queue.push([p, depth + 1]);
-    }
-    cache?.set(root, result);
-    return result;
-  };
-  const aa = ancestors(a),
-    bb = ancestors(b);
-  if (aa.has(b) || bb.has(a) || [...aa].some(id => bb.has(id))) return true;
-  if (!includeLineal) return false;
-  // Keep NPC cousin compatibility unchanged. A deliberate player proposal must
-  // also reject direct ancestry beyond the two generations shown in the tree.
-  const ancestor=(root,target)=>{
-    const queue=[root],seen=new Set();
-    for(const id of queue)if(!seen.has(id)) {
-      seen.add(id);
-      for(const parent of parents(id)){if(parent==target)return true;queue.push(parent);}
-    }
-    return false;
-  };
-  return ancestor(a,b) || ancestor(b,a);
+  return relatedPeople(s,a,b,includeLineal,socialIndexes.get(s)?.ancestry);
 }
+
 function mutualAttraction(s, a, b) {
   const index=socialIndexes.get(s)?.affinity;
   if(index && !index.has(a))index.set(a,new Map());
@@ -388,21 +364,12 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   const key = a < b ? a + ":" + b : b + ":" + a,
     until = s.social.avoidance[key];
   if (until > s.days) return false;
-  if (until && until <= s.days) {
-    delete s.social.avoidance[key];
-    recordEvent(s, "reconciliation", [a, b]);
-  }
   s.social.contacts ||= {};
   s.social.contacts[key] = s.days;
   const hostile = disposition(s, a, b) == "hate" || disposition(s, b, a) == "hate";
   if (summary && hostile) conversations = 1;
-  if (hostile && roll(s, "quarrel:" + key + ":" + Math.floor(s.days)) < 1 - 0.88 ** conversations) {
-    addGoodwill(s, a, b, -6);
-    addGoodwill(s, b, a, -6);
-    s.social.avoidance[key] = s.days + DAYS_IN_SEASON;
-    recordEvent(s, "quarrel", [a, b]);
-    return true;
-  }
+  const actions=runSocialActions(s,"contact",a,b,{summary,conversations});
+  if(actions.some(a=>a.stop))return true;
   for (const [from, to] of [[a, b], [b, a]]) addGoodwill(s, from, to, {
     hate: -0.25,
     like: 1,
@@ -509,6 +476,7 @@ function advanceSeasonRules(s, season, summary) {
   settleAdults(s, summary);
   const participants = ids.filter(id => alive(s, id));
   const roster = participants.filter(id => !ecs.playable?.[id]);
+  runSeasonSocialActions(s,roster,summary);
   if (summary) {
     const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
     const byVillage = new Map(),
@@ -567,11 +535,6 @@ function advanceSeasonRules(s, season, summary) {
       paired.add(a);
       paired.add(b);
       if (s.settlement && ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordJourney(s,{key:"visit:"+season+":"+a+":"+b,people:[a],from:routeTile(s,ecs.spatial[ecs.household[a]?.houseId]),to:routeTile(s,ecs.spatial[ecs.household[b]?.houseId]),reason:"visiting household",mainRoute:true,day:s.days,returnDay:s.days+.2,count:1});
-      if (ecs.village[a]?.villageId != ecs.village[b]?.villageId) recordEvent(s, "visit", [a, b], [], {
-        fromVillage: ecs.village[a]?.villageId,
-        toVillage: ecs.village[b]?.villageId,
-        summary: true
-      });
       chatTogether(s, a, b, true, 6);
     }
   }

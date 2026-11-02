@@ -1,0 +1,314 @@
+[
+  {
+    "id": "reconcile",
+    "hooks": [
+      "contact"
+    ],
+    "chance": 1,
+    "when": {
+      "all": [
+        {
+          "test": "avoidance_expired",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "reconciliation",
+      "people": [
+        "actor",
+        "partner"
+      ]
+    }
+  },
+  {
+    "id": "visit_other_village",
+    "hooks": [
+      "contact"
+    ],
+    "participants": {
+      "actor": "visitor",
+      "partner": "host"
+    },
+    "chance": 1,
+    "when": {
+      "all": [
+        {
+          "test": "different_village",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "visit",
+      "people": [
+        "actor",
+        "partner"
+      ],
+      "details": {
+        "fromVillage": {
+          "person": "actor",
+          "component": "village",
+          "field": "villageId"
+        },
+        "toVillage": {
+          "person": "partner",
+          "component": "village",
+          "field": "villageId"
+        }
+      }
+    }
+  },
+  {
+    "id": "quarrel",
+    "hooks": [
+      "contact",
+      "season"
+    ],
+    "chance": 0.12,
+    "stop": true,
+    "when": {
+      "all": [
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "partner"
+          }
+        }
+      ],
+      "any": [
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "value": "hate"
+          }
+        },
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "value": "hate"
+          }
+        },
+        {
+          "test": "goodwill_below",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "value": 0
+          }
+        },
+        {
+          "test": "goodwill_below",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "value": 0
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "avoiding",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "quarrel",
+      "people": [
+        "actor",
+        "partner"
+      ]
+    }
+  },
+  {
+    "id": "romance",
+    "hooks": [
+      "contact"
+    ],
+    "chance": 0.18,
+    "when": {
+      "all": [
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "partner"
+          }
+        },
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "value": "love"
+          }
+        },
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "value": "love"
+          }
+        },
+        {
+          "test": "ring_at_least",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "ring": "personal"
+          }
+        },
+        {
+          "test": "ring_at_least",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "ring": "personal"
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "related",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "spouses",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "mutual_romance",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ]
+    },
+    "effects": [
+      {
+        "op": "romance",
+        "a": "actor",
+        "b": "partner"
+      }
+    ],
+    "event": {
+      "type": "romance",
+      "people": [
+        "actor",
+        "partner"
+      ]
+    }
+  },
+  {
+    "id": "affair",
+    "directional": true,
+    "hooks": [
+      "contact"
+    ],
+    "participants": {
+      "spouse": {
+        "spouseOf": "actor"
+      }
+    },
+    "chance": 0.12,
+    "when": {
+      "all": [
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "partner"
+          }
+        },
+        {
+          "test": "person_alive",
+          "args": {
+            "person": "spouse"
+          }
+        },
+        {
+          "test": "marital_satisfaction_below",
+          "args": {
+            "person": "actor",
+            "value": 30
+          }
+        },
+        {
+          "test": "mutual_romance",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "spouses",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "related",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "affair_exists",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "affair",
+      "people": [
+        "actor",
+        "partner"
+      ]
+    }
+  }
+]

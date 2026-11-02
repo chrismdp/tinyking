@@ -473,7 +473,7 @@ export function canDiscloseEvent(state, speaker, viewer, event) {
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
   const trust=rank(speaker,viewer),family=rule.family;
   if(trust<RINGS.indexOf(rule.ring))return false;
-  if(!family || family.between!="spouses" || !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
+  if(!family || family.between=="spouses" && !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
   if(event.people.includes(viewer))return true;
   if(family.excludeKin && event.people.some(id=>closeFamily(state,id).includes(viewer)||closeFamily(state,viewer).includes(id)))return false;
   if(family.excludeFriends && event.people.some(id=>rank(viewer,id)>=RINGS.indexOf(family.excludeFriends)))return false;

@@ -14,8 +14,9 @@ const { startIntro } = require(base+"/src/game/intro");
   startIntro(s,{skip:true});
   const {serialiseGame}=require(base+"/src/game/save_game");
   fs.writeFileSync((process.argv[2]||"shots/social-events-measure.json")+".state",serialiseGame(s));
+  const {closeChat}=require(base+"/src/game/chat");
   const sim=createSimulation(s),times=[];
-  for(let i=0;i<720;i++) {if(s.chat?.active)delete s.chat.active;s.game_speed="normal";const t=performance.now();sim.step(60,0);s.redraws.length=0;if(i>=120)times.push(performance.now()-t);}
+  for(let i=0;i<720;i++) {if(s.chat?.active)closeChat(s);s.game_speed="normal";const t=performance.now();await sim.step(60,0);s.redraws.length=0;if(i>=120)times.push(performance.now()-t);}
   times.sort((a,b)=>a-b);
   const report={seed:13,generationMs,historyMs:s.historyGenerationMs,historySeasons:180,counts,finalDay:s.days,activeChat:!!s.chat?.active,seasonTurn:!!s.seasonTurn,living:Object.values(s.ecs.personable).filter(p=>!p.dead).length,tick:{steps:times.length,gameMinutes:6,meanMs:times.reduce((a,b)=>a+b,0)/times.length,p50Ms:times[300],p95Ms:times[570],maxMs:times.at(-1)}};
   fs.writeFileSync(process.argv[2]||"shots/social-events-measure.json",JSON.stringify(report,null,2));

@@ -5,7 +5,7 @@ import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 import EVENT_TYPES from "data/event_types.json";
 import { eventText } from "game/events";
 import { personLabel } from "game/knowledge";
-import { siblingsOf, canDiscloseEvent } from "game/people";
+import { RINGS, disposition, siblingsOf, canDiscloseEvent } from "game/people";
 import { closeFamily, knownEvents } from "game/events";
 import { localWeather } from "game/weather";
 import { season, time, seasonPart, year, DAYS_IN_SEASON } from "game/time";
@@ -147,6 +147,7 @@ export function sourceValues(s,c,b,d) {
   case "player_observed_local_weather":return localWeather(s)?[{id:Math.floor(s.days*24),weather_type:localWeather(s).type,season:season(s.days)}]:[];
   case "npc_village": {const v=s.villages?.[e.village?.[n]?.villageId];return v?[{...v,id:e.village[n].villageId,house_count_words:words(v.houses?.length||0),trade_list:[...new Set((v.houses||[]).map(h=>e.household[h]?.trade).filter(Boolean))].map(t=>"a "+t).join(" and ")}]:[];}
   case "village_elder":return [personFact(s,villageElder(s,ref(d.village)?.id))].filter(Boolean);
+  case "npc_kin_link":return kinLinks(s,n);
   case "npc_undisclosed_kin_link":return kinLinks(s,n).filter(l=>!linkKnown(s,p,l));
   case "player_known_kin_link_of_npc":return kinLinks(s,n).filter(l=>linkKnown(s,p,l));
   case "link_relative":return [personFact(s,ref(d.link)?.relative_id)].filter(Boolean);

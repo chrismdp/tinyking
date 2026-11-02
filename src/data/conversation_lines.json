@@ -84662,7 +84662,7 @@
   "weight": 1,
   "bindings": {
    "link": {
-    "source": "npc_undisclosed_kin_link"
+    "source": "npc_kin_link"
    },
    "relative": {
     "source": "link_relative",
@@ -84744,7 +84744,7 @@
     "ref": "relative"
    }
   ],
-  "use_key": "disclose_link:{npc.id}:{player.id}:{relative.id}:{link.kinship}",
+  "use_key": "marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}",
   "tradeoff": {
    "risks": [
     "Family or the relative's portrait can land badly with them."
@@ -84797,7 +84797,7 @@
   "weight": 1,
   "bindings": {
    "link": {
-    "source": "npc_undisclosed_kin_link"
+    "source": "npc_kin_link"
    },
    "relative": {
     "source": "link_relative",
@@ -84879,7 +84879,7 @@
     "ref": "relative"
    }
   ],
-  "use_key": "disclose_link:{npc.id}:{player.id}:{relative.id}:{link.kinship}",
+  "use_key": "marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}",
   "tradeoff": {
    "risks": [
     "Family or the relative's portrait can land badly with them."

@@ -1,3 +1,4 @@
+import { crossesWall } from "game/social_visibility";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
@@ -11,7 +12,7 @@ export { closeFamily } from "game/social_kin";
 
 const eventSets = new WeakMap();
 
-export function learnEvent(state, viewerId, event) {
+export function learnEvent(state, viewerId, event, discovery="heard") {
   if(event.sealed)return;
   state.knowledge ||= {};
   const knowledge = state.knowledge[viewerId] ||= { people: {}, feelings: {} };
@@ -20,6 +21,7 @@ export function learnEvent(state, viewerId, event) {
   if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
+  if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")knowledge.discoveries={...knowledge.discoveries,[event.id]:{kind:discovery,day:state.days}};
   applySocialEffects(state,EVENT_TYPES[event.type]?.onLearn,eventBindings(event,viewerId),recordEvent);
 }
 
@@ -84,11 +86,11 @@ export function recordEvent(state, type, people, items = [], details = {}) {
       const origin=state.ecs.spatial?.[people[0]],interior=state.ecs.interior?.[people[0]]?.buildingId;
       for (const id of Object.keys(state.ecs.personable || {})) {
         const p=state.ecs.spatial?.[id],w=state.ecs.planner?.[id]?.world;
-        if (!state.ecs.personable[id].dead && !w?.sleeping && origin && p && state.ecs.interior?.[id]?.buildingId==interior && (origin.x-p.x)**2+(origin.y-p.y)**2<=85**2)audience.add(id);
+        if (!state.ecs.personable[id].dead && isResident(state,id) && !w?.sleeping && state.ecs.planner?.[id]?.task?.[0]!="sleep" && origin && p && state.ecs.interior?.[id]?.buildingId==interior && (origin.x-p.x)**2+(origin.y-p.y)**2<=85**2 && !crossesWall(state,origin,p,interior))audience.add(id);
       }
     }
     event.audienceIds=[...audience];
-    for (const id of audience) if(state.ecs.personable?.[id])learnEvent(state,id,event);
+    for (const id of audience) if(state.ecs.personable?.[id])learnEvent(state,id,event,people.includes(id)?"participant":"witness");
     return event;
   }
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));

@@ -104,3 +104,73 @@ it("begins only one affair for an unhappy married romantic pair, and excludes cl
   s.ecs.relationships[a].known[spouse]={ring:"intimate",goodwill:66};
   expect(canDiscloseEvent(s,a,spouse,event)).toBe(false);
 });
+
+it("preserves new state through save/reload and owns seasonal copies",()=>{
+  const {serialiseGame,restoreGame}=require("game/save_game");
+  const {historyStep}=require("game/social");
+  const {runSocialActions}=require("game/social_actions");
+  const {state:s,a,b}=fixture();s.generatingHistory=true;
+  recordEvent(s,"affair",[a,b]);
+  runSocialActions(s,"contact",a,b);
+  const restored=restoreGame(serialiseGame(s));
+  expect(restored.ecs.relationships).toEqual(s.ecs.relationships);
+  expect(restored.knowledge).toEqual(s.knowledge);
+  const before=JSON.stringify(restored),next=historyStep(restored,1);
+  expect(JSON.stringify(restored)).toBe(before);
+  expect(next).not.toBe(restored);
+});
+it("carries romance, affair, reaction and attempt records through actual travel and knowledge merges",async()=>{
+  const {community,attach}=require("./support/travel");
+  const {completeTravel}=require("game/travel");
+  const {neighbours,worldKey}=require("game/travel_geometry");
+  const {skipIntro}=require("game/intro");
+  const {runSocialActions}=require("game/social_actions");
+  const home=community(),s=home.s,[player,lover,spouse]=home.ids;
+  const away=community({namespace:"away-",key:worldKey(neighbours(s.world.home)[0]),player:false});
+  attach(s,away.s);
+  s.ecs.kinship[player].spouse=spouse;s.ecs.kinship[spouse].spouse=player;
+  s.summarisingHistory=true;
+  const e=recordEvent(s,"affair",[player,lover]);delete s.summarisingHistory;
+  s.ecs.relationships[player].known[lover].romance={since:0};
+  runSocialActions(s,"contact",player,lover,{actions:[{id:"test_attempt",hooks:["contact"],chance:0}]});
+  const reactions={...s.knowledge[player].reactions},moments={...s.ecs.relationships[player].actionMoments};
+  await completeTravel(s,{destination:away.s.map.worldKey,side:0});skipIntro(s);
+  expect(s.ecs.relationships[player].known[lover]).toMatchObject({romance:{since:0},affair:{eventId:e.id}});
+  expect(s.ecs.relationships[player].actionMoments).toEqual(moments);
+  expect(s.knowledge[player].reactions).toEqual(reactions);
+  const before=JSON.stringify(s.ecs.relationships[player]);learnEvent(s,player,e);
+  expect(JSON.stringify(s.ecs.relationships[player])).toBe(before);
+  await completeTravel(s,{destination:home.s.map.worldKey,side:3});skipIntro(s);
+  expect(s.knowledge[player].events.filter(id=>id==e.id)).toHaveLength(1);
+  expect(s.knowledge[player].reactions).toMatchObject(reactions);
+});
+it("binds unhappy-marriage wording only to a genuinely unhappy living spouse at Personal trust",()=>{
+  const {openChat,lineCandidates}=require("game/chat");
+  const {state:s,a,listener,spouse}=fixture();
+  s.ecs.relationships[a].known[listener]={ring:"personal",goodwill:36};
+  s.ecs.spatial[listener]={...s.ecs.spatial[a],x:s.ecs.spatial[a].x-45};
+  expect(openChat(s,listener,a)).toBe(true);s.chat.active.phase="reply";
+  const rows=()=>lineCandidates(s,s.chat.active,"family_answer","npc").filter(l=>l.situation=="unhappy_marriage");
+  expect(rows().length).toBeGreaterThan(0);
+  s.knowledge[listener].kinLinks={};
+  for(const l of require("game/chat_facts").kinLinks(s,a))s.knowledge[listener].kinLinks[l.id]=true;
+  expect(rows().length).toBeGreaterThan(0);
+  s.ecs.relationships[a].known[spouse].goodwill=66;expect(rows()).toHaveLength(0);
+});
+
+it("requires an awake unobstructed witness and never infers witnesses from summary coordinates",()=>{
+  const {state:s,a,b,spouse,listener}=fixture();
+  s.ecs.planner[spouse].task=["sleep"];
+  s.ecs.spatial[a]={x:0,y:0};s.ecs.spatial[b]={x:5,y:0};
+  s.ecs.spatial[listener]={x:60,y:0};s.ecs.spatial[spouse]={x:10,y:0};
+  s.ecs.building={wall:{rooms:[]}};s.ecs.treeClearance={wall:{x:30,y:0,halfWidth:5,halfDepth:20,angle:0}};
+  const event=recordEvent(s,"affair",[a,b]);
+  expect(s.knowledge[listener]?.events||[]).not.toContain(event.id);
+  expect(s.knowledge[spouse]?.events||[]).not.toContain(event.id);
+  s.ecs.building={};s.ecs.treeClearance={};s.ecs.planner[spouse].task=null;
+  const witnessed=recordEvent(s,"romance",[a,b]);
+  expect(s.knowledge[spouse].events).toContain(witnessed.id);
+  expect(s.knowledge[spouse].discoveries[witnessed.id].kind).toBe("witness");
+  s.summarisingHistory=true;const summary=recordEvent(s,"affair",[a,b]);
+  expect(s.knowledge[spouse].events).not.toContain(summary.id);
+});

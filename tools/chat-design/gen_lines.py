@@ -1589,7 +1589,8 @@ npc_family("unhappy_marriage", [RING_MIN("personal"), KIN("spouse"), ALIVE,
     P("marital_satisfaction_below", person="npc", value=30)], [
     "Things are not right between {relative.first_name} and me.",
     "I am unhappy in my marriage to {relative.first_name}.",
-], [T("family"), R("relative")], LINK_B, LINK_F)
+], [T("family"), R("relative")], {"link":{"source":"npc_kin_link"},"relative":{"source":"link_relative","link":"link"}}, LINK_F,
+    key="marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}")
 npc_family("spouse_dated", [TRUST_SOCIAL, KIN("spouse"), ALIVE, P("event_type_is", event="wedding", type="marriage")], [
     "{relative.first_name} and I were married {wedding.when}.",
     "My {link.kin_term}'s {relative.first_name}. We wed {wedding.when}.",

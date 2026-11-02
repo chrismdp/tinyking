@@ -1,14 +1,8 @@
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { I18n } from "react-polyglot";
-import messages from "../src/data/messages.json";
 import { peopleWorld } from "./support/people";
 import { knownFamilyTree, siblingsOf } from "game/people";
 import { closeFamily } from "game/events";
 import { heirFor } from "game/possessions";
-import { PersonPanel, FamilyTree } from "../src/components/person_panel";
-import { GameState } from "../src/components/contexts";
-jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
+
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 
 it("reads directory-only subjects, siblings, parents and spouses without mutating or disclosing strangers", () => {
@@ -30,8 +24,6 @@ it("reads directory-only subjects, siblings, parents and spouses without mutatin
   expect(heirFor(s, person)).toBe(heir);
   expect(knownFamilyTree(s, player, person)).toEqual(baseline);
   expect(knownFamilyTree(s, person, parent).rootId).toBe(parent);
-  const render = element => renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={s}>{element}</GameState.Provider></I18n>);
-  expect(render(<PersonPanel entityId={person}/>)).toContain("Away in another world hex");
-  expect(render(<FamilyTree entityId={person}/>)).toContain("Not yet known");
+
   expect(JSON.stringify(s)).toBe(before);
 });

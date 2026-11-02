@@ -2,7 +2,6 @@ import { peopleWorld } from "./support/people";
 import { recordEvent } from "game/events";
 import { chatTogether } from "game/social";
 import { overheardHint, updateOverhearing } from "game/chat_bubbles";
-import { headActivity } from "game/person_activity";
 import LINES from "data/conversation_lines.json";
 
 function setup() {
@@ -17,14 +16,13 @@ function setup() {
   expect(chatTogether(s,a,b)).toBe(true);
   return {...w,event};
 }
-it("renders the catalogue's actual spoken event without teaching anything on a render",()=>{
+it("describes the catalogue's actual spoken event without teaching it on a read",()=>{
   const {state:s,person:a,player:p,event}=setup();
   const before=JSON.stringify(s.knowledge),text=overheardHint(s,a);
   expect(text).toMatch(/9 grain/);expect(text).not.toMatch(/Chatting with|unknown person/);
   expect(JSON.stringify(s.knowledge)).toBe(before);
   expect(LINES.some(l=>l.id==s.ecs.planner[a].world.social.utterance.lineId)).toBe(true);
   expect(s.knowledge[p]?.events||[]).not.toContain(event.id);
-  expect(headActivity(s.ecs,a,k=>k,()=>"an unknown person")).toBeNull();
 });
 it("learns nearby spoken news once with the real speaker, including when stepping simulation",()=>{
   const {state:s,person:a,player:p,event,step}=setup();

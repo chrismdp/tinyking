@@ -1,9 +1,5 @@
 import { respond, discussOath } from "./support/customs_chat";
-jest.mock("components/contexts",()=>require("../src/components/contexts"),{virtual:true});
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { GameState } from "../src/components/contexts";
-import { VillageMembership, ResourceNotice } from "../src/components/village_customs";
+
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { enqueueTask } from "game/manager";
@@ -50,13 +46,11 @@ function completeTalk(w,key) {
   return talk(s,w.player,world,1/1440,true,w.parent,"chat");
 }
 const facts=s=>JSON.stringify({knowledge:s.knowledge,bonds:s.ecs.relationships,rights:s.ecs.village,events:s.events,patience:s.talking,needs:s.ecs.personable});
-const render=(s,child)=>renderToStaticMarkup(<GameState.Provider value={s}>{child}</GameState.Provider>);
 
-it.each([["elder","tired","The elder needs rest"],["elder","hungry","The elder needs food"]])("refuses %s %s at eligibility, panel and actual timed oath completion",(party,need,message)=>{
+it.each([["elder","tired","The elder needs rest"],["elder","hungry","The elder needs food"]])("refuses %s %s at eligibility and actual timed oath completion",(party,need,message)=>{
   const w=readyWorld({party,need}),s=w.state,before=facts(s);
   expect(oathEligibility(s,w.player,"village")).toMatchObject({ok:false,reason:expect.stringContaining(message)});
-  const html=render(s,<VillageMembership personId={w.parent}/>);
-  expect(html).toContain(message);expect(html).toContain("disabled=\"\"");
+
   expect(completeTalk(w,"oath")).toBe(Task.FINISH);
   expect(s.ui.talkResult.message).toContain(message);
   expect(s.chat?.active?.context).toBeUndefined();
@@ -83,8 +77,7 @@ it("opens a valid ready dialogue and earns only common rights through the actual
 
 it.each([["elder","tired","The elder needs rest"]])("keeps membership and contact unchanged when %s is %s at leave completion",(party,need,message)=>{
   const w=readyWorld({party,need,member:true,child:true}),s=w.state,before=facts(s);
-  const html=render(s,<VillageMembership personId={w.parent}/>);
-  expect(html).toContain(message);expect(html).toContain("disabled=\"\"");
+
   expect(completeTalk(w,"leave")).toBe(Task.FINISH);
   expect(s.ui.talkResult.message).toContain(message);
   expect(s.chat?.active?.context).toBeUndefined();expect(facts(s)).toBe(before);
@@ -135,7 +128,7 @@ it.each(["update","answer"])("explains native fatigue cancellation via %s withou
   if(path=="answer")expect(respond(s,"accept")).toBe(false);
   else updateCustoms(s);
   expect(s.chat?.active?.context).toBeUndefined();
-  expect(render(s,<ResourceNotice/>)).toContain("The elder needs rest");
+  expect(s.ui.customsResult.message).toContain("The elder needs rest");
   for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
 });

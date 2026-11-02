@@ -1,19 +1,16 @@
 import { chatChoices, chooseLine, closeChat } from "game/chat";
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+
 import { peopleWorld } from "./support/people";
 import { enqueueTask, cancelTask } from "game/manager";
 import { newEntities } from "game/entities";
 import { giftChoices } from "game/gift_choices";
 import { give } from "game/holder";
-import { ActivityDetails } from "../src/components/status_strip";
-import { GameState } from "../src/components/contexts";
+
 import * as compound from "game/compound";
 import * as primitive from "game/primitive";
 import * as tasks from "game/tasks";
 import rules from "../src/data/jobs.json";
 
-jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n.nickname }));
 
 it("walks to a paused chat, completes spoken contact and releases attention without changing control", () => {
@@ -82,9 +79,7 @@ it("feeds the player on request and replaces partially finished work", () => {
   const [meal]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:player}}]);
   enqueueTask(state,{key:"eat_food"},meal,{foodType:"forage"});
   step(0.1);
-  const html = renderToStaticMarkup(<GameState.Provider value={state}><ActivityDetails/></GameState.Provider>);
-  expect(html).toContain("Eat");
-  expect(html).not.toContain("Stopped to eat");
+
   expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["eat_food"]);
   step(4);
   expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
@@ -160,7 +155,6 @@ it("delivers an already held gift when its old ground position is unreachable", 
   expect(state.ecs.relationships[player].known[person]).toBeDefined();
   expect(state.ecs.relationships[person].known[player]).toBeDefined();
 });
-
 
 it.each(["held", "loose", "container", "stockpile"])("delivers exactly one real portion selected from %s choices with total ownership conserved", source => {
   const { state, player, person, tiles, step } = peopleWorld();

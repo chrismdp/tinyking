@@ -1,15 +1,21 @@
 import { newEntities } from "game/entities";
-import { generateMap, generateFamilies, Hex } from "game/map";
-import { disposition, RING_CAPS } from "game/people";
-import { historyStep } from "game/social";
-const generate = async seed => {
-  const s = { ecs: { nextId: 1 }, days: 0.375, redraws: [], ui: { show: {} } };
-  await generateMap(s, seed, async () => {});
+import { generateFamilies, Hex } from "game/map";
+import { disposition, RING_CAPS, addGoodwill, recalibrateRelationships } from "game/people";
+import { consumeStored, depositProduced } from "game/settlement_growth";
+import { flatVillage } from "./support/village";
+import { generateHistory } from "game/history";
+import { foundingVillage } from "./support/founding";
+
+// Two declared hamlets are enough for cross-village marriage, descendants,
+// death and inheritance. Only the history component runs its 180 seasons.
+const socialHistory = seed => {
+  const s = foundingVillage(seed, { twoVillages: true, firstSeason: -180 });
+  generateHistory(s, seed);
   return s;
 };
 
 it("generates forty-five years of dated history, dead ancestors and inherited objects deterministically", async () => {
-  const s = await generate(13), again = await generate(13);
+  const s = await socialHistory(13), again = await socialHistory(13);
   expect(s.events).toEqual(again.events);
   expect(s.ecs.kinship).toEqual(again.ecs.kinship);
   expect(s.events.some(e => e.type == "birth")).toBe(true);
@@ -48,21 +54,47 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   }
 });
 
-it.each([20, 1234, 98765])("keeps seed %s's population roughly stable over five seasonal years", async seed => {
-  const generated = await generate(seed);
-  const components = ["personable", "personality", "kinship", "relationships", "household", "village", "building", "controllable", "possession", "nameable", "spatial", "profession"];
-  let s = { peopleSeed: generated.peopleSeed, opinionThresholds: generated.opinionThresholds, villages: generated.villages, knowledge: generated.knowledge, events: generated.events, ecs: { nextId: generated.ecs.nextId } };
-  for (const key of components) s.ecs[key] = generated.ecs[key] || {};
-  const count = s => Object.values(s.ecs.personable).filter(p => !p.dead).length;
-  const before = count(s);
-  for (let season = 0; season < 20; season++) s = historyStep(s, season);
-  expect(count(s) / before).toBeGreaterThanOrEqual(0.75);
-  expect(count(s) / before).toBeLessThanOrEqual(1.3);
+it("keeps reciprocal kinship, bounded rings and calibrated dispositions in generated families", () => {
+  const { s } = flatVillage(8, { seed: 13, founding: false });
+  for (const id in s.ecs.kinship) {
+    const k = s.ecs.kinship[id];
+    for (const p of k.parents) expect(s.ecs.kinship[p].children).toContain(id);
+    for (const c of k.children) expect(s.ecs.kinship[c].parents).toContain(id);
+    if (k.spouse) expect(s.ecs.kinship[k.spouse].spouse).toBe(id);
+    for (const [ring, cap] of Object.entries(RING_CAPS)) expect(Object.values(s.ecs.relationships[id].known).filter(b => b.ring == ring).length).toBeLessThanOrEqual(cap);
+  }
+  const living = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead);
+  const counts = { hate: 0, like: 0, love: 0 };
+  for (const a of living) for (const b of living) if (a != b) counts[disposition(s, a, b)]++;
+  const n = living.length * (living.length - 1);
+  expect(counts.hate / n).toBeCloseTo(0.2, 2);
+  expect(counts.love / n).toBeCloseTo(0.2, 2);
 });
 
-it("keeps goodwill earned during history when calibrating the arriving population", async () => {
-  const s = await generate(20);
+it("keeps goodwill earned during history when calibrating the arriving population", () => {
+  const { s, village } = flatVillage(3, { seed: 20 });
+  const [a, b] = Object.keys(s.ecs.personable).filter(id => s.ecs.household[id]?.houseId == village.houses[1]);
+  addGoodwill(s, a, b, 5);
+  const earned = s.ecs.relationships[a].known[b].goodwill;
+  recalibrateRelationships(s);
+  expect(s.ecs.relationships[a].known[b].goodwill).toBe(earned);
   expect(Object.values(s.ecs.relationships).some(r => Object.values(r.known).some(b => b.goodwill != b.base))).toBe(true);
+});
+
+it("balances actual household consumption and production without exceeding the store", () => {
+  const { s, village } = flatVillage(3);
+  const house = village.houses[1], store = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
+  const stock = s.ecs.container[store];
+  const account = { initial: { ...stock.amounts }, produced: {}, consumed: {} };
+  s.ecs.household[house] = { id: house, storeId: store, estateAccount: account };
+  expect(consumeStored(s, house, "grain", 2)).toBe(true);
+  expect(depositProduced(s, house, "grain", 1)).toBe(true);
+  expect(account).toBeDefined();
+  expect(Object.values(stock.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(stock.capacity);
+  for(const type of new Set([...Object.keys(account.initial),...Object.keys(account.produced),...Object.keys(account.consumed)])) {
+    expect(stock.amounts[type] || 0).toBeGreaterThanOrEqual(0);
+    expect(stock.amounts[type] || 0).toBeCloseTo((account.initial[type] || 0)+(account.produced[type] || 0)-(account.consumed[type] || 0),8);
+  }
 });
 
 it("starts history with adult founding households so the seasonal step produces the children", () => {

@@ -22,7 +22,8 @@ export function learnEvent(state, viewerId, event, discovery="heard") {
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
   if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")(knowledge.discoveries ||= {})[event.id]={kind:discovery,day:state.days};
-  applySocialEffects(state,EVENT_TYPES[event.type]?.onLearn,eventBindings(event,viewerId),recordEvent);
+  const learningEffects=EVENT_TYPES[event.type]?.onLearn;
+  if(learningEffects?.length)applySocialEffects(state,learningEffects,eventBindings(event,viewerId),recordEvent);
 }
 
 // Listener pools belong to an owned transition, never to caller state.
@@ -79,7 +80,8 @@ export function recordEvent(state, type, people, items = [], details = {}) {
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
   if(event.sealed)return event;
-  applySocialEffects(state,EVENT_TYPES[type]?.onOccurrence,eventBindings(event),recordEvent);
+  const occurrenceEffects=EVENT_TYPES[type]?.onOccurrence;
+  if(occurrenceEffects?.length)applySocialEffects(state,occurrenceEffects,eventBindings(event),recordEvent);
   if (EVENT_TYPES[type]?.audience == "participants_witnesses") {
     const audience = new Set(people);
     if (!state.generatingHistory && !state.summarisingHistory && !event.summary) {

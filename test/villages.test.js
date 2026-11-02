@@ -17,7 +17,7 @@ const initialWorlds = new Map();
 const world = async (seed = 1, days = 0.375, fresh = false) => {
   const key=seed+":"+days;
   if(!fresh && initialWorlds.has(key))return structuredClone(initialWorlds.get(key));
-  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days, game_speed: "normal" };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
@@ -106,7 +106,7 @@ it("keeps winter crops dormant and deterministically varies growing-season progr
   expect(farms.length).toBeGreaterThan(0);
   const growth = farms.map(f => f.slots[0].growth);
   const sim = createSimulation(s);
-  for (let i = 0; i < 300; i++) sim.step(6);
+  for (let i = 0; i < 300; i++) sim.step(10*(6), 0);
   expect(farms.map(f => f.slots[0].growth)).toEqual(growth);
 });
 
@@ -280,7 +280,7 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
   const sim = createSimulation(s);
   let worked = false;
   for (let i = 0; i < 500; i++) {
-    sim.step(1);
+    sim.step(10*(1), 0);
     if (p.task?.[0] == "trade_work") {
       worked = true;
       const wp = s.ecs.spatial[job.workplaceId], at = s.ecs.spatial[id];
@@ -309,7 +309,7 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
   const sim = createSimulation(s);
   // One crop takes a season and a half to ripen, plus ploughing and hauling.
   while (s.days < 8 / 3 * DAYS_IN_SEASON) {
-    sim.step(6);
+    sim.step(10*(6), 0);
     for (const id of family) {
       const p = s.ecs.planner[id];
       if (p.world.claimedFarmable) {
@@ -339,7 +339,7 @@ it("keeps household animals inside fenced pens and pastures throughout movement,
   delete s.ecs.planner;
   s.ecs.planner = {};
   for (let i = 0; i < 240; i++) {
-    sim.step(60);
+    sim.step(10*(60), 0);
     for (const id of animals) {
       const a = s.ecs.animal[id], pen = s.ecs.pasture[a.pastureId], p = s.ecs.spatial[id];
       expect(a.houseId).toBe(pen.houseId);
@@ -350,7 +350,7 @@ it("keeps household animals inside fenced pens and pastures throughout movement,
   expect(animals.map(id => s.ecs.spatial[id])).not.toEqual(before);
   s.game_speed = "paused";
   const paused = animals.map(id => ({ ...s.ecs.spatial[id] }));
-  sim.step(1000);
+  sim.step(10*(1000), 0);
   expect(animals.map(id => s.ecs.spatial[id])).toEqual(paused);
 });
 
@@ -358,7 +358,7 @@ it("replays generation and moving animals exactly for the same seed", async () =
   const a = await world(2,0.375,true), b = await world(2,0.375,true);
   expect(a).toEqual(b);
   const sa = createSimulation(a), sb = createSimulation(b);
-  for (let i = 0; i < 100; i++) { sa.step(6); sb.step(6); }
+  for (let i = 0; i < 100; i++) { sa.step(10*(6), 0); sb.step(10*(6), 0); }
   expect(a).toEqual(b);
 });
 

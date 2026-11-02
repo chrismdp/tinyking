@@ -368,6 +368,7 @@ function packJourneyCamp(s, journey) {
   if (!journey?.campId) return;
   const planner = s.ecs.planner[s.ui.playerId];
   delete planner.world.journeyCamp;
+  delete planner.world.fireHome;delete planner.world.byFire;
   delete planner.world.places.sleep;
   // Packing runs before planners at dawn. Finish a full night's forced rest
   // here so the interrupted sleep does not send a rested traveller home again.
@@ -387,7 +388,9 @@ export function stopJourney(s) {
   // Keep the bedroll available if the player stops for the night. It becomes
   // their ordinary camp for resting in this hex.
   const planner = s.ecs.planner[s.ui.playerId];
+  if(journey.campId)planner.world.restCamp=planner.world.restHome=planner.world.restBed=journey.campId;
   delete planner.world.journeyCamp;
+  delete planner.world.fireHome;delete planner.world.byFire;
   for (const job of [...s.ecs.manager[s.ui.playerId].jobs]) if (job.job.key == "travel") cancelTask(s, job.id);
   s.travel.journey = null;
 }
@@ -421,9 +424,14 @@ export function updateJourney(s) {
   if (!journey.orderId && !journey.paused) queueJourneyHop(s);
   if (journey.paused) return;
   const hour = s.days % 1 * 24, dark = hour >= 18 || hour < 6;
-  if (!dark) { packJourneyCamp(s, journey); return; }
-  if (journey.campId) return;
   const id = s.ui.playerId, planner = s.ecs.planner[id], point = s.ecs.spatial[id];
+  const waking=!dark && (planner.world.sleepHours>=6 || planner.world.sleepDawn!=null && s.days>=planner.world.sleepDawn);
+  const refuelled=s.ecs.personable[id].energy>0 && !planner.world.forcedRest &&
+    !["sleep","eat_food"].includes(planner.task?.[0]) && !["rest","eat_food"].includes(planner.world.currentJob);
+  if(journey.campId && (waking || refuelled)) {packJourneyCamp(s,journey);return;}
+  if (journey.campId) return;
+  if(!(s.ecs.personable[id].energy<=0) && !planner.world.forcedRest)return;
+  if(s.chat?.active || planner.world.capturedBy || planner.world.capturedAttentionOf)return;
   // Finish an actual edge crossing before attempting to camp off the nav mesh.
   if (planner.task?.[0] == "leave_edge") return;
   releaseLocalWork(s, id);
@@ -435,6 +443,7 @@ export function updateJourney(s) {
   journey.campId = camp;
   planner.world.places.sleep = camp;
   planner.world.journeyCamp = true;
+  planner.world.fireHome = camp;planner.world.energyEmpty=true;
   delete planner.world.duskHome;
   s.redraws.push(camp, id);
 }
@@ -470,7 +479,7 @@ function queueTravel(s, tileId) {
   }, tileId, {
     destination: d.key,
     side: d.side,
-    detail: "Walking to the edge for " + hexName(d.hex) + " · " + journeyText(s.travel.journey)
+    detail: "Walking to the edge for " + hexName(d.hex,s.world.home) + " · " + journeyText(s.travel.journey)
   });
   return true;
 }

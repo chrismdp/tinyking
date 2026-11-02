@@ -13,7 +13,7 @@ const URL = process.argv[2] || "http://localhost:8107/";
 const SHOTS = path.resolve(__dirname, "../shots");
 
 async function fixtures() {
-  const state = { ecs: { nextId: 1 }, days: 0.375, ui: {}, redraws: [], game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, days: 0.375, ui: {}, redraws: [], game_speed: "normal" };
   const map = await generateMap(state, 13, async () => {});
   state.map = map.map;
   state.ui.playerId = map.playerId;
@@ -40,7 +40,7 @@ async function fixtures() {
   snapshots.learned = save();
   enqueueTask(state, { key: "chat" }, person);
   const sim = createSimulation(state);
-  for (let i = 0; i < 600 && state.ecs.planner[player].task?.[0] != "talk"; i++) sim.step(1);
+  for (let i = 0; i < 600 && state.ecs.planner[player].task?.[0] != "talk"; i++) sim.step(10*(1), 0);
   if (state.ecs.planner[player].task?.[0] != "talk") throw new Error("Chat never started");
   snapshots.chat = save();
   // A real self-feeding interruption with a queued order that resumes later.
@@ -48,7 +48,7 @@ async function fixtures() {
   const { give } = require("../src/game/holder");
   give(state.ecs, food, player);
   state.ecs.planner[player].world.holding.forage = true;
-  for (let i = 0; i < 600 && state.ecs.planner[player].task?.[0] != "eat"; i++) sim.step(1);
+  for (let i = 0; i < 600 && state.ecs.planner[player].task?.[0] != "eat"; i++) sim.step(10*(1), 0);
   if (state.ecs.planner[player].task?.[0] != "eat") throw new Error("Player never stopped to eat");
   snapshots.eat = save();
   return { snapshots, player, person, wood };
@@ -136,7 +136,7 @@ async function fixtures() {
       const selectedHeading = await page.locator(".person-window h3").innerText();
       if (!selectedName.includes(selectedHeading)) throw new Error("The family card selected a different person");
       await install(snapshots.chat, null);
-      if (phone) await page.getByRole("button", { name: "Expand task list" }).click();
+      if (phone) await page.getByRole("button", { name: "Journal · J" }).click();
       await shot("chat-task");
       await install(snapshots.public);
       await page.getByRole("button", { name: "Give a gift", exact: true }).click();

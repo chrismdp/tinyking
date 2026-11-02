@@ -283,6 +283,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         ground, camp: state.intro.campPoint
       });
     }
+    const fire=state.ecs.planner[id]?.world.byFire,at=state.ecs.spatial[fire];
+    models.poseFiresidePerson(object,state.ecs.personable[id],at && {x:at.x-25,y:at.y-10});
   };
 
   // Keep ordinary activity where it fits; the player and selected encounter
@@ -428,7 +430,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const rect = { left: 0, top: 65, right: width, bottom: height - 85 };
       // Read actual panels: phone task drawers cover the bottom, desktop the left.
       if (typeof document != "undefined") {
-        for (const selector of ["#task-panel", ".panel", "#opening-guidance"]) {
+        for (const selector of ["#status-strip", "#journal", ".panel", "#opening-guidance"]) {
           const panel = document.querySelector(selector)?.getBoundingClientRect();
           if (!panel || !panel.width || !panel.height) continue;
           if (panel.width > width * .65 && panel.top > height * .4) rect.bottom = Math.min(rect.bottom, panel.top - 12);

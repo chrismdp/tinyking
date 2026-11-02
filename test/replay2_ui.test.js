@@ -4,7 +4,7 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {GameState} from '../src/components/contexts';
 import {RequestCard} from '../src/components/favour_requests';
-import {TaskPanel} from '../src/components/task_panel';
+import {ActivityDetails} from '../src/components/status_strip';
 import {economy} from './support/economy';
 import {newEntities} from 'game/entities';
 import {enqueueTask} from 'game/manager';

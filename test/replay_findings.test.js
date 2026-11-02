@@ -15,9 +15,11 @@ import { Hex } from "game/hex";
 it("retires the exact approach when chat closes, even before another simulation frame",()=>{
   const {state:s,player:p,person:n,parent}=peopleWorld();
   s.ecs.spatial[p]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};
-  const first=enqueueTask(s,{key:"chat"},n),next=enqueueTask(s,{key:"chat"},parent);
+  const first=enqueueTask(s,{key:"chat"},n);
   first.assignedId=p;s.ecs.planner[p].world.currentJob="chat";
-  openChat(s,p,n);closeChat(s);
+  openChat(s,p,n);
+  const next=enqueueTask(s,{key:"chat"},parent);
+  closeChat(s);
   expect(s.ecs.manager[p].jobs).toEqual([next]);
   expect(s.ecs.planner[p].world.currentJob).toBeNull();
 });

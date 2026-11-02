@@ -418,11 +418,11 @@ export function house(ground, x, y, entrance, { playerOwned, selected, growthSta
 // --- People ------------------------------------------------------------------
 
 const personParts = new Map();
-const personGeometry = (size, body, hair) => {
-  const key = [size, body, hair].join(":");
+const personGeometry = (size, body, hair, sitting = false) => {
+  const key = [size, body, hair, sitting].join(":");
   if (!personParts.has(key)) {
     const radius = size * 0.36;
-    const length = size * 0.55;
+    const length = size * (sitting ? 0.15 : 0.55);
     const top = length + radius * 2;
     personParts.set(key, shared(mergeColoured([
       { geometry: new THREE.CapsuleGeometry(radius, length, 2, 6), colour: body, matrix: at(0, top / 2, 0) },
@@ -432,10 +432,20 @@ const personGeometry = (size, body, hair) => {
       // NOTE: a nose, so you can see which way they are facing
       { geometry: new THREE.BoxGeometry(size * 0.1, size * 0.1, size * 0.12), colour: COLOURS.skin,
         matrix: at(0, top + size * 0.2, size * 0.3) },
+      ...(sitting ? [-1,1].map(side=>({geometry:new THREE.CapsuleGeometry(size*.14,size*.5,2,6),colour:body,
+        matrix:at(side*size*.2,size*.14,size*.35,Math.PI/2)})) : []),
     ])));
   }
   return personParts.get(key);
 };
+
+// A seated silhouette keeps the fire pause visible in the world as well as the strip.
+export function poseFiresidePerson(object, person, fire) {
+  const mesh=object.getObjectByName("standing-figure"),figure=object.getObjectByName("figure");
+  if(!mesh || person.dead)return;
+  mesh.geometry=personGeometry(person.size,person.body,HAIR[person.hair],!!fire);
+  if(fire)figure.rotation.y=Math.atan2(fire.x-object.position.x,fire.y-object.position.z);
+}
 
 const ringGeometries = new Map();
 const ringGeometry = size => {

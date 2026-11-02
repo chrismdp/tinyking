@@ -37,7 +37,7 @@ export function biography(state, viewer, person, resolve = state.personName) {
       if (["commons_warning", "commons_report", "village_oath", "village_leave"].includes(e.type)) text = eventSentence(state, e, n).replace(/\.$/, "");
       if (e.type == "marriage") text = "Married " + n(other) + (village ? " in " + village : "") + " in " + when(e);
       if (e.type == "move") text = "Moved to " + (state.ecs.nameable?.[e.toHouse] ? n(e.toHouse) : "another home") + (village ? " in " + village : "") + " in " + when(e);
-      if (e.type == "world_move") text = "Settled in " + e.toWorld + " in " + when(e);
+      if (e.type == "world_move") text = "Settled in another region in " + when(e);
       if (e.type == "birth" && a != person) text = "Parent of " + n(a) + ", born in " + when(e);
       if (e.type == "birth" && a == person) text = "Born to " + e.people.slice(1).map(n).join(" and ") + " in " + when(e);
       if (e.type == "quarrel") text = "Fell out with " + n(other) + " in " + when(e);

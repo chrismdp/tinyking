@@ -107,7 +107,7 @@ it("plays in four to six real seconds with time, hunger, villagers and queues fr
   const before = { days: state.days, people: JSON.stringify(state.ecs.personable), planners: JSON.stringify(state.ecs.planner), managers: JSON.stringify(state.ecs.manager) };
   startIntro(state);
   const start = { ...state.ecs.spatial[state.ui.playerId] };
-  state.game_speed = "fast";
+  state.game_speed = "normal";
   simulation.step(1, 1.4);
   expect(state.ecs.spatial[state.ui.playerId]).not.toEqual(start);
   expect(state.intro.phase).toBe("walking");

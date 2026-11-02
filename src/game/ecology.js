@@ -23,6 +23,7 @@ export const BIOME_ECOLOGY = {
 
 // Keep replacement and woodland growth rates stable per season.
 for(const profile of Object.values(BIOME_ECOLOGY)) {
+  profile.forageDensity *= .15;
   profile.forageDays *= DAYS_IN_SEASON / 3;
   profile.seeding *= 3 / DAYS_IN_SEASON;
 }

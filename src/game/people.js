@@ -2,7 +2,7 @@ import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
 import { recoverSlots } from "game/chat_patience";
-import { FOODS } from "game/goods";
+import { FOODS, FOOD_TASTES } from "game/goods";
 import { recogniseConversation } from "game/guidance";
 import { isResident, personComponent } from "game/residents";
 import { knownEvents, learnEvent, closeFamily } from "game/events";
@@ -26,7 +26,10 @@ export function generatePersonality(generator) {
   const tastes = TRAIT_PAIRS.flat();
   const likes = Array.from({ length: 2 }, () => draw(generator, tastes));
   const dislikes = Array.from({ length: 2 }, () => draw(generator, tastes));
-  return { traits, likes, dislikes };
+  // Keep trait tastes unchanged: they are also used for every relationship score.
+  const foodLikes=FOODS.filter(food=>likes.includes(FOOD_TASTES[food]));
+  const foodDislikes=FOODS.filter(food=>dislikes.includes(FOOD_TASTES[food]));
+  return { traits, likes, dislikes, foodLikes, foodDislikes };
 }
 
 export const RINGS = ["public", "social", "personal", "intimate"];
@@ -325,7 +328,7 @@ export const DAILY_PATIENCE = { public: 2, social: 4, personal: 6, intimate: 8 }
 export const TALK_TIRED = "They've had enough of talking for today";
 export const SOCIAL_REQUIRED = "They need to trust you before sharing gossip";
 export const FOOD_TYPES = FOODS;
-const GIFT_VALUES = { forage: 2, grain: 3, gruel: 5, bread: 5, flour: 3, wood: 3, planks: 3 };
+const GIFT_VALUES = { roots:3, berries:3, forage: 2, grain: 3, gruel: 5, bread: 5, flour: 3, wood: 3, planks: 3 };
 const GIFT_TRAITS = { forage: "generous", grain: "hard-working", gruel: "cheerful", bread: "cheerful", flour: "hard-working", planks: "hard-working", wood: "hard-working" };
 
 export function trusts(state, personId, viewerId) {
@@ -423,8 +426,9 @@ export function askAbout(state, actorId, personId, aboutId) {
 
 export function giftGoodwill(state, actorId, personId, item) {
   const tastes = state.ecs.personality[personId];
-  const tags = [item.type, GIFT_TRAITS[item.type]];
-  const taste = tags.some(t => tastes.likes.includes(t)) ? 1.5 : tags.some(t => tastes.dislikes.includes(t)) ? 0.5 : 1;
+  const tag = FOOD_TASTES[item.type] || GIFT_TRAITS[item.type];
+  const taste = (tastes.foodLikes?.includes(item.type) || tastes.likes.includes(item.type)) ? 1.5 : (tastes.foodDislikes?.includes(item.type) || tastes.dislikes.includes(item.type)) ? 0.5 :
+    tastes.likes.includes(tag) ? 1.5 : tastes.dislikes.includes(tag) ? 0.5 : 1;
   const need = FOOD_TYPES.includes(item.type) && state.ecs.personable[personId].hunger > 0.9 ? 2 : 1;
   const feeling = { hate: 0.05, like: 1, love: 1.25 }[disposition(state, personId, actorId)];
   return (item.value ?? GIFT_VALUES[item.type] ?? 4) * taste * need * feeling;

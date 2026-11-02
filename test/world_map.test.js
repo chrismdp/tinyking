@@ -26,7 +26,7 @@ it("unmounts the map when closed; shows biome colours, known hexes, current posi
   expect(html).toContain("You are here");expect(html).toContain("grassland");
   expect(html).toContain("world-route");expect(html).toContain("2 seasons remain");
   expect(html).toContain("Village");expect(html).toContain("known-hex");
-  expect(html).toContain("Select Reach 7, 5");expect(html).toContain("Close world map");
+  expect(html).toContain("Select The region to the east");expect(html).toContain("Close world map");
   s.ecs.playable[s.ui.playerId].known=[];expect(render()).not.toContain(">Village<");
 });
 it("shows only actual recorded border roads, deduplicated in either direction",()=>{

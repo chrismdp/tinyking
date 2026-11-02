@@ -6,7 +6,7 @@ import { enqueueTask, cancelTask } from "game/manager";
 import { newEntities } from "game/entities";
 import { giftChoices } from "game/gift_choices";
 import { give } from "game/holder";
-import { TaskPanel } from "../src/components/task_panel";
+import { ActivityDetails } from "../src/components/status_strip";
 import { GameState } from "../src/components/contexts";
 import * as compound from "game/compound";
 import * as primitive from "game/primitive";
@@ -73,23 +73,22 @@ it("learns gossip and family names only after completing a queued visit", () => 
   expect(state.ecs.relationships[player].known[parent]).toBeUndefined();
 });
 
-it("feeds the player on request, displays an interruption and resumes partially finished queued work", () => {
+it("feeds the player on request and replaces partially finished work", () => {
   const { state, player, tiles, step } = peopleWorld();
   const task = enqueueTask(state, { key: "create_field" }, tiles[0]);
-  enqueueTask(state, { key: "move_to_here" }, tiles[5]);
   step(0.05);
   expect(task.progress).toBeGreaterThan(0);
   state.ecs.personable[player].energy = 20;
   const [meal]=newEntities(state,[{spatial:{...state.ecs.spatial[tiles[1]]},good:{type:"forage",amount:1},haulable:{},controllable:{controllerId:player}}]);
   enqueueTask(state,{key:"eat_food"},meal,{foodType:"forage"});
   step(0.1);
-  const html = renderToStaticMarkup(<GameState.Provider value={state}><TaskPanel/></GameState.Provider>);
+  const html = renderToStaticMarkup(<GameState.Provider value={state}><ActivityDetails/></GameState.Provider>);
   expect(html).toContain("Eat");
   expect(html).not.toContain("Stopped to eat");
-  expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["eat_food", "create_field", "move_to_here"]);
+  expect(state.ecs.manager[player].jobs.map(j => j.job.key)).toEqual(["eat_food"]);
   step(4);
   expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
-  expect(task.progress).toBe(1);
+  expect(task.progress).toBeLessThan(1);
   expect(state.ecs.manager[player].jobs).toEqual([]);
 });
 
@@ -125,7 +124,7 @@ it("can give a held item after walking away from where it was picked up", () => 
   expect(task.progress).toBe(1);
 });
 
-it("keeps a gift in hand through a meal interruption and resumes its delivery", () => {
+it("keeps a gift in hand when a meal replaces it and accepts a fresh delivery order", () => {
   const { state, player, person, tiles, step } = peopleWorld();
   const [item, food] = newEntities(state, ["wood", "forage"].map(type => ({ spatial: { ...state.ecs.spatial[tiles[0]] }, good: { type, amount: 1 }, haulable: {}, controllable: { controllerId: player } })));
   require("game/holder").give(state.ecs, food, player);
@@ -136,7 +135,11 @@ it("keeps a gift in hand through a meal interruption and resumes its delivery", 
   state.ecs.personable[player].energy = 20;
   enqueueTask(state,{key:"eat_food"},food,{foodType:"forage"});
   step(3);
-  expect(task.progress).toBe(1);
+  expect(state.ecs.controllable[item].controllerId).toBe(player);
+  const delivery=enqueueTask(state,{key:"give_gift"},person,{gift:task.gift,giftItem:item});
+  step(3);
+  expect(delivery.progress).toBe(1);
+  expect(task.progress).toBeLessThan(1);
   expect(state.ecs.controllable[item].controllerId).toBe(person);
   expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
 });
@@ -247,6 +250,6 @@ it("opens the next chat after cancelling a just-closed chat while paused",()=>{
   closeChat(s);s.game_speed="paused";
   cancelTask(s,first.id);
   enqueueTask(s,{key:"chat"},parent);
-  s.game_speed="fast";step(.1);
+  s.game_speed="normal";step(.1);
   expect(s.chat?.active?.npcId).toBe(parent);
 });

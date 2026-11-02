@@ -275,7 +275,7 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
     if(s.seasonTurn)require("game/seasons").finishSeasonTurn(s);
     const free = Math.floor(s.days) % 3 == 0 && s.days >= quietUntil;
     for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;
-    simulation.step(6);
+    simulation.step(10*(6), 0);
     if (s.ecs.planner[a].world.social?.stage == "outbound") travelled = true;
     if (!intimacy && canCourt(s, a, b)) {
       intimacy = s.days;

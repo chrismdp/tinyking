@@ -151,7 +151,7 @@ it("does not relocate an uncommanded hungry tired player for remote food or a be
 
 
 
-it("explicit food and rest orders allow physical self-care and complete without discarding other work", () => {
+it("explicit food, movement and rest complete as successive single orders", () => {
   const { state: s, player, tiles, step } = peopleWorld();
   const { newEntities } = require("game/entities");
   const [store] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[2]] }, container: { capacity: 10, amounts: { grain: 2 } }, controllable: { controllerId: player } }]);
@@ -159,8 +159,10 @@ it("explicit food and rest orders allow physical self-care and complete without 
   s.villages.village.sharedPlaces = [];
   s.ecs.personable[player].hunger = 1.2;
   const food = enqueueTask(s,{key:"eat_food"},store,{foodType:"grain"});
+  step(3);
+  expect(food.progress).toBe(1);
   const move = enqueueTask(s, { key: "move_to_here" }, tiles[4]);
-  step(5);
+  step(2);
   expect(s.ecs.container[store].amounts.grain).toBe(1);
   expect(food.progress).toBe(1); expect(move.progress).toBe(1);
   step(5); // Rest now spans the actual night, ending after dawn.

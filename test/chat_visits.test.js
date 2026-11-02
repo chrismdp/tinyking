@@ -51,7 +51,7 @@ it("lets a villager navigate to the player and open a reusable paused conversati
   until(w,()=>!!s.chat?.active);
   expect(s.ecs.spatial[w.person]).not.toEqual(before);expect(s.chat.active.initiatedBy).toBe(w.person);
   expect(s.chat.active.row.length).toBeGreaterThanOrEqual(2);expect(s.game_speed).toBe("paused");
-  chooseLine(s,chatChoices(s)[0].key);closeChat(s);expect(s.game_speed).toBe("fast");
+  chooseLine(s,chatChoices(s)[0].key);closeChat(s);expect(s.game_speed).toBe("normal");
   expect(s.ecs.planner[w.person].world.chatVisit).toBeUndefined();
 });
 it("does not open a villager-started chat through a blocked route or leave a completed contact",()=>{

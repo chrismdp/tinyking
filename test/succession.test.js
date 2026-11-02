@@ -118,7 +118,7 @@ it.each(["spouse","minor"])("continues after a shared lifecycle death as the act
   s.ecs.relationships[other].known[heir]={ring:"public",goodwill:-2,base:0};
   s.ecs.planner[heir].task=["walk_to",house];s.ecs.planner[heir].world.social={partnerId:other};
   const point={...s.ecs.spatial[heir]};s.days=DAYS_IN_SEASON-.001;Object.assign(s.ecs.personable[player],{age:87,lifeYears:36.75});
-  const sim=createSimulation(s);await sim.step(60);if(sim.pending)await sim.pending;
+  const sim=createSimulation(s);await sim.step(10*(60), 0);if(sim.pending)await sim.pending;
   expect(s.ecs.personable[player]).toMatchObject({dead:true,deathCause:"old age",heirId:heir});
   expect(s.ui.playerId).toBe(heir);expect(s.ecs.controllable[house].controllerId).toBe(heir);
   expect(s.ecs.possession[item].owners.map(o=>o.personId)).toEqual([player,heir]);

@@ -43,7 +43,7 @@ export const removeJob = (ecs, managerId, key, targetId) => {
   return null;
 };
 
-// Player orders use stable ids, including duplicate orders and future favours.
+// A new player order replaces the old one through the same cancellation rules.
 export function enqueueTask(state, job, targetId, metadata = {}) {
   if (!playerOrderAllowed(state, job.key)) return null;
   const manager = state.ecs.manager[state.ui.playerId];
@@ -59,8 +59,10 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
       return entry;
     }
   }
+  for (const previous of [...manager.jobs]) cancelTask(state, previous.id);
   manager.jobs.push(entry);
-  if(["rest","eat_food"].includes(job.key) && manager.jobs.length>1)reorderTask(state,entry.id,0);
+  delete state.ecs.planner[state.ui.playerId].world.fireHome;
+  delete state.ecs.planner[state.ui.playerId].world.byFire;
   if (manager.jobs.length == 1) {
     const planner = state.ecs.planner[state.ui.playerId];
     if (planner.world.stationaryPlayer && planner.task?.[0] == "wait_for" || !["eat_food", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);
@@ -92,15 +94,6 @@ function interruptOrder(state) {
   world.subtasks = null;
   planner.task = null;
   planner.plan = null;
-}
-
-export function reorderTask(state, taskId, index) {
-  const jobs = state.ecs.manager[state.ui.playerId].jobs;
-  const from = jobs.findIndex(j => j.id == taskId);
-  if (from < 0 || index < 0 || index >= jobs.length || from == index) return;
-  const [entry] = jobs.splice(from, 1);
-  jobs.splice(index, 0, entry);
-  if (from == 0 || index == 0 || entry.assignedId == state.ui.playerId) interruptOrder(state);
 }
 
 // Commodity gifts retain their physical identity while another order runs.
@@ -193,7 +186,7 @@ function reachableShelterLog(state, actorId) {
   return shelterLogSource(state, actorId, id => state.ecs.haulable?.[id]?.heldBy == actorId || canReachTask(state, actorId, id));
 }
 
-// Shared by queue readiness, runtime failure and the person sheet result.
+// Shared by order readiness, runtime failure and the person sheet result.
 export function chatUnfriendly(state, actor, target) {
   if(!state.ecs.personality?.[target])return null;
   const hate=disposition(state,target,actor)=="hate",regard=state.ecs.relationships?.[target]?.known[actor]?.goodwill||0;
@@ -234,7 +227,7 @@ export function expireChatApproach(state) {
   const actor=state.ui.playerId,jobs=state.ecs.manager?.[actor]?.jobs||[];
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
-  // A vanished person keeps the queue's own "Target gone" reason.
+  // A vanished person keeps the order's own "Target gone" reason.
   if(!job || !state.ecs.personable?.[job.targetId] || !state.ecs.spatial?.[job.targetId])return;
   job.approachAt ??= state.days;
   if(state.days-job.approachAt<1/24)return;
@@ -243,7 +236,7 @@ export function expireChatApproach(state) {
   failChatApproach(state,job,reason);
 }
 
-// Called at a free planner boundary. Queue order is priority among ready jobs.
+// Called at a free planner boundary. Only the current player order can become ready.
 export function readyPlayerTasks(state) {
   const id = state.ui.playerId;
   const planner = state.ecs.planner[id];
@@ -280,19 +273,19 @@ export function readyPlayerTasks(state) {
 
 // Runtime failures need a useful instruction even when the target still exists.
 // Keep these specific to the ordered activity; the planner retries after another
-// task or an explicit requeue, rather than leaving an unexplained failed order.
+// task or an explicit new order, rather than leaving an unexplained failed order.
 const retrySteps = {
   move_to_here: "Select nearby clear ground and choose Move here again.",
   forage: "Deliver or give away what you carry, then choose Forage again.",
-  cut_tree_down: "Deliver or give away what you carry, then queue Cut down again.",
-  build_shelter: "Select your shelter site and queue Build shelter again.",
+  cut_tree_down: "Deliver or give away what you carry, then choose Cut down again.",
+  build_shelter: "Select your shelter site and choose Build shelter again.",
   create_field: "Select unused grass near your home and choose Create field again.",
   create_stockpile: "Select unused grass and choose Create stockpile again.",
-  plough_field: "Let the other worker finish, then queue Plough again.",
-  sow_field: "Help with a harvest for seed grain, then queue Sow again.",
-  harvest_field: "Let the household use its stored crop, then queue Harvest again.",
-  tend_field: "Select your household field and queue Tend again.",
-  tend_garden: "Select a sown household garden and queue Help at home again.",
+  plough_field: "Let the other worker finish, then choose Plough again.",
+  sow_field: "Help with a harvest for seed grain, then choose Sow again.",
+  harvest_field: "Let the household use its stored crop, then choose Harvest again.",
+  tend_field: "Select your household field and choose Tend again.",
+  tend_garden: "Select a sown household garden and choose Help at home again.",
   rest: "Select your camp bedroll or completed shelter and choose Rest again.",
   travel: "Select a reachable map edge and choose Travel again.",
   favour: "Read the request's supply hint; gather its goods or cancel the favour.",
@@ -309,9 +302,9 @@ function runtimeWaiting(state, id, job) {
   const ecs=state.ecs,key=job.job.key,target=job.targetId;
   const holder=ecs.holder?.[id];
   if(holder && holder.held.length>=holder.capacity && ["forage","cut_tree_down","build_shelter","give_gift","harvest_field","sow_field"].includes(key))
-    return "Your hands are full. Deliver or give away carried goods, then queue this task again.";
+    return "Your hands are full. Deliver or give away carried goods, then choose this task again.";
   if(["plough_field","sow_field","harvest_field"].includes(key) && ecs.farmable?.[target]?.claimerId && ecs.farmable[target].claimerId!=id)
-    return "Another worker is using this field. Let them finish, then queue this field task again.";
+    return "Another worker is using this field. Let them finish, then choose this field task again.";
   const reason={
     forage:"The plant or carrying space changed", cut_tree_down:"The tree, carrying space or delivery route changed",
     build_shelter:"The site's materials or access changed", create_field:"This plot cannot be made into a field",

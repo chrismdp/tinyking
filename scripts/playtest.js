@@ -6,7 +6,7 @@
 //   click a villager to select it
 //   order Chat, Gift, Move here, Create Field, Create Stockpile and Cut down from
 //   the popups, and watch a villager walk to the Move here tile
-//   play on at fastest speed, checking villagers stay on the ground and the
+//   play on at normal speed, checking villagers stay on the ground and the
 //   orders get carried out, and logs are delivered to finish a lean-to
 //   resize the window, then open the debug worldgen page
 //   no console errors throughout
@@ -92,7 +92,7 @@ async function opening(page) {
       document.removeEventListener("click",observeStart);
       const s=window.tinyking,days=s.days,started=performance.now()/1000-s.intro.elapsed;
       const p={...s.ecs.spatial[s.ui.playerId]},needs=JSON.stringify(s.ecs.personable);
-      s.ui.actions.set_speed("fast");
+      s.ui.actions.set_speed("normal");
       s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},s.intro.tileIds.at(-1));
       s.ui.actions.select_entity(s.ui.playerId);
       const start={days,p,needs,noCamp:!Object.keys(s.ecs.camp||{}).length,
@@ -127,11 +127,16 @@ async function opening(page) {
 async function play(page, alreadyStarted=false) {
   const game = (fn, arg) => page.evaluate(fn, arg);
   const speed = async n => {
-    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed", "Fast speed"][n], exact: true });
+    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed"][n], exact: true });
     if (!await button.isDisabled()) await button.click({noWaitAfter:true});
-    await page.waitForFunction(index => window.tinyking.game_speed == ["paused", "normal", "fast"][index], n);
+    await page.waitForFunction(index => window.tinyking.game_speed == ["paused", "normal"][index], n);
   };
-  const [ PAUSE, NORMAL, FAST ] = [0, 1, 2];
+  const [ PAUSE, NORMAL ] = [0, 1];
+  const finishOrder = async () => {
+    await closePopup(); await speed(NORMAL);
+    await page.waitForFunction(()=>!window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length,null,{timeout:300000});
+    await speed(PAUSE);
+  };
   const shot = name => page.screenshot({ path: path.join(SHOTS, name) });
 
   const popupOpen = () => page.locator(".popper").evaluate(e => getComputedStyle(e).visibility == "visible");
@@ -288,7 +293,7 @@ async function play(page, alreadyStarted=false) {
       requestAnimationFrame(watch);
     },{personId:giftPerson,previousGiftEvents});
     await closePopup();
-    await speed(FAST);
+    await speed(NORMAL);
     await observeWork(page,()=>page.waitForFunction(() => window.giftDelivery, null, { timeout: 180000 }));
     const delivery = await page.evaluate(() => window.giftDelivery);
     await speed(PAUSE);
@@ -314,7 +319,7 @@ async function play(page, alreadyStarted=false) {
     await panTo(tree);
     if (!await orderOn([tree], "Cut down")) throw new Error("Could not queue real timber gathering");
     console.log("SETUP gift-only: actual Cut down order, no injected inventory or contact");
-    await closePopup(); await speed(FAST);
+    await closePopup(); await speed(NORMAL);
     await page.waitForFunction(() => !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length, null, { timeout: 180000 });
     await speed(PAUSE);
     await giveGift();
@@ -347,7 +352,8 @@ async function play(page, alreadyStarted=false) {
     const fresh = await targets();
     const firstSite = await orderOn(fresh.build, "Build shelter");
     if (!firstSite) throw new Error("No fresh lean-to site available");
-    await speed(FAST);
+    const firstBuild = await game(()=>window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0].targetId);
+    await speed(NORMAL);
     await page.waitForFunction(() => window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs[0]?.waiting == "Waiting for logs");
     await speed(PAUSE);
     const exploration = await discoverTimber(page, 4, async id => {
@@ -360,20 +366,13 @@ async function play(page, alreadyStarted=false) {
     for (const id of (await targets()).trees) {
       if (firstTimber >= 4) break;
       await panTo(id);
-      if (await orderOn([id], "Cut down")) firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id);
+      if (await orderOn([id], "Cut down")) { firstTimber += await game(id => window.tinyking.ecs.good[id].amount, id); await finishOrder(); }
     }
-    await closePopup();
-    await speed(NORMAL);
-    await page.waitForFunction(() => {
-      const s = window.tinyking;
-      return s.ecs.manager[s.ui.playerId].jobs[0]?.waiting == "Waiting for logs" && s.ecs.planner[s.ui.playerId].task?.[0] == "chop_tree";
-    }, null, { timeout: 30000 });
-    const waitingWhileChopping = await page.locator("#task-panel .task.waiting").innerText();
-    await speed(FAST);
-    await observeWork(page,()=>page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 }));
-    check("fresh build-first queue waits, chops explicitly ordered wood, and finishes the lean-to",
-      firstTimber >= 4 && waitingWhileChopping.includes("Waiting for logs") && await game(() =>
-        !window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.some(j => j.job.key == "build_shelter")));
+    await panTo(firstBuild);
+    if (!await orderOn([firstBuild], "Build shelter")) throw new Error("Could not restart the waiting build");
+    await finishOrder();
+    check("a waiting build is replaced by explicit chopping and finishes on a new build order",
+      firstTimber >= 4 && await game(() => Object.values(window.tinyking.ecs.shelter).some(h=>h.stage=="lean-to")));
 
     // Start fresh again so the original interaction checks keep their empty camp.
     await page.goto(playURL.href);
@@ -438,9 +437,11 @@ async function play(page, alreadyStarted=false) {
       for (const tree of trees) {
         await panTo(tree);
         if (!await orderOn([tree], "Cut down")) throw new Error("Could not explicitly cut designation tree " + tree);
-        await closePopup();
+        await closePopup(); await speed(NORMAL);
+        await page.waitForFunction(finishDesignationCuts, [tree], {timeout:180000});
+        await speed(PAUSE);
       }
-      await speed(FAST);
+      await speed(NORMAL);
       await page.waitForFunction(finishDesignationCuts, trees, {timeout: 180000});
       await speed(PAUSE);
       const after = await designationTerrain(page);
@@ -451,11 +452,11 @@ async function play(page, alreadyStarted=false) {
     // --- Orders from the popups (still paused) ------------------------------------------
     const t = await targets();
     const target = await orderOn(t.move, "Move here", () => shot("job-menu.png"));
-    check("clicking a tile opens its job menu, and Move here queues a job", target && (await queued()).includes("move_to_here"), { target });
+    check("clicking a tile opens its job menu, and Move here starts an order", target && (await queued()).includes("move_to_here"), { target });
 
-    check("a task appears in the task panel", await page.locator("#task-panel .task-title").first().innerText() == "Move here");
+    check("the current order appears in the status strip", (await page.locator("#status-strip .current-activity").innerText()) == "Move here");
     const person = await orderOn(t.person, "Chat");
-    check("Chat queues a personal task from the person panel", person && (await queued()).includes("chat"), { person });
+    check("Chat starts a personal order from the person panel", person && (await queued()).includes("chat"), { person });
     check("the person panel has no Recruit order", !(await page.locator(".people-sheet").innerText()).includes("Recruit"));
     await closePopup();
 
@@ -466,7 +467,8 @@ async function play(page, alreadyStarted=false) {
     check("Create Field, Create Stockpile and Cut down can be ordered from the popups",
       fieldTile && stockpileTile && tree, { fieldTile, stockpileTile, tree });
 
-    // --- Watch the Move here walk (at normal speed; at fast it is over in frames) ---
+    // --- Watch a fresh Move here order at normal speed ---
+    if (target) { await panTo(target); await orderOn([target], "Move here"); await closePopup(); }
     if (target) {
       await speed(NORMAL);
       let walk = null;
@@ -496,15 +498,21 @@ async function play(page, alreadyStarted=false) {
       await shot("arrived.png");
     }
     check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
+    await panTo(person); await orderOn([person], "Chat");
     await waitForChatPanel(page, person);
     const conversation = await finishChatPanel(page, person, {maxLines:1});
     check("Chat pauses the world, chosen lines make contact and End chat releases the panel",
       conversation.contact && conversation.selected.length && conversation.history.npcId == person,
       {person,lines:conversation.selected,pops:conversation.pops,contact:conversation.contact});
     await closeUp(page, game, "zoom-day.png");
+    // Each physical order completes before the next one is issued.
+    for (const [id,action] of [[fieldTile,"Create Field"],[stockpileTile,"Create Stockpile"],[tree,"Cut down"]]) {
+      await panTo(id); if (!await orderOn([id],action)) throw new Error("Could not restart "+action);
+      await finishOrder();
+    }
 
     // --- Play on ------------------------------------------------------------------------
-    await speed(FAST);
+    await speed(NORMAL);
     const sample = () => game(() => {
       const s = window.tinyking;
       const ground = s.renderer.ground;
@@ -547,8 +555,7 @@ async function play(page, alreadyStarted=false) {
     console.log("ground heights seen under villagers:", [...heights].sort((a, b) => a - b).join(" "));
     await shot("after.png");
 
-    // NOTE: the player works through the queue and sleeps at night, so a late
-    // order may still be waiting.
+    // Each order above ran separately through its real planner.
     const outcome = await game(([person, tree, fieldTile, stockpileTile]) => {
       const s = window.tinyking;
       const waiting = key => s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == key);
@@ -586,9 +593,10 @@ async function play(page, alreadyStarted=false) {
     for (const [id, action] of [["1368", "Move here"], ["1340", "Create Field"], ["1311", "Create Stockpile"], ["1679", "Cut down"]]) {
       await panTo(id);
       if (!await orderOn([id], action)) throw new Error("Failed later-case setup: " + action);
+      await finishOrder();
     }
     fieldTile = "1340"; stockpileTile = "1311";
-    await closePopup(); await speed(FAST);
+    await closePopup(); await speed(NORMAL);
     await page.waitForFunction(() => window.tinyking.days >= 2.915, null, { timeout: 180000 });
     await speed(PAUSE);
     const state = await snapshot(page);
@@ -611,7 +619,7 @@ async function play(page, alreadyStarted=false) {
     if (woodQueued >= 5) break;
     await panTo(id);
     const ordered = await orderOn([id], "Cut down");
-    if (ordered) woodQueued += await game(id => window.tinyking.ecs.good[id].amount, id);
+    if (ordered) { woodQueued += await game(id => window.tinyking.ecs.good[id].amount, id); await finishOrder(); }
   }
   const sites = buildTargets.build.filter(id => id != fieldTile && id != stockpileTile);
   if (sites[0]) await panTo(sites[0]);
@@ -629,7 +637,7 @@ async function play(page, alreadyStarted=false) {
   });
   const buildStarted = Date.now();
   const buildDay = await game(() => window.tinyking.days);
-  await speed(FAST);
+  await speed(NORMAL);
   if (siteTile) {
     await observeWork(page,()=>page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 }));
   }

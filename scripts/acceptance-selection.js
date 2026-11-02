@@ -46,8 +46,8 @@ function approachableCrop(s, field, home) {
   const farm=copy.ecs.farmable[field],points=triangleCenters(copy.ecs.spatial[field]);
   const store=copy.ecs.household[home]?.storeId || home;
   if(!copy.ecs.spatial[store])return false;
-  // Each cut returns home before the next patch. Use the same six-frame
-  // Fast quantum as the software-rendered browser, including its stopping distance.
+  // Each cut returns home before the next patch. Use a six-minute
+  // simulation step, including its stopping distance.
   const targets=farm.slots.flatMap((slot,i)=>["sown","harvestable"].includes(slot.state)?[{...points[i],id:field},store]:[]);
   for(const target of targets) {
     const world={places:{}};
@@ -89,9 +89,9 @@ async function chatState(page, person) {
       active:c && JSON.parse(JSON.stringify(c)), history:s.chat?.history?.at(-1), result:s.ui.talkResult };
   }, person);
 }
-// A queued approach is complete only when the paused panel is on screen.
+// A ordered approach is complete only when the paused panel is on screen.
 async function waitForChatPanel(page, person) {
-  await page.evaluate(() => window.tinyking.ui.actions.set_speed("fast"));
+  await page.evaluate(() => window.tinyking.ui.actions.set_speed("normal"));
   console.log("CHAT approach "+person);
   try {
     await page.waitForFunction(id => {
@@ -165,7 +165,7 @@ async function finishChatPanel(page, person, { acceptFavourId, onOpen, maxLines=
   }
 }
 async function waitForChatReadiness(page,person,{requireSlots=true}={}) {
-  await page.evaluate(()=>{window.chatCareAttempted={};window.chatCareOrders=[];window.tinyking.ui.actions.set_speed("fast");});
+  await page.evaluate(()=>{window.chatCareAttempted={};window.chatCareOrders=[];window.tinyking.ui.actions.set_speed("normal");});
   await page.waitForFunction(({id,requireSlots})=>{
     const s=window.tinyking,actor=s.ui.playerId;
     const needs=id=>{const f=s.ecs.planner[id].world.feeling;return f?.hungry || f?.tired;};
@@ -184,8 +184,6 @@ async function readyChat(page,person) {
 }
 async function chatVisit(page,person,options) {
   await readyChat(page,person);
-  // Preserve the existing handover ordering when other real work is queued.
-  await page.evaluate(id=>{const s=window.tinyking,jobs=s.ecs.manager[s.ui.playerId].jobs,visit=jobs.find(j=>j.job.key=="chat" && j.targetId==id);if(visit)s.ui.actions.reorder_task(visit.id,0);},person);
   await waitForChatPanel(page,person);
   return finishChatPanel(page,person,options);
 }
@@ -261,7 +259,7 @@ async function waitForOathReadiness(page,elder,villageId) {
   };
   const initial=await page.evaluate(observe,{elder,villageId});
   if(initial.readiness.ok)return {initial,orders:[],after:initial};
-  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+  await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
   await page.waitForFunction(({villageId})=>{
     const s=window.tinyking;
     if(!window.tinykingCustoms.oathEligibility(s,s.ui.playerId,villageId).readiness.ok)return false;
@@ -295,7 +293,7 @@ async function earnTimberRights(page,common) {
       if(!hasWood) {
         const timber=await page.evaluate(timberSurvey,[]);
         if(!timber.trees.length)throw new Error("No discovered permitted timber for an actual trust gift");
-        await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.choose_job(s.ui.playerId,{key:"cut_tree_down"},id);s.ui.actions.set_speed("fast");},timber.trees[0]);
+        await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.choose_job(s.ui.playerId,{key:"cut_tree_down"},id);s.ui.actions.set_speed("normal");},timber.trees[0]);
         await observeWork(page,()=>page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="cut_tree_down");},null,{timeout:180000}));
         await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.set_speed("paused");s.ui.actions.select_entity(id,false);},elder);
       }
@@ -304,7 +302,7 @@ async function earnTimberRights(page,common) {
       const count=await page.evaluate(id=>{const s=window.tinyking;return s.events.filter(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id).length;},elder);
       await page.getByRole("button",{name:"Give a gift",exact:true}).click({noWaitAfter:true});
       await page.locator(".talk-chooser > button").filter({hasText:/^Wood/}).first().click({noWaitAfter:true});
-      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
       await observeWork(page,()=>page.waitForFunction(({id,count})=>{const s=window.tinyking;return s.events.filter(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id).length>count;},{id:elder,count},{timeout:180000}));
       await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.set_speed("paused");s.ui.actions.select_entity(id,false);},elder);
       const proof=await page.evaluate(id=>{const s=window.tinyking,event=s.events.findLast(e=>e.type=="gift" && e.people[0]==s.ui.playerId && e.people[1]==id),a=event.positions[s.ui.playerId],b=event.positions[id];return {event,distance:Math.hypot(a.x-b.x,a.y-b.y),bond:s.ecs.relationships[id].known[s.ui.playerId]};},elder);
@@ -317,7 +315,7 @@ async function earnTimberRights(page,common) {
   await earnTrust();
   try {
     await page.getByText("Rights and obligations",{exact:true}).click();
-    // A queued approach can outlast readiness. Permit one explicit care and
+    // A ordered approach can outlast readiness. Permit one explicit care and
     // re-request after a native needs refusal, preserving that refusal below.
     for(let attempt=0;attempt<2;attempt++) {
       result.readiness.push(await waitForOathReadiness(page,elder,common.villageId));
@@ -325,7 +323,7 @@ async function earnTimberRights(page,common) {
       // trust through the same real Chat path before discussing the oath.
       await earnTrust();
       await page.getByRole("button",{name:"Chat about the local oath",exact:true}).click();
-      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+      await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
       await page.waitForFunction(id=>{
         const s=window.tinyking;
         const opened=s.chat?.active?.context?.kind=="oath" && s.chat.active.context.speakerId==id;
@@ -375,14 +373,14 @@ async function discoverTimber(page,required,move) {
     if(view.needs.energy<20 || view.needs.tiredness>.9) {
       const care=[];
       care.push("rest");
-      await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("fast");},care);
+      await page.evaluate(keys=>{const s=window.tinyking;for(const key of keys)s.ui.actions.choose_job(s.ui.playerId,{key},s.ui.playerId);s.ui.actions.set_speed("normal");},care);
       await page.waitForFunction(keys=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>keys.includes(j.job.key));},care,{timeout:180000});
       await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
       view.care=care;
     }
     if(move)await move(view.edge);
     else await page.evaluate(id=>{const s=window.tinyking;s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},id);},view.edge);
-    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
     await page.waitForFunction(()=>{const s=window.tinyking;return !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.job.key=="move_to_here");},null,{timeout:180000});
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     console.log("EXPLORE actual Move here to reachable known frontier "+view.edge+"; before "+view.logs+" permitted logs");
@@ -446,3 +444,27 @@ async function waitForCharacter(page) {
 }
 module.exports.waitForStartMenu=waitForStartMenu;
 module.exports.waitForCharacter=waitForCharacter;
+
+// Preparation uses explicit normal simulation ticks instead of a speed button.
+// Chat and the season page still stop time. No result or clock is assigned.
+async function advanceTime(page, minutes) {
+  return page.evaluate(async count => {
+    const s = window.tinyking;
+    s.ticker.stop();
+    const start = s.days;
+    try {
+      s.ui.actions.set_speed("normal");
+      const sim = window.tinykingSettlement.createSimulation(s);
+      let steps = 0;
+      while (steps < count && !s.chat?.active && !s.seasonTurn && s.game_speed == "normal") {
+        await sim.step(10, 0);
+        if (sim.pending) await sim.pending;
+        steps++;
+      }
+      await s.ui.actions.end_turn();
+      s.renderer?.frame();
+      return { start, end: s.days, steps, chat: !!s.chat?.active, seasonTurn: !!s.seasonTurn };
+    } finally { s.ticker.start(); }
+  }, minutes);
+}
+module.exports.advanceTime = advanceTime;

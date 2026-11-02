@@ -305,10 +305,11 @@ export function forage(state, actorId, world, dt, firstRun, target) {
   const [food] = newEntities(state, [{
     spatial: { ...state.ecs.spatial[actorId] },
     nameable: { nickname: plant.kind == "berries" ? "Berries" : "Roots" },
-    good: { type: "forage", amount: 1 }, haulable: {},
+    good: { type: plant.kind, amount: 1 }, haulable: {},
     controllable: { controllerId: topController(state.ecs, actorId) }
   }]);
   give(state.ecs, food, actorId);
+  world.forageType=plant.kind;
   const order = world.ordered && jobQueueFor(state.ecs, actorId).find(j => j.assignedId == actorId && j.job.key == "forage");
   if (order) { order.gathered = [food]; order.gatheredDone = true; order.detail = "Carrying food to camp"; }
   state.redraws.push(actorId, targetId);
@@ -758,9 +759,12 @@ const SLEEP_REPLENISH = 3 * 1.3333;
 export function sleep(state, actorId, world, dt, firstRun) {
   const person=state.ecs.personable[actorId];
   if(Number.isFinite(person.energy)) {
+    delete world.fireHome;delete world.byFire;
     const home=world.journeyCamp ? world.places.sleep : world.restBed || world.restHome || world.places.sleep;
     const bed=state.ecs.sleepable?.[home];
     if(firstRun || world.sleepStart==null) {
+      // A new Rest cannot inherit the dawn target of a cancelled sleep.
+      if(firstRun)delete world.sleepDawn;
       world.sleepStart=state.days;world.sleepHours=0;
       const hour=state.days%1*24,late=hour<6?hour+2:Math.max(0,hour-22);
       world.sleepCeiling=person.collapsed?55:Math.max(55,100-late*7);
@@ -772,8 +776,9 @@ export function sleep(state, actorId, world, dt, firstRun) {
     person.tiredness=Math.max(.1,person.tiredness-dt*SLEEP_REPLENISH);
     world.sleepHours+=dt*24;
     const hour=state.days%1*24;
-    if(world.sleepHours<6 || hour<6 || hour>=21)return Task.CONTINUE;
-    delete world.sleepStart;delete world.forcedRest;delete person.collapsed;
+    if(world.sleepDawn != null ? state.days < world.sleepDawn - 1e-9 : world.sleepHours<6 || hour<6 || hour>=18)return Task.CONTINUE;
+    delete world.sleepDawn;
+    delete world.sleepStart;delete world.forcedRest;delete world.restCamp;delete person.collapsed;
     return Task.FINISH;
   }
   enterHome(state, actorId, world.places.sleep);
@@ -782,7 +787,11 @@ export function sleep(state, actorId, world, dt, firstRun) {
   return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
 }
 
-export function settle_fire() {}
+export function settle_fire(state,actorId,world) {
+  leaveHome(state,actorId);
+  world.byFire=world.fireHome || world.places.sleep;
+  return Task.CONTINUE;
+}
 export function eat_food(state,actorId,world,dt,firstRun,source,type) {
   if(firstRun){
     if(!eatOwnedFood(state,source,type))return Task.ABORT;
@@ -863,7 +872,7 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
       for(const type of FOODS)if(find_place(state,actorId,lookup,0,true,"meal",filter,type)!=Task.ABORT){search.source=lookup.places.meal;search.kind=kind;search.type=type;break;}
       if(search.source)break;
     }
-    if(!search.source && find_place(state,actorId,lookup,0,true,"meal","forage_plant")!=Task.ABORT){search.source=lookup.places.meal;search.kind="forage";search.type="forage";}
+    if(!search.source && find_place(state,actorId,lookup,0,true,"meal","forage_plant")!=Task.ABORT){search.source=lookup.places.meal;search.kind="forage";search.type=ecs.forageable[search.source.id || search.source].kind;}
     if(!search.source)return unavailable(Object.keys(search.rejected).length ? "Food was found, but its walking route or access is blocked. Move here onto nearby clear ground, then choose Find food again; remaining wild roots are public food." : "No accessible meal was found. Choose Move here at the edge of explored ground to look for wild roots. Remaining roots can be gathered in winter; depleted plants regrow in spring.");
     search.phase="walk";search.beginWalk=true;
   }
@@ -887,6 +896,7 @@ export function meal_unavailable() { return Task.ABORT; }
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
   if(thing=="meal")thing=world.mealType;
+  if(thing=="forage" && !world.holding.forage)thing=world.forageType || thing;
   if (firstRun) {
     const holder = state.ecs.holder[actorId];
     const id = holder.held.find(e => state.ecs.good[e]?.type == thing && (!state.ecs.controllable[e] || householdAccess(state.ecs, actorId, e)));
@@ -1189,7 +1199,7 @@ export function end_visit() {}
 
 
 // An accepted favour advances through ordinary walking, collection, crop work
-// and household storage. Persistent cargo IDs survive meals and reordered work.
+// and household storage. Persistent cargo IDs survive meals and other work.
 export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   const ecs = state.ecs, r = state.favours?.requests[requestId];
   if (firstRun && r) r.working = false;
@@ -1422,7 +1432,7 @@ export function customs_visit(state, actorId, world, dt) {
   return Task.CONTINUE;
 }
 
-// One ordered field visit retains real slot work across meals and queue changes.
+// One ordered field visit retains real slot work across breaks and new orders.
 export function work_field(state, actorId, world, dt, firstRun, field, key) {
   const ecs=state.ecs, farm=ecs.farmable?.[field];
   if(!ownsField(state,actorId,field))return Task.ABORT;

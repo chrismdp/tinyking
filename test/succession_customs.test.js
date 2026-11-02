@@ -23,7 +23,7 @@ function fixture() {
   const [tree,ownTree]=newEntities(s,[near,ownNear].map(id=>({spatial:{...s.ecs.spatial[id],immovable:true},tree:{},good:{type:"wood",amount:10}})));
   s.ecs.spatial[a]={...s.ecs.spatial[near],id:a};
   const sim=createSimulation(s);
-  const until=predicate=>{for(let n=0;n<1200&&!predicate();n++)sim.step(1);expect(predicate()).toBeTruthy();};
+  const until=predicate=>{for(let n=0;n<1200&&!predicate();n++)sim.step(10*(1), 0);expect(predicate()).toBeTruthy();};
   const succeed=async()=>{s.game_speed="paused";s.days=3;Object.assign(s.ecs.personable[a],{age:87,lifeYears:36.75});advanceSeason(s,1);await resolveSuccession(s);};
   return {s,a,b,c,tree,ownTree,until,succeed};
 }

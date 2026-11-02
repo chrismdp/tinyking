@@ -54,7 +54,7 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
       const layout = async label => {
         const data = await page.evaluate(() => {
           const bounds = el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
-          const panel = document.querySelector(".people-sheet") || document.querySelector("#task-panel");
+          const panel = document.querySelector(".people-sheet") || document.querySelector("#journal") || document.querySelector("#status-strip");
           const feed = document.querySelector(".event-feed"), speed = document.querySelector("#speed-controls");
           const a = bounds(panel), b = bounds(feed), c = bounds(speed);
           const intersects = (a, b) => a.x < b.right && a.right > b.x && a.y < b.bottom && a.bottom > b.y;
@@ -79,9 +79,9 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
       await page.locator(".person-window").waitFor(); await shot("visit-selected");
       await press(page.locator(".person-window .sheet-close"));
       // Physical discovery of task expansion, news disclosure and accessible speed buttons.
-      await press(page.getByRole("button", { name: phone ? "Expand task list" : "Collapse task list", exact: true }));
+      await press(page.getByRole("button", { name: phone ? "Journal · J" : "Close journal", exact: true }));
       await press(page.locator(".event-feed summary")); await layout("tasks-news-expanded"); await shot("visit-expanded");
-      await press(page.getByRole("button", { name: "Normal speed", exact: true }));
+      await press(page.locator("#speed-controls").getByRole("button", { name: "Normal speed", exact: true }));
       await press(page.getByRole("button", { name: "Pause", exact: true }));
       await press(page.locator(".event-feed summary"));
       await install(heard, person);

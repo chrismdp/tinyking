@@ -8,7 +8,7 @@ export function friendEligible(s, id) {
   return id != player && person && !person.dead && person.age >= 18 && person.hunger <= .9 && person.tiredness <= .9 &&
     ["personal", "intimate"].includes(ecs.relationships?.[id]?.known[player]?.ring);
 }
-// One extra pair of hands per site. The player keeps their queue; the helper
+// One extra pair of hands per site. The player keeps their current order; the helper
 // keeps their own household, controller and planner. Household needs/work win.
 export function friendWork(s, id) {
   if (!friendEligible(s, id)) return null;

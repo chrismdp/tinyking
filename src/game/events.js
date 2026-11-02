@@ -131,7 +131,8 @@ export function eventText(state, event, displayName, wording="sentence") {
   const village=state.villages?.[event.villageId]?.name;
   const toVillage=state.villages?.[event.toVillage]?.name;
   const item=(event.items||[]).map(id=>state.ecs.possession?.[id]?.name || event.gifts?.find(g=>g.id==id)?.type || state.ecs.good?.[id]?.type || state.ecs.nameable?.[id]?.nickname || "an item").join(", ");
-  const values={...event,a:n(a),b:n(b),c:n(event.people[2]),building:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill"})[event.kind]||event.kind,village:village||"a settlement",village_suffix:village?" in "+village:"",
+  const region=value=>/^-?\d+\s*,\s*-?\d+$/.test(String(value)) ? "another region" : value || "another region";
+  const values={...event,toWorld:region(event.toWorld),fromWorld:region(event.fromWorld),worldHex:region(event.worldHex),a:n(a),b:n(b),c:n(event.people[2]),building:({smith:"forge",carpenter:"workshop",weaver:"weaving shed",baker:"bakehouse",tanner:"tan-yard",miller:"mill"})[event.kind]||event.kind,village:village||"a settlement",village_suffix:village?" in "+village:"",
     parents:event.people.slice(1).map(n).join(" and "),gift_item:item||"a gift",estate:item||"the household",
     to_house:n(event.toHouse),to_village_suffix:toVillage?" in "+toVillage:"",cause_suffix:event.cause?" of "+event.cause:"",
     journey_reason:event.reason?" · "+event.reason:" · one season on the road",fire_place:event.place?" at "+n(event.place):"",

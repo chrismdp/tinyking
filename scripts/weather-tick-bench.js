@@ -10,7 +10,7 @@ const { updateWeather } = require("../src/game/weather");
 const { HOUR } = require("../src/game/time");
 
 (async () => {
-  const state = { ecs: { nextId: 1 }, ui: {}, days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, ui: {}, days: 0.375, game_speed: "normal" };
   const result = await generateMap(state, 13, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
@@ -27,7 +27,7 @@ const { HOUR } = require("../src/game/time");
     const copy = structuredClone(state);
     const simulation = factory(copy);
     const start = performance.now();
-    for (let i = 0; i < 2000; i++) simulation.step(60.0001);
+    for (let i = 0; i < 2000; i++) simulation.step(10*(60.0001), 0);
     return (performance.now() - start) / 2000;
   };
   // Warm the topology, fields and JIT before measuring.

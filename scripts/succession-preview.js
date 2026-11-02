@@ -27,7 +27,7 @@ const url=process.argv[2]||"http://localhost:8116/";
     await page.evaluate(({a,b})=>{const s=window.tinyking;const p=s.ecs.spatial[b];Object.assign(s.ecs.spatial[a],{x:p.x+100,y:p.y});s.renderer.recenter();s.ui.actions.select_entity(b,false);},{a,b});
     const frame=async (label,focus)=>{for(const [device,width,height] of [["desktop",1440,900],["phone",390,664]]){await page.setViewportSize({width,height});await page.waitForTimeout(250);if(focus)await page.getByRole("button",{name:focus,exact:true}).click();const file=label+"-"+device+".png";await page.screenshot({path:path.join(out,file)});report.frames.push({file,...await page.evaluate(()=>{const s=window.tinyking;return {day:s.days,playerId:s.ui.playerId,selected:s.ui.show.selected_person,tasks:s.ecs.manager[s.ui.playerId].jobs,latest:s.events.filter(e=>e.day>=0).slice(-5)};})});}fs.writeFileSync(path.join(out,"preview.json"),JSON.stringify(report,null,2));};
     await frame("01-before-court");
-    await page.getByRole("button",{name:"Court",exact:true}).click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.getByRole("button",{name:"Court",exact:true}).click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
     await page.waitForFunction(({a,b})=>window.tinyking.knowledge?.[a]?.people?.[b]?.conversation,{a,b});
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     report.court=await page.evaluate(({a,b})=>({outgoing:window.tinyking.ecs.relationships[a].known[b],incoming:window.tinyking.ecs.relationships[b].known[a],result:window.tinyking.ui.talkResult}),{a,b});
@@ -42,7 +42,7 @@ const url=process.argv[2]||"http://localhost:8116/";
       const space=Object.values(s.space).find(ids=>ids.includes(site));space.push(id);
       s.ecs.household[a].houseId=id;s.redraws.push(id);
       for(const [x,y]of [[a,b],[b,a]])s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66};s.ui.actions.end_turn();},{a,b,site});
-    await page.getByRole("button",{name:"Ask to marry",exact:true}).click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.getByRole("button",{name:"Ask to marry",exact:true}).click();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
     await page.waitForFunction(({a,b})=>window.tinyking.ecs.kinship[a].spouse==b,{a,b});await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     await frame("03-wedding");
     await page.getByRole("button",{name:/Open family tree/}).click();await frame("04-family");
@@ -51,8 +51,8 @@ const url=process.argv[2]||"http://localhost:8116/";
     await frame("04b-household-owner","Owner");await frame("04c-household-heir","Heir");
     if(!process.argv.includes("--family-only")) {
       await page.getByRole("button",{name:"Close family tree"}).click();
-      report.setup.push("One just-before-old-age setup: player lifeYears 36.75, age 87, day 2.999. Fast then crosses the real season; no die() call.");
-      await page.evaluate(({a})=>{const s=window.tinyking;Object.assign(s.ecs.personable[a],{lifeYears:36.75,age:87});s.days=2.999;s.social.lastSeason=0;for(const p of Object.values(s.ecs.planner))p.world.days=s.days;s.ui.actions.set_speed("fast");},{a});
+      report.setup.push("One just-before-old-age setup: player lifeYears 36.75, age 87, day 2.999. Normal then crosses the real season; no die() call.");
+      await page.evaluate(({a})=>{const s=window.tinyking;Object.assign(s.ecs.personable[a],{lifeYears:36.75,age:87});s.days=2.999;s.social.lastSeason=0;for(const p of Object.values(s.ecs.planner))p.world.days=s.days;s.ui.actions.set_speed("normal");},{a});
       await page.waitForFunction(a=>window.tinyking.ui.playerId!=a&&!window.tinyking.worldBusy,a);
       assert.equal(await page.evaluate(()=>window.tinyking.ui.playerId),b);await frame("05-natural-successor");
     }

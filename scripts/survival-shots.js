@@ -18,7 +18,7 @@ const URL = process.argv[2] || "http://localhost:8098/";
 const SHOTS = path.resolve(__dirname, "../shots");
 
 async function world(seed) {
-  const state = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "fast" };
+  const state = { ecs: { nextId: 1 }, ui: { show: {} }, redraws: [], days: 0.375, game_speed: "normal" };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
@@ -39,7 +39,7 @@ const snapshot = state => structuredClone({ ecs: state.ecs, days: state.days, pl
   const simulation = createSimulation(feeding);
   let plant;
   for (let frame = 0; frame < 1200; frame++) {
-    simulation.step(1);
+    simulation.step(10*(1), 0);
     const p = feeding.ecs.planner[actor];
     if (p.task && p.task[0] == "forage") {
       plant = p.world.places[p.task[1]] || p.task[1];
@@ -54,13 +54,13 @@ const snapshot = state => structuredClone({ ecs: state.ecs, days: state.days, pl
   walk_to(pristineState, actor, walk, 0.001, true, home);
   for (let frame = 0; frame < 30; frame++) walk_to(pristineState, actor, walk, 0.001, false, home);
   const pristine = snapshot(pristineState);
-  for (let frame = 0; feeding.ecs.forageable[plant].amount && frame < 300; frame++) simulation.step(1);
+  for (let frame = 0; feeding.ecs.forageable[plant].amount && frame < 300; frame++) simulation.step(10*(1), 0);
   assert.equal(feeding.ecs.forageable[plant].amount, 0);
   for (let frame = 0; frame < 240; frame++) {
     const a = feeding.ecs.spatial[actor];
     const p = feeding.ecs.spatial[plant];
     if (Math.hypot(a.x - p.x, a.y - p.y) > 45) break;
-    simulation.step(1);
+    simulation.step(10*(1), 0);
   }
   const after = snapshot(feeding);
 

@@ -96,9 +96,9 @@ it.each(["camp", "bed", "shelter"])("Rest restores energy using an accessible %s
   const {state:s,villager:id,tiles}=world();
   const [bed]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[1]]},...(kind=="camp"?{camp:{}}:kind=="shelter"?{shelter:{stage:"lean-to"}}:{building:{rooms:[]}}),controllable:{controllerId:id},sleepable:{capacity:1,level:kind=="camp"?0:1,occupiers:[]}}]);
   s.ecs.household={[id]:{houseId:bed}};s.ecs.personable[id].energy=0;
-  enqueueTask(s,{key:"rest"},id);s.game_speed="fast";
+  enqueueTask(s,{key:"rest"},id);s.game_speed="normal";
   const sim=createSimulation(s);let slept=false;
-  for(let i=0;i<24*60 && s.ecs.manager[id].jobs.length;i++){sim.step(1);slept ||= s.ecs.planner[id].task?.[0]=="sleep";}
+  for(let i=0;i<24*60 && s.ecs.manager[id].jobs.length;i++){sim.step(10*(1), 0);slept ||= s.ecs.planner[id].task?.[0]=="sleep";}
   expect(slept).toBe(true);expect(s.ecs.planner[id].world.places.sleep).toBe(bed);
   expect(s.ecs.personable[id].energy).toBeGreaterThan(40);expect(careSpeed(s.ecs.personable[id])).toBe(1);
 });

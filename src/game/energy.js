@@ -1,6 +1,6 @@
-import { FOODS } from "game/goods";
+import { FOODS, FOOD_ENERGY } from "game/goods";
 import { householdAccess } from "game/playable";
-import { deliveryHome } from "game/construction";
+import { localHome } from "game/construction";
 import { squaredDistance } from "game/math";
 import { deleteEntity } from "game/entities";
 import { take } from "game/holder";
@@ -28,7 +28,6 @@ export function ensureEnergy(s) {
   if(jobs)for(let i=jobs.length-1;i>=0;i--)if(jobs[i].job.key=="find_food")jobs.splice(i,1);
 }
 export function workBlocked(s) {
-  if(!daylight(s.days))return "Too dark to work · resumes at dawn";
   if(s.ecs.personable[s.ui.playerId]?.energy<=0)return "No energy for work · eat or sleep";
   return null;
 }
@@ -45,19 +44,31 @@ export function playerDay(s) {
   ensureEnergy(s);
   const a=s.ui?.playerId,e=s.ecs,p=e.planner?.[a],person=e.personable?.[a];
   if(!p?.world.ordered || !Number.isFinite(person?.energy) || person.dead)return;
-  const w=p.world,night=Math.floor(s.days-6/24),hour=s.days%1*24;
+  const w=p.world,hour=s.days%1*24;
   const job=e.manager[a]?.jobs.find(j=>j.assignedId==a);
   if(job && physicalOrder(job.job.key) && workBlocked(s))pauseWork(s);
-  w.restHome=deliveryHome(s,a);
+  w.restHome=e.camp?.[w.restCamp] ? w.restCamp : localHome(s,a);
   w.restBed=e.sleepable?.[w.restHome]?w.restHome:Object.keys(e.sleepable || {}).find(id=>householdAccess(e,a,id) && (e.interior?.[id]?.buildingId==w.restHome || e.building?.[w.restHome]?.rooms?.includes(id)));
-  // Once each evening, physically return home. Later evening visits remain free.
-  if(!s.travel?.journey && (hour>=18 || hour<6) && w.returnedNight!==night && !w.currentJob && p.task?.[0]!="sleep" && w.currentJob!="rest") {
-    w.duskHome=w.restHome;
-    if(w.duskHome){w.returnedNight=night;p.task=null;p.plan=null;}
+  // Old saves may still have a compulsory dusk return queued.
+  if(w.duskHome) {delete w.duskHome;p.task=null;p.plan=null;}
+  if(person.energy>0) {
+    delete w.energyEmpty;
+    if(w.fireHome || w.byFire) {delete w.fireHome;delete w.byFire;p.task=null;p.plan=null;}
   }
-  if(daylight(s.days))delete w.duskHome;
+  const talking=s.chat?.active || w.capturedBy || w.capturedAttentionOf ||
+    ["chat","ask_about","court","marry","play","invite_home","give_gift"].includes(w.currentJob);
+  const resting=p.task?.[0]=="sleep" || w.currentJob=="rest" || w.forcedRest;
+  if(!talking && !resting && w.currentJob!="eat_food") {
+    // A single return per exhaustion leaves later deliberate visits available.
+    if(person.energy<=0 && !w.energyEmpty && !s.travel?.journey && w.restHome) {
+      pauseWork(s);w.energyEmpty=true;w.fireHome=w.restHome;
+    }
+    if(hour>=23 || hour<6) {
+      pauseWork(s);w.forcedRest=true;delete w.fireHome;delete w.byFire;
+    }
+  }
   // A second missed night can end in collapse; ordinary rest is always explicit.
-  if(person.tiredness>1.8 && !w.forcedRest && p.task?.[0]!="sleep") {
+  if(!talking && person.tiredness>1.8 && !w.forcedRest && p.task?.[0]!="sleep") {
     if(job)pauseWork(s);
     person.collapsed=true;w.forcedRest=true;p.task=null;p.plan=null;
     s.ui.dayMessage="You collapsed from a missed night. Tomorrow starts with less energy.";
@@ -78,6 +89,6 @@ export function eatOwnedFood(s, source, type) {
   if(choice.stored)e.container[source].amounts[type]--;
   else if(e.good[source].amount>1)e.good[source].amount--;
   else {if(e.haulable?.[source]?.heldBy)take(e,source);deleteEntity(s,source);}
-  const p=e.personable[a];p.energy=Math.min(MAX_ENERGY,(p.energy || 0)+MEAL_ENERGY);
+  const p=e.personable[a];p.energy=Math.min(MAX_ENERGY,(p.energy || 0)+(FOOD_ENERGY[type] ?? MEAL_ENERGY));
   return true;
 }

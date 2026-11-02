@@ -220,9 +220,9 @@ it("ordinary active seasons catch up off-screen residents exactly once and auton
   const sim = createSimulation(s);
   let walked = false;
   for (let i = 0; s.days < 4*DAYS_IN_SEASON+.1 && i < 12000; i++) {
-    sim.step(6);
+    sim.step(10*(6), 0);
     if (sim.pending) await sim.pending;
-    if (s.seasonTurn) {require("game/seasons").finishSeasonTurn(s);s.game_speed="fast";}
+    if (s.seasonTurn) {require("game/seasons").finishSeasonTurn(s);s.game_speed="normal";}
     if (s.ecs.planner[id]?.task?.[0] === "leave_edge") walked = true;
   }
   expect(s.days).toBeGreaterThan(4*DAYS_IN_SEASON);
@@ -332,9 +332,9 @@ it("an isolated related village seeks an unrelated community; returning NPCs wal
     ...s.ecs.spatial[id]
   };
   const sim = createSimulation(s);
-  sim.step(6);
+  sim.step(10*(6), 0);
   if (sim.pending) await sim.pending;
-  sim.step(6);
+  sim.step(10*(6), 0);
   expect(s.ecs.spatial[id]).not.toEqual(before);
   expect(s.ecs.kinship[id].parents).toEqual(["shared-parent"]);
   expect(related(s, id, sibling)).toBe(true);
@@ -521,7 +521,7 @@ it("eats genuine owned food from full working hands after player arrival; the he
   require("game/manager").enqueueTask(s,{key:"eat_food"},food,{foodType:"grain"});
   const sim = createSimulation(s);
   for (let i = 0; i < 30; i++) {
-    sim.step(6);
+    sim.step(10*(6), 0);
     if (sim.pending) await sim.pending;
   }
   expect(s.ecs.personable[id].energy).toBeGreaterThan(20);
@@ -640,7 +640,7 @@ it("a departing family head leaves local relatives with an executable independen
   });
   expect(s.ecs.controllable[relative].controllerId).toBe(relative);
   const sim = createSimulation(s);
-  expect(() => sim.step(6)).not.toThrow();
+  expect(() => sim.step(10*(6), 0)).not.toThrow();
   expect(s.ecs.controllable[a.house].controllerId).toBe(id);
 });
 it("finishes the physical edge crossing before a hunger-triggered replan can pathfind from off-map", () => {
@@ -674,7 +674,7 @@ it("finishes the physical edge crossing before a hunger-triggered replan can pat
   p.plan = [];
   s.ecs.personable[id].hunger = 1;
   const sim = createSimulation(s);
-  expect(() => sim.step(6)).not.toThrow();
+  expect(() => sim.step(10*(6), 0)).not.toThrow();
   expect(s.travel.transit.some(t => t.bundle.id === id)).toBe(true);
 });
 it("cancels local promises added during the departure walk at the actual edge, releasing borrowed cargo before crossing", () => {
@@ -761,7 +761,7 @@ it("cancels local promises added during the departure walk at the actual edge, r
   p.world.currentJob = "travel";
   p.plan = [["leave_edge", tile, travel]];
   const sim = createSimulation(s);
-  sim.step(6);
+  sim.step(10*(6), 0);
   expect(s.favours.requests.late.status).toBe("cancelled");
   expect(s.ecs.haulable[crop].heldBy).toBeFalsy();
   expect(s.ecs.controllable[crop].controllerId).toBe(a.ids[1]);

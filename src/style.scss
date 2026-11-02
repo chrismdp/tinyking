@@ -603,60 +603,6 @@ hr {
   margin: 5px 0;
   text-transform: none;
 }
-
-
-// Arrival HUD follows section 01 of the arrival study.
-#task-panel {
-  pointer-events: auto;
-  position: absolute;
-  left: calc(25px + var(--safe-left));
-  top: calc(23px + var(--safe-top));
-  width: 342px;
-  max-height: calc(100vh - 46px);
-  max-height: calc(100svh - 46px - var(--safe-top) - var(--safe-bottom));
-  display: flex;
-  flex-direction: column;
-  color: #f7f1e7;
-  background: #453a3d;
-  border: 1px solid #78686b;
-  border-radius: 5px;
-  box-shadow: 8px 12px 25px #0005;
-  font-size: 17px;
-  header { display: flex; align-items: center; gap: 10px; padding: 8px 10px 7px 15px; border-bottom: 1px solid #65575b; background: #4a3e42; }
-  h3 { margin: 0; flex: 1; font-size: 24px; }
-  .micro { font: 10px Raleway, sans-serif; color: #d2c5c2; white-space: nowrap; }
-  button { padding: 0; background: transparent; color: #dfd0cf; font: 22px Georgia, serif; min-width: 28px; min-height: 30px; }
-  button:disabled { opacity: 0.25; }
-  header, footer { flex-shrink: 0; }
-  .task-body { min-height: 0; overflow: auto; touch-action: pan-y; }
-  .hunger { padding: 8px 15px 9px; background: #382f32; border-bottom: 1px solid #65575b; }
-  .hunger-line { display: flex; justify-content: space-between; font-size: 15px; color: #e2c879; }
-  .meter { height: 5px; border-radius: 5px; background: #241f23; overflow: hidden; margin-top: 7px; }
-  .meter span { height: 100%; display: block; background: #e2c879; border-radius: 5px; }
-  small { display: block; color: #d2c5c2; font-size: 12px; line-height: 1.4; }
-  .queue { list-style: none; margin: 0; padding: 0; }
-  .task { display: grid; grid-template-columns: 20px minmax(0, 1fr) 40px; gap: 6px; padding: 7px 12px; border-bottom: 1px solid #65575b; }
-  .task.current { background: #393e35; border-left: 3px solid #a6b88c; padding-left: 9px; }
-  .task.waiting { background: #382f32; }
-  .task.waiting .task-content, .task.waiting .grip { opacity: 0.65; }
-  .task-waiting { color: #e2c879; }
-  .grip { font: 15px sans-serif; color: #c3b7b6; align-self: center; cursor: grab; text-align: center; }
-  .grip.play { font-size: 11px; color: #bdd3a8; align-self: start; margin-top: 6px; }
-  .task-title { font-size: 17px; line-height: 1.1; }
-  .task small, .task-credit { font-size: 12px; margin-top: 2px; }
-  .task-credit { color: #a8d6c5; }
-  .task-progress { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px; font-size: 12px; color: #d1dfc1; margin-top: 6px; }
-  .task .meter { height: 4px; margin-top: 4px; }
-  .task .meter span { background: #a7be8f; }
-  .task-tools { display: flex; flex-direction: column; align-items: center; }
-  .task-moves { display: flex; }
-  .task-moves button { font-size: 13px; min-width: 20px; min-height: 24px; }
-  .queue-note { margin: 0; padding: 9px 15px; font-size: 12px; color: #d2c5c2; }
-  footer { padding: 10px 15px; border-top: 1px solid #65575b; background: #382f32; }
-  footer strong { font-size: 19px; font-weight: normal; }
-  .compact-task { display: none; }
-  &.collapsed .task-body { display: none; }
-}
 button, a { cursor: pointer; }
 button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offset: 2px; }
 #game #clock { grid-area: auto; position: absolute; top: calc(20px + var(--safe-top)); right: calc(24px + var(--safe-right)); font-size: 16px; }
@@ -685,19 +631,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .panel .row.overlay { width: auto; gap: 4px; }
 .desktop { z-index: 10; pointer-events: none; }
 @media (max-width: 700px), (max-height: 500px) {
-  #task-panel { top: auto; bottom: calc(74px + var(--safe-bottom)); left: calc(10px + var(--safe-left)); width: min(342px, calc(100% - 22px - var(--safe-left) - var(--safe-right))); max-height: calc(100vh - 175px); max-height: calc(100svh - 175px - var(--safe-top) - var(--safe-bottom)); z-index: 3; }
-  #task-panel header { min-height: 44px; padding: 0 8px 0 15px; }
-  #task-panel header button { min-width: 44px; min-height: 44px; }
-  #task-panel .task-body { display: block; }
-  #task-panel.collapsed .task-body { display: none; }
-  #task-panel .task-tools button { font-size: 18px; min-width: 44px; min-height: 44px; }
-  #task-panel .task { grid-template-columns: 16px minmax(0, 1fr) 88px; padding: 9px; }
-  #task-panel .task-tools { align-items: flex-end; }
-  #task-panel .task small, #task-panel .task-progress, #task-panel .queue-note { font-size: 14px; }
-  #task-panel footer { padding: 5px 15px; }
-  #task-panel footer strong { display: block; font-size: 17px; }
-  #task-panel .compact-task { display: block; font-size: 14px; }
-  #task-panel .hunger-line { font-size: 16px; }
   #game #clock { top: calc(12px + var(--safe-top)); right: calc(12px + var(--safe-right)); font-size: 16px; }
   #game #speed-controls { bottom: calc(12px + var(--safe-bottom)); right: calc(12px + var(--safe-right)); }
   #game #selected-person { bottom: calc(12px + var(--safe-bottom)); left: calc(12px + var(--safe-left)); max-width: calc(100% - 180px - var(--safe-left) - var(--safe-right)); max-height: 60px; font-size: 12px; }
@@ -745,34 +678,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 
 @media (min-width: 701px) and (min-height: 501px) {
-  #task-panel footer {
-    position: fixed;
-    left: calc(392px + var(--safe-left));
-    bottom: calc(22px + var(--safe-bottom));
-    padding: 0;
-    border: 0;
-    background: transparent;
-    text-shadow: 0 2px 3px #000;
-    display: grid;
-    grid-template-columns: 35px auto;
-    column-gap: 11px;
-    align-items: center;
-  }
-  #task-panel footer::before {
-    content: "♙";
-    grid-row: 1 / 3;
-    display: grid;
-    place-items: center;
-    border: 1px solid #d9c07d;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    font-size: 20px;
-    color: #e2c879;
-    background: #332b32dc;
-  }
-  #task-panel footer strong, #task-panel footer small { grid-column: 2; }
-  #task-panel footer small { font-size: 13px; }
 }
 
 @media (min-width: 650px) and (max-height: 500px) {
@@ -912,8 +817,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .tree-toolbar, .tree-legend { padding: 9px 12px; }
   .tree-legend { gap: 4px 12px; }
 }
-#task-panel .meal-interruption { padding: 10px 15px; background: #393e35; border-left: 3px solid #a6b88c; border-bottom: 1px solid #65575b; }
-#task-panel .meal-interruption strong { font-weight: normal; font-size: 17px; }
 .family-tree { margin: 0 auto; }
 
 .event-feed { pointer-events: auto; position: absolute; right: 14px; bottom: 66px; width: 290px; max-width: calc(100vw - 28px); background: rgba(30, 34, 27, .94); color: #eee5cd; border: 1px solid #928163; border-radius: 5px; font-size: 12px; z-index: 12;
@@ -935,7 +838,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
     .event-entries { max-height: 150px; }
     button { min-height: 44px; }
   }
-  #task-panel { bottom: calc(74px + var(--news-space) + var(--safe-bottom)); max-height: calc(100svh - 175px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   .people-sheet { max-height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   .tree-window { height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   #game #speed-controls { z-index: 23; }
@@ -959,7 +861,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .request-note { padding: 10px 15px; margin: 0; font-size: 13px; line-height: 1.4; color: #d2c5c2; }
 @media (max-width: 700px), (max-height: 500px) {
   .favour-list .request-content { max-height: min(210px, 35svh); }
-  #ui:has(.favour-list[open]) #task-panel .task-body { max-height: 100px; flex-shrink: 1; }
 }
 
 .travel-offer { border-block: 1px solid #8d8268; padding: 8px 0; margin: 8px 0; }
@@ -1063,7 +964,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 
 @media (max-width: 700px), (max-height: 500px) {
-  #task-panel.collapsed > .your-family, #task-panel.collapsed > .family-goal, #task-panel.collapsed > .people-goals { display: none; }
 }
 .resource-rights, .membership-info { padding: 12px; margin: 10px 0; border: 1px solid #bda36d; border-radius: 6px; background: #342e2d; line-height: 1.4;
   p { margin: 8px 0; } small { color: #dfd1ae; } button { margin-top: 8px; min-height: 44px; } summary { cursor: pointer; min-height: 34px; }
@@ -1100,7 +1000,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
     transform: none;
     width: calc(40% - 24px - var(--safe-left));
   }
-  #ui:has(.person-window) #task-panel { visibility: hidden; }
   #ui:has(.person-window) #realm-controls #camera-actions {
     left: calc(12px + var(--safe-left));
     right: auto;
@@ -1202,13 +1101,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 
 #ui:has(.tree-window) #opening-guidance { display:flex; top:auto; bottom:6px; z-index:110; }
 
-.energy-budget { padding: .65rem .85rem; background: #243a32; border-bottom: 1px solid #56614a; color: #f3ecd7;
-  > div:first-child { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
-  small { font-size: .7rem; }
-  .meter { height: 7px; background: #14251f; margin: .4rem 0; border-radius: 4px; overflow: hidden; }
-  .meter span { display: block; height: 100%; background: #d6b967; }
-  .energy-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
-}
 .festival-notice { z-index: 24; position: absolute; top: 160px; left: 390px; max-width: 330px; max-height: 48vh; overflow: auto; background: #302a20f2; color: #f3ecd7; padding: 16px; border: 1px solid #bd9a52; pointer-events: auto; border-radius: 8px;
   p { margin: .4rem 0; line-height: 1.45; } button { margin: 3px; }
 }
@@ -1222,7 +1114,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .season-more { font-style: italic; list-style: none; }
   button { background: #344e40; color: #fff3da; padding: .7rem 1.3rem; border-radius: 4px; }
 }
-@media(max-width:700px) { .festival-notice { left: 8px; top: 80px; max-width: 230px; max-height: 20vh; } .energy-budget > div:first-child { display: block; } }
+@media(max-width:700px) { .festival-notice { left: 8px; top: 80px; max-width: 230px; max-height: 20vh; } }
 
 // Separate SVG world map. Closed maps have no mounted view or render loop.
 #game .world-overview {
@@ -1269,18 +1161,80 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .festival-notice button { min-height: 36px; }
 }
 
-@media(max-width:700px) {
-  #game #ui:has(.festival-notice) #opening-guidance { display: none; }
-  #ui:has(.festival-notice) #task-panel {
-    max-height: none;
-    .task-body, .your-family, .family-goal, .people-goals, .favour-list, footer { display: none; }
+
+
+#status-strip, #journal {
+  pointer-events: auto; color: #f7f1e7; background: #302e2bea;
+  border: 1px solid #82775c; border-radius: 8px; box-shadow: 0 6px 22px #0005;
+  button { min-height: 44px; min-width: 44px; padding: 5px 10px; color: #f2dfaa; background: transparent; font-size: 16px; }
+  button:disabled { opacity: .4; }
+  .meter { height: 4px; border-radius: 4px; background: #171f1b; overflow: hidden; }
+  .meter span { display: block; height: 100%; background: #b5c793; }
+}
+#status-strip {
+  position: absolute; bottom: calc(22px + var(--safe-bottom)); left: calc(25px + var(--safe-left)); width: 440px; font-size: 15px; z-index: 8;
+  .status-line { display: flex; align-items: center; gap: 12px; padding: 0 6px 0 12px; }
+  .energy-readout { flex: 0 0 118px; font-size: 13px; }
+  .energy-readout .meter { margin-top: 5px; }
+  .current-activity { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .daily-actions { display: flex; align-items: center; flex-wrap: wrap; border-top: 1px solid #82775c66; padding: 0 4px; }
+  .journal-toggle { margin-left: auto; }
+}
+#journal {
+  background: #302e2b;
+  position: absolute; left: calc(25px + var(--safe-left)); top: calc(23px + var(--safe-top)); width: 342px;
+  max-height: calc(100svh - 170px - var(--safe-top) - var(--safe-bottom)); display: flex; flex-direction: column; font-size: 16px; z-index: 9;
+  header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 15px; border-bottom: 1px solid #82775c; }
+  h2 { font-size: 24px; margin: 0; }
+  h3 { font-size: 19px; }
+  p { line-height: 1.4; }
+  .journal-body { padding: 12px; overflow-y: auto; touch-action: pan-y; min-height: 0; overscroll-behavior: contain; }
+  .task { margin: 12px 0; padding: 12px 0; border-block: 1px solid #82775c; }
+  .people-goals { font-size: 16px; padding: 8px 0; }
+  .favour-list .request-content { max-height: none; overflow: visible; }
+  .task-title { font-size: 19px; }
+  .task small { display: block; margin-top: 5px; }
+  .task-progress { display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; margin-block: 8px; }
+  .task-waiting { color: #e2c879; }
+  .task-credit { color: #b5c793; }
+}
+#sleep-fade { position: fixed; inset: 0; z-index: 7; background: #080d15; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+#sleep-fade.asleep { opacity: 1; }
+.morning-line { position: absolute; left: 50%; transform: translateX(-50%); top: 25%; max-width: 430px; width: calc(100% - 32px); box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #302e2bea; border: 1px solid #82775c; border-radius: 8px; z-index: 8; pointer-events: auto; }
+.morning-line button { min-height: 44px; min-width: 44px; margin-left: auto; }
+@media (max-width: 700px), (max-height: 500px) {
+  #status-strip { bottom: calc(74px + var(--news-space, 0px) + var(--safe-bottom)); left: calc(10px + var(--safe-left)); width: calc(100% - 22px - var(--safe-left) - var(--safe-right)); }
+  #status-strip .status-line { gap: 8px; }
+  #journal { top: calc(76px + var(--safe-top)); left: calc(10px + var(--safe-left)); width: calc(100% - 22px - var(--safe-left) - var(--safe-right)); max-height: calc(100svh - 260px - var(--news-space, 0px) - var(--safe-top) - var(--safe-bottom)); }
+}
+
+#game #speed-controls { z-index: 23; }
+
+// Daily notices share one scrollable stack above the activity strip.
+#day-notices {
+  position: absolute; z-index: 8; top: calc(104px + var(--safe-top));
+  left: 50%; transform: translateX(-50%); width: min(430px, calc(100% - 24px));
+  bottom: calc(130px + var(--safe-bottom)); display: flex; flex-direction: column;
+  gap: 8px; overflow-y: auto; overscroll-behavior: contain; pointer-events: none;
+  &:empty { display: none; }
+  #opening-guidance, .morning-line, .festival-notice {
+    position: static; transform: none; width: 100%; max-width: none; max-height: none;
+    box-sizing: border-box; flex: 0 0 auto; pointer-events: auto; margin: 0;
   }
-  .festival-notice {
-    top: calc(155px + var(--safe-top)); left: 10px; box-sizing: border-box;
-    width: calc(100vw - 20px); max-width: none; max-height: calc(100svh - 355px);
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 14px;
-    strong, p, > button:first-of-type { grid-column: 1 / -1; }
-    p { margin: 2px 0 4px; line-height: 1.3; }
-    button { min-height: 40px; padding: 4px 6px; margin: 0; font-size: 14px; line-height: 1.2; }
+  .festival-notice { padding: 12px; }
+}
+.chat-panel .chat-icon.large .chat-icon-name {
+  white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 700px), (max-height: 500px) {
+  #day-notices {
+    top: calc(155px + var(--safe-top)); bottom: calc(190px + var(--news-space, 0px) + var(--safe-bottom));
+    left: calc(10px + var(--safe-left)); transform: none;
+    width: calc(100% - 22px - var(--safe-left) - var(--safe-right));
+    .festival-notice { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 14px; }
+    .festival-notice strong, .festival-notice p, .festival-notice > button:first-of-type { grid-column: 1 / -1; }
+    .festival-notice p { margin: 2px 0 4px; line-height: 1.3; }
+    .festival-notice button { min-height: 44px; padding: 4px 6px; margin: 0; font-size: 14px; line-height: 1.2; }
   }
+  .chat-panel .chat-icon.large .chat-icon-name { font-size: clamp(7px, 1.9vw, 9px); }
 }

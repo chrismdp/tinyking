@@ -4,8 +4,8 @@ import { initializeEcology, generateForage, updateEcology, BIOME_ECOLOGY, TREE_S
 import { Hex, Grid } from "game/hex";
 import { HOUR, DAYS_IN_SEASON } from "game/time";
 
-function wood(biome = "jungle", cleared = true, allLand = false) {
-  const { state, tiles } = rowOfTiles(8);
+function wood(biome = "jungle", cleared = true, allLand = false, tileCount = 8) {
+  const { state, tiles } = rowOfTiles(tileCount);
   state.world = { home: { x: 0, y: 0 }, hexes: [{ x: 0, y: 0, biome, moisture: biome == "jungle" ? "wet" : "normal", temperature: "hot" }] };
   state.map = { seed: 1234, playerStartTile: { x: 0, y: 0 } };
   for (const id of tiles) state.ecs.mappable[id].biome = biome;
@@ -146,7 +146,7 @@ it.each(["camp", "shelter"])("keeps regrowing trees out of the player's %s", com
 
 it("seeds real mixed-habitat species and forage deterministically, retaining their own yield/regrowth rules",()=>{
   const setup=()=>{
-    const {state,tiles}=wood("jungle",false);
+    const {state,tiles}=wood("jungle",false,false,64);
     for(const id of tiles)state.ecs.mappable[id].biomeMix={jungle:.5,desert:.5};
     delete state.ecs.tree;
     initializeEcology(state,13);generateForage(state,13,null);

@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 
 import { WorldHex as Hex, HEX_SIZE } from "game/hex";
+import { hexName } from "game/travel_geometry";
 import { homeOf, BIOMES } from "game/overworld";
 import { BIOME_COLOURS } from "render/biomes";
 
@@ -41,7 +42,7 @@ export function Overworld({ world, size, labels, weather, onSelect, known, commu
     <g key={h.x + "," + h.y} transform={"translate(" + (h.at.x * scale).toFixed(1) + "," + (h.at.y * scale).toFixed(1) + ")"}
       className={isHome ? "home" : known?.has(h.x + "," + h.y) ? "known-hex" : ""}
       role={!isHome && onSelect ? "button" : undefined} tabIndex={!isHome && onSelect ? 0 : undefined}
-      aria-label={!isHome && onSelect ? "Select Reach " + h.x + ", " + h.y : undefined}
+      aria-label={!isHome && onSelect ? "Select " + hexName(h,home) : undefined}
       onClick={!isHome && onSelect ? () => onSelect(h) : undefined}
       onKeyDown={!isHome && onSelect ? e => { if (["Enter", " "].includes(e.key)) { e.preventDefault(); onSelect(h); } } : undefined}
       style={isHome ? {pointerEvents:"none"} : undefined}>

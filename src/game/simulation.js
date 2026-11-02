@@ -1,6 +1,6 @@
 import { updateFestival, seasonTurnAt } from "game/seasons";
 import { DAYS_IN_SEASON } from "game/time";
-import { playerDay } from "game/energy";
+import { playerDay, daylight } from "game/energy";
 import { updateOverhearing } from "game/chat_bubbles";
 import { updateCampfireVisits } from "game/campfire_visits";
 import { updateNeeds } from "game/needs";
@@ -21,7 +21,7 @@ import * as time from "game/time";
 import { updateWeather } from "game/weather";
 import { drift } from "game/people";
 import { topController } from "game/playable";
-import { jobQueueFor, readyPlayerTasks, deferPlayerTask, expireChatApproach } from "game/manager";
+import { jobQueueFor, readyPlayerTasks, deferPlayerTask, expireChatApproach, cancelTask } from "game/manager";
 
 import { updateVillageLife } from "game/villages";
 
@@ -30,8 +30,7 @@ import { updateVillageLife } from "game/villages";
 
 export const SPEED = {
   paused: 0,
-  normal: 360,
-  fast: 3600
+  normal: 360
 };
 
 const SECONDS_PER_FRAME = 1 / 60;
@@ -165,8 +164,15 @@ function updatePlannerFrame(state, frameMod) {
 
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
 // it changes ECS state and lists changed entities in state.redraws.
-export function createSimulation(state, { onHour, onDay, onTravel, onError } = {}) {
+export function createSimulation(state, { onHour, onDay, onTravel, onError, onSleep } = {}) {
   let pending = null;
+  // Old saves may contain several orders. Keep the active one and cancel the rest.
+  const orders = state.ecs.manager?.[state.ui?.playerId]?.jobs;
+  if (orders?.length > 1) {
+    const keep = orders.find(j=>j.assignedId == state.ui.playerId) || orders[0];
+    for (const order of [...orders]) if (order != keep) cancelTask(state,order.id);
+  }
+  if (!(state.game_speed in SPEED)) state.game_speed = "normal";
   const clock = state.simulationClock ||= { hour: 0, requestsStarted: false, winter: time.season(state.days) == "winter" };
   let savedDay = Math.floor(state.days);
   const dayChanged = () => {
@@ -220,36 +226,82 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError } = {
     }
   };
 
+  const stepWorld = (frameMod, realSeconds) => {
+    if(pending || state.travelError || state.chat?.active || state.seasonTurn) return pending;
+    if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
+    const arriving = introActive(state);
+    updateIntro(state, realSeconds);
+    if (arriving) return;
+    if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
+    playerDay(state);
+    updateCustoms(state);
+    updateJourney(state);
+    updateCampfireVisits(state);
+    updatePlanners(state, frameMod);
+    updateOverhearing(state);
+    if (state.chat?.active) { if(onHour) onHour(); return; }
+    // All edge completions belong to the map where planners just ran.
+    for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
+    state.pendingNpcDepartures=[];
+    if(state.pendingPlayerTravel) {
+      const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
+      return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
+    }
+    advanceTime(frameMod);
+    if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
+    if(state.travel && (state.travel.season < Math.floor(state.days/DAYS_IN_SEASON) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
+      return background(()=>advanceWorldClock(state));
+    }
+    if (SPEED[state.game_speed]) updateVillageLife(state);
+    dayChanged();
+  };
+  const sleepingAtNight = () => {
+    const p = state.ecs.planner?.[state.ui?.playerId];
+    return p?.task?.[0] == "sleep" && !daylight(state.days) && !state.ecs.personable?.[state.ui.playerId]?.dead;
+  };
+  const updateSleep = realSeconds => {
+    if (!state.nightSleep && sleepingAtNight()) {
+      const dawn = Math.floor(state.days - 6/24) + 1 + 6/24;
+      state.nightSleep = { dawn, fadeSeconds: 0 };
+      state.ecs.planner[state.ui.playerId].world.sleepDawn = dawn;
+      if (onSleep) onSleep();
+    }
+    const sleep = state.nightSleep;
+    if (!sleep) return;
+    sleep.fadeSeconds += realSeconds;
+    if (state.days >= sleep.dawn - 1e-9 || !sleepingAtNight()) {
+      if (state.days >= sleep.dawn - 1e-9) {
+        state.ui.dayMessage = "Morning. The village stirs in the first light.";
+        // Finish the sleep task at the dawn boundary without advancing the clock.
+        updatePlanners(state,0);
+      }
+      delete state.nightSleep;
+      if (onSleep) onSleep();
+    }
+  };
   return {
     get pending() { return pending; },
     step(frameMod, realSeconds = frameMod / 60) {
-      if(pending || state.travelError || state.chat?.active || state.seasonTurn) return pending;
-      if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
-      const arriving = introActive(state);
-      updateIntro(state, realSeconds);
-      if (arriving) return;
-      if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
-      playerDay(state);
-      updateCustoms(state);
-      updateJourney(state);
-      updateCampfireVisits(state);
-      updatePlanners(state, frameMod);
-      updateOverhearing(state);
-      if (state.chat?.active) { if(onHour) onHour(); return; }
-      // All edge completions belong to the map where planners just ran.
-      for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
-      state.pendingNpcDepartures=[];
-      if(state.pendingPlayerTravel) {
-        const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
-        return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
+      if (state.nightSleep && !sleepingAtNight()) updateSleep(0);
+      if (pending || state.chat?.active || state.seasonTurn || state.game_speed == "paused") return stepWorld(frameMod,realSeconds);
+      updateSleep(realSeconds);
+      if (state.nightSleep?.fadeSeconds >= .5 && sleepingAtNight()) {
+        // Twelve game hours per real second, sampled at most a minute at a time.
+        // Every sample runs the same planners, hourly needs, weather and festivals.
+        let remaining = frameMod * 120;
+        while (remaining > 1e-9 && state.nightSleep && !pending && !state.chat?.active && !state.seasonTurn && state.game_speed != "paused") {
+          const untilDawn = (state.nightSleep.dawn - state.days) / deltaTime(1,SPEED.normal);
+          const slice = Math.min(10,remaining,untilDawn);
+          if (slice <= 1e-9) { updateSleep(0); break; }
+          stepWorld(slice,0);
+          remaining -= slice;
+          updateSleep(0);
+        }
+        return pending;
       }
-      advanceTime(frameMod);
-      if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
-      if(state.travel && (state.travel.season < Math.floor(state.days/DAYS_IN_SEASON) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
-        return background(()=>advanceWorldClock(state));
-      }
-      if (SPEED[state.game_speed]) updateVillageLife(state);
-      dayChanged();
+      const result = stepWorld(frameMod,realSeconds);
+      updateSleep(0);
+      return result;
     }
   };
 }

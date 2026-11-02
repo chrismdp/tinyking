@@ -37,7 +37,7 @@ const url=process.argv[2]||"http://127.0.0.1:8128/";
       for(const [x,y]of [[a,b],[b,a]])s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66};
       s.renderer.recenter();s.ui.actions.select_entity(b,false);
     },{a,b,site});
-    await page.getByRole("button",{name:"Ask to marry",exact:true}).tap();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("fast"));
+    await page.getByRole("button",{name:"Ask to marry",exact:true}).tap();await page.evaluate(()=>window.tinyking.ui.actions.set_speed("normal"));
     await page.waitForFunction(({a,b})=>window.tinyking.ecs.kinship[a].spouse==b,{a,b});await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     await page.getByRole("button",{name:/Open family tree/}).tap();
     const dismiss=page.getByRole("button",{name:"Dismiss wedding notice",exact:true});await dismiss.waitFor();
@@ -55,7 +55,7 @@ const url=process.argv[2]||"http://127.0.0.1:8128/";
     assert(await page.getByText(/Village news/).isVisible(),"Village news remains visible");
     report.surface=await assertFamilySurfaceClear(page);
     report.speedControls=[];
-    for(const [label,speed]of [["Normal speed","normal"],["Fast speed","fast"],["Pause","paused"]]) {
+    for(const [label,speed]of [["Normal speed","normal"],["Pause","paused"]]) {
       await page.getByRole("button",{name:label,exact:true}).tap();
       await page.waitForFunction(value=>window.tinyking.game_speed==value,speed);
       report.speedControls.push({label,speed});

@@ -225,7 +225,7 @@ it("closes an actual spoken Chat with End chat before returning to game-time wai
   const {state:s,player,person}=peopleWorld();
   s.ecs.planner[person].world.feeling={hungry:false,tired:false};
   s.ecs.spatial[person]={...s.ecs.spatial[player]};
-  s.game_speed="fast";s.ticker={stop:jest.fn(),start:jest.fn()};
+  s.game_speed="normal";s.ticker={stop:jest.fn(),start:jest.fn()};
   expect(openChat(s,player,person)).toBe(true);
   const day=s.days,clicks=[];
   s.ui.actions={set_speed:speed=>{s.game_speed=speed;}};
@@ -287,4 +287,18 @@ it.each([true,false])("waits for NPC readiness without ordering player care, req
   } finally {
     if(previousDocument===undefined)delete global.document;else global.document=previousDocument;
   }
+});
+
+it("advances preparation through real normal simulation minutes and leaves chat paused",async()=>{
+  const {state:s}=peopleWorld();
+  s.ticker={stop:jest.fn(),start:jest.fn()};s.renderer={frame:jest.fn()};
+  s.ui.actions={set_speed:speed=>{if(!s.chat?.active)s.game_speed=speed;},end_turn:jest.fn()};
+  global.window={tinyking:s,tinykingSettlement:{createSimulation:require("game/simulation").createSimulation}};
+  const page={evaluate:async(fn,arg)=>fn(arg)},before=s.days;
+  const {advanceTime}=require("../scripts/acceptance-selection");
+  const result=await advanceTime(page,60);
+  expect(result.steps).toBe(60);expect(s.days-before).toBeCloseTo(1/24,10);
+  expect(s.ticker.stop).toHaveBeenCalledTimes(1);expect(s.ticker.start).toHaveBeenCalledTimes(1);
+  s.chat={active:{}};s.game_speed="paused";const paused=s.days;
+  expect((await advanceTime(page,60)).steps).toBe(0);expect(s.days).toBe(paused);
 });

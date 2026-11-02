@@ -12,7 +12,7 @@ import { Task, solve } from "game/htn";
 function hungryVillage() {
   const fixture = rowOfTiles(3);
   const { state, villager } = fixture;
-  state.game_speed = "fast";
+  state.game_speed = "normal";
   state.ui.playerId = villager;
   state.ecs.personable = { [villager]: { hunger: 1.4, tiredness: 0 } };
   state.ecs.planner = { [villager]: { id: villager, world: {
@@ -28,7 +28,7 @@ function advance(state, days) {
   const simulation = createSimulation(state);
   // Six-minute steps keep the multi-day checks fast; movement and work
   // timing have separate minute-scale assertions below.
-  for (let frame = 0; frame < days * 240; frame++) simulation.step(6);
+  for (let frame = 0; frame < days * 240; frame++) simulation.step(10*(6), 0);
 }
 
 it.each(["container", "stockpile"])("finds grain in a %s and eats porridge without player orders", storage => {
@@ -69,7 +69,7 @@ it("hauls a harvested grain portion into the home container", () => {
   state.days += HOUR;
   expect(perform_subtask_in_slot(state, villager, world, HOUR, false, field, "slot")).toBe(Task.FINISH);
   const simulation = createSimulation(state);
-  for (let frame = 0; frame < 300 && !state.ecs.container[store].amounts.grain; frame++) simulation.step(1);
+  for (let frame = 0; frame < 300 && !state.ecs.container[store].amounts.grain; frame++) simulation.step(10*(1), 0);
   expect(state.ecs.container[store].amounts.grain).toBe(1);
 });
 
@@ -135,7 +135,7 @@ it("a hungry villager walks to wild food, forages it, and eats", () => {
   const simulation = createSimulation(state);
   let travelled = 0;
   for (let frame = 0; frame < 480; frame++) {
-    simulation.step(1);
+    simulation.step(10*(1), 0);
     const p = state.ecs.spatial[villager];
     travelled = Math.max(travelled, Math.hypot(p.x - before.x, p.y - before.y));
   }
@@ -156,7 +156,7 @@ it("the player's forage order carries a portion home for winter", () => {
   }]);
   state.ecs.manager[villager].jobs.push({ job: { key: "forage" }, targetId: bush });
   advance(state, HOUR * 8);
-  expect(state.ecs.container[store].amounts.forage).toBe(1);
+  expect(state.ecs.container[store].amounts.roots).toBe(1);
   expect(state.ecs.forageable[bush].amount).toBe(0);
   expect(state.ecs.manager[villager].jobs).toEqual([]);
 });

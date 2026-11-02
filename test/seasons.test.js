@@ -7,7 +7,7 @@ import { BIOME_ECOLOGY } from 'game/ecology';
 import crops from 'data/crops.json';
 import lines from 'data/conversation_lines.json';
 function fixture(){
- const f=rowOfTiles(3),s=f.state,a=f.villager;s.ui.playerId=a;s.days=6.75;s.game_speed='fast';s.events=[];
+ const f=rowOfTiles(3),s=f.state,a=f.villager;s.ui.playerId=a;s.days=6.75;s.game_speed='normal';s.events=[];
  s.ecs.personable={[a]:{age:24,energy:100,tiredness:0}};s.ecs.manager={[a]:{ordered:true,jobs:[]}};
  s.ecs.planner={[a]:{id:a,world:{ordered:true,places:{},feeling:{},holding:{}}}};
  s.ecs.village={};s.ecs.relationships={[a]:{known:{}}};s.villages={v:{id:'v',name:'Oak',centre:{...s.ecs.spatial[f.tiles[1]]},houses:[]}};

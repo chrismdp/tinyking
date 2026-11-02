@@ -1,7 +1,7 @@
 // Everything affecting play is saved. Only browser resources and the save
-// controller are excluded; UI actions are reattached by World on restore.
+// controller and transient screen fades are excluded; UI actions are reattached by World on restore.
 export const SAVE_VERSION = 1;
-const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition"]);
+const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition", "nightSleep"]);
 export function gameData(state) {
   const data = Object.fromEntries(Object.entries(state).filter(([key]) => !RUNTIME.has(key)));
   data.ui = Object.fromEntries(Object.entries(state.ui || {}).filter(([key]) => key !== "actions"));
@@ -38,11 +38,15 @@ export function restoreGame(text) {
     return { undefined: undefined, NaN: NaN, Infinity: Infinity, "-Infinity": -Infinity }[value.special];
   };
   save.nodes.forEach((node, i) => node.entries.forEach(([key, value]) => { objects[i][key] = decode(value); }));
-  return { ...decode(save.root), redraws: [] };
+  const data = { ...decode(save.root), redraws: [] };
+  if (data.game_speed && data.game_speed != "paused") data.game_speed = "normal";
+  if (data.ui?.show?.journal) data.ui.show.journal = false;
+  return data;
 }
 
 export function replaceGame(state, data) {
   const actions = state.ui?.actions;
+  delete state.nightSleep;
   for (const key of Object.keys(state)) if (!RUNTIME.has(key)) delete state[key];
   Object.assign(state, data);
   state.ui = { ...data.ui, actions };

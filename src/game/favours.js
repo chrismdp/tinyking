@@ -260,7 +260,7 @@ export function favourWaiting(s, task) {
     if(!r.cargo.length && ripe.length && ripe.every(slot=>slot.workerId && slot.workerId!=s.ui.playerId)) return "Waiting for the family to finish this patch";
     // A claim protects new crop work, not the return trip with cut grain.
     if (!r.cargo.length && field?.claimerId && field.claimerId != s.ui.playerId) return "Waiting for the family to finish this patch";
-  } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · queue Chop wood" : "food · gather some first"}`;
+  } else if (!r.cargo.some(id => ecs.haulable?.[id]?.heldBy == s.ui.playerId && favourCargoAvailable(s, r, id)) && !favourSource(s, r)) return `Needs your ${r.kind == "wood" ? "wood · choose Chop wood" : "food · gather some first"}`;
   return null;
 }
 // Give a blocked harvest an actual reachable, explored approach and a name.

@@ -7,7 +7,7 @@ import { I18n } from "react-polyglot";
 import messages from "../src/data/messages.json";
 import { GameState } from "../src/components/contexts";
 import { PersonPanel, FamilyTree } from "../src/components/person_panel";
-import { TaskPanel } from "../src/components/task_panel";
+import { Journal } from "../src/components/status_strip";
 import { EventFeed } from "../src/components/event_feed";
 import { IntroOverlay } from "../src/components/intro_overlay";
 import { ChatPanel } from "../src/components/chat_panel";
@@ -119,11 +119,11 @@ it("keeps reference-only off-map royals and the mother out of playable successio
 });
 
 it("renders the opening, goal, person sheets, family trees, chat and news without the royal secret",()=>{
-  const {state:s,player,person}=setup(),b=s.backstories[player];s.ui.actions={};s.ui.show={};
+  const {state:s,player,person}=setup(),b=s.backstories[player];s.ui.actions={};s.ui.show={journal:true};
   s.ecs.relationships[person].known[player]={ring:"personal",goodwill:36};
   s.knowledge[player].events=s.events.map(e=>e.id);
   const render=view=>renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={s}>{view}</GameState.Provider></I18n>);
-  const html=render(<><IntroOverlay touch={false}/><TaskPanel/><EventFeed/><PersonPanel entityId={person}/><FamilyTree entityId={player}/></>);
+  const html=render(<><IntroOverlay touch={false}/><Journal/><EventFeed/><PersonPanel entityId={person}/><FamilyTree entityId={player}/></>);
   expect(html).toContain("Mother sent me here");expect(html).toContain("Find your mother");
   openChat(s,player,person);const chat=render(<ChatPanel/>);
   for(const text of [html,chat]) {

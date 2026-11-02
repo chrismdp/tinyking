@@ -18,6 +18,8 @@ function activity(ecs, id, t, personName) {
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return null;
   const [key, target, place] = task;
+  if (key == "settle_fire") return "Sitting by the fire";
+  if (key == "walk_to" && world.fireHome == target) return "Walking home to the fire";
   if (key == "approach_chat" && world.doorCall?.knocked) return "Knocking at the door";
   if (key == "chat_visit") return "Coming over to talk";
   if (key == "customs_visit") return world.customsVisit?.kind == "report" ? "Reporting to the village elder" : "Approaching a woodland cutter";

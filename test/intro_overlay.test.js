@@ -22,7 +22,7 @@ it("shows a travel arrival's own line instead of the opening story", () => {
 });
 
 jest.mock("components/intro_overlay", () => require("../src/components/intro_overlay"), { virtual: true });
-jest.mock("components/task_panel", () => ({ TaskPanel: () => <div id="tasks"/> }), { virtual: true });
+jest.mock("components/status_strip", () => ({ StatusStrip: () => <div id="tasks"/>, Journal: () => null }), { virtual: true });
 jest.mock("components/speed_controls", () => ({ SpeedControls: () => <div id="speed"/> }), { virtual: true });
 jest.mock("components/custom_game", () => ({ CustomGame: () => null }), { virtual: true });
 jest.mock("components/info", () => ({ Info: () => null }), { virtual: true });

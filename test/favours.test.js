@@ -2,20 +2,20 @@ import { Task } from "game/htn";
 import { peopleWorld } from './support/people';
 import { newEntities, deleteEntity } from 'game/entities';
 import { updateFavours, visibleFavours, acceptFavour, finishFavour, fuelReady } from 'game/favours';
-import { enqueueTask, cancelTask, reorderTask, readyPlayerTasks } from 'game/manager';
+import { enqueueTask, cancelTask, readyPlayerTasks } from 'game/manager';
 import { trade_work } from 'game/tasks';
 import { HOUR } from 'game/time';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { GameState } from '../src/components/contexts';
-import { TaskPanel } from '../src/components/task_panel';
+import { ActivityDetails, Journal } from '../src/components/status_strip';
 import { do_favour } from 'game/tasks';
 
 jest.mock('components/contexts', () => require('../src/components/contexts'), { virtual: true });
 jest.mock('game/name', () => ({ name: n => n?.nickname || '?' }));
 
-const taskMarkup = s => renderToStaticMarkup(<GameState.Provider value={s}><TaskPanel/></GameState.Provider>);
-const harvestRow = s => taskMarkup(s).match(/<li class="task[^]*?<\/li>/)?.[0];
+const taskMarkup = s => { s.ui.show={...s.ui.show,journal:true};return renderToStaticMarkup(<GameState.Provider value={s}><Journal/></GameState.Provider>); };
+const harvestRow = s => taskMarkup(s).match(/<article class="task[^]*?<\/article>/)?.[0];
 function advanceUntil(w, condition) {
   for (let i = 0; i < 2000 && !condition(); i++) w.step(.01);
   expect(condition()).toBeTruthy();
@@ -67,43 +67,16 @@ it('shows real patch, hand and home counts through work, partial delivery and co
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
 });
 
-it('keeps harvest counts honest while reordered, waiting, interrupted and resumed', () => {
-  const w = favourWorld(), s = w.state, r = w.request('harvest');
-  const favour = acceptFavour(s, r.id);
-  advanceUntil(w, () => r.cargo.some(id => s.ecs.haulable[id]?.heldBy == w.player));
-  const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
-  reorderTask(s, move.id, 0);
-  let html = taskMarkup(s);
-  expect(html).toContain('Harvest paused · another task comes first');
-  expect(html).toContain('1 crop portion in hand');
-  expect(html).not.toContain('Carrying the family harvest home');
-  s.ecs.container[w.store].capacity = 30;
-  readyPlayerTasks(s);
-  expect(taskMarkup(s)).toContain('Household store is full');
-  expect(taskMarkup(s)).toContain('0 crop portions carried home');
-  s.ecs.container[w.store].capacity = 100;
-  s.ecs.personable[w.player].energy = 20;
-  enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
-  advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'eat_food');
-  html = taskMarkup(s);
-  expect(html).toContain('Eating · harvest resumes afterwards');
-  expect(html).toContain('1/3 patches harvested');
-  advanceUntil(w, () => r.status == 'completed');
-  expect(s.ecs.manager[w.player].jobs).not.toContain(favour);
-  expect(taskMarkup(s)).toContain('5 crop portions carried home');
-  expect(s.ecs.container[w.store].amounts.grain).toBe(35);
-  expect(s.ecs.container[w.camp].amounts.grain).toBe(5);
-  expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
-});
 
-it('shows sleep as an interruption before returning to the unfinished harvest', () => {
+
+it('shows collapse as an interruption before returning to the unfinished harvest', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   s.events = [];
   s.days = 20 / 24;
   s.ecs.planner[w.player].world.days = s.days;
   s.ecs.personable[w.player].tiredness = 1.1;
   acceptFavour(s, r.id);
-  enqueueTask(s,{key:'rest'},w.player);
+  s.ecs.personable[w.player].tiredness=2;
   advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'sleep');
   expect(taskMarkup(s)).toContain('Stopped to sleep · harvest resumes afterwards');
   expect(taskMarkup(s)).toContain('0/3 patches harvested');
@@ -178,14 +151,13 @@ it('keeps undiscovered needs private, including known people in unseen household
   expect(Object.keys(s.knowledge[w.player].noticedNeeds)).toHaveLength(2);
 });
 
-it('explicitly accepts once, joins the ordered queue, reorders and cancels without reward', () => {
+it('explicitly accepts once, replaces the current order and cancels without reward', () => {
   const w = favourWorld(), s = w.state, r = w.request('wood');
   expect(s.ecs.manager[w.player].jobs).toHaveLength(0);
   const own = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
   const task = acceptFavour(s, r.id);
   expect(acceptFavour(s, r.id)).toBeNull();
-  expect(s.ecs.manager[w.player].jobs.map(j => j.id)).toEqual([own.id, task.id]);
-  reorderTask(s, task.id, 0);
+  expect(s.ecs.manager[w.player].jobs.map(j => j.id)).toEqual([task.id]);
   expect(s.ecs.manager[w.player].jobs[0]).toBe(task);
   cancelTask(s, task.id);
   expect(r.status).toBe('cancelled');
@@ -260,6 +232,7 @@ it('waits for unavailable player goods, skips to explicit gathering and never st
   s.ecs.container[w.camp].amounts.wood = 0;
   s.ecs.container[w.store].amounts.grain = 99;
   const r = w.request('wood'), task = acceptFavour(s, r.id);
+  readyPlayerTasks(s);
   const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
   expect(readyPlayerTasks(s)).toEqual([move]);
   expect(task.waiting).toContain('your wood');
@@ -268,7 +241,7 @@ it('waits for unavailable player goods, skips to explicit gathering and never st
   expect(s.ecs.container[w.store].amounts.grain).toBe(99);
 });
 
-it('resumes after a meal, and cancellation leaves collected goods without goodwill', () => {
+it('a meal replaces a favour, and cancellation leaves collected goods without goodwill', () => {
   const w = favourWorld(), s = w.state, r = w.request('wood');
   const task = acceptFavour(s, r.id);
   for (let i = 0; i < 100 && !r.cargo.length; i++) w.step(.02);
@@ -277,8 +250,8 @@ it('resumes after a meal, and cancellation leaves collected goods without goodwi
   enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
   w.step(3);
   expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
-  expect(r.status).toBe('completed');
-  expect(task.progress).toBe(1);
+  expect(r.status).toBe('cancelled');
+  expect(task.progress).toBeLessThan(1);
   // A separate accepted request cannot refund goods or claim completion on cancel.
   s.ecs.workplace[w.workplace].fuelHours = 0; s.ecs.container[w.store].amounts.wood = 0;
   updateFavours(s); const next = w.request('wood');
@@ -288,7 +261,7 @@ it('resumes after a meal, and cancellation leaves collected goods without goodwi
   const item = next.cargo[0]; cancelTask(s, queued.id);
   expect(s.ecs.haulable[item].heldBy).toBe(w.player);
   expect(next.status).toBe('cancelled');
-  expect(s.ecs.container[w.camp].amounts.wood).toBe(1);
+  expect(s.ecs.container[w.camp].amounts.wood).toBe(2);
 });
 
 it('delivers food from genuine player ownership and rechecks a vanished cargo instead of crediting it', () => {
@@ -388,18 +361,7 @@ it('applies existing ring capacities when completing a favour', () => {
   expect(s.ecs.relationships[w.player].known[w.person].ring).toBe('public');
 });
 
-it('sleeps on request before resuming an accepted favour', () => {
-  const w = favourWorld(), s = w.state, r = w.request('wood');
-  s.villages = {};
-  s.days = 20/24; s.ecs.planner[w.player].world.days = s.days;
-  s.ecs.personable[w.player].tiredness = 1.1;
-  const task = acceptFavour(s, r.id);
-  enqueueTask(s,{key:'rest'},w.player);
-  let slept = false;
-  for (let i = 0; i < 700; i++) { w.step(.02); slept ||= s.ecs.planner[w.player].task?.[0] == 'sleep'; }
-  expect(slept).toBe(true);
-  expect(r.status).toBe('completed'); expect(task.progress).toBe(1);
-});
+
 
 it('reports missing harvested cargo rather than completing or endlessly working an impossible request', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
@@ -410,19 +372,18 @@ it('reports missing harvested cargo rather than completing or endlessly working 
   expect(r.status).toBe('expired'); expect(task.waiting).toContain('cargo no longer available');
 });
 
-it('preserves family cargo when reordering an explicit gathering task ahead of its delivery', () => {
+it('releases family cargo when an explicit gathering order replaces its delivery', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   const favour = acceptFavour(s, r.id);
   for (let i = 0; i < 300 && !r.cargo.some(id => s.ecs.haulable[id]?.heldBy == w.player); i++) w.step(.01);
   const borrowed = r.cargo.find(id => s.ecs.haulable[id]?.heldBy == w.player);
   const [plant] = newEntities(s, [{ spatial: { ...s.ecs.spatial[w.tiles[0]] }, forageable: { kind: 'berries', biome: 'grassland', amount: 2, growth: 0 } }]);
   const gather = enqueueTask(s, { key: 'forage' }, plant);
-  reorderTask(s, gather.id, 0);
   for (let i = 0; i < 400 && s.ecs.manager[w.player].jobs.includes(gather); i++) w.step(.01);
   expect(gather.progress).toBe(1);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(6);
-  expect(s.ecs.container[w.camp].amounts.forage).toBe(1);
-  expect(s.ecs.haulable[borrowed].heldBy).toBe(w.player);
+  expect(s.ecs.container[w.camp].amounts.berries).toBe(1);
+  expect(s.ecs.haulable[borrowed].heldBy).not.toBe(w.player);
   expect(s.ecs.controllable[borrowed].controllerId).toBe(w.person);
   cancelTask(s, favour.id);
 });
@@ -518,7 +479,7 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
   expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
   expect(r.receipts).toHaveLength(1);
-  expect(taskMarkup(s)).toContain('Workshop fuel · tile 1, 0');
+  expect(taskMarkup(s)).toContain('Workshop fuel · at camp');
   expect(taskMarkup(s)).not.toContain('bring the log');
 
   // An actual NPC at the station burns the delivered resource during work.
@@ -707,8 +668,6 @@ it('settles already delivered harvest work even if family work fills the pantry 
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   const task = acceptFavour(s, r.id);
   advanceUntil(w, () => r.progress == 1 && r.delivered == 1);
-  const move = enqueueTask(s, { key: 'move_to_here' }, w.tiles[0]);
-  reorderTask(s, move.id, 0);
   for (const slot of s.ecs.farmable[w.field].slots) if (slot.state == 'harvestable') slot.state = 'harvested';
   s.ecs.farmable[w.field].claimerId = w.person;
   s.ecs.container[w.store].capacity = 32;
@@ -754,35 +713,7 @@ it('gleans five per cent of a larger harvest, at least one grain per favour', ()
   expect(task.favourId).toBe(r.id);
 });
 
-it.each([1,6])('a queued handover frees the household crop before accepted harvest (frame=%s)', frame => {
-  const w=favourWorld(),s=w.state,r=w.request('harvest'),person=w.person;
-  // INITIAL autonomous worker holding the field; its long current wait makes
-  // the release through actual conversation observable within a short window.
-  s.ecs.planner[person]={id:person,task:['wait_for',3],plan:[['person']],world:{places:{},no_place_for:{},feeling:{},holding:{},claimedFarmable:w.field,wait_until:s.days+3,days:s.days}};
-  s.ecs.farmable[w.field].claimerId=person;
-  const favour=acceptFavour(s,r.id);
-  const simulation=require('game/simulation').createSimulation(s);
-  for(let i=0;i<3;i++)simulation.step(frame);
-  expect(r.progress).toBe(0);
-  expect(favour.waiting).toBe('Waiting for the family to finish this patch');
-  const visit=enqueueTask(s,{key:'chat'},person);
-  reorderTask(s,visit.id,0);
-  const deadline=s.days+4*HOUR;
-  // A player Chat now pauses at contact. Answer and leave through the real
-  // conversation rules before physical harvest work can resume.
-  while(r.progress==0 && s.days<deadline) {
-    simulation.step(frame);
-    if(s.chat?.active) {
-      const chat=require("game/chat");
-      const line=chat.chatChoices(s).find(l=>chat.previewLine(s,l).fits);
-      if(line)chat.chooseLine(s,line.key);
-      chat.closeChat(s);
-    }
-  }
-  expect(r.progress).toBeGreaterThan(0);
-  expect(s.knowledge[w.player].people[person].conversation).toBeDefined();
-  expect(r.produced).toBe(1);
-});
+
 
 it('delivers already cut crop while a family worker holds the field claim', () => {
   const w=favourWorld(),s=w.state,r=w.request('harvest');

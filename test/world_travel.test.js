@@ -68,17 +68,17 @@ it("persists the remaining route and one resident copy through a mid-journey rel
   expect(Object.values(restored.travel.maps).filter(m=>m.residents[restored.ui.playerId])).toHaveLength(1);
 });
 
-it("camps at the actual dusk position, holds still overnight and resumes the same route at dawn", () => {
-  const {s,ids}=community();planJourney(s,"7,5");s.days=.84;
+it("camps at the actual exhausted position, sits until bedtime and resumes the same route at dawn", () => {
+  const {s,ids}=community();planJourney(s,"7,5");s.days=.84;s.ecs.personable[ids[0]].energy=0;
   const point={...s.ecs.spatial[ids[0]]};updateJourney(s);
   const camp=s.travel.journey.campId;
   expect(s.ecs.spatial[camp]).toMatchObject({x:point.x,y:point.y});
   expect(s.ecs.camp[camp]).toBeDefined();expect(s.ecs.sleepable[camp].capacity).toBe(1);
-  const simulation=createSimulation(s);simulation.step(1);
+  const simulation=createSimulation(s);simulation.step(10*(1), 0);
   expect(s.ecs.spatial[ids[0]]).toEqual(point);
-  expect(s.ecs.planner[ids[0]].task?.[0]).toBe("sleep");
+  expect(s.ecs.planner[ids[0]].task?.[0]).toBe("settle_fire");
   const restored=restoreGame(serialiseGame(s));
-  restored.days=1.25;updateJourney(restored);
+  restored.days=1.25;restored.ecs.personable[ids[0]].energy=60;updateJourney(restored);
   expect(restored.travel.journey.campId).toBeUndefined();
   expect(restored.ecs.camp[camp]).toBeUndefined();
   expect(restored.ecs.manager[ids[0]].jobs).toHaveLength(1);
@@ -93,14 +93,14 @@ it("runs only the current hex live between seasonal history steps", async () => 
   const {s}=community();const away=community({namespace:"away-",key:"6,5",player:false}).s;
   const snapshot=attach(s,away), before=JSON.stringify(snapshot);
   const simulation=createSimulation(s);
-  for(let i=0;i<90;i++)await simulation.step(1);
+  for(let i=0;i<90;i++)await simulation.step(10*(1), 0);
   expect(s.days).toBeGreaterThan(.375);
   expect(JSON.stringify(snapshot)).toBe(before);
   expect(s.travel.historyCalls).toEqual([]);
 });
 
 it("rests overnight at a journey camp without accumulating negative tiredness", () => {
-  const {s,ids}=community();planJourney(s,"7,5");s.days=.84;updateJourney(s);
+  const {s,ids}=community();planJourney(s,"7,5");s.days=.84;s.ecs.personable[ids[0]].energy=0;updateJourney(s);
   const {sleep}=require("game/tasks"),id=ids[0],planner=s.ecs.planner[id];
   sleep(s,id,planner.world,1/2);
   expect(s.ecs.personable[id].tiredness).toBe(.1);
@@ -113,17 +113,19 @@ it("keeps other queued local work when the remaining journey is stopped", () => 
   stopJourney(s);
   expect(s.ecs.manager[s.ui.playerId].jobs).toEqual([local]);
 });
-it('makes camp at core-loop dusk and never sends a traveller back to their home fire',()=>{
+it('keeps travelling at dusk and makes camp on exhaustion without returning to a distant home',()=>{
  const {s,ids}=community();const a=ids[0];s.ecs.personable[a].energy=50;
  planJourney(s,'6,5');s.days=.75;
  require('game/energy').playerDay(s);updateJourney(s);
  expect(s.ecs.planner[a].world.duskHome).toBeUndefined();
+ expect(s.travel.journey.campId).toBeUndefined();
+ s.ecs.personable[a].energy=0;updateJourney(s);
  expect(s.travel.journey.campId).toBeTruthy();
  expect(s.ecs.planner[a].world.journeyCamp).toBe(true);
 });
 it('sleeps on the journey bedroll rather than a distant household bed',()=>{
  const {s,ids}=community();const a=ids[0],p=s.ecs.personable[a];
- p.energy=20;planJourney(s,'6,5');s.days=.75;updateJourney(s);
+ p.energy=0;planJourney(s,'6,5');s.days=.75;updateJourney(s);p.energy=20;
  const w=s.ecs.planner[a].world;
  s.ecs.sleepable.homeBed={capacity:2,occupiers:[]};w.restBed='homeBed';
  require('game/tasks').sleep(s,a,w,1/24,true);

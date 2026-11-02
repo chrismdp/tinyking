@@ -16,7 +16,7 @@ const { eveningPlace } = require("../src/game/villages");
 const snapshot = s => JSON.stringify(Object.fromEntries(["ecs", "space", "days", "villages", "map", "world", "weather", "knowledge", "events", "social", "peopleSeed", "opinionThresholds"].map(k => [k, s[k]])));
 async function run(seed, capture) {
   const started = performance.now();
-  const s = { ecs: { nextId: 1 }, space: {}, ui: { show: {} }, redraws: [], days: .375, game_speed: "fast" };
+  const s = { ecs: { nextId: 1 }, space: {}, ui: { show: {} }, redraws: [], days: .375, game_speed: "normal" };
   const result = await generateMap(s, seed, async () => {}); s.map = result.map; s.ui.playerId = result.playerId;
   startIntro(s, { skip: true });
   const original = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead);
@@ -70,7 +70,7 @@ async function run(seed, capture) {
   while (s.days < end - 1e-9) {
     const before = Object.fromEntries(Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead).map(id => [id, { hunger: s.ecs.personable[id].hunger, task: s.ecs.planner[id]?.task?.[0] }]));
     const danger = Object.keys(before).filter(id => before[id].hunger > 5.9).map(id => actorTrace(s, id));
-    sim.step(6); s.redraws.length = 0;
+    sim.step(10*(6), 0); s.redraws.length = 0;
     for (const id in before) {
       if (s.ecs.personable[id].hunger < before[id].hunger) {
         actualMeals++; if (Math.floor((s.days - 6 / 1440) / 3) % 4 == 3) winterMeals++;

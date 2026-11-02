@@ -4,8 +4,8 @@ export const MAX_SUBTASKS = 3;
 
 export function meal_unavailable() {}
 
-export function forage(world) {
-  world.holding.forage = true;
+export function forage(world, expected) {
+  world.holding[expected ? "forage" : world.forageType || "forage"] = true;
 }
 
 export function chop_tree() {}
@@ -105,6 +105,7 @@ export function sleep(world) {
 }
 
 export function eat(world, expected, thing) {
+  if(!expected && thing=="forage" && !world.holding.forage)thing=world.forageType || thing;
   if (!world.holding[thing]) {
     return nothing;
   }
@@ -182,7 +183,7 @@ export function recover_meal(world, expected) {
 export function approach_chat(world, expected, targetId) { world.capturedAttentionOf=targetId; }
 export function chat_visit() {}
 
-export function settle_fire(world) { delete world.duskHome; }
+export function settle_fire() {}
 export function eat_food() {}
 
 export function festival_wait() {}

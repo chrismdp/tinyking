@@ -44,11 +44,18 @@ export function destinationFor(s, id) {
     arrivalSide: (side + 3) % 6,
     hex,
     key: worldKey(coordinates),
-    name: hexName(coordinates),
+    name: hexName(coordinates, s.world.home),
     blocked: !hex ? "The edge of the known world cannot be crossed." : hex.ocean ? "This neighbour is ocean. You cannot cross the sea on foot." : s.map.entrances && !s.map.entrances[side] ? "There is no land route across this edge." : null
   };
 }
-export const hexName = h => "Reach " + h.x + ", " + h.y;
+export function hexName(h, from) {
+  if(!from)return "This region";
+  if(h.x==from.x && h.y==from.y)return "This region";
+  const a=WorldHex(h).toPoint(),b=WorldHex(from).toPoint();
+  const angle=Math.atan2(a.y-b.y,a.x-b.x);
+  const compass=["east","south-east","south","south-west","west","north-west","north","north-east"];
+  return "The region to the " + compass[(Math.round(angle/(Math.PI/4))+8)%8];
+}
 
 // Land neighbours get a deterministic pass. The pass clears two inward tiles,
 // a farm-sized clearing and, if necessary, a narrow path to an existing village.

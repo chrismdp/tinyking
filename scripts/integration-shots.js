@@ -39,7 +39,7 @@ const BASE = process.argv[2] || "http://localhost:8118/";
         label.textContent = "DIAGNOSTIC VISIBILITY · seed 1 · natural evening";
         label.style.cssText = "position:fixed;left:6px;bottom:6px;z-index:9999;background:#fffbe9;color:#231d13;font:11px sans-serif;padding:6px;pointer-events:none";
         document.body.appendChild(label);
-        s.ui.actions.set_speed("fast");
+        s.ui.actions.set_speed("normal");
         window.integrationStarted = performance.now();
         window.integrationWatch = setInterval(() => {
           const hour = s.days % 1 * 24;
@@ -91,7 +91,7 @@ const BASE = process.argv[2] || "http://localhost:8118/";
       });
       assert(record.maxVenueDistance < 300);
       assert(record.minBodyClearance > 0 && record.penOverlaps == 0);
-      const collapse = page.getByRole("button", { name: "Collapse task list", exact: true });
+      const collapse = page.getByRole("button", { name: "Close journal", exact: true });
       if (await collapse.count()) await collapse.click();
       await page.waitForTimeout(3000);
       await page.screenshot({ path: path.join(SHOTS, "integration-evening-" + name + ".png") });

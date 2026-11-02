@@ -1,12 +1,12 @@
 import { createAutosave, bindAutosave } from "game/autosave";
 import { createSimulation } from "game/simulation";
 it("saves each crossed game day after its simulation step", () => {
-  const state = { ecs: { planner: {}, personable: {} }, ui: {}, days: .999, game_speed: "fast", redraws: [] };
+  const state = { ecs: { planner: {}, personable: {} }, ui: {}, days: .999, game_speed: "normal", redraws: [] };
   const onDay = jest.fn();
   const sim = createSimulation(state, { onDay });
-  sim.step(6);
+  sim.step(10*(6), 0);
   expect(onDay).toHaveBeenCalledTimes(1);
-  sim.step(6);
+  sim.step(10*(6), 0);
   expect(onDay).toHaveBeenCalledTimes(1);
 });
 it("requests a save on pagehide and only hidden visibility changes", () => {

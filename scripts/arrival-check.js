@@ -10,7 +10,7 @@ const { topController } = require("../src/game/playable");
 const { createSimulation } = require("../src/game/simulation");
 
 async function mapFor(seed) {
-  const s = { ecs: { nextId: 1 }, ui: { show: {} }, days: 0.375, redraws: [], game_speed: "fast" };
+  const s = { ecs: { nextId: 1 }, ui: { show: {} }, days: 0.375, redraws: [], game_speed: "normal" };
   const result = await generateMap(s, seed, async () => {});
   s.ui.playerId = result.playerId;
   s.map = result.map;
@@ -32,7 +32,7 @@ async function survive(seed, eat) {
     before = hunger;
   } });
   const days = eat ? 10 : 3;
-  for (let tick = 0; tick < days * 1440; tick++) sim.step(1);
+  for (let tick = 0; tick < days * 1440; tick++) sim.step(10*(1), 0);
   const person = s.ecs.personable[id];
   assert(!person.dead);
   if (eat) { assert(meals >= 5); assert(person.hunger < 2.5); }

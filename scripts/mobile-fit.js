@@ -21,7 +21,7 @@ async function checkControls(page, safe = {}) {
       right: innerWidth - (safe.right || 0), bottom: innerHeight - (safe.bottom || 0) };
     const fits = r => r.left >= view.left - 1 && r.top >= view.top - 1 && r.right <= view.right + 1 && r.bottom <= view.bottom + 1;
     const failures = [];
-    for (const el of document.querySelectorAll("button, a, input, select, textarea, #clock, #task-panel footer, #selected-person")) {
+    for (const el of document.querySelectorAll("button, a, input, select, textarea, #clock, #status-strip, #selected-person")) {
       if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
       const rect = el.getBoundingClientRect();
       if (fits(rect)) continue;
@@ -61,15 +61,16 @@ async function customise(page) {
   await page.waitForTimeout(300);
 }
 
-async function queueTasks(page) {
+async function replaceOrder(page) {
   await page.evaluate(() => {
     const s = window.tinyking;
     s.ui.actions.set_speed("paused");
     const targets = Object.keys(s.ecs.walkable).filter(id => s.ecs.walkable[id].speed > 0);
     for (const id of targets.slice(0, 12)) s.ui.actions.choose_job(s.ui.playerId, { key: "move_to_here" }, id);
+    if (s.ecs.manager[s.ui.playerId].jobs.length != 1) throw new Error("A new order must replace the current one");
   });
-  await page.getByRole("button", { name: "Expand task list" }).click();
-  assert(await page.locator("#task-panel .task").count() >= 10);
+  assert.equal(await page.locator("#task-panel").count(),0);
+  assert((await page.locator("#status-strip").boundingBox()).height <= 110);
 }
 
 async function touchScroll(page, selector) {
@@ -122,15 +123,14 @@ async function mobile(page, size) {
   }
   await page.getByRole("button", { name: "Start game", exact: true }).click();
   await page.waitForSelector(".panel", { state: "detached" });
-  await queueTasks(page);
-  await page.waitForTimeout(1800);
-  await shot(page, prefix + "-game-tasks");
-  await touchScroll(page, "#task-panel .task-body");
-  await page.locator("#task-panel .task-body").evaluate(el => { el.scrollTop = el.scrollHeight; });
-  const lastCancel = page.getByRole("button", { name: "Cancel Move here" }).last();
-  await lastCancel.click();
-  assert.equal(await page.locator("#task-panel .task").count(), 11, "the bottom task's controls work");
-  await shot(page, prefix + "-game-tasks-bottom");
+  await replaceOrder(page);
+  await shot(page, prefix + "-game-status");
+  await page.getByRole("button", { name: "Journal · J",exact:true }).click();
+  await touchScroll(page, "#journal .journal-body");
+  await shot(page, prefix + "-journal");
+  await page.getByRole("button", { name: "Close journal",exact:true }).click();
+  await page.getByRole("button", { name: "Stop",exact:true }).click();
+  assert.equal(await page.evaluate(()=>window.tinyking.ecs.manager[window.tinyking.ui.playerId].jobs.length),0);
 
   await page.evaluate(() => {
     const s = window.tinyking;

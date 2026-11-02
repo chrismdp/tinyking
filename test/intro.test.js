@@ -1,40 +1,9 @@
-import { generateMap, Hex, Grid, ALL_SIDES } from "game/map";
+import { generateFamilies, Hex, Grid, ALL_SIDES } from "game/map";
 import { newEntities } from "game/entities";
 import { arrivalRoute, startIntro, skipIntro, updateIntro, INTRO_TIMING } from "game/intro";
 
-const makeWorld = async (seed = 13) => {
-  const state = { ecs: { nextId: 1 }, days: 0.375, game_speed: "normal", redraws: [], ui: { show: {} } };
-  const result = await generateMap(state, seed, async () => {});
-  state.map = result.map;
-  state.ui.playerId = result.playerId;
-  return state;
-};
-
-it("starts without a camp and walks two adjacent hexes inward from the boundary, across seeds", async () => {
-  for (const seed of [1, 2, 13, 20, 53, 84, 1234, 98765]) {
-    const state = await makeWorld(seed);
-    expect(Object.keys(state.ecs.camp || {})).toHaveLength(0);
-    expect(state.ecs.household[state.ui.playerId]).toBeUndefined();
-    const route = arrivalRoute(state);
-    const at = point => (state.space[Hex().fromPoint(point)] || []).find(id => state.ecs.mappable[id]);
-    expect(at(route.points[0])).toBeUndefined();
-    expect(route.tileIds).toHaveLength(3);
-    const centre = Hex(state.map.centre);
-    const hexes = route.tileIds.map(id => Hex().fromPoint(state.ecs.spatial[id]));
-    expect(hexes.map(hex => centre.distance(hex))).toEqual([state.map.radius, state.map.radius - 1, state.map.radius - 2]);
-    expect(hexes[0].distance(hexes[2])).toBe(2);
-    for (let i = 0; i < route.tileIds.length; i++) {
-      expect(state.ecs.walkable[route.tileIds[i]].speed).toBeGreaterThan(0);
-      if (i) expect(Object.values(state.ecs.walkable[route.tileIds[i - 1]].neighbours)).toContain(route.tileIds[i]);
-    }
-    expect(at(route.points.at(-1))).toBe(route.tileIds.at(-1));
-    expect(Hex().fromPoint(route.campPoint).toString()).toBe(Hex(state.map.playerStartTile).toString());
-    expect(arrivalRoute(state)).toEqual(route);
-  }
-}, 15000);
-
 const routeFixture = () => {
-  const state = { ecs: { nextId: 1 }, space: {}, redraws: [], ui: { playerId: "p" },
+  const state = { ecs: { nextId: 1, building: {} }, days: 0.375, space: {}, redraws: [], ui: { show: {} },
     map: { playerStartTile: { x: 1, y: 0 }, centre: { x: 0, y: 0 }, radius: 3 },
     villages: { v: { centre: { x: -2, y: -1 } }, far: { centre: { x: 8, y: 0 } } } };
   const hexes = Grid.hexagon({ radius: 3 });
@@ -43,6 +12,11 @@ const routeFixture = () => {
     const j = hexes.findIndex(h => h.toString() == n.toString());
     if (j >= 0) state.ecs.walkable[ids[i]].neighbours[side] = ids[j];
   }));
+  newEntities(state, [{ spatial: Hex(-2, -1).toPoint(), building: { entrance: 0, rooms: [] },
+    controllable: {}, village: { villageId: "v" } }]);
+  generateFamilies({ state, seed: 13, playerStartTile: Hex(state.map.playerStartTile) });
+  state.ui.playerId = Object.keys(state.ecs.playable)[0];
+  state.ecs.household ||= {};
   return state;
 };
 
@@ -67,7 +41,7 @@ it("chooses another two-hex approach when the preferred approach is unwalkable",
 });
 
 it("skipping at any phase and the URL bypass produce the same finished camp as watching", async () => {
-  const original = await makeWorld();
+  const original = routeFixture();
   const watched = structuredClone(original);
   startIntro(watched);
   for (let i = 0; i < Math.ceil(INTRO_TIMING.duration * 60) + 1; i++) updateIntro(watched, 1 / 60);

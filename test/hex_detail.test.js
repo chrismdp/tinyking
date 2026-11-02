@@ -83,6 +83,8 @@ it("stores completed unopened detail separately, then applies current residents 
   const loaded = await decodeWorldSave(structuredClone(packet.world), key => disk.get(key));
   expect(loaded.travel.preparedMaps).toBeUndefined();
   expect(Object.keys(loaded.travel.hexRecords)).toHaveLength(2);
+  const reach = loaded.world.hexes.find(h => h.x === 6 && h.y === 5);
+  expect(require("game/realm_map").reachFacts(loaded, reach).visited).toBe(false);
   const summary = loaded.travel.maps["6,5"], person = Object.keys(summary.residents)[0];
   summary.ecs.nameable[person] = { ...summary.ecs.nameable[person], nickname: "Changed while away" };
   summary.ecs.personable[person].age = 42;
@@ -99,4 +101,7 @@ it("stores completed unopened detail separately, then applies current residents 
   expect(detailed.ecs.mappable).toEqual(away.ecs.mappable);
   expect(detailed.unopenedDetail).toBeUndefined();
   expect(buildHistoryMap).toHaveBeenCalledTimes(1);
+  await require("game/travel").completeTravel(loaded, { destination: "6,5", side: 0 });
+  expect(require("game/realm_map").reachFacts(loaded, reach).visited).toBe(true);
+  expect(loaded.travel.unopenedHexes["6,5"]).toBeUndefined();
 });

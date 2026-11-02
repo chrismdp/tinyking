@@ -730,6 +730,7 @@ export function enterMap(s, key, bundle, side) {
   Object.assign(s, map);
   s.days = j.days;
   j.active = key;
+  delete j.unopenedHexes?.[key];
   s.world = {
     ...s.world,
     home: Object.fromEntries(key.split(",").map((n, i) => [i ? "y" : "x", +n]))
@@ -1201,6 +1202,7 @@ export function activateResidentMap(s, key) {
   Object.assign(s,map);
   s.days=j.days;
   j.active=key;
+  delete j.unopenedHexes?.[key];
   s.world={...s.world,home:Object.fromEntries(key.split(",").map((n,i)=>[i?"y":"x",+n]))};
   references(s,j);
   s.redraws=Object.keys(s.ecs.spatial);

@@ -38,6 +38,7 @@ export function prepareDetail(s, key, progress = async () => {}, options = {}) {
   const hex = s.world.hexes.find(h => worldKey(h) === key);
   const work = buildHistoryMap(context, hex, origin, progress, options).then(map => {
     map.unopenedDetail = true;
+    (j.unopenedHexes ||= {})[key] = true;
     (j.preparedMaps ||= {})[key] = map;
     return map;
   }).finally(() => jobs.delete(key));

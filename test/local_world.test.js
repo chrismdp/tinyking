@@ -54,3 +54,17 @@ it("keeps unwilling adults local while a willing seeker can use the existing roa
   expect(Object.hasOwn(home.ecs.personable,id)).toBe(false);
   expect(home.ecs.personable[id]).toBe(s.travel.people[id].personable);
 });
+
+it("adds a real NPC arrival to the active household, village and nearby queries",async()=>{
+  const {departNpc}=require("game/travel"),{trackPopulation,householdMembers,villagePeople,nearbyPeople}=require("game/population_index");
+  const s=world(),away=s.travel.maps["6,5"],id=Object.keys(away.residents)[0];
+  trackPopulation(s);
+  departNpc(away,id,{to:s.travel.active,side:3},s.travel);
+  expect(s.travel.transit.some(trip=>trip.bundle.id===id)).toBe(true);
+  s.days+=7;await advanceWorldClock(s);
+  expect(s.residents[id]).toBe(true);
+  const home=s.ecs.household[id].houseId,village=s.ecs.village[id].villageId;
+  expect(householdMembers(s,home)).toContain(id);
+  expect(villagePeople(s,village)).toContain(id);
+  expect(nearbyPeople(s,s.ecs.spatial[id],0)).toContain(id);
+});

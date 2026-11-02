@@ -1107,6 +1107,7 @@ async function receiveNpcs(s, j) {
         houseId: dest.ecs.household[id]?.houseId
       };
     }
+    refreshPersonIndex(dest,id);
     recordEvent(dest, trip.returning ? "return" : "world_visit", [id], [], {
       fromWorld: trip.visitWorld || trip.from,
       toWorld: trip.to

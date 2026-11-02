@@ -136,15 +136,18 @@ it("carries romance, affair, reaction and attempt records through actual travel 
   s.ecs.relationships[player].known[lover].romance={since:0};
   runSocialActions(s,"contact",player,lover,{actions:[{id:"test_attempt",hooks:["contact"],chance:0}]});
   const reactions={...s.knowledge[player].reactions},moments={...s.ecs.relationships[player].actionMoments};
+  s.ecs.relationships[player].unmetGoodwill={[away.ids[1]]:-30};
   await completeTravel(s,{destination:away.s.map.worldKey,side:0});skipIntro(s);
   expect(s.ecs.relationships[player].known[lover]).toMatchObject({romance:{since:0},affair:{eventId:e.id}});
   expect(s.ecs.relationships[player].actionMoments).toEqual(moments);
+  expect(s.ecs.relationships[player].unmetGoodwill[away.ids[1]]).toBeLessThan(0);
   expect(s.knowledge[player].reactions).toEqual(reactions);
   const before=JSON.stringify(s.ecs.relationships[player]);learnEvent(s,player,e);learnEvent(s,player,betrayal);
   expect(JSON.stringify(s.ecs.relationships[player])).toBe(before);
   await completeTravel(s,{destination:home.s.map.worldKey,side:3});skipIntro(s);
   expect(s.knowledge[player].events.filter(id=>id==e.id)).toHaveLength(1);
   expect(s.knowledge[player].reactions).toMatchObject(reactions);
+  expect(s.ecs.relationships[player].unmetGoodwill[away.ids[1]]).toBeLessThan(0);
 });
 it("binds unhappy-marriage wording only to a genuinely unhappy living spouse at Personal trust",()=>{
   const {openChat,lineCandidates}=require("game/chat");
@@ -224,6 +227,7 @@ it("owns reaction, discovery and attempt maps when a seasonal result learns late
   learnEvent(s,listener,recordEvent(s,"romance",[a,b]));
   const actions=[{id:"ownership_attempt",hooks:["contact"],chance:0}];
   runSocialActions(s,"contact",a,b,{actions});
+  s.ecs.relationships[a].unmetGoodwill={[listener]:-20};
   const before=JSON.stringify(s),next=historyStep(s,1);
   recordEvent(next,"quarrel",[a,b],[],{audienceIds:[listener]});
   learnEvent(next,listener,recordEvent(next,"romance",[a,b]));
@@ -240,4 +244,19 @@ it("retains a physical visit record when one visitor has no village affiliation"
   for(const [id,partner] of [[a,b],[b,a]])s.ecs.planner[id].world.social={partnerId:partner,visitor:id==a,stage:"visiting",started:s.days-1/24,expires:s.days+1};
   socialise(s,a,s.ecs.planner[a].world,0,false,b);
   expect(s.events.filter(e=>e.type=="visit"&&e.people[0]==a&&e.people[1]==b)).toHaveLength(1);
+});
+
+it("saves anonymous occurrence penalties and applies them once at an actual introduction",()=>{
+  const {meet,goodwillTowards}=require("game/people");
+  const {serialiseGame,restoreGame}=require("game/save_game");
+  const {state:s,person:a,player}=peopleWorld();
+  delete s.ecs.relationships[player].known[a];
+  recordEvent(s,"quarrel",[a,player],[],{audienceIds:[]});
+  expect(s.ecs.relationships[player].known[a]).toBeUndefined();
+  expect(goodwillTowards(s,player,a)).toBe(-6);
+  const restored=restoreGame(serialiseGame(s));
+  expect(goodwillTowards(restored,player,a)).toBe(-6);
+  meet(restored,player,a);expect(restored.ecs.relationships[player].known[a].goodwill).toBe(-6);
+  meet(restored,player,a);expect(restored.ecs.relationships[player].known[a].goodwill).toBe(-6);
+  expect(restored.ecs.relationships[player].unmetGoodwill[a]).toBeUndefined();
 });

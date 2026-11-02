@@ -396,13 +396,15 @@
         "op": "goodwill",
         "person": "actor",
         "towards": "partner",
-        "amount": -6
+        "amount": -6,
+        "introduce": false
       },
       {
         "op": "goodwill",
         "person": "partner",
         "towards": "actor",
-        "amount": -6
+        "amount": -6,
+        "introduce": false
       },
       {
         "op": "avoidance",

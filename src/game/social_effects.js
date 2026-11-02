@@ -14,7 +14,7 @@ export function applySocialEffects(s,effects,bindings,recordEvent) {
       if(!conditions(s,b,effect.when))continue;
       const id=p=>boundId(b,p),a=id(effect.person),other=id(effect.towards);
       switch(effect.op) {
-      case "goodwill":if(s.ecs.relationships?.[a]&&s.ecs.personable?.[other])addGoodwill(s,other,a,effect.amount);break;
+      case "goodwill":if(s.ecs.relationships?.[a]&&s.ecs.personable?.[other])addGoodwill(s,other,a,effect.amount,effect.introduce!==false);break;
       case "avoidance": {
         s.social ||= {};s.social.avoidance ||= {};
         const key=pairKey(id(effect.a),id(effect.b));

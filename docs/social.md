@@ -14,7 +14,7 @@ Households own their house, rooms, stores, fields, workshops and animals through
 
 ## Rules
 
-A person learns their own events and close family events. Other villagers hear an event with probabilities of 12%, 40%, 75% or 100%, according to their closest ring with a participant. A nearby player can witness live news. Generated history gives the arriving player no automatic knowledge. The feed reads only the player’s known events, including legitimately heard history. The feed and social activity labels share the player-knowledge name filter; the raw world name formatter cannot reveal an unknown identity.
+Ordinary events inform participants and close family. Private events use their declared audience. Other villagers hear an event with probabilities of 12%, 40%, 75% or 100%, according to their closest ring with a participant. A nearby player can witness live news. Generated history gives the arriving player no automatic knowledge. The feed reads only the player’s known events, including legitimately heard history. The feed and social activity labels share the player-knowledge name filter; the raw world name formatter cannot reveal an unknown identity.
 
 Event definitions declare `onOccurrence` and `onLearn` effects. Effects change directional goodwill, set avoidance, record a reaction, or record a consequential event. Learning about a quarrel with close kin costs three goodwill towards their opponent. A gift or reconciliation adds one goodwill towards the first participant when the second participant is close kin. Each person receives learning effects once per event. Repeated hearing and travel knowledge merges keep the same event identity and do not replay these effects.
 
@@ -125,3 +125,5 @@ An unhappy married person in a mutual romance with someone other than their spou
 When a spouse first learns an affair, they lose 30 goodwill towards their unfaithful spouse. A declared quarrel then applies its ordinary six-point losses and avoidance. Reaction records use the event identity. There is no separation, eviction, parentage change or succession dispute.
 
 Romance and affair records live on relationship bonds. Latest action attempts live on the relationship component. Reactions and discovery records live in personal knowledge. Existing generic saves, traveller components, identity records and `LOCAL_FIELDS` carry these containers. `historyStep` copies the attempt, reaction and discovery maps at the snapshot boundary. Individual writes then take constant time. No travel, map, world-history or save field list changes are needed.
+
+Occurrence effects do not introduce strangers. An anonymous goodwill change stays in `relationships[id].unmetGoodwill` until actual contact introduces that person. It drifts towards zero at the ordinary rate. The shared goodwill query includes this regard. Saves, traveller identity records and seasonal copies retain it. Existing kin reactions keep their previous first-learning behaviour.

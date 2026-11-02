@@ -366,6 +366,7 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   if (until > s.days) return false;
   s.social.contacts ||= {};
   s.social.contacts[key] = s.days;
+  meet(s,a,b);meet(s,b,a);
   const hostile = disposition(s, a, b) == "hate" || disposition(s, b, a) == "hate";
   if (summary && hostile) conversations = 1;
   const actions=runSocialActions(s,"contact",a,b,{summary,conversations});
@@ -612,7 +613,8 @@ export function historyStep(worldHexState, season) {
   records("relationships", (r, id) => worldHexState.ecs.personable[id]?.dead ? r : {
     ...r,
     known: copyRelationshipList(r.known),
-    ...(r.actionMoments?{actionMoments:{...r.actionMoments}}:{})
+    ...(r.actionMoments?{actionMoments:{...r.actionMoments}}:{}),
+    ...(r.unmetGoodwill?{unmetGoodwill:{...r.unmetGoodwill}}:{})
   });
   records("possession", p => ({
     ...p,

@@ -1,4 +1,4 @@
-import { RINGS, disposition } from "game/people";
+import { RINGS, disposition, goodwillTowards } from "game/people";
 import { personComponent } from "game/residents";
 import { closeFamily, relatedPeople } from "game/social_kin";
 
@@ -14,7 +14,7 @@ const bond = (s,a,b) => personComponent(s,"relationships",a)?.known[b];
 export function maritalSatisfaction(s,id) {
   const spouse=kin(s,id)?.spouse;
   if(!alive(s,id)||!alive(s,spouse))return null;
-  const goodwill=bond(s,id,spouse)?.goodwill||0;
+  const goodwill=goodwillTowards(s,id,spouse);
   const avoiding=s.social?.avoidance?.[pairKey(id,spouse)]>s.days;
   return Math.max(0,Math.min(100,goodwill-(avoiding?15:0)));
 }
@@ -23,7 +23,7 @@ export function maritalSatisfaction(s,id) {
 export function condition(s,b,{test,args:a={}}) {
   const id=path=>boundId(b,path),p=id(a.person),q=id(a.towards),x=id(a.a),y=id(a.b);
   const valid=(...ids)=>ids.every(v=>v!=null && !!person(s,v));
-  const g=bond(s,p,q)?.goodwill||0,r=bond(s,p,q)?.ring||"public";
+  const g=goodwillTowards(s,p,q),r=bond(s,p,q)?.ring||"public";
   switch(test) {
   case "person_alive":return alive(s,p);
   case "person_dead":return !!person(s,p)?.dead;

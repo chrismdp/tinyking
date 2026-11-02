@@ -82,7 +82,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   applySocialEffects(state,EVENT_TYPES[type]?.onOccurrence,eventBindings(event),recordEvent);
   if (EVENT_TYPES[type]?.audience == "participants_witnesses") {
     const audience = new Set(people);
-    if (!state.generatingHistory && !state.summarisingHistory) {
+    if (!state.generatingHistory && !state.summarisingHistory && !event.summary) {
       const origin=state.ecs.spatial?.[people[0]],interior=state.ecs.interior?.[people[0]]?.buildingId;
       for (const id of Object.keys(state.ecs.personable || {})) {
         const p=state.ecs.spatial?.[id],w=state.ecs.planner?.[id]?.world;

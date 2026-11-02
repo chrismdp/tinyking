@@ -130,7 +130,9 @@ it("carries romance, affair, reaction and attempt records through actual travel 
   attach(s,away.s);
   s.ecs.kinship[player].spouse=spouse;s.ecs.kinship[spouse].spouse=player;
   s.summarisingHistory=true;
-  const e=recordEvent(s,"affair",[player,lover]);delete s.summarisingHistory;
+  const e=recordEvent(s,"affair",[player,lover]);
+  const betrayal=recordEvent(s,"affair",[spouse,lover]);delete s.summarisingHistory;
+  learnEvent(s,player,betrayal);
   s.ecs.relationships[player].known[lover].romance={since:0};
   runSocialActions(s,"contact",player,lover,{actions:[{id:"test_attempt",hooks:["contact"],chance:0}]});
   const reactions={...s.knowledge[player].reactions},moments={...s.ecs.relationships[player].actionMoments};
@@ -138,7 +140,7 @@ it("carries romance, affair, reaction and attempt records through actual travel 
   expect(s.ecs.relationships[player].known[lover]).toMatchObject({romance:{since:0},affair:{eventId:e.id}});
   expect(s.ecs.relationships[player].actionMoments).toEqual(moments);
   expect(s.knowledge[player].reactions).toEqual(reactions);
-  const before=JSON.stringify(s.ecs.relationships[player]);learnEvent(s,player,e);
+  const before=JSON.stringify(s.ecs.relationships[player]);learnEvent(s,player,e);learnEvent(s,player,betrayal);
   expect(JSON.stringify(s.ecs.relationships[player])).toBe(before);
   await completeTravel(s,{destination:home.s.map.worldKey,side:3});skipIntro(s);
   expect(s.knowledge[player].events.filter(id=>id==e.id)).toHaveLength(1);
@@ -173,4 +175,22 @@ it("requires an awake unobstructed witness and never infers witnesses from summa
   expect(s.knowledge[spouse].discoveries[witnessed.id].kind).toBe("witness");
   s.summarisingHistory=true;const summary=recordEvent(s,"affair",[a,b]);
   expect(s.knowledge[spouse].events).not.toContain(summary.id);
+});
+
+it.each(["parent","child","sibling","friend"])("withholds affair gossip from a subject's %s despite Intimate teller trust",kind=>{
+  const {canDiscloseEvent}=require("game/people");
+  const {state:s,a,b,listener}=fixture();s.generatingHistory=true;
+  const event=recordEvent(s,"affair",[a,b]);
+  s.ecs.relationships[b].known[listener]={ring:"intimate",goodwill:66};
+  if(kind=="parent"){s.ecs.kinship[a].parents=[listener];s.ecs.kinship[listener].children=[a];}
+  if(kind=="child"){s.ecs.kinship[a].children=[listener];s.ecs.kinship[listener].parents=[a];}
+  if(kind=="sibling"){s.ecs.kinship.ancestor={parents:[],children:[a,listener]};s.ecs.kinship[a].parents=["ancestor"];s.ecs.kinship[listener].parents=["ancestor"];}
+  if(kind=="friend")s.ecs.relationships[listener].known[a]={ring:"personal",goodwill:36};
+  expect(canDiscloseEvent(s,b,listener,event)).toBe(false);
+});
+it("does not invent witnesses when the contact hook is invoked directly in summary mode",()=>{
+  const {runSocialActions}=require("game/social_actions");
+  const {state:s,a,b,spouse}=fixture();
+  const [{event}]=runSocialActions(s,"contact",a,b,{summary:true,actions:[{id:"summary_privacy",hooks:["contact"],chance:1,event:{type:"affair",people:["actor","partner"]}}]});
+  expect(s.knowledge[spouse]?.events||[]).not.toContain(event.id);
 });

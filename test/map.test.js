@@ -26,7 +26,14 @@ it.each([20, 1234, 98765])("sites named hamlets and creates families directly (s
   const start = Hex(11, 2);
   const landscape = Object.fromEntries(grid.map(h => [h, { ...h.toPoint(), terrain: "grassland", elevation: 20, economic_value: 10 }]));
   const natural = createHeightField({ seed: 0, terrainAt: () => "grassland", elevationAt: () => 20 });
+  const initialLandscape = structuredClone(landscape);
   const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, async () => {}, new Set(grid.map(String)), natural);
+  if (seed == 1234) {
+    const replay = await generateSettlements(seed, grid, initialLandscape, start, async () => {}, new Set(grid.map(String)), natural);
+    expect(replay.settlements).toEqual(settlements);
+    expect(replay.villages).toEqual(villages);
+    expect(initialLandscape).toEqual(landscape);
+  }
   expect(Object.values(villages).length).toBeGreaterThanOrEqual(3);
   expect(new Set(Object.values(villages).map(v => v.name)).size).toBe(Object.keys(villages).length);
   const state = { ecs: { nextId: 1 }, days: 0.375, villages };

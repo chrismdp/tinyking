@@ -6,7 +6,7 @@ Status: core loop, 1 November 2026. This describes the implemented game. The sep
 
 A stranger arrives, finds their mother’s family, and becomes part of a village whose people they come to love, and grieve.
 
-You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and forty-five years of history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
+You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and forty-five years of shared world history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
 
 The game aims to make these activities enjoyable:
 
@@ -41,8 +41,8 @@ to its exit, using the road where available. Each hop advances one season and
 arrives at the matching edge at dawn. When exhausted, the traveller camps at their
 position, sits by the fire, and resumes after rest. Visited maps retain their people, buildings,
 stores and ownership. Only the current hex runs live. Away communities advance
-through seasonal history. Their snapshots still remain in memory until per-hex
-storage and eviction are implemented. See [travel](travel.md).
+through compact seasonal records of people and households. Detailed maps leave
+memory after an atomic save to IndexedDB. See [travel](travel.md).
 
 Each season lasts seven days. The last evening brings a village festival.
 After its night, a page shows only real events the player knows. Begin the new
@@ -56,6 +56,12 @@ Opening it does not pause time or generate detailed maps.
 ## People and history
 
 Each person has a stable identity, parents, spouse, children, developmental age, personality and directional relationships. Dead people remain historical records. Families own houses, fields, stores, trades, animals, tools and keepsakes. Items retain the identities of their makers and earlier owners. [People](people.md), [social life](social.md) and [village life](villages.md) describe these systems.
+
+A new game generates all land communities together, before it builds the starting
+map. People visit neighbours, marry and move during those forty-five years.
+Biomes roll several villages, one town or no settlement. Roads are optional.
+Each land hex also receives one discovery. Arrival builds terrain and buildings
+from the seed and stored households. It does not generate another history.
 
 Generated history contains only the existing residents. The newly created stranger does not age, marry, die, meet villagers or inherit property during those forty-five years. Their lifecycle starts at arrival. After arrival, their actual person ages in live play and on the road. Reference-only people do not take a second local seasonal update.
 

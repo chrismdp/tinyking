@@ -1,3 +1,4 @@
+import { compactMap, summarySeason, buildHistoryMap, restoreDetails } from "game/world_history";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { advanceEnvironment } from "game/environment";
 import { householdAccess } from "game/playable";
@@ -20,7 +21,8 @@ import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geome
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
 export const TRANSITION_NEEDS = "The journey takes one season. Walking uses a little energy. Eat your own food or Rest before leaving if you need more.";
-const LOCAL_FIELDS = ["settlement", "eventIds", "ecs", "space", "map", "villages", "events", "knowledge", "chat", "talking", "social", "favours", "customs", "ecology", "snow", "snowRevision", "environmentUpdatedAt", "needsUpdatedAt", "landUseRevision", "residents", "peopleSeed", "opinionThresholds", "days"];
+export { LOCAL_FIELDS } from "game/hex_storage";
+import { LOCAL_FIELDS } from "game/hex_storage";
 const IDENTITY = ["personable", "personality", "kinship", "relationships", "nameable", "controllable", "household", "village", "playable"];
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
@@ -35,6 +37,10 @@ export function freezeOpinions(s) {
 export function localSnapshot(s) {
   return Object.fromEntries(LOCAL_FIELDS.filter(k => s[k] !== undefined).map(k => [k, s[k]]));
 }
+const publishedEvents = new WeakMap();
+const referenceEvents = new WeakMap();
+const knowledgeCursors = new WeakMap();
+const knowledgeSets = new WeakMap();
 function publish(s, j) {
   freezeOpinions(s);
   for (const id of Object.keys(s.ecs.personable || {})) if (!s.residents || s.residents[id]) {
@@ -52,12 +58,17 @@ function publish(s, j) {
     j.eventOrder = Object.fromEntries(Object.keys(j.events).map((id, index) => [id, index]));
     j.nextEventOrder = Object.keys(j.events).length;
   }
-  for (const e of s.events || []) {
+  const events=s.events || [];
+  const published=j.wholeWorld ? publishedEvents.get(events) || 0 : 0;
+  for (let index=published;index<events.length;index++) {
+    const e=events[index];
     if (!(e.id in j.events)) j.eventOrder[e.id] = j.nextEventOrder++;
     j.events[e.id] = e;
   }
+  if(j.wholeWorld)publishedEvents.set(events,events.length);
   j.knowledge ||= {};
   for (const [id, known] of Object.entries(s.knowledge || {})) {
+    if(j.wholeWorld){publishKnowledge(s,j,id,known);continue;}
     const previous = j.knowledge[id];
     if (!previous) {
       j.knowledge[id] = known;
@@ -206,28 +217,60 @@ function references(s, j) {
   for (const id of required) if (!s.residents[id] && j.people[id]) for (const [key, value] of Object.entries(j.people[id])) (s.ecs[key] ||= {})[id] = value;
   s.knowledge ||= {};
   for (const id of Object.keys(s.residents)) if (j.knowledge?.[id]) {
-    const local = s.knowledge[id] || {},
-      global = j.knowledge[id],
-      seen = new Set(global.events || []);
-    s.knowledge[id] = {
-      ...global,
-      ...local,
-      events: [...(global.events || []), ...(local.events || []).filter(event => !seen.has(event))]
-    };
+    const local=s.knowledge[id] || {},global=j.knowledge[id];
+    if(j.wholeWorld){if(local!==global)publishKnowledge(s,j,id,local);continue;}
+    const seen=new Set(global.events || []);
+    s.knowledge[id]={...global,...local,events:[...(global.events || []),...(local.events || []).filter(event=>!seen.has(event))]};
   }
   // Events retain globally unique IDs. Knowledge remains with its observer.
-  const learned = new Set(Object.keys(s.residents).flatMap(id => s.knowledge?.[id]?.events || []));
-  const own = new Set((s.events || []).map(e => e.id));
-  const incoming = [...learned].filter(id => !own.has(id) && j.events[id]).sort((a, b) => j.eventOrder[a] - j.eventOrder[b]);
-  if (incoming.length) s.events = [...(s.events || []), ...incoming.map(id => j.events[id])];
+  if(j.wholeWorld)importLearnedEvents(s,j);
+  else {
+    const learned = new Set(Object.keys(s.residents).flatMap(id => s.knowledge?.[id]?.events || []));
+    const own = new Set((s.events || []).map(e => e.id));
+    const incoming = [...learned].filter(id => !own.has(id) && j.events[id]).sort((a, b) => j.eventOrder[a] - j.eventOrder[b]);
+    if (incoming.length) s.events = [...(s.events || []), ...incoming.map(id => j.events[id])];
+  }
   s.villages = {
-    ...Object.fromEntries(Object.entries(j.villages).map(([id, v]) => [id, {
+    ...Object.fromEntries(Object.entries(j.wholeWorld ? {} : j.villages).map(([id, v]) => [id, {
       ...v,
       houses: [],
       sharedPlaces: []
     }])),
     ...s.villages
   };
+}
+// New worlds own their summary graph. Merge only newly appended knowledge,
+// retaining the global order and the current resident's disclosure metadata.
+function publishKnowledge(s,j,id,known) {
+  const previous=j.knowledge[id];
+  if(!previous || previous===known){j.knowledge[id]=known;return;}
+  const base=previous.events ||= [],heard=known.events || [];
+  let index=knowledgeSets.get(base);
+  if(!index){index={seen:new Set(),length:0};knowledgeSets.set(base,index);}
+  for(let n=index.length;n<base.length;n++)index.seen.add(base[n]);
+  for(let n=knowledgeCursors.get(heard)||0;n<heard.length;n++)if(!index.seen.has(heard[n])){base.push(heard[n]);index.seen.add(heard[n]);}
+  knowledgeCursors.set(heard,heard.length);index.length=base.length;
+  if(s.residents?.[id])j.knowledge[id]=s.knowledge[id]={...previous,...known,events:base};
+}
+// Each event and learned-event array is append-only during an owned world step.
+// Cursors avoid rescanning old history. Replaced arrays get a fresh index.
+function importLearnedEvents(s,j) {
+  const events=s.events ||= [];
+  let index=referenceEvents.get(events);
+  if(!index){index={own:new Set(),length:0,readers:new WeakMap(),waiting:new Set()};referenceEvents.set(events,index);}
+  for(let n=index.length;n<events.length;n++)index.own.add(events[n].id);
+  const incoming=new Set();
+  const consider=id=>{if(index.own.has(id))return;if(j.events[id]){incoming.add(id);index.waiting.delete(id);}else index.waiting.add(id);};
+  for(const id of [...index.waiting])consider(id);
+  for(const resident of Object.keys(s.residents)) {
+    const learned=s.knowledge?.[resident]?.events;
+    if(!learned)continue;
+    const from=index.readers.get(learned)||0;
+    for(let n=from;n<learned.length;n++)consider(learned[n]);
+    index.readers.set(learned,learned.length);
+  }
+  for(const id of [...incoming].sort((a,b)=>j.eventOrder[a]-j.eventOrder[b])){events.push(j.events[id]);index.own.add(id);}
+  index.length=events.length;
 }
 export function initialiseTravel(s, seed) {
   freezeOpinions(s);
@@ -265,8 +308,16 @@ const emptyWorld = () => ({
   },
   days: 0.375
 });
-export async function ensureMap(s, key) {
+export async function ensureMap(s, key, progress, options) {
   const j = s.travel;
+  if (j.maps[key]?.compact) {
+    const summary=j.maps[key], hex=s.world.hexes.find(h=>worldKey(h)===key);
+    const stored=j.hexRecords?.[key] && await s.persistence?.readHex(j.hexRecords[key]);
+    const update=progress || (async(label,value)=>{if(s.transition)await s.ui?.actions?.progress_update?.(label,.15+.75*value);});
+    const map=stored ? restoreDetails(stored,summary) : await buildHistoryMap(s,hex,summary,update,options);
+    j.maps[key]=map;
+    return map;
+  }
   if (j.maps[key]) return j.maps[key];
   const hex = s.world.hexes.find(h => worldKey(h) == key);
   if (!hex || hex.ocean) throw new Error("Cannot enter " + key);
@@ -543,6 +594,7 @@ function putTraveller(s, bundle, point, j) {
       if (controller && controller != id) queue.push(controller);
     }
   }
+  s.ecs.planner ||= {};s.ecs.manager ||= {};
   const old = s.ecs.planner[id],
     ordered = !!s.ecs.playable[id];
   s.ecs.planner[id] = {
@@ -610,7 +662,8 @@ export function enterMap(s, key, bundle, side) {
     worldHex: key,
     fromWorld: bundle.from
   });
-  advanceEnvironment(s,j.days,j.seed);
+  if (!j.wholeWorld) advanceEnvironment(s,j.days,j.seed);
+  else s.environmentUpdatedAt=s.needsUpdatedAt=s.days;
   updateWeather(s, 0, j.seed);
   j.maps[key] = localSnapshot(s);
 }
@@ -726,6 +779,7 @@ export async function completeTravel(s, order) {
       arrival: s.days,
       side: order.side
     };
+    await evictAwayMaps(s);
   } finally {
     s.transition = null;
   }
@@ -856,7 +910,12 @@ async function receiveNpcs(s, j) {
         ...visit,
         arrived: trip.arrived ?? j.season
       };
-      const host = Object.keys(dest.residents).find(other => other != id && !dest.ecs.personable[other].dead && dest.ecs.household[other]?.houseId);
+      const host = Object.keys(dest.residents).find(other => other != id && !dest.ecs.personable[other].dead && dest.ecs.household[other]?.houseId && (!j.wholeWorld || dest.ecs.building?.[dest.ecs.household[other].houseId] || dest.ecs.shelter?.[dest.ecs.household[other].houseId]?.stage==="house"));
+      if(j.wholeWorld && !host) {
+        (dest.ecs.guest ||= {})[id]={id,houseId:null,homeWorld:visit.home};
+        dest.ecs.household[id]={id,houseId:null};
+        dest.ecs.village[id]={id,villageId:null};
+      }
       if (host) {
         (dest.ecs.guest ||= {})[id] = {
           id,
@@ -928,6 +987,15 @@ export async function advanceWorldClock(s, {
       references(row.map, j);
       if (row.key == j.active && !travelling) continue; // socialHour already ran live.
       if (s.transition) await s.ui?.actions?.progress_update?.("News from the neighbouring communities", .05 + .1 * start.indexOf(row) / start.length);
+      if (j.wholeWorld) {
+        const next=row.map.compact ? row.map : compactMap(row.map);
+        if(next!==row.map)references(next,j);
+        summarySeason(next,season);
+        next.days=s.days;
+        j.maps[row.key]=row.map.compact ? next : restoreDetails(row.map,next);row.map=j.maps[row.key];
+        publish(row.map,j);reconcileEstates(s,j);
+        continue;
+      }
       const next = historyStep(row.map, season);
       // Snapshot records changed by hourly ecology must remain independent.
       for (const component of ["tree","forageable","good"]) next.ecs[component] = Object.fromEntries(
@@ -979,7 +1047,10 @@ export async function advanceWorldClock(s, {
           };
         } else departNpc(map, id, intent, j);
       }
-      j.maps[key] = localSnapshot(map);
+      if(j.wholeWorld && map.compact) {
+        for(const component of ["planner","manager","traits","attributes"])delete map.ecs[component];
+        j.maps[key]=map;
+      } else j.maps[key]=localSnapshot(map);
       publish(map, j);
     }
   }
@@ -1011,10 +1082,23 @@ export async function returnSuccessorFromRoad(s,id) {
   references(home,j);
   const original=trip.bundle.entities[id].spatial;
   const onMap=(home.space[Hex().fromPoint(original)]||[]).some(tile=>home.ecs.walkable[tile]);
-  const point=onMap ? original : home.ecs.spatial[home.map.entrances[trip.side ?? 0].tileIds[0]];
+  const entry=home.map.entrances[trip.side ?? 0] || Object.values(home.map.entrances)[0];
+  const point=onMap ? original : home.ecs.spatial[entry.tileIds[0]] || entry.campPoint;
   putTraveller(home,trip.bundle,point,j);
   home.ecs.personable[id].pendingJourney={to:trip.to,due:trip.due,reason:trip.reason||"visit"};
   j.transit=j.transit.filter(t=>t!=trip);
   publish(home,j);
   return trip.from;
+}
+
+// Persist the detailed records and the new world manifest together before
+// releasing any away terrain. A failed transaction leaves the details resident.
+export async function evictAwayMaps(s) {
+  const j=s.travel;
+  if(!j?.wholeWorld || !s.persistence?.checkpoint)return;
+  const archived=Object.fromEntries(Object.entries(j.maps).filter(([key,map])=>key!==j.active&&!map.compact));
+  if(!Object.keys(archived).length)return;
+  for(const [key,map] of Object.entries(archived))j.maps[key]=compactMap(map);
+  try {await s.persistence.checkpoint(archived);}
+  catch(error){Object.assign(j.maps,archived);throw error;}
 }

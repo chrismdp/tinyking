@@ -177,7 +177,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     const ecs = state.ecs;
     const isSelected = selected.includes(id);
     if (!ecs.spatial[id] || ecs.personable?.[id]?.historical || ecs.possession?.[id]?.carried) return null;
-    if (ecs.interior[id]) {
+    if (ecs.interior?.[id]) {
       return null;
     }
     if (ecs.mappable[id]) {
@@ -195,6 +195,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       return models.foragePlant(ground, state, id);
     }
     if (ecs.fence?.[id] && !ecs.farmable?.[id] || ecs.backyard?.[id] || ecs.workplace?.[id] || ecs.meetingPlace?.[id] || ecs.pasture?.[id] || ecs.animal?.[id]) return villageModel(ground, state, id);
+    if (ecs.discovery?.[id]) return models.discovery(ground,state,id);
     if (ecs.camp?.[id]) return models.camp(ground, state, id);
     if (ecs.shelter?.[id]) return models.shelter(ground, state, id);
     if (ecs.building[id]) {
@@ -258,7 +259,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       return;
     }
     object.position.set(s.x, ground.heightAt(s.x, s.y), s.y);
-    object.visible = !state.ecs.interior[id] && (isKnown(s) || (id == state.ui.playerId && introActive(state)));
+    object.visible = !state.ecs.interior?.[id] && (isKnown(s) || (id == state.ui.playerId && introActive(state)));
 
     const ring = object.getObjectByName("ring");
     ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), models.surfaceNormal(ground, s.x, s.y));

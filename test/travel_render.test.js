@@ -18,3 +18,12 @@ it("keeps existing numeric tree variation and orientation",()=>{
  expect(treeKind(look,id)).toBe(kinds[(+id*7)%kinds.length]);
  const model=tree(FLAT_GROUND,{spatial:{[id]:{x:0,y:0}},good:{[id]:{amount:2}}},id,look);expect(model.rotation.y).toBe((+id*2.399)%(Math.PI*2));
 });
+it("renders each seeded discovery as finite, visible native geometry",()=>{
+ const {discovery,FLAT_GROUND}=require("render/models");
+ for(const kind of ["ruins","old inn","standing stones","travellers camp"]) {
+  const s={ecs:{spatial:{d:{x:100,y:200}},discovery:{d:{kind}}}};
+  const object=discovery(FLAT_GROUND,s,"d");object.updateMatrixWorld();
+  expect(object.children.length).toBeGreaterThan(0);
+  object.traverse(child=>expect(child.matrixWorld.elements.every(Number.isFinite)).toBe(true));
+ }
+});

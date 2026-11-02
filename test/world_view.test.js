@@ -40,6 +40,21 @@ const fixture = () => {
 beforeEach(() => { global.window = { addEventListener() {}, removeEventListener() {} }; });
 afterEach(() => { delete global.window; });
 
+it("renders a wilderness hex without any building interiors",()=>{
+  const {state,renderer}=fixture();
+  delete state.ecs.interior;
+  state.ecs.walkable=Object.fromEntries(Object.keys(state.ecs.mappable).map(id=>[id,{worn:{},speed:1,neighbours:{}}]));
+  state.ecs.spatial.player={...state.map.centre.toPoint(),id:"player"};
+  state.ecs.personable.player={size:20,body:0x998877,hair:1};
+  state.ecs.planner={player:{task:null,world:{feeling:{}}}};
+  state.ecs.controllable={player:{controllerId:"player"}};
+  state.ecs.nameable={player:{nickname:"A traveller"}};
+  const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}});
+  state.redraws.push(...Object.keys(state.ecs.mappable),"player");
+  expect(()=>view.frame()).not.toThrow();
+  view.dispose();
+});
+
 it("refreshes a selected village area as discovery, current actor and reveal mode change",()=>{
   const {state,renderer}=fixture(),centre=Hex(state.map.centre),next=Hex(centre.x+1,centre.y);
   state.ecs.spatial.site=centre.toPoint();state.ecs.building.site={entrance:1,rooms:[]};state.ecs.controllable={site:{controllerId:"site"}};state.ecs.village={site:{villageId:"v"}};

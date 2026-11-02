@@ -84,8 +84,9 @@ and ecology. `residents[id]` distinguishes actual residents (including deceased
 local ancestors) from reference-only people. Physical planners/spatial/holder
 records move once; a person can be resident on one map or in transit.
 
-The opening retains its legacy IDs. New maps allocate `wX_Y-` before ordinary
-entity prefixes and their local sequence. Numeric `nextId` and coordinates remain
+Old saves retain their legacy IDs. New world households allocate `wX_Y-`
+before ordinary entity prefixes and their local sequence. Detailed terrain and
+later local entities use `terrainX_Y-`. A person keeps their original ID after a move. Numeric `nextId` and coordinates remain
 numbers; no post-hoc recursive remapping occurs. Social, item, village, favour and
 event IDs all use this namespace. IDs contain no colon, so the existing sorted
 `a:b` contact/avoidance/courtship keys and `split(":")` parsing keep working.
@@ -110,15 +111,17 @@ sheets remain readable, with “Away in another world hex” and no talk control
 
 ## Time and autonomous visits
 
-Live `socialHour` performs the active map's normal seasonal update. Only the active hex runs live planners, hourly needs and village routines. At each
-crossed season, `advanceWorldClock` calls the existing pure `historyStep` once for
-every other generated map. Travel first removes the player, then calls it once
-for all existing maps, including the departed map. An already-generated
-arrival map is therefore never advanced twice. Never-visited maps use a numeric
-seed derived from the world seed and coordinate, their own 45-year prehistory,
-then summary seasons 1 through the elapsed global season. Unneeded maps are not
-generated. Weather always samples the global seed/calendar and current reach;
-world morality/biomes are retained, never regenerated on transfer.
+New games generate every land community together for 180 seasons before play.
+Only the active hex runs live planners, needs and village routines. At each
+crossed season, `advanceWorldClock` advances the compact away communities once.
+Travel removes the player first and advances the departed community too.
+Arrival uses the stored households and seed. It never replays prehistory.
+
+The away step uses the shared birth, courtship, marriage, death and move rules.
+It updates household grain through one seasonal harvest and meal calculation.
+It does not replay hourly needs, ecology, weather, crops or detailed construction.
+The stored field count determines the household harvest. Detailed crops and
+terrain stay in the saved hex record until the player returns.
 
 A seasonal transfer batch snapshots its initial communities and residents,
 finishes their seasons, resolves due arrivals, then considers only those initial
@@ -129,19 +132,20 @@ active-map arrivals walk inward through that planner and record news/activity.
 Off-screen departures/visits/returns are events in summary. Each NPC trip takes
 seven days, with one demographic season and frozen needs in transit.
 
-Autonomous visits never generate a detailed destination map. Until the player
-opens that reach, the actual traveller and carried property remain in a
+Autonomous visits never generate a detailed destination map. In new worlds,
+travellers join the compact destination community and meet its real residents.
+Old saves retain their reference-only visit policy for unknown communities.
+For those old saves, the actual traveller and carried property remain in a
 reference-only visit. Age and outgoing goodwill advance once per season; needs
 remain frozen without a simulated local household. After three seasons the
 visitor begins the normal one-season return. If the player opens the reach first,
 the visitor joins its real household simulation. Unknown communities supply no
 invented contacts, marriages or possessions during a reference-only visit.
 
-Offscreen residents consume actual accessible household food through an hourly
-summary of needs. Missing meals accumulate hunger and can create real household requests. They
-do not cause starvation deaths. Old age uses the shared death/inheritance rule. The persisted needs cursor prevents repeat
-charges during activation. Prehistory retains its existing livelihood summary;
-people on the road retain their documented needs freeze.
+Old saves retain their former hourly household needs calculation. New worlds
+use the seasonal household calculation above. Neither model permits starvation
+deaths. Old age uses the shared death and inheritance rules. Travellers retain
+the documented freeze of needs on the road.
 
 An unmarried adult without a *viable mutual romantic prospect* locally may seek
 company in an adjacent land community, even if unrelated but incompatible adults
@@ -220,15 +224,26 @@ old popup or leave executable old-map targets in the new map.
 The player uses [energy](survival.md), with deliberate Eat and Rest actions.
 Walking spends a little energy. Current journey dates use `DAYS_IN_SEASON`.
 
-## Memory limit still outstanding
+## Storage and memory
 
-Away maps still remain in `travel.maps`. They run no live simulation, but their
-ECS, terrain data and histories stay in memory and in the full save.
-Per-hex storage and eviction remain unfinished. The existing save worker still
-compresses and stores the complete game in one transaction.
+`travel.maps` retains compact records for every land community and the active
+detailed map. Compact records contain people, households, legal ownership,
+stores, relationships and events. They contain no tile table, crop slots,
+animal simulation, terrain surface or planners.
 
-Eviction needs persistent map records plus a consistent world manifest. Seasonal
-updates, remote inheritance, NPC transfers, discovery and succession all need
-access to those records. A hop and a full save must commit the same versions.
-A reload must retain every away map and exactly one resident copy of a traveller.
-This build keeps the existing complete snapshots until that transfer is implemented.
+A departure commits its detailed hex record and the new world manifest in one
+IndexedDB transaction through the save worker. Only after that commit can the
+away map leave memory. A failed transaction retains its detailed state.
+A return loads that record and applies the current compact people and household
+records. It preserves the map seed, buildings, fields, stores and objects.
+The seasonal cursor prevents another update of the same season.
+
+The manifest records the active hex, saved record versions, compact communities,
+people directory, travellers, calendar and remaining journey. A reload during a
+local departure walk restores that walk. A completed hop checkpoint restores the
+arrival. It does not repeat the transfer. Superseded hex versions leave storage
+in the same transaction as the replacement manifest.
+
+Saves from the earlier version remain readable. They retain their existing
+per-hex history and detailed away simulation until a later migration changes
+that policy. No new history replaces people in an old save.

@@ -8,7 +8,7 @@ import { newEntities } from "game/entities";
 import { generatePersonality } from "game/people";
 import { recordEvent } from "game/events";
 import { startIntro } from "game/intro";
-import { advanceWorldClock, activateResidentMap, releaseLocalWork, localSnapshot } from "game/travel";
+import { advanceWorldClock, evictAwayMaps, ensureMap, activateResidentMap, releaseLocalWork, localSnapshot } from "game/travel";
 
 function controlled(s,id,arriving=false) {
   releaseLocalWork(s,id);
@@ -70,7 +70,7 @@ export async function resolveSuccession(s) {
     // A real traveller can be an heir too: keep custody and the remaining road
     // commitment, landing at the existing departure edge without another season.
     if(!key) key=await returnSuccessorFromRoad(s,heir);
-    if(key && key!=s.travel.active)activateResidentMap(s,key);
+    if(key && key!=s.travel.active){await ensureMap(s,key);activateResidentMap(s,key);}
     if(!key)throw new Error("Living heir has no resident or transit record: "+heir);
   }
   const newStranger=!heir;
@@ -82,6 +82,7 @@ export async function resolveSuccession(s) {
     (newStranger?"A new stranger arrives: ":"You continue as ")+named(heir)+".";
   s.game_speed="paused";
   if(s.travel)s.travel.maps[s.travel.active]=localSnapshot(s);
+  await evictAwayMaps(s);
   return true;
 }
 

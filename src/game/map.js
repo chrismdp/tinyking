@@ -1,8 +1,10 @@
-import { treeAllowed } from "game/tree_clearance";
-import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, settlementSite } from "game/geography";
+import { installStoredHistory } from "game/world_history";
+import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
+import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, settlementSite, suitableHouse } from "game/geography";
 import { prepareEntrances, worldKey, tileAt } from "game/travel_geometry";
 import { generateHistory, giveTradeTools } from "game/history";
 import { reserveFoundingFields } from "game/settlement";
+import { FULL_TRACK } from "game/road_wear";
 import { markThroughRoutes } from "game/settlement_routes";
 import SimplexNoise from "simplex-noise";
 import * as math from "game/math";
@@ -352,10 +354,14 @@ function makeHouse(generator, settlements, grid, target, landscape) {
   };
 }
 
-async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand, natural) {
+async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand, natural, contents) {
   const settlements = {};
   const villages = {};
   const generator = new MersenneTwister(seed);
+  if (contents && !contents.settlements.length) {
+    for(const h of Grid.hexagon({center:start,radius:1}))landscape[h].terrain="grassland";
+    return {settlements,villages,settlementSites:[]};
+  }
   // Keep clearings inland and leave the player's starting neighbourhood alone.
   const candidates = grid.filter(target => settlementSite(landscape, start, mainLand, natural, target));
   const ranked = candidates.map(hex => ({ hex, rank: generator.random() + landscape[hex].economic_value / 50 }))
@@ -364,26 +370,26 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
   const reached = reachableFrom(start, landscape, {}, 8);
   const near = ranked.filter(h => reached.has(h.toString())).sort((a, b) => start.distance(a) - start.distance(b));
   const centres = [];
-  const targetCount = Math.max(1, Math.round(grid.length / 140));
+  const targetCount = contents ? contents.settlements.length : Math.max(1, Math.round(grid.length / 140));
   const prefixes = ["Ash", "Bramble", "Cinder", "Elm", "Fern", "Hazel", "Oak", "Reed", "Thorn", "Willow", "Yew"];
   const suffixes = ["brook", "combe", "dale", "field", "ford", "ham", "hurst", "stead", "wick", "wood"];
   const nameOffset = generator.random_int() % prefixes.length;
   for (const centre of [...near, ...ranked]) {
     if (centres.length >= targetCount) break;
     if (centres.some(other => centre.distance(other) < 7)) continue;
-    const sites = [centre, ...ranked.filter(h => h.toString() != centre.toString() && h.distance(centre) <= 3)];
+    const sites = [centre, ...ranked.filter(h => h.toString() != centre.toString() && h.distance(centre) <= (contents?.kind === "town" ? 5 : 3))];
     const chosen = [];
-    const size = 3 + generator.random_int() % 6;
+    const size = contents?.settlements[centres.length]?.houseCount || 3 + generator.random_int() % 6;
     for (const site of sites) {
-      if (chosen.length >= size) break;
+      if (!contents && chosen.length >= size) break;
       if (chosen.every(h => h.distance(site) >= 2) &&
         Object.values(settlements).every(h => Hex(h).distance(site) >= 2)) chosen.push(site);
     }
-    if (chosen.length < 3) continue;
-    const id = "village-" + (centres.length + 1);
+    if (chosen.length < (contents ? size : 3)) continue;
+    const id = contents?.settlements[centres.length]?.id || "village-" + (centres.length + 1);
     const name = prefixes[(nameOffset + centres.length) % prefixes.length] +
       suffixes[generator.random_int() % suffixes.length] + (centres.length >= prefixes.length ? " " + (centres.length + 1) : "");
-    villages[id] = { id, name, centre: { x: centre.x, y: centre.y }, houses: [] };
+    villages[id] = { id, name: contents?.settlements[centres.length]?.name || name, centre: { x: centre.x, y: centre.y }, houses: [] };
     centres.push(centre);
     for (const hex of chosen) {
       makeHouse(generator, settlements, grid, hex, landscape);
@@ -392,11 +398,31 @@ async function generateSettlements(seed, grid, landscape, start, progressUpdate,
     }
     await progressUpdate("Founding villages", .22);
   }
+  if (contents && centres.length<targetCount) {
+    // Stored households cannot disappear because a coast has fewer natural
+    // pads. Survey inland foundations for every remaining recorded home.
+    const inland=grid.filter(h=>mainLand.has(String(h)) && start.distance(h)>3 && MAP_CENTRE.distance(h)<MAP_RADIUS-2 && !landscape[h].terrain.includes("water") && suitableHouse(natural,h.toPoint()));
+    for(let vi=centres.length;vi<targetCount;vi++) {
+      const specification=contents.settlements[vi];
+      let chosen;
+      for(const centre of [...ranked,...inland]) {
+        if(centres.some(other=>centre.distance(other)<7))continue;
+        const sites=[centre,...inland.filter(h=>h.distance(centre)<=5).sort((a,b)=>centre.distance(a)-centre.distance(b)||a.x-b.x||a.y-b.y)];
+        const pads=[];
+        for(const h of sites)if(pads.every(p=>p.distance(h)>=2) && Object.values(settlements).every(p=>Hex(p).distance(h)>=2))pads.push(h);
+        if(pads.length>=specification.houseCount){chosen=pads;break;}
+      }
+      if(!chosen)throw new Error("Cannot survey the stored households of "+specification.id);
+      const centre=chosen[0],id=specification.id;
+      villages[id]={id,name:specification.name,centre:{x:centre.x,y:centre.y},houses:[]};centres.push(centre);
+      for(const h of chosen){makeHouse(generator,settlements,grid,h,landscape);settlements[h].villageId=id;settlements[h].villageCentre=h.equals(centre);}
+    }
+  }
   // A coastal land hex can have no natural three-house clearing. It is still
   // a community destination: establish one inland village clearing, leaving
   // the continuous coastline alone. This is geography generation, not supplies
   // granted by travel, and is independent of the visitor or arrival side.
-  if (!centres.length && ranked.length) {
+  if (!contents && targetCount && !centres.length && ranked.length) {
     const centre = ranked[0];
     const sites = [centre, ...ranked.filter(h => h.distance(centre) <= 3)];
     const chosen = [];
@@ -435,15 +461,15 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
-  await generateEconomicValue(grid, landscape, progressUpdate);
+  if (options.contents?.kind!=="empty") await generateEconomicValue(grid, landscape, progressUpdate);
   const fixtureStart = state.world.geographyFixture && grid.filter(h => MAP_CENTRE.distance(h)==MAP_RADIUS-2 &&
     Grid.hexagon({center:h,radius:2}).every(n=>landscape[n]?.terrain=="grassland"))
     .sort((a,b)=>a.toPoint().x-b.toPoint().x || a.y-b.y)[0];
   let start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
   await progressUpdate("Founding villages", .22);
-  const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world), naturalGroundFor(state.world));
+  const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world), naturalGroundFor(state.world), options.contents);
   // Village keys also cross maps in kinship, event and courtship records.
-  if (state.ecs.namespace) {
+  if (state.ecs.namespace && !options.storedHistory) {
     for (const id of Object.keys(villages)) { const v = villages[id]; delete villages[id]; v.id = state.ecs.namespace + id; villages[v.id] = v; }
     for (const house of Object.values(settlements)) house.villageId = state.ecs.namespace + house.villageId;
   }
@@ -559,6 +585,32 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
 
   state.map = map;
   for (const entry of Object.values(entrances)) entry.tileIds = entry.hexes.map(h => tileAt(state, Hex(h).toPoint()));
+  if (options.storedHistory) {
+    await progressUpdate("Building the remembered households", .65);
+    installStoredHistory(state, options.storedHistory, settlements, options.contents, options.noPlayer);
+    if (Object.keys(state.ecs.playable).length) discoverStartingTiles(state.ecs, Object.keys(state.ecs.playable)[0], playerStartTile);
+    for (const house of Object.keys(state.ecs.building)) reserveBuildingClearance(state,house);
+    generateVillageLife(state, seed, playerStartTile);
+    state.settlement={version:2,lastSeason:state.social.lastSeason,preparedSeason:state.social.lastSeason,sites:{},journeys:[],appliedJourneys:{},observedAt:state.days};
+    initializeEcology(state, seed);
+    generateForage(state, seed, playerStartTile);
+    for (const entry of Object.values(entrances)) {
+      generateForage(state, seed, entry.hexes[2], { onlyStart: true });
+      entry.villageReachable = !!Object.keys(state.ecs.building).length;
+    }
+    if (options.contents.roads) {
+      markThroughRoutes(state, Object.values(state.villages).filter(v=>v.houses.length).map(v=>{
+        const id=v.houses[0],tile=tileAt(state,state.ecs.spatial[id]);
+        return state.ecs.walkable[tile].neighbours[state.ecs.building[id].entrance];
+      }).filter(Boolean));
+      for (const [id,tile] of Object.entries(state.ecs.mappable)) if (tile.route?.length) {
+        state.ecs.walkable[id].routeWear=FULL_TRACK;state.ecs.walkable[id].wearUpdatedAt=state.days;
+      }
+    }
+    updateWeather(state, 0, options.worldSeed ?? seed);
+    await progressUpdate("Ready to arrive", 1);
+    return { playerId: Object.keys(state.ecs.playable)[0], map: state.map };
+  }
   state.settlement = { version: 1, lastSeason: -181, preparedSeason: -181, sites: {}, journeys: [], appliedJourneys: {}, sealedBorders: options.sealedBorders || [] };
   const transitRoutes=geography.routes.filter(route=>Object.values(entrances).some(e=>Hex(e.hexes[2]).equals(Hex(route[0]))));
   const transitHexes=transitRoutes.flat().map(h=>Hex(h));

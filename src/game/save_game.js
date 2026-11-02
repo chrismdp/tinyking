@@ -4,7 +4,7 @@ export const SAVE_VERSION = 1;
 const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition", "nightSleep"]);
 export function gameData(state) {
   const data = Object.fromEntries(Object.entries(state).filter(([key]) => !RUNTIME.has(key)));
-  data.ui = Object.fromEntries(Object.entries(state.ui || {}).filter(([key]) => key !== "actions"));
+  if (state.ui) data.ui = Object.fromEntries(Object.entries(state.ui).filter(([key]) => key !== "actions"));
   return data;
 }
 
@@ -47,8 +47,10 @@ export function restoreGame(text) {
 export function replaceGame(state, data) {
   const actions = state.ui?.actions;
   delete state.nightSleep;
+  delete state.peopleDirectory;
   for (const key of Object.keys(state)) if (!RUNTIME.has(key)) delete state[key];
   Object.assign(state, data);
+  if(data.travel?.people)Object.defineProperty(state,"peopleDirectory",{value:data.travel.people,writable:true,configurable:true,enumerable:false});
   state.ui = { ...data.ui, actions };
   state.redraws = Object.keys(state.ecs.spatial || {});
 }

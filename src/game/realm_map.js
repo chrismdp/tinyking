@@ -40,7 +40,7 @@ export function knownCommunities(s, key = reachKey(s.world.home)) {
 export function reachFacts(s, h) {
   const key = reachKey(h);
   return { key, name: hexName(h,s.world.home), current: key == reachKey(s.world.home),
-    visited: key == reachKey(s.world.home) || !!s.travel?.maps?.[key],
+    visited: key == reachKey(s.world.home) || !!s.travel?.hexRecords?.[key] || !!s.travel?.maps?.[key] && !s.travel.maps[key].compact,
     terrain: h.ocean ? "Ocean" : climateSummary(h), temperature: h.temperature, moisture: h.moisture,
     weather: s.weather?.[key], communities: knownCommunities(s, key) };
 }

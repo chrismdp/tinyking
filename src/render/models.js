@@ -900,3 +900,17 @@ export function animateHome(model, occupied, strength = 1) {
     for (const pane of windows.children) pane.material.opacity = strength;
   }
 }
+
+export function discovery(ground,state,id) {
+  const {x,y}=state.ecs.spatial[id],kind=state.ecs.discovery[id].kind;
+  if(kind==="old inn")return house(ground,x,y,0,{playerOwned:false,selected:false});
+  if(kind==="travellers camp")return campSetup(ground,{x,y});
+  const group=new THREE.Group();
+  const stone=new THREE.MeshLambertMaterial({color:0x85817a});
+  const blocks=kind==="ruins"?[[0,0,48,15,8],[-20,15,8,23,30],[20,15,8,10,30]]:[[-24,0,12,36,12],[24,0,14,46,12],[0,24,10,30,14]];
+  for(const [dx,dz,w,h,d] of blocks) {
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),stone);
+    mesh.position.set(x+dx,ground.heightAt(x+dx,y+dz)+h/2,y+dz);group.add(mesh);
+  }
+  return group;
+}

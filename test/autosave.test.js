@@ -57,6 +57,18 @@ it("saves a started life during its opening before the camp is created", async (
   await createAutosave(state, client).request();
   expect(client).toHaveBeenCalledWith("save", expect.objectContaining({ intro: state.intro }));
 });
+it("does not attach an earlier world's saved hex pointers to a replacement world",async()=>{
+  const state={days:1,travel:{hexRecords:{}},ecs:{playable:{p:{}}},ui:{playerId:"p",show:{}}};
+  let finish;
+  const persistence=createAutosave(state,()=>new Promise(resolve=>{finish=resolve;}));
+  const pending=persistence.request();
+  const replacement={hexRecords:{current:"current-world-record"}};
+  state.travel=replacement;
+  finish({hexRecords:{previous:"previous-world-record"}});
+  await pending;
+  expect(state.travel).toBe(replacement);
+  expect(state.travel.hexRecords).toEqual({current:"current-world-record"});
+});
 it("submits the last pagehide snapshot even while an older save is pending", async () => {
   const state = { days: 1, ecs: { playable: { p: {} } }, ui: { playerId: "p", show: {} } };
   const finish = [];

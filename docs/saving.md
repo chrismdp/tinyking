@@ -4,9 +4,10 @@ Tiny King keeps one save in IndexedDB in the current browser. The menu offers Co
 
 The game saves when a game day ends, when the page becomes hidden, and on `pagehide`. Starting a life also requests a save. Generation and asynchronous travel must finish before a pending save takes its snapshot. Character drafts and the menu never overwrite the slot.
 
-A service worker encodes the snapshot, compresses it with `CompressionStream("gzip")`, and writes it in one IndexedDB transaction. The main thread takes the snapshot through the worker's structured clone. This copy still causes a measurable hitch for the generated world. Rendering and simulation continue during compression and storage. The service worker holds submitted writes through navigation. A returning page waits for those writes before inspecting or loading the slot. `state.persistence.lastSave` records the snapshot time, worker time, total time, size, and saved day for development measurements.
+A service worker compresses detailed hex records with `CompressionStream("gzip")` and writes them in one IndexedDB transaction. New worlds use one detailed record per
+hex and a world manifest in native IndexedDB object storage. The manifest points to the committed hex versions. The main thread takes the snapshot through the worker's structured clone. This copy still causes a measurable hitch for the generated world. Rendering and simulation continue during compression and storage. The service worker holds submitted writes through navigation. A returning page waits for those writes before inspecting or loading the slot. `state.persistence.lastSave` records the snapshot time, worker time, total time, size, and saved day for development measurements.
 
-The save includes the active map, all generated and visited maps, travellers, calendar, people, relationships, knowledge, possessions, ownership, orders, and UI player identity. It also includes the simulation's partial-hour clock. The object graph format retains shared records, undefined values, and non-finite planner values. Restoring recreates browser resources and redraws from the saved game data.
+The save includes the active map, saved away hex records, compact communities, travellers, calendar, people, relationships, knowledge, possessions, ownership, orders, and UI player identity. It also includes the simulation's partial-hour clock. The object graph format retains shared records, undefined values, and non-finite planner values. Restoring recreates browser resources and redraws from the saved game data.
 
 The slot and compressed payload both carry format version 1. An incompatible version shows a message and offers Start new game. A failed save shows its error and preserves the previous committed slot.
 
@@ -20,6 +21,19 @@ night camp. Continuing resumes the current local walk without replaying a hop.
 The save format remains version 1. Older saves without a planned route retain
 their existing single-hop Travel orders.
 
-Away maps still remain in memory. Storage by hex and eviction are unfinished.
-The worker saves every retained snapshot with the active map and journey in one
-transaction. This preserves the existing complete-save behaviour during travel.
+New worlds evict detailed away maps after their departure checkpoint commits.
+The world manifest retains compact people and household records for seasonal
+updates. The worker compares a SHA-256 digest of each submitted detailed hex
+with its saved record. It writes a new hex version only when that state changes.
+A routine save submits the active hex. A hop also submits the departed hex.
+The worker commits these records and the manifest together, then removes old
+versions that the manifest no longer references. Hex records use gzip.
+The manifest uses IndexedDB's native object storage. This retains shared records,
+undefined values and non-finite planner numbers without another JSON graph.
+The worker reports compressed hex bytes separately. The native manifest size
+is not included in that count.
+
+The IndexedDB database and public payload version remain 1. The new world slot
+uses internal format 2 to identify a manifest and separate hex records.
+The reader also accepts the earlier single-record save. An old save keeps its
+existing history model and receives no replacement population.

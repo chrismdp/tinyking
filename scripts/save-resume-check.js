@@ -111,10 +111,19 @@ const base = process.argv[2] || "http://localhost:8150/";
       return { ...s.persistence.lastSave, framesDuringSave: frames, error: s.persistence.error };
     });
     assert.equal(evidence.timing.error, null);
-    // One slot, with real gzip bytes and an explicit version.
+    // The manifest points to real gzip hex bytes and an explicit version.
     evidence.slot = await page.evaluate(() => new Promise((resolve, reject) => {
       const req = indexedDB.open("tinyking", 1);
-      req.onsuccess = () => { const db = req.result; const tx = db.transaction("saves", "readonly"); const read = tx.objectStore("saves").get("world"); read.onsuccess = () => { const value = read.result; resolve({ version: value.version, magic: [...new Uint8Array(value.bytes).slice(0, 2)], bytes: value.bytes.byteLength }); db.close(); }; };
+      req.onsuccess = () => {
+        const db=req.result,tx=db.transaction("saves","readonly"),store=tx.objectStore("saves"),read=store.get("world");
+        read.onsuccess=()=>{
+          const value=read.result;
+          const finish=record=>{resolve({version:value.version,magic:[...new Uint8Array(record.bytes).slice(0,2)],bytes:record.bytes.byteLength,format:value.format||1,nativeManifest:!!value.state});db.close();};
+          if(value.format===2){const hex=store.get(value.hexRecords[value.active]);hex.onsuccess=()=>finish(hex.result);hex.onerror=()=>reject(hex.error);}
+          else finish(value);
+        };
+        tx.onerror=()=>reject(tx.error);
+      };
       req.onerror = () => reject(req.error);
     }));
     assert.deepEqual(evidence.slot.magic, [31, 139]);

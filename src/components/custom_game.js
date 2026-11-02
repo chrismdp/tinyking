@@ -34,10 +34,13 @@ export function CustomGame() {
   const progress = state.ui.progress || {};
 
   const seedField = React.useRef();
+  const currentSeed=state.travel?.seed ?? state.map?.seed;
+  const seedDraft=React.useRef(currentSeed);
+  React.useEffect(()=>{seedDraft.current=currentSeed;if(seedField.current)seedField.current.value=currentSeed;},[currentSeed]);
   const randomiseSeed = React.useCallback(() => {
-    state.map.seed = newSeed();
-    seedField.current.value = state.map.seed;
-  }, [state.map]);
+    seedDraft.current = newSeed();
+    seedField.current.value = seedDraft.current;
+  }, []);
 
   const nameField = React.useRef();
   const randomiseNameSeed = React.useCallback(() => {
@@ -115,7 +118,7 @@ export function CustomGame() {
     }, t);
 
     if (seedField.current && state.map) {
-      seedField.current.value = state.map.seed;
+      seedField.current.value = seedDraft.current ?? currentSeed;
     }
 
     if (state.ecs.nameable && state.ecs.nameable[state.ui.playerId]) {
@@ -129,7 +132,7 @@ export function CustomGame() {
         familyNameField.current.value = familyName(n);
       }
     }
-  }, [preview, state, t, state.ecs.nameable,
+  }, [preview, state, t, currentSeed, state.ecs.nameable,
     state.generating, state.ui.playerId, state.redraws, needsUpdate, male, tab, selectedNeighbour]);
 
   return (
@@ -176,7 +179,7 @@ export function CustomGame() {
             <h2>Game settings</h2>
             <div className="row">
               <label htmlFor="seed">Map seed:</label>
-              <input id="seed" type="text" ref={seedField} onChange={() => state.map.seed = seedField.current.value}/>
+              <input id="seed" type="text" ref={seedField} defaultValue={currentSeed} onChange={() => seedDraft.current = seedField.current.value}/>
               <button aria-label="Randomise map seed" onClick={randomiseSeed}><FontAwesomeIcon icon="dice"/></button>
             </div>
             <div className="row">

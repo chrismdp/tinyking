@@ -15,14 +15,15 @@ export function createSaveClient(worker) {
 
 export function connectSaveWorker() {
   return navigator.serviceWorker.register("/save-worker.js").then(async registration => {
-    if (!registration.active) await new Promise((resolve, reject) => {
-      const worker = registration.installing || registration.waiting;
-      worker.addEventListener("statechange", () => {
-        if (worker.state === "activated") resolve();
-        if (worker.state === "redundant") reject(new Error("The save worker could not start."));
+    await registration.update?.();
+    const replacement=registration.installing || registration.waiting;
+    if (replacement && replacement.state!=="activated") await new Promise((resolve,reject)=>{
+      replacement.addEventListener("statechange",()=>{
+        if(replacement.state==="activated")resolve();
+        if(replacement.state==="redundant")reject(new Error("The save worker could not start."));
       });
     });
-    return createSaveClient(registration.active);
+    return createSaveClient(replacement || registration.active);
   });
 }
 
@@ -35,11 +36,13 @@ export function createAutosave(state, client, changed = () => {}) {
     if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) return null;
     const started = performance.now();
     const day = state.days;
+    const travel = state.travel;
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
     const saving = client("save", gameData(state));
     const snapshotMilliseconds = performance.now() - started;
     const current = saving.then(result => {
+      if(result.hexRecords && travel && state.travel===travel)travel.hexRecords=result.hexRecords;
       status.hasSave = true;
       status.error = null;
       status.lastSave = { ...result, snapshotMilliseconds, totalMilliseconds: performance.now() - started, day };
@@ -59,7 +62,18 @@ export function createAutosave(state, client, changed = () => {}) {
       status.ready = true;
       changed();
     },
-    async load() { return client("load"); }
+    async load() { return client("load"); },
+    async readHex(key) { return client("hex",key); },
+    async checkpoint(hexes) {
+      // A hop holds worldBusy until this atomic world + hex checkpoint commits.
+      // Wait for an already submitted autosave before choosing its record pointers.
+      if(pending)await pending;
+      const result=await client("checkpoint",{state:gameData(state),hexes});
+      if(!result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
+      state.travel.hexRecords=result.hexRecords;
+      status.hasSave=true;status.lastSave={...result,day:state.days};
+      return result;
+    }
   });
 }
 

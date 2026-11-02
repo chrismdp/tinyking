@@ -32,3 +32,15 @@ it("connects to an active worker before offering persistence", async () => {
   await expect(client("inspect")).resolves.toBe(true);
   expect(register).toHaveBeenCalledWith("/save-worker.js");
 });
+it("waits for an installing replacement before it sends a hex checkpoint",async()=>{
+  let activate;
+  const old={postMessage(){throw new Error("stale worker");}};
+  const replacement={state:"installing",addEventListener:jest.fn((event,fn)=>{activate=fn;}),postMessage(message,ports){ports[0].postMessage({result:"new worker"});ports[0].close();}};
+  const registration={active:old,installing:replacement,update:jest.fn(async()=>{})};
+  Object.defineProperty(global,"navigator",{configurable:true,value:{serviceWorker:{register:async()=>registration}}});
+  const connecting=connectSaveWorker();
+  await new Promise(resolve=>setImmediate(resolve));
+  expect(replacement.addEventListener).toHaveBeenCalled();
+  replacement.state="activated";registration.active=replacement;activate();
+  await expect((await connecting)("checkpoint",{})).resolves.toBe("new worker");
+});

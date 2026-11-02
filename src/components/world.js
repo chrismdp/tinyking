@@ -8,6 +8,7 @@ import { openCharacter, closeCharacter, startGame } from "game/new_game";
 import { connectSaveWorker, createAutosave, bindAutosave } from "game/autosave";
 import { replaceGame } from "game/save_game";
 import { habitatAt, localHabitat, climateAt } from "game/biome_field";
+import { repairHouseholds } from "game/possessions";
 import { foundHousehold } from "game/family";
 import { expandedFootprint, expansionFits } from "game/settlement_growth";
 import { historicalDate, centreHousehold, villageArea } from "game/settlement_details";
@@ -19,7 +20,7 @@ import { walk_to } from "game/tasks";
 import { updateEnvironment, advanceEnvironment } from "game/environment";
 import { canPlaceField, reserveFieldPlot, reserveRoad } from "game/land_use";
 import { growingAt, frozenAt } from "game/climate";
-import { initialiseTravel, acceptTravel, planJourney, stopJourney } from "game/travel";
+import { advanceWorldClock, acceptTravel, planJourney, stopJourney } from "game/travel";
 import { name } from "game/name";
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
@@ -32,7 +33,7 @@ import * as THREE from "three";
 
 import { useTranslate } from "react-polyglot";
 
-import { generateMap } from "game/map";
+import { generateWorldGame } from "game/world_history";
 
 import { skipIntro, introActive } from "game/intro";
 import { createSimulation } from "game/simulation";
@@ -234,6 +235,8 @@ export function World() {
           if (!data) return;
           releaseMap(state);
           replaceGame(state, data);
+          await advanceWorldClock(state);
+          repairHouseholds(state);
           state.worldBusy = false;
           state.transition = null;
           state.persistence.error = null;
@@ -330,10 +333,9 @@ export function World() {
         state.days = 0.375;
 
         await state.ui.actions.progress_update("Preparing your world", 0);
-        const results = await generateMap(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
+        const results = await generateWorldGame(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
         state.map = results.map;
         state.ui.playerId = results.playerId;
-        initialiseTravel(state,seed);
         if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
         state.generating = false;
@@ -363,6 +365,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
+      window.tinykingTravel = { createSimulation: () => createSimulation(state, { onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); } }) };
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };

@@ -1,3 +1,22 @@
+# Whole-world communities
+
+New games roll settlement contents from each biome before history starts.
+Grassland has more settlement opportunities than desert or snowfield.
+A settled hex contains two or three villages, or one town. The starting hex
+always contains villages. Each founding household has a stable home, store,
+couple and keepsake. All communities advance together for 180 seasons.
+Travellers use surveyed land crossings and meet actual destination residents.
+Marriages can make their visit a permanent move.
+
+The compact record keeps home identities and ownership. On first arrival, the
+terrain survey places those homes and builds fields and village features.
+It retains the recorded people, kinship, relationships, possessions and events.
+The map then uses the existing detailed settlement rules during live play.
+Away communities use the lighter household season described in [travel](travel.md).
+
+The sections below describe the retained detailed settlement rules and the
+legacy prehistory path used by saves from before whole-world generation.
+
 # Settlement history
 
 The terrain survey reserves feasible house pads and door spurs. These are construction opportunities, not houses or past journeys. The oldest founding household enters at the start of the existing 45-year history. Other founding groups enter later. Each group starts as an adult pair with a recorded incoming inventory. They consume twelve timber to construct their first home. Later arrivals establish households at two-season intervals. Births, marriages, inheritance and movement keep the existing social rules.

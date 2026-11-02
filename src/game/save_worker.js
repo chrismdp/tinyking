@@ -1,49 +1,50 @@
-import { SAVE_VERSION, compressGame, decompressGame } from "./save_game";
+import { SAVE_VERSION, decompressGame } from "./save_game";
+import { encodeWorldSave, decodeWorldSave } from "./hex_storage";
 let database;
 function openDatabase() {
-  database ||= new Promise((resolve, reject) => {
-    const request = indexedDB.open("tinyking", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("saves");
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-  return database;
+  database ||= new Promise((resolve,reject)=>{
+    const request=indexedDB.open("tinyking",1);
+    request.onupgradeneeded=()=>request.result.createObjectStore("saves");
+    request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+  });return database;
 }
-async function slot(mode, value) {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction("saves", mode);
-    const store = transaction.objectStore("saves");
-    const request = mode === "readwrite" ? store.put(value, "world") : store.get("world");
-    transaction.oncomplete = () => resolve(request.result);
-    transaction.onabort = () => reject(transaction.error || request.error);
-    transaction.onerror = () => reject(transaction.error || request.error);
+async function read(key="world") {
+  const db=await openDatabase();return new Promise((resolve,reject)=>{
+    const tx=db.transaction("saves","readonly"),request=tx.objectStore("saves").get(key);
+    tx.oncomplete=()=>resolve(request.result);tx.onabort=tx.onerror=()=>reject(tx.error||request.error);
   });
 }
-let work = Promise.resolve();
-self.addEventListener("install", event => event.waitUntil(self.skipWaiting()));
-self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
-self.addEventListener("message", event => {
-  // A new page's inspect/load waits for the old page's submitted save. The
-  // event lifetime holds the worker alive after that page's port closes.
-  work = work.then(async () => {
-    const { id, operation, state } = event.data;
-    const port = event.ports[0];
+async function commit(packet) {
+  const db=await openDatabase();return new Promise((resolve,reject)=>{
+    const tx=db.transaction("saves","readwrite"),store=tx.objectStore("saves");
+    for(const [key,record] of Object.entries(packet.records))store.put(record,key);
+    store.put(packet.world,"world");
+    const live=new Set(Object.values(packet.hexRecords||{})),cursor=store.openCursor();
+    cursor.onsuccess=()=>{const item=cursor.result;if(!item)return;if(String(item.key).startsWith("hex:")&&!live.has(item.key))item.delete();item.continue();};
+    tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error);
+  });
+}
+let work=Promise.resolve();
+self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
+self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
+self.addEventListener("message",event=>{
+  work=work.then(async()=>{
+    const {id,operation,state}=event.data,port=event.ports[0];
     try {
       let result;
-      if (operation === "save") {
-        const started = performance.now();
-        const bytes = await compressGame(state);
-        await slot("readwrite", { version: SAVE_VERSION, bytes });
-        result = { milliseconds: performance.now() - started, bytes: bytes.byteLength };
+      if(operation==="save" || operation==="checkpoint") {
+        const started=performance.now(),packet=await encodeWorldSave(state.state||state,state.hexes||{},read);
+        await commit(packet);
+        const hexBytes=Object.values(packet.records).reduce((n,r)=>n+r.bytes.byteLength,0);
+        result={milliseconds:performance.now()-started,bytes:packet.world.bytes?packet.world.bytes.byteLength+hexBytes:null,hexBytes,manifestEncoding:packet.world.state?"structuredClone":"gzip",hexRecords:packet.hexRecords,hexWrites:Object.keys(packet.records).length};
+      } else if(operation==="hex") {
+        const record=await read(state);if(!record)throw new Error("Saved hex is missing");result=await decompressGame(record.bytes);
       } else {
-        const record = await slot("readonly");
-        if (record && record.version !== SAVE_VERSION) throw new Error("This save is from a different version of Tiny King. Choose Start new game to begin again.");
-        result = operation === "load" && record ? await decompressGame(record.bytes) : !!record;
+        const record=await read();
+        if(record&&record.version!==SAVE_VERSION)throw new Error("This save is from a different version of Tiny King. Choose Start new game to begin again.");
+        result=operation==="load"&&record?await decodeWorldSave(record,read):!!record;
       }
-      port.postMessage({ id, result });
-    } catch (error) { port.postMessage({ id, error: error.message }); }
-    finally { port.close(); }
-  });
-  event.waitUntil(work);
+      port.postMessage({id,result});
+    }catch(error){port.postMessage({id,error:error.message});}finally{port.close();}
+  });event.waitUntil(work);
 });

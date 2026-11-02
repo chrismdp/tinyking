@@ -48,6 +48,7 @@ it("starts a new generated game from the menu, hands over an owned camp and resu
 
 it("plays a day with a queued walk, spoken chat and a night's rest", () => {
   const w = peopleWorld(), {state: s, player, person, tiles} = w;
+  Object.assign(s.villages.village, {id: "village", sharedPlaces: []});
   const [camp] = newEntities(s, [{spatial: {...s.ecs.spatial[player]}, camp: {}, controllable: {controllerId: player}, sleepable: {capacity: 1, occupiers: []}}]);
   s.ecs.household[player].houseId = camp;
   const start = s.days;

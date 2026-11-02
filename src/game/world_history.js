@@ -8,7 +8,7 @@ import { generateWorld } from "game/overworld";
 import { generateMap, generatePerson } from "game/map";
 import { newEntities } from "game/entities";
 import { initialiseTravel, advanceWorldClock, localSnapshot, ensureMap, freezeOpinions, releaseLocalWork, withReferenceIndex } from "game/travel";
-import { advanceSeason, withSocialIndex } from "game/social";
+import { advanceSeason } from "game/social";
 import { drift, initializeRelationships, recalibrateRelationships, withRelationshipIndex } from "game/people";
 import { createPossession, repairHouseholds } from "game/possessions";
 import { recordEvent, withEventIndex } from "game/events";
@@ -85,21 +85,16 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
   initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.season=-180;
-  // Generation owns these communities until all 180 seasons finish. Founders'
-  // and children's parents and fixed tastes do not change in this scope.
-  // Retain the existing ancestry and affinity indexes across seasons,
-  // just as local prehistory does; release them before exposing the new game.
-  const communities=Object.values(maps);
-  const own=(index,run)=>index===communities.length ? run() :
-    withSocialIndex(communities[index],()=>withRelationshipIndex(communities[index],()=>own(index+1,run)));
-  await withReferenceIndex(s.travel,()=>own(0,async()=>{
+  // Keep reference heads for the owned generation. Demographic and ring
+  // indexes remain seasonal, so old travelling lists can leave memory.
+  await withReferenceIndex(s.travel,async()=>{
     for(let season=-179;season<=0;season++) {
       s.days=season*DAYS_IN_SEASON;
       await advanceWorldClock(s,{travelling:true});
       Object.assign(s,s.travel.maps[s.travel.active]);
       await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
     }
-  }));
+  });
   s.days=.375;s.travel.days=s.days;s.travel.season=0;
   for(const map of Object.values(s.travel.maps)) {
     map.days=s.days;map.social.lastSeason=0;

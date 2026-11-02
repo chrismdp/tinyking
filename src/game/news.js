@@ -50,7 +50,6 @@ function storyGroups(s,teller,index) {
     group.splice(lo,0,order);
 
   }
-  for(const groups of cache.byTrust)groups.sort((a,b)=>cache.events[b[b.length-1]].day-cache.events[a[a.length-1]].day);
   return cache;
 }
 const accounts=new Map(LINES.filter(l=>l.family=="overheard_news").map(l=>[l.situation,l]));
@@ -81,22 +80,13 @@ export function chooseNews(s,teller,listener) {
   const trust=Math.max(0,RINGS.indexOf(personComponent(s,"relationships",teller)?.known[listener]?.ring));
   // Skip whole story groups whose minimum disclosure trust cannot hold.
   for(let ring=0;ring<=trust;ring++)for(const group of cache.byTrust[ring]) {
-    let newest=group.length-1;
-    while(newest>=0 && cache.events[group[newest]].sealed)newest--;
-    if(newest<0)continue;
-    const latest=cache.events[group[newest]];
-    if(group.length===1 && heard.has(latest.id))continue;
-    const weight=newsPreference(s,teller,listener,latest,families);if(!weight)continue;
-    // Every account in this group has the same audience weight, and none
-    // can be newer than latest. Do not scan old heard accounts that cannot win.
-    const upper=weight*(1+1/(1+Math.max(0,s.days-latest.day)));
-    if(upper<bestScore)continue;
     let event,order;
     for(let i=group.length-1;i>=0;i--) {
       const candidate=cache.events[group[i]];
       if(!candidate.sealed && !heard.has(candidate.id)){event=candidate;order=group[i];break;}
     }
     if(!event)continue;
+    const weight=newsPreference(s,teller,listener,event,families);if(!weight)continue;
     const recency=1+1/(1+Math.max(0,s.days-event.day));
     const score=weight*recency;
     if(score>bestScore || score==bestScore && order<bestOrder){best=event;bestOrder=order;bestScore=score;}
@@ -124,7 +114,7 @@ function namedEventPeople(s,speaker,event) {
   });
 }
 export function tellNews(s,teller,listener,event,lineId,namedPeople=[]) {
-  const known=s.knowledge?.[listener]?.events?.includes(event.id);
+  const known=membership(s.knowledge?.[listener]?.events||empty).has(event.id);
   learnEvent(s,listener,event);
   if(known || event.sealed)return;
   const k=s.knowledge[listener];

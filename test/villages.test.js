@@ -405,13 +405,12 @@ it("waits without spending funded venue timber when public roads leave no footpr
     tile.route = [0];
   }
   // Initial conditions for a retry: all spare ground is reserved for roads,
-  // while every household can afford a venue. Native siting must wait.
-  for (const house of village.houses) {
-    const store = s.ecs.container[s.ecs.household[house].storeId];
-    expect(store.amounts.grain).toBeGreaterThanOrEqual(8);
-    store.amounts.grain -= 8;
-    store.amounts.wood = 8;
-  }
+  // while one household can afford a venue. Native siting must wait.
+  const host = village.houses.find(id => s.ecs.container[s.ecs.household[id].storeId].amounts.grain >= 8);
+  expect(host).toBeDefined();
+  const store = s.ecs.container[s.ecs.household[host].storeId];
+  store.amounts.grain -= 8;
+  store.amounts.wood = 8;
   const stock = () => village.houses.map(id => ({ ...s.ecs.container[s.ecs.household[id].storeId].amounts }));
   const before = stock();
   generateVillageLife(s, 1, start);

@@ -110,6 +110,12 @@ export function generateWorld(seed, options = {}) {
   const surveyed = surveyWorld(hexes, seed, villageStart);
   const climate = annualClimate(surveyed.hexes, createLandField(surveyed.landSeed), seed);
   hexes = climate.hexes.map(h => ({...h, moisture:h.annualMoisture > .68 ? "wet" : h.annualMoisture < .42 ? "dry" : "normal"}));
+  repairRegions(hexes);
+  const world = { ...regions, hexes };
+  return { ...surveyed, ...world, prevailingWind:climate.wind, climate:{seed,moisture:climate.grid} };
+}
+
+export function repairRegions(hexes) {
   // NOTE: Use the same pull as an in-play change, in fixed spiral and side
   // order. A clash between extremes pulls one to the middle, which cannot
   // create another clash on a three-step axis. Include oceans in the repair.
@@ -125,8 +131,7 @@ export function generateWorld(seed, options = {}) {
     }
   }
   hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
-  const world = { ...regions, hexes };
-  return { ...surveyed, ...world, prevailingWind:climate.wind, climate:{seed,moisture:climate.grid} };
+  return hexes;
 }
 
 export const homeOf = world => world.hexes.find(h => h.x == world.home.x && h.y == world.home.y);

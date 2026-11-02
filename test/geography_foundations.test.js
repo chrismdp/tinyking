@@ -49,10 +49,7 @@ it("builds a broad house-scale mountain with a navigable graded road through its
   }));
   const west = grid.filter(h => h.x < MAP_CENTRE.x - 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
   const east = grid.filter(h => h.x > MAP_CENTRE.x + 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
-  const geo = buildGeography(grid, landscape, {}, {}, [west, east], {
-    terrainAt: p => field.elevationAt(p) > 180 ? "mountain" : "grassland",
-    elevationAt: (x, y) => field.elevationAt({ x, y })
-  });
+  const geo = buildGeography(grid, landscape, {}, {}, [west, east]);
   const s = { map: { seed: 13, geography: geo }, ecs: { mappable: {}, spatial: {}, walkable: {} }, space: {} };
   grid.forEach((h, i) => { const id=String(i); s.ecs.mappable[id]=landscape[h]; s.ecs.spatial[id]=h.toPoint(); s.ecs.walkable[id]={speed:landscape[h].terrain=="grassland"?1:0,worn:{},neighbours:{}}; s.space[h]=[id]; });
   // The untravelled foundation reserves geometry without inventing use.

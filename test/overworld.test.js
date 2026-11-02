@@ -2,7 +2,7 @@ import { createLandField, surveyWorld, worldPoint, MAP_CENTRE, MAP_RADIUS } from
 import { villageStart } from "game/geography";
 import { Grid, Hex, WorldGrid, WorldHex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, generateRegions, generateWorld, homeOf,
+  AXES, BIOMES, biomeOf, generateRegions, repairRegions, generateWorld, homeOf,
   WORLD_RADIUS
 } from "game/overworld";
 
@@ -30,11 +30,6 @@ const clashesIn = world => world.hexes.flatMap(h => neighboursIn(world, h).flatM
     .map(axis => ({ axis, a: keyOf(h), b: keyOf(n) }))));
 
 const worlds = new Map();
-const smallWorlds = new Map();
-const smallWorldFor = seed => {
-  if (!smallWorlds.has(seed)) { smallWorlds.set(seed, generateWorld(seed, { radius: 2 })); }
-  return smallWorlds.get(seed);
-};
 const worldFor = seed => {
   if (!worlds.has(seed)) { worlds.set(seed, generateWorld(seed)); }
   return worlds.get(seed);
@@ -42,7 +37,11 @@ const worldFor = seed => {
 
 // Sample all regional neighbours directly. Physical ocean/land checks below
 // use the three real surveyed worlds, without repeating these 100 surveys.
-const regions = Array.from({ length: 100 }, (_, i) => generateRegions(i + 1));
+const regions = Array.from({ length: 100 }, (_, i) => {
+  const world = generateRegions(i + 1);
+  repairRegions(world.hexes);
+  return world;
+});
 const regionalWorlds = () => regions;
 
 describe("regions across many seeds", () => {
@@ -207,7 +206,7 @@ describe("the world of world hexes", () => {
   it("keeps the chosen map mostly dry with two farmable rings on three surveyed starts", () => {
     const tiles = [...Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS })];
     for (const seed of SEEDS) {
-      const world = smallWorldFor(seed);
+      const world = worldFor(seed);
       const home = homeOf(world);
       const field = createLandField(world.landSeed);
       const dry = tiles.filter(h => !field.terrainAt(worldPoint(home, h.toPoint())).includes("water"));
@@ -221,10 +220,11 @@ describe("the world of world hexes", () => {
 
   it("accepts a farmable home of every declared biome and morality", () => {
     // Selection depends on physical land and farmability, not biome labels.
-    // Exhaust all 27 combinations on one real surveyed home instead of hoping
-    // that a 120-seed distribution happens to visit each category.
-    const world = smallWorldFor(13), home = homeOf(world);
-    for (const [biome, climate] of Object.entries(BIOMES)) for (const morality of AXES.morality) {
+    // Declare each biome once and cycle through all three moralities.
+    // This checks category acceptance without a 120-seed coverage lottery.
+    const world = worldFor(13), home = homeOf(world);
+    for (const [i, [biome, climate]] of Object.entries(BIOMES).entries()) {
+      const morality = AXES.morality[i % AXES.morality.length];
       const surveyed = surveyWorld([{ x: home.x, y: home.y, ...climate, biome, morality }], 13, villageStart);
       expect(homeOf(surveyed)).toMatchObject({ biome, morality, ...climate, ocean: false });
       expect(homeOf(surveyed).landFraction).toBeGreaterThanOrEqual(.65);

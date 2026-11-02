@@ -5,10 +5,10 @@ import { reserveBuildingClearance } from "game/tree_clearance";
 
 // Initial conditions only: flat land, real navigation, houses, families and
 // stocked rooms. Village life must allocate all plots, fields, yards and trades.
-export const flatVillage = (count, { seed = 1, days = 0.375, founding = true, woodland = false, namespace = "" } = {}) => {
+export const flatVillage = (count, { seed = 1, days = 0.375, founding = true, woodland = false, namespace = "", centre = Hex(0, 0) } = {}) => {
   const s = { ecs: { nextId: 1, namespace, good: {}, farmable: {} }, days, game_speed: "normal", ui: { show: {} }, redraws: [],
     villages: { fixture: { id: "fixture", houses: [] } } };
-  const grid = Grid.hexagon({ center: Hex(0, 0), radius: 9 });
+  const grid = Grid.hexagon({ center: centre, radius: 9 });
   const tiles = newEntities(s, grid.map(hex => ({
     spatial: { ...hex.toPoint(), immovable: true },
     mappable: { terrain: "grassland", elevation: 0 },
@@ -30,10 +30,10 @@ export const flatVillage = (count, { seed = 1, days = 0.375, founding = true, wo
   const sites = [[-3, -2], [0, -2], [3, -2], [-3, 1], [0, 1], [3, 1], [-3, 4], [0, 4]];
   const village = s.villages.fixture;
   village.houses = newEntities(s, sites.slice(0, count).map(([x, y]) => ({
-    spatial: { ...Hex(x, y).toPoint(), immovable: true },
+    spatial: { ...Hex(x + centre.x, y + centre.y).toPoint(), immovable: true },
     controllable: {}, building: { entrance: 1, rooms: [] }, village: { villageId: village.id }
   })));
-  const start = Hex(-7, 0);
+  const start = Hex(centre.x - 7, centre.y);
   generateFamilies({ state: s, seed, playerStartTile: start, founding });
   for (const house of village.houses) {
     const building = s.ecs.building[house];

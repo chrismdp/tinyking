@@ -48,10 +48,11 @@ it("prepares repeatable two-hex entrances with reachable doors, wood and food on
   const { prepareEntrances, edgeSide } = require("game/travel_geometry");
   const { WorldGrid, WorldHex } = require("game/hex");
   const { newEntities } = require("game/entities");
-  const { s, start, tileAt } = flatVillage(3);
-  const grid = Grid.hexagon({ radius: 9 });
-  s.map = { centre: { x: 0, y: 0 }, radius: 9, playerStartTile: start };
-  s.villages.fixture.centre = { x: 0, y: 0 };
+  const centre = Hex(9, 9);
+  const { s, start, tileAt } = flatVillage(3, { centre });
+  const grid = Grid.hexagon({ center: centre, radius: 9 });
+  s.map = { centre: { ...centre }, radius: 9, playerStartTile: start };
+  s.villages.fixture.centre = { ...centre };
   const world = { home: { x: 0, y: 0 }, hexes: WorldGrid.hexagon({ radius: 1 }).map(h => ({ ...h, ocean: false })) };
   world.home = { ...WorldHex(0, 0) };
   const landscape = Object.fromEntries(grid.map(h => [h, { ...h.toPoint(), terrain: "grassland" }]));
@@ -65,7 +66,7 @@ it("prepares repeatable two-hex entrances with reachable doors, wood and food on
   for (const [side, entry] of Object.entries(entrances)) {
     entry.tileIds = entry.hexes.map(h => tileAt[Hex(h)]);
     expect(edgeSide(s, entry.tileIds[0])).toBe(+side);
-    expect(entry.hexes.map(h => Hex(0, 0).distance(Hex(h)))).toEqual([9, 8, 7]);
+    expect(entry.hexes.map(h => centre.distance(Hex(h)))).toEqual([9, 8, 7]);
     expect(Hex(entry.hexes[0]).distance(Hex(entry.hexes[2]))).toBe(2);
     for (let i = 0; i < 3; i++) {
       expect(s.ecs.walkable[entry.tileIds[i]].speed).toBeGreaterThan(0);

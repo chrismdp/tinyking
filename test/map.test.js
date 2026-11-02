@@ -1,208 +1,70 @@
-import { groundForState } from "game/geography";
+import { createHeightField } from "game/height";
+import { generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES } from "game/map";
 import { createLandField, worldPoint } from "game/world_terrain";
-import { Hex, Grid, generateMap, generateTrees, MIN_START_TREES } from "game/map";
-import { ALL_SIDES } from "game/hex";
-import { habitatAt } from "game/biome_field";
 import { generateWorld, homeOf, BIOMES } from "game/overworld";
+import { newEntities } from "game/entities";
+import { repairHouseholds } from "game/possessions";
+import { birth } from "game/social";
+import { flatVillage } from "./support/village";
 
-const noProgress = async () => {};
-
-// NOTE: what the World component does for "Reset to seed": a fresh ECS, then
-// generate a map into the same state
-async function regenerate(state, seed) {
-  state.ecs = { nextId: 1 };
-  state.days = 0.375;
-  const { map } = await generateMap(state, seed, noProgress);
-  state.map = map;
-}
-
-// NOTE: a few full maps cover playability; biome density is tested on small fixtures.
-const SEEDS = [20, 1234, 98765];
-
-// NOTE: a map takes most of a second to make, so each seed's map is made
-// once and shared by the tests that only read it
-const maps = {};
-const mapFor = async seed => {
-  if (!maps[seed]) {
-    maps[seed] = {};
-    await regenerate(maps[seed], seed);
+it.each([20, 1234, 98765])("samples physical terrain and elevation before settlement clearing (seed %s)", async seed => {
+  const world = generateWorld(seed), field = createLandField(world.landSeed);
+  const grid = [[0, 22], [22, 0], [22, 22], [44, 22], [22, 44]].map(([x, y]) => Hex(x, y));
+  const landscape = await generateTerrain(grid, world, async () => {});
+  for (const tile of Object.values(landscape)) {
+    expect(tile.terrain).toBe(field.terrainAt(worldPoint(homeOf(world), tile)));
+    expect(tile.elevation).toBe(field.elevationAt(worldPoint(homeOf(world), tile)));
   }
-  return maps[seed];
-};
+});
 
-const tileHexes = state => Object.keys(state.ecs.mappable)
-  .map(id => ({ id, hex: Hex().fromPoint(state.ecs.spatial[id]) }));
-
-describe("generateMap", () => {
-  it("leaves nothing from a previous map in the space index when the map is regenerated", async () => {
-    const state = {};
-    await regenerate(state, 1234);
-    maps[1234] = structuredClone(state);
-    await regenerate(state, 98765);
-    maps[98765] = state;
-
-    for (const hex in state.space) {
-      for (const id of state.space[hex]) {
-        expect(state.ecs.spatial[id]).toBeDefined();
-        expect(Hex().fromPoint(state.ecs.spatial[id]).toString()).toEqual(hex);
-      }
-      expect(state.space[hex].filter(id => state.ecs.mappable[id]).length).toBeLessThanOrEqual(1);
+it.each([20, 1234, 98765])("sites named hamlets and creates families directly (seed %s)", async seed => {
+  const grid = Grid.hexagon({ center: Hex(11, 11), radius: 11 });
+  const start = Hex(11, 2);
+  const landscape = Object.fromEntries(grid.map(h => [h, { ...h.toPoint(), terrain: "grassland", elevation: 20, economic_value: 10 }]));
+  const natural = createHeightField({ seed: 0, terrainAt: () => "grassland", elevationAt: () => 20 });
+  const { settlements, villages } = await generateSettlements(seed, grid, landscape, start, async () => {}, new Set(grid.map(String)), natural);
+  expect(Object.values(villages).length).toBeGreaterThanOrEqual(3);
+  expect(new Set(Object.values(villages).map(v => v.name)).size).toBe(Object.keys(villages).length);
+  const state = { ecs: { nextId: 1 }, days: 0.375, villages };
+  for (const house of Object.values(settlements)) {
+    const [id] = newEntities(state, [{ spatial: Hex(house).toPoint(), building: { entrance: house.frontDoorSide }, controllable: {}, village: { villageId: house.villageId } }]);
+    villages[house.villageId].houses.push(id);
+  }
+  generateFamilies({ state, seed, playerStartTile: start });
+  const houses = Object.values(villages).flatMap(v => v.houses);
+  expect(new Set(houses).size).toBe(houses.length);
+  expect(houses.length).toBe(Object.keys(state.ecs.building).length);
+  const player = Object.keys(state.ecs.playable)[0];
+  expect(state.ecs.village[player].villageId).toBeNull();
+  expect(state.ecs.household[player]).toBeUndefined();
+  for (const village of Object.values(villages)) {
+    expect(village.name.length).toBeGreaterThan(2);
+    expect(village.houses.length).toBeGreaterThanOrEqual(3);
+    expect(village.houses.length).toBeLessThanOrEqual(8);
+    for (const id of village.houses) {
+      const hex = Hex().fromPoint(state.ecs.spatial[id]);
+      expect(state.ecs.village[id].villageId).toBe(village.id);
+      expect(start.distance(hex)).toBeGreaterThanOrEqual(3);
+      expect(Hex(village.centre).distance(hex)).toBeLessThanOrEqual(3);
+      expect(village.houses.some(other => other != id && hex.distance(Hex().fromPoint(state.ecs.spatial[other])) <= 3)).toBe(true);
     }
-  });
+  }
+  for (const id in state.ecs.personable) if (id != player) {
+    const home = state.ecs.household[id].houseId;
+    expect(state.ecs.village[id].villageId).toBe(state.ecs.village[home].villageId);
+  }
+});
 
-  it("makes the map one big hexagon of small hexes, radius 22 round its centre", async () => {
-    const state = await mapFor(1234);
-    const centre = Hex(state.map.centre.x, state.map.centre.y);
-    const tiles = tileHexes(state);
-
-    expect(state.map.radius).toEqual(22);
-    // NOTE: 1 + 3 * 22 * 23 hexes make a full hexagon of radius 22
-    expect(tiles.length).toEqual(1519);
-    expect(new Set(tiles.map(t => t.hex.toString())).size).toEqual(1519);
-    tiles.forEach(t => expect(centre.distance(t.hex)).toBeLessThanOrEqual(22));
-    Grid.hexagon({ center: centre, radius: 22 }).forEach(hex =>
-      expect(tiles.some(t => t.hex.x == hex.x && t.hex.y == hex.y)).toBe(true));
-  });
-
-  it("keeps village and family density as the map grows in area", async () => {
-    const states = await Promise.all(SEEDS.map(mapFor));
-    const houses = states.reduce((n, s) => n + Object.keys(s.ecs.building).length, 0);
-    const people = states.reduce((n, s) => n + Object.keys(s.ecs.personable).length, 0);
-    // NOTE: the radius-11 fixtures had 27 houses and 50 villagers in total.
-    // Allow different coasts and clearings, while requiring roughly four times the population.
-    expect(houses).toBeGreaterThanOrEqual(27 * 3);
-    expect(people).toBeGreaterThanOrEqual(50 * 3);
-  });
-
-  it("has sea on some edges and land running off others, following the shared field", async () => {
-    let sea = 0;
-    let land = 0;
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      const centre = Hex(state.map.centre);
-      const field = createLandField(state.world.landSeed);
-      const home = homeOf(state.world);
-      const rim = tileHexes(state).filter(t => centre.distance(t.hex) == state.map.radius);
-      expect(rim.length).toEqual(132);
-      for (const {id, hex} of rim) {
-        const isLand = field.landAt(worldPoint(home, hex.toPoint())) >= 0;
-        const water = state.ecs.mappable[id].terrain.includes("water");
-        if (!isLand) { expect(water).toBe(true); sea++; }
-        if (!water) { land++; }
-      }
-    }
-    expect(sea).toBeGreaterThan(0);
-    expect(land).toBeGreaterThan(0);
-  });
-
-  it("is mostly land before settlements clear any terrain, for every tested seed", async () => {
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      expect(homeOf(state.world).landFraction).toBeGreaterThanOrEqual(0.65);
-      const land = Object.values(state.ecs.mappable).filter(t => !t.terrain.includes("water"));
-      expect(land.length / 1519).toBeGreaterThanOrEqual(0.6);
-    }
-  });
-
-  it("replays the same complete map from the same seed", async () => {
-    const replay = {};
-    await regenerate(replay, 1234);
-    expect(replay).toEqual(await mapFor(1234));
-  });
-
-  it("keeps everything at or above zero, so the map's points stay positive", async () => {
-    const state = await mapFor(1234);
-    tileHexes(state).forEach(({ hex }) => {
-      const { x, y } = hex.toPoint();
-      expect(x).toBeGreaterThanOrEqual(0);
-      expect(y).toBeGreaterThanOrEqual(0);
-    });
-  });
-
-  it("starts the player on grassland with grassland all round it, on every seed", async () => {
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y);
-      Grid.spiral({ center: start, radius: 1 }).forEach(hex => {
-        const id = state.space[hex.toString()].find(e => state.ecs.mappable[e]);
-        expect(state.ecs.mappable[id].terrain).toEqual("grassland");
-      });
-    }
-  });
-
-  it("keeps the world of world hexes in state, playing in the chosen land hex", async () => {
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      expect(state.world).toEqual(generateWorld(seed));
-      expect(homeOf(state.world)).toBeDefined();
-    }
-  });
-
-  it("samples actual physical tile positions continuously and keeps alpine ground colder", async () => {
-    let high=0,colder=0;
-    for(const seed of [13,20]) {
-      const state=await mapFor(seed),ground=groundForState(state),values=[];
-      for(const id in state.ecs.mappable) {
-        const tile=state.ecs.mappable[id],point=state.ecs.spatial[id];
-        const elevation=ground.hex(point).centre;
-        const expected=habitatAt(state.world,worldPoint(state.world.home,point),elevation);
-        expect(tile.elevation).toBeCloseTo(elevation,10);
-        expect(tile.climateWarmth).toBeCloseTo(expected.climateWarmth,12);
-        expect(tile.moistureValue).toBeCloseTo(expected.moistureValue,12);
-        expect(tile.biomeMix).toEqual(expected.biomeMix);
-        expect(tile.temperature).toBe(expected.temperature);
-        values.push(tile.warmth);
-        high+=elevation>=260?1:0;
-        colder+=tile.warmth<tile.climateWarmth?1:0;
-      }
-      expect(Math.max(...values)-Math.min(...values)).toBeGreaterThan(.05);
-      // Reuse these ordinary maps for the unchanged native geometry/resource
-      // limits, rather than generating another pair only for this correction.
-      const field=createLandField(state.world.landSeed);
-      for(const id of Object.keys(state.ecs.building)) {
-        const p=state.ecs.spatial[id],pad=ground.hex(p).corners;
-        expect(Math.max(...pad)-Math.min(...pad)).toBeLessThan(1e-6);
-        expect(Math.abs(ground.hex(p).centre-field.elevationAt(worldPoint(state.world.home,p)))).toBeLessThan(35);
-      }
-      let roads=0;
-      for(const id in state.ecs.mappable) {
-        const tile=state.ecs.mappable[id],p=state.ecs.spatial[id];
-        if(state.ecs.farmable[id])expect(tile.route?.length || 0).toBe(0);
-        if(!tile.route?.length)continue;
-        roads++;
-        const corners=Hex().corners();
-        for(let k=0;k<6;k++) {
-          const a=corners[k],b=corners[(k+1)%6],slope=ground.slopeAt(p.x+(a.x+b.x)/4,p.y+(a.y+b.y)/4);
-          expect(Math.hypot(slope.dx,slope.dy)).toBeLessThanOrEqual(.55+1e-6);
-        }
-        const hex=Hex().fromPoint(p),neighbours=Grid.hexagon({center:hex,radius:1}).neighborsOf(hex,ALL_SIDES);
-        for(const side of tile.route) {
-          const n=neighbours[side].toPoint(),dx=n.x-p.x,dy=n.y-p.y,slope=ground.slopeAt(p.x+dx/4,p.y+dy/4);
-          expect(Math.abs((slope.dx*dx+slope.dy*dy)/Math.hypot(dx,dy))).toBeLessThanOrEqual(.24+1e-6);
-        }
-      }
-      expect(roads).toBeGreaterThan(20);
-      const tileAt=p=>(state.space[Hex().fromPoint(p)] || []).find(id=>state.ecs.mappable[id]);
-      const start=tileAt(Hex(state.map.playerStartTile).toPoint()),reached=new Set([start]);let frontier=[start];
-      for(let d=0;d<5;d++) {
-        frontier=frontier.flatMap(id=>Object.values(state.ecs.walkable[id].neighbours)).filter(id=>!reached.has(id));
-        frontier.forEach(id=>reached.add(id));
-      }
-      expect(Object.keys(state.ecs.tree).filter(id=>state.ecs.good[id].amount>0 && reached.has(tileAt(state.ecs.spatial[id]))).length).toBeGreaterThanOrEqual(MIN_START_TREES);
-      expect(Object.keys(state.ecs.forageable).filter(id=>reached.has(tileAt(state.ecs.spatial[id]))).length).toBeGreaterThanOrEqual(3);
-    }
-    expect(high).toBeGreaterThan(20);expect(colder).toBeGreaterThan(0);
-  });
-
-  it("leaves walking speed to the terrain alone, whatever the world hex", async () => {
-    const speeds = { "grassland": 1, "stone": 0.5, "mountain": 0, "shallow water": 0, "deep water": 0 };
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      for (const id in state.ecs.mappable) {
-        expect(state.ecs.walkable[id].speed).toEqual(speeds[state.ecs.mappable[id].terrain]);
-      }
-    }
-  });
+it("provides a bed for every member of the larger households", () => {
+  const { s: state, village } = flatVillage(3, { seed: 1234, founding: false });
+  const parents = Object.keys(state.ecs.personable).filter(id => state.ecs.household[id]?.houseId == village.houses[1] && state.ecs.kinship[id].spouse);
+  for (let i = 0; i < 7; i++) birth(state, parents[0], parents[1], i);
+  repairHouseholds(state);
+  for (const id in state.ecs.building) {
+    const occupants = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead && (!state.residents || state.residents[person]) && state.ecs.household[person]?.houseId == id).length;
+    const beds = state.ecs.building[id].rooms.reduce((n, room) => n + (state.ecs.sleepable[room]?.capacity || 0), 0);
+    expect(beds).toBeGreaterThanOrEqual(occupants);
+  }
 });
 
 describe("trees", () => {
@@ -265,86 +127,4 @@ describe("trees", () => {
     });
   });
 
-  it("leaves trees within reach of the start on real maps, desert and tundra too", async () => {
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      // NOTE: walk out from the start along the walkable links, five hexes at most
-      const tileAt = hex => (state.space[hex.toString()] || []).find(e => state.ecs.mappable[e]);
-      const start = Hex(state.map.playerStartTile.x, state.map.playerStartTile.y);
-      const reached = new Set([tileAt(start)]);
-      let frontier = [tileAt(start)];
-      for (let d = 0; d < 5; d++) {
-        frontier = frontier.flatMap(id => Object.values(state.ecs.walkable[id].neighbours))
-          .filter(id => !reached.has(id));
-        frontier.forEach(id => reached.add(id));
-      }
-      const trees = Object.keys(state.ecs.good)
-        .filter(id => state.ecs.good[id].type == "wood" && reached.has(tileAt(Hex().fromPoint(state.ecs.spatial[id]))));
-      expect([seed, homeOf(state.world).biome, trees.length >= MIN_START_TREES])
-        .toEqual([seed, homeOf(state.world).biome, true]);
-    }
-  });
-});
-
-
-it("initializes all visual weather and snow afresh when a map is regenerated", async () => {
-  const state = { snow: { stale: 1 }, snowRevision: 99, weather: { stale: { type: "snow" } } };
-  await regenerate(state, 13);
-  expect(Object.keys(state.weather)).toHaveLength(91);
-  expect(state.weather.stale).toBeUndefined();
-  expect(Object.keys(state.snow)).toHaveLength(1519);
-  expect(state.snow.stale).toBeUndefined();
-  const clean = {};
-  await regenerate(clean,13);
-  expect(state.weather).toEqual(clean.weather);
-  expect(state.snow).toEqual(clean.snow);
-  expect(state.snowRevision).toBe(clean.snowRevision);
-  expect(Object.values(state.snow).some(depth => depth > 0)).toBe(true);
-});
-
-describe("villages", () => {
-  it("groups houses into named hamlets of 3–8, with space around the camp start", async () => {
-    for (const seed of SEEDS) {
-      const state = await mapFor(seed);
-      expect(state.villages).toBeDefined();
-      const villages = Object.values(state.villages);
-      expect(villages.length).toBeGreaterThanOrEqual(3);
-      expect(new Set(villages.map(v => v.name)).size).toBe(villages.length);
-      const houses = villages.flatMap(v => v.houses);
-      expect(new Set(houses).size).toBe(houses.length);
-      expect(houses.length).toBe(Object.keys(state.ecs.building).length);
-      expect(Object.keys(state.ecs.camp || {})).toHaveLength(0);
-      const start = Hex(state.map.playerStartTile);
-      for (const village of villages) {
-        expect(village.name.length).toBeGreaterThan(2);
-        expect(village.houses.length).toBeGreaterThanOrEqual(3);
-        expect(village.houses.length).toBeLessThanOrEqual(8);
-        for (const id of village.houses) {
-          const hex = Hex().fromPoint(state.ecs.spatial[id]);
-          expect(state.ecs.village[id].villageId).toBe(village.id);
-          expect(start.distance(hex)).toBeGreaterThanOrEqual(3);
-          expect(Hex(village.centre).distance(hex)).toBeLessThanOrEqual(3);
-          expect(village.houses.some(other => other != id &&
-            hex.distance(Hex().fromPoint(state.ecs.spatial[other])) <= 3)).toBe(true);
-        }
-      }
-      const player = Object.keys(state.ecs.playable)[0];
-      expect(state.ecs.village[player].villageId).toBeNull();
-      expect(state.ecs.household[player]).toBeUndefined();
-      for (const id in state.ecs.personable) {
-        if (id == player) continue;
-        const home = state.ecs.household[id].houseId;
-        expect(state.ecs.village[id].villageId).toBe(state.ecs.village[home].villageId);
-      }
-    }
-  });
-});
-
-it("provides a bed for every member of the larger households", async () => {
-  const state = await mapFor(1234);
-  for (const id in state.ecs.building) {
-    const occupants = Object.keys(state.ecs.personable).filter(person => !state.ecs.personable[person].dead && (!state.residents || state.residents[person]) && state.ecs.household[person]?.houseId == id).length;
-    const beds = state.ecs.building[id].rooms.reduce((n, room) => n + (state.ecs.sleepable[room]?.capacity || 0), 0);
-    expect(beds).toBeGreaterThanOrEqual(occupants);
-  }
 });

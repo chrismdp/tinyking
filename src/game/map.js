@@ -159,7 +159,7 @@ export function generateFamilies({ state, seed, playerStartTile, founding = fals
   initializeRelationships(state, seed);
 }
 
-async function generateTerrain(grid, world, progressUpdate) {
+export async function generateTerrain(grid, world, progressUpdate) {
   const field = landFieldFor(world);
   const home = homeOf(world);
   const result = {};
@@ -352,7 +352,7 @@ function makeHouse(generator, settlements, grid, target, landscape) {
   };
 }
 
-async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand, natural) {
+export async function generateSettlements(seed, grid, landscape, start, progressUpdate, mainLand, natural) {
   const settlements = {};
   const villages = {};
   const generator = new MersenneTwister(seed);

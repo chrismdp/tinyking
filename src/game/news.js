@@ -4,6 +4,7 @@ import { personLabel } from "game/knowledge";
 import { season } from "game/time";
 import { canDiscloseEvent, RINGS } from "game/people";
 import { learnEvent, eventText } from "game/events";
+import { personComponent } from "game/residents";
 
 // Event arrays are append-only within a map/owned history transition. The
 // weak index never enters saves, traveller bundles or caller-owned snapshots.
@@ -89,12 +90,27 @@ export function listenerNewsScore(s,teller,listener) {
   }
   return 0;
 }
-export function tellNews(s,teller,listener,event,lineId) {
+function namedEventPeople(s,speaker,event) {
+  return (event?.people||[]).filter(id=>{
+    const known=s.knowledge?.[speaker]?.people?.[id];
+    return !known?.nameOnly && !personComponent(s,"personable",id)?.unrevealed &&
+      (id==speaker || s.ecs.relationships?.[speaker]?.known[id] || known);
+  });
+}
+export function tellNews(s,teller,listener,event,lineId,namedPeople=[]) {
   const known=s.knowledge?.[listener]?.events?.includes(event.id);
   learnEvent(s,listener,event);
   if(known || event.sealed)return;
   const k=s.knowledge[listener];
   (k.spokenSources ||= {})[event.id] ||= {speakerId:teller,day:s.days,lineId};
+  k.people ||= {};
+  for(const id of namedPeople) {
+    k.people[id] ||= {traits:[]};
+    if(k.people[id].nameOnly) {
+      k.people[id]={...k.people[id]};
+      delete k.people[id].nameOnly;
+    }
+  }
 }
 // One event each per encounter, including a seasonal encounter of six chats.
 export function exchangeNews(s,a,b) {
@@ -104,7 +120,7 @@ export function exchangeNews(s,a,b) {
   const pair=[[a,b,chooseNews(s,a,b)],[b,a,chooseNews(s,b,a)]];
   for(const [teller,listener,event] of pair)if(event && canDiscloseEvent(s,teller,listener,event)) {
     const lineId="npc.event_news.catalogue_"+event.type+".base.01";
-    tellNews(s,teller,listener,event,lineId);
+    tellNews(s,teller,listener,event,lineId,namedEventPeople(s,teller,event));
     spoken.push({speakerId:teller,listenerId:listener,eventId:event.id,lineId});
   }
   return spoken;
@@ -115,7 +131,7 @@ export function beginSocialSpeech(s,speaker,listener,event) {
   if(!visit)return;
   const line=event?accounts.get("catalogue_"+event.type):topics.get(season(s.days));
   if(!line)return;
-  const namedPeople=(event?.people||[]).filter(id=>id==speaker || s.ecs.relationships?.[speaker]?.known[id] || s.knowledge?.[speaker]?.people?.[id]);
+  const namedPeople=namedEventPeople(s,speaker,event);
   visit.utterance={speakerId:speaker,listenerId:listener,eventId:event?.id,lineId:line.id,namedPeople,
     text:event?line.text.replace("{event.account_sentence}",eventText(s,event,id=>personLabel(s,id,s.personName,speaker),"chat")):line.text,
     day:s.days,until:s.days+.5/24};

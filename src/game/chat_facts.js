@@ -213,7 +213,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "mood_in_row":return c.row.some(i=>i.kind=="mood"&&i.key==a.key);
   case "phase_is":return c.phase==a.phase;
   case "customs_chat_kind_is":return c.context?.kind==a.value;
-  case "customs_eligible":return !c.context&&!customsIntentUnavailable(s,c.actorId,c.npcId,a.kind)&&
+  case "customs_eligible":return !c.context?.kind&&!customsIntentUnavailable(s,c.actorId,c.npcId,a.kind)&&
     (a.kind=="leave"?!!membership(s,c.actorId,e.village[c.npcId]?.villageId):!membership(s,c.actorId,e.village[c.npcId]?.villageId));
   case "answer_expected_is":return c.expectation==a.value;
   case "closing_reply_is":return c.closingReply==a.value;

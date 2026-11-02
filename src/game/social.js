@@ -683,6 +683,7 @@ export function historyStep(worldHexState, season) {
   for (const [id, k] of Object.entries(worldHexState.knowledge || {})) copy.knowledge[id] = {
     ...k,
     ...(k.spokenSources?{spokenSources:{...k.spokenSources}}:{}),
+    ...(k.people?{people:{...k.people}}:{}),
     events: [...(k.events || [])]
   };
   for (const [id, v] of Object.entries(worldHexState.villages || {})) copy.villages[id] = {

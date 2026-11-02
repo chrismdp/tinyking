@@ -67,7 +67,7 @@ Initial event audiences remain unchanged. A relative can already know an event f
 
 After the first completed half-hour, a villager visit permits one unheard event in each direction. Seasonal encounters permit the same budget for six half-hours. Every choice uses the existing disclosure policy. Good news favours listeners close to its subjects. Unflattering news favours distant or hostile listeners. Preferences cannot override excluded kin, friends or insufficient trust. Among equal social companions, permitted news also helps choose whom to visit.
 
-Talking villagers show short catalogue speech about the current season or the event they actually told. The old generic chatting bubble is hidden. Event lines keep the speaker's knowledge of names, so an anonymous account stays anonymous. Snippets expire after half an hour or when the social task stops.
+Talking villagers show short catalogue speech about the current season or the event they actually told. The old generic chatting bubble is hidden. Event lines keep the speaker's knowledge of names, so an anonymous account stays anonymous. Listeners remember names actually stated without gaining acquaintance or trait knowledge. Snippets expire after half an hour or when the social task stops.
 
 The player can hear within 120 world units when both people share an interior and no building wall blocks the sound. The player must also qualify under the event's disclosure policy. A sleeping player hears nothing. The simulation teaches the spoken event once and records the speaker as source. Drawing or rereading a bubble teaches nothing. An overheard story can later appear among the player's Tell cards.
 
@@ -75,4 +75,4 @@ The player can hear within 120 world units when both people share an interior an
 
 From 18:00 to 21:00, an available adult can approach the player's home fire, camp or journey camp. Friendly villagers, friends and homeless strangers can qualify. Friends receive priority. Each evening has a seeded 45% opportunity and permits only one caller. An existing caller prevents another from waiting.
 
-The caller walks a reachable route with time left for conversation. Arrival opens the existing villager-started paused panel with an authored fire greeting. Sleep, leaving the fire or the caller's needs cancels the approach. A caller creates no completed contact before the player answers. The game uses existing people, including visiting travellers. It creates nobody to fill a quiet evening.
+The caller walks a reachable route with time left for conversation. Arrival opens the existing villager-started paused panel with an authored fire greeting. Ordinary topics remain available, including an eligible elder's oath or leaving question. Sleep, leaving the fire or the caller's needs cancels the approach. A caller creates no completed contact before the player answers. The game uses existing people, including visiting travellers. It creates nobody to fill a quiet evening.

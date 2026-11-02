@@ -1,7 +1,7 @@
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { socialHour } from "game/social_visits";
-import { closeChat, startVillagerChat } from "game/chat";
+import { closeChat, startVillagerChat, lineCandidates } from "game/chat";
 import { hashUnit } from "game/math";
 
 function setup({journey=false}={}) {
@@ -75,4 +75,17 @@ it("does not queue a fire caller while another villager is already coming to tal
   const {state:s,person:n}=setup();
   expect(startVillagerChat(s,n)).toBe(true);
   socialHour(s);expect(visitor(s)).toHaveLength(0);
+});
+it("keeps the elder's ordinary oath question available during a fire chat",()=>{
+  const w=setup(),{state:s,player:p,person:n,parent,sibling,tiles}=w;
+  const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},building:{entrance:1,rooms:[]},household:{fields:[]},village:{villageId:"village"},controllable:{controllerId:n}}]);
+  s.ecs.household[n].houseId=home;s.ecs.village[p]={villageId:null};
+  s.villages.village={id:"village",houses:[home],sharedPlaces:[],elderId:n};
+  s.ecs.relationships[n].known[p]={ring:"social",goodwill:12,base:12};
+  s.knowledge={[p]:{people:{[n]:{traits:[],conversation:{day:s.days}}},feelings:{}}};
+  for(const id of [parent,sibling])s.ecs.planner[id].world.ordered=true;
+  socialHour(s);
+  for(let i=0;i<2200&&!s.chat?.active;i++)w.step(.005);
+  expect(s.chat?.active?.npcId).toBe(n);
+  expect(lineCandidates(s,s.chat.active,"customs_question","player").some(l=>l.situation=="oath")).toBe(true);
 });

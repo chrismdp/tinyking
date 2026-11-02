@@ -5,6 +5,7 @@ import { newsPreference, chooseNews } from "game/news";
 import { community, attach } from "./support/travel";
 import { departNpc, advanceWorldClock } from "game/travel";
 import { DAYS_IN_SEASON } from "game/time";
+import { newEntities } from "game/entities";
 
 function setup() {
   const w=peopleWorld(),s=w.state;
@@ -33,6 +34,24 @@ it("does not exchange on a failed contact or disclose sealed, unknown or trust-e
   expect(hidden.every(e=>!s.knowledge[b]?.events?.includes(e.id))).toBe(true);
   const publicNews=recordEvent(s,"marriage",[c],[],{audienceIds:[a]});s.ecs.spatial[b].x+=500;
   expect(chatTogether(s,a,b)).toBe(false);expect(s.knowledge[b]?.events||[]).not.toContain(publicNews.id);
+});
+it("passes the names actually stated in news without inventing a personal acquaintance",()=>{
+  const {state:s,person:a,parent:b,sibling:c}=setup();
+  delete s.ecs.relationships[b].known[c];
+  const event=recordEvent(s,"harvest",[c],[],{quantity:6,audienceIds:[a]});
+  expect(chatTogether(s,a,b)).toBe(true);
+  expect(s.knowledge[b].events).toContain(event.id);
+  expect(s.knowledge[b].people[c]).toEqual({traits:[]});
+  expect(s.ecs.relationships[b].known[c]).toBeUndefined();
+  expect(s.knowledge[b].people[c].conversation).toBeUndefined();
+});
+it("keeps an anonymous witness's account anonymous when another villager learns it",()=>{
+  const {state:s,person:a,parent:b}=setup();
+  const [unknown]=newEntities(s,[{personable:{age:30},nameable:{nickname:"Unintroduced Harvester"}}]);
+  const event=recordEvent(s,"harvest",[unknown],[],{quantity:6,audienceIds:[a]});
+  expect(chatTogether(s,a,b)).toBe(true);
+  expect(s.knowledge[b].events).toContain(event.id);
+  expect(s.knowledge[b].people[unknown]).toBeUndefined();
 });
 it("limits a six-half-hour summary encounter to one event each, with no shared source mutation",()=>{
   const {state:s,person:a,parent:b,sibling:c}=setup();
@@ -119,6 +138,7 @@ it("ranks the newest unheard account within a repeated story, including an old a
 it("carries heard news and its original source on an NPC's real world journey, then tells a new local",async()=>{
   const {s,ids}=community(),[p,a,b]=ids,away=community({namespace:"away-",key:"6,5",player:false});
   attach(s,away.s);
+  s.ecs.relationships[a].known[p]={ring:"public",goodwill:0};
   const event=recordEvent(s,"harvest",[p],[],{quantity:5,audienceIds:[a]});
   expect(chatTogether(s,a,b)).toBe(true);expect(s.knowledge[b].spokenSources[event.id].speakerId).toBe(a);
   const original={...s.knowledge[b].spokenSources[event.id]};
@@ -126,6 +146,7 @@ it("carries heard news and its original source on an NPC's real world journey, t
   await advanceWorldClock(s);
   const dest=s.travel.maps["6,5"],local=away.ids[1];
   expect(dest.residents[b]).toBe(true);expect(dest.knowledge[b].events).toContain(event.id);
+  expect(dest.knowledge[b].people[p]).toEqual({traits:[]});
   expect(dest.knowledge[b].spokenSources[event.id]).toEqual(original);
   // Keep this exchange's only unheard story explicit; the journey's occurrence
   // events and offscreen encounters have their own existing audiences.
@@ -133,6 +154,7 @@ it("carries heard news and its original source on an NPC's real world journey, t
   expect(dest.knowledge[local].events).not.toContain(event.id);
   expect(chatTogether(dest,b,local,true)).toBe(true);
   expect(dest.knowledge[local].events).toContain(event.id);
+  expect(dest.knowledge[local].people[p]).toEqual({traits:[]});
   expect(dest.knowledge[local].spokenSources[event.id].speakerId).toBe(b);
   expect(dest.knowledge[b].spokenSources[event.id]).toEqual(original);
 });

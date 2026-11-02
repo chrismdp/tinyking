@@ -45,9 +45,7 @@ export function updateOverhearing(s) {
     if(speech.audible!==audible){speech.audible=audible;s.redraws?.push(npc);}
     if(!audible || !speech.eventId || s.knowledge?.[viewer]?.events?.includes(speech.eventId))continue;
     const event=(s.events||[]).find(e=>e.id==speech.eventId);
-    tellNews(s,npc,viewer,event,speech.lineId);
-    const k=s.knowledge[viewer];k.people ||= {};
-    for(const id of speech.namedPeople){(k.people[id] ||= {traits:[]});delete k.people[id].nameOnly;}
+    tellNews(s,npc,viewer,event,speech.lineId,speech.namedPeople);
     s.redraws?.push(viewer,npc);
   }
 }

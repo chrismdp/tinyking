@@ -1,4 +1,4 @@
-import { createAutosave, bindAutosave } from "game/autosave";
+import { createAutosave, bindAutosave, FIRST_SAVE_DELAY_MS } from "game/autosave";
 import { createSimulation } from "game/simulation";
 it("saves each crossed game day after its simulation step", () => {
   const state = { ecs: { planner: {}, personable: {} }, ui: {}, days: .999, game_speed: "normal", redraws: [] };
@@ -51,10 +51,13 @@ it("reports storage failures while allowing another autosave", async () => {
   expect(autosave.error).toBeNull();
   expect(autosave.hasSave).toBe(true);
 });
-it("saves a started life during its opening before the camp is created", async () => {
+it("still saves an unfinished opening on page exit, bypassing the initial-save delay", async () => {
   const state = { days: .375, intro: { active: true, elapsed: 2 }, ecs: { playable: { p: { known: [] } } }, ui: { playerId: "p", show: { main_menu: false } } };
   const client = jest.fn().mockResolvedValue({ bytes: 100 });
-  await createAutosave(state, client).request();
+  const persistence = createAutosave(state, client);
+  persistence.requestInitial();
+  expect(client).not.toHaveBeenCalled();
+  await persistence.request(true);
   expect(client).toHaveBeenCalledWith("save", expect.objectContaining({ intro: state.intro }));
 });
 it("submits the last pagehide snapshot even while an older save is pending", async () => {
@@ -77,4 +80,32 @@ it("submits the last pagehide snapshot even while an older save is pending", asy
   await last;
   expect(persistence.lastSave.day).toBe(1.1);
   unbind();
+});
+
+
+it.each([false, true])("waits thirty seconds after watched/skipped handover before taking the initial snapshot (skip=%s)", async skip => {
+  jest.useFakeTimers();
+  try {
+    const state = { days: .375, intro: { active: !skip }, ecs: { playable: { p: {} } }, ui: { playerId: "p", show: {} } };
+    const client = jest.fn().mockResolvedValue({ bytes: 100 });
+    const persistence = createAutosave(state, client);
+    persistence.requestInitial();
+    expect(client).not.toHaveBeenCalled();
+    if (!skip) {
+      jest.advanceTimersByTime(10000);
+      persistence.flush();
+      expect(client).not.toHaveBeenCalled();
+      state.intro.active = false;
+      persistence.flush();
+    }
+    jest.advanceTimersByTime(FIRST_SAVE_DELAY_MS - 1);
+    persistence.request(); // A day boundary cannot stack a save onto handover.
+    expect(client).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1);
+    await persistence.flush();
+    expect(client).toHaveBeenCalledTimes(1);
+    expect(persistence.hasSave).toBe(true);
+    await persistence.request();
+    expect(client).toHaveBeenCalledTimes(2);
+  } finally { jest.useRealTimers(); }
 });

@@ -10,8 +10,11 @@ export function gameData(state) {
 
 // Store an object graph, rather than duplicate travel's shared identity/map
 // records. Planner undefined/non-finite values must also survive JSON + gzip.
-export function serialiseGame(state) {
-  const nodes = [], seen = new Map();
+// Encode one node at a time. Weak references and consumed queue entries let
+// the worker release its snapshot as gzip consumes it. No complete encoded
+// graph or uncompressed JSON string is retained by the save path.
+function* graphTokens(state) {
+  const nodes = [], seen = new WeakMap();
   const encode = value => {
     if (value === undefined) return { special: "undefined" };
     if (typeof value === "number" && !Number.isFinite(value)) return { special: String(value) };
@@ -19,13 +22,46 @@ export function serialiseGame(state) {
     if (seen.has(value)) return { ref: seen.get(value) };
     const ref = nodes.length;
     seen.set(value, ref);
-    const node = { array: Array.isArray(value) ? value.length : null, entries: [] };
-    nodes.push(node);
-    node.entries = Object.entries(value).map(([key, item]) => [key, encode(item)]);
+    nodes.push(value);
     return { ref };
   };
   const root = encode(gameData(state));
-  return JSON.stringify({ version: SAVE_VERSION, root, nodes });
+  state = null;
+  yield "{\"version\":" + SAVE_VERSION + ",\"root\":" + JSON.stringify(root) + ",\"nodes\":[";
+  for (let index = 0; index < nodes.length; index++) {
+    const value = nodes[index];
+    nodes[index] = null;
+    if (index) yield ",";
+    yield "{\"array\":" + (Array.isArray(value) ? value.length : "null") + ",\"entries\":[";
+    let first = true;
+    for (const key of Object.keys(value)) {
+      if (!first) yield ",";
+      first = false;
+      yield JSON.stringify([key, encode(value[key])]);
+    }
+    yield "]}";
+  }
+  yield "]}";
+}
+
+export function* gameJsonChunks(state) {
+  const tokens = graphTokens(state);
+  state = null;
+  let chunk = "";
+  for (const token of tokens) {
+    for (let offset = 0; offset < token.length;) {
+      const end = Math.min(token.length, offset + 65536 - chunk.length);
+      chunk += token.slice(offset, end);
+      offset = end;
+      if (chunk.length === 65536) { yield chunk; chunk = ""; }
+    }
+  }
+  if (chunk) yield chunk;
+}
+
+// Synchronous callers (including replay tests) still use the same v1 format.
+export function serialiseGame(state) {
+  return [...gameJsonChunks(state)].join("");
 }
 
 export function restoreGame(text) {
@@ -53,8 +89,19 @@ export function replaceGame(state, data) {
   state.redraws = Object.keys(state.ecs.spatial || {});
 }
 
-export async function compressGame(state) {
-  return new Response(new Blob([serialiseGame(state)]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+export function compressGame(state) {
+  const chunks = gameJsonChunks(state);
+  state = null;
+  const stream = new ReadableStream({
+    pull(controller) {
+      const { value, done } = chunks.next();
+      if (done) controller.close();
+      else controller.enqueue(value);
+    },
+    cancel() { chunks.return(); }
+  });
+  // TextEncoderStream preserves surrogate pairs across chunk boundaries.
+  return new Response(stream.pipeThrough(new TextEncoderStream()).pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
 }
 export async function decompressGame(bytes) {
   return restoreGame(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text());

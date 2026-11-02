@@ -1,5 +1,7 @@
 import { gameData } from "./save_game";
 
+export const FIRST_SAVE_DELAY_MS = 30000;
+
 export function createSaveClient(worker) {
   return (operation, state) => new Promise((resolve, reject) => {
     const channel = new MessageChannel();
@@ -27,12 +29,19 @@ export function connectSaveWorker() {
 }
 
 export function createAutosave(state, client, changed = () => {}) {
-  let requested = false, pending = null;
+  let requested = false, pending = null, initial = false, saveAfter = null;
   const status = { ready: false, hasSave: false, error: null, lastSave: null };
   const flush = (final = false) => {
     if (!requested || pending && !final || state.generating || state.worldBusy || state.transition) return pending;
+    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) { requested = false; return null; }
+    if (initial && !final) {
+      if (state.intro?.active) return pending;
+      saveAfter ??= performance.now() + FIRST_SAVE_DELAY_MS;
+      if (performance.now() < saveAfter) return pending;
+    }
     requested = false;
-    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) return null;
+    initial = false;
+    saveAfter = null;
     const started = performance.now();
     const day = state.days;
     // postMessage takes a consistent structured clone now. JSON and gzip run
@@ -51,6 +60,7 @@ export function createAutosave(state, client, changed = () => {}) {
     return pending;
   };
   return Object.assign(status, {
+    requestInitial() { initial = true; saveAfter = null; requested = true; return flush(); },
     request(final = false) { requested = true; return flush(final); },
     flush,
     async inspect() {

@@ -70,7 +70,7 @@ it("keeps the nearest fires within a fixed shadow-free budget, and turns every a
   update(view, s, 3, 1, { x: 1000, y: 0 });
   expect(lights.map(l => l.position.x)).toEqual([975, 1075]);
   s.days = 12 / 24; update(view, s);
-  expect(lights.every(l => !l.visible && l.intensity == 0)).toBe(true);
+  expect(lights.every(l => l.visible && l.intensity == 0)).toBe(true);
   expect(view.mesh.children.filter(c => !c.isPointLight).every(c => !c.visible)).toBe(true);
   view.dispose();
 });
@@ -100,4 +100,20 @@ it("drapes light over slopes, never intercepts selection, and disposes replaced 
   const geometry = jest.spyOn(pool.geometry, "dispose"), material = jest.spyOn(pool.material, "dispose");
   view.add("a", model); expect(geometry).toHaveBeenCalledTimes(1); expect(material).toHaveBeenCalledTimes(1);
   view.dispose(); expect(view.mesh.children).toHaveLength(0);
+});
+
+it("keeps zero-intensity point lights visible to Three through startup, day, night and removal", () => {
+  const s = state(), view = createNightLights(FLAT_GROUND);
+  const lights = view.mesh.children.filter(c => c.isPointLight);
+  expect(lights).toHaveLength(MAX_FIRE_LIGHTS);
+  expect(lights.every(l => l.visible && l.intensity === 0)).toBe(true);
+  view.add("fire", camp(FLAT_GROUND, { ecs: { spatial: { fire: { x: 0, y: 0 } } } }, "fire"));
+  for (const days of [12 / 24, 23 / 24, 12 / 24]) {
+    s.days = days; update(view, s);
+    expect(lights.every(l => l.visible)).toBe(true);
+    expect(lights.filter(l => l.intensity > 0)).toHaveLength(days === 23 / 24 ? 1 : 0);
+  }
+  view.remove("fire"); update(view, s);
+  expect(lights.every(l => l.visible && l.intensity === 0)).toBe(true);
+  view.dispose();
 });

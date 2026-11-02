@@ -46,6 +46,7 @@ import { playerOrderAllowed, enqueueTask, cancelTask, cancelJob } from "game/man
 import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
+import { rendererPixelRatio, bindContextRecovery } from "render/lifecycle";
 
 const releaseMap = state => {
   state.ticker?.destroy();
@@ -175,7 +176,7 @@ export function World() {
     const requested = new URLSearchParams(window.location.search).get("seed");
     const initialSeed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
     const webgl = new THREE.WebGLRenderer({ antialias: true });
-    webgl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    webgl.setPixelRatio(rendererPixelRatio(window));
     webgl.setSize(window.innerWidth, window.innerHeight);
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
@@ -220,7 +221,7 @@ export function World() {
       start_game: () => {
         if (startGame(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" })) {
           setPopupInfo({});
-          state.persistence.request();
+          state.persistence.requestInitial();
           renderUI();
         }
       },
@@ -350,6 +351,7 @@ export function World() {
     const connection = Promise.resolve().then(connectSaveWorker).then(client => { saveClient = client; });
     state.persistence = createAutosave(state, (...args) => saveClient ? saveClient(...args) : connection.then(() => saveClient(...args)), renderUI);
     const unbindAutosave = bindAutosave(state.persistence, window, document);
+    const unbindContext = bindContextRecovery(webgl.domElement, state, () => renderMap(webgl, state, selectEntity, renderUI, t));
     containingDiv.current.appendChild(webgl.domElement);
 
     window.onresize = () => {
@@ -375,6 +377,7 @@ export function World() {
     })();
     return () => {
       unbindAutosave();
+      unbindContext();
       releaseMap(state);
       webgl.dispose();
       webgl.domElement.remove();

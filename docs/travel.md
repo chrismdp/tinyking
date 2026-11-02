@@ -147,7 +147,8 @@ use the seasonal household calculation above. Neither model permits starvation
 deaths. Old age uses the shared death and inheritance rules. Travellers retain
 the documented freeze of needs on the road.
 
-An unmarried adult without a *viable mutual romantic prospect* locally may seek
+In new worlds, a fixed seeded 5% of people are willing to travel for company.
+An unmarried willing adult without a *viable mutual romantic prospect* locally can seek
 company in an adjacent land community, even if unrelated but incompatible adults
 are present. The same eligibility, kin exclusions and mutual love/Intimate ring
 caps apply. Exploration chooses a seeded neighbouring road without reading

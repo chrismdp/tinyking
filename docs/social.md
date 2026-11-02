@@ -19,7 +19,9 @@ and selected villagers. Live hearing checks use people within 300 world units.
 Romance and affairs inform participants and actual witnesses within 85 units.
 Summary history invents no witnesses. Remote family do not hear an event merely
 because their components are available in the directory. Existing moved kin
-and travellers retain their real links. Learning news about a remote stranger
+and travellers retain their real links. Five percent of people receive a fixed,
+seeded willingness to seek company abroad. Others stay in their hex. Willingness
+does not bypass local prospects, consent, routes or visit timing. Learning news about a remote stranger
 can change anonymous regard, without creating acquaintance.
 
 Every event starts private, with explicit knowers. When half a village knows

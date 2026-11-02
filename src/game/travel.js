@@ -18,7 +18,7 @@ import { cancelLocalTasksForTravel, enqueueTask, canReachTask, cancelTask } from
 import { releaseFriendWork } from "game/friend_help";
 import { transferPossession, repairHouseholds } from "game/possessions";
 import { recordEvent, withEventIndex } from "game/events";
-import { romanticInterest, advanceSeason, withSocialIndex } from "game/social";
+import { romanticInterest, advanceSeason, withSocialIndex, SOCIAL_RATES } from "game/social";
 import { drift } from "game/people";
 import { hashUnit } from "game/math";
 import { prepareDetail, applyPreparedDetail } from "game/hex_detail";
@@ -36,6 +36,7 @@ export function freezeOpinions(s) {
   for (const id of Object.keys(s.ecs.personality||{})) {
     const p = s.ecs.personality[id];
     p.opinionSeed ??= s.peopleSeed;
+    if(s.newsModel)p.traveller ??= hashUnit(p.opinionSeed+":traveller:"+id)<SOCIAL_RATES.travellerShare;
     p.opinionThresholds ||= {
       ...s.opinionThresholds
     };
@@ -923,6 +924,13 @@ export function viableResidents(s) {
     return s.residents[id] && p && !p.dead && p.age >= 18 && !e.playable?.[id] && kin &&
       (!kin.spouse || !e.personable[kin.spouse] || e.personable[kin.spouse].dead);
   });
+  if(s.newsModel) {
+    for(const left of candidates.filter(id=>e.personality?.[id]?.traveller || s.newsContext?.visits?.[id]))for(const right of candidates) {
+      if(left===right || prospects.has(left))continue;
+      if(romanticInterest(s,left,right)){prospects.add(left);prospects.add(right);}
+    }
+    return prospects;
+  }
   for (let a = 0; a < candidates.length; a++) for (let b = a + 1; b < candidates.length; b++) {
     const left = candidates[a], right = candidates[b];
     if (prospects.has(left) && prospects.has(right)) continue;
@@ -946,6 +954,7 @@ function journeyIntent(s, id, key, j, season, prospects) {
       returning: true
     };
   }
+  if(j.localPeople && !s.ecs.personality?.[id]?.traveller)return null;
   if (prospects ? prospects.has(id) : Object.keys(s.residents).some(b => s.residents[b] && romanticInterest(s, id, b))) return null;
   const here = s.world?.hexes?.find(h => worldKey(h) == key) || j.world.hexes.find(h => worldKey(h) == key);
   const choices = neighbours(here).map((h, side) => ({

@@ -19,6 +19,7 @@ import { recordEvent, closeFamily, withEventIndex, invalidateEventIndex } from "
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
   birthPerSeason: 0.55,
+  travellerShare: 0.05,
   oldDeathPerSeason: 0.02,
   courtshipSeasons: 2,
   childYears: 2,
@@ -39,7 +40,7 @@ const add = (s, components) => {
     id
   };
   if (components.personable && s.residents) s.residents[id] = true;
-  const directory=s.newsContext || s.travel;
+  const directory=s.newsContext;
   if(components.personable && directory?.localPeople) {
     directory.people[id]=Object.fromEntries(PERSON_COMPONENTS.filter(key=>s.ecs[key]?.[id]).map(key=>[key,s.ecs[key][id]]));
     updateDirectoryPerson(directory,id);
@@ -666,6 +667,7 @@ export function historyStep(worldHexState, season) {
     ...(k.spokenSources?{spokenSources:{...k.spokenSources}}:{}),
     ...(k.reactions?{reactions:{...k.reactions}}:{}),
     ...(k.discoveries?{discoveries:{...k.discoveries}}:{}),
+    ...(k.newsScopes?{newsScopes:{...k.newsScopes}}:{}),
     ...(k.people?{people:{...k.people}}:{}),
     events: [...(k.events || [])]
   };

@@ -1,3 +1,5 @@
+import { attachPeople } from "./person_storage";
+import { bindNewsContext } from "./event_knowledge";
 // Everything affecting play is saved. Only browser resources and the save
 // controller and transient screen fades are excluded; UI actions are reattached by World on restore.
 export const SAVE_VERSION = 1;
@@ -87,6 +89,10 @@ export function replaceGame(state, data) {
   for (const key of Object.keys(state)) if (!RUNTIME.has(key)) delete state[key];
   Object.assign(state, data);
   if(data.travel?.people)Object.defineProperty(state,"peopleDirectory",{value:data.travel.people,writable:true,configurable:true,enumerable:false});
+  if(state.travel?.localPeople) {
+    for(const map of Object.values(state.travel.maps)){attachPeople(map,state.travel);bindNewsContext(map,state.travel);}
+    attachPeople(state,state.travel);bindNewsContext(state,state.travel);
+  }
   state.ui = { ...data.ui, actions };
   state.redraws = Object.keys(state.ecs.spatial || {});
 }

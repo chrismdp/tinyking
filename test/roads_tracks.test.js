@@ -1,48 +1,36 @@
-import { generateMap, Hex } from "game/map";
+import { Hex, Grid, ALL_SIDES } from "game/hex";
+import { newEntities } from "game/entities";
+import { addBidirectionalLink } from "game/pathfinding";
 import { markThroughRoutes, recordJourney } from "game/settlement_routes";
 import { reserveRoad } from "game/land_use";
 import { rowOfTiles } from "./support/world";
 
-it("generates connected through roads and worn local approaches in seed 13",async()=>{
-  const s={ecs:{nextId:1},days:.375,redraws:[],ui:{show:{}}};
-  await generateMap(s,13,async()=>{});
-  const tileAt=p=>s.space[Hex().fromPoint(p)].find(id=>s.ecs.mappable[id]);
-  const through=Object.keys(s.ecs.mappable).filter(id=>s.ecs.mappable[id].throughRoute?.length);
-  expect(through.length).toBeGreaterThan(10);
-  for(const entry of Object.values(s.map.entrances)) {
-    expect(s.ecs.mappable[entry.tileIds[0]].throughRoute.length).toBeGreaterThan(0);
+it("connects surveyed crossings and village approaches while keeping house and field spurs local", () => {
+  const { state: s, tiles, villager } = rowOfTiles(7);
+  s.map = { entrances: { 0: { tileIds: tiles.slice(0, 3) }, 3: { tileIds: [tiles[5], tiles[4], tiles[3]] } } };
+  s.settlement = { journeys: [], appliedJourneys: {} };
+  expect(reserveRoad(s, tiles)).toBe(true);
+  const junction = Hex().fromPoint(s.ecs.spatial[tiles[3]]);
+  const side = ALL_SIDES.find(side => !s.ecs.walkable[tiles[3]].neighbours[side]);
+  const fieldHex = Grid.hexagon({ center: junction, radius: 1 }).neighborsOf(junction, ALL_SIDES)[side];
+  const [field] = newEntities(s, [{ spatial: fieldHex.toPoint(), mappable: { terrain: "grassland" }, walkable: { speed: 1, neighbours: {}, worn: {} } }]);
+  addBidirectionalLink(s.ecs, tiles[3], side, field);
+  const door = +Object.keys(s.ecs.walkable[tiles[6]].neighbours)[0];
+  newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[6]], immovable: true }, building: { entrance: door } }]);
+  markThroughRoutes(s, [tiles[4]]);
+  const through = tiles.filter(id => s.ecs.mappable[id].throughRoute.length);
+  expect(through).toEqual(tiles.slice(0, 6));
+  expect(s.ecs.mappable[tiles[6]].throughRoute).toEqual([]);
+  expect(s.ecs.mappable[field].throughRoute).toEqual([]);
+  for (const id of through) for (const side of s.ecs.mappable[id].throughRoute) {
+    const next = s.ecs.walkable[id].neighbours[side];
+    if (next) expect(s.ecs.mappable[next].throughRoute).toContain((side + 3) % 6);
   }
-  // Every corridor edge is reciprocal, and no corridor has a house as an endpoint.
-  const houses=Object.keys(s.ecs.building).map(id=>tileAt(s.ecs.spatial[id]));
-  for(const id of through) {
-    expect(houses).not.toContain(id);
-    for(const side of s.ecs.mappable[id].throughRoute) {
-      const next=s.ecs.walkable[id].neighbours[side];
-      if(next)expect(s.ecs.mappable[next].throughRoute).toContain((side+3)%6);
-    }
-  }
-  let localHouses=0,localFields=0;
-  for(const village of Object.values(s.villages)) {
-    const corridor=new Set(through),seen=new Set(),queue=[through[0]];
-    for(let i=0;i<queue.length;i++) {
-      const id=queue[i];if(seen.has(id))continue;seen.add(id);
-      queue.push(...s.ecs.mappable[id].throughRoute.map(side=>s.ecs.walkable[id].neighbours[side]).filter(n=>corridor.has(n) && !seen.has(n)));
-    }
-    expect({village:village.id,connected:village.houses.some(h=>Object.values(s.ecs.walkable[tileAt(s.ecs.spatial[h])].neighbours).some(n=>seen.has(n)))}).toEqual({village:village.id,connected:true});
-    for(const house of village.houses) {
-      const tile=tileAt(s.ecs.spatial[house]);
-      const visible=Object.values(s.ecs.walkable[tile].worn).some(w=>w>=10);
-      if(visible) localHouses++;
-      for(const field of s.ecs.household[house].fields) {
-        const access=s.ecs.farmable[field].accessTileId;
-        if(!s.ecs.mappable[access].throughRoute?.length && Object.values(s.ecs.walkable[access].worn).some(w=>w>=10)) {
-          localFields++;
-        }
-      }
-    }
-  }
-  expect(localHouses).toBeGreaterThan(3);
-  expect(localFields).toBeGreaterThan(0);
+  expect(Object.values(s.ecs.walkable[tiles[6]].neighbours).some(id => through.includes(id))).toBe(true);
+  recordJourney(s, { key: "home", people: [villager], from: tiles[6], to: tiles[0], borderKey: "a/b", count: 20 });
+  recordJourney(s, { key: "field", people: [villager], from: tiles[6], to: field, count: 20 });
+  expect(Object.values(s.ecs.walkable[tiles[6]].worn).some(n => n >= 10)).toBe(true);
+  expect(Object.values(s.ecs.walkable[field].worn).some(n => n >= 10)).toBe(true);
 });
 
 it("keeps a border traveller's house spur local and preserves its speed, wear and navigation",()=>{

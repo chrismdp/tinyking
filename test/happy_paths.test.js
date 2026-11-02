@@ -1,6 +1,5 @@
-import { generateMap } from "game/map";
 import { openCharacter, startGame } from "game/new_game";
-import { initialiseTravel, acceptTravel, completeTravel, destinationFor } from "game/travel";
+import { acceptTravel, completeTravel, destinationFor } from "game/travel";
 import { startIntro, skipIntro, INTRO_TIMING } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { enqueueTask } from "game/manager";
@@ -18,11 +17,11 @@ jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: tr
 
 // These are the five whole-flow happy paths. Focused rule regressions live in
 // the domain suites. No renderer or browser is needed to drive the real game.
-it("starts a new generated game from the menu, hands over an owned camp and resumes time", async () => {
-  const s = {ecs: {nextId: 1}, days: .375, game_speed: "normal", redraws: [], ui: {show: {main_menu: true}}};
-  const generated = await generateMap(s, 13, async () => {});
-  s.map = generated.map; s.ui.playerId = generated.playerId;
-  initialiseTravel(s, 13);
+it("starts a new game from the menu, hands over an owned camp and resumes time", async () => {
+  const { s } = community();
+  delete s.ecs.household[s.ui.playerId];
+  s.ecs.container ||= {};
+  s.ui.show.main_menu = true;
   s.game_speed = "paused";
   openCharacter(s);
   expect(s.ui.show.mapgen).toBe(true);
@@ -121,12 +120,9 @@ it("walks to an edge, travels to another hex and hands over the same living play
   expect(s.travel.maps["5,5"].residents[player]).toBeUndefined();
   expect(s.travel.maps["6,5"].residents[player]).toBe(true);
 });
-it("round-trips a played seed-13 world, offscreen maps, travel, knowledge, ownership and orders, then simulates identically", async () => {
-  const state = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} }, game_speed: "normal" };
-  const generated = await generateMap(state, 13, async () => {});
-  state.map = generated.map;
-  state.ui.playerId = generated.playerId;
-  initialiseTravel(state, 13);
+it("round-trips two played communities, offscreen maps, travel, knowledge, ownership and orders, then simulates identically", async () => {
+  const { s: state } = community();
+  attach(state, community({ namespace: "away-", key: "6,5", player: false }).s);
   startIntro(state, { skip: true });
   const person = Object.keys(state.ecs.personable).find(id => id !== state.ui.playerId && !state.ecs.personable[id].dead);
   chat(state, state.ui.playerId, person);

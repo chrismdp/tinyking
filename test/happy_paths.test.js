@@ -19,9 +19,11 @@ jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: tr
 // These are the five whole-flow happy paths. Focused rule regressions live in
 // the domain suites. No renderer or browser is needed to drive the real game.
 it("starts a new generated game from the menu, hands over an owned camp and resumes time", async () => {
-  const s = {ecs: {nextId: 1}, days: .375, game_speed: "paused", redraws: [], ui: {show: {main_menu: true}}};
+  const s = {ecs: {nextId: 1}, days: .375, game_speed: "normal", redraws: [], ui: {show: {main_menu: true}}};
   const generated = await generateMap(s, 13, async () => {});
   s.map = generated.map; s.ui.playerId = generated.playerId;
+  initialiseTravel(s, 13);
+  s.game_speed = "paused";
   openCharacter(s);
   expect(s.ui.show.mapgen).toBe(true);
   expect(startGame(s)).toBe(true);
@@ -102,6 +104,7 @@ it("finishes a festival night, pauses at the season turn and begins the next sea
 
 it("walks to an edge, travels to another hex and hands over the same living player", async () => {
   const {s, ids: [player]} = community();
+  startIntro(s, {skip: true});
   attach(s, community({namespace: "next-", key: "6,5", player: false}).s);
   const life = s.ecs.personable[player].lifeYears;
   expect(acceptTravel(s, s.map.entrances[0].tileIds[0])).toBe(true);

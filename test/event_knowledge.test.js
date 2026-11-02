@@ -69,5 +69,8 @@ it.each(["departure", "world_visit", "return", "world_move", "household_join", "
   expect(news(s)).toContain("Agnes Miller");
   expect(news(s)).not.toContain("Alice Miller");
   s.ui.playerId = sibling;
-  expect(knownEvents(s, sibling)).not.toContain(event);
+  // A participant knows their own event. Their account still cannot identify
+  // the other participant without an introduction or disclosed name.
+  expect(knownEvents(s, sibling)).toContain(event);
+  expect(news(s)).not.toContain("Agnes Miller");
 });

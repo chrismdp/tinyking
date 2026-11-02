@@ -139,7 +139,7 @@ it("builds a concise disclosed life from real events and item provenance, includ
   s.ecs.personable[parent].dead = true;
   s.residents = { [player]: true, [person]: true, [sibling]: true };
   const story = biography(s, player, person).map(f => f.text).join(" ");
-  expect(story).toContain("Still carries Edith&#x27;s hammer, inherited from Edith Miller");
+  expect(story).toContain("Still carries Edith's hammer, inherited from Edith Miller");
   expect(story).not.toMatch(/raised|looked after|brought up/);
   const before = JSON.stringify(s);
   expect(biography(s, player, person).map(f => f.text).join(" ")).toBe(story);

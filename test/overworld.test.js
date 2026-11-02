@@ -1,4 +1,4 @@
-import { createLandField, surveyWorld, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
+import { createLandField, findHome, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { villageStart } from "game/geography";
 import { Grid, Hex, WorldGrid, WorldHex, ALL_SIDES } from "game/hex";
 import {
@@ -222,13 +222,13 @@ describe("the world of world hexes", () => {
     // Selection depends on physical land and farmability, not biome labels.
     // Declare each biome once and cycle through all three moralities.
     // This checks category acceptance without a 120-seed coverage lottery.
-    const world = worldFor(13), home = homeOf(world);
+    const field = { terrainAt: () => "grassland", elevationAt: () => 20 };
     for (const [i, [biome, climate]] of Object.entries(BIOMES).entries()) {
       const morality = AXES.morality[i % AXES.morality.length];
-      const surveyed = surveyWorld([{ x: home.x, y: home.y, ...climate, biome, morality }], 13, villageStart);
-      expect(homeOf(surveyed)).toMatchObject({ biome, morality, ...climate, ocean: false });
-      expect(homeOf(surveyed).landFraction).toBeGreaterThanOrEqual(.65);
-      expect(homeOf(surveyed).start).toBeDefined();
+      const chosen = findHome([{ x: 0, y: 0, ...climate, biome, morality, ocean: false, landFraction: 1 }], field, villageStart);
+      expect(chosen).toMatchObject({ biome, morality, ...climate, ocean: false });
+      expect(chosen.landFraction).toBeGreaterThanOrEqual(.65);
+      expect(chosen.start).toBeDefined();
     }
   });
 });

@@ -45,3 +45,14 @@ The IndexedDB database and public payload version remain 1. The new world slot
 uses internal format 2 to identify a manifest and separate hex records.
 The reader also accepts the earlier single-record save. An old save keeps its
 existing history model and receives no replacement population.
+
+Completed neighbour detail uses separate hex records too. The manifest retains
+compact communities and the remaining preparation queue. It also retains the
+compact historical inputs for construction. These inputs contain no terrain,
+roads, trees, crops or animal simulation.
+
+If a save occurs during a neighbour build, it contains no unfinished map. Reload
+resumes missing work from the active hex and the committed record pointers. A
+completed preparation leaves memory after its record commits. A failed save keeps
+that map available for another save. Hexes beyond the player's approaches need
+no detailed record.

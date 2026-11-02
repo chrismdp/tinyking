@@ -246,8 +246,8 @@ function reachableFrom(start, landscape, settlements, reach) {
 
 // NOTE: biomeAt(hex) gives the biome a hex's trees grow as. Given a start,
 // the most wooded spots it can reach are planted until it has a few trees.
-export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start, allowed = () => true, world }) {
-  let result = [];
+function surveyTrees(seed, landscape, settlements, world_x, world_y, biomeAt, world) {
+  const result = [];
   const simplex = new SimplexNoise(seed);
   let generator = new MersenneTwister(seed);
   const spots = [];
@@ -276,7 +276,12 @@ export function generateTrees(seed, landscape, settlements, world_x, world_y, { 
     }
   }
 
-  result = result.filter(allowed);
+  return { trees: result, spots };
+}
+
+export function generateTrees(seed, landscape, settlements, world_x, world_y, { biomeAt, start, allowed = () => true, world, survey }) {
+  const { trees, spots } = survey || surveyTrees(seed, landscape, settlements, world_x, world_y, biomeAt, world);
+  let result = trees.filter(allowed);
   if (start) {
     result = result.filter(tree => start.distance(Hex().fromPoint(tree)) > 1);
     const reached = reachableFrom(start, landscape, settlements, START_TREE_REACH);
@@ -467,14 +472,15 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     .sort((a,b)=>a.toPoint().x-b.toPoint().x || a.y-b.y)[0];
   let start = Hex(fixtureStart || homeOf(state.world).start || options.start || { x: MAP_RADIUS, y: 2 });
   await progressUpdate("Founding villages", .22);
-  const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, mainLandKeys(state.world), naturalGroundFor(state.world), options.contents);
+  const empty = options.contents?.kind === "empty";
+  const { settlements, villages, settlementSites } = await generateSettlements(seed, grid, landscape, start, progressUpdate, empty ? undefined : mainLandKeys(state.world), empty ? undefined : naturalGroundFor(state.world), options.contents);
   // Village keys also cross maps in kinship, event and courtship records.
   if (state.ecs.namespace && !options.storedHistory) {
     for (const id of Object.keys(villages)) { const v = villages[id]; delete villages[id]; v.id = state.ecs.namespace + id; villages[v.id] = v; }
     for (const house of Object.values(settlements)) house.villageId = state.ecs.namespace + house.villageId;
   }
   state.villages = villages;
-  const entrances = prepareEntrances(grid, landscape, settlements, state.world, MAP_CENTRE, MAP_RADIUS);
+  const entrances = prepareEntrances(grid, landscape, settlements, state.world, MAP_CENTRE, MAP_RADIUS, options.surveyedEntrances);
 
   // Store physical habitat once per tile after the finished surface is known.
   const home = homeOf(state.world);
@@ -524,9 +530,13 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     return landscape[hex]?.terrain == "grassland";
   });
   // Every pass has the same initial resource guarantees as the opening.
+  // All passes use the same natural forest roll. Only their local clearing and
+  // minimum-tree guarantee differ; do not reroll the entire forest per pass.
+  const passTreeSurvey = Object.keys(entrances).length ? surveyTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(),
+    hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), state.world) : undefined;
   for (const entry of Object.values(entrances)) {
     const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
-      world:state.world, biomeAt: hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start: Hex(entry.hexes[2])
+      world:state.world, survey:passTreeSurvey, biomeAt: hex => landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start: Hex(entry.hexes[2])
     });
     const reached = reachableFrom(Hex(entry.hexes[2]), landscape, settlements, 4);
     for (const tree of extra.filter(t => reached.has(String(Hex().fromPoint(t))) && Hex(entry.hexes[2]).distance(Hex().fromPoint(t)) >= 2)) {
@@ -682,7 +692,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     const safe = point => treeAllowed(state,point) && !(state.space[Hex().fromPoint(point)] || []).some(id=>
       state.ecs.mappable[id]?.villagePlot || state.ecs.farmable?.[id] || state.ecs.stockpile?.[id]);
     const extra = generateTrees(seed, landscape, settlements, grid.pointWidth(), grid.pointHeight(), {
-      world:state.world, biomeAt: hex=>landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start:clearing, allowed:safe
+      world:state.world, survey:passTreeSurvey, biomeAt: hex=>landscape[hex].biomeMix || biomeOf(landscape[hex].temperature,home.moisture), start:clearing, allowed:safe
     });
     for(const tree of extra.filter(p=>reached.has(String(Hex().fromPoint(p))))) {
       if(Object.keys(state.ecs.good).some(id=>state.ecs.good[id].type=="wood" && Math.hypot(state.ecs.spatial[id].x-tree.x,state.ecs.spatial[id].y-tree.y)<10)) continue;

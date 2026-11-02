@@ -37,7 +37,7 @@ function survey(field, home) {
     if(component.size>main.size) main=component;
   }
   const ground=createHeightField({seed:0,
-    terrainAt:k=>field.terrainAt(worldPoint(home,Hex(...k.split(",").map(Number)).toPoint())),
+    terrainAt:k=>tiles.get(k) || field.terrainAt(worldPoint(home,Hex(...k.split(",").map(Number)).toPoint())),
     elevationAt:(x,y)=>field.elevationAt?.(worldPoint(home,{x,y})) || 0});
   const walkable=new Set([...main].filter(k=>safeTile(ground,Hex(...k.split(",").map(Number)).toPoint())));
   main=new Set();
@@ -112,7 +112,24 @@ export function roadStep(ground, a, b) {
 // Canonical undirected edge contract. Both callers survey the SAME two cheap
 // terrain grids, rank the SAME pairs, and select the SAME physical crossing.
 // No map, history, entities or resources are generated or aged by this API.
+const crossings = new WeakMap();
 export function routeCrossing(world, side, field=landFieldFor(world)) {
+  const from=world.hexes.find(h=>worldKey(h)==worldKey(world.home));
+  const next=world.hexes.find(h=>worldKey(h)==worldKey(neighbours(world.home)[side]));
+  if(!from || !next || from.ocean || next.ocean) return null;
+  let cache=crossings.get(field);
+  if(!cache) {cache=new Map();crossings.set(field,cache);}
+  const key=[worldKey(from),worldKey(next)].sort().join("/");
+  if(!cache.has(key)) cache.set(key,{from:worldKey(from),route:surveyCrossing(world,side,field)});
+  const saved=cache.get(key),route=saved.route;
+  if(!route)return null;
+  const reverse=saved.from!==worldKey(from);
+  // Callers may edit their entrances. Only the immutable survey is shared.
+  return {key:route.key,crossing:{...route.crossing},
+    hexes:(reverse?route.facingHexes:route.hexes).map(h=>({...h})),
+    facingHexes:(reverse?route.hexes:route.facingHexes).map(h=>({...h}))};
+}
+function surveyCrossing(world, side, field) {
   const from=world.hexes.find(h=>worldKey(h)==worldKey(world.home));
   const next=world.hexes.find(h=>worldKey(h)==worldKey(neighbours(world.home)[side]));
   if(!from || !next || from.ocean || next.ocean) return null;
@@ -152,10 +169,10 @@ export function routeCrossing(world, side, field=landFieldFor(world)) {
   return {key:worldKey(a)+"/"+worldKey(b), crossing:chosen.crossing,
     hexes:mine.map(h=>({x:h.x,y:h.y})), facingHexes:peer.map(h=>({x:h.x,y:h.y}))};
 }
-export function sharedEntrances(landscape, world) {
+export function sharedEntrances(landscape, world, surveyed) {
   const entries={};
   for(const side of ALL_SIDES) {
-    const contract=routeCrossing(world,side); if(!contract) continue;
+    const contract=surveyed ? surveyed[side] : routeCrossing(world,side); if(!contract) continue;
     const [edge,middle,goal]=contract.hexes.map(h=>Hex(h));
     for(const h of Grid.hexagon({center:goal,radius:2})) landscape[h].terrain="grassland";
     const at=edge.toPoint(), c=worldPoint(world.home,at), v={x:contract.crossing.x-c.x,y:contract.crossing.y-c.y};
@@ -230,22 +247,34 @@ function gradeRoads(roadHexes, roadSides, initial, natural, settlements, surface
     if(!norm) return;
     vs.forEach((v,i)=>{if(v.low!=v.high)v.height=Math.max(v.low,Math.min(v.high,v.height-excess*coeff[i]/norm));});
   };
+  const dot=(coeff,vs)=>{
+    let sum=0;
+    for(let i=0;i<coeff.length;i++)sum+=coeff[i]*vs[i].height;
+    return sum;
+  };
   const violation=c=>{
-    const x=c.dx.reduce((sum,a,i)=>sum+a*c.vs[i].height,0), y=c.dy.reduce((sum,a,i)=>sum+a*c.vs[i].height,0);
-    return Math.max(Math.hypot(x,y)-ROAD_CROSS_SLOPE,...c.along.map(coeff=>Math.abs(coeff.reduce((sum,a,i)=>sum+a*c.vs[i].height,0))-ROAD_GRADE));
+    const x=dot(c.dx,c.vs), y=dot(c.dy,c.vs);
+    let value=Math.hypot(x,y)-ROAD_CROSS_SLOPE;
+    for(const coeff of c.along)value=Math.max(value,Math.abs(dot(coeff,c.vs))-ROAD_GRADE);
+    return value;
   };
   let worst;
   for(let iteration=0;iteration<600;iteration++) {
     for(const c of constraints) {
-      const x=c.dx.reduce((sum,a,i)=>sum+a*c.vs[i].height,0), y=c.dy.reduce((sum,a,i)=>sum+a*c.vs[i].height,0), length=Math.hypot(x,y);
+      const x=dot(c.dx,c.vs), y=dot(c.dy,c.vs), length=Math.hypot(x,y);
       if(length>ROAD_CROSS_SLOPE) project(c.vs,c.dx.map((a,i)=>(a*x+c.dy[i]*y)/length),length-ROAD_CROSS_SLOPE);
       for(const coeff of c.along) {
-        const grade=coeff.reduce((sum,a,i)=>sum+a*c.vs[i].height,0);
+        const grade=dot(coeff,c.vs);
         if(Math.abs(grade)>ROAD_GRADE) project(c.vs,coeff,grade-Math.sign(grade)*ROAD_GRADE);
       }
     }
-    worst=constraints.reduce((a,b)=>!a || violation(b)>violation(a)?b:a,null);
-    if(!worst || violation(worst)<1e-8) break;
+    worst=null;
+    let worstValue;
+    for(const c of constraints) {
+      const value=violation(c);
+      if(!worst || value>worstValue) {worst=c;worstValue=value;}
+    }
+    if(!worst || worstValue<1e-8) break;
   }
   if(worst && violation(worst)>1e-6) return {blocked:worst.hex,violation:violation(worst)};
   const heights={...initial};
@@ -442,9 +471,10 @@ export function shelterSurface(state, point) {
   return {...state.map.geography,heights:result.heights};
 }
 export function groundForState(state) {
-  let geography, field;
+  let geography, map, field;
   const current=()=>{
-    if(!field || geography!==state.map.geography) {
+    if(!field || geography!==state.map.geography || !geography && map!==state.map) {
+      map=state.map;
       geography=state.map.geography;
       field=createHeightField({seed:state.map.seed,
         terrainAt:key=>{const id=(state.space[key]||[]).find(e=>state.ecs.mappable[e]);return id && state.ecs.mappable[id].terrain;},

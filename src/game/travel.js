@@ -14,10 +14,12 @@ import { updateWeather } from "game/weather";
 import { cancelLocalTasksForTravel, enqueueTask, canReachTask, cancelTask } from "game/manager";
 import { releaseFriendWork } from "game/friend_help";
 import { transferPossession, repairHouseholds } from "game/possessions";
-import { recordEvent } from "game/events";
-import { romanticInterest, advanceSeason } from "game/social";
+import { recordEvent, withEventIndex } from "game/events";
+import { romanticInterest, advanceSeason, withSocialIndex } from "game/social";
 import { drift } from "game/people";
 import { hashUnit } from "game/math";
+import { prepareDetail, applyPreparedDetail } from "game/hex_detail";
+import { finishTransition } from "game/history_scope";
 import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geometry";
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
 export const DEPARTURE_POLICY = "Travel cancels unfinished local tasks and favours without a reward. Work and deliveries stay done; borrowed harvest is left here for its household. Land, homes, stores and uncarried belongings stay yours here. Goods in your hands and carried personal possessions travel with you.";
@@ -43,9 +45,49 @@ const publishedEvents = new WeakMap();
 const referenceEvents = new WeakMap();
 const knowledgeCursors = new WeakMap();
 const knowledgeSets = new WeakMap();
+// Reference imports are ordinary ECS records. During an owned history pass,
+// remember each published component head and only copy changed heads again.
+const referenceIndexes = new WeakMap();
+export function withReferenceIndex(j, transition) {
+  if (referenceIndexes.has(j)) return transition();
+  const index = { heads: new Map(), maps: new WeakMap(), opinions: new WeakSet(),
+    components: Object.fromEntries(IDENTITY.map(key => [key, {}])) };
+  index.remember = (id, person) => {
+    id = String(id);
+    const previous = index.heads.get(id);
+    let changed = !previous;
+    if (previous) for (const key of IDENTITY) if (previous[key] !== person[key]) { changed = true; break; }
+    if (!changed) return previous;
+    const head = { ...person };
+    index.heads.set(id, head);
+    for (const key of IDENTITY) if (head[key]) index.components[key][id] = head[key];
+    return head;
+  };
+  for (const id in j.people) index.remember(id, j.people[id]);
+  referenceIndexes.set(j, index);
+  return finishTransition(transition, () => referenceIndexes.delete(j));
+}
+
 function publish(s, j) {
-  freezeOpinions(s);
-  for (const id in s.ecs.personable) if (!s.residents || s.residents[id]) {
+  const catalogue = referenceIndexes.get(j);
+  if (!catalogue) freezeOpinions(s);
+  const roster = catalogue && s.residents ? Object.keys(s.residents) : Object.keys(s.ecs.personable);
+  // Keep the original order of newly published deaths, including people whose
+  // ECS reference predates their residence. Estate/event ordering is observable.
+  if (catalogue) {
+    j.pendingEstates ||= {};
+    const deaths = new Set(roster.filter(id => s.ecs.personable[id]?.dead && j.people[id] && !j.estateDone?.[id]));
+    if (deaths.size) for (const id in s.ecs.personable) if (deaths.has(id)) j.pendingEstates[id] = true;
+  }
+  for (const id of roster) if (!s.residents || s.residents[id]) {
+    if (catalogue) {
+      const p = s.ecs.personality[id];
+      if (p && !catalogue.opinions.has(p)) {
+        p.opinionSeed ??= s.peopleSeed;
+        p.opinionThresholds ||= { ...s.opinionThresholds };
+        catalogue.opinions.add(p);
+      }
+    }
     const existing = j.people[id];
     j.estateDone ||= {};
     j.pendingEstates ||= {};
@@ -55,6 +97,7 @@ function publish(s, j) {
     }
     j.people[id] ||= {};
     for (const key of IDENTITY) if (s.ecs[key]?.[id]) j.people[id][key] = s.ecs[key][id];
+    catalogue?.remember(id, j.people[id]);
   }
   if (!j.eventOrder) {
     j.eventOrder = Object.fromEntries(Object.keys(j.events).map((id, index) => [id, index]));
@@ -122,10 +165,10 @@ function reconcileEstates(s, j) {
   }
   for (const person in j.people) {
     const records = j.people[person];
-    if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) records.controllable = {
-      ...records.controllable,
-      controllerId: successor(records.controllable.controllerId) || person
-    };
+    if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) {
+      records.controllable = { ...records.controllable, controllerId: successor(records.controllable.controllerId) || person };
+      referenceIndexes.get(j)?.remember(person, records);
+    }
   }
   // Ordinary local deaths are already settled by die(). Scan ownership once,
   // and refresh only maps with an actual outstanding estate. Do not recopy
@@ -192,7 +235,7 @@ function reconcileEstates(s, j) {
     publish(map, j);
   }
 }
-function references(s, j) {
+function references(s, j, road = false) {
   Object.defineProperty(s, "peopleDirectory", {
     value: j.people,
     enumerable: false,
@@ -230,17 +273,32 @@ function references(s, j) {
     frontier = next;
   }
   for (const id in s.ecs.personable) if (!s.residents[id] && !required.has(id)) for (const key of IDENTITY) delete s.ecs[key]?.[id];
-  const tables = IDENTITY.map(key => s.ecs[key]);
-  for (const id of required) if (!s.residents[id] && j.people[id]) {
-    const person = j.people[id];
-    for (let n=0;n<IDENTITY.length;n++) {
-      const value=person[IDENTITY[n]];
-      if(value) {
-        const table=tables[n] ||= s.ecs[IDENTITY[n]] = {};
-        if(table[id]!==value)table[id]=value;
+  const catalogue = referenceIndexes.get(j);
+  let imported = road ? undefined : catalogue?.maps.get(s.ecs);
+  if (catalogue && !road && !imported) { imported = new Map(); catalogue.maps.set(s.ecs, imported); }
+  const keys = road && catalogue ? ["personable", "controllable"] : IDENTITY;
+  const tables = keys.map(key => s.ecs[key]);
+  for (const id of required) {
+    if (s.residents[id]) { imported?.delete(id); continue; }
+    if (!j.people[id]) continue;
+    const person = catalogue ? catalogue.heads.get(String(id)) || catalogue.remember(id, j.people[id]) : j.people[id];
+    if (imported?.get(id) === person) continue;
+    for (let n = 0; n < keys.length; n++) {
+      const value = person[keys[n]];
+      if (value) {
+        const table = tables[n] ||= s.ecs[keys[n]] = {};
+        if (table[id] !== value) table[id] = value;
       }
     }
+    imported?.set(id, person);
   }
+  if (road && catalogue) for (const key of IDENTITY) if (key !== "personable" && key !== "controllable") {
+    // This detached, synchronous road step cannot expose a table or observe a
+    // later publication. Native prototypes provide the same foreign lookups
+    // without copying every remote relationship table for each traveller.
+    Object.setPrototypeOf(s.ecs[key] ||= {}, catalogue.components[key]);
+  }
+  if (imported) for (const id of imported.keys()) if (!required.has(id)) imported.delete(id);
   s.knowledge ||= {};
   for (const id of residents) if (j.knowledge?.[id]) {
     const local=s.knowledge[id] || {},global=j.knowledge[id];
@@ -340,7 +398,14 @@ export async function ensureMap(s, key, progress, options) {
     const summary=j.maps[key], hex=s.world.hexes.find(h=>worldKey(h)===key);
     const stored=j.hexRecords?.[key] && await s.persistence?.readHex(j.hexRecords[key]);
     const update=progress || (async(label,value)=>{if(s.transition)await s.ui?.actions?.progress_update?.(label,.15+.75*value);});
-    const map=stored ? restoreDetails(stored,summary) : await buildHistoryMap(s,hex,summary,update,options);
+    let map;
+    if (stored) map = stored.unopenedDetail ? applyPreparedDetail(s, key, stored, summary) : restoreDetails(stored, summary);
+    else if (s.worldHistory?.detailOrigins && (key !== j.active || s.ui.playerId)) {
+      const prepared = await prepareDetail(s, key, update, options);
+      map = applyPreparedDetail(s, key, prepared, summary);
+      delete j.preparedMaps[key];
+    } else map = await buildHistoryMap(s,hex,summary,update,options);
+    delete map.unopenedDetail;
     j.maps[key]=map;
     return map;
   }
@@ -714,7 +779,7 @@ function ageTraveller(s, bundle, season) {
     }
   };
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (transit.ecs[key] ||= {})[id] = clone(value);
-  references(transit, s.travel);
+  references(transit, s.travel, true);
   if (bundle.knowledge) transit.knowledge[bundle.id] = clone(bundle.knowledge);
   if(Object.keys(bundle.chatPairs||{}).length)transit.chat={version:1,pairs:clone(bundle.chatPairs)};
   let aged;
@@ -822,22 +887,40 @@ export async function completeTravel(s, order) {
   }
 }
 
+// Mutual interest is symmetric. During this departure batch, someone with a
+// prospect stays, so a departure cannot remove anybody else's viable prospect.
+// Evaluate unordered adult pairs once, retaining the existing romance rule.
+export function viableResidents(s) {
+  const e = s.ecs, prospects = new Set();
+  const candidates = Object.keys(s.residents).filter(id => {
+    const p = e.personable[id], kin = e.kinship?.[id];
+    return s.residents[id] && p && !p.dead && p.age >= 18 && !e.playable?.[id] && kin &&
+      (!kin.spouse || !e.personable[kin.spouse] || e.personable[kin.spouse].dead);
+  });
+  for (let a = 0; a < candidates.length; a++) for (let b = a + 1; b < candidates.length; b++) {
+    const left = candidates[a], right = candidates[b];
+    if (prospects.has(left) && prospects.has(right)) continue;
+    if (romanticInterest(s, left, right)) { prospects.add(left); prospects.add(right); }
+  }
+  return prospects;
+}
+
 // A visit is motivated by the seeker's actual local pool, without peeking at
 // unvisited personalities. Explore adjacent land in seeded order; remember trips.
-function journeyIntent(s, id, key, j, season) {
+function journeyIntent(s, id, key, j, season, prospects) {
   const p = s.ecs.personable[id],
     kin = s.ecs.kinship?.[id];
   if (!p || p.dead || p.age < 18 || s.ecs.playable?.[id] || kin?.spouse && !s.ecs.personable[kin.spouse]?.dead) return null;
   const visit = j.visits[id];
   if (visit) {
     if (season < visit.arrived + 3) return null;
-    if (Object.keys(s.residents).some(b => s.residents[b] && romanticInterest(s, id, b))) return null;
+    if (prospects ? prospects.has(id) : Object.keys(s.residents).some(b => s.residents[b] && romanticInterest(s, id, b))) return null;
     return {
       to: visit.home,
       returning: true
     };
   }
-  if (Object.keys(s.residents).some(b => s.residents[b] && romanticInterest(s, id, b))) return null;
+  if (prospects ? prospects.has(id) : Object.keys(s.residents).some(b => s.residents[b] && romanticInterest(s, id, b))) return null;
   const here = s.world?.hexes?.find(h => worldKey(h) == key) || j.world.hexes.find(h => worldKey(h) == key);
   const choices = neighbours(here).map((h, side) => ({
     hex: j.world.hexes.find(n => worldKey(n) == worldKey(h)),
@@ -1009,6 +1092,7 @@ export async function advanceWorldClock(s, {
 } = {}) {
   const j = s.travel;
   if (!j) return;
+  if (j.wholeWorld && s.transition && !referenceIndexes.has(j)) return withReferenceIndex(j, () => advanceWorldClock(s, { travelling }));
   j.world = s.world;
   j.days = s.days;
   j.maps[j.active] = localSnapshot(s);
@@ -1065,28 +1149,31 @@ export async function advanceWorldClock(s, {
     } of start) {
       const map = key == j.active && !travelling ? s : j.maps[key];
       references(map, j);
-      for (const id of roster) if (map.residents[id] && !j.transit.some(t => t.bundle.id == id)) {
-        const visit = j.visits[id];
-        if (visit && map.ecs.kinship[id]?.spouse && !map.ecs.personable[map.ecs.kinship[id].spouse]?.dead) {
-          recordEvent(map, "world_move", [id], [], {
-            fromWorld: visit.home,
-            toWorld: key
-          });
-          delete j.visits[id];
-          continue;
+      withSocialIndex(map,()=>withEventIndex(map,()=>{
+        const prospects = j.wholeWorld ? viableResidents(map) : null;
+        for (const id of roster) if (map.residents[id] && !j.transit.some(t => t.bundle.id == id)) {
+          const visit = j.visits[id];
+          if (visit && map.ecs.kinship[id]?.spouse && !map.ecs.personable[map.ecs.kinship[id].spouse]?.dead) {
+            recordEvent(map, "world_move", [id], [], {
+              fromWorld: visit.home,
+              toWorld: key
+            });
+            delete j.visits[id];
+            continue;
+          }
+          const intent = journeyIntent(map, id, key, j, season, prospects);
+          if (!intent) continue;
+          if (key == j.active && !travelling) {
+            const side = intent.side ?? neighbours(s.world.home).findIndex(h => worldKey(h) == intent.to),
+              tile = map.map.entrances[side]?.tileIds[0];
+            if (tile && canReachTask(map, id, tile)) map.ecs.planner[id].world.worldJourney = {
+              ...intent,
+              side,
+              tileId: tile
+            };
+          } else departNpc(map, id, intent, j);
         }
-        const intent = journeyIntent(map, id, key, j, season);
-        if (!intent) continue;
-        if (key == j.active && !travelling) {
-          const side = intent.side ?? neighbours(s.world.home).findIndex(h => worldKey(h) == intent.to),
-            tile = map.map.entrances[side]?.tileIds[0];
-          if (tile && canReachTask(map, id, tile)) map.ecs.planner[id].world.worldJourney = {
-            ...intent,
-            side,
-            tileId: tile
-          };
-        } else departNpc(map, id, intent, j);
-      }
+      }));
       if(j.wholeWorld && map.compact) {
         for(const component of ["planner","manager","traits","attributes"])delete map.ecs[component];
         j.maps[key]=map;

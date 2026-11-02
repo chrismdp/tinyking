@@ -487,6 +487,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       changedMap = true;
       state.redraws = Object.keys(state.ecs.spatial);
       rig.returnTo(state.ecs.spatial[state.ui.playerId] || start);
+      rig.resumeFollow();
       canvas.style.filter = "";
     },
     recenter() {

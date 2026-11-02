@@ -74,3 +74,20 @@ it("discards indexes on normal and exceptional exits and keeps nested ownership 
     expect(s.ecs.relationships[1].known[7].goodwill).toBe(-1);
   });
 });
+
+it("keeps a shared relationship index owned until both community scopes finish", () => {
+  const a = world(), b = { ...a, ecs: { ...a.ecs } };
+  const original = JSON.stringify(a);
+  withRelationshipIndex(a, () => {
+    expect(peopleInRings(a, "1", ["intimate"])).toEqual(["7", "20"]);
+    withRelationshipIndex(b, () => {
+      addGoodwill(b, "3", "1", 1);
+      expect(peopleInRings(a, "1", ["intimate"])).toEqual(["3", "20"]);
+    });
+    addGoodwill(a, "2", "1", 70);
+    expect(peopleInRings(a, "1", ["intimate"])).toEqual(["2", "3"]);
+  });
+  expect(JSON.stringify(a)).not.toBe(original);
+  a.ecs.relationships[1].known[7].ring = "social";
+  expect(peopleInRings(a, "1", ["social"])).toEqual(["7"]);
+});

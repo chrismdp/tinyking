@@ -44,6 +44,7 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     const started = performance.now();
     const day = state.days;
     const travel = state.travel;
+    const prepared = Object.entries(travel?.preparedMaps || {});
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
     const saving = client(checkpoint ? "checkpoint" : "save", checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state)).then(result => {
@@ -52,7 +53,10 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     });
     const snapshotMilliseconds = performance.now() - started;
     const current = saving.then(result => {
-      if(result.hexRecords && travel && state.travel===travel)travel.hexRecords=result.hexRecords;
+      if(result.hexRecords && travel && state.travel===travel) {
+        travel.hexRecords=result.hexRecords;
+        for (const [key, map] of prepared) if (result.hexRecords[key] && travel.preparedMaps?.[key] === map) delete travel.preparedMaps[key];
+      }
       status.hasSave = true;
       status.error = null;
       status.lastSave = { ...result, snapshotMilliseconds, totalMilliseconds: performance.now() - started, day };

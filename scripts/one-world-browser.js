@@ -80,8 +80,9 @@ const {chromium}=require("playwright-core"),fs=require("fs"),assert=require("ass
     await page.evaluate(()=>{tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});await page.screenshot({path:"shots/one-world-empty.png"});
     await page.evaluate(initial=>{const s=tinyking;for(const h of s.world.hexes.filter(h=>!h.ocean&&h.x+","+h.y!==initial&&s.worldHistory.contents[h.x+","+h.y].kind==="villages")){s.ui.actions.plan_journey(h.x+","+h.y);if(s.travel.journey?.route.length===1)return;}throw new Error("No new adjacent village");},report.route.initial);
     report.hops.push(await drive());assert.equal(report.hops[0].kind,"empty");assert.equal(report.hops[1].kind,"villages");console.log("Second hop",report.hops[1]);await page.getByRole("button",{name:/skip/i}).click().catch(()=>{});
-    await page.evaluate(()=>{tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});await cdp.send("HeapProfiler.collectGarbage");report.final=await facts();
+    await page.evaluate(()=>{tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});
     report.save=await page.evaluate(async()=>{const at=performance.now();await tinyking.persistence.request();return {...tinyking.persistence.lastSave,totalMs:performance.now()-at,error:tinyking.persistence.error};});
+    await cdp.send("HeapProfiler.collectGarbage");report.final=await facts();
     report.records=await page.evaluate(()=>new Promise((resolve,reject)=>{
       const open=indexedDB.open("tinyking",1);
       open.onsuccess=()=>{const db=open.result,tx=db.transaction("saves","readonly"),keys=tx.objectStore("saves").getAllKeys();tx.oncomplete=()=>{resolve(keys.result);db.close();};tx.onerror=()=>reject(tx.error);};open.onerror=()=>reject(open.error);

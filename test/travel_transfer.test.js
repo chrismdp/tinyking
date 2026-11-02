@@ -170,3 +170,46 @@ it("restores distinct personal explored sets on a multi-hop return, adding only 
   expect(expected["5,5"]).not.toContain("6,5");
   expect(expected[b.s.map.worldKey]).not.toContain("6,7");
 });
+
+it.each([false, true])("keeps the existing road season's complete identity and estate results in new worlds (death=%s)", async death => {
+  const {s,owner,heir,player}=fixture();
+  const {departNpc}=require("game/travel"),{serialiseGame,restoreGame}=require("game/save_game");
+  s.ecs.kinship[owner].spouse=heir;s.ecs.kinship[heir].spouse=owner;
+  if(death)Object.assign(s.ecs.personable[owner],{age:88,lifeYears:37.25});
+  const item=createPossession(s,owner,"Road season parity");
+  require("game/people").meet(s,owner,player);
+  s.ecs.relationships[owner].known[player].goodwill+=9;
+  departNpc(s,owner,{to:s.travel.maps["6,5"].map.worldKey,side:0},s.travel);
+  // Process only the due road arrival, with no community season in this call.
+  s.days=7.25;s.travel.season=1;
+  const old=restoreGame(serialiseGame(s)),next=restoreGame(serialiseGame(s));
+  next.travel.wholeWorld=true;
+  await advanceWorldClock(old);await advanceWorldClock(next);
+  expect(next.travel.people).toEqual(old.travel.people);
+  expect(next.travel.transit).toEqual(old.travel.transit);
+  expect(next.travel.visits).toEqual(old.travel.visits);
+  expect(next.travel.events).toEqual(old.travel.events);
+  for(const key of Object.keys(old.travel.maps)) {
+    const a=old.travel.maps[key],b=next.travel.maps[key];
+    expect(b.residents).toEqual(a.residents);
+    expect(b.ecs.possession?.[item]).toEqual(a.ecs.possession?.[item]);
+    expect(b.ecs.controllable[item]).toEqual(a.ecs.controllable[item]);
+    expect(b.knowledge).toEqual(a.knowledge);
+  }
+});
+
+it("retains the existing mutual-interest result for adult pairs, refusals, kin and missing spouses", () => {
+  const { s, ids } = community({ player: false }), { viableResidents } = require("game/travel");
+  const [a, b, c] = ids;
+  expect([...viableResidents(s)].sort()).toEqual([...ids].sort());
+  s.ecs.personality[a].opinionThresholds = { hate: -100, love: 100 };
+  expect([...viableResidents(s)].sort()).toEqual([b, c].sort());
+  s.ecs.kinship[b].spouse = "missing-reference";
+  expect([...viableResidents(s)].sort()).toEqual([b, c].sort());
+  s.ecs.kinship[b].parents = ["shared-parent"];
+  s.ecs.kinship[c].parents = ["shared-parent"];
+  expect([...viableResidents(s)]).toEqual([]);
+  s.ecs.kinship[c].parents = [];
+  s.ecs.personable[c].age = 12;
+  expect([...viableResidents(s)]).toEqual([]);
+});

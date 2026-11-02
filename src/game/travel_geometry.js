@@ -60,8 +60,8 @@ export function hexName(h, from) {
 // Land neighbours get a deterministic pass. The pass clears two inward tiles,
 // a farm-sized clearing and, if necessary, a narrow path to an existing village.
 // All six are prepared before resources, so arrival direction cannot reroll a map.
-export function prepareEntrances(grid, landscape, settlements, world, centre, radius) {
-  if (world.landSeed) return sharedEntrances(landscape, world);
+export function prepareEntrances(grid, landscape, settlements, world, centre, radius, surveyed) {
+  if (world.landSeed) return sharedEntrances(landscape, world, surveyed);
   const result = {},
     home = world.hexes.find(h => worldKey(h) == worldKey(world.home));
   const houses = Object.values(settlements).map(h => Hex(h));

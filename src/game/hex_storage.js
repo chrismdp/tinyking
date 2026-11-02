@@ -7,7 +7,7 @@ const snapshot=s=>Object.fromEntries(LOCAL_FIELDS.filter(k=>s[k]!==undefined).ma
 export async function encodeWorldSave(state,archived={},read=async()=>undefined) {
   if(!state.travel?.wholeWorld)return {world:{version:SAVE_VERSION,bytes:await compressGame(state)},records:{}};
   const travel=state.travel,hexRecords={...travel.hexRecords},records={};
-  const changed={...Object.fromEntries(Object.entries(travel.maps).filter(([,map])=>!map.compact)),...archived,[travel.active]:snapshot(state)};
+  const changed={...travel.preparedMaps,...Object.fromEntries(Object.entries(travel.maps).filter(([,map])=>!map.compact)),...archived,[travel.active]:snapshot(state)};
   for(const [key,map] of Object.entries(changed)) {
     const text=serialiseGame(map),hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
     const digest=Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,"0")).join("");
@@ -18,6 +18,7 @@ export async function encodeWorldSave(state,archived={},read=async()=>undefined)
     records[record]={version:SAVE_VERSION,digest,bytes};hexRecords[key]=record;
   }
   const manifest={...gameData(state),travel:{...travel,hexRecords,maps:Object.fromEntries(Object.entries(travel.maps).filter(([key])=>key!==travel.active).map(([key,map])=>[key,map.compact?map:compactMap(map)]))}};
+  delete manifest.travel.preparedMaps;
   for(const field of LOCAL_FIELDS)delete manifest[field];
   // The active hex has its own record. The world manifest keeps the compact
   // away communities, directory, transit, calendar, route and version pointers.

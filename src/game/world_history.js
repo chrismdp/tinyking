@@ -1,3 +1,4 @@
+import { captureDetailOrigins, prepareNeighbourDetails } from "game/hex_detail";
 import { compactMap, SUMMARY_COMPONENTS } from "game/community_summary";
 export { compactMap } from "game/community_summary";
 import MersenneTwister from "mersenne-twister";
@@ -6,14 +7,15 @@ import { routeCrossing } from "game/geography";
 import { generateWorld } from "game/overworld";
 import { generateMap, generatePerson } from "game/map";
 import { newEntities } from "game/entities";
-import { initialiseTravel, advanceWorldClock, localSnapshot, ensureMap, freezeOpinions, releaseLocalWork } from "game/travel";
-import { advanceSeason } from "game/social";
-import { drift, initializeRelationships, recalibrateRelationships } from "game/people";
+import { initialiseTravel, advanceWorldClock, localSnapshot, ensureMap, freezeOpinions, releaseLocalWork, withReferenceIndex } from "game/travel";
+import { advanceSeason, withSocialIndex } from "game/social";
+import { drift, initializeRelationships, recalibrateRelationships, withRelationshipIndex } from "game/people";
 import { createPossession, repairHouseholds } from "game/possessions";
-import { recordEvent } from "game/events";
+import { recordEvent, withEventIndex } from "game/events";
 import { hashUnit } from "game/math";
 import { neighbours, worldKey } from "game/travel_geometry";
 import { DAYS_IN_SEASON } from "game/time";
+import { worldPoint } from "game/world_terrain";
 
 const requirePoint=pad=>Hex(pad.x,pad.y).toPoint();
 const settlementChance={grassland:.7,savanna:.5,steppe:.4,marsh:.3,taiga:.35,jungle:.25,tundra:.15,desert:.1,snowfield:.08};
@@ -26,19 +28,21 @@ export function rollHexContents(seed,hex,starting=false) {
 }
 export function summarySeason(map,season) {
   if(map.social?.lastSeason>=season)return;
-  map.days=season*DAYS_IN_SEASON;
-  drift(map,24*DAYS_IN_SEASON);
-  advanceSeason(map,season,true);
-  // One household livelihood transition, with no hourly needs or field replay.
-  const houses=new Set([...Object.keys(map.ecs.building||{}),...Object.keys(map.ecs.shelter||{}).filter(id=>map.ecs.shelter[id].stage==="house")]);
-  for(const house of houses) {
-    const h=map.ecs.household[house],store=map.ecs.container[h?.storeId];if(!store)continue;
-    const members=Object.keys(map.residents||{}).filter(id=>!map.ecs.personable[id]?.dead&&map.ecs.household[id]?.houseId===house);
-    const harvest=(season%4+4)%4===2?Math.max(0,h.summaryFields||0)*18:0;
-    store.amounts.grain=Math.max(0,(store.amounts.grain||0)+harvest-members.length*3);
-    if(harvest&&members.length)recordEvent(map,"harvest",[members[0]],[house],{amount:harvest,summary:true});
-  }
-  map.needsUpdatedAt=map.environmentUpdatedAt=map.days;
+  return withRelationshipIndex(map,()=>withEventIndex(map,()=>{
+    map.days=season*DAYS_IN_SEASON;
+    drift(map,24*DAYS_IN_SEASON);
+    advanceSeason(map,season,true);
+    // One household livelihood transition, with no hourly needs or field replay.
+    const houses=new Set([...Object.keys(map.ecs.building||{}),...Object.keys(map.ecs.shelter||{}).filter(id=>map.ecs.shelter[id].stage==="house")]);
+    for(const house of houses) {
+      const h=map.ecs.household[house],store=map.ecs.container[h?.storeId];if(!store)continue;
+      const members=Object.keys(map.residents||{}).filter(id=>!map.ecs.personable[id]?.dead&&map.ecs.household[id]?.houseId===house);
+      const harvest=(season%4+4)%4===2?Math.max(0,h.summaryFields||0)*18:0;
+      store.amounts.grain=Math.max(0,(store.amounts.grain||0)+harvest-members.length*3);
+      if(harvest&&members.length)recordEvent(map,"harvest",[members[0]],[house],{amount:harvest,summary:true});
+    }
+    map.needsUpdatedAt=map.environmentUpdatedAt=map.days;
+  }));
 }
 function foundingMap(world,hex,contents,seed) {
   const key=worldKey(hex),s={compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-180*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:-181,courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
@@ -81,12 +85,21 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
   initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.season=-180;
-  for(let season=-179;season<=0;season++) {
-    s.days=season*DAYS_IN_SEASON;
-    await advanceWorldClock(s,{travelling:true});
-    Object.assign(s,s.travel.maps[s.travel.active]);
-    await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
-  }
+  // Generation owns these communities until all 180 seasons finish. Founders'
+  // and children's parents and fixed tastes do not change in this scope.
+  // Retain the existing ancestry and affinity indexes across seasons,
+  // just as local prehistory does; release them before exposing the new game.
+  const communities=Object.values(maps);
+  const own=(index,run)=>index===communities.length ? run() :
+    withSocialIndex(communities[index],()=>withRelationshipIndex(communities[index],()=>own(index+1,run)));
+  await withReferenceIndex(s.travel,()=>own(0,async()=>{
+    for(let season=-179;season<=0;season++) {
+      s.days=season*DAYS_IN_SEASON;
+      await advanceWorldClock(s,{travelling:true});
+      Object.assign(s,s.travel.maps[s.travel.active]);
+      await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
+    }
+  }));
   s.days=.375;s.travel.days=s.days;s.travel.season=0;
   for(const map of Object.values(s.travel.maps)) {
     map.days=s.days;map.social.lastSeason=0;
@@ -98,18 +111,36 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
 }
 export async function generateWorldGame(s,seed,progress=async()=>{},options={}) {
   await progress("Preparing the whole world",0);
-  await generateWorldHistory(s,seed,progress);
-  const map=await ensureMap(s,s.travel.active,(label,value)=>progress(label,.8+.2*value),options);
+  await generateWorldHistory(s,seed,(label, value) => progress(label, value * .8));
+  captureDetailOrigins(s);
+  const map=await ensureMap(s,s.travel.active,(label,value)=>progress(label,.65+.15*value),options);
   delete s.compact;Object.assign(s,map);
   await advanceWorldClock(s);
+  await prepareNeighbourDetails(s, (label, value) => progress("Preparing nearby lands: " + label, .8 + .2 * value), options);
   s.travel.maps[s.travel.active]=localSnapshot(s);
   return {map:s.map,playerId:Object.keys(s.ecs.playable)[0]};
 }
 
 export async function buildHistoryMap(s,hex,summary,progress,options={}) {
   const fresh={ecs:{nextId:1,namespace:"terrain"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:s.days};
-  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents:s.worldHistory.contents[worldKey(hex)],noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
+  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents:s.worldHistory.contents[worldKey(hex)],noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
   fresh.map=result.map;return localSnapshot(fresh);
+}
+
+// Both sides' saved edge tiles determine the original crossing exactly. This
+// survives a reload without retaining or resurveying the neighbouring terrain.
+export function storedEntrances(s,hex,summary) {
+  if(!s.world.landSeed || s.world.hexes.some(h=>!h.ocean&&!s.travel.maps[worldKey(h)]))return undefined;
+  const contracts={},adjacent=neighbours(hex);
+  for(const [side,next] of adjacent.entries()) {
+    const local=summary.map.entrances[side],peer=s.travel.maps[worldKey(next)]?.map.entrances[(side+3)%6];
+    if(!local) {if(peer)return undefined;continue;}
+    if(!local.key || peer?.key!==local.key)return undefined;
+    const a=worldPoint(hex,Hex(local.hexes[0]).toPoint()),b=worldPoint(next,Hex(peer.hexes[0]).toPoint());
+    contracts[side]={key:local.key,crossing:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},
+      hexes:local.hexes.map(h=>({...h})),facingHexes:peer.hexes.map(h=>({...h}))};
+  }
+  return contracts;
 }
 
 export function installStoredHistory(s,summary,sites,contents,noPlayer) {

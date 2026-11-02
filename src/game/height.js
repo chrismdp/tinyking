@@ -65,9 +65,9 @@ export function createHeightField({ seed, terrainAt, elevationAt, cornerAt }) {
     if (!corners.has(key)) {
       const cx = i * CORNER_STEP_X;
       const cy = j * CORNER_STEP_Y;
-      const terrains = hexesAround(cx, cy).map(terrainAt);
       let height = cornerAt?.(cx, cy);
       if (height == null) {
+        const terrains = hexesAround(cx, cy).map(terrainAt);
         height = SEA_LEVEL;
         if (!terrains.some(t => !t || WATER.includes(t))) {
           const shape = terrains.map(t => TERRAIN[t] || TERRAIN.grassland);

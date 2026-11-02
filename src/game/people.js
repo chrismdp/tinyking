@@ -96,14 +96,19 @@ function writableBond(list, id) {
 const relationshipScopes = new WeakMap(), relationshipIndexes = new WeakMap();
 function indexList(state, list) {
   const scope = relationshipScopes.get(state);
-  if (scope && !scope.has(list)) { scope.add(list); relationshipIndexes.set(list, {}); }
+  if (scope && !scope.has(list)) {
+    scope.add(list);
+    let index = relationshipIndexes.get(list);
+    if (!index) { index = { owners: 0 }; relationshipIndexes.set(list, index); }
+    index.owners++;
+  }
 }
 export function withRelationshipIndex(state, transition) {
   if (relationshipScopes.has(state)) return transition();
   const lists = new Set(); relationshipScopes.set(state, lists);
-  for (const [id, r] of Object.entries(state.ecs.relationships || {})) if (!state.ecs.personable?.[id]?.dead) indexList(state, r.known);
+  for (const [id, r] of Object.entries(state.ecs.relationships || {})) if (!state.ecs.personable?.[id]?.dead && isResident(state, id)) indexList(state, r.known);
   return finishTransition(transition, () => {
-    for (const list of lists) relationshipIndexes.delete(list);
+    for (const list of lists) if (!--relationshipIndexes.get(list).owners) relationshipIndexes.delete(list);
     relationshipScopes.delete(state);
   });
 }

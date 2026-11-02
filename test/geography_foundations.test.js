@@ -142,3 +142,32 @@ it("the labelled initial ridge fixture still has a two-hex arrival and a real cr
   const tile=h=>s.space[Hex(h)].find(id=>s.ecs.mappable[id]);
   expect(path(s,tile(crossed[0]),tile(crossed.at(-1)))).toBeDefined();
 },15000);
+
+it("keeps a cached border survey private from edits to either arrival's entrance", () => {
+  const world=generateWorld(13),side=neighbours(world.home).findIndex((h,side)=>routeCrossing(world,side));
+  const route=routeCrossing(world,side),expected=structuredClone(route);
+  route.hexes[0].x+=100;route.facingHexes[0].y+=100;route.crossing.x+=100;
+  expect(routeCrossing(world,side)).toEqual(expected);
+  const facing=routeCrossing({...world,home:neighbours(world.home)[side]},(side+3)%6);
+  expect(facing.hexes).toEqual(expected.facingHexes);
+  expect(facing.facingHexes).toEqual(expected.hexes);
+});
+
+it("reconstructs identical border contracts and clearings from both saved pass coordinates", () => {
+  const {storedEntrances}=require("game/world_history"),{sharedEntrances}=require("game/geography");
+  const world=generateWorld(13),maps=Object.fromEntries(world.hexes.filter(h=>!h.ocean).map(h=>[worldKey(h),{map:{entrances:{}}}]));
+  const summary=maps[worldKey(world.home)],expected={};
+  for(const [side,next] of neighbours(world.home).entries()) {
+    const route=routeCrossing(world,side);if(!route)continue;
+    expected[side]=route;
+    summary.map.entrances[side]={key:route.key,hexes:structuredClone(route.hexes)};
+    maps[worldKey(next)].map.entrances[(side+3)%6]={key:route.key,hexes:structuredClone(route.facingHexes)};
+  }
+  const saved=JSON.stringify(maps),contracts=storedEntrances({world,travel:{maps}},world.home,summary);
+  expect(contracts).toEqual(expected);
+  const grid=Grid.hexagon({center:MAP_CENTRE,radius:MAP_RADIUS});
+  const a=Object.fromEntries(grid.map(h=>[String(h),{terrain:"stone"}])),b=structuredClone(a);
+  expect(sharedEntrances(b,world,contracts)).toEqual(sharedEntrances(a,world));
+  expect(b).toEqual(a);
+  expect(JSON.stringify(maps)).toBe(saved);
+});

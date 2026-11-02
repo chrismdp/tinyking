@@ -79,3 +79,21 @@ it("advances a founded household harvest through the light season",()=>{
   expect(s.ecs.container[store].amounts.grain).toBeGreaterThan(10);
   expect(s.events.some(e=>e.type==="harvest"&&e.items.includes(house))).toBe(true);
 });
+
+it("builds identical physical detail now or after a later approach with the same seed and world history", async () => {
+  const { captureDetailOrigins, prepareDetail } = require("game/hex_detail");
+  const { s } = await history();
+  s.world = generateWorld(13);
+  s.ui.playerId = "traveller";
+  captureDetailOrigins(s);
+  const before = restoreGame(serialiseGame(s));
+  const key = "6,3";
+  const early = await prepareDetail(s, key);
+  before.days += 21;
+  before.world = { ...before.world, home: { x: 6, y: 2 } };
+  const later = await prepareDetail(before, key);
+  expect(later).toEqual(early);
+  expect(early.ecs.mappable).toBeDefined();
+  expect(early.map.geography).toBeDefined();
+  expect(Object.keys(early.ecs.building).length).toBeGreaterThan(0);
+});

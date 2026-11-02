@@ -249,3 +249,19 @@ in the same transaction as the replacement manifest.
 Saves from the earlier version remain readable. They retain their existing
 per-hex history and detailed away simulation until a later migration changes
 that policy. No new history replaces people in an old save.
+
+## Preparing nearby detail
+
+New games still finish all 180 world seasons before play. They then build the
+starting hex and its land neighbours. Other hexes retain compact history only.
+The construction inputs come from the completed history. Later seasons cannot
+change the terrain, house sites, trees or initial village layout of an unopened
+hex.
+
+A hop opens the arrival hex first. After its first frame, the game prepares any
+missing detail in the arrival hex's land neighbours. Entering a hex waits for an
+unfinished preparation of that hex. It does not start a second build.
+
+Prepared hexes remain compact in `travel.maps`, so preparation cannot give remote
+people live planners or another seasonal update. Arrival applies the current
+people, ownership, stores and news to the prepared physical map.

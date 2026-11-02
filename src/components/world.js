@@ -1,3 +1,4 @@
+import { scheduleNeighbourDetails } from "game/hex_detail";
 import { flushSync } from "react-dom";
 import { createLoadingProgress } from "game/loading";
 import { toggleWorldMap } from "game/realm_map";
@@ -64,8 +65,10 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
 
   state.personName = (id, record = personComponent(state, "nameable", id)) => name(record);
   if (state.renderer) state.renderer.changeMap();
-  else state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
-  state.renderer.resize(window.innerWidth, window.innerHeight);
+  else {
+    state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
+    state.renderer.resize(window.innerWidth, window.innerHeight);
+  }
 
   const simulation = createSimulation(state, { onSleep: renderUI, onHour: renderUI, onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
   let uiTime = 0;
@@ -85,8 +88,11 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
     state.persistence.flush();
   });
 
-  state.ticker.add(() => state.renderer.frame());
-  renderUI();
+  // The loading screen covers a map whose ECS is being transferred. Paint the
+  // progress UI without spending each loading frame redrawing that old map.
+  state.ticker.add(() => { if (!state.transition && !state.generating) state.renderer.frame(); });
+  flushSync(renderUI);
+  scheduleNeighbourDetails(state);
 };
 
 const virtualPosition = {

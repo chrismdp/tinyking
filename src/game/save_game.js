@@ -1,7 +1,7 @@
 // Everything affecting play is saved. Only browser resources and the save
 // controller and transient screen fades are excluded; UI actions are reattached by World on restore.
 export const SAVE_VERSION = 1;
-const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition", "nightSleep"]);
+const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition", "nightSleep", "detailError"]);
 export function gameData(state) {
   const data = Object.fromEntries(Object.entries(state).filter(([key]) => !RUNTIME.has(key)));
   if (state.ui) data.ui = Object.fromEntries(Object.entries(state.ui).filter(([key]) => key !== "actions"));

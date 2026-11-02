@@ -21,7 +21,7 @@ const {compressGame}=require("../src/game/save_game");
       if(op==="save"||op==="checkpoint") {const started=performance.now(),packet=await encodeWorldSave(payload.state||payload,payload.hexes||{},key=>disk.get(key));for(const [key,value] of Object.entries(packet.records))disk.set(key,value);world=packet.world;return {milliseconds:performance.now()-started,hexRecords:packet.hexRecords,hexWrites:Object.keys(packet.records).length};}
       if(op==="hex")return require("../src/game/save_game").decompressGame(disk.get(payload).bytes);
       if(op==="load")return decodeWorldSave(world,key=>disk.get(key));
-    });
+    },()=>{},fn=>setImmediate(fn));
   }
   report.newGameMs=performance.now()-at;report.initial=memory();console.log("GENERATED",report.newGameMs,report.initial);
   report.hops=[];

@@ -3,12 +3,16 @@ import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
 import { arrivalRoute, startIntro, skipIntro, updateIntro, introActive, INTRO_TIMING, CAMP_LAYOUT } from "game/intro";
 
+const worlds = new Map();
 const makeWorld = async (seed = 13) => {
+  if (worlds.has(seed)) return structuredClone(worlds.get(seed));
   const state = { ecs: { nextId: 1 }, days: 0.375, game_speed: "normal", redraws: [], ui: { show: {} } };
   const result = await generateMap(state, seed, async () => {});
   state.map = result.map;
   state.ui.playerId = result.playerId;
-  return state;
+  // Each scenario owns its state; generate each deterministic seed only once.
+  worlds.set(seed, state);
+  return structuredClone(state);
 };
 
 it("starts without a camp and walks two adjacent hexes inward from the boundary, across seeds", async () => {

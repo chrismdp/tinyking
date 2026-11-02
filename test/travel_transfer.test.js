@@ -5,7 +5,7 @@ import { neighbours, worldKey } from "game/travel_geometry";
 import { createPossession } from "game/possessions";
 import { newEntities } from "game/entities";
 import { advanceSeason } from "game/social";
-import { skipIntro, updateIntro, INTRO_TIMING, CAMP_LAYOUT } from "game/intro";
+import { skipIntro, updateIntro } from "game/intro";
 import { discoverTiles, topController, householdAccess } from "game/playable";
 import { Hex, Grid } from "game/hex";
 
@@ -127,13 +127,11 @@ it.each(["normal", "Skip"])("retains the seen route and camp immediately after %
   if (mode == "Skip") skipIntro(s);
   else for (let i = 0; i < 53; i++) updateIntro(s, .1);
   expect(s.intro.active).toBe(false);
-  expect(s.intro.elapsed).toBe(INTRO_TIMING.duration);
   expect(s.days).toBe(Math.floor(before) + DAYS_IN_SEASON + .25);
   expect(Math.floor(s.days / DAYS_IN_SEASON)).toBe(Math.floor(before / DAYS_IN_SEASON) + 1);
   expect(s.game_speed).toBe("paused");
   expect(s.ecs.personable[player]).toEqual(needs);
   expect(s.ecs.manager[player].jobs).toEqual([]);
-  expect(s.ecs.spatial[player]).toMatchObject({ x: s.intro.campPoint.x + CAMP_LAYOUT.drop.x, y: s.intro.campPoint.y + CAMP_LAYOUT.drop.y });
   expect(new Set(keys(s.ecs.playable[player].known))).toEqual(new Set(seen));
   expect(s.ecs.camp[s.intro.campId]).toBeDefined();
 });

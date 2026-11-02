@@ -269,6 +269,9 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   // The existing wedding deadline includes the deliberate week apart. Meal
   // and travel timing can reach Intimate late in the initial 28-day window.
   while (s.days < (intimacy ? quietUntil + 2*DAYS_IN_SEASON : start + 28)) {
+    // Evening callers now pause live play. This unattended romance scenario
+    // dismisses the player's separate chat and keeps every timing assertion.
+    if(s.chat?.active)require("game/chat").closeChat(s);
     if(s.seasonTurn)require("game/seasons").finishSeasonTurn(s);
     const free = Math.floor(s.days) % 3 == 0 && s.days >= quietUntil;
     for (const id of [a, b]) s.ecs.planner[id].world.ordered = !free;

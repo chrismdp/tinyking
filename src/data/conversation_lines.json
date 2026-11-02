@@ -84655,6 +84655,276 @@
   }
  },
  {
+  "id": "npc.family_answer.unhappy_marriage.base.01",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "unhappy_marriage",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "npc_kin_link"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "personal"
+     }
+    },
+    {
+     "test": "kinship_is",
+     "args": {
+      "link": "link",
+      "kind": "spouse"
+     }
+    },
+    {
+     "test": "person_alive",
+     "args": {
+      "person": "relative"
+     }
+    },
+    {
+     "test": "marital_satisfaction_below",
+     "args": {
+      "person": "npc",
+      "value": 30
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Things are not right between {relative.first_name} and me.",
+  "facts": [
+   {
+    "ref": "link",
+    "fields": [
+     "speaker_id",
+     "relative_id",
+     "kinship",
+     "relative_alive"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Family or the relative's portrait can land badly with them."
+   ],
+   "reveals": [
+    "One real family link, and that relative's name"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_subject",
+    "person": "relative"
+   },
+   {
+    "op": "learn_kin_link",
+    "viewer": "player",
+    "link": "link"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "relative"
+   ],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "link",
+     "fields": [
+      "speaker_id",
+      "relative_id",
+      "kinship"
+     ]
+    }
+   ]
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.family_answer.unhappy_marriage.base.02",
+  "speaker": "npc",
+  "family": "family_answer",
+  "situation": "unhappy_marriage",
+  "weight": 1,
+  "bindings": {
+   "link": {
+    "source": "npc_kin_link"
+   },
+   "relative": {
+    "source": "link_relative",
+    "link": "link"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "personal"
+     }
+    },
+    {
+     "test": "kinship_is",
+     "args": {
+      "link": "link",
+      "kind": "spouse"
+     }
+    },
+    {
+     "test": "person_alive",
+     "args": {
+      "person": "relative"
+     }
+    },
+    {
+     "test": "marital_satisfaction_below",
+     "args": {
+      "person": "npc",
+      "value": 30
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I am unhappy in my marriage to {relative.first_name}.",
+  "facts": [
+   {
+    "ref": "link",
+    "fields": [
+     "speaker_id",
+     "relative_id",
+     "kinship",
+     "relative_alive"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "relative"
+   }
+  ],
+  "use_key": "marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Family or the relative's portrait can land badly with them."
+   ],
+   "reveals": [
+    "One real family link, and that relative's name"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_subject",
+    "person": "relative"
+   },
+   {
+    "op": "learn_kin_link",
+    "viewer": "player",
+    "link": "link"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "relative"
+   ],
+   "events": [],
+   "requests": [],
+   "facts": [
+    {
+     "ref": "link",
+     "fields": [
+      "speaker_id",
+      "relative_id",
+      "kinship"
+     ]
+    }
+   ]
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
   "id": "npc.family_answer.spouse_dated.base.01",
   "speaker": "npc",
   "family": "family_answer",
@@ -152922,6 +153192,3450 @@
    "events": [
     "event"
    ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.event_news.catalogue_affair.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_affair.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.event_news.catalogue_romance.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_romance.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.campfire.company.base.01",
+  "speaker": "npc",
+  "family": "campfire",
+  "situation": "company",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Good evening. Your fire looked welcoming.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "campfire:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.campfire.company.base.02",
+  "speaker": "npc",
+  "family": "campfire",
+  "situation": "company",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "opening"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Evening. It is good to share a fire.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "village"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "campfire:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_building_built.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_building_built",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "building_built"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_founding.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_founding",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "founding"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_household_arrival.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_household_arrival",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "household_arrival"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_green_moved.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_green_moved",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "green_moved"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_house_built.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_house_built",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "house_built"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_expansion.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_expansion",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "expansion"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_departure.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_departure",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "departure"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_arrival.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_arrival",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "arrival"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_world_visit.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_world_visit",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "world_visit"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_return.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_return",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "return"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_world_move.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_world_move",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "world_move"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_defiance.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_defiance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "defiance"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_commons_cut.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_commons_cut",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "commons_cut"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_commons_warning.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_commons_warning",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "commons_warning"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_commons_report.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_commons_report",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "commons_report"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_village_oath.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_village_oath",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "village_oath"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_village_leave.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_village_leave",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "village_leave"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_favour.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_favour",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "favour"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_harvest.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_harvest",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "harvest"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_fire.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_fire",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "fire"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_festival.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_festival",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "festival"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_birth.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_birth",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "birth"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_marriage.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_marriage",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "marriage"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_death.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_death",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "death"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_move.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_move",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "move"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_visit.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_visit",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "visit"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_quarrel.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_quarrel",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "quarrel"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_reconciliation.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_reconciliation",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "reconciliation"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_gift.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_gift",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "gift"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_settlement.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_settlement",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "settlement"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_household_join.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_household_join",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "household_join"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_succession.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_succession",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "succession"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_celebration.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_celebration",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "celebration"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_inheritance.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_inheritance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "inheritance"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_affair.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_affair",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "affair"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_romance.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_romance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "romance"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_topic.spring.base.01",
+  "speaker": "npc",
+  "family": "overheard_topic",
+  "situation": "spring",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "spring"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The spring days are here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "overheard_season:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_topic.summer.base.01",
+  "speaker": "npc",
+  "family": "overheard_topic",
+  "situation": "summer",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "summer"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The summer days are here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "overheard_season:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_topic.autumn.base.01",
+  "speaker": "npc",
+  "family": "overheard_topic",
+  "situation": "autumn",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "autumn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The autumn days are here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "overheard_season:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_topic.winter.base.01",
+  "speaker": "npc",
+  "family": "overheard_topic",
+  "situation": "winter",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "season_is",
+     "args": {
+      "season": "winter"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "The winter days are here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "season"
+   }
+  ],
+  "use_key": "overheard_season:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
    "requests": [],
    "facts": []
   },

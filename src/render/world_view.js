@@ -460,6 +460,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   let besidePanel = false;
   let weatherHabitat=null,weatherPoint=null;
   const viewMetrics = () => ({ distance:rig.distance, pose:rig.pose, render:{...renderer.info?.render}, memory:{...renderer.info?.memory}, programs:renderer.info?.programs?.length,
+    drawingBuffer: { width: canvas.width, height: canvas.height },
     days:state.days, active:state.travel?.active, maps:Object.keys(state.travel?.maps || {}).length, directory:Object.keys(state.travel?.people || {}).length,
     residents:Object.values(state.residents || {}).filter(Boolean).length, position:{...state.ecs.spatial[state.ui.playerId]}, jobs:state.ecs.manager?.[state.ui.playerId]?.jobs.length, nightLights:nightLights.metrics });
   const fitMap = () => {

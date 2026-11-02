@@ -28,12 +28,17 @@ let work=Promise.resolve();
 self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
 self.addEventListener("message",event=>{
+  const {id,operation}=event.data,port=event.ports[0];
+  let state=event.data.state;
+  delete event.data.state;
+  // Keep the queued snapshot without retaining the old page's MessageEvent.
   work=work.then(async()=>{
-    const {id,operation,state}=event.data,port=event.ports[0];
     try {
       let result;
       if(operation==="save" || operation==="checkpoint") {
-        const started=performance.now(),packet=await encodeWorldSave(state.state||state,state.hexes||{},read);
+        const started=performance.now(),encoding=encodeWorldSave(state.state||state,state.hexes||{},read);
+        state=null;
+        const packet=await encoding;
         await commit(packet);
         const hexBytes=Object.values(packet.records).reduce((n,r)=>n+r.bytes.byteLength,0);
         result={milliseconds:performance.now()-started,bytes:packet.world.bytes?packet.world.bytes.byteLength+hexBytes:null,hexBytes,manifestEncoding:packet.world.state?"structuredClone":"gzip",hexRecords:packet.hexRecords,hexWrites:Object.keys(packet.records).length};

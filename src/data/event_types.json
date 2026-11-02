@@ -10,7 +10,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} built a {building}"
+    "chat": "{a} built a {building}",
+    "valence": 1
   },
   "founding": {
     "sentence": "{a} and {b} founded {village} beside an accessible route",
@@ -23,7 +24,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "household_arrival": {
     "sentence": "{a} established a household in {village}",
@@ -35,7 +37,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "green_moved": {
     "sentence": "The community moved its green for more gathering space",
@@ -57,7 +60,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "expansion": {
     "sentence": "{a} added a {addition} using {timber} timber",
@@ -69,7 +73,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "departure": {
     "sentence": "{a} left for {toWorld}{journey_reason}",
@@ -143,7 +148,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} {defiance_spoken} {b}"
+    "chat": "{a} {defiance_spoken} {b}",
+    "valence": -1
   },
   "commons_cut": {
     "sentence": "{a} cut common woodland without permission",
@@ -155,10 +161,11 @@
       "ring": "social"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": -1
   },
   "commons_warning": {
-    "sentence": "{a} warned {b} about cutting village commons (−{loss} goodwill)",
+    "sentence": "{a} warned {b} about cutting village commons (\u2212{loss} goodwill)",
     "topic": "woodland",
     "roles": [
       "witness",
@@ -169,10 +176,11 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} warned {b} about cutting village commons"
+    "chat": "{a} warned {b} about cutting village commons",
+    "valence": -1
   },
   "commons_report": {
-    "sentence": "{a} reported the cutting to elder {b} (−{loss} goodwill)",
+    "sentence": "{a} reported the cutting to elder {b} (\u2212{loss} goodwill)",
     "topic": "woodland",
     "roles": [
       "witness",
@@ -184,7 +192,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} reported {c}’s cutting to elder {b}"
+    "chat": "{a} reported {c}\u2019s cutting to elder {b}",
+    "valence": -1
   },
   "village_oath": {
     "sentence": "{a} swore the local oath with elder {b}",
@@ -224,7 +233,8 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} helped {b} with {favour_kind}"
+    "chat": "{a} helped {b} with {favour_kind}",
+    "valence": 1
   },
   "harvest": {
     "sentence": "{a} brought in {quantity} grain",
@@ -236,7 +246,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "fire": {
     "sentence": "A fire broke out{fire_place}",
@@ -272,7 +283,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "marriage": {
     "sentence": "{a} and {b} married{village_suffix}",
@@ -285,7 +297,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "death": {
     "sentence": "{a} died{cause_suffix}",
@@ -342,7 +355,64 @@
       }
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": -1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": -3,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        },
+        "each": "participant"
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "quarrel"
+      }
+    ],
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "actor",
+        "towards": "partner",
+        "amount": -6,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "partner",
+        "towards": "actor",
+        "amount": -6,
+        "introduce": false
+      },
+      {
+        "op": "avoidance",
+        "a": "actor",
+        "b": "partner",
+        "seasons": 1
+      }
+    ]
   },
   "reconciliation": {
     "sentence": "{a} made peace with {b}",
@@ -355,7 +425,50 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": 3,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        },
+        "each": "participant"
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "reconciliation"
+      }
+    ],
+    "onOccurrence": [
+      {
+        "op": "avoidance",
+        "a": "actor",
+        "b": "partner",
+        "seasons": 0
+      }
+    ]
   },
   "gift": {
     "sentence": "{a} gave {gift_item} to {b}",
@@ -368,7 +481,41 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": 1,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "gift"
+      }
+    ]
   },
   "settlement": {
     "sentence": "{a} founded a household in {village}",
@@ -380,7 +527,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "household_join": {
     "sentence": "{a} joined the household of {b}",
@@ -393,7 +541,8 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "succession": {
     "sentence": "{b} {succession_account} {a}",
@@ -419,7 +568,8 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "valence": 1
   },
   "inheritance": {
     "sentence": "{b} inherited {estate} from {a}",
@@ -433,5 +583,95 @@
     },
     "feed": true,
     "spokenVisit": false
+  },
+  "affair": {
+    "sentence": "{a} and {b} began an affair",
+    "topic": "family",
+    "roles": [
+      "lover",
+      "lover"
+    ],
+    "disclosure": {
+      "ring": "personal",
+      "family": {
+        "between": "any",
+        "excludeKin": true,
+        "excludeFriends": "personal",
+        "ring": "intimate",
+        "rivalRing": "personal"
+      }
+    },
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "onOccurrence": [
+      {
+        "op": "affair",
+        "a": "actor",
+        "b": "partner"
+      }
+    ],
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "each": "participant",
+        "person": "listener",
+        "towards": "actor",
+        "amount": -30,
+        "when": {
+          "all": [
+            {
+              "test": "spouses",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "record_event",
+        "each": "participant",
+        "type": "quarrel",
+        "people": [
+          "listener",
+          "actor"
+        ],
+        "reason": "affair_discovery",
+        "when": {
+          "all": [
+            {
+              "test": "spouses",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "affair_discovered"
+      }
+    ]
+  },
+  "romance": {
+    "sentence": "{a} and {b} began a romance",
+    "topic": "family",
+    "roles": [
+      "lover",
+      "lover"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": 1
   }
 }

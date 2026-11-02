@@ -62,6 +62,20 @@ export function markThroughRoutes(s, villageApproaches) {
 
 export const routeTile = (s, point) => point && (s.space?.[Hex().fromPoint(point)] || []).find(id=>s.ecs.walkable?.[id]);
 const routeCaches=new WeakMap();
+const journeySnapshots = new WeakMap();
+function routeSnapshot(route, shared) {
+  let snapshot = shared && journeySnapshots.get(route);
+  if (!snapshot) {
+    // Historical trips only read these paths. Keep one immutable copy of a
+    // cached route instead of copying every step for every evening's journey.
+    snapshot = {
+      tiles: Object.freeze(route.map(step => step.id)),
+      steps: Object.freeze(route.map(step => Object.freeze({ ...step })))
+    };
+    if (shared) journeySnapshots.set(route, snapshot);
+  }
+  return snapshot;
+}
 function journeyPath(s,from,to) {
   if(!from || !to)return null;
   let cache=routeCaches.get(s);
@@ -102,7 +116,7 @@ export function recordJourney(s, details) {
   if(!route?.length)return null;
   const day=details.day ?? s.days, count=details.count ?? details.people.length;
   if(!(count>0))return null;
-  const trip={...details,day,count,villageId:details.villageId ?? s.ecs.village?.[details.people[0]]?.villageId,mainRoute:details.mainRoute ?? !!details.borderKey,origin:details.origin || s.map?.worldKey,tiles:route.map(step=>step.id),steps:route.map(step=>({...step}))};
+  const trip={...details,day,count,villageId:details.villageId ?? s.ecs.village?.[details.people[0]]?.villageId,mainRoute:details.mainRoute ?? !!details.borderKey,origin:details.origin || s.map?.worldKey,...routeSnapshot(route,!details.steps)};
   if(s.generatingHistory || s.settlement.summarising) (history.pendingJourneys ||= []).push(trip);
   else {
     const now=s.days;

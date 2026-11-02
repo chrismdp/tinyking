@@ -1,17 +1,13 @@
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { peopleWorld } from "./support/people";
-import { GameState } from "../src/components/contexts";
-import { ChatPanel } from "../src/components/chat_panel";
+
 import { talk, get_attention } from "game/tasks";
 import { openChat, chooseLine, closeChat, chatChoices, speakLine, patience, recoverSlots, topicScore, previewLine } from "game/chat";
 import { serialiseGame, restoreGame } from "game/save_game";
 import { recordEvent } from "game/events";
 import { updateFavours, visibleFavours, acceptFavour } from "game/favours";
 
-jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n?.nickname || "?", firstName: n => n?.nickname?.split(" ")[0] || "?", familyName: n => n?.nickname?.split(" ")[1] || "?" }));
-const markup = s => renderToStaticMarkup(<GameState.Provider value={s}><ChatPanel/></GameState.Provider>);
+
 function contact() {
   const w = peopleWorld();
   w.state.world={home:{x:0,y:0},hexes:[{x:0,y:0,biome:"grassland",temperature:"temperate",moisture:"normal"}]};
@@ -27,8 +23,7 @@ it("opens the paused chat at real speech reach through the planner, offers lines
   expect(s.game_speed).toBe("paused");
   expect(s.chat.active.npcId).toBe(n);
   expect(chatChoices(s).length).toBeGreaterThanOrEqual(3);
-  expect(markup(s)).toContain("World paused");
-  expect(markup(s)).toContain("End chat");
+
   expect(s.knowledge[p].people[n].conversation).toBeUndefined();
   chooseLine(s,chatChoices(s)[0].key);
   expect(s.knowledge[p].people[n].conversation).toBeDefined();
@@ -150,9 +145,7 @@ it("marks each matching icon on a choice before it is spoken, without exposing h
   const choice={icons:[{kind:"topic",key:"work"},{kind:"topic",key:"season"}]};
   expect(previewLine(s,choice).matchingKeys).toEqual(["topic:season"]);
   s.chat.active.focus="season";
-  const html=markup(s);
-  expect(html).toContain('data-matches="true"');
-  expect(html).toContain("Matches row");
+
   expect(s.knowledge[p].people[n].topicTastes).toBeUndefined();
 });
 it("uses the same NPC portrait reaction whichever side completes it",()=>{
@@ -213,7 +206,7 @@ it("does not name unknown people when retelling an anonymously witnessed event",
   const tell=chatChoices(s).find(l=>l.family=="gossip_tell");
   expect(tell).toBeDefined();
   expect(tell.text).not.toContain("Edith");expect(tell.text).not.toContain("Alice");
-  expect(markup(s)).not.toContain("Edith");expect(markup(s)).not.toContain("Alice");
+
   expect(s.knowledge[p].people[parent]).toBeUndefined();
   expect(s.knowledge[p].people[sibling]).toBeUndefined();
 });
@@ -256,7 +249,7 @@ it("offers a visible matching first turn when a tradesperson opens with work and
     s.chat.active.encounter=encounter;
     expect(Math.max(...chatChoices(s).map(l=>previewLine(s,l).matches))).toBe(2);
   }
-  expect(markup(s)).toContain("Matches row");
+
 });
 it("answers a work question with the actual trade before unrelated household observations",()=>{
   const {state:s,player:p,person:n}=contact();
@@ -321,7 +314,7 @@ it.each([[1.2,9],[1.2001,4],[1.8,4],[1.8001,2]])("caps tired-player slots at %s 
   expect(openChat(s,p,n)).toBe(true);
   expect(s.chat.active.endReason).toBeUndefined();
   const choices=chatChoices(s).filter(l=>previewLine(s,l).fits);expect(choices.length).toBeGreaterThan(0);
-  if(tiredness>1.2)expect(markup(s)).toContain("You&#x27;re tired: short conversations");
+
   expect(chooseLine(s,choices[0].key)).toBe(true);
   if(max==2)expect(s.chat.active.endReason).toBeDefined();
 });

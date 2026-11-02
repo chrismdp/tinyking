@@ -1,22 +1,30 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
-import { generateWorld } from "game/overworld";
 import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { routeCrossing, buildGeography, groundForState, MAX_WALK_SLOPE } from "game/geography";
-import { neighbours, worldKey, exitPoint } from "game/travel_geometry";
-import { generateMap } from "game/map";
-import { path, addBidirectionalLink } from "game/pathfinding";
+import { generateWorld } from "game/overworld";
+import { neighbours, worldKey } from "game/travel_geometry";
+import { addBidirectionalLink, path } from "game/pathfinding";
 import { walk_to } from "game/tasks";
-import { treeAllowed } from "game/tree_clearance";
-import { WEAR_LIFETIME } from "game/road_wear";
+import { rowOfTiles } from "./support/world";
+import { newEntities } from "game/entities";
+import { recordJourney, flushJourneys } from "game/settlement_routes";
+import { WEAR_LIFETIME, updateRoadWear } from "game/road_wear";
 import { transitBlocked } from "game/land_use";
+import { reserveBuildingClearance, treeAllowed } from "game/tree_clearance";
+
+const crossingWorld = () => {
+  const home = { x: 0, y: 0 };
+  return { home, hexes: [home, ...neighbours(home)].map(h => ({ ...h, ocean: false })) };
+};
+const flatField = { terrainAt: () => "grassland", elevationAt: () => 20 };
 
 it("chooses the same physical shared crossing from either side, independent of request order", () => {
-  const w = generateWorld(13), before = JSON.stringify(w);
+  const w = crossingWorld(), before = JSON.stringify(w);
   const ends = neighbours(w.home).map((h, side) => ({ h, side })).filter(({h}) => w.hexes.some(n => worldKey(h) == worldKey(n) && !n.ocean));
   let connected = 0;
   for (const { h, side } of ends.reverse()) {
-    const b = routeCrossing({ ...w, home: h }, (side + 3) % 6);
-    const a = routeCrossing(w, side);
+    const b = routeCrossing({ ...w, home: h }, (side + 3) % 6, flatField);
+    const a = routeCrossing(w, side, flatField);
     expect(!!a).toBe(!!b);
     if (!a) continue;
     connected++;
@@ -27,44 +35,52 @@ it("chooses the same physical shared crossing from either side, independent of r
     expect(Math.hypot(pa.x - pb.x, pa.y - pb.y)).toBeCloseTo(Hex().height(), 6);
     expect(a.crossing.x).toBeCloseTo((pa.x + pb.x) / 2, 6);
     expect(a.crossing.y).toBeCloseTo((pa.y + pb.y) / 2, 6);
-    expect(routeCrossing(w, side)).toEqual(a);
+    expect(routeCrossing(w, side, flatField)).toEqual(a);
   }
-  expect(connected).toBeGreaterThan(0);
+  expect(connected).toBe(6);
   expect(JSON.stringify(w)).toBe(before);
 });
 
 it("does not bridge ocean or genuinely separated land across a shared edge", () => {
-  const w = generateWorld(13), next = neighbours(w.home)[0];
+  const w = crossingWorld(), next = neighbours(w.home)[0];
   const ocean = { ...w, hexes: w.hexes.map(h => worldKey(h) == worldKey(next) ? { ...h, ocean: true } : h) };
-  expect(routeCrossing(ocean, 0)).toBeNull();
+  expect(routeCrossing(ocean, 0, flatField)).toBeNull();
   const field = { terrainAt: p => Math.abs(p.x - worldPoint(w.home, MAP_CENTRE.toPoint()).x) < 300 ? "grassland" : "deep water", elevationAt: () => 20 };
   expect(routeCrossing(w, 0, field)).toBeNull();
 });
 
 it("builds a broad house-scale mountain with a navigable graded road through its pass", () => {
-  const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
+  const grid = Grid.hexagon({ center: MAP_CENTRE, radius: 12 });
   const c = MAP_CENTRE.toPoint();
+  // Use the real labelled fixture field, without settlements or history.
+  const field = createLandField("13:0", { kind: "mountain-pass", ...c });
   const landscape = Object.fromEntries(grid.map(h => {
     const p = h.toPoint();
-    // Initial fixture: a whole ridge, with a low saddle north of its centre.
-    const elevation = 20 + 850 * Math.exp(-(((p.x-c.x)/650)**2)) * (1 - 0.78*Math.exp(-(((p.y-c.y+420)/260)**2)));
+    const elevation = field.elevationAt(p);
     return [h, { ...p, terrain: elevation > 180 ? "mountain" : "grassland", elevation }];
   }));
-  const west = grid.filter(h => h.x < MAP_CENTRE.x - 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
-  const east = grid.filter(h => h.x > MAP_CENTRE.x + 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
-  const geo = buildGeography(grid, landscape, {}, {}, [west, east]);
+  const west = grid.filter(h => h.x <= MAP_CENTRE.x - 10).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
+  const east = grid.filter(h => h.x >= MAP_CENTRE.x + 10).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
+  // Like generateMap, supply the continuous surface for corners and off-grid terrain.
+  const geo = buildGeography(grid, landscape, {}, {}, [west, east], {
+    terrainAt: p => field.elevationAt(p) > 180 ? "mountain" : "grassland",
+    elevationAt: (x, y) => field.elevationAt({ x, y })
+  });
   const s = { map: { seed: 13, geography: geo }, ecs: { mappable: {}, spatial: {}, walkable: {} }, space: {} };
   grid.forEach((h, i) => { const id=String(i); s.ecs.mappable[id]=landscape[h]; s.ecs.spatial[id]=h.toPoint(); s.ecs.walkable[id]={speed:landscape[h].terrain=="grassland"?1:0,worn:{},neighbours:{}}; s.space[h]=[id]; });
   // The untravelled foundation reserves geometry without inventing use.
   for (const walk of Object.values(s.ecs.walkable)) expect(walk.worn).toEqual({});
   const ground = groundForState(s);
   const road = geo.routes[0];
-  expect(road.length).toBeGreaterThan(30);
+  expect(road.length).toBeGreaterThan(20);
   expect(road.some(h => Hex(h).toPoint().y < c.y - 250)).toBe(true);
   for(const h of grid) for(const [side,n] of Grid.hexagon({center:h,radius:1}).neighborsOf(h,ALL_SIDES).entries()) {
     const a=s.space[h]?.[0], b=s.space[n]?.[0];
     if(a && b && s.ecs.walkable[a].speed && s.ecs.walkable[b].speed) addBidirectionalLink(s.ecs,a,side,b);
   }
+  expect(path(s, s.space[west][0], s.space[east][0])).toBeDefined();
+  expect(Math.min(...road.map(h => Hex(h).toPoint().x))).toBeLessThan(c.x - 650);
+  expect(Math.max(...road.map(h => Hex(h).toPoint().x))).toBeGreaterThan(c.x + 650);
   s.ecs.spatial.walker={...west.toPoint()}; s.ecs.holder={walker:{held:[]}}; s.ecs.personable={walker:{hunger:0}};
   s.ecs.controllable={walker:{controllerId:"walker"}}; s.ecs.playable={}; s.redraws=[];
   const world={places:{}}, goal=s.space[east][0]; let result;
@@ -80,68 +96,34 @@ it("builds a broad house-scale mountain with a navigable graded road through its
   }
 });
 
-it("generated roads connect real doors and travel entrances, remain lazy, and retain only recorded historical wear", async () => {
-  const s = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} } };
-  const r = await generateMap(s,13,async()=>{}); s.map=r.map; s.ui.playerId=r.playerId;
-  const ground=groundForState(s);
-  for(const t in s.ecs.tree) expect(treeAllowed(s,s.ecs.spatial[t])).toBe(true);
-  expect(s.map.geography.routes.length).toBeGreaterThan(0);
-  expect(s.travel).toBeUndefined();
-  for (const entry of Object.values(s.map.entrances)) {
-    expect(s.ecs.mappable[entry.tileIds[0]].route.length).toBeGreaterThan(0);
-    const departure = exitPoint(s, entry.tileIds[0]);
-    expect(Math.hypot(departure.x-entry.start.x,departure.y-entry.start.y)).toBeLessThan(1e-6);
-    expect(Object.keys(s.ecs.building).some(h => path(s,entry.tileIds[2],s.space[Hex().fromPoint(s.ecs.spatial[h])].find(id=>s.ecs.mappable[id])))).toBe(true);
+it("records historical wear only on real journey legs and lets old wear expire", () => {
+  const { state: s, tiles, villager } = rowOfTiles(5);
+  s.ecs.personable = { [villager]: { age: 25 } };
+  s.settlement = { journeys: [], appliedJourneys: {} };
+  s.generatingHistory = true;
+  s.days = 10;
+  const trip = recordJourney(s, { key: "visit", people: [villager], from: tiles[0], to: tiles[3], day: 9, returnDay: 10, count: 20 });
+  expect(trip).toBeDefined();
+  expect(trip.day).toBeLessThanOrEqual(s.days);
+  expect(trip.count).toBeGreaterThan(0);
+  expect(trip.people).toHaveLength(1);
+  trip.people.forEach(id => expect(s.ecs.personable[id]).toBeDefined());
+  expect(Object.values(s.ecs.walkable).every(w => Object.keys(w.worn).length == 0)).toBe(true);
+  flushJourneys(s);
+  for (const step of trip.steps) {
+    const key = [step.entrance ?? "C", step.exit ?? "C"].sort().join(",");
+    expect(s.ecs.walkable[step.id].worn[key]).toBeGreaterThan(0);
+    expect([trip.day, trip.returnDay].some(day => day > s.days - WEAR_LIFETIME && day <= s.days)).toBe(true);
+    expect(transitBlocked(s, step.id)).toBe(false);
   }
-  const provenance=new Map();
-  for(const trip of s.settlement.journeys) {
-    expect(trip.day).toBeLessThanOrEqual(s.days);
-    expect(trip.count).toBeGreaterThan(0);
-    expect(trip.people.length).toBeGreaterThan(0);
-    for(const person of trip.people)expect(s.ecs.personable[person]).toBeDefined();
-    for(const step of trip.steps)if(step.entrance!=null || step.exit!=null) {
-      const key=[step.entrance ?? "C",step.exit ?? "C"].sort().join(",");
-      const legs=provenance.get(step.id+":"+key) || [];
-      legs.push(trip.day,...(trip.returnDay!=null?[trip.returnDay]:[]));
-      provenance.set(step.id+":"+key,legs);
-    }
-  }
-  let travelled=0,untravelled=0;
-  for (const id in s.ecs.mappable) {
-    const worn=s.ecs.walkable[id].worn;
-    if(!Object.keys(worn).length)untravelled++;
-    for(const [key,value]of Object.entries(worn)) {
-      const legs=provenance.get(id+":"+key);
-      expect(legs).toBeDefined();
-      if(value>0) {
-        travelled++;
-        expect(legs.some(day=>day>s.days-WEAR_LIFETIME && day<=s.days)).toBe(true);
-        expect(transitBlocked(s,id)).toBe(false);
-      }
-    }
-    if (s.ecs.mappable[id].route?.length) expect(s.ecs.walkable[id].speed).toBeGreaterThan(0);
-  }
-  expect(travelled).toBeGreaterThan(0);
-  expect(untravelled).toBeGreaterThan(0);
-  for (const house in s.ecs.building) {
-    const p=s.ecs.spatial[house], hs=ground.hex(p).corners;
-    expect(Math.max(...hs)-Math.min(...hs)).toBeLessThan(25);
-  }
-},15000);
-
-it("the labelled initial ridge fixture still has a two-hex arrival and a real cross-pass graph", async () => {
-  const {startIntro}=require("game/intro");
-  const s={ecs:{nextId:1},days:.375,redraws:[],ui:{show:{}}};
-  const r=await generateMap(s,13,async()=>{},{geographyFixture:"mountain-pass"});s.map=r.map;s.ui.playerId=r.playerId;
-  startIntro(s,{skip:true});
-  expect(s.intro.tileIds).toHaveLength(3);
-  const ground=groundForState(s), c=MAP_CENTRE.toPoint();
-  expect(Math.max(...Object.keys(s.ecs.mappable).map(id=>ground.hex(s.ecs.spatial[id]).centre))).toBeGreaterThan(600);
-  const crossed=s.map.geography.routes.find(route=>Math.min(...route.map(h=>Hex(h).toPoint().x))<c.x-650 && Math.max(...route.map(h=>Hex(h).toPoint().x))>c.x+650);
-  expect(crossed).toBeDefined();
-  const tile=h=>s.space[Hex(h)].find(id=>s.ecs.mappable[id]);
-  expect(path(s,tile(crossed[0]),tile(crossed.at(-1)))).toBeDefined();
-},15000);
+  expect(s.ecs.walkable[tiles[4]].worn).toEqual({});
+  const before = structuredClone(s.settlement.journeys);
+  expect(recordJourney(s, { ...trip })).toBe(trip);
+  expect(s.settlement.journeys).toEqual(before);
+  s.days += WEAR_LIFETIME;
+  updateRoadWear(s);
+  expect(Object.values(s.ecs.walkable).every(w => Object.values(w.worn).every(value => value == 0))).toBe(true);
+});
 
 it("keeps a cached border survey private from edits to either arrival's entrance", () => {
   const world=generateWorld(13),side=neighbours(world.home).findIndex((h,side)=>routeCrossing(world,side));
@@ -170,4 +152,19 @@ it("reconstructs identical border contracts and clearings from both saved pass c
   expect(sharedEntrances(b,world,contracts)).toEqual(sharedEntrances(a,world));
   expect(b).toEqual(a);
   expect(JSON.stringify(maps)).toBe(saved);
+});
+
+it("clears tree canopies from actual building footprints and retains woodland beyond them", () => {
+  const { state: s, tiles } = rowOfTiles(4), p = s.ecs.spatial[tiles[1]];
+  const [house, near, far] = newEntities(s, [
+    { spatial: { ...p, immovable: true }, building: { entrance: 1 } },
+    { spatial: { x: p.x + 55, y: p.y, immovable: true }, tree: {}, good: { type: "wood", amount: 3 } },
+    { spatial: { x: p.x + 160, y: p.y, immovable: true }, tree: {}, good: { type: "wood", amount: 3 } }
+  ]);
+  expect(reserveBuildingClearance(s, house)).toContain(near);
+  expect(s.ecs.spatial[near]).toBeUndefined();
+  expect(Object.values(s.space).flat()).not.toContain(near);
+  expect(treeAllowed(s, { x: p.x + 55, y: p.y })).toBe(false);
+  expect(treeAllowed(s, s.ecs.spatial[far])).toBe(true);
+  expect(Object.keys(s.ecs.tree)).toEqual([far]);
 });

@@ -1,78 +1,47 @@
 import { TIMBER, amountOf } from "game/goods";
-import { generateMap, generateFamilies, Hex, Grid, ALL_SIDES, TRIANGLES } from "game/map";
+import { Hex } from "game/map";
 import { newEntities } from "game/entities";
-import { addBidirectionalLink, removeBidirectionalLink, path } from "game/pathfinding";
-import { reserveBuildingClearance } from "game/tree_clearance";
+import { path } from "game/pathfinding";
 import { generateVillageLife } from "game/villages";
 import { createSimulation } from "game/simulation";
 import { DAYS_IN_SEASON } from "game/time";
 import { topController } from "game/playable";
 import { solve } from "game/htn";
 import { find_place } from "game/tasks";
-import { treeAllowed } from "game/tree_clearance";
+import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
+import { reserveRoad } from "game/land_use";
 
-// Each behaviour gets an independent copy of a real generated initial world.
-// The determinism case below deliberately bypasses this cache twice.
-const initialWorlds = new Map();
-const world = async (seed = 1, days = 0.375, fresh = false) => {
-  const key=seed+":"+days;
-  if(!fresh && initialWorlds.has(key))return structuredClone(initialWorlds.get(key));
-  const state = { ecs: { nextId: 1 }, ui: {}, redraws: [], days, game_speed: "normal" };
-  const result = await generateMap(state, seed, async () => {});
-  state.map = result.map;
-  state.ui.playerId = result.playerId;
-  if(!fresh)initialWorlds.set(key,structuredClone(state));
-  return state;
+import { flatVillage } from "./support/village";
+
+const villageLife = (count = 3, options = {}) => {
+  const fixture = flatVillage(count, options);
+  if (options.funded) {
+    for (const room of Object.values(fixture.s.ecs.container)) room.amounts.grain += 8;
+    const firstStore = fixture.s.ecs.building[fixture.village.houses[0]].rooms.find(id => fixture.s.ecs.container[id]);
+    fixture.s.ecs.container[firstStore].amounts.planks = 4;
+    fixture.s.settlement = { version: 1, journeys: [], appliedJourneys: {}, sites: {} };
+  }
+  generateVillageLife(fixture.s, options.seed ?? 1, fixture.start);
+  return fixture;
 };
 
-// Initial conditions only: flat land, real navigation, houses, families and
-// stocked rooms. Village life must allocate all plots, fields, yards and trades.
-const flatVillage = count => {
-  const s = { ecs: { nextId: 1, good: {}, farmable: {} }, days: 0.375, redraws: [],
-    villages: { fixture: { id: "fixture", houses: [] } } };
-  const grid = Grid.hexagon({ center: Hex(0, 0), radius: 9 });
-  const tiles = newEntities(s, grid.map(hex => ({
-    spatial: { ...hex.toPoint(), immovable: true },
-    mappable: { terrain: "grassland", elevation: 0 },
-    walkable: { worn: {}, speed: 1, neighbours: {} }
-  })));
-  const tileAt = Object.fromEntries(tiles.map(id => [Hex().fromPoint(s.ecs.spatial[id]).toString(), id]));
-  for (const id of tiles) {
-    const hex = Hex().fromPoint(s.ecs.spatial[id]);
-    Grid.hexagon({ center: hex, radius: 1 }).neighborsOf(hex, ALL_SIDES).forEach((next, side) => {
-      if (tileAt[next]) addBidirectionalLink(s.ecs, id, side, tileAt[next]);
-    });
+it("allocates crops away from an existing public road", () => {
+  const { s, tileAt, start } = flatVillage(3);
+  const road = [Hex(-1, -2), Hex(-2, -2)].map(h => tileAt[h]);
+  expect(reserveRoad(s, road)).toBe(true);
+  generateVillageLife(s, 1, start);
+  const fields = Object.keys(s.ecs.farmable);
+  expect(fields.length).toBeGreaterThan(0);
+  for (const id of fields) {
+    const tile = tileAt[Hex().fromPoint(s.ecs.spatial[id])];
+    expect(road).not.toContain(tile);
+    expect(s.ecs.mappable[tile].route || []).toHaveLength(0);
   }
-  // One declared layout, truncated to each requested size. No seed search or
-  // terrain/siting changes are needed to provide viable initial houses.
-  const sites = [[-3, -2], [0, -2], [3, -2], [-3, 1], [0, 1], [3, 1], [-3, 4], [0, 4]];
-  const village = s.villages.fixture;
-  village.houses = newEntities(s, sites.slice(0, count).map(([x, y]) => ({
-    spatial: { ...Hex(x, y).toPoint(), immovable: true },
-    controllable: {}, building: { entrance: 1, rooms: [] }, village: { villageId: village.id }
-  })));
-  const start = Hex(-7, 0);
-  generateFamilies({ state: s, seed: 1, playerStartTile: start, founding: true });
-  for (const house of village.houses) {
-    const building = s.ecs.building[house];
-    const tile = tileAt[Hex().fromPoint(s.ecs.spatial[house])];
-    for (const side of ALL_SIDES) if (side != building.entrance) removeBidirectionalLink(s.ecs, tile, side);
-    const inhabitants = Object.values(s.ecs.household).filter(h => h.houseId == house).length;
-    building.rooms = newEntities(s, [{
-      spatial: { ...s.ecs.spatial[house] }, controllable: { controllerId: house },
-      interior: { buildingId: house }, sleepable: { capacity: Math.max(3, inhabitants), level: 1, occupiers: [] }
-    }, {
-      spatial: { ...s.ecs.spatial[house] }, controllable: { controllerId: house },
-      interior: { buildingId: house }, container: { capacity: (inhabitants + 1) * TRIANGLES.length,
-        amounts: { gruel: inhabitants, grain: inhabitants * TRIANGLES.length } }
-    }]);
-    reserveBuildingClearance(s, house);
-  }
-  return { s, village, tileAt, start };
-};
+  for (const id of road) expect(s.ecs.mappable[id].route.length).toBeGreaterThan(0);
+});
 
 it("gives every household a plot, 1–2 owned historical crops and 1–2 backyards on nearby land", async () => {
-  const s = await world();
+  const { s } = villageLife();
   const used = new Set();
   for (const v of Object.values(s.villages)) for (const house of v.houses) {
     const h = s.ecs.household[house];
@@ -101,9 +70,10 @@ it("gives every household a plot, 1–2 owned historical crops and 1–2 backyar
 });
 
 it("keeps winter crops dormant and deterministically varies growing-season progress", async () => {
-  const s = await world(2, 3 * DAYS_IN_SEASON + 0.375);
+  const { s } = villageLife(3, { seed: 2, days: 3 * DAYS_IN_SEASON + 0.375 });
   const farms = Object.values(s.ecs.farmable || {});
   expect(farms.length).toBeGreaterThan(0);
+  farms.forEach((farm, index) => { farm.slots[0].growth = 0.25 + index % 3; });
   const growth = farms.map(f => f.slots[0].growth);
   const sim = createSimulation(s);
   for (let i = 0; i < 300; i++) sim.step(10*(6), 0);
@@ -113,7 +83,8 @@ it("keeps winter crops dormant and deterministically varies growing-season progr
 it("scales unique trades on funded generated plots, with an adult and a workplace on the plot", async () => {
   let planksSpent=0;
   for (const seed of [1, 2, 20]) {
-    const s = await world(seed);
+    const { s } = villageLife(8, { seed, funded: true });
+    expect(Object.values(s.ecs.household).filter(h => h.trade)).toHaveLength(1);
     // INITIAL trade fixture: corrected history can leave a household below the
     // four-timber workshop cost. Replace equal grain with planks, preserving
     // store capacity and the estate ledger. Layout must still build real shops.
@@ -127,7 +98,7 @@ it("scales unique trades on funded generated plots, with an adult and a workplac
       if(h.estateAccount){h.estateAccount.initial.grain-=needed;h.estateAccount.initial.planks=(h.estateAccount.initial.planks || 0)+needed;}
       funded.push({house,planks:store.amounts.planks});
     }
-    generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
+    generateVillageLife(s, seed, Hex(-7, 0));
     for(const before of funded)if(s.ecs.household[before.house].trade)planksSpent+=before.planks-(s.ecs.container[s.ecs.household[before.house].storeId].amounts.planks || 0);
     for (const v of Object.values(s.villages)) {
       const holders = v.houses.map(h => s.ecs.household[h]).filter(h => h?.trade);
@@ -219,49 +190,9 @@ it("covers every trade threshold in declared flat initial villages of 3–8 hous
   expect([...sizes].sort()).toEqual([3, 4, 5, 6, 7, 8]);
 });
 
-it("provides a well and green in every village and preserves real paid venues or their spatial wait", async () => {
-  const s = await world(20);
-  // INITIAL funding fixture: keep each missing venue funded after the corrected
-  // food/trade history. Replace grain with equal timber before taking the stock
-  // snapshot; generation must still find a real clear footprint before spending.
-  for(const v of Object.values(s.villages))if(v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind))) {
-    const store=s.ecs.container[s.ecs.household[v.houses[0]].storeId];
-    const needed=Math.max(0,8-amountOf(store.amounts,TIMBER));
-    expect(store.amounts.grain).toBeGreaterThanOrEqual(needed);
-    store.amounts.grain-=needed;store.amounts.wood=(store.amounts.wood || 0)+needed;
-  }
-  const missing=[];
-  for (const v of Object.values(s.villages)) {
-    const kinds = v.sharedPlaces.map(id => s.ecs.meetingPlace[id].kind);
-    expect(kinds).toContain("well");
-    expect(kinds).toContain("green");
-    for(const kind of ["chapel","alehouse"]) {
-      const venue=v.sharedPlaces.find(id=>s.ecs.meetingPlace[id].kind==kind);
-      if(v.houses.length<5)expect(venue).toBeUndefined();
-      if(venue) {
-        const built=s.ecs.meetingPlace[venue];
-        expect(v.houses.length).toBeGreaterThanOrEqual(5);
-        expect(v.houses).toContain(built.houseId);
-        expect(s.ecs.controllable[venue].controllerId).toBe(built.houseId);
-        expect(built.builtDay).toBeLessThanOrEqual(s.days);
-      } else if(v.houses.length>=5)missing.push({village:v.id,kind,timber:v.houses.map(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER))});
-    }
-    for (const id of v.sharedPlaces) expect(s.ecs.village[id].villageId).toBe(v.id);
-  }
-  // Seed 20 has a compact seven-home village with timber but no free public
-  // venue footprint. A native layout retry must preserve its stock and wait.
-  expect(missing.length).toBeGreaterThan(0);
-  generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
-  for(const entry of missing) {
-    const v=s.villages[entry.village];
-    expect(Math.max(...entry.timber)).toBeGreaterThanOrEqual(8);
-    expect(v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==entry.kind)).toBe(false);
-    expect(v.houses.map(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER))).toEqual(entry.timber);
-  }
-});
 
 it("uses the HTN to work at a trade during the day, interrupt for hunger, and gather locally in the evening", async () => {
-  const s = await world();
+  const { s } = villageLife();
   const id = Object.keys(s.ecs.profession || {})[0];
   expect(id).toBeDefined();
   const p = s.ecs.planner[id];
@@ -296,7 +227,7 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
 });
 
 it("lets the family plough, sow, harvest and haul only its own fields into its household store", async () => {
-  const s = await world();
+  const { s } = villageLife();
   const h = Object.values(s.ecs.household).find(h => h.farming && !h.trade && Object.keys(s.ecs.personable).some(id =>
     !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId == h.id));
   expect(h).toBeDefined();
@@ -309,7 +240,9 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
   const sim = createSimulation(s);
   // One crop takes a season and a half to ripen, plus ploughing and hauling.
   while (s.days < 8 / 3 * DAYS_IN_SEASON) {
+    const previousDay = s.days;
     sim.step(10*(6), 0);
+    expect(s.days).toBeGreaterThan(previousDay);
     for (const id of family) {
       const p = s.ecs.planner[id];
       if (p.world.claimedFarmable) {
@@ -330,32 +263,40 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
 });
 
 it("keeps household animals inside fenced pens and pastures throughout movement, with paused time still", async () => {
-  const s = await world(20);
-  const animals = Object.keys(s.ecs.animal || {});
-  expect(animals.length).toBeGreaterThan(0);
-  expect(new Set(animals.map(id => s.ecs.animal[id].kind))).toEqual(new Set(["chicken", "pig", "goat", "sheep", "cow"]));
-  const before = animals.map(id => ({ ...s.ecs.spatial[id] }));
-  const sim = createSimulation(s);
-  delete s.ecs.planner;
-  s.ecs.planner = {};
-  for (let i = 0; i < 240; i++) {
-    sim.step(10*(60), 0);
-    for (const id of animals) {
-      const a = s.ecs.animal[id], pen = s.ecs.pasture[a.pastureId], p = s.ecs.spatial[id];
-      expect(a.houseId).toBe(pen.houseId);
-      expect(Math.abs(p.x - pen.centre.x)).toBeLessThanOrEqual(pen.halfWidth - a.radius);
-      expect(Math.abs(p.y - pen.centre.y)).toBeLessThanOrEqual(pen.halfDepth - a.radius);
+  const { s } = villageLife(8, { seed: 20 });
+  const cattle = flatVillage(3, { seed: 20 });
+  cattle.s.villages = { empty: { id: "empty", houses: [] }, ...cattle.s.villages };
+  generateVillageLife(cattle.s, 20, cattle.start);
+  expect(new Set([...Object.values(s.ecs.animal), ...Object.values(cattle.s.ecs.animal)].map(a => a.kind)))
+    .toEqual(new Set(["chicken", "pig", "goat", "sheep", "cow"]));
+  for (const state of [s, cattle.s]) {
+    const s = state;
+    const animals = Object.keys(s.ecs.animal || {});
+    expect(animals.length).toBeGreaterThan(0);
+    const before = animals.map(id => ({ ...s.ecs.spatial[id] }));
+    const sim = createSimulation(s);
+    delete s.ecs.planner;
+    s.ecs.planner = {};
+    for (let i = 0; i < 240; i++) {
+      sim.step(10*(60), 0);
+      for (const id of animals) {
+        const a = s.ecs.animal[id], pen = s.ecs.pasture[a.pastureId], p = s.ecs.spatial[id];
+        expect(a.houseId).toBe(pen.houseId);
+        expect(Math.abs(p.x - pen.centre.x)).toBeLessThanOrEqual(pen.halfWidth - a.radius);
+        expect(Math.abs(p.y - pen.centre.y)).toBeLessThanOrEqual(pen.halfDepth - a.radius);
+      }
     }
+    expect(animals.map(id => s.ecs.spatial[id])).not.toEqual(before);
+    s.game_speed = "paused";
+    const paused = animals.map(id => ({ ...s.ecs.spatial[id] }));
+    sim.step(10*(1000), 0);
+    expect(animals.map(id => s.ecs.spatial[id])).toEqual(paused);
   }
-  expect(animals.map(id => s.ecs.spatial[id])).not.toEqual(before);
-  s.game_speed = "paused";
-  const paused = animals.map(id => ({ ...s.ecs.spatial[id] }));
-  sim.step(10*(1000), 0);
-  expect(animals.map(id => s.ecs.spatial[id])).toEqual(paused);
 });
 
+
 it("replays generation and moving animals exactly for the same seed", async () => {
-  const a = await world(2,0.375,true), b = await world(2,0.375,true);
+  const { s: a } = villageLife(8, { seed: 2 }), { s: b } = villageLife(8, { seed: 2 });
   expect(a).toEqual(b);
   const sa = createSimulation(a), sb = createSimulation(b);
   for (let i = 0; i < 100; i++) { sa.step(10*(6), 0); sb.step(10*(6), 0); }
@@ -363,7 +304,9 @@ it("replays generation and moving animals exactly for the same seed", async () =
 });
 
 it("keeps wild plants and woodland out of cultivated plots and tree crowns clear of real roofs and doors", async () => {
-  const s = await world(20);
+  const initial = flatVillage(8, { seed: 20, woodland: true });
+  const s = initial.s;
+  generateVillageLife(s, 20, initial.start);
   // A reserved future work yard does not authorise blanket woodland clearing.
   const tiles = new Set([...Object.keys(s.ecs.farmable),...Object.keys(s.ecs.backyard),...Object.keys(s.ecs.pasture),...Object.keys(s.ecs.meetingPlace).filter(id=>["green","well"].includes(s.ecs.meetingPlace[id].kind))].map(id => Hex().fromPoint(s.ecs.spatial[id]).toString()));
   expect(tiles.size).toBeGreaterThan(0);
@@ -373,39 +316,8 @@ it("keeps wild plants and woodland out of cultivated plots and tree crowns clear
   for(const id of Object.keys(s.ecs.tree))expect(treeAllowed(s,s.ecs.spatial[id])).toBe(true);
 });
 
-it("spreads evening visitors across the green so household groups do not occupy the same spot", async () => {
-  const s = await world(1);
-  s.days = 0.8;
-  for (const village of Object.values(s.villages)) {
-    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
-    const places = visitors.map(id => {
-      const w = s.ecs.planner[id].world;
-      find_place(s, id, w, 0, true, "meet", "space");
-      return w.places.meet;
-    });
-    for (let a = 0; a < places.length; a++) for (let b = a + 1; b < places.length; b++) {
-      if (places[a].id == places[b].id) expect(Math.hypot(places[a].x - places[b].x, places[a].y - places[b].y)).toBeGreaterThan(10);
-    }
-  }
-});
-
-it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
-  const s = await world(8);
-  for (const village of Object.values(s.villages)) {
-    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
-    const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(s.ecs.meetingPlace[id].kind));
-    const spaces = new Set(venues.flatMap(id => s.ecs.meetingPlace[id].gatheringPoints.map(p => p.x + "," + p.y)));
-    expect(spaces.size).toBeGreaterThanOrEqual(visitors.length);
-    for (const id of venues) {
-      const at = Hex().fromPoint(s.ecs.spatial[id]).toString();
-      expect(s.space[at]).toContain(id);
-      expect(Object.entries(s.space).filter(([, ids]) => ids.includes(id)).map(([key]) => key)).toEqual([at]);
-    }
-  }
-});
-
-it.each([1, 8, 13, 20, 1234, 98765])("gives evening visitors room for their bodies outside houses and animal pens (seed %s)", async seed => {
-  const s = await world(seed);
+it("gives evening visitors body-sized spaces clear of houses, pens, fields and workplaces", () => {
+  const { s } = villageLife(8, { seed: 1, founding: false });
   s.days = 0.8;
   for (const village of Object.values(s.villages)) {
     const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
@@ -438,6 +350,39 @@ it.each([1, 8, 13, 20, 1234, 98765])("gives evening visitors room for their bodi
   }
 });
 
+
+it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
+  const { s, village: fixtureVillage, tileAt, start } = flatVillage(8, { seed: 8, founding: false });
+  s.settlement = { version: 1, sites: {}, journeys: [], appliedJourneys: {} };
+  // Initial public places are on the far boundary. The household search has
+  // no gathering space there, so native allocation must actually move the green.
+  const initialGreen = Hex(9, 0).toPoint();
+  const [green, well] = newEntities(s, [
+    { spatial: { ...initialGreen, immovable: true }, meetingPlace: { kind: "green" },
+      controllable: { controllerId: fixtureVillage.houses[0] }, village: { villageId: fixtureVillage.id } },
+    { spatial: { x: initialGreen.x - 28, y: initialGreen.y - 23, immovable: true }, meetingPlace: { kind: "well" },
+      controllable: { controllerId: fixtureVillage.houses[0] }, village: { villageId: fixtureVillage.id } }
+  ]);
+  fixtureVillage.sharedPlaces = [green, well];
+  s.ecs.mappable[tileAt[Hex(9, 0)]].villagePlot = true;
+  reserveBuildingClearance(s, green);
+  reserveBuildingClearance(s, well);
+  generateVillageLife(s, 8, start);
+  expect(s.ecs.spatial[green]).not.toMatchObject(initialGreen);
+  for (const village of Object.values(s.villages)) {
+    const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
+    const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(s.ecs.meetingPlace[id].kind));
+    const spaces = new Set(venues.flatMap(id => s.ecs.meetingPlace[id].gatheringPoints.map(p => p.x + "," + p.y)));
+    expect(spaces.size).toBeGreaterThanOrEqual(visitors.length);
+    for (const id of venues) {
+      const at = Hex().fromPoint(s.ecs.spatial[id]).toString();
+      expect(s.space[at]).toContain(id);
+      expect(Object.entries(s.space).filter(([, ids]) => ids.includes(id)).map(([key]) => key)).toEqual([at]);
+    }
+  }
+});
+
+
 it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only for a sufficiently large funded village (%s homes, %s timber)", (count,timber,expected)=>{
   const {s,village,start}=flatVillage(count);
   // INITIAL unit supplies: timber replaces the same quantity of grain in
@@ -455,6 +400,7 @@ it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only 
   const kinds=village.sharedPlaces.map(id=>s.ecs.meetingPlace[id].kind);
   expect(kinds).toContain("well");expect(kinds).toContain("green");
   expect(kinds.includes("chapel")).toBe(expected);expect(kinds.includes("alehouse")).toBe(expected);
+  for (const id of village.sharedPlaces) expect(s.ecs.village[id].villageId).toBe(village.id);
   const venues=village.sharedPlaces.filter(id=>["chapel","alehouse"].includes(s.ecs.meetingPlace[id].kind));
   const trades=village.houses.filter(id=>s.ecs.household[id].trade);
   expect(before-balances()).toBe(venues.length*8+trades.length*4);
@@ -465,4 +411,34 @@ it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only 
     expect(s.ecs.household[host].estateAccount.consumed.wood).toBeGreaterThanOrEqual(8);
     if(venue.kind=="alehouse")expect(s.ecs.growth[id].construction).toMatchObject({timber:8,storeId:s.ecs.household[host].storeId});
   }
+});
+
+it("waits without spending funded venue timber when public roads leave no footprint", () => {
+  const { s, village, start } = flatVillage(6);
+  s.settlement = { version: 1, journeys: [], appliedJourneys: {}, sites: {} };
+  // Give each house enough initial timber for one actual trade station.
+  // Establish the native trade quota before isolating the venue retry.
+  for (const house of village.houses) {
+    const storeId = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
+    const store = s.ecs.container[storeId];
+    store.amounts.grain -= 4;
+    store.amounts.wood = 4;
+  }
+  generateVillageLife(s, 1, start);
+  expect(village.houses.filter(id => s.ecs.household[id].trade)).toHaveLength(4);
+  for (const tile of Object.values(s.ecs.mappable)) {
+    tile.route = [0];
+  }
+  // Initial conditions for a retry: all spare ground is reserved for roads,
+  // while one household can afford a venue. Native siting must wait.
+  const host = village.houses.find(id => s.ecs.household[id].trade && s.ecs.container[s.ecs.household[id].storeId].amounts.grain >= 8);
+  expect(host).toBeDefined();
+  const store = s.ecs.container[s.ecs.household[host].storeId];
+  store.amounts.grain -= 8;
+  store.amounts.wood = 8;
+  const stock = () => village.houses.map(id => ({ ...s.ecs.container[s.ecs.household[id].storeId].amounts }));
+  const before = stock();
+  generateVillageLife(s, 1, start);
+  expect(village.sharedPlaces.some(id => ["chapel", "alehouse"].includes(s.ecs.meetingPlace[id].kind))).toBe(false);
+  expect(stock()).toEqual(before);
 });

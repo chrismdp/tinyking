@@ -1,8 +1,12 @@
 import { scheduleNeighbourDetails } from "game/hex_detail";
+import { chatTogether } from "game/social";
+import { runSocialActions } from "game/social_actions";
+import { maritalSatisfaction } from "game/social_conditions";
+import { exchangeNews } from "game/news";
 import { flushSync } from "react-dom";
 import { createLoadingProgress } from "game/loading";
 import { toggleWorldMap } from "game/realm_map";
-import { chooseLine, closeChat, selectChatSubject } from "game/chat";
+import { chooseLine, closeChat, selectChatSubject, openChat, lineCandidates, speakLine } from "game/chat";
 import { PanelBoundary } from "./panel_boundary";
 import { personComponent } from "game/residents";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
@@ -48,6 +52,7 @@ import { playerOrderAllowed, enqueueTask, cancelTask, cancelJob } from "game/man
 import { placeShelter } from "game/construction";
 import { applyWeatherPreview } from "render/weather_preview";
 import { createWorldView } from "render/world_view";
+import { rendererPixelRatio, bindContextRecovery } from "render/lifecycle";
 
 const releaseMap = state => {
   state.ticker?.destroy();
@@ -184,7 +189,7 @@ export function World() {
     const requested = new URLSearchParams(window.location.search).get("seed");
     const initialSeed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
     const webgl = new THREE.WebGLRenderer({ antialias: true });
-    webgl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    webgl.setPixelRatio(rendererPixelRatio(window));
     webgl.setSize(window.innerWidth, window.innerHeight);
 
     state.ui = { ...state.ui, show: { clock: true, main_menu: true }, actions: {
@@ -229,7 +234,7 @@ export function World() {
       start_game: () => {
         if (startGame(state, { skip: new URLSearchParams(window.location.search).get("intro") == "skip" })) {
           setPopupInfo({});
-          state.persistence.request();
+          state.persistence.requestInitial();
           renderUI();
         }
       },
@@ -360,6 +365,7 @@ export function World() {
     const connection = Promise.resolve().then(connectSaveWorker).then(client => { saveClient = client; });
     state.persistence = createAutosave(state, (...args) => saveClient ? saveClient(...args) : connection.then(() => saveClient(...args)), renderUI);
     const unbindAutosave = bindAutosave(state.persistence, window, document);
+    const unbindContext = bindContextRecovery(webgl.domElement, state, () => renderMap(webgl, state, selectEntity, renderUI, t));
     containingDiv.current.appendChild(webgl.domElement);
 
     window.onresize = () => {
@@ -374,6 +380,7 @@ export function World() {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
       window.tinykingTravel = { createSimulation: () => createSimulation(state, { onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); } }) };
+      window.tinykingSocial = { chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
@@ -386,6 +393,7 @@ export function World() {
     })();
     return () => {
       unbindAutosave();
+      unbindContext();
       releaseMap(state);
       webgl.dispose();
       webgl.domElement.remove();

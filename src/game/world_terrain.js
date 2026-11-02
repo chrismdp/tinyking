@@ -125,15 +125,21 @@ export function surveyWorld(hexes, seed, canSettle) {
       const landFraction = count / tiles.length;
       return { ...h, landFraction, ocean: landFraction < 0.5 };
     });
-    // NOTE: The spiral visits rings outwards, so the first suitable hex is
-    // nearest the centre. Ring order breaks ties deterministically.
-    for (const h of surveyed) {
-      if (h.landFraction < 0.65) { continue; }
-      const start = startIn(field, h, canSettle);
-      if (start) {
-        h.start = start;
-        return { hexes: surveyed, landSeed, home: { x: h.x, y: h.y } };
-      }
+    const home = findHome(surveyed, field, canSettle);
+    if (home) return { hexes: surveyed, landSeed, home: { x: home.x, y: home.y } };
+  }
+}
+
+// The survey supplies land fractions. Home selection needs only those records
+// and a physical terrain field, independently of climate category labels.
+export function findHome(hexes, field, canSettle) {
+  // The spiral visits rings outwards. The first suitable hex is nearest.
+  for (const h of hexes) {
+    if (h.landFraction < 0.65) continue;
+    const start = startIn(field, h, canSettle);
+    if (start) {
+      h.start = start;
+      return h;
     }
   }
 }

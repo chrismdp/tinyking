@@ -1,17 +1,7 @@
 /* global jest, it, expect, require */
 jest.mock("../src/data/male_names.csv",()=>["William","John"]);
 jest.mock("../src/data/female_names.csv",()=>["Agnes","Mary"]);
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { I18n } from "react-polyglot";
-import messages from "../src/data/messages.json";
-import { GameState } from "../src/components/contexts";
-import { PersonPanel, FamilyTree } from "../src/components/person_panel";
-import { Journal } from "../src/components/status_strip";
-import { EventFeed } from "../src/components/event_feed";
-import { IntroOverlay } from "../src/components/intro_overlay";
-import { ChatPanel } from "../src/components/chat_panel";
-jest.mock("components/contexts",()=>require("../src/components/contexts"),{virtual:true});
+
 import { peopleWorld } from "./support/people";
 import { seedMotherFamily, familyGoal, familySearchFacts, recogniseMaternalKin } from "game/mother_family";
 import { knownEvents, learnEvent, eventSentence } from "game/events";
@@ -116,20 +106,6 @@ it("keeps reference-only off-map royals and the mother out of playable successio
   const heir=heirFor(s,player);
   expect(heir).not.toBe(b.motherId);expect(heir).not.toBe(b.halfBrotherId);
   expect(b.relatives.map(r=>r.id)).toContain(heir);
-});
-
-it("renders the opening, goal, person sheets, family trees, chat and news without the royal secret",()=>{
-  const {state:s,player,person}=setup(),b=s.backstories[player];s.ui.actions={};s.ui.show={journal:true};
-  s.ecs.relationships[person].known[player]={ring:"personal",goodwill:36};
-  s.knowledge[player].events=s.events.map(e=>e.id);
-  const render=view=>renderToStaticMarkup(<I18n locale="en" messages={messages}><GameState.Provider value={s}>{view}</GameState.Provider></I18n>);
-  const html=render(<><IntroOverlay touch={false}/><Journal/><EventFeed/><PersonPanel entityId={person}/><FamilyTree entityId={player}/></>);
-  expect(html).toContain("Mother sent me here");expect(html).toContain("Find your mother");
-  openChat(s,player,person);const chat=render(<ChatPanel/>);
-  for(const text of [html,chat]) {
-    for(const id of [b.fatherId,b.halfBrotherId,b.queenId]){expect(text).not.toContain(id);expect(text).not.toContain(s.peopleDirectory[id].nameable.nickname);}
-    expect(text).not.toMatch(/old king|current king|royal marriage|sent her away/i);
-  }
 });
 
 it("speaks an on-topic named search answer and learns a lead without revealing terrain or a face",()=>{

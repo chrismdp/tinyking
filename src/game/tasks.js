@@ -20,6 +20,8 @@ import { recordEvent } from "game/events";
 import { openChat } from "game/chat";
 import { snapshotActivity } from "game/chat_facts";
 import { chatTogether, canCourt } from "game/social";
+import { beginSocialSpeech } from "game/news";
+import { campfireVisitValid } from "game/campfire_visits";
 import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
 import { path } from "game/pathfinding";
 import { give, take } from "game/holder";
@@ -973,6 +975,7 @@ export function approach_chat(state, actorId, world, dt, firstRun, targetId) {
 
 export function chat_visit(state, actorId, world, dt) {
   const visit=world.chatVisit,e=state.ecs,target=visit?.actorId;
+  if(visit?.context?.campfire && !campfireVisitValid(state,visit)) {delete world.chatVisit;return Task.ABORT;}
   if(!visit||e.personable[actorId]?.dead||e.personable[target]?.dead||world.feeling.hungry||world.feeling.tired)return Task.ABORT;
   if(e.planner[target]?.world.feeling.hungry||e.planner[target]?.world.feeling.tired||e.interior?.[target])return Task.CONTINUE;
   if(math.squaredDistance(e.spatial[actorId],e.spatial[target])>SPEECH_REACH**2) {
@@ -1168,7 +1171,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
   if (v.stage != "visiting") {
     v.started = other.started ?? state.days; other.started = v.started;
     v.stage = "visiting"; v.courting = canCourt(state, actorId, partnerId);
-
+    beginSocialSpeech(state,actorId,partnerId);
   }
   const conversations = Math.max(v.conversations || 0, other.conversations || 0);
   if (state.days - v.started < (conversations + 1) * 0.5 / 24) return Task.CONTINUE;
@@ -1178,7 +1181,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
     state.social.lastVisits ||= {};
     state.social.lastVisits[[actorId, partnerId].sort().join(":")] = Math.floor(state.days);
     const visitor = v.visitor ? actorId : partnerId, host = v.visitor ? partnerId : actorId;
-    recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId, conversations: 1, courting: !!v.courting });
+    if (state.ecs.village[visitor]?.villageId == null || state.ecs.village[host]?.villageId == null || state.ecs.village[visitor]?.villageId == state.ecs.village[host]?.villageId) recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId, conversations: 1, courting: !!v.courting });
   }
   for (const [a, b] of [[actorId, partnerId], [partnerId, actorId]]) {
     spendPatience(state, a, b); beginInteraction(state, a, b); completeConversation(state, a, b);

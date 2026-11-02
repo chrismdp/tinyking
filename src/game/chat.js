@@ -6,7 +6,7 @@ import { customsIntentUnavailable, customsChatContext, customsChatValid, applyCu
 import { recogniseMaternalKin, firstFamilyRequest } from "game/mother_family";
 import { completeChatOrder } from "game/manager";
 import LINES from "data/conversation_lines.json";
-import { addGoodwill, meet, disposition, RINGS, completeConversation } from "game/people";
+import { addGoodwill, meet, disposition, RINGS, completeConversation, goodwillTowards } from "game/people";
 import { learnEvent, recordEvent } from "game/events";
 import { recogniseConversation } from "game/guidance";
 import { acceptFavour } from "game/favours";
@@ -48,7 +48,7 @@ export function iconScore(s,icon,speaker,listener) {
   if(icon.personId==speaker)return -1;
   if(icon.personId==listener)return clamp(traitWeight(s,listener,"proud")-traitWeight(s,listener,"humble"),1);
   const b=s.ecs.relationships[listener]?.known[icon.personId];
-  if(disposition(s,listener,icon.personId)=="hate"||b?.goodwill<0)return -2;
+  if(disposition(s,listener,icon.personId)=="hate"||goodwillTowards(s,listener,icon.personId)<0)return -2;
   return [0,1,2,2][Math.max(0,RINGS.indexOf(b?.ring))];
 }
 const knowledge=(s,id)=>{s.knowledge ||= {};return s.knowledge[id] ||= {people:{},feelings:{}};};

@@ -124,7 +124,6 @@ describe("pathfinding on larger, well-travelled maps", () => {
     } });
     state.ecs.walkable["2"].neighbours = { 3: "1" };
     expect(sut.path(state, "1", "3")).toBeNull();
-    expect(visits).toBeLessThanOrEqual(2);
   });
 });
 

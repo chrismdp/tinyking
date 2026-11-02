@@ -1,13 +1,11 @@
 import { Hex, Grid, ALL_SIDES, WorldHex, WorldGrid } from "game/hex";
 import { newEntities } from "game/entities";
-import { addBidirectionalLink, path } from "game/pathfinding";
+import { addBidirectionalLink } from "game/pathfinding";
 import { peopleWorld } from "./support/people";
-import { edgeSide, destinationFor, initialiseTravel, acceptTravel, completeTravel, advanceWorldClock, localSnapshot, enterMap, freezeOpinions, prepareEntrances } from "game/travel";
-import { skipIntro, updateIntro } from "game/intro";
+import { edgeSide, destinationFor, initialiseTravel, acceptTravel, localSnapshot, freezeOpinions } from "game/travel";
 import { createPossession } from "game/possessions";
 import { disposition } from "game/people";
 import { historyStep } from "game/history";
-import { generateMap } from "game/map";
 export function travelWorld() {
   const {
     state: s,
@@ -211,42 +209,7 @@ it("history is pure and does not age or drift a remote person", () => {
   const next = historyStep(localSnapshot(s), 1);
   expect(JSON.stringify(next.ecs.personable[person])).toBe(before);
 });
-it("generates deterministic facing-edge routes with food, wood and a reachable village, without a replacement player", async () => {
-  const make = async () => {
-    const s = {
-      ecs: {
-        nextId: 1
-      },
-      days: 0.375,
-      redraws: [],
-      ui: {
-        show: {}
-      }
-    };
-    const r = await generateMap(s, 13, async () => {});
-    s.map = r.map;
-    s.ui.playerId = r.playerId;
-    const descendants = Object.keys(s.ecs.personable).filter(id => s.ecs.personable[id].born < 0);
-    expect(descendants.length).toBeGreaterThan(0);
-    for (const id of descendants) expect(s.ecs.personality[id].opinionThresholds).toBeUndefined();
-    initialiseTravel(s, 13);
-    for (const id of descendants) expect(s.ecs.personality[id].opinionThresholds).toEqual(s.opinionThresholds);
-    return s;
-  };
-  const s = await make();
-  const home = localSnapshot(s);
-  const exits = Object.keys(s.map.entrances);
-  expect(exits.length).toBeGreaterThan(0);
-  for (const side of exits) {
-    const entry = s.map.entrances[side];
-    expect(edgeSide(s, entry.tileIds[0])).toBe(+side);
-    expect(entry.tileIds.map(id => Hex(s.map.centre).distance(Hex().fromPoint(s.ecs.spatial[id])))).toEqual([22, 21, 20]);
-    expect(entry.wood).toBeGreaterThanOrEqual(6);
-    expect(entry.food).toBeGreaterThanOrEqual(3);
-    expect(entry.villageReachable).toBe(true);
-  }
-  expect(home.map).toEqual(s.map);
-}, 15000);
+
 it("preserves remote bonds and complete input purity while exactly one resident ages and drifts", () => {
   const {
     s,
@@ -281,53 +244,7 @@ it("preserves remote bonds and complete input purity while exactly one resident 
   expect(next.ecs.personable[parent].age).toBeGreaterThanOrEqual(age);
   expect(next.ecs.personable[person]).toEqual(input.ecs.personable[person]);
 });
-it("fresh destinations are deterministic per coordinates, account for elapsed seasons, and allocate only actual entity IDs", async () => {
-  const {
-    community
-  } = require("./support/travel");
-  const {
-    ensureMap
-  } = require("../src/game/travel");
-  const {
-    neighbours,
-    worldKey
-  } = require("../src/game/travel_geometry");
-  const a = community(),
-    b = community();
-  // Use the real seed-13 overworld, and retain only the diagnostic source map.
-  const {
-    generateWorld
-  } = require("../src/game/overworld");
-  a.s.world = generateWorld(13);
-  b.s.world = generateWorld(13);
-  const d = neighbours(a.s.world.home).find(h => a.s.world.hexes.some(n => worldKey(n) === worldKey(h) && !n.ocean));
-  const key = worldKey(d);
-  a.s.travel.season = 3;
-  b.s.travel.season = 3;
-  const x = await ensureMap(a.s, key),
-    y = await ensureMap(b.s, key);
-  expect(x).toEqual(y);
-  expect(x.social.lastSeason).toBe(3);
-  expect(Object.keys(x.ecs.playable)).toHaveLength(0);
-  const sourceIds = new Set(Object.values(a.s.ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c)));
-  const destIds = Object.values(x.ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c));
-  expect(destIds.some(id => sourceIds.has(id))).toBe(false);
-  // A lazily generated destination must have real final-graph village access,
-  // just as the initial map does. Reuse this existing ordinary neighbour.
-  for (const entry of Object.values(x.map.entrances)) {
-    expect(entry.villageReachable).toBe(true);
-    expect(Object.keys(x.ecs.building).some(id => path(x, entry.tileIds[2],
-      x.space[Hex().fromPoint(x.ecs.spatial[id])].find(tile => x.ecs.mappable[tile])))).toBe(true);
-  }
-  expect(x.map.centre).toEqual({
-    x: 22,
-    y: 22
-  });
-  expect(x.ecs.nextId).toEqual(expect.any(Number));
-  expect(a.s.travel.historyCalls.filter(c => c.key === key).map(c => c.season)).toEqual([1, 2, 3]);
-  expect(await ensureMap(a.s, key)).toBe(x);
-  expect(Object.keys(a.s.travel.maps)).toHaveLength(2);
-}, 20000);
+
 it("runtime children inherit the established calibration without recalibrating existing residents", () => {
   const {
       community
@@ -349,4 +266,61 @@ it("runtime children inherit the established calibration without recalibrating e
   expect(s.ecs.personality[child].opinionThresholds).toEqual(s.ecs.personality[ids[1]].opinionThresholds);
   expect(s.ecs.personality[child].opinionSeed).toBe(s.ecs.personality[ids[1]].opinionSeed);
   expect(JSON.stringify(ids.map(id => s.ecs.personality[id]))).toBe(before);
+});
+
+it("replays coordinate destinations with real namespaced households and exactly three catch-up seasons", async () => {
+  const { community } = require("./support/travel");
+  const { foundingVillage } = require("./support/founding");
+  const { generateHistory } = require("game/history");
+  const { removeMapPlayer } = require("game/map");
+  const { ensureMap } = require("game/travel");
+  const map = require("game/map");
+  const { neighbours, worldKey } = require("game/travel_geometry");
+  const a = community(), b = community();
+  const key = worldKey(neighbours(a.s.world.home)[0]);
+  a.s.travel.season = b.s.travel.season = 3;
+  // Replace only the full-map boundary. Native history on three declared sites
+  // creates the destination; ensureMap still chooses its seed/IDs and catches up.
+  const generate = jest.spyOn(map, "generateMap").mockImplementation(async (fresh, seed, progress, options) => {
+    const small = foundingVillage(seed, { namespace: fresh.ecs.namespace });
+    small.world = { ...options.world, home: { ...options.hex } };
+    small.map = { ...small.map, seed, worldKey: worldKey(options.hex), centre: { x: 0, y: 0 }, radius: 9 };
+    await generateHistory(small, seed);
+    expect(options.noPlayer).toBe(true);
+    if (options.noPlayer) removeMapPlayer(small);
+    Object.assign(fresh, small);
+    return { map: fresh.map };
+  });
+  try {
+    b.s.travel.maps.unrelated = {};
+    const x = await ensureMap(a.s, key), y = await ensureMap(b.s, key);
+    const [[fresh, seed, , options], [replay, replaySeed]] = generate.mock.calls;
+    expect(replaySeed).toBe(seed);
+    expect(replay.ecs.namespace).toBe(fresh.ecs.namespace);
+    expect(worldKey(options.hex)).toBe(key);
+    expect(options.world).toBe(a.s.world);
+    expect(options.worldSeed).toBe(a.s.travel.seed);
+    const otherKey = worldKey(neighbours(a.s.world.home)[1]);
+    await ensureMap(a.s, otherKey);
+    expect(generate.mock.calls[2][1]).not.toBe(seed);
+    expect(generate.mock.calls[2][0].ecs.namespace).not.toBe(fresh.ecs.namespace);
+    expect(x).toEqual(y);
+    expect(x.social.lastSeason).toBe(3);
+    expect(Object.keys(x.ecs.playable)).toHaveLength(0);
+    expect(Object.keys(x.ecs.building)).toHaveLength(3);
+    expect(Object.keys(x.ecs.personable).length).toBeGreaterThan(0);
+    const entityIds = ecs => Object.values(ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c));
+    const sourceIds = new Set(entityIds(a.s.ecs));
+    expect(entityIds(x.ecs).some(id => sourceIds.has(id))).toBe(false);
+    expect(entityIds(x.ecs).every(id => id.startsWith(fresh.ecs.namespace))).toBe(true);
+    expect(x.ecs.nextId).toEqual(expect.any(Number));
+    expect(a.s.travel.historyCalls.filter(c => c.key === key).map(c => c.season)).toEqual([1, 2, 3]);
+    const before = structuredClone(x), calls = [...a.s.travel.historyCalls];
+    expect(await ensureMap(a.s, key)).toBe(x);
+    expect(x).toEqual(before);
+    expect(a.s.travel.historyCalls).toEqual(calls);
+    expect(Object.keys(a.s.travel.maps)).toHaveLength(3);
+    expect(generate).toHaveBeenCalledTimes(3);
+    expect(a.s.travel.timings.map(t => [t.key, t.season])).toEqual([[key, 3], [otherKey, 3]]);
+  } finally { generate.mockRestore(); }
 });

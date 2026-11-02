@@ -1,4 +1,5 @@
-import { generateMap } from "game/map";
+import { flatVillage } from "./support/village";
+import { foundingVillage, foundHouseholds } from "./support/founding";
 import * as history from "game/history";
 import * as possessions from "game/possessions";
 import { giftOptions } from "game/people";
@@ -7,15 +8,12 @@ import { collect_gift, talk } from "game/tasks";
 import { Task } from "game/htn";
 import { newEntities } from "game/entities";
 
-const maps = {};
-const generate = async seed => {
-  if (!maps[seed]) {
-    const s = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} } };
-    const result = await generateMap(s, seed, async () => {});
-    s.map = result.map; s.ui.playerId = result.playerId;
-    maps[seed] = s;
-  }
-  return maps[seed];
+const generate = seed => {
+  const s = foundHouseholds(foundingVillage(seed));
+  s.days = 0.375;
+  const heirloom = Object.values(s.ecs.possession).find(p => p.kind == "heirloom");
+  possessions.die(s, heirloom.ownerId);
+  return s;
 };
 
 it.each([13, 20, 1234, 98765])("materialises every living owner's historical heirloom as one complete gift on seed %s", async seed => {
@@ -55,25 +53,39 @@ it("retains complete personal objects and unrelated owned loose goods through ph
     }
     return id;
   });
-  const historySpy = jest.spyOn(history, "generateHistory").mockImplementation((s, seed) => {
+  const runPhysicalHistory = (s, seed) => {
     const player=Object.keys(s.ecs.playable)[0];
     const [loose,store]=newEntities(s,[{spatial:{...s.ecs.spatial[player],immovable:true},good:{type:"wood",amount:3},haulable:{},controllable:{controllerId:player}},{spatial:{...s.ecs.spatial[player]},container:{capacity:12,amounts:{grain:7}},controllable:{controllerId:player}}]);
     const before = structuredClone({good:s.ecs.good[loose],haulable:s.ecs.haulable[loose],controllable:s.ecs.controllable[loose],container:s.ecs.container[store]});
     originalHistory(s, seed);
+    for (const village of Object.values(s.villages)) for (const house of village.houses) {
+      const stock = s.ecs.container[s.ecs.household[house].storeId], account = s.ecs.household[house].estateAccount;
+      expect(account).toBeDefined();
+      expect(Object.values(stock.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(stock.capacity);
+      for(const type of new Set([...Object.keys(account.initial),...Object.keys(account.produced),...Object.keys(account.consumed)])) {
+        expect(stock.amounts[type] || 0).toBeGreaterThanOrEqual(0);
+        expect(stock.amounts[type] || 0).toBeCloseTo((account.initial[type] || 0)+(account.produced[type] || 0)-(account.consumed[type] || 0),8);
+      }
+    }
     for(const key of ["good","haulable","controllable"])expect(s.ecs[key][loose]).toEqual(before[key]);
     expect(s.ecs.container[store]).toEqual(before.container);
     expect(Object.values(s.space).flat().filter(id=>id==loose)).toHaveLength(1);
     for (const [id, components] of Object.entries(created)) for (const [key, value] of Object.entries(components)) expect(s.ecs[key][id]).toEqual(value);
-  });
+  };
   try {
-    const s = { ecs: { nextId: 1 }, days: .375, redraws: [], ui: { show: {} } };
-    await generateMap(s, 13, async () => {});
+    const s = foundingVillage(13);
+    runPhysicalHistory(s, 13);
     expect(Object.keys(created)).toHaveLength(Object.keys(s.villages).length);
-  } finally { historySpy.mockRestore(); createSpy.mockRestore(); }
+  } finally { createSpy.mockRestore(); }
 });
 
 it("hands over a genuinely inherited object without duplicating or merging same-type heirlooms", async () => {
-  const s = structuredClone(await generate(13)), player = s.ui.playerId;
+  const { s, village } = flatVillage(3, { seed: 13 });
+  const player = s.ui.playerId;
+  const founder = Object.keys(s.ecs.personable).find(id => s.ecs.household[id]?.houseId == village.houses[0]);
+  possessions.createPossession(s, founder, "Silver ring");
+  possessions.createPossession(s, founder, "Silver ring");
+  possessions.die(s, founder);
   const heirs = Object.values(s.ecs.possession).filter(p => p.kind == "heirloom" && p.ownerId && !s.ecs.personable[p.ownerId].dead && p.owners.some(o => o.reason == "inheritance"));
   const a = heirs[0], b = heirs.find(p => p.id != a.id && p.name == a.name), recipient = a.ownerId;
   expect(b).toBeDefined();

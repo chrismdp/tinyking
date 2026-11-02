@@ -1585,6 +1585,12 @@ npc_family("spouse", [TRUST_SOCIAL, KIN("spouse"), ALIVE], [
       P("ring_is", person="npc", towards="relative", ring="intimate"),
       facts=[F("relationship_to_relative", ["ring"])]),
 ], [T("family"), R("relative")], LINK_B, LINK_F)
+npc_family("unhappy_marriage", [RING_MIN("personal"), KIN("spouse"), ALIVE,
+    P("marital_satisfaction_below", person="npc", value=30)], [
+    "Things are not right between {relative.first_name} and me.",
+    "I am unhappy in my marriage to {relative.first_name}.",
+], [T("family"), R("relative")], {"link":{"source":"npc_kin_link"},"relative":{"source":"link_relative","link":"link"}}, LINK_F,
+    key="marriage_confidence:{npc.id}:{player.id}:{context.encounter_number}")
 npc_family("spouse_dated", [TRUST_SOCIAL, KIN("spouse"), ALIVE, P("event_type_is", event="wedding", type="marriage")], [
     "{relative.first_name} and I were married {wedding.when}.",
     "My {link.kin_term}'s {relative.first_name}. We wed {wedding.when}.",
@@ -2905,6 +2911,29 @@ for etype in EVENT_TYPES:
             disc_people=["event.people"],disc_events=["event"],
             variants=["{event."+wording+"} {event.when}."])
         rows[-1]["level"]={"ring":"public","below":"hide"}
+
+# Evening callers use the existing physical villager-started chat.
+situation("campfire","company","npc",base_all=[PHASE_OPEN],
+    icons=[T("village"),R("npc")],use_key="campfire:{context.encounter_number}",
+    variants=["Good evening. Your fire looked welcoming.","Evening. It is good to share a fire."])
+for r in rows[-2:]:
+    r["level"]={"ring":"public","below":"hide"}
+
+# World speech uses the same event account, spoken by an actual NPC pair.
+for etype in EVENT_TYPES:
+    situation("overheard_news", "catalogue_"+etype, "npc",
+        base_all=[PHASE_BUBBLE,P("event_type_is",event="event",type=etype)],
+        bindings={"event":{"source":"npc_known_unheard_event_for_question"}},
+        icons=[{"kind":"event","ref":"event"}],
+        facts=[F("event",["id","type","people","day"],"past")],
+        disc_events=["event"],use_key="overheard:{npc.id}:{event.id}",
+        variants=["{event.account_sentence}."])
+    rows[-1]["level"]={"ring":"public","below":"hide"}
+for st in ("spring","summer","autumn","winter"):
+    situation("overheard_topic",st,"npc",base_all=[PHASE_BUBBLE,SEASON(st)],
+        icons=[T("season")],use_key="overheard_season:{context.game_hour}",
+        variants=["The "+st+" days are here."])
+    rows[-1]["level"]={"ring":"public","below":"hide"}
 
 # Explicit mood authoring. Refusals remain optional to answer.
 for r in rows:

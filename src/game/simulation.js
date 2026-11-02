@@ -1,6 +1,8 @@
 import { updateFestival, seasonTurnAt } from "game/seasons";
 import { DAYS_IN_SEASON } from "game/time";
 import { playerDay, daylight } from "game/energy";
+import { updateOverhearing } from "game/chat_bubbles";
+import { updateCampfireVisits } from "game/campfire_visits";
 import { updateNeeds } from "game/needs";
 import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
@@ -234,7 +236,9 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     playerDay(state);
     updateCustoms(state);
     updateJourney(state);
+    updateCampfireVisits(state);
     updatePlanners(state, frameMod);
+    updateOverhearing(state);
     if (state.chat?.active) { if(onHour) onHour(); return; }
     // All edge completions belong to the map where planners just ran.
     for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);

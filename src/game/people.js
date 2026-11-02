@@ -165,21 +165,34 @@ function goodwillRank(goodwill) {
   return 0;
 }
 
+// Anonymous facts can change regard without supplying a person's name.
+export function goodwillTowards(state, observer, other) {
+  const r=personComponent(state,"relationships",observer);
+  return r?.known[other]?.goodwill ?? r?.unmetGoodwill?.[other] ?? 0;
+}
 export function meet(state, a, b) {
   if (a == b) return;
   const list = state.ecs.relationships[a].known;
   indexList(state, list);
   if (list[b]) return;
   const rank = disposition(state, a, b) == "love" ? 1 : 0;
-  const goodwill = rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0;
-  list[b] = { ring: "public", goodwill, base: goodwill };
+  const base = rank ? GOODWILL_STEPS[rank] + STARTING_BUFFER : 0;
+  const pending=state.ecs.relationships[a].unmetGoodwill?.[b] || 0;
+  if(state.ecs.relationships[a].unmetGoodwill)delete state.ecs.relationships[a].unmetGoodwill[b];
+  const goodwill=base+pending;
+  list[b] = { ring: "public", goodwill, base };
   const cached = relationshipIndexes.get(list);
   if (cached) cached.members = null;
-  moveTo(list, b, rank);
+  moveTo(list, b, Math.min(goodwillRank(goodwill),DISPOSITION_CAP[disposition(state,a,b)]));
 }
 
-export function addGoodwill(state, from, to, amount) {
+export function addGoodwill(state, from, to, amount, introduce = true) {
   if (from == to) return;
+  const observer=state.ecs.relationships[to];
+  if(!introduce && !observer.known[from]) {
+    (observer.unmetGoodwill ||= {})[from]=(observer.unmetGoodwill?.[from] || 0)+amount;
+    return;
+  }
   meet(state, to, from);
   const list = state.ecs.relationships[to].known;
   writableBond(list, from);
@@ -205,6 +218,11 @@ export function drift(state, hours) {
   const people = state.ecs.personable;
   for (const [personId, { known: list }] of Object.entries(state.ecs.relationships || {})) {
     if (people?.[personId]?.dead || !isResident(state,personId)) continue;
+    const pending=state.ecs.relationships[personId].unmetGoodwill;
+    for(const [id,value] of Object.entries(pending || {})) {
+      const remaining=Math.max(0,Math.abs(value)-hours*DRIFT_PER_HOUR);
+      if(remaining)pending[id]=Math.sign(value)*remaining;else delete pending[id];
+    }
     const index = relationshipIndex(list);
     for (const id of index ? inKeyOrder(index, index.active) : Object.keys(list)) {
       let bond = list[id];
@@ -478,11 +496,11 @@ export function canDiscloseEvent(state, speaker, viewer, event) {
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
   const trust=rank(speaker,viewer),family=rule.family;
   if(trust<RINGS.indexOf(rule.ring))return false;
-  if(!family || family.between!="spouses" || !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
+  if(!family || family.between=="spouses" && !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
   if(event.people.includes(viewer))return true;
   if(family.excludeKin && event.people.some(id=>closeFamily(state,id).includes(viewer)||closeFamily(state,viewer).includes(id)))return false;
   if(family.excludeFriends && event.people.some(id=>rank(viewer,id)>=RINGS.indexOf(family.excludeFriends)))return false;
-  const rival=event.people.some(id=>personComponent(state,"relationships",viewer)?.known[id]?.goodwill<0);
+  const rival=event.people.some(id=>goodwillTowards(state,viewer,id)<0);
   return trust>=RINGS.indexOf(rival?family.rivalRing:family.ring);
 }
 

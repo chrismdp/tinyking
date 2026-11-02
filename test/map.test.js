@@ -39,7 +39,7 @@ it("refreshes physical habitat on two real tiles after grading their altitude", 
     state.ecology.tiles[Hex().fromPoint(p)] = { id };
     setTileElevation(state, id, altitude);
     const tile = state.ecs.mappable[id], climate = climateAt(world, worldPoint(home, p));
-    expect(tile).toEqual(localHabitat(world, p, altitude));
+    expect(tile).toEqual({ id, ...localHabitat(world, p, altitude) });
     expect(tile.climateWarmth).toBeCloseTo(climate.climateWarmth, 12);
     expect(tile.moistureValue).toBeCloseTo(climate.moistureValue, 12);
     expect(tile.biomeMix).toEqual(biomeMixture(tile.warmth, tile.moistureValue));

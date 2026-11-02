@@ -215,3 +215,21 @@ it("retains quarrels for younger housemates with bad goodwill",()=>{
   for(let day=0;day<80;day++){s.days=day;chatTogether(s,a,b,true,6);}
   expect(s.events.some(e=>e.type=="quarrel"&&e.people.includes(a)&&e.people.includes(b))).toBe(true);
 });
+
+it("owns reaction, discovery and attempt maps when a seasonal result learns later news",()=>{
+  const {historyStep}=require("game/social");
+  const {runSocialActions}=require("game/social_actions");
+  const {state:s,a,b,listener}=fixture();s.generatingHistory=true;
+  recordEvent(s,"quarrel",[a,b],[],{audienceIds:[listener]});
+  learnEvent(s,listener,recordEvent(s,"romance",[a,b]));
+  const actions=[{id:"ownership_attempt",hooks:["contact"],chance:0}];
+  runSocialActions(s,"contact",a,b,{actions});
+  const before=JSON.stringify(s),next=historyStep(s,1);
+  recordEvent(next,"quarrel",[a,b],[],{audienceIds:[listener]});
+  learnEvent(next,listener,recordEvent(next,"romance",[a,b]));
+  runSocialActions(next,"contact",a,b,{actions});
+  expect(JSON.stringify(s)).toBe(before);
+  expect(next.ecs.relationships[a].actionMoments).not.toEqual(s.ecs.relationships[a].actionMoments);
+  expect(Object.keys(next.knowledge[listener].reactions).length).toBeGreaterThan(Object.keys(s.knowledge[listener].reactions).length);
+  expect(Object.keys(next.knowledge[listener].discoveries).length).toBeGreaterThan(Object.keys(s.knowledge[listener].discoveries).length);
+});

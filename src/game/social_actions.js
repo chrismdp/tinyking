@@ -23,7 +23,7 @@ export function runSocialActions(s,hook,a,b,{conversations=1,actions=ACTIONS,sum
       const stamp=action.id+":"+key+(action.directional?":"+first:"");
       if(owner.actionMoments?.[stamp]==moment || s.ecs.relationships?.[b]?.actionMoments?.[stamp]==moment)continue;
       // Remember attempts, including a failed chance, through saves and travel.
-      for(const id of [a,b]) {const r=s.ecs.relationships[id];if(r)r.actionMoments={...r.actionMoments,[stamp]:moment};}
+      for(const id of [a,b]) {const r=s.ecs.relationships[id];if(r)(r.actionMoments ||= {})[stamp]=moment;}
       const chance=1-(1-action.chance)**conversations;
       if(hashUnit(s.peopleSeed+":action:"+stamp+":"+moment)>=chance)continue;
       let event;

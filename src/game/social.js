@@ -611,7 +611,8 @@ export function historyStep(worldHexState, season) {
   }));
   records("relationships", (r, id) => worldHexState.ecs.personable[id]?.dead ? r : {
     ...r,
-    known: copyRelationshipList(r.known)
+    known: copyRelationshipList(r.known),
+    ...(r.actionMoments?{actionMoments:{...r.actionMoments}}:{})
   });
   records("possession", p => ({
     ...p,
@@ -646,6 +647,8 @@ export function historyStep(worldHexState, season) {
   for (const [id, k] of Object.entries(worldHexState.knowledge || {})) copy.knowledge[id] = {
     ...k,
     ...(k.spokenSources?{spokenSources:{...k.spokenSources}}:{}),
+    ...(k.reactions?{reactions:{...k.reactions}}:{}),
+    ...(k.discoveries?{discoveries:{...k.discoveries}}:{}),
     ...(k.people?{people:{...k.people}}:{}),
     events: [...(k.events || [])]
   };

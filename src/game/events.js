@@ -21,7 +21,7 @@ export function learnEvent(state, viewerId, event, discovery="heard") {
   if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
-  if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")knowledge.discoveries={...knowledge.discoveries,[event.id]:{kind:discovery,day:state.days}};
+  if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")(knowledge.discoveries ||= {})[event.id]={kind:discovery,day:state.days};
   applySocialEffects(state,EVENT_TYPES[event.type]?.onLearn,eventBindings(event,viewerId),recordEvent);
 }
 

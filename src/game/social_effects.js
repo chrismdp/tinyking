@@ -24,7 +24,7 @@ export function applySocialEffects(s,effects,bindings,recordEvent) {
       }
       case "reaction": {
         const k=(s.knowledge ||= {})[id(effect.person)] ||= {people:{},feelings:{}};
-        k.reactions={...k.reactions,[b.event.id]:effect.value};break;
+        (k.reactions ||= {})[b.event.id]=effect.value;break;
       }
       case "romance":case "affair":
         for(const [a,c] of [[id(effect.a),id(effect.b)],[id(effect.b),id(effect.a)]]) {

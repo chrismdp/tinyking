@@ -110,7 +110,7 @@ From 18:00 to 21:00, the player can receive a caller near their own home fire, c
 
 ## Authored social actions and romance
 
-`src/data/social_actions.json` defines participant bindings, conditions, seeded chance, effects and the event to record. `social_conditions.js` supplies pure ring, goodwill, trait, kin, age and spouse tests for chat and simulation. Roles are explicit: actor, partner, spouse, subject, teller and listener. Missing people fail the test. Unknown tests fail a complete condition group.
+`src/data/social_actions.json` defines participant bindings, conditions, seeded chance, effects and the event to record. `social_conditions.js` supplies pure ring, goodwill, trait, kin, age and spouse tests for chat and simulation. Roles are explicit: actor, partner, spouse, subject, teller and listener. Missing people fail the test. Unknown tests never satisfy a condition.
 
 `chatTogether` runs contact actions after actual contact. Summary encounters use the same function. `advanceSeasonRules` also runs seasonal actions for household pairs. Actions never scan all possible village pairs. An action remembers its latest attempt per pair and calendar day, including failed chances. Reversed contact, repeated half-hours, saves and traveller transfers cannot retry that moment. Summary contact combines its conversation opportunities into one seeded trial. A quarrel stops further contact actions and the news exchange.
 
@@ -124,4 +124,4 @@ An unhappy married person in a mutual romance with someone other than their spou
 
 When a spouse first learns an affair, they lose 30 goodwill towards their unfaithful spouse. A declared quarrel then applies its ordinary six-point losses and avoidance. Reaction records use the event identity. There is no separation, eviction, parentage change or succession dispute.
 
-Romance and affair records live on relationship bonds. Latest action attempts live on the relationship component. Reactions live in personal knowledge. Existing generic saves, traveller components, identity records and `LOCAL_FIELDS` carry these containers. `historyStep` copies their owners before writes. No travel, map, world-history or save field list changes are needed.
+Romance and affair records live on relationship bonds. Latest action attempts live on the relationship component. Reactions and discovery records live in personal knowledge. Existing generic saves, traveller components, identity records and `LOCAL_FIELDS` carry these containers. `historyStep` copies their owners before writes. No travel, map, world-history or save field list changes are needed.

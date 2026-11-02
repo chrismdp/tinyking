@@ -297,7 +297,7 @@ it("replays coordinate destinations with real namespaced households and exactly 
     const [[fresh, seed, , options], [replay, replaySeed]] = generate.mock.calls;
     expect(replaySeed).toBe(seed);
     expect(replay.ecs.namespace).toBe(fresh.ecs.namespace);
-    expect(options.hex).toEqual(neighbours(a.s.world.home)[0]);
+    expect(worldKey(options.hex)).toBe(key);
     expect(options.world).toBe(a.s.world);
     expect(options.worldSeed).toBe(a.s.travel.seed);
     const otherKey = worldKey(neighbours(a.s.world.home)[1]);

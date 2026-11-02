@@ -29,7 +29,7 @@ The script captures desktop and phone labels through real watch and skip inputs.
 
 ## Timing and entry selection
 
-The opening lasts 5.2 seconds, independent of simulation speed.
+The opening lasts 5.2 seconds, independent of simulation speed. The first automatic save waits another 30 real seconds after handover. This keeps the save copy and encoding apart from camp setup. Leaving or hiding the page still requests an immediate save, even during the opening.
 Time, needs, villagers and task queues stay frozen until handover.
 The character remains at the stopped position throughout setup.
 Click, tap, Escape and `?intro=skip` finish immediately with a standing character and a complete camp.

@@ -24,16 +24,21 @@ let work = Promise.resolve();
 self.addEventListener("install", event => event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
 self.addEventListener("message", event => {
+  const { id, operation } = event.data;
+  let state = event.data.state;
+  delete event.data.state;
+  const port = event.ports[0];
   // A new page's inspect/load waits for the old page's submitted save. The
   // event lifetime holds the worker alive after that page's port closes.
+  // The queued job holds its snapshot, without retaining the MessageEvent.
   work = work.then(async () => {
-    const { id, operation, state } = event.data;
-    const port = event.ports[0];
     try {
       let result;
       if (operation === "save") {
         const started = performance.now();
-        const bytes = await compressGame(state);
+        const encoding = compressGame(state);
+        state = null;
+        const bytes = await encoding;
         await slot("readwrite", { version: SAVE_VERSION, bytes });
         result = { milliseconds: performance.now() - started, bytes: bytes.byteLength };
       } else {

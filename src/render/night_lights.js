@@ -40,7 +40,8 @@ export function createNightLights(ground) {
   const sources = new Map(), texture = falloffTexture();
   const lights = Array.from({ length: MAX_FIRE_LIGHTS }, () => {
     const light = new THREE.PointLight(0xFFC176, 0, 190, 2);
-    light.castShadow = false; light.visible = false; mesh.add(light);
+    // Visible zero-intensity lights keep Three's shader light count fixed.
+    light.castShadow = false; mesh.add(light);
     return light;
   });
   const pool = (centre, rx, rz, angle, name) => {
@@ -102,7 +103,6 @@ export function createNightLights(ground) {
       candidates.sort((a, b) => a.distance - b.distance);
       for (const [i, light] of lights.entries()) {
         const candidate = candidates[i];
-        light.visible = !!candidate;
         light.intensity = candidate ? 3200 * candidate.amount : 0;
         if (candidate) {
           const p = candidate.source.centre;

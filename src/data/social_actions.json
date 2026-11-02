@@ -74,20 +74,6 @@
     "chance": 0.12,
     "stop": true,
     "when": {
-      "all": [
-        {
-          "test": "is_adult",
-          "args": {
-            "person": "actor"
-          }
-        },
-        {
-          "test": "is_adult",
-          "args": {
-            "person": "partner"
-          }
-        }
-      ],
       "any": [
         {
           "test": "disposition_is",

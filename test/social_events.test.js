@@ -206,3 +206,12 @@ it("includes an arrived player in seasonal household quarrels without forcing a 
   for(let season=1;season<=12;season++){s.days=season*7;advanceSeason(s,season);}
   expect(s.events.some(e=>e.type=="quarrel"&&e.people.includes(a)&&e.people.includes(player))).toBe(true);
 });
+
+it("retains quarrels for younger housemates with bad goodwill",()=>{
+  const {chatTogether}=require("game/social");
+  const {state:s,a,b}=fixture();s.ecs.personable[b].age=12;
+  s.ecs.relationships[a].known[b]={ring:"public",goodwill:-12,base:-12};
+  s.ecs.relationships[b].known[a]={ring:"public",goodwill:-12,base:-12};
+  for(let day=0;day<80;day++){s.days=day;chatTogether(s,a,b,true,6);}
+  expect(s.events.some(e=>e.type=="quarrel"&&e.people.includes(a)&&e.people.includes(b))).toBe(true);
+});

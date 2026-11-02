@@ -233,3 +233,11 @@ it("owns reaction, discovery and attempt maps when a seasonal result learns late
   expect(Object.keys(next.knowledge[listener].reactions).length).toBeGreaterThan(Object.keys(s.knowledge[listener].reactions).length);
   expect(Object.keys(next.knowledge[listener].discoveries).length).toBeGreaterThan(Object.keys(s.knowledge[listener].discoveries).length);
 });
+
+it("retains a physical visit record when one visitor has no village affiliation",()=>{
+  const {socialise}=require("game/tasks");
+  const {state:s,a,b}=fixture();s.ecs.village[a].villageId=null;
+  for(const [id,partner] of [[a,b],[b,a]])s.ecs.planner[id].world.social={partnerId:partner,visitor:id==a,stage:"visiting",started:s.days-1/24,expires:s.days+1};
+  socialise(s,a,s.ecs.planner[a].world,0,false,b);
+  expect(s.events.filter(e=>e.type=="visit"&&e.people[0]==a&&e.people[1]==b)).toHaveLength(1);
+});

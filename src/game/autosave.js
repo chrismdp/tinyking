@@ -27,19 +27,29 @@ export function connectSaveWorker() {
   });
 }
 
-export function createAutosave(state, client, changed = () => {}) {
-  let requested = false, pending = null;
+const afterPaint = fn => requestAnimationFrame(() => setTimeout(fn, 0));
+
+export function createAutosave(state, client, changed = () => {}, afterFrame = afterPaint) {
+  let requested = false, pending = null, deferred = null;
   const status = { ready: false, hasSave: false, error: null, lastSave: null };
   const flush = (final = false) => {
+    // The arrival gets a complete rendering opportunity before postMessage's
+    // synchronous structured clone. pagehide must submit before the page goes.
+    if (deferred && !final) return deferred.promise;
     if (!requested || pending && !final || state.generating || state.worldBusy || state.transition) return pending;
+    const checkpoint = deferred;
+    deferred = null;
     requested = false;
-    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) return null;
+    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) { checkpoint?.resolve(null); return null; }
     const started = performance.now();
     const day = state.days;
     const travel = state.travel;
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
-    const saving = client("save", gameData(state));
+    const saving = client(checkpoint ? "checkpoint" : "save", checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state)).then(result => {
+      if(checkpoint && !result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
+      return result;
+    });
     const snapshotMilliseconds = performance.now() - started;
     const current = saving.then(result => {
       if(result.hexRecords && travel && state.travel===travel)travel.hexRecords=result.hexRecords;
@@ -51,6 +61,7 @@ export function createAutosave(state, client, changed = () => {}) {
       if (pending === current) { pending = null; flush(); }
     });
     pending = current;
+    if(checkpoint)checkpoint.resolve(saving);
     return pending;
   };
   return Object.assign(status, {
@@ -64,6 +75,24 @@ export function createAutosave(state, client, changed = () => {}) {
     },
     async load() { return client("load"); },
     async readHex(key) { return client("hex",key); },
+    deferCheckpoint(hexes) {
+      if(deferred) {
+        Object.assign(deferred.hexes,hexes);
+        return deferred.promise;
+      }
+      let resolve;
+      const promise=new Promise(done=>{resolve=done;});
+      const task={hexes,resolve,promise,travel:state.travel};
+      deferred=task;requested=true;
+      const submit=()=>{
+        if(deferred!==task)return;
+        if(state.travel!==task.travel) {deferred=null;task.resolve(null);return;}
+        flush(true);
+        if(deferred===task)afterFrame(submit);
+      };
+      afterFrame(submit);
+      return promise;
+    },
     async checkpoint(hexes) {
       // A hop holds worldBusy until this atomic world + hex checkpoint commits.
       // Wait for an already submitted autosave before choosing its record pointers.

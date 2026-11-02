@@ -1098,6 +1098,15 @@ export async function evictAwayMaps(s) {
   if(!j?.wholeWorld || !s.persistence?.checkpoint)return;
   const archived=Object.fromEntries(Object.entries(j.maps).filter(([key,map])=>key!==j.active&&!map.compact));
   if(!Object.keys(archived).length)return;
+  if(s.persistence.deferCheckpoint) {
+    // Keep the real details available for an immediate return or a retry.
+    // The save controller submits after the first arrival frame, or on close.
+    s.persistence.deferCheckpoint(archived).then(result=>{
+      if(!result?.hexRecords)return;
+      for(const [key,map] of Object.entries(archived))if(key!==j.active && j.maps[key]===map)j.maps[key]=compactMap(map);
+    }).catch(()=>{}); // Autosave reports the error and retains the details.
+    return;
+  }
   for(const [key,map] of Object.entries(archived))j.maps[key]=compactMap(map);
   try {await s.persistence.checkpoint(archived);}
   catch(error){Object.assign(j.maps,archived);throw error;}

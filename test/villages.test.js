@@ -33,8 +33,9 @@ it("allocates crops away from an existing public road", () => {
   const fields = Object.keys(s.ecs.farmable);
   expect(fields.length).toBeGreaterThan(0);
   for (const id of fields) {
-    expect(road).not.toContain(id);
-    expect(s.ecs.mappable[id].route || []).toHaveLength(0);
+    const tile = tileAt[Hex().fromPoint(s.ecs.spatial[id])];
+    expect(road).not.toContain(tile);
+    expect(s.ecs.mappable[tile].route || []).toHaveLength(0);
   }
   for (const id of road) expect(s.ecs.mappable[id].route.length).toBeGreaterThan(0);
 });

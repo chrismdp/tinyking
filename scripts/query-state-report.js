@@ -25,14 +25,17 @@ const counts=s=>{
   }
   const statuses={private:0,general:0,public:0,legacy:0};let explicitKnowers=0;
   for(const e of events){statuses[e.awareness?.status||"legacy"]++;explicitKnowers+=e.awareness?.knowers.length||0;}
-  return {people:Object.keys(s.travel.people).length,events:events.length,types,statuses,explicitKnowers,knownAssociations,bonds,crossHexBonds,nonTravellerCrossHex,travellers:travelled.size};
+  return {people:Object.keys(s.travel.people).length,livingPeople:Object.values(s.travel.people).filter(p=>!p.personable.dead&&!p.personable.offMap).length,events:events.length,types,statuses,explicitKnowers,knownAssociations,bonds,crossHexBonds,nonTravellerCrossHex,travellers:travelled.size};
 };
 (async()=>{
   const file=process.argv[2],label=process.argv[3],s=v8.deserialize(fs.readFileSync(file));
   const report={file,whole:size(s),fields:sizes(s),travel:sizes(s.travel),counts:counts(s)};
-  const maps=Object.entries(s.travel.maps),biggest=maps.sort((a,b)=>size(b[1])-size(a[1]))[0];
+  const maps=Object.entries(s.travel.maps),mapSizes=new Map(maps.map(([key,map])=>[key,size(map)])),biggest=[...maps].sort((a,b)=>mapSizes.get(b[0])-mapSizes.get(a[0]))[0];
   report.biggest={key:biggest[0],fields:sizes(biggest[1]),ecs:sizes(biggest[1].ecs)};
   report.activeEcs=size(s.ecs);report.mapReferences=Object.fromEntries(maps.map(([key,map])=>[key,{residents:Object.keys(map.residents).length,people:Object.keys(map.ecs.personable||{}).length,redraws:map.redraws?.length||0}]));
+  if(process.argv.includes("--history")) {
+    fs.writeFileSync("shots/query-history-"+label+".json",JSON.stringify(report,null,2));console.log(JSON.stringify({label,counts:report.counts}));return;
+  }
   const at=performance.now(),packet=await encodeWorldSave(s),disk=new Map(Object.entries(packet.records));
   report.save={ms:performance.now()-at,manifestV8Bytes:size(packet.world),compressedHexBytes:Object.values(packet.records).reduce((n,r)=>n+r.bytes.byteLength,0),hexes:disk.size};
   report.save.totalEncodedBytes=report.save.manifestV8Bytes+report.save.compressedHexBytes;

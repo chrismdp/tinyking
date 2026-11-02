@@ -1122,6 +1122,9 @@ async function receiveNpcs(s, j) {
       for (const field of LOCAL_FIELDS) if (field != "days") s[field] = dest[field];
       s.redraws?.push(...(dest.redraws || []));
     }
+    // A snapshot never owns a renderer queue. Active arrivals hand their
+    // requests to the live state above; away arrivals need no redraw.
+    if(j.localPeople)delete dest.redraws;
   }
   j.transit = j.transit.filter(t => !finished.has(t));
 }
@@ -1214,6 +1217,7 @@ export async function advanceWorldClock(s, {
       }));
       if(j.wholeWorld && map.compact) {
         for(const component of ["planner","manager","traits","attributes"])delete map.ecs[component];
+        if(j.localPeople)delete map.redraws;
         j.maps[key]=map;
       } else j.maps[key]=localSnapshot(map);
       publish(map, j);

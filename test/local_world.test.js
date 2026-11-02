@@ -67,4 +67,6 @@ it("adds a real NPC arrival to the active household, village and nearby queries"
   expect(householdMembers(s,home)).toContain(id);
   expect(villagePeople(s,village)).toContain(id);
   expect(nearbyPeople(s,s.ecs.spatial[id],0)).toContain(id);
+  expect(s.redraws).toContain(id);
+  expect(s.travel.maps[s.travel.active].redraws).toBeUndefined();
 });

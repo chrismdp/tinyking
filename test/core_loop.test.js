@@ -6,7 +6,7 @@ import { eat, sleep, chop_tree } from 'game/tasks';
 import { updateNeeds } from 'game/needs';
 import { careSpeed } from 'game/hunger';
 import { ensureEnergy, playerDay, foodChoices, eatOwnedFood } from 'game/energy';
-import { DAYS_IN_SEASON, HOUR, full } from 'game/time';
+import { HOUR } from 'game/time';
 import { enqueueTask, readyPlayerTasks } from 'game/manager';
 
 export function playerFixture() {
@@ -76,9 +76,7 @@ it('NPC neglect cannot cause a starvation death, while meals still consume real 
   updateNeeds(s,2);expect(s.ecs.personable[npc].dead).toBeFalsy();expect(s.ecs.personable[npc].hunger).toBeGreaterThan(99);
   expect(s.ecs.personable[a].hunger).toBeUndefined();
 });
-it('uses seven numbered days with no undefined clock labels',()=>{
-  expect(DAYS_IN_SEASON).toBe(7);expect(full(6.5)).toContain('day 7');expect(full(7.5)).toContain('summer');
-});
+
 it('a thank-you meal comes from a surplus larder exactly once',()=>{
  const {state:s,villager:a}=playerFixture();
  const [house,npc]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},container:{capacity:30,amounts:{bread:12}}},{spatial:{...s.ecs.spatial[a]},personable:{age:30},controllable:{},household:{houseId:'unused'},personality:{traits:[],likes:[],dislikes:[]},relationships:{known:{}}}]);

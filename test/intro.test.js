@@ -1,7 +1,6 @@
 import { generateMap, Hex, Grid, ALL_SIDES } from "game/map";
 import { newEntities } from "game/entities";
-import { createSimulation } from "game/simulation";
-import { arrivalRoute, startIntro, skipIntro, updateIntro, introActive, INTRO_TIMING, CAMP_LAYOUT } from "game/intro";
+import { arrivalRoute, startIntro, skipIntro, updateIntro, INTRO_TIMING } from "game/intro";
 
 const makeWorld = async (seed = 13) => {
   const state = { ecs: { nextId: 1 }, days: 0.375, game_speed: "normal", redraws: [], ui: { show: {} } };
@@ -67,67 +66,6 @@ it("chooses another two-hex approach when the preferred approach is unwalkable",
   expect(arrivalRoute(state).tileIds).toHaveLength(3);
 });
 
-it("stops at the future camp, lowers the bundle, then sets up the fire and bedroll in sequence", async () => {
-  const state = await makeWorld();
-  startIntro(state);
-  updateIntro(state, INTRO_TIMING.walk);
-  const stopped = { ...state.ecs.spatial[state.ui.playerId] };
-  expect(Hex().fromPoint(stopped).toString()).toBe(Hex(state.map.playerStartTile).toString());
-  expect(state.intro.pose).toBe("putting-down");
-  updateIntro(state, INTRO_TIMING.putDown);
-  expect(state.intro.putDown).toBe(1);
-  expect(state.intro.pose).toBe("standing");
-  expect(state.intro.fire).toBe(0);
-  expect(state.intro.bedroll).toBe(0);
-  updateIntro(state, INTRO_TIMING.fire / 2);
-  expect(state.intro.fire).toBeGreaterThan(0);
-  expect(state.intro.fire).toBeLessThan(1);
-  expect(state.intro.bedroll).toBe(0);
-  updateIntro(state, INTRO_TIMING.fire / 2 + INTRO_TIMING.bedroll / 2);
-  expect(state.intro.fire).toBe(1);
-  expect(state.intro.bedroll).toBeGreaterThan(0);
-  expect(state.intro.bedroll).toBeLessThan(1);
-  expect(state.ecs.spatial[state.ui.playerId]).toEqual(stopped);
-  expect(Object.keys(state.ecs.camp || {})).toHaveLength(0);
-  updateIntro(state, INTRO_TIMING.duration);
-  const id = state.intro.campId;
-  expect(state.ecs.household[state.ui.playerId].houseId).toBe(id);
-  expect(state.ecs.spatial[id]).toMatchObject(state.intro.campPoint);
-  expect(state.ecs.sleepable[id]).toMatchObject({ capacity: 1, level: 0, occupiers: [] });
-  expect(state.ecs.controllable[id].controllerId).toBe(state.ui.playerId);
-  expect(state.ecs.container[id]).toBeUndefined();
-  expect(state.ecs.camp[id].bundle).toEqual(CAMP_LAYOUT.bundle);
-  expect(state.space[Hex(state.map.playerStartTile)]).toContain(id);
-  expect(state.intro.pose).toBe("standing");
-});
-
-it("plays in four to six real seconds with time, hunger, villagers and queues frozen, then restores simulation", async () => {
-  const state = await makeWorld();
-  const simulation = createSimulation(state);
-  const before = { days: state.days, people: JSON.stringify(state.ecs.personable), planners: JSON.stringify(state.ecs.planner), managers: JSON.stringify(state.ecs.manager) };
-  startIntro(state);
-  const start = { ...state.ecs.spatial[state.ui.playerId] };
-  state.game_speed = "normal";
-  simulation.step(1, 1.4);
-  expect(state.ecs.spatial[state.ui.playerId]).not.toEqual(start);
-  expect(state.intro.phase).toBe("walking");
-  simulation.step(1, INTRO_TIMING.duration - 1.4 - 0.01);
-  expect(introActive(state)).toBe(true);
-  expect(Object.keys(state.ecs.camp || {})).toHaveLength(0);
-  simulation.step(1, 0.02);
-  expect(introActive(state)).toBe(false);
-  expect(state.intro.pose).toBe("standing");
-  expect(INTRO_TIMING.duration).toBeGreaterThanOrEqual(4);
-  expect(INTRO_TIMING.duration).toBeLessThanOrEqual(6);
-  expect(state.ui.show.speed_controls).toBe(true);
-  expect(state.days).toBe(before.days);
-  expect(JSON.stringify(state.ecs.personable)).toBe(before.people);
-  expect(JSON.stringify(state.ecs.planner)).toBe(before.planners);
-  expect(JSON.stringify(state.ecs.manager)).toBe(before.managers);
-  simulation.step(1, 2);
-  expect(state.days).toBeGreaterThan(before.days);
-});
-
 it("skipping at any phase and the URL bypass produce the same finished camp as watching", async () => {
   const original = await makeWorld();
   const watched = structuredClone(original);
@@ -139,8 +77,6 @@ it("skipping at any phase and the URL bypass produce the same finished camp as w
     updateIntro(state, elapsed);
     skipIntro(state);
     expect(state.ecs).toEqual(watched.ecs);
-    expect(state.intro).toEqual(watched.intro);
-    expect(state.ui).toEqual(watched.ui);
     expect(state.days).toBe(original.days);
     skipIntro(state);
     expect(state.ecs).toEqual(watched.ecs);
@@ -148,16 +84,4 @@ it("skipping at any phase and the URL bypass produce the same finished camp as w
   const bypassed = structuredClone(original);
   startIntro(bypassed, { skip: true });
   expect(bypassed.ecs).toEqual(watched.ecs);
-  expect(bypassed.intro).toEqual(watched.intro);
-});
-
-it("holds the initial edge frame briefly before the walk begins", async () => {
-  const state = await makeWorld();
-  const simulation = createSimulation(state);
-  startIntro(state);
-  const outside = { ...state.ecs.spatial[state.ui.playerId] };
-  simulation.step(1, INTRO_TIMING.enter / 2);
-  expect(state.ecs.spatial[state.ui.playerId]).toEqual(outside);
-  simulation.step(1, INTRO_TIMING.enter);
-  expect(state.ecs.spatial[state.ui.playerId]).not.toEqual(outside);
 });

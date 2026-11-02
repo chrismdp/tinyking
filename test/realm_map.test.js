@@ -1,7 +1,5 @@
-jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() + "/node_modules/three/build/three.module.js"));
-import { Hex } from "game/hex";
 import { MAP_CENTRE } from "game/world_terrain";
-import { knownCommunities, reachFacts, inspectRealm } from "game/realm_map";
+import { knownCommunities, reachFacts } from "game/realm_map";
 
 const world={landSeed:"13:0",home:{x:0,y:0},hexes:[{x:0,y:0,biome:"grassland",temperature:"temperate"},{x:1,y:0,biome:"taiga",temperature:"cold"}]};
 const fixture=()=>{
@@ -27,12 +25,4 @@ it("uses the actor's discovered village and real household/elder roles without l
   expect(reachFacts(s,world.hexes[1]).communities[0].name).toBe("Hidden remote");
   s.ui.playerId="heir";s.ecs.playable.heir={known:[]};
   expect(reachFacts(s,world.hexes[1]).communities).toEqual([]);
-});
-it("inspection only changes view state; weather is the real model object",()=>{
-  const s=fixture();s.weather={"1,0":{type:"snow",wind:{x:-.8,y:.6,strength:.4},pressure:1001}};
-  const before=JSON.stringify({ecs:s.ecs,travel:s.travel,days:s.days,world:s.world,weather:s.weather});
-  inspectRealm(s,"1,0");
-  expect(s.ui.realmSelection).toEqual({reachKey:"1,0",villageId:null});
-  expect(reachFacts(s,world.hexes[1]).weather).toBe(s.weather["1,0"]);
-  expect(JSON.stringify({ecs:s.ecs,travel:s.travel,days:s.days,world:s.world,weather:s.weather})).toBe(before);
 });

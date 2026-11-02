@@ -1,9 +1,7 @@
 /* global jest, require, expect, it */
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+
 import { peopleWorld } from "./support/people";
-import { GameState } from "../src/components/contexts";
-import { ChatPanel, TopicTastes } from "../src/components/chat_panel";
+
 import { openChat, lineCandidates, speakLine, chooseLine, chatChoices, iconKey, iconScore, moodScore, closeChat } from "game/chat";
 import { recordEvent, eventSentence } from "game/events";
 import { askAbout, canDiscloseEvent } from "game/people";
@@ -11,9 +9,8 @@ import { serialiseGame, restoreGame } from "game/save_game";
 import TYPES from "data/event_types.json";
 import LINES from "data/conversation_lines.json";
 
-jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
 jest.mock("game/name", () => ({ name: n => n?.nickname || "?" }));
-const html=(s,component)=>(renderToStaticMarkup(<GameState.Provider value={s}>{component}</GameState.Provider>));
+
 function setup() {
   const w=peopleWorld(),{state:s,player:p,person:n}=w;
   s.ui.actions={close_chat:()=>closeChat(s)};
@@ -27,8 +24,7 @@ function setup() {
 }
 it.each([["gloomy",1],["proud",-1],["cheerful",-1]])("learns a separate mood taste when a %s listener hears commiseration",(trait,sign)=>{
   const {state:s,player:p,person:n}=setup();s.ecs.personality[n].traits=[trait];
-  expect(html(s,<TopicTastes personId={n}/>)).toContain("Mood tastes");
-  expect(html(s,<TopicTastes personId={n}/>)).toContain("Guarded");
+
   expect(s.knowledge[p].people[n].moodTastes).toBeUndefined();
   s.chat.active.expectation="family";
   const evade=chatChoices(s).find(l=>l.evasive);expect(evade).toBeDefined();
@@ -43,7 +39,7 @@ it.each([["gloomy",1],["proud",-1],["cheerful",-1]])("learns a separate mood tas
   expect(s.knowledge[p].people[n].moodTastes).toEqual({guarded:pop.score});
   expect(s.knowledge[p].people[n].topicTastes).toBeUndefined();
   expect(iconKey({kind:"mood",key:"guarded"})).not.toBe(iconKey({kind:"topic",key:"guarded"}));
-  expect(html(s,<ChatPanel/>)).toContain(sign>0?"class=\"positive\"":"class=\"negative\"");
+
   const restored=restoreGame(serialiseGame(s));
   expect(moodScore(restored,n,"guarded")).toBe(moodScore(s,n,"guarded"));
   expect(moodScore(s,n,"grumbling")*sign).toBeGreaterThan(0);

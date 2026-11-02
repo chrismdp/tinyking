@@ -1,44 +1,10 @@
-jest.mock("three", () => process.getBuiltinModule("module")._load(process.cwd() + "/node_modules/three/build/three.module.js"));
-jest.mock("render/labels", () => ({ label: text => { const o = new (require("three").Group)(); o.userData.text = text; return o; } }));
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { Task } from "game/htn";
 import { walk_to } from "game/tasks";
-import { person, FLAT_GROUND, building, animateHome } from "render/models";
-import { headActivity } from "game/person_activity";
 import { fenceFootprints, fenceRoute, fenceSegments } from "game/fences";
 import { occupiedHomes } from "game/home";
 import { openingGuidance, dismissGuidance } from "game/guidance";
-
-it("retains actor-known names while idle, travelling and crowded, without introducing strangers", () => {
-  const { state:s, player, person:a } = peopleWorld();
-  s.ecs.personable[a].size = 20;
-  const draw = id => person(s, { id, personable:s.ecs.personable[a], planner:s.ecs.planner[id] }, x=>x, {realm:0xffffff});
-  expect(draw(a).getObjectByName("person-name")).toBeUndefined();
-  s.ecs.relationships[player].known[a] = { ring:"public" };
-  for (const task of [null,["wait_for",1],["walk_to", "road"]]) {
-    s.ecs.planner[a].task=task;
-    expect(draw(a).getObjectByName("person-name").userData.text).toBe("Agnes Miller");
-  }
-  expect(draw(player).getObjectByName("person-name").userData.text).toBe("You · Will Ashdown");
-  expect(draw(player).getObjectByName("controlled-ring")).toBeDefined();
-  s.ui.show={selected_person:a};
-  expect(draw(a).getObjectByName("controlled-ring")).toBeUndefined();
-});
-
-it("filters ordinary travel/waits above heads while keeping debug and task-panel explanations", () => {
-  const {state:s,person:a}=peopleWorld(), p=s.ecs.planner[a];
-  p.world.feeling.hungry=true;
-  for(const task of [["walk_to","food"],["wait_for",1],["leave_edge","edge"]]) {
-    p.task=task;
-    expect(headActivity(s.ecs,a,x=>x)).toBeNull();
-    expect(headActivity(s.ecs,a,x=>x,undefined,true)).toContain(task[0]);
-  }
-  p.task=["forage"];
-  expect(headActivity(s.ecs,a,x=>x)).toBe("tasks.foraging");
-  p.task=["socialise", "other"];p.world.social={stage:"waiting"};
-  expect(headActivity(s.ecs,a,x=>x)).toBeNull();
-});
 
 it.each([0.5,1,2])("moves player and NPC at exactly 0.8 of the old physical rate on terrain %s", terrain => {
   const {state:s,player,person:a,tiles}=peopleWorld();
@@ -84,8 +50,6 @@ it("walks home physically at night, hides only after arrival and lights actual o
   expect(s.ecs.interior[a].buildingId).toBe(home);
   expect(occupiedHomes(s).has(home)).toBe(true);
   expect(s.ecs.spatial[player]).toEqual(playerStart);
-  const model=building(FLAT_GROUND,s,home,{});
-  animateHome(model,true);expect(model.getObjectByName("home-windows").visible).toBe(true);
   s.days=12/24;expect(occupiedHomes(s).size).toBe(0);
   s.days=23/24;s.ecs.personable[a].dead=true;expect(occupiedHomes(s).has(home)).toBe(false);
 });

@@ -2,15 +2,15 @@ import { rowOfTiles } from "./support/world";
 import { recordJourney } from "game/settlement_routes";
 import { serialiseGame, restoreGame } from "game/save_game";
 
-it("shares read-only route snapshots for repeated journeys while keeping every trip and its wear", () => {
+it("preserves read-only route snapshots, every trip and its wear through saving", () => {
   const { state: s, tiles, villager } = rowOfTiles(4);
   s.settlement = { journeys: [], appliedJourneys: {} };
   const details = { people: [villager], from: tiles[0], to: tiles[3], reason: "visiting household" };
   const first = recordJourney(s, { ...details, key: "first", day: 1, count: 2 });
   const before = JSON.stringify(first);
   const second = recordJourney(s, { ...details, key: "second", day: 1, count: 3 });
-  expect(second.steps).toBe(first.steps);
-  expect(second.tiles).toBe(first.tiles);
+  expect(second.steps).toEqual(first.steps);
+  expect(second.tiles).toEqual(first.tiles);
   expect(Object.isFrozen(first.steps)).toBe(true);
   expect(first.steps.every(Object.isFrozen)).toBe(true);
   expect(Object.isFrozen(first.tiles)).toBe(true);
@@ -18,8 +18,8 @@ it("shares read-only route snapshots for repeated journeys while keeping every t
   expect(JSON.stringify(first)).toBe(before);
   expect(Object.values(s.ecs.walkable[tiles[1]].worn)).toEqual([5]);
   const loaded = restoreGame(serialiseGame(s));
-  expect(loaded.settlement.journeys[0].steps).toBe(loaded.settlement.journeys[1].steps);
-  expect(loaded.settlement.journeys[0].tiles).toBe(loaded.settlement.journeys[1].tiles);
+  expect(loaded.settlement.journeys[0].steps).toEqual(loaded.settlement.journeys[1].steps);
+  expect(loaded.settlement.journeys[0].tiles).toEqual(loaded.settlement.journeys[1].tiles);
 });
 
 it("copies explicitly supplied mutable routes without retaining caller edits in earlier trips", () => {

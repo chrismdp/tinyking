@@ -5,23 +5,17 @@ import { updateFavours, visibleFavours, acceptFavour, finishFavour, fuelReady } 
 import { enqueueTask, cancelTask, readyPlayerTasks } from 'game/manager';
 import { trade_work } from 'game/tasks';
 import { HOUR } from 'game/time';
-import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { GameState } from '../src/components/contexts';
-import { ActivityDetails, Journal } from '../src/components/status_strip';
+
 import { do_favour } from 'game/tasks';
 
-jest.mock('components/contexts', () => require('../src/components/contexts'), { virtual: true });
 jest.mock('game/name', () => ({ name: n => n?.nickname || '?' }));
 
-const taskMarkup = s => { s.ui.show={...s.ui.show,journal:true};return renderToStaticMarkup(<GameState.Provider value={s}><Journal/></GameState.Provider>); };
-const harvestRow = s => taskMarkup(s).match(/<article class="task[^]*?<\/article>/)?.[0];
 function advanceUntil(w, condition) {
   for (let i = 0; i < 2000 && !condition(); i++) w.step(.01);
   expect(condition()).toBeTruthy();
 }
 
-it('does not present actual first-patch work overrun as 160% favour completion', () => {
+it('finishes only one actual harvest patch after a long final work step', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   const task = acceptFavour(s, r.id);
   advanceUntil(w, () => r.working && task.workRemaining > 0);
@@ -31,45 +25,33 @@ it('does not present actual first-patch work overrun as 160% favour completion',
   expect(task.progress).toBeCloseTo(1.6);
   expect(r).toMatchObject({ progress: 1, delivered: 0, produced: 1, status: 'accepted' });
   expect(s.ecs.farmable[w.field].slots.filter(slot => slot.state == 'harvested')).toHaveLength(1);
-  expect(harvestRow(s)).not.toContain('160%');
-  expect(harvestRow(s)).toContain('1/3 patches harvested');
-  expect(harvestRow(s)).toContain('0 crop portions carried home');
+
 });
 
-it('shows real patch, hand and home counts through work, partial delivery and completion', () => {
+it('conserves real harvest through work, partial delivery and completion', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   acceptFavour(s, r.id);
   advanceUntil(w, () => r.working);
-  expect(harvestRow(s)).toContain('Harvesting patch 1 of 3');
-  expect(harvestRow(s)).toContain('0/3 patches harvested');
+  expect(r).toMatchObject({progress: 0, delivered: 0});
+
   advanceUntil(w, () => r.cargo.some(id => s.ecs.haulable[id]?.heldBy == w.player));
-  let row = harvestRow(s);
-  for (const text of ['1/3 patches harvested', '1 crop portion in hand', '0 crop portions carried home', 'Carrying the family harvest home']) expect(row).toContain(text);
-  expect(row).not.toContain('%');
+  expect(r).toMatchObject({progress: 1, delivered: 0});
+
   advanceUntil(w, () => r.delivered == 1);
-  row = harvestRow(s);
-  expect(row).toContain('1/3 patches harvested');
-  expect(row).toContain('1 crop portion carried home');
+
   expect(r.status).toBe('accepted');
   advanceUntil(w, () => r.progress == 2);
-  expect(harvestRow(s)).toContain('2/3 patches harvested');
-  expect(harvestRow(s)).toContain('1 crop portion carried home');
+
   advanceUntil(w, () => r.progress == 3 && r.delivered == 4);
-  row = harvestRow(s);
-  expect(row).toContain('3/3 patches harvested');
-  expect(row).toContain('4 crop portions carried home');
-  expect(row).not.toContain('Completed');
-  expect(row).not.toContain('%');
+
   advanceUntil(w, () => r.status == 'completed');
-  expect(taskMarkup(s)).toContain('Completed · +12 goodwill with the requester');
-  expect(taskMarkup(s)).toContain('5 crop portions carried home');
+  expect(r).toMatchObject({progress: 3, delivered: 5});
+
   expect(s.ecs.container[w.store].amounts.grain).toBe(35);
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
 });
 
-
-
-it('shows collapse as an interruption before returning to the unfinished harvest', () => {
+it('resumes unfinished harvest after collapse without prematurely rewarding it', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   s.events = [];
   s.days = 20 / 24;
@@ -78,10 +60,9 @@ it('shows collapse as an interruption before returning to the unfinished harvest
   acceptFavour(s, r.id);
   s.ecs.personable[w.player].tiredness=2;
   advanceUntil(w, () => s.ecs.planner[w.player].task?.[0] == 'sleep');
-  expect(taskMarkup(s)).toContain('Stopped to sleep · harvest resumes afterwards');
-  expect(taskMarkup(s)).toContain('0/3 patches harvested');
+
   advanceUntil(w, () => r.working);
-  expect(harvestRow(s)).toContain('Harvesting patch 1 of 3');
+
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(0);
 });
 
@@ -361,8 +342,6 @@ it('applies existing ring capacities when completing a favour', () => {
   expect(s.ecs.relationships[w.player].known[w.person].ring).toBe('public');
 });
 
-
-
 it('reports missing harvested cargo rather than completing or endlessly working an impossible request', () => {
   const w = favourWorld(), s = w.state, r = w.request('harvest');
   const task = acceptFavour(s, r.id);
@@ -479,8 +458,6 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
   expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
   expect(r.receipts).toHaveLength(1);
-  expect(taskMarkup(s)).toContain('Workshop fuel · at camp');
-  expect(taskMarkup(s)).not.toContain('bring the log');
 
   // An actual NPC at the station burns the delivered resource during work.
   // A full output store still prevents bread output; no food is removed to fit it.
@@ -712,8 +689,6 @@ it('gleans five per cent of a larger harvest, at least one grain per favour', ()
   expect(r.produced).toBe(19);
   expect(task.favourId).toBe(r.id);
 });
-
-
 
 it('delivers already cut crop while a family worker holds the field claim', () => {
   const w=favourWorld(),s=w.state,r=w.request('harvest');

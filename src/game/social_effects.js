@@ -1,9 +1,11 @@
+import TYPES from "data/event_types.json";
+import { learnEvent } from "game/events";
 import { addGoodwill, meet } from "game/people";
 import { conditions, boundId, pairKey } from "game/social_conditions";
 import { DAYS_IN_SEASON } from "game/time";
 
 export function eventBindings(event,listener) {
-  return {event,actor:event.people[0],partner:event.people[1],subject:event.people[1],listener};
+  return {...Object.fromEntries((TYPES[event.type]?.roles||[]).map((role,i)=>[role,event.people[i]])),event,actor:event.people[0],partner:event.people[1],subject:event.people[1],listener};
 }
 
 // `person` owns the directional regard; `towards` is its subject.
@@ -33,7 +35,12 @@ export function applySocialEffects(s,effects,bindings,recordEvent) {
           list[c]={...list[c],[effect.op]:{since:s.days,eventId:b.event?.id}};
         }
         break;
-      case "record_event":recordEvent(s,effect.type,effect.people.map(id),[],{reason:effect.reason,causeEventId:b.event?.id});break;
+      case "learn_event": {
+        const event=s.events?.find(e=>e.id==id(effect.eventId));
+        if(event)learnEvent(s,a,event,effect.discovery || b.discovery || "heard");
+        break;
+      }
+      case "record_event":recordEvent(s,effect.type,effect.people.map(id),[],{reason:effect.reason,causeEventId:b.event?.id,summary:!!(s.generatingHistory||s.summarisingHistory||b.event?.summary)});break;
       default:throw new Error("Unknown social effect: "+effect.op);
       }
     }

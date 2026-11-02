@@ -1,3 +1,4 @@
+import { eventParticipants } from "game/event_roles";
 import { RINGS, disposition, goodwillTowards } from "game/people";
 import { personComponent } from "game/residents";
 import { closeFamily, relatedPeople } from "game/social_kin";
@@ -25,6 +26,9 @@ export function condition(s,b,{test,args:a={}}) {
   const valid=(...ids)=>ids.every(v=>v!=null && !!person(s,v));
   const g=goodwillTowards(s,p,q),r=bond(s,p,q)?.ring||"public";
   switch(test) {
+  case "event_participant":return eventParticipants(b.event).includes(p);
+  case "participant_kin":return eventParticipants(b.event).some(id=>closeFamily(s,id).includes(p)||closeFamily(s,p).includes(id)||(a.extended&&relatedPeople(s,id,p,true)));
+  case "participant_friend":return eventParticipants(b.event).some(id=>RINGS.indexOf(bond(s,p,id)?.ring)>=RINGS.indexOf(a.ring));
   case "person_alive":return alive(s,p);
   case "person_dead":return !!person(s,p)?.dead;
   case "is_adult":return alive(s,p)&&person(s,p).age>=18;

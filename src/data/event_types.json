@@ -588,7 +588,7 @@
     "sentence": "{a} and {b} began an affair",
     "topic": "family",
     "roles": [
-      "lover",
+      "unfaithful",
       "lover"
     ],
     "disclosure": {
@@ -599,7 +599,81 @@
         "excludeFriends": "personal",
         "ring": "intimate",
         "rivalRing": "personal"
-      }
+      },
+      "routes": [
+        {
+          "teller": "outsider",
+          "listener": "affected",
+          "when": {
+            "none": [
+              {
+                "test": "event_participant",
+                "args": {
+                  "person": "teller"
+                }
+              },
+              {
+                "test": "participant_kin",
+                "args": {
+                  "person": "teller"
+                }
+              },
+              {
+                "test": "participant_friend",
+                "args": {
+                  "person": "teller",
+                  "ring": "personal"
+                }
+              }
+            ],
+            "any": [
+              {
+                "test": "ring_at_least",
+                "args": {
+                  "person": "listener",
+                  "towards": "teller",
+                  "ring": "personal"
+                }
+              },
+              {
+                "test": "goodwill_below",
+                "args": {
+                  "person": "teller",
+                  "towards": "subject",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "teller": "participant",
+          "listener": "outsider",
+          "chancePerSeason": 0.01,
+          "when": {
+            "all": [
+              {
+                "test": "ring_at_least",
+                "args": {
+                  "person": "teller",
+                  "towards": "listener",
+                  "ring": "intimate"
+                }
+              }
+            ],
+            "none": [
+              {
+                "test": "participant_kin",
+                "args": {
+                  "person": "listener",
+                  "extended": true
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "affectedOnlyByRoutes": true
     },
     "audience": "participants_witnesses",
     "feed": true,
@@ -612,50 +686,23 @@
         "b": "partner"
       }
     ],
-    "onLearn": [
+    "affected": [
       {
-        "op": "goodwill",
+        "role": "betrayed",
         "each": "participant",
-        "person": "listener",
-        "towards": "actor",
-        "amount": -30,
-        "when": {
-          "all": [
-            {
-              "test": "spouses",
-              "args": {
-                "a": "listener",
-                "b": "actor"
-              }
-            }
-          ]
+        "from": {
+          "component": "kinship",
+          "field": "spouse"
+        },
+        "discovery": {
+          "type": "found_out",
+          "people": [
+            "affected",
+            "subject",
+            "other"
+          ],
+          "reason": "affair_discovery"
         }
-      },
-      {
-        "op": "record_event",
-        "each": "participant",
-        "type": "quarrel",
-        "people": [
-          "listener",
-          "actor"
-        ],
-        "reason": "affair_discovery",
-        "when": {
-          "all": [
-            {
-              "test": "spouses",
-              "args": {
-                "a": "listener",
-                "b": "actor"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "op": "reaction",
-        "person": "listener",
-        "value": "affair_discovered"
       }
     ]
   },
@@ -673,5 +720,442 @@
     "feed": true,
     "spokenVisit": false,
     "valence": 1
+  },
+  "found_out": {
+    "sentence": "{a} found out about {b}'s affair with {c}",
+    "topic": "family",
+    "roles": [
+      "betrayed",
+      "unfaithful",
+      "lover"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "betrayed",
+        "towards": "unfaithful",
+        "amount": -70,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "betrayed",
+        "towards": "lover",
+        "amount": -50,
+        "introduce": false
+      },
+      {
+        "op": "record_event",
+        "type": "quarrel",
+        "people": [
+          "betrayed",
+          "unfaithful"
+        ],
+        "reason": "affair_discovery"
+      },
+      {
+        "op": "avoidance",
+        "a": "betrayed",
+        "b": "unfaithful",
+        "seasons": 1
+      }
+    ],
+    "onLearn": [
+      {
+        "op": "learn_event",
+        "person": "listener",
+        "eventId": "event.causeEventId"
+      },
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "unfaithful",
+        "amount": -15,
+        "introduce": false,
+        "when": {
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "betrayed"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "unfaithful"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "lover"
+              }
+            }
+          ],
+          "any": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "betrayed"
+              }
+            },
+            {
+              "test": "ring_at_least",
+              "args": {
+                "person": "listener",
+                "towards": "betrayed",
+                "ring": "personal"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "lover",
+        "amount": -15,
+        "introduce": false,
+        "when": {
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "betrayed"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "unfaithful"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "lover"
+              }
+            }
+          ],
+          "any": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "betrayed"
+              }
+            },
+            {
+              "test": "ring_at_least",
+              "args": {
+                "person": "listener",
+                "towards": "betrayed",
+                "ring": "personal"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "unfaithful",
+        "amount": -8,
+        "introduce": false,
+        "when": {
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "betrayed"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "unfaithful"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "lover"
+              }
+            }
+          ],
+          "any": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "unfaithful"
+              }
+            },
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "lover"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "affair_discovered"
+      }
+    ]
+  },
+  "affair_meeting": {
+    "sentence": "{a} met {b} in secret",
+    "chat": "{a} met {b} in secret",
+    "topic": "family",
+    "roles": [
+      "unfaithful",
+      "lover"
+    ],
+    "disclosure": {
+      "via": "causeEventId",
+      "ring": "personal"
+    },
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "onLearn": [
+      {
+        "op": "learn_event",
+        "person": "listener",
+        "eventId": "event.causeEventId"
+      }
+    ]
+  },
+  "poaching": {
+    "sentence": "{a} and {b} began poaching in {c}'s woods",
+    "topic": "woodland",
+    "roles": [
+      "poacher",
+      "accomplice",
+      "owner"
+    ],
+    "participants": [
+      "poacher",
+      "accomplice"
+    ],
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "disclosure": {
+      "ring": "personal",
+      "routes": [
+        {
+          "teller": "outsider",
+          "listener": "affected",
+          "when": {
+            "none": [
+              {
+                "test": "event_participant",
+                "args": {
+                  "person": "teller"
+                }
+              },
+              {
+                "test": "participant_kin",
+                "args": {
+                  "person": "teller"
+                }
+              },
+              {
+                "test": "participant_friend",
+                "args": {
+                  "person": "teller",
+                  "ring": "personal"
+                }
+              }
+            ],
+            "any": [
+              {
+                "test": "ring_at_least",
+                "args": {
+                  "person": "listener",
+                  "towards": "teller",
+                  "ring": "personal"
+                }
+              },
+              {
+                "test": "goodwill_below",
+                "args": {
+                  "person": "teller",
+                  "towards": "subject",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "teller": "participant",
+          "listener": "outsider",
+          "chancePerSeason": 0.01,
+          "when": {
+            "all": [
+              {
+                "test": "ring_at_least",
+                "args": {
+                  "person": "teller",
+                  "towards": "listener",
+                  "ring": "intimate"
+                }
+              }
+            ],
+            "none": [
+              {
+                "test": "participant_kin",
+                "args": {
+                  "person": "listener",
+                  "extended": true
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "affectedOnlyByRoutes": true
+    },
+    "affected": [
+      {
+        "role": "owner",
+        "from": "owner",
+        "subject": "poacher",
+        "discovery": {
+          "type": "poaching_found_out",
+          "people": [
+            "affected",
+            "subject",
+            "other"
+          ]
+        }
+      }
+    ]
+  },
+  "poaching_seen": {
+    "sentence": "{a} and {b} were seen poaching in {c}'s woods",
+    "topic": "woodland",
+    "roles": [
+      "poacher",
+      "accomplice",
+      "owner"
+    ],
+    "participants": [
+      "poacher",
+      "accomplice"
+    ],
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "disclosure": {
+      "via": "causeEventId",
+      "ring": "personal"
+    },
+    "onLearn": [
+      {
+        "op": "learn_event",
+        "person": "listener",
+        "eventId": "event.causeEventId"
+      }
+    ]
+  },
+  "poaching_found_out": {
+    "sentence": "{a} found out that {b} and {c} were poaching",
+    "topic": "woodland",
+    "roles": [
+      "owner",
+      "poacher",
+      "accomplice"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "owner",
+        "towards": "poacher",
+        "amount": -20,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "owner",
+        "towards": "accomplice",
+        "amount": -10,
+        "introduce": false
+      }
+    ],
+    "onLearn": [
+      {
+        "op": "learn_event",
+        "person": "listener",
+        "eventId": "event.causeEventId"
+      },
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "poacher",
+        "amount": -5,
+        "introduce": false,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "owner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "poacher"
+              }
+            },
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "accomplice"
+              }
+            }
+          ]
+        }
+      }
+    ]
   }
 }

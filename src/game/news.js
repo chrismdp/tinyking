@@ -1,3 +1,6 @@
+import { disclosureRoute } from "game/event_disclosure";
+import { hashUnit } from "game/math";
+import { DAYS_IN_SEASON } from "game/time";
 import TYPES from "data/event_types.json";
 import LINES from "data/conversation_lines.json";
 import { personLabel } from "game/knowledge";
@@ -53,6 +56,10 @@ function eventIndex(s) {
 export function newsPreference(s,teller,listener,event) {
   const definition=TYPES[event.type];
   if(!canDiscloseEvent(s,teller,listener,event))return 0;
+  // Eligibility permits a confidence; this seeded seasonal opportunity keeps
+  // it rare even across repeated conversations or companion scoring.
+  const route=disclosureRoute(s,event,teller,listener);
+  if(route.chance!=null && hashUnit(s.peopleSeed+":confide:"+event.id+":"+teller+":"+listener+":"+Math.floor(s.days/DAYS_IN_SEASON))>=route.chance)return 0;
   const trust=Math.max(0,RINGS.indexOf(s.ecs.relationships?.[teller]?.known[listener]?.ring));
   const subjects=event.people.filter(id=>id!=listener);
   const audience=subjects.length?subjects.reduce((sum,id)=>{

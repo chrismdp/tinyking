@@ -1,3 +1,4 @@
+import { eveningSecretActivities } from "game/secret_activities";
 import { DAYS_IN_SEASON } from "game/time";
 import { LOCOMOTION_RATIO } from "game/locomotion";
 import { conversationPositions } from "game/conversation";
@@ -35,6 +36,7 @@ export function socialHour(s) {
       s.ecs.personable[v.partnerId]?.dead || (!s.ecs.planner[v.partnerId]?.world.social || s.ecs.planner[v.partnerId].world.social.stage == "returning"))) returnFromVisit(s, id);
   }
   if (hour < 9 || hour >= 21) return;
+  eveningSecretActivities(s);
   inviteToFire(s,idle);
   const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], s.ecs.personable[id].age < 18));
   startChildPlay(s, ids, hour);

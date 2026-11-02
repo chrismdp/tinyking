@@ -1,3 +1,5 @@
+import { updatePersonCell } from "game/people_space";
+import { historySecretActivities } from "game/secret_activity_history";
 import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
 import { relatedPeople } from "game/social_kin";
 import { finishTransition } from "game/history_scope";
@@ -36,6 +38,7 @@ const add = (s, components) => {
     id
   };
   if (components.personable && s.residents) s.residents[id] = true;
+  if (components.personable && components.spatial) updatePersonCell(s,id);
   if (components.spatial?.immovable && s.space) {
     const key = Hex().fromPoint(components.spatial).toString();
     s.space[key] = [...(s.space[key] || []), id];
@@ -539,6 +542,7 @@ function advanceSeasonRules(s, season, summary) {
       chatTogether(s, a, b, true, 6);
     }
   }
+  if(summary)historySecretActivities(s,participants,season);
   updateCourtships(s,season,summary,roster);
   const birthVillages=Object.keys(s.villages || {});
   if(participants.some(id=>ecs.village[id]?.villageId==null && (ecs.building?.[ecs.household[id]?.houseId] || ecs.shelter?.[ecs.household[id]?.houseId]?.stage=="house")))birthVillages.push(null);

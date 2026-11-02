@@ -1,3 +1,5 @@
+import { meetInSecret } from "game/secret_activities";
+import { updatePersonCell } from "game/people_space";
 import { spendEnergy, eatOwnedFood } from "game/energy";
 import { FIELD_STATES, ownsField, harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
@@ -221,6 +223,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
       s.x += dx * speed;
       s.y += dy * speed;
     }
+    updatePersonCell(state,actorId);
     spendEnergy(state,actorId,dt*24,weightCost<1?3:1);
   }
   return Task.CONTINUE;
@@ -1166,6 +1169,7 @@ export function trade_work(state, actorId, world, dt, firstRun, workplaceId) {
 
 export function socialise(state, actorId, world, dt, firstRun, partnerId) {
   const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
+  if(v?.kind=="secret")return meetInSecret(state,actorId,partnerId)?Task.CONTINUE:Task.FINISH;
   if (!v || v.stage == "returning" || !other || other.stage == "returning" || other.capturedBy || state.ecs.planner[partnerId]?.world.capturedBy || state.ecs.personable[partnerId]?.dead || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
   if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return v.visitor ? Task.FINISH : Task.CONTINUE;
   if (v.stage != "visiting") {

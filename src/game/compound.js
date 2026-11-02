@@ -502,6 +502,10 @@ export const work_trade = () => [
 ];
 
 export const social_visit = () => [
+  [world => world.social?.kind == "secret" && world.social, visit => [
+    ...(visit.stage == "returning" ? [] : [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["return_from_visit"]]),
+    ["walk_to", visit.homeId], ["end_visit"], ["go_to_sleep"]
+  ]],
   [world => world.social?.kind == "play" && world.social, visit => [["walk_to", "socialDestination"], ["play_together", visit.partnerId], ["end_visit"]]],
   [world => world.social?.stage == "returning" && world.social, visit => [["walk_to", visit.homeId], ["end_visit"]]],
   [world => world.social?.visitor && world.social, visit => [["walk_to", "socialDestination"], ["socialise", visit.partnerId], ["return_from_visit"], ["walk_to", visit.homeId], ["end_visit"]]],

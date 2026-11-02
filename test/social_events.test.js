@@ -154,7 +154,7 @@ it("forms romance only through mutual attraction between unrelated adults; mutua
 it("begins only one affair for an unhappy married romantic pair, and excludes close kin from gossip",()=>{
   const {runSocialActions}=require("game/social_actions");
   const {canDiscloseEvent}=require("game/people");
-  const {exchangeNews}=require("game/news");
+  const {tellNews}=require("game/news");
   const {state:s,a,b,spouse,listener}=fixture();s.generatingHistory=true;
   for(const [x,y] of [[a,b],[b,a]])s.ecs.relationships[x].known[y].romance={since:0};
   for(let day=0;day<80;day++){s.days=day;runSocialActions(s,"contact",a,b);}
@@ -164,7 +164,7 @@ it("begins only one affair for an unhappy married romantic pair, and excludes cl
   s.ecs.relationships[a].known[listener]={ring:"intimate",goodwill:66};
   delete s.ecs.playable[listener];
   expect(canDiscloseEvent(s,a,listener,event)).toBe(true);
-  exchangeNews(s,a,listener);expect(s.knowledge[listener].events).toContain(event.id);
+  tellNews(s,a,listener,event,"npc.event_news.catalogue_affair.base.01");expect(s.knowledge[listener].events).toContain(event.id);
   s.ecs.relationships[a].known[spouse]={ring:"intimate",goodwill:66};
   expect(canDiscloseEvent(s,a,spouse,event)).toBe(false);
 });
@@ -246,14 +246,15 @@ it("requires an awake unobstructed witness and never infers witnesses from summa
 
 it.each(["parent","child","sibling","friend"])("withholds affair gossip from a subject's %s despite Intimate teller trust",kind=>{
   const {canDiscloseEvent}=require("game/people");
-  const {state:s,a,b,listener}=fixture();s.generatingHistory=true;
+  const {state:s,a,b,listener,spouse}=fixture();s.generatingHistory=true;
   const event=recordEvent(s,"affair",[a,b]);
   s.ecs.relationships[b].known[listener]={ring:"intimate",goodwill:66};
+  s.ecs.relationships[spouse].known[listener]={ring:"intimate",goodwill:66};
   if(kind=="parent"){s.ecs.kinship[a].parents=[listener];s.ecs.kinship[listener].children=[a];}
   if(kind=="child"){s.ecs.kinship[a].children=[listener];s.ecs.kinship[listener].parents=[a];}
   if(kind=="sibling"){s.ecs.kinship.ancestor={parents:[],children:[a,listener]};s.ecs.kinship[a].parents=["ancestor"];s.ecs.kinship[listener].parents=["ancestor"];}
   if(kind=="friend")s.ecs.relationships[listener].known[a]={ring:"personal",goodwill:36};
-  expect(canDiscloseEvent(s,b,listener,event)).toBe(false);
+  expect(canDiscloseEvent(s,kind=="friend"?spouse:b,listener,event)).toBe(false);
 });
 it("does not invent witnesses when the contact hook is invoked directly in summary mode",()=>{
   const {runSocialActions}=require("game/social_actions");

@@ -1,3 +1,5 @@
+import { startSecretActivity, activityPlace } from "game/secret_activities";
+import { recordEvent } from "game/events";
 import { chatTogether } from "game/social";
 import { runSocialActions } from "game/social_actions";
 import { maritalSatisfaction } from "game/social_conditions";
@@ -369,7 +371,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
-      window.tinykingSocial = { chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
+      window.tinykingSocial = { startSecretActivity, activityPlace, recordEvent, chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };

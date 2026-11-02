@@ -25,6 +25,7 @@ export function enterHome(state, actor, place) {
 }
 export function validateHome(state, actor) {
   const home=state.ecs.interior?.[actor]?.buildingId;
+  if(home && state.ecs.planner?.[actor]?.world.social?.kind=="secret" && state.ecs.planner[actor].world.social.stage=="visiting" && state.ecs.planner[actor].world.social.meetingPlace.houseId==home)return;
   if(home && (!state.ecs.spatial?.[actor] || actualHome(state,actor)!=home || squaredDistance(state.ecs.spatial[actor],state.ecs.spatial[home])>=100))leaveHome(state,actor);
 }
 // Lighting only reads real, still-valid occupancy. The clock cannot create it.

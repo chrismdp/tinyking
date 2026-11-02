@@ -1,4 +1,5 @@
-import { crossesWall } from "game/social_visibility";
+import { eventParticipants, affectedParties, discoverySpec, discoveryPeople } from "game/event_roles";
+import { eventWitnesses } from "game/social_visibility";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
@@ -22,8 +23,13 @@ export function learnEvent(state, viewerId, event, discovery="heard") {
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
   if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")(knowledge.discoveries ||= {})[event.id]={kind:discovery,day:state.days};
+  for(const party of affectedParties(state,event))if(party.personId==viewerId) {
+    const spec=discoverySpec(event,party),people=discoveryPeople(event,party);
+    if(spec && !state.events.some(e=>e.type==spec.type && e.causeEventId==event.id && e.people[0]==viewerId))
+      recordEvent(state,spec.type,people,[],{causeEventId:event.id,reason:spec.reason,summary:!!(state.generatingHistory||state.summarisingHistory),discovery});
+  }
   const learningEffects=EVENT_TYPES[event.type]?.onLearn;
-  if(learningEffects?.length)applySocialEffects(state,learningEffects,eventBindings(event,viewerId),recordEvent);
+  if(learningEffects?.length)applySocialEffects(state,learningEffects,{...eventBindings(event,viewerId),discovery},recordEvent);
 }
 
 // Listener pools belong to an owned transition, never to caller state.
@@ -78,21 +84,18 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     items: [...items],
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
+  if(EVENT_TYPES[type]?.affected)event.affected=affectedParties(state,event);
   state.events.push(event);
   if(event.sealed)return event;
   const occurrenceEffects=EVENT_TYPES[type]?.onOccurrence;
   if(occurrenceEffects?.length)applySocialEffects(state,occurrenceEffects,eventBindings(event),recordEvent);
   if (EVENT_TYPES[type]?.audience == "participants_witnesses") {
-    const audience = new Set(people);
+    const participants=eventParticipants(event),audience = new Set([...participants,...(details.audienceIds||[])]);
     if (!state.generatingHistory && !state.summarisingHistory && !event.summary) {
-      const origin=state.ecs.spatial?.[people[0]],interior=state.ecs.interior?.[people[0]]?.buildingId;
-      for (const id of Object.keys(state.ecs.personable || {})) {
-        const p=state.ecs.spatial?.[id],w=state.ecs.planner?.[id]?.world;
-        if (!state.ecs.personable[id].dead && isResident(state,id) && !w?.sleeping && state.ecs.planner?.[id]?.task?.[0]!="sleep" && origin && p && state.ecs.interior?.[id]?.buildingId==interior && (origin.x-p.x)**2+(origin.y-p.y)**2<=85**2 && !crossesWall(state,origin,p,interior))audience.add(id);
-      }
+      for(const id of eventWitnesses(state,participants))audience.add(id);
     }
     event.audienceIds=[...audience];
-    for (const id of audience) if(state.ecs.personable?.[id])learnEvent(state,id,event,people.includes(id)?"participant":"witness");
+    for (const id of audience) if(state.ecs.personable?.[id])learnEvent(state,id,event,participants.includes(id)?"participant":"witness");
     return event;
   }
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));

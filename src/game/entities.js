@@ -1,3 +1,4 @@
+import { updatePersonCell } from "game/people_space";
 import { entityId } from "game/residents";
 import { Hex } from "game/map";
 
@@ -22,6 +23,7 @@ export function newEntities(state, entities, prefix = "") {
       }
       state.space[hex].push(id);
     }
+    if(entity.personable && entity.spatial)updatePersonCell(state,id);
     return id;
   });
 }

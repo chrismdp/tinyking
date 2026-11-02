@@ -1,3 +1,4 @@
+import { updatePersonCell } from "game/people_space";
 import { updateFestival, seasonTurnAt } from "game/seasons";
 import { DAYS_IN_SEASON } from "game/time";
 import { playerDay, daylight } from "game/energy";
@@ -61,6 +62,7 @@ function updatePlannerFrame(state, frameMod) {
     validateHome(state, id);
     if (state.ecs.personable[id] && (state.ecs.personable[id].dead || !isResident(state,id))) continue;
 
+    updatePersonCell(state,id);
     planner.world.actorId = id;
     planner.world.stationaryPlayer = id == state.ui.playerId;
     if (planner.world.ordered && planner.world.stationaryPlayer) {

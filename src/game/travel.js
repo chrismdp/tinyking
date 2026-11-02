@@ -15,7 +15,8 @@ import { cancelLocalTasksForTravel, enqueueTask, canReachTask, cancelTask } from
 import { releaseFriendWork } from "game/friend_help";
 import { transferPossession, repairHouseholds } from "game/possessions";
 import { recordEvent } from "game/events";
-import { romanticInterest } from "game/social";
+import { romanticInterest, advanceSeason } from "game/social";
+import { drift } from "game/people";
 import { hashUnit } from "game/math";
 import { destinationFor, worldKey, neighbours, hexName } from "game/travel_geometry";
 export { edgeSide, destinationFor, prepareEntrances, hexName, SIDE_NAMES } from "game/travel_geometry";
@@ -27,7 +28,8 @@ const IDENTITY = ["personable", "personality", "kinship", "relationships", "name
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
 export function freezeOpinions(s) {
-  for (const p of Object.values(s.ecs.personality || {})) {
+  for (const id in s.ecs.personality) {
+    const p = s.ecs.personality[id];
     p.opinionSeed ??= s.peopleSeed;
     p.opinionThresholds ||= {
       ...s.opinionThresholds
@@ -43,7 +45,7 @@ const knowledgeCursors = new WeakMap();
 const knowledgeSets = new WeakMap();
 function publish(s, j) {
   freezeOpinions(s);
-  for (const id of Object.keys(s.ecs.personable || {})) if (!s.residents || s.residents[id]) {
+  for (const id in s.ecs.personable) if (!s.residents || s.residents[id]) {
     const existing = j.people[id];
     j.estateDone ||= {};
     j.pendingEstates ||= {};
@@ -67,7 +69,8 @@ function publish(s, j) {
   }
   if(j.wholeWorld)publishedEvents.set(events,events.length);
   j.knowledge ||= {};
-  for (const [id, known] of Object.entries(s.knowledge || {})) {
+  for (const id in s.knowledge) {
+    const known = s.knowledge[id];
     if(j.wholeWorld){publishKnowledge(s,j,id,known);continue;}
     const previous = j.knowledge[id];
     if (!previous) {
@@ -117,20 +120,26 @@ function reconcileEstates(s, j) {
     j.estateDone[id] = true;
     delete j.pendingEstates[id];
   }
-  for (const [person, records] of Object.entries(j.people)) if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) records.controllable = {
-    ...records.controllable,
-    controllerId: successor(records.controllable.controllerId) || person
-  };
+  for (const person in j.people) {
+    const records = j.people[person];
+    if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) records.controllable = {
+      ...records.controllable,
+      controllerId: successor(records.controllable.controllerId) || person
+    };
+  }
   // Ordinary local deaths are already settled by die(). Scan ownership once,
   // and refresh only maps with an actual outstanding estate. Do not recopy
   // every community's entire reference closure for every death in the batch.
   for (const map of Object.values(j.maps)) {
-    const items = Object.entries(map.ecs.possession || {}).filter(([, p]) => dying.has(p.ownerId));
-    const assets = Object.entries(map.ecs.controllable || {}).filter(([asset, c]) => asset != c.controllerId && dying.has(c.controllerId) && (!map.ecs.personable[asset] || map.residents[asset])).map(([asset, c]) => ({
-      asset,
-      c,
-      owner: c.controllerId
-    }));
+    const items = [], assets = [];
+    for (const id in map.ecs.possession) {
+      const p = map.ecs.possession[id];
+      if (dying.has(p.ownerId)) items.push([id,p]);
+    }
+    for (const asset in map.ecs.controllable) {
+      const c = map.ecs.controllable[asset];
+      if (asset != c.controllerId && dying.has(c.controllerId) && (!map.ecs.personable[asset] || map.residents[asset])) assets.push({asset,c,owner:c.controllerId});
+    }
     if (!items.length && !assets.length) continue;
     references(map, j);
     for (const [item, p] of items) inherit(map, item, p.ownerId);
@@ -192,13 +201,20 @@ function references(s, j) {
   });
   // Import only references this community can actually use, rather than an
   // all-world copy in every map. The authoritative directory retains everyone.
-  const required = new Set(Object.keys(s.residents));
-  for (const id of Object.keys(s.residents)) {
+  const residents = Object.keys(s.residents), required = new Set(residents);
+  for (const id of residents) {
     const person = j.people[id],
       kin = person?.kinship || s.ecs.kinship[id];
-    for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse, ...Object.keys(s.ecs.relationships[id]?.known || {}), ...Object.keys(s.knowledge?.[id]?.people || {})]) if (other) required.add(other);
+    for (const other of kin?.parents || []) if (other) required.add(other);
+    for (const other of kin?.children || []) if (other) required.add(other);
+    if (kin?.spouse) required.add(kin.spouse);
+    for (const other in s.ecs.relationships[id]?.known) if (other) required.add(other);
+    for (const other in s.knowledge?.[id]?.people) if (other) required.add(other);
   }
-  for (const c of Object.values(s.ecs.controllable || {})) if (j.people[c.controllerId]) required.add(c.controllerId);
+  for (const id in s.ecs.controllable) {
+    const c = s.ecs.controllable[id];
+    if (j.people[c.controllerId]) required.add(c.controllerId);
+  }
   // A multi-source breadth-first walk computes the same two-generation
   // union, without revisiting every shared ancestor once per resident.
   let frontier = [...required];
@@ -213,10 +229,20 @@ function references(s, j) {
     }
     frontier = next;
   }
-  for (const id of Object.keys(s.ecs.personable || {})) if (!s.residents[id] && !required.has(id)) for (const key of IDENTITY) delete s.ecs[key]?.[id];
-  for (const id of required) if (!s.residents[id] && j.people[id]) for (const [key, value] of Object.entries(j.people[id])) (s.ecs[key] ||= {})[id] = value;
+  for (const id in s.ecs.personable) if (!s.residents[id] && !required.has(id)) for (const key of IDENTITY) delete s.ecs[key]?.[id];
+  const tables = IDENTITY.map(key => s.ecs[key]);
+  for (const id of required) if (!s.residents[id] && j.people[id]) {
+    const person = j.people[id];
+    for (let n=0;n<IDENTITY.length;n++) {
+      const value=person[IDENTITY[n]];
+      if(value) {
+        const table=tables[n] ||= s.ecs[IDENTITY[n]] = {};
+        if(table[id]!==value)table[id]=value;
+      }
+    }
+  }
   s.knowledge ||= {};
-  for (const id of Object.keys(s.residents)) if (j.knowledge?.[id]) {
+  for (const id of residents) if (j.knowledge?.[id]) {
     const local=s.knowledge[id] || {},global=j.knowledge[id];
     if(j.wholeWorld){if(local!==global)publishKnowledge(s,j,id,local);continue;}
     const seen=new Set(global.events || []);
@@ -230,8 +256,8 @@ function references(s, j) {
     const incoming = [...learned].filter(id => !own.has(id) && j.events[id]).sort((a, b) => j.eventOrder[a] - j.eventOrder[b]);
     if (incoming.length) s.events = [...(s.events || []), ...incoming.map(id => j.events[id])];
   }
-  s.villages = {
-    ...Object.fromEntries(Object.entries(j.wholeWorld ? {} : j.villages).map(([id, v]) => [id, {
+  if (!j.wholeWorld) s.villages = {
+    ...Object.fromEntries(Object.entries(j.villages).map(([id, v]) => [id, {
       ...v,
       houses: [],
       sharedPlaces: []
@@ -691,7 +717,18 @@ function ageTraveller(s, bundle, season) {
   references(transit, s.travel);
   if (bundle.knowledge) transit.knowledge[bundle.id] = clone(bundle.knowledge);
   if(Object.keys(bundle.chatPairs||{}).length)transit.chat={version:1,pairs:clone(bundle.chatPairs)};
-  const aged = historyStep(transit, season);
+  let aged;
+  if (s.travel.wholeWorld) {
+    // The bundle is already a private copy. On the road there is no map,
+    // household construction or second resident to marry. Run the very same
+    // drift and demographic rules without historyStep's second copy of every
+    // remote person's entire relationship list. Death can reassign a remote
+    // dependent's controller, so isolate those small records too.
+    for (const id in transit.ecs.controllable) if (!bundle.entities[id]) transit.ecs.controllable[id] = { ...transit.ecs.controllable[id] };
+    drift(transit, 24 * DAYS_IN_SEASON);
+    advanceSeason(transit, season, true);
+    aged = transit;
+  } else aged = historyStep(transit, season);
   for (const [id, components] of Object.entries(bundle.entities)) for (const key of Object.keys(components)) if (aged.ecs[key]?.[id]) components[key] = aged.ecs[key][id];
   bundle.knowledge = aged.knowledge[bundle.id];
   if(aged.chat)bundle.chatPairs=aged.chat.pairs;
@@ -890,7 +927,10 @@ async function receiveNpcs(s, j) {
     dest.days = s.days;
     dest.redraws ||= [];
     touched.set(trip.to, dest);
-    for (const key of IDENTITY) for (const [ref, value] of Object.entries(trip.bundle.entities[id][key] ? { [id]: trip.bundle.entities[id][key] } : {})) if (!dest.residents[ref]) (dest.ecs[key] ||= {})[ref] = value;
+    if (!dest.residents[id]) for (const key of IDENTITY) {
+      const value = trip.bundle.entities[id][key];
+      if (value) (dest.ecs[key] ||= {})[id] = value;
+    }
     const side = trip.visitWorld ? trip.side : trip.side == null ? neighbours(s.world.hexes.find(h => worldKey(h) == trip.to)).findIndex(h => worldKey(h) == (trip.visitWorld || trip.from)) : (trip.side + 3) % 6;
     const entry = dest.map.entrances[side];
     putTraveller(dest, trip.bundle, entry.campPoint, j);

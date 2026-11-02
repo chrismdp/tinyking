@@ -232,8 +232,10 @@ stores, relationships and events. They contain no tile table, crop slots,
 animal simulation, terrain surface or planners.
 
 A departure commits its detailed hex record and the new world manifest in one
-IndexedDB transaction through the save worker. Only after that commit can the
-away map leave memory. A failed transaction retains its detailed state.
+IndexedDB transaction through the save worker. The arrival renders its first
+frame before the main thread copies that checkpoint to the worker. Closing the
+page before this scheduled copy submits it immediately. Only after the commit
+can the away map leave memory. A failed transaction retains its detailed state.
 A return loads that record and applies the current compact people and household
 records. It preserves the map seed, buildings, fields, stores and objects.
 The seasonal cursor prevents another update of the same season.

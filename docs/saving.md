@@ -33,6 +33,14 @@ undefined values and non-finite planner numbers without another JSON graph.
 The worker reports compressed hex bytes separately. The native manifest size
 is not included in that count.
 
+A hop renders the arrival before it submits the checkpoint. The departed
+details stay in memory until the transaction commits. A close before the
+scheduled submission sends the checkpoint immediately. The worker holds a
+submitted write through navigation, and Continue waits for that write.
+If the browser process stops before the commit, the previous committed save
+remains available. Neither committed snapshot repeats the transfer or contains
+two resident copies of the traveller.
+
 The IndexedDB database and public payload version remain 1. The new world slot
 uses internal format 2 to identify a manifest and separate hex records.
 The reader also accepts the earlier single-record save. An old save keeps its

@@ -19,5 +19,11 @@ it("refreshes ordinary reference records when another community publishes a repl
     expect(s.ecs.nameable[other]).not.toBe(previous);
     expect(Object.hasOwn(s.ecs.nameable, other)).toBe(true);
     expect(structuredClone(s.ecs.nameable)[other]).toEqual(changed);
+    const household = s.travel.people[other].household, village = s.travel.people[other].village;
+    s.ecs.household[other] = { ...household, houseId: "temporary-local-home" };
+    s.ecs.village[other] = { ...village, villageId: "temporary-local-village" };
+    await advanceWorldClock(s);
+    expect(s.ecs.household[other]).toBe(household);
+    expect(s.ecs.village[other]).toBe(village);
   });
 });

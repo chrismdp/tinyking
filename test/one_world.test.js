@@ -84,12 +84,13 @@ it("builds identical physical detail now or after a later approach with the same
   const { captureDetailOrigins, prepareDetail } = require("game/hex_detail");
   const { s } = await history();
   s.world = generateWorld(13);
-  s.ui.playerId = "traveller";
+  delete s.ui.playerId;
   captureDetailOrigins(s);
   const before = restoreGame(serialiseGame(s));
   const key = "6,3";
   const early = await prepareDetail(s, key);
   before.days += 21;
+  before.ui.playerId = "traveller";
   before.world = { ...before.world, home: { x: 6, y: 2 } };
   const later = await prepareDetail(before, key);
   expect(later).toEqual(early);

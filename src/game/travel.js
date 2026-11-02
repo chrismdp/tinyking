@@ -263,12 +263,14 @@ function references(s, j, road = false) {
   let frontier = [...required];
   for (let depth = 0; depth < 2; depth++) {
     const next = [];
+    const add = other => {
+      if (other && !required.has(other)) { required.add(other); next.push(other); }
+    };
     for (const id of frontier) {
       const kin = j.people[id]?.kinship || s.ecs.kinship[id];
-      for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse]) if (other && !required.has(other)) {
-        required.add(other);
-        next.push(other);
-      }
+      for (const other of kin?.parents || []) add(other);
+      for (const other of kin?.children || []) add(other);
+      add(kin?.spouse);
     }
     frontier = next;
   }
@@ -282,7 +284,11 @@ function references(s, j, road = false) {
     if (s.residents[id]) { imported?.delete(id); continue; }
     if (!j.people[id]) continue;
     const person = catalogue ? catalogue.heads.get(String(id)) || catalogue.remember(id, j.people[id]) : j.people[id];
-    if (imported?.get(id) === person) continue;
+    // Family moves can replace an absent dependent's local home records.
+    // Refresh those writable references even when the directory head is stable.
+    if (imported?.get(id) === person &&
+      (!person.household || s.ecs.household?.[id] === person.household) &&
+      (!person.village || s.ecs.village?.[id] === person.village)) continue;
     for (let n = 0; n < keys.length; n++) {
       const value = person[keys[n]];
       if (value) {

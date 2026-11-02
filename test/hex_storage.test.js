@@ -4,9 +4,18 @@ import { community, attach } from "./support/travel";
 import { localSnapshot } from "game/travel";
 import { compactMap } from "game/world_history";
 import { compressGame } from "game/save_game";
+// Build the deterministic geography once. Each scenario receives its own full
+// graph, so storage assertions exercise fresh records without repeated surveys.
+let storedFixture, storedAway;
+beforeAll(() => {
+  storedFixture = community();
+  storedAway = community({key:"6,5",namespace:"away-",player:false}).s;
+});
+const fresh = () => structuredClone(storedFixture);
+const freshAway = () => structuredClone(storedAway);
 it("atomically describes changed hex records and a manifest, reloads a journey, and preserves old saves",async()=>{
-  const {s,ids}=community();s.travel.wholeWorld=true;s.worldHistory={version:1};
-  const away=attach(s,community({key:"6,5",namespace:"away-",player:false}).s);
+  const {s,ids}=fresh();s.travel.wholeWorld=true;s.worldHistory={version:1};
+  const away=attach(s,freshAway());
   s.travel.journey={actorId:ids[0],route:["6,5"],destination:"6,5"};
   const first=await encodeWorldSave(s);
   const disk=new Map(Object.entries(first.records));
@@ -29,13 +38,13 @@ it("atomically describes changed hex records and a manifest, reloads a journey, 
   const active=localSnapshot(s);expect(active.ecs).toBe(s.ecs);
 });
 it("does not change the saved manifest or evict details when preparing a write",async()=>{
-  const {s}=community();s.worldHistory={version:1};s.travel.wholeWorld=true;
+  const {s}=fresh();s.worldHistory={version:1};s.travel.wholeWorld=true;
   const before=s.travel.maps[s.travel.active],refs=s.travel.hexRecords;
   await encodeWorldSave(s);
   expect(s.travel.maps[s.travel.active]).toBe(before);expect(s.travel.hexRecords).toBe(refs);
 });
 it("keeps page controls out of a standalone hex record",async()=>{
- const {s}=community(),{decompressGame}=require("game/save_game");s.travel.wholeWorld=true;
+ const {s}=fresh(),{decompressGame}=require("game/save_game");s.travel.wholeWorld=true;
  const packet=await encodeWorldSave(s);
  const record=packet.records[packet.hexRecords[s.travel.active]];
  expect((await decompressGame(record.bytes)).ui).toBeUndefined();
@@ -43,7 +52,7 @@ it("keeps page controls out of a standalone hex record",async()=>{
  expect(loaded.ui).toEqual(s.ui);
 });
 it("reconnects the world directory when replacing an existing game",()=>{
- const {replaceGame}=require("game/save_game"),{s}=community(),old={stale:{personable:{age:99}}};
+ const {replaceGame}=require("game/save_game"),{s}=fresh(),old={stale:{personable:{age:99}}};
  Object.defineProperty(s,"peopleDirectory",{value:old,writable:true,configurable:true});
  const loaded=community({namespace:"new-"}).s;
  replaceGame(s,loaded);
@@ -51,7 +60,7 @@ it("reconnects the world directory when replacing an existing game",()=>{
  expect(s.peopleDirectory).not.toBe(old);
 });
 it("uses native structured-clone data for the manifest while retaining compressed hex records",async()=>{
- const {s}=community();s.travel.wholeWorld=true;s.worldHistory={version:1};
+ const {s}=fresh();s.travel.wholeWorld=true;s.worldHistory={version:1};
  s.someCalendarValue=Infinity;s.optionalValue=undefined;
  const packet=await encodeWorldSave(s);
  expect(packet.world.state.someCalendarValue).toBe(Infinity);
@@ -63,7 +72,7 @@ it("uses native structured-clone data for the manifest while retaining compresse
  expect(loaded.optionalValue).toBeUndefined();
 });
 it("restores the shared festival record used by live play and the season page",async()=>{
- const {s}=community();s.travel.wholeWorld=true;s.social.festivals={records:{},active:null};s.festivals=s.social.festivals;
+ const {s}=fresh();s.travel.wholeWorld=true;s.social.festivals={records:{},active:null};s.festivals=s.social.festivals;
  const packet=await encodeWorldSave(s),loaded=await decodeWorldSave(structuredClone(packet.world),key=>packet.records[key]);
  expect(loaded.festivals).toBe(loaded.social.festivals);
 });

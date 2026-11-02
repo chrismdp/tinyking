@@ -3,11 +3,15 @@ import { compactMap, buildHistoryMap } from "game/world_history";
 import { ensureMap } from "game/travel";
 import { encodeWorldSave, decodeWorldSave } from "game/hex_storage";
 import { gameData, decompressGame } from "game/save_game";
+import { newEntities } from "game/entities";
 import { community, attach } from "./support/travel";
 
-const fixture = () => {
+const makeFixture = () => {
   const { s } = community();
   const away = community({ namespace: "away-", key: "6,5", player: false }).s;
+  const house = Object.keys(away.ecs.building)[0];
+  const [store] = newEntities(away, [{ container: { capacity: 100, amounts: { grain: 10, wood: 16 } }, controllable: { controllerId: house } }], "store-");
+  away.ecs.household[house].storeId = store;
   attach(s, away);
   s.travel.wholeWorld = true;
   s.worldHistory = { version: 1, contents: {} };
@@ -15,6 +19,9 @@ const fixture = () => {
   captureDetailOrigins(s);
   return { s, away };
 };
+let storedFixture;
+beforeAll(() => { storedFixture = makeFixture(); });
+const fixture = () => structuredClone(storedFixture);
 afterEach(() => jest.restoreAllMocks());
 
 it("deduplicates an unfinished build and owns its historical construction inputs", async () => {
@@ -66,7 +73,10 @@ it("persists the intent before the arrival frame and resumes a save made during 
 
 it("stores completed unopened detail separately, then applies current residents and ownership when opening it", async () => {
   const { s, away } = fixture(), disk = new Map();
-  jest.spyOn(require("game/world_history"), "buildHistoryMap").mockResolvedValue(structuredClone(away.travel.maps["6,5"]));
+  const built = structuredClone(away.travel.maps["6,5"]);
+  const house = Object.keys(built.ecs.building)[0], store = built.ecs.household[house].storeId;
+  built.ecs.container[store].amounts.wood = 12;
+  jest.spyOn(require("game/world_history"), "buildHistoryMap").mockResolvedValue(built);
   await prepareNeighbourDetails(s);
   const packet = await encodeWorldSave(structuredClone(gameData(s)));
   for (const [key, record] of Object.entries(packet.records)) disk.set(key, record);
@@ -76,10 +86,16 @@ it("stores completed unopened detail separately, then applies current residents 
   const summary = loaded.travel.maps["6,5"], person = Object.keys(summary.residents)[0];
   summary.ecs.nameable[person] = { ...summary.ecs.nameable[person], nickname: "Changed while away" };
   summary.ecs.personable[person].age = 42;
+  const owner = Object.keys(summary.residents)[2];
+  summary.ecs.controllable[house].controllerId = owner;
+  summary.ecs.container[store].amounts.wood = 9;
   loaded.persistence = { readHex: async key => decompressGame(disk.get(key).bytes) };
   const detailed = await ensureMap(loaded, "6,5");
   expect(detailed.ecs.nameable[person].nickname).toBe("Changed while away");
   expect(detailed.ecs.personable[person].age).toBe(42);
+  expect(detailed.ecs.controllable[house].controllerId).toBe(owner);
+  expect(detailed.ecs.container[store].amounts.wood).toBe(5);
+  expect((await ensureMap(loaded, "6,5")).ecs.container[store].amounts.wood).toBe(5);
   expect(detailed.ecs.mappable).toEqual(away.ecs.mappable);
   expect(detailed.unopenedDetail).toBeUndefined();
   expect(buildHistoryMap).toHaveBeenCalledTimes(1);

@@ -4,11 +4,26 @@ const assert=require("node:assert/strict");
 const {chromium}=require("playwright-core");
 (async()=>{
   const browser=await chromium.launch({executablePath:process.env.CHROME||"/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome",args:["--use-gl=swiftshader","--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
-  const report={fixture:"Seed 13 from the menu. Existing adults, names and spouse links. Diagnostic positions, bonds, romance and contact times set explicitly; real action/disclosure/chat functions produce every result.",errors:[],screenshots:[]};
+  const quick=process.argv.includes("--quick-fixture");
+  const report={quickFixture:quick,fixture:"Seed 13 from the menu. Existing adults, names and spouse links. Diagnostic positions, opinions, bonds, romance and contact times set explicitly; real action/disclosure/chat functions produce every result.",errors:[],screenshots:[]};
   const write=()=>fs.writeFileSync("shots/social-events-browser.json",JSON.stringify(report,null,2));
   try {
     const page=await browser.newPage({viewport:{width:1440,height:900}});
     page.on("pageerror",e=>report.errors.push(e.message));
+    if(quick)await page.addInitScript(()=>{
+      let state;
+      Object.defineProperty(window,"tinyking",{configurable:true,get:()=>state,set:s=>{
+        state=s;const original=s.ui.actions.progress_update;
+        s.ui.actions.progress_update=async(...args)=>{
+          await original(...args);
+          if(window.socialQuickFixture || !s.generatingHistory || !s.ecs.personable)return;
+          const adults=Object.keys(s.ecs.personable).filter(id=>!s.ecs.playable?.[id]&&!s.ecs.personable[id].dead&&s.ecs.personable[id].age>=18&&!s.ecs.kinship[id]?.parents.length);
+          if(new Set(adults.map(id=>s.ecs.household[id]?.houseId)).size<4)return;
+          window.socialQuickFixture={label:"Seeded initial fixture: skip remaining prehistory and woodland catch-up after four founding households exist",lastSimulatedSeason:s.social.lastSeason};
+          s.social.lastSeason=0;if(s.ecology)s.ecology.historyUpdatedAt=0;
+        };
+      }});
+    });
     const startup=Date.now();
     await page.goto("http://localhost:8177/?seed=13&intro=skip");
     await page.getByText("Start new game",{exact:true}).waitFor({timeout:300000});
@@ -20,7 +35,7 @@ const {chromium}=require("playwright-core");
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     report.history=await page.evaluate(()=>{
       const s=window.tinyking,counts={};for(const e of s.events)counts[e.type]=(counts[e.type]||0)+1;
-      return {seed:s.map.seed,counts,seasons:180,historyMs:s.historyGenerationMs};
+      return {seed:s.map.seed,counts,seasons:window.socialQuickFixture?window.socialQuickFixture.lastSimulatedSeason+181:180,initialFixture:window.socialQuickFixture,historyMs:s.historyGenerationMs};
     });write();
     report.actors=await page.evaluate(()=>{
       const s=window.tinyking,e=s.ecs,api=window.tinykingSocial,player=s.ui.playerId;
@@ -35,6 +50,7 @@ const {chromium}=require("playwright-core");
       if(!a||!b||!outsider)throw Error("No eligible existing fixture adults");
       const point=e.spatial[player];window.socialFixture={a,b,spouse,outsider,player,point:{x:point.x,y:point.y},start:s.days};
       const bond=(x,y,g,ring="public")=>{e.relationships[x].known[y]={goodwill:g,base:g,ring};};
+      for(const id of [a,spouse,outsider])e.personality[id].opinionThresholds={hate:-100,love:-99};
       bond(a,spouse,-300);bond(spouse,a,66,"intimate");bond(a,player,66,"intimate");bond(player,a,0);bond(player,spouse,0);bond(player,b,0);
       for(const id of [a,spouse,b,outsider]) {delete e.interior[id];e.planner[id].task=null;e.planner[id].world.feeling={};s.knowledge[player].people[id]={traits:[]};}
       e.spatial[a]={...e.spatial[a],x:point.x+35,y:point.y};e.spatial[spouse]={...e.spatial[spouse],x:point.x+55,y:point.y};
@@ -68,7 +84,7 @@ const {chromium}=require("playwright-core");
       if(!affair)throw Error("No affair in bounded fixture contacts");
       const before=s.knowledge[outsider]?.events?.includes(affair.id)||false;
       if(before)throw Error("The gossip listener already witnessed the affair");
-      e.relationships[a].known[outsider]={ring:"personal",goodwill:36,base:36};e.relationships[outsider].known[a]={ring:"public",goodwill:-3,base:-3};
+      e.relationships[a].known[outsider]={ring:"personal",goodwill:36,base:36};e.relationships[outsider].known[a]={ring:"public",goodwill:-3,base:-3};e.relationships[outsider].known[b]={ring:"public",goodwill:0,base:0};
       e.spatial[outsider]={...e.spatial[outsider],x:e.spatial[a].x+40,y:e.spatial[a].y};
       const exchange=api.exchangeNews(s,a,outsider);
       e.relationships[outsider].known[spouse]={ring:"intimate",goodwill:66,base:66};api.exchangeNews(s,outsider,spouse);

@@ -65,13 +65,14 @@ it('names the real fuel receiver for a full pantry and keeps normal room-store d
   s.ecs.spatial.oven = { ...s.ecs.spatial[w.tiles[1]], id: 'oven' };
   s.ecs.container[w.tiles[3]].amounts.grain = 10;
   let html = render(s, <RequestList/>);
-  expect(html).toContain('Workshop fuel · tile 1, 0');
+  expect(html).toContain('Workshop fuel · near Withyford');
   expect(html).toContain('Household store is full · bring the log to the oven.');
-  expect(html).not.toContain('Household stores · tile 3, 0');
+  expect(html).not.toContain('Household stores · in Withyford');
   s.ecs.container[w.tiles[3]].amounts.grain = 9;
   html = render(s, <RequestList/>);
-  expect(html).toContain('Household stores · tile 3, 0');
+  expect(html).toContain('Household stores · in Withyford');
   expect(html).not.toContain('Workshop fuel');
+  expect(html).not.toMatch(/tile \d+,\s*\d+/);
 });
 
 it('uses the same actual harvest blockage in the request and task, instead of the original ready-crop reason', () => {

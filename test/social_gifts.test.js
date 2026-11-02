@@ -109,7 +109,7 @@ it('preserves a physically collected unique gift through replacement gathering a
   expect(s.ecs.possession[item]).toEqual(collected);
   expect(s.ecs.good[item]).toEqual(good);
   expect(s.ecs.haulable[item].heldBy).toBe(player);
-  expect(s.ecs.container[camp].amounts).toEqual({ forage: 1 });
+  expect(s.ecs.container[camp].amounts).toEqual({ berries: 1 });
   gift=enqueueTask(s,{key:"give_gift"},person,{gift:choice,giftItem:item});
   step(4);
   expect(gift.progress).toBe(1);

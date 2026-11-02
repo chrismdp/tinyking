@@ -156,7 +156,7 @@ it("the player's forage order carries a portion home for winter", () => {
   }]);
   state.ecs.manager[villager].jobs.push({ job: { key: "forage" }, targetId: bush });
   advance(state, HOUR * 8);
-  expect(state.ecs.container[store].amounts.forage).toBe(1);
+  expect(state.ecs.container[store].amounts.roots).toBe(1);
   expect(state.ecs.forageable[bush].amount).toBe(0);
   expect(state.ecs.manager[villager].jobs).toEqual([]);
 });

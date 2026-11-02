@@ -52,14 +52,16 @@ it('eats only real accessible owned food, preserving the rest of a stack',()=>{
   expect(s.ecs.personable[a].energy).toBe(55);expect(s.ecs.good[meal].amount).toBe(2);
   expect(eatOwnedFood(s,'missing','grain')).toBe(false);
 });
-it('stops physical orders at dusk and sends the player to their own camp',()=>{
+it('keeps work available at dusk and returns to the owned fire only when exhausted',()=>{
   const {state:s,villager:a,tiles}=playerFixture();
   const [camp]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[0]]},camp:{ownerId:a},controllable:{controllerId:a}}]);
   s.ecs.household={[a]:{houseId:camp}};
   enqueueTask(s,{key:'create_stockpile'},tiles[2]);s.days=18/24;
-  playerDay(s);expect(readyPlayerTasks(s)).toEqual([]);
-  expect(s.ecs.planner[a].world.duskHome).toBe(camp);
-  expect(s.ecs.manager[a].jobs[0].waiting).toMatch(/dark/i);
+  playerDay(s);expect(readyPlayerTasks(s)).toHaveLength(1);
+  expect(s.ecs.planner[a].world.fireHome).toBeUndefined();
+  s.ecs.personable[a].energy=0;playerDay(s);expect(readyPlayerTasks(s)).toEqual([]);
+  expect(s.ecs.planner[a].world.fireHome).toBe(camp);
+  expect(s.ecs.manager[a].jobs[0].waiting).toMatch(/energy/i);
 });
 it('sleep restores more in a bed; a late night lowers the next morning',()=>{
   const run=(bed,hour)=>{const {state:s,villager:a}=playerFixture();s.days=hour/24;s.ecs.personable[a].energy=0;

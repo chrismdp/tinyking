@@ -1,3 +1,4 @@
+import { taskPlace } from "game/task_places";
 import { Hex } from "game/hex";
 import { giftOptions } from "game/people";
 
@@ -10,10 +11,10 @@ export function giftChoices(state, actorId) {
     const building = ecs.interior?.[gift.sourceId]?.buildingId;
     const atHome = building && building == ecs.household?.[actorId]?.houseId;
     const hex = Hex().fromPoint(ecs.spatial[holder || gift.sourceId]);
-    const location = `tile ${hex.x}, ${hex.y}`;
+    const location = taskPlace(state,holder || gift.sourceId);
     const source = gift.possession?.carried ? "Personal possession" : holder == actorId ? "In your hands" : holder ? "Stockpile · " + location :
       ecs.container?.[gift.sourceId] ? (atHome ? "Home stores" : "Container · " + location) : "On the ground · " + location;
-    const key = JSON.stringify([gift.type, gift.value, source, gift.possession ? gift.sourceId : null]);
+    const key = JSON.stringify([gift.type, gift.value, source, String(hex), gift.possession ? gift.sourceId : null]);
     if (choices.has(key)) choices.get(key).amount += gift.amount;
     else choices.set(key, { gift, source, amount: gift.amount });
   }

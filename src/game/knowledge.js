@@ -52,12 +52,22 @@ export function personLabel(state, id, resolve = state.personName, viewer = stat
   if (relative) return "your " + relative.term + " " + relative.name;
   const person = personComponent(state, "personable", id), n = personComponent(state, "nameable", id);
   if (!person || person.unrevealed) return "a person";
+  const trade = learned?.trade;
+  if(trade)return "the " + trade;
+  const spouse=personComponent(state,"kinship",id)?.spouse;
+  const spouseTrade=state.knowledge?.[viewer]?.people?.[spouse]?.trade;
+  if(spouseTrade) {
+    const pair=link=>[link.speaker_id,link.relative_id].includes(id) && [link.speaker_id,link.relative_id].includes(spouse);
+    const disclosed=viewer==id || viewer==spouse || Object.values(state.knowledge?.[viewer]?.kinLinks || {}).some(link=>link.kinship=="spouse" && pair(link)) ||
+      (state.events || []).some(e=>e.type=="marriage" && state.knowledge?.[viewer]?.events?.includes(e.id) && e.people.includes(id) && e.people.includes(spouse));
+    if(disclosed)return "the " + spouseTrade + "'s " + (n?.male===true?"husband":n?.male===false?"wife":"spouse");
+  }
   const child = person.age < 18;
   const who = n?.male == null ? (child ? "a child" : "a person") : child ? (n.male ? "a boy" : "a girl") : (n.male ? "a man" : "a woman");
   const house = personComponent(state, "household", id)?.houseId, at = state.ecs.spatial?.[house];
   const seen = at && state.ecs.playable?.[viewer]?.known?.some(h => String(Hex(h)) == String(Hex().fromPoint(at)));
   const home = seen && state.ecs.nameable?.[house]?.nickname;
-  if (home) return who + " of " + home;
+  if (home && !/^(family cottage|founder's cottage)$/i.test(home)) return who + " of " + home;
   const body=state.ecs.spatial?.[id], eye=state.ecs.spatial?.[viewer];
   if (body && eye && Math.hypot(body.x-eye.x,body.y-eye.y)<=300) {
     const hair=["red","brown","black","blond","strawberry blond","pink","blue"][person.hair];

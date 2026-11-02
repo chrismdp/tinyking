@@ -98,7 +98,7 @@ export function attendFestival(s,villageId) {
   if(!v || !active)return false;
   const place=festivalPlace(s,v),e=s.ecs,p=e.planner[a];
   if(!place)return false;
-  pauseWork(s);p.world.returnedNight=Math.floor(s.days-6/24);delete p.world.duskHome;
+  pauseWork(s);delete p.world.fireHome;delete p.world.byFire;
   // The explicit destination is the surveyed central green, never a teleport.
   const target=place.id || (s.space && Object.keys(e.walkable || {}).find(id=>near(s,id,place,10)));
   if(!target)return false;
@@ -106,14 +106,50 @@ export function attendFestival(s,villageId) {
 }
 const LIFE_EVENTS = new Set(["birth", "marriage", "death", "move", "world_move", "household_join", "household_arrival", "arrival", "departure", "world_visit", "return", "fire", "quarrel", "reconciliation", "founding", "inheritance", "succession"]);
 const BUILD_EVENTS = new Set(["house_built", "building_built", "expansion", "green_moved"]);
+function lifeSummary(s,records) {
+  const event=records[0],n=records.length;
+  const count=(["Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"][n] || String(n));
+  const people=records.map(e=>e.people[0]);
+  const adults=people.every(id=>(s.ecs.personable?.[id]?.age ?? 18)>=18);
+  const male=people.every(id=>s.ecs.nameable?.[id]?.male===true),female=people.every(id=>s.ecs.nameable?.[id]?.male===false);
+  const who=adults?(male?"men":female?"women":"people"):"people";
+  const reason=event.reason=="seeking company"?"to seek company elsewhere":event.reason=="returning home"?"to return home":event.reason;
+  const account={departure:`${who} left${reason ? " " + reason : " for another region"}`,
+    arrival:`${who} arrived from another region`,world_visit:`${who} came from another region to meet people`,
+    return:`${who} returned home`,world_move:`${who} settled in another region after marrying`,
+    move:`${who} moved home`,birth:"children were born",marriage:"couples married",
+    death:`${who} died${event.cause ? " of " + event.cause : ""}`,
+    household_arrival:"households were established",household_join:`${who} joined new households`}[event.type];
+  return account ? count+" "+account+"." : null;
+}
 export const SEASON_PAGE_LINES = 6;
 export function seasonLines(s, n, actor = s.ui.playerId) {
   const start = n * DAYS_IN_SEASON, end = start + DAYS_IN_SEASON;
   const events = knownEvents(s, actor).filter(e => e.day >= start && e.day < end)
     .sort((a,b) => a.day-b.day || a.id.localeCompare(b.id, undefined, {numeric:true}));
   const row = (id, text, section, records) => ({id, text, section, eventIds:records.map(e=>e.id)});
-  const life = events.filter(e=>LIFE_EVENTS.has(e.type)).map(e=>row(e.id,
-    eventSentence(s,e,id=>personLabel(s,id,s.personName,actor)).replace(/ in the (spring|summer|autumn|winter) of year -?\d+\.$/, "."), "life", [e]));
+  const lifeRecords=events.filter(e=>LIFE_EVENTS.has(e.type));
+  const groups=new Map();
+  for(const event of lifeRecords) {
+    if(event.people.includes(actor))continue;
+    const key=JSON.stringify([event.type,event.reason,event.cause]);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(event);
+  }
+  const grouped=new Set(),life=[];
+  for(const event of lifeRecords) {
+    if(grouped.has(event.id))continue;
+    const key=JSON.stringify([event.type,event.reason,event.cause]);
+    const records=groups.get(key) || [];
+    // A repeated record about the same person is not several people.
+    const different=records.length>1 && new Set(records.flatMap(e=>e.people)).size==records.reduce((n,e)=>n+e.people.length,0);
+    const summary=different && lifeSummary(s,records);
+    if(summary) {
+      for(const e of records)grouped.add(e.id);
+      life.push(row(event.id,summary,"life",records));
+    } else life.push(row(event.id,eventSentence(s,event,id=>personLabel(s,id,s.personName,actor))
+      .replace(/ in the (spring|summer|autumn|winter) of year -?\d+\.$/, "."),"life",[event]));
+  }
   const work = [], harvest = events.filter(e=>e.type=="harvest"), builds = events.filter(e=>BUILD_EVENTS.has(e.type));
   const favours = events.filter(e=>e.type=="favour" && e.people[0]!=actor);
   if (harvest.length) work.push(row("harvest", "The harvest came in: " + harvest.reduce((sum,e)=>sum+e.quantity,0) + " grain over " + harvest.length + (harvest.length==1 ? " load." : " loads."), "work", harvest));

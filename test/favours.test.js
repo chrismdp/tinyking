@@ -382,7 +382,7 @@ it('releases family cargo when an explicit gathering order replaces its delivery
   for (let i = 0; i < 400 && s.ecs.manager[w.player].jobs.includes(gather); i++) w.step(.01);
   expect(gather.progress).toBe(1);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(6);
-  expect(s.ecs.container[w.camp].amounts.forage).toBe(1);
+  expect(s.ecs.container[w.camp].amounts.berries).toBe(1);
   expect(s.ecs.haulable[borrowed].heldBy).not.toBe(w.player);
   expect(s.ecs.controllable[borrowed].controllerId).toBe(w.person);
   cancelTask(s, favour.id);
@@ -479,7 +479,7 @@ it.each([false, true])('physically fuels a full-pantry oven, including an old ac
   expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
   expect(s.ecs.workplace[w.workplace].fuelHours).toBe(4);
   expect(r.receipts).toHaveLength(1);
-  expect(taskMarkup(s)).toContain('Workshop fuel · tile 1, 0');
+  expect(taskMarkup(s)).toContain('Workshop fuel · at camp');
   expect(taskMarkup(s)).not.toContain('bring the log');
 
   // An actual NPC at the station burns the delivered resource during work.

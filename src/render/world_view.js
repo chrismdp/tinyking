@@ -283,6 +283,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         ground, camp: state.intro.campPoint
       });
     }
+    const fire=state.ecs.planner[id]?.world.byFire,at=state.ecs.spatial[fire];
+    models.poseFiresidePerson(object,state.ecs.personable[id],at && {x:at.x-25,y:at.y-10});
   };
 
   // Keep ordinary activity where it fits; the player and selected encounter

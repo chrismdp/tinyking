@@ -4,21 +4,21 @@ import { firstFreeJob } from "game/manager";
 export const TALK_JOBS = ["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"];
 export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 };
 
-// The player chooses meals and sleep. Villagers retain their household routines.
+// Meals and early rest are deliberate; exhaustion and late evenings bring the player home.
 export const player = () => [
-  [world => world.journeyCamp, () => [["sleep"]]],
   [world => world.stationaryPlayer === false, () => [["person"]]],
   [world => world.capturedAttentionOf, id => [["release_attention",id],["player"]]],
   [world => world.currentJob, key => [["release_job",key],["player"]]],
   [world => world.claimedFarmable, id => [["release_farmable",id],["player"]]],
   [world => world.capturedBy, () => [["wait_for",1/96]]],
   [world => world.forcedRest, () => [["player_rest"]]],
-  [world => world.duskHome, home => [["walk_to",home],["settle_fire"]]],
+  [world => world.fireHome, home => [["walk_to",home],["settle_fire"]]],
+  [world => world.journeyCamp, () => [["settle_fire"]]],
   [() => true, () => [["player_jobs"]]],
   [() => true, () => [["wait_for",1/48]]]
 ];
 export const player_rest = () => [
-  [world => world.restBed || world.restHome, home => [["walk_to",home],["sleep"]]],
+  [world => world.journeyCamp ? world.places.sleep : world.restBed || world.restHome, home => [["walk_to",home],["sleep"]]],
   [() => true, () => [["sleep"]]]
 ];
 

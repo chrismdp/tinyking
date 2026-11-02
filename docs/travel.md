@@ -64,10 +64,12 @@ regrow used resources or refill a store.
 
 ## Camping during a journey
 
-At 6pm, a traveller makes camp at their actual position. The camp uses the
-existing bundle, fire and bedroll. The character stays there and sleeps through
-the existing sleep task. Energy and tiredness retain their current rules.
-At 6am, the character packs that temporary camp and resumes the same Travel task.
+A traveller can keep walking after dark. At zero energy, they make camp at their
+actual position and sit by the fire. The camp uses the existing bundle, fire and
+bedroll. At 11pm they turn in unless a conversation holds attention. Rest can
+start sleep earlier. Energy and tiredness retain their current rules.
+After sleep, the character packs the temporary camp and resumes the same Travel
+task. Eating can also replenish energy and allow travel to continue.
 A stopped journey leaves its bedroll available for ordinary rest.
 The remaining route and temporary camp survive saving and restoring.
 The arrival camp remains separate from this temporary journey camp.

@@ -43,9 +43,7 @@ export function UserInterface() {
   return (
     <div id="ui">
       <div id="sleep-fade" className={state.nightSleep ? "asleep" : ""} aria-hidden="true"/>
-      {state.ui?.dayMessage && <aside className="morning-line" role="status"><span>{state.ui.dayMessage}</span><button aria-label="Dismiss morning message" onClick={()=>{delete state.ui.dayMessage;state.ui.actions.end_turn();}}>×</button></aside>}
       <SeasonTurn/>
-      {!state.seasonTurn && <FestivalNotice/>}
       {state.chat?.active && <ChatPanel/>}
       {show.clock && <Clock/>}
       {!show.main_menu && state.persistence?.error && <aside id="save-status" role="alert">{state.persistence.error}</aside>}
@@ -59,7 +57,10 @@ export function UserInterface() {
       {show.info && <PanelBoundary key={show.info} onClose={()=>state.ui.actions.change_visibility({info:null})}><Window windowId="info" x={30} y={30}><Info entityId={show.info}/></Window></PanelBoundary>}
       {show.mapgen && <PanelBoundary onClose={()=>state.ui.actions.change_visibility({mapgen:false})}><Window windowId="mapgen" x={60} y={70}><CustomGame/></Window></PanelBoundary>}
       <PanelBoundary key={(state.ui?.familyPersonId ? "family:" : "person:") + (state.ui?.familyPersonId || show.selected_person)} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.change_visibility({selected_person:null});}}>{state.ui?.familyPersonId ? <React.Suspense fallback={null}><FamilyTree entityId={state.ui.familyPersonId} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.end_turn();}} onSelect={id=>{state.ui.familyPersonId=null;state.ui.actions.select_entity(id,false);}}/></React.Suspense> : show.selected_person && <SelectedPerson entityId={show.selected_person}/>}</PanelBoundary>
-      {show.speed_controls && <><OpeningGuidance/><RealmControls/><TravelOverview/><PanelBoundary><StatusStrip/><Journal/></PanelBoundary><SpeedControls/><PanelBoundary><EventFeed/></PanelBoundary></>}
+      {show.speed_controls && <><div id="day-notices" aria-label="Today">
+        {state.ui?.dayMessage && <aside className="morning-line" role="status"><span>{state.ui.dayMessage}</span><button aria-label="Dismiss morning message" onClick={()=>{delete state.ui.dayMessage;state.ui.actions.end_turn();}}>×</button></aside>}
+        <OpeningGuidance/>{!state.seasonTurn && <FestivalNotice/>}
+      </div><RealmControls/><TravelOverview/><PanelBoundary><StatusStrip/><Journal/></PanelBoundary><SpeedControls/><PanelBoundary><EventFeed/></PanelBoundary></>}
     </div>
   );
 }

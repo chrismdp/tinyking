@@ -61,6 +61,8 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   }
   for (const previous of [...manager.jobs]) cancelTask(state, previous.id);
   manager.jobs.push(entry);
+  delete state.ecs.planner[state.ui.playerId].world.fireHome;
+  delete state.ecs.planner[state.ui.playerId].world.byFire;
   if (manager.jobs.length == 1) {
     const planner = state.ecs.planner[state.ui.playerId];
     if (planner.world.stationaryPlayer && planner.task?.[0] == "wait_for" || !["eat_food", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);

@@ -1,3 +1,4 @@
+import { hexName } from "game/travel_geometry";
 import { climateSummary } from "game/biome_field";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
@@ -38,7 +39,7 @@ export function knownCommunities(s, key = reachKey(s.world.home)) {
 }
 export function reachFacts(s, h) {
   const key = reachKey(h);
-  return { key, name: "Reach " + h.x + ", " + h.y, current: key == reachKey(s.world.home),
+  return { key, name: hexName(h,s.world.home), current: key == reachKey(s.world.home),
     visited: key == reachKey(s.world.home) || !!s.travel?.maps?.[key],
     terrain: h.ocean ? "Ocean" : climateSummary(h), temperature: h.temperature, moisture: h.moisture,
     weather: s.weather?.[key], communities: knownCommunities(s, key) };

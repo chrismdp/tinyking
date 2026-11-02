@@ -38,8 +38,8 @@ They do not introduce injury, warmth or storm damage.
 
 A journey plans adjacent land hops. The normal planner walks through each hex
 to its exit, using the road where available. Each hop advances one season and
-arrives at the matching edge at dawn. At dusk, the traveller camps at their
-position and resumes at dawn. Visited maps retain their people, buildings,
+arrives at the matching edge at dawn. When exhausted, the traveller camps at their
+position, sits by the fire, and resumes after rest. Visited maps retain their people, buildings,
 stores and ownership. Only the current hex runs live. Away communities advance
 through seasonal history. Their snapshots still remain in memory until per-hex
 storage and eviction are implemented. See [travel](travel.md).
@@ -91,8 +91,8 @@ Low energy slows work. At zero, work waits for food or sleep. Eat consumes a
 specific carried or owned portion. The player never searches for a meal automatically.
 Rest walks home and sleeps. A bed restores more energy than rough ground or a
 camp bedroll. Late nights and collapse reduce the next morning's recovery.
-At dusk, physical work stops and the player walks home to their fire or camp.
-Evening conversations and visits remain available. See [energy](survival.md).
+Work and visits remain available after dark. At zero energy the player walks
+home and sits by their fire or camp. At 11pm they turn in unless in a conversation. See [energy](survival.md).
 
 Villagers retain real meals and household larders. Low reserves cause food
 requests, and ripe crops cause harvest requests. Missed meals cannot kill them.

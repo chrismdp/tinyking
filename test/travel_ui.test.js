@@ -25,7 +25,7 @@ it("offers an explicit named Travel action, one season, needs and unfinished-wor
     } = community(),
     id = s.map.entrances[0].tileIds[0];
   let html = render(s, <TravelOffer entityId={id} />);
-  expect(html).toContain("Reach ");
+  expect(html).toContain("The region to the east");
   expect(html).toContain("grassland");
   expect(html).toContain("one season");
   expect(html).toContain("Walking uses a little energy");

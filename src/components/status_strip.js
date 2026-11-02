@@ -1,4 +1,5 @@
 import { foodChoices } from "game/energy";
+import { FOOD_ENERGY } from "game/goods";
 import { enqueueTask } from "game/manager";
 import { journeyText } from "game/travel";
 import { canFoundHousehold } from "game/family";
@@ -91,7 +92,8 @@ export function StatusStrip() {
   const sleeping = planner.task?.[0] == "sleep";
   const wood = job && woodTask(state,job,job.assignedId == id);
   const request = requestForTask(state,job);
-  const activity = person.dead ? "Dead" : sleeping ? "Sleeping" : job?.waiting ? "Waiting · " + (request ? favourTitle(request) : TASK_TITLES[job.job.key] || "Building") :
+  const fireside = ["settle_fire","walk_to"].includes(planner.task?.[0]) && planner.world.fireHome;
+  const activity = person.dead ? "Dead" : sleeping ? "Sleeping" : fireside ? currentActivity(ecs,id,key=>key) : job?.waiting ? "Waiting · " + (request ? favourTitle(request) : TASK_TITLES[job.job.key] || "Building") :
     wood?.phase || (request && favourTitle(request)) || (job && TASK_TITLES[job.job.key]) ||
     currentActivity(ecs,id,key=>messages.tasks[key.split(".")[1]],other=>displayName(state,other)) || "Ready";
   const meals = person.dead ? [] : foodChoices(state).slice(0,1);
@@ -110,7 +112,7 @@ export function StatusStrip() {
     </div>
     <div className="daily-actions">
       {!person.dead && <button disabled={sleeping} onClick={()=>state.ui.actions.choose_job(id,{key:"rest"},id)}>Rest</button>}
-      {meals.map(meal=><button key={meal.type} onClick={()=>{enqueueTask(state,{key:"eat_food"},meal.sourceId,{foodType:meal.type});state.ui.actions.end_turn();}}>Eat {meal.type}</button>)}
+      {meals.map(meal=><button key={meal.type} onClick={()=>{enqueueTask(state,{key:"eat_food"},meal.sourceId,{foodType:meal.type});state.ui.actions.end_turn();}} title={"Restores " + FOOD_ENERGY[meal.type] + " energy"}>Eat {meal.type}</button>)}
       <button className="journal-toggle" aria-expanded={!!state.ui.show?.journal} onClick={()=>{state.ui.show.journal=!state.ui.show.journal;state.ui.actions.end_turn();}}>Journal · J</button>
     </div>
   </aside>;
@@ -132,10 +134,10 @@ export function Journal() {
       {goals.family && <p className="family-goal" role="status">{goals.family.text}</p>}
       <section className="people-goals"><h3>Life here · {goals.completed.length}/4</h3><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</section>
       <ActivityDetails/>
-      {!person.dead && <div className="journal-meals">{foodChoices(state).filter((meal,i,all)=>all.findIndex(x=>x.type==meal.type)==i).map(meal=><button key={meal.type} onClick={()=>{enqueueTask(state,{key:"eat_food"},meal.sourceId,{foodType:meal.type});state.ui.actions.end_turn();}}>Eat {meal.type}</button>)}</div>}
+      {!person.dead && <div className="journal-meals">{foodChoices(state).filter((meal,i,all)=>all.findIndex(x=>x.type==meal.type)==i).map(meal=><button key={meal.type} onClick={()=>{enqueueTask(state,{key:"eat_food"},meal.sourceId,{foodType:meal.type});state.ui.actions.end_turn();}} title={"Restores " + FOOD_ENERGY[meal.type] + " energy"}>Eat {meal.type}</button>)}</div>}
       {garden && <button onClick={()=>state.ui.actions.choose_job(id,{key:"tend_garden"},garden)}>Help at home</button>}
       {canFoundHousehold(state) && <button onClick={()=>state.ui.actions.found_household()}>Found a household</button>}
-      {person.pendingJourney && <p>Journey to {person.pendingJourney.to} paused when you took control. Choose Travel to depart again.</p>}
+      {person.pendingJourney && <p>Journey to another region paused when you took control. Choose Travel to depart again.</p>}
       <RequestList/>
     </div>
   </aside>;

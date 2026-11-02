@@ -91,7 +91,7 @@ it("chops and forages as successive orders, carries both to camp, and reports wo
   expect(state.ecs.manager[player].jobs).toEqual([]);
   const goods = Object.keys(state.ecs.haulable).filter(id => !state.ecs.haulable[id].heldBy);
   expect(goods.filter(id => state.ecs.good[id].type == "wood")).toHaveLength(2);
-  expect(goods.filter(id => state.ecs.good[id].type == "forage")).toHaveLength(1);
+  expect(goods.filter(id => state.ecs.good[id].type == "roots")).toHaveLength(1);
   for (const id of goods) expect(Math.hypot(state.ecs.spatial[id].x - state.ecs.spatial[camp].x,
     state.ecs.spatial[id].y - state.ecs.spatial[camp].y)).toBeLessThan(40);
 });
@@ -132,11 +132,11 @@ it("the bedroll is used for sleep before building, then gathered food is stored 
     forageable: { kind: "roots", biome: "grassland", amount: 1, growth: 0 } }]);
   enqueueTask(state, { key: "forage" }, bush);
   step(3);
-  expect(state.ecs.container[site].amounts.forage).toBe(1);
+  expect(state.ecs.container[site].amounts.roots).toBe(1);
   state.ecs.personable[player].energy = 20;
-  enqueueTask(state,{key:"eat_food"},site,{foodType:"forage"});
+  enqueueTask(state,{key:"eat_food"},site,{foodType:"roots"});
   step(5);
-  expect(state.ecs.container[site].amounts.forage).toBe(0);
+  expect(state.ecs.container[site].amounts.roots).toBe(0);
   expect(state.ecs.personable[player].energy).toBeGreaterThan(20);
 });
 

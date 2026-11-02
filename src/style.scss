@@ -1161,17 +1161,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   .festival-notice button { min-height: 36px; }
 }
 
-@media(max-width:700px) {
-  #game #ui:has(.festival-notice) #opening-guidance { display: none; }
-  .festival-notice {
-    top: calc(155px + var(--safe-top)); left: 10px; box-sizing: border-box;
-    width: calc(100vw - 20px); max-width: none; max-height: calc(100svh - 355px);
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 14px;
-    strong, p, > button:first-of-type { grid-column: 1 / -1; }
-    p { margin: 2px 0 4px; line-height: 1.3; }
-    button { min-height: 40px; padding: 4px 6px; margin: 0; font-size: 14px; line-height: 1.2; }
-  }
-}
 
 
 #status-strip, #journal {
@@ -1220,3 +1209,32 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 
 #game #speed-controls { z-index: 23; }
+
+// Daily notices share one scrollable stack above the activity strip.
+#day-notices {
+  position: absolute; z-index: 8; top: calc(104px + var(--safe-top));
+  left: 50%; transform: translateX(-50%); width: min(430px, calc(100% - 24px));
+  bottom: calc(130px + var(--safe-bottom)); display: flex; flex-direction: column;
+  gap: 8px; overflow-y: auto; overscroll-behavior: contain; pointer-events: none;
+  &:empty { display: none; }
+  #opening-guidance, .morning-line, .festival-notice {
+    position: static; transform: none; width: 100%; max-width: none; max-height: none;
+    box-sizing: border-box; flex: 0 0 auto; pointer-events: auto; margin: 0;
+  }
+  .festival-notice { padding: 12px; }
+}
+.chat-panel .chat-icon.large .chat-icon-name {
+  white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 700px), (max-height: 500px) {
+  #day-notices {
+    top: calc(155px + var(--safe-top)); bottom: calc(190px + var(--news-space, 0px) + var(--safe-bottom));
+    left: calc(10px + var(--safe-left)); transform: none;
+    width: calc(100% - 22px - var(--safe-left) - var(--safe-right));
+    .festival-notice { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 14px; }
+    .festival-notice strong, .festival-notice p, .festival-notice > button:first-of-type { grid-column: 1 / -1; }
+    .festival-notice p { margin: 2px 0 4px; line-height: 1.3; }
+    .festival-notice button { min-height: 44px; padding: 4px 6px; margin: 0; font-size: 14px; line-height: 1.2; }
+  }
+  .chat-panel .chat-icon.large .chat-icon-name { font-size: clamp(7px, 1.9vw, 9px); }
+}

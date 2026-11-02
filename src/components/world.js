@@ -55,7 +55,7 @@ const releaseMap = state => {
 };
 
 const renderMap = (webgl, state, selectEntity, renderUI, t) => {
-  releaseMap(state);
+  state.ticker?.destroy();
   state.ticker = createTicker();
   state.ticker.start();
 
@@ -63,7 +63,8 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   state.redraws = Object.keys(state.ecs.spatial);
 
   state.personName = (id, record = personComponent(state, "nameable", id)) => name(record);
-  state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
+  if (state.renderer) state.renderer.changeMap();
+  else state.renderer = createWorldView(webgl, state, { t, onSelect: selectEntity });
   state.renderer.resize(window.innerWidth, window.innerHeight);
 
   const simulation = createSimulation(state, { onSleep: renderUI, onHour: renderUI, onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); }, onError: error => { console.error(error); renderUI(); } });
@@ -85,6 +86,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   });
 
   state.ticker.add(() => state.renderer.frame());
+  renderUI();
 };
 
 const virtualPosition = {

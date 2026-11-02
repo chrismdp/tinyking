@@ -11,6 +11,7 @@ jest.mock("render/labels", () => ({ label: (text, options = {}) => {
 import * as THREE from "three";
 import { Hex, Grid } from "game/hex";
 import { createWorldView } from "render/world_view";
+import { groundForState } from "game/geography";
 
 const fixture = () => {
   const centre = Hex(22, 22);
@@ -39,6 +40,33 @@ const fixture = () => {
 
 beforeEach(() => { global.window = { addEventListener() {}, removeEventListener() {} }; });
 afterEach(() => { delete global.window; });
+
+it("keeps the scene, camera and long-lived effects while replacing all local map objects", () => {
+  const { state, renderer } = fixture();
+  const point=state.map.centre.toPoint();
+  state.ecs.spatial.oldTree={...point,id:"oldTree"};
+  state.ecs.tree={oldTree:{stage:"mature",fullLogs:2}};
+  state.ecs.good.oldTree={type:"wood",amount:2};
+  state.redraws=["oldTree"];
+  const view=createWorldView(renderer,state,{t:x=>x,onSelect(){}});
+  view.showWholeMap();view.frame();
+  expect(view.objectOf("oldTree")).toBeDefined();
+  const scene=renderer.render.mock.calls.at(-1)[0],camera=view.camera,terrain=view.terrain;
+  const retained=scene.children.filter(child=>child!==terrain.mesh && child!==view.objectOf("oldTree"));
+  const next=fixture().state;
+  next.ecs.walkable=Object.fromEntries(Object.keys(next.ecs.mappable).map(id=>[id,{worn:{},speed:1,neighbours:{}}]));
+  state.ecs=next.ecs;state.space=next.space;state.map={...next.map,seed:14};
+  state.ui=next.ui;state.redraws=[];
+  view.changeMap();view.frame();
+  expect(renderer.render.mock.calls.at(-1)[0]).toBe(scene);
+  expect(view.camera).toBe(camera);
+  expect(view.terrain).not.toBe(terrain);
+  expect(view.ground.heightAt(point.x,point.y)).toBe(groundForState(state).heightAt(point.x,point.y));
+  expect(view.objectOf("oldTree")).toBeUndefined();
+  for(const child of retained)expect(scene.children).toContain(child);
+  expect(view.terrain.mesh.geometry.drawRange.count).toBe(0);
+  view.dispose();
+});
 
 it("renders a wilderness hex without any building interiors",()=>{
   const {state,renderer}=fixture();

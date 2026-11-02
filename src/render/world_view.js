@@ -68,6 +68,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   let terrain = createTerrain(state, ground);
   let geography = state.map.geography;
+  let changedMap = false;
   scene.add(terrain.mesh);
   const forest = createForest();
   scene.add(forest.mesh);
@@ -470,6 +471,24 @@ export function createWorldView(renderer, state, { t, onSelect }) {
 
   return {
     camera,
+    changeMap() {
+      for (const id in objects) remove(id);
+      for (const name of villageLabels.values()) { settlementOverlay.remove(name); models.disposeObject(name); }
+      villageLabels.clear();
+      if (areaOutline) { settlementOverlay.remove(areaOutline); models.disposeObject(areaOutline); }
+      areaOutline = null; areaKey = null;
+      if (campSetup) { nightLights.remove("arrival-camp"); scene.remove(campSetup); models.disposeObject(campSetup); }
+      campSetup = null;
+      if (commonsOutline) { scene.remove(commonsOutline); models.disposeObject(commonsOutline); }
+      commonsOutline = null; commonsRevision = null;
+      known = new Set(); knownCount = -1; arrivalKnown = new Set();
+      revealAll = false; selected = []; lastIntro = null; wasArriving = false; shot = null;
+      fencesVersion = ""; fenceIds = []; weatherPoint = null; weatherHabitat = null;
+      changedMap = true;
+      state.redraws = Object.keys(state.ecs.spatial);
+      rig.returnTo(state.ecs.spatial[state.ui.playerId] || start);
+      canvas.style.filter = "";
+    },
     recenter() {
       rig.returnTo(state.ecs.spatial[state.ui.playerId] || start);
     },
@@ -489,7 +508,8 @@ export function createWorldView(renderer, state, { t, onSelect }) {
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
       lastFrame = now;
 
-      if (geography !== state.map.geography) {
+      if (changedMap || geography !== state.map.geography) {
+        changedMap = false;
         geography = state.map.geography;
         scene.remove(terrain.mesh);
         terrain.dispose();

@@ -85,16 +85,7 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
   initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.season=-180;
-  // Keep reference heads for the owned generation. Demographic and ring
-  // indexes remain seasonal, so old travelling lists can leave memory.
-  await withReferenceIndex(s.travel,async()=>{
-    for(let season=-179;season<=0;season++) {
-      s.days=season*DAYS_IN_SEASON;
-      await advanceWorldClock(s,{travelling:true});
-      Object.assign(s,s.travel.maps[s.travel.active]);
-      await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
-    }
-  });
+  await advanceHistorySeasons(s,-179,0,progress);
   s.days=.375;s.travel.days=s.days;s.travel.season=0;
   for(const map of Object.values(s.travel.maps)) {
     map.days=s.days;map.social.lastSeason=0;
@@ -104,6 +95,19 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   }
   Object.assign(s,s.travel.maps[s.travel.active]);s.days=.375;
 }
+// Run the same shared seasonal boundary on declared communities of any size.
+// New games retain the complete -179..0 range and existing progress values.
+export async function advanceHistorySeasons(s,firstSeason,lastSeason,progress=async()=>{}) {
+  await withReferenceIndex(s.travel,async()=>{
+    for(let season=firstSeason;season<=lastSeason;season++) {
+      s.days=season*DAYS_IN_SEASON;
+      await advanceWorldClock(s,{travelling:true});
+      Object.assign(s,s.travel.maps[s.travel.active]);
+      await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
+    }
+  });
+}
+
 export async function generateWorldGame(s,seed,progress=async()=>{},options={}) {
   await progress("Preparing the whole world",0);
   await generateWorldHistory(s,seed,(label, value) => progress(label, value * .8));

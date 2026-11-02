@@ -2,7 +2,7 @@ import TYPES from "data/event_types.json";
 import LINES from "data/conversation_lines.json";
 import { personLabel } from "game/knowledge";
 import { season } from "game/time";
-import { canDiscloseEvent, RINGS } from "game/people";
+import { canDiscloseEvent, RINGS, goodwillTowards } from "game/people";
 import { learnEvent, eventText } from "game/events";
 import { personComponent } from "game/residents";
 
@@ -57,7 +57,7 @@ export function newsPreference(s,teller,listener,event) {
   const subjects=event.people.filter(id=>id!=listener);
   const audience=subjects.length?subjects.reduce((sum,id)=>{
     const bond=s.ecs.relationships?.[listener]?.known[id],rank=Math.max(0,RINGS.indexOf(bond?.ring));
-    return sum+(definition.valence<0 ? (bond?.goodwill<0?6:4-rank) : definition.valence>0 ? 1+rank : 1);
+    return sum+(definition.valence<0 ? (goodwillTowards(s,listener,id)<0?6:4-rank) : definition.valence>0 ? 1+rank : 1);
   },0)/subjects.length:1;
   return audience*(1+trust/8);
 }

@@ -1,7 +1,11 @@
+import { chatTogether } from "game/social";
+import { runSocialActions } from "game/social_actions";
+import { maritalSatisfaction } from "game/social_conditions";
+import { exchangeNews } from "game/news";
 import { flushSync } from "react-dom";
 import { createLoadingProgress } from "game/loading";
 import { toggleWorldMap } from "game/realm_map";
-import { chooseLine, closeChat, selectChatSubject } from "game/chat";
+import { chooseLine, closeChat, selectChatSubject, openChat, lineCandidates, speakLine } from "game/chat";
 import { PanelBoundary } from "./panel_boundary";
 import { personComponent } from "game/residents";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
@@ -365,6 +369,7 @@ export function World() {
     if (process.env.NODE_ENV !== "production") {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
+      window.tinykingSocial = { chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };

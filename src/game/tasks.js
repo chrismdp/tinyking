@@ -1181,7 +1181,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
     state.social.lastVisits ||= {};
     state.social.lastVisits[[actorId, partnerId].sort().join(":")] = Math.floor(state.days);
     const visitor = v.visitor ? actorId : partnerId, host = v.visitor ? partnerId : actorId;
-    recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId, conversations: 1, courting: !!v.courting });
+    if (state.ecs.village[visitor]?.villageId == null || state.ecs.village[host]?.villageId == null || state.ecs.village[visitor]?.villageId == state.ecs.village[host]?.villageId) recordEvent(state, "visit", [visitor, host], [], { fromVillage: state.ecs.village[visitor]?.villageId, toVillage: state.ecs.village[host]?.villageId, conversations: 1, courting: !!v.courting });
   }
   for (const [a, b] of [[actorId, partnerId], [partnerId, actorId]]) {
     spendPatience(state, a, b); beginInteraction(state, a, b); completeConversation(state, a, b);

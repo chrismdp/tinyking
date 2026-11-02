@@ -8,7 +8,7 @@ The panel shows the remaining patience slots. The NPC's actual ring and goodwill
 
 The person sheet starts with unknown topic and mood tastes. A pop reveals only the tested taste. Pops do not change the player's regard in version one. The reaction text states the NPC's name and the signed change.
 
-The shipped data contains 1,405 authored rows in `src/data/conversation_lines.json`. The engine binds each row to people, events, activities, needs and knowledge. A missing binding or false condition rejects the row. Selection chooses a purpose and a real situation, then uses seeded weights for the wording. Spoken IDs cannot repeat during a chat. Catalogue account IDs include the event identity, so different events of one type remain available. The NPC avoids their last wording for that situation on the next encounter.
+The shipped data contains 1,413 authored rows in `src/data/conversation_lines.json`. The engine binds each row to people, events, activities, needs and knowledge. A missing binding or false condition rejects the row. Selection chooses a purpose and a real situation, then uses seeded weights for the wording. Spoken IDs cannot repeat during a chat. Catalogue account IDs include the event identity, so different events of one type remain available. The NPC avoids their last wording for that situation on the next encounter.
 
 Each NPC question, name request, offer, referral or warning declares `expects` in the catalogue. Player answers declare `answers`. A direct answer stays among the next choices even when the row is full, the player is tired, another subject is selected, or ordinary topics have been spent. The chat finishes its pending exchange before applying its usual closing rule.
 
@@ -58,9 +58,9 @@ Telling new news teaches the listener that event and records the player as its s
 | Social | Moves, marriage moves, favours and woodland incidents |
 | Personal | Inheritance, household joining, gifts, reconciliation, quarrels and defiance |
 
-A quarrel between current spouses is a family matter. A third-party listener needs Intimate trust. A rival can hear it at Personal trust. Close kin and Personal or Intimate friends of either spouse are excluded even when the teller trusts them. Participants can discuss their own quarrel at the ordinary Personal level. Other quarrels retain the Personal rule. This adds no affair, marital satisfaction or private event system.
+A quarrel between current spouses is a family matter. A third-party listener needs Intimate trust. A rival can hear it at Personal trust. Close kin and Personal or Intimate friends of either spouse are excluded even when the teller trusts them. Participants can discuss their own quarrel at the ordinary Personal level. Other quarrels retain the Personal rule. Affairs use the same exclusions for every third-party account.
 
-Initial event audiences remain unchanged. A relative can already know an event from its occurrence even when a later teller withholds it. Unknown types and sealed backstory cannot enter ordinary disclosure. Villager news exchange uses this same policy. Private events and sealed backstory remain outside ordinary speech.
+Initial event audiences remain unchanged. A relative can already know an event from its occurrence even when a later teller withholds it. Unknown types and sealed backstory cannot enter ordinary disclosure. Villager news exchange uses this same policy. Known private events can enter speech only under their disclosure rule. Sealed backstory remains outside ordinary speech.
 
 
 ## News that travels and overheard speech
@@ -76,3 +76,11 @@ The player can hear within 120 world units when both people share an interior an
 From 18:00 to 21:00, an available adult can approach the player's home fire, camp or journey camp. Friendly villagers, friends and homeless strangers can qualify. Friends receive priority. Each evening has a seeded 45% opportunity and permits only one caller. An existing caller prevents another from waiting.
 
 The caller walks a reachable route with time left for conversation. Arrival opens the existing villager-started paused panel with an authored fire greeting. Ordinary topics remain available, including an eligible elder's oath or leaving question. Sleep, leaving the fire or the caller's needs cancels the approach. A caller creates no completed contact before the player answers. The game uses existing people, including visiting travellers. It creates nobody to fill a quiet evening.
+
+## Marriage confidences and private romance
+
+A married NPC can speak honestly about an unhappy marriage with a Personal confidant. The line requires a living spouse and computed directional marital satisfaction below 30. It reveals the spouse link through the existing family-answer path. It does not invent an affair or inspect another person’s hidden knowledge.
+
+Romance and affair accounts, Tell cards and overheard lines come from the shared event catalogue and line generator. Their event icons include both participants. A speaker must know the real event. Affair gossip never reaches either participant’s close kin or Personal friends. A hostile listener can hear it at Personal trust. Other third parties need Intimate trust. Participants can discuss the event with one another at Personal trust.
+
+An affair initially belongs to the participants and actual witnesses. A spouse can discover it by witnessing, then receive the declared goodwill loss and quarrel once. Hearing an already known event, reloading, or merging traveller knowledge does not repeat a reaction. Nothing in this system ends a marriage or changes a household.

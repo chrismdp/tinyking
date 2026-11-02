@@ -1,3 +1,4 @@
+import { condition } from "game/social_conditions";
 import { personComponent } from "game/residents";
 import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 /* global require */
@@ -146,6 +147,7 @@ export function sourceValues(s,c,b,d) {
   case "player_observed_local_weather":return localWeather(s)?[{id:Math.floor(s.days*24),weather_type:localWeather(s).type,season:season(s.days)}]:[];
   case "npc_village": {const v=s.villages?.[e.village?.[n]?.villageId];return v?[{...v,id:e.village[n].villageId,house_count_words:words(v.houses?.length||0),trade_list:[...new Set((v.houses||[]).map(h=>e.household[h]?.trade).filter(Boolean))].map(t=>"a "+t).join(" and ")}]:[];}
   case "village_elder":return [personFact(s,villageElder(s,ref(d.village)?.id))].filter(Boolean);
+  case "npc_kin_link":return kinLinks(s,n);
   case "npc_undisclosed_kin_link":return kinLinks(s,n).filter(l=>!linkKnown(s,p,l));
   case "player_known_kin_link_of_npc":return kinLinks(s,n).filter(l=>linkKnown(s,p,l));
   case "link_relative":return [personFact(s,ref(d.link)?.relative_id)].filter(Boolean);
@@ -195,9 +197,10 @@ export function sourceValues(s,c,b,d) {
   }
 }
 export function predicate(s,c,b,{test,args:a={}}) {
+  const shared=condition(s,{...b,actor:b.player,partner:b.npc,teller:b.npc,listener:b.player,subject:c.subjectId},{test,args:a});
+  if(shared!==undefined)return shared;
   const e=s.ecs, get=x=>typeof x=="string"?x.split(".").reduce((v,k)=>v?.[k],b):x;
   const id=x=>get(x)?.id, person=id(a.person), viewer=id(a.viewer), event=get(a.event), link=get(a.link), home=get(a.household), request=get(a.request);
-  const bond=e.relationships?.[person]?.known[id(a.towards)], ring=bond?.ring||"public", g=bond?.goodwill||0;
   const k=p=>e.kinship?.[p]||{parents:[],children:[]}, alive=p=>living(s,p), count=p=>k(p).children.filter(alive).length;
   const reqs=requests(s,c.npcId), active=reqs.filter(r=>r.status=="offered"&&!reasonGone(s,r));
   const weather=()=>localWeather(s)?.type;
@@ -224,13 +227,6 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "npc_knew_player_before_chat":return c.knewBefore;
   case "completed_contact_exists":return !!s.knowledge?.[id(a.actor)]?.people?.[person]?.conversation;
   case "no_completed_contact_before_this_line":return !s.knowledge?.[id(a.actor)]?.people?.[person]?.conversation;
-  case "disposition_is":return disposition(s,person,id(a.towards))==a.value;
-  case "cold_towards":return disposition(s,person,id(a.towards))=="hate"||g<0;
-  case "has_trait":return e.personality?.[person]?.traits.includes(a.trait);
-  case "ring_is":return ring==a.ring;
-  case "ring_at_least":return RINGS.indexOf(ring)>=RINGS.indexOf(a.ring);
-  case "goodwill_at_least":return g>=a.value;
-  case "goodwill_below":return g<a.value;
   case "profession_is":return e.profession?.[person]?.trade==a.trade;
   case "has_profession":return !!e.profession?.[person]?.trade;
   case "activity_snapshot_is":return c.activity.key==a.activity && (!a.place_kind || c.activity.place_name==a.place_kind);
@@ -276,29 +272,21 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "village_has_elder":return !!villageElder(s,id(a.village));
   case "village_has_common_woodland":return Object.keys(e.tree||{}).some(tree=>{const permission=resourcePermission(s,c.actorId,tree);return permission.kind=="common" && permission.villageId==id(a.village);});
   case "kin_link_known_to":return linkKnown(s,viewer,link);
-  case "subject_is_close_kin_of":return closeFamily(s,person).includes(c.subjectId);
   case "kinship_is":return link?.kinship==a.kind;
   case "kinship_not_in":return !!link&&!a.kinds.includes(link.kinship);
-  case "person_alive":return alive(person);
-  case "person_dead":return !!e.personable[person]?.dead;
   case "different_village":return !!get(a.a)?.village&&!!get(a.b)?.village&&get(a.a).village!=get(a.b).village;
   case "same_village":return !!get(a.a)?.village&&get(a.a).village==get(a.b)?.village;
   case "is_youngest_living_child":return k(id(a.parent)).children.filter(alive).sort((a,b)=>e.personable[a].age-e.personable[b].age||a.localeCompare(b))[0]==id(a.child);
-  case "age_below":return e.personable[person]?.age<a.age;
-  case "is_adult":return e.personable[person]?.age>=18;
   case "has_no_living_kin":return !kin(person).some(l=>alive(l.relative_id));
   case "had_kin":return kin(person).length>0;
   case "living_kin_count_at_most":return kin(person).filter(l=>alive(l.relative_id)).length<=a.count;
   case "no_undisclosed_kin_links":return !kin(id(a.speaker)).some(l=>!linkKnown(s,viewer,l));
   case "household_size_is":return residents(s,home?.id).length==a.size;
   case "household_at_capacity": {const rooms=e.building?.[home?.id]?.rooms||[home?.id];const cap=rooms.reduce((n,r)=>n+(e.sleepable?.[r]?.capacity||0),0);return cap>0&&residents(s,home?.id).length>=cap;}
-  case "has_living_spouse":return alive(k(person).spouse);
   case "living_child_count_at_least":return count(person)>=a.count;
   case "has_living_parent":return k(person).parents.some(alive);
-  case "same_household":return !!get(a.a)?.household&&get(a.a).household==get(a.b)?.household;
   case "no_move_events":return !(s.events||[]).some(x=>["move","world_move"].includes(x.type)&&x.people.includes(person));
   case "no_residence_record":return !e.household?.[person]?.houseId;
-  case "same_person":return id(a.a)==id(a.b);
   case "subject_is_set":return !!c.subjectId;
   case "bond_ring_is":return get(a.bond)?.ring==a.ring;
   case "bond_goodwill_at_least":return get(a.bond)?.goodwill>=a.value;
@@ -327,8 +315,6 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "no_permitted_unheard_event_in_village":return !newsEvents(s,{...c,subjectId:null}).length;
   case "player_heard_event_spoken":return !!s.knowledge?.[c.actorId]?.spokenSources?.[event?.id];
   case "npc_knew_event_before_line":return c.npcKnewEvent==a.value;
-  case "event_has_close_kin_of":return !!event?.people.some(id=>closeFamily(s,person).includes(id));
-  case "event_recipient_is_close_kin_of":return !!event&&closeFamily(s,person).includes(event.people[1]);
   case "visit_is_relevant_to_player":return relevantVisit(s,id(a.speaker),c.actorId,event);
   case "is_current_elder":return notable(s,person)&&villageElder(s,e.village?.[person]?.villageId)==person;
   case "is_household_head":return !!e.household?.[person]?.houseId&&e.controllable?.[e.household[person].houseId]?.controllerId==person;

@@ -1,21 +1,18 @@
+import { crossesWall } from "game/social_visibility";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
 import { goalEvidence } from "game/guidance";
-import { isResident, personComponent } from "game/residents";
-import { addGoodwill } from "game/people";
+import { isResident } from "game/residents";
+import { closeFamily } from "game/social_kin";
+import { applySocialEffects, eventBindings } from "game/social_effects";
 import { hashUnit } from "game/math";
 
-export function closeFamily(state, id) {
-  const kin = personComponent(state, "kinship", id);
-  if (!kin) return [];
-  return [...new Set([kin.spouse, ...kin.parents, ...kin.children,
-    ...kin.parents.flatMap(p => personComponent(state, "kinship", p)?.children || [])])].filter(p => p && p != id);
-}
+export { closeFamily } from "game/social_kin";
 
 const eventSets = new WeakMap();
 
-export function learnEvent(state, viewerId, event) {
+export function learnEvent(state, viewerId, event, discovery="heard") {
   if(event.sealed)return;
   state.knowledge ||= {};
   const knowledge = state.knowledge[viewerId] ||= { people: {}, feelings: {} };
@@ -24,16 +21,9 @@ export function learnEvent(state, viewerId, event) {
   if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
   if (known.has(event.id)) return;
   knowledge.events.push(event.id); known.add(event.id);
-  if (!["quarrel", "gift", "reconciliation"].includes(event.type)) return;
-  const family = closeFamily(state, viewerId);
-  if (event.type == "quarrel") {
-    for (const actor of event.people) if (actor != viewerId && event.people.some(id => id != actor && family.includes(id))) {
-      addGoodwill(state, actor, viewerId, -3);
-    }
-  }
-  if (["gift", "reconciliation"].includes(event.type) && event.people[0] != viewerId && family.includes(event.people[1])) {
-    addGoodwill(state, event.people[0], viewerId, 1);
-  }
+  if (EVENT_TYPES[event.type]?.audience=="participants_witnesses")(knowledge.discoveries ||= {})[event.id]={kind:discovery,day:state.days};
+  const learningEffects=EVENT_TYPES[event.type]?.onLearn;
+  if(learningEffects?.length)applySocialEffects(state,learningEffects,eventBindings(event,viewerId),recordEvent);
 }
 
 // Listener pools belong to an owned transition, never to caller state.
@@ -90,6 +80,21 @@ export function recordEvent(state, type, people, items = [], details = {}) {
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
   if(event.sealed)return event;
+  const occurrenceEffects=EVENT_TYPES[type]?.onOccurrence;
+  if(occurrenceEffects?.length)applySocialEffects(state,occurrenceEffects,eventBindings(event),recordEvent);
+  if (EVENT_TYPES[type]?.audience == "participants_witnesses") {
+    const audience = new Set(people);
+    if (!state.generatingHistory && !state.summarisingHistory && !event.summary) {
+      const origin=state.ecs.spatial?.[people[0]],interior=state.ecs.interior?.[people[0]]?.buildingId;
+      for (const id of Object.keys(state.ecs.personable || {})) {
+        const p=state.ecs.spatial?.[id],w=state.ecs.planner?.[id]?.world;
+        if (!state.ecs.personable[id].dead && isResident(state,id) && !w?.sleeping && state.ecs.planner?.[id]?.task?.[0]!="sleep" && origin && p && state.ecs.interior?.[id]?.buildingId==interior && (origin.x-p.x)**2+(origin.y-p.y)**2<=85**2 && !crossesWall(state,origin,p,interior))audience.add(id);
+      }
+    }
+    event.audienceIds=[...audience];
+    for (const id of audience) if(state.ecs.personable?.[id])learnEvent(state,id,event,people.includes(id)?"participant":"witness");
+    return event;
+  }
   const family = new Set(people.flatMap(id => [id, ...closeFamily(state, id)]));
   const rings = ["public", "social", "personal", "intimate"];
   const { personable, playable, spatial, village, relationships } = state.ecs;

@@ -165,7 +165,7 @@
     "valence": -1
   },
   "commons_warning": {
-    "sentence": "{a} warned {b} about cutting village commons (−{loss} goodwill)",
+    "sentence": "{a} warned {b} about cutting village commons (\u2212{loss} goodwill)",
     "topic": "woodland",
     "roles": [
       "witness",
@@ -180,7 +180,7 @@
     "valence": -1
   },
   "commons_report": {
-    "sentence": "{a} reported the cutting to elder {b} (−{loss} goodwill)",
+    "sentence": "{a} reported the cutting to elder {b} (\u2212{loss} goodwill)",
     "topic": "woodland",
     "roles": [
       "witness",
@@ -192,7 +192,7 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "chat": "{a} reported {c}’s cutting to elder {b}",
+    "chat": "{a} reported {c}\u2019s cutting to elder {b}",
     "valence": -1
   },
   "village_oath": {
@@ -356,7 +356,63 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": -1
+    "valence": -1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": -3,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        },
+        "each": "participant"
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "quarrel"
+      }
+    ],
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "actor",
+        "towards": "partner",
+        "amount": -6,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "partner",
+        "towards": "actor",
+        "amount": -6,
+        "introduce": false
+      },
+      {
+        "op": "avoidance",
+        "a": "actor",
+        "b": "partner",
+        "seasons": 1
+      }
+    ]
   },
   "reconciliation": {
     "sentence": "{a} made peace with {b}",
@@ -370,7 +426,49 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": 3,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        },
+        "each": "participant"
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "reconciliation"
+      }
+    ],
+    "onOccurrence": [
+      {
+        "op": "avoidance",
+        "a": "actor",
+        "b": "partner",
+        "seasons": 0
+      }
+    ]
   },
   "gift": {
     "sentence": "{a} gave {gift_item} to {b}",
@@ -384,7 +482,40 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "person": "listener",
+        "towards": "actor",
+        "amount": 1,
+        "when": {
+          "all": [
+            {
+              "test": "close_kin",
+              "args": {
+                "a": "listener",
+                "b": "partner"
+              }
+            }
+          ],
+          "none": [
+            {
+              "test": "same_person",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "gift"
+      }
+    ]
   },
   "settlement": {
     "sentence": "{a} founded a household in {village}",
@@ -452,5 +583,95 @@
     },
     "feed": true,
     "spokenVisit": false
+  },
+  "affair": {
+    "sentence": "{a} and {b} began an affair",
+    "topic": "family",
+    "roles": [
+      "lover",
+      "lover"
+    ],
+    "disclosure": {
+      "ring": "personal",
+      "family": {
+        "between": "any",
+        "excludeKin": true,
+        "excludeFriends": "personal",
+        "ring": "intimate",
+        "rivalRing": "personal"
+      }
+    },
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "onOccurrence": [
+      {
+        "op": "affair",
+        "a": "actor",
+        "b": "partner"
+      }
+    ],
+    "onLearn": [
+      {
+        "op": "goodwill",
+        "each": "participant",
+        "person": "listener",
+        "towards": "actor",
+        "amount": -30,
+        "when": {
+          "all": [
+            {
+              "test": "spouses",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "record_event",
+        "each": "participant",
+        "type": "quarrel",
+        "people": [
+          "listener",
+          "actor"
+        ],
+        "reason": "affair_discovery",
+        "when": {
+          "all": [
+            {
+              "test": "spouses",
+              "args": {
+                "a": "listener",
+                "b": "actor"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "reaction",
+        "person": "listener",
+        "value": "affair_discovered"
+      }
+    ]
+  },
+  "romance": {
+    "sentence": "{a} and {b} began a romance",
+    "topic": "family",
+    "roles": [
+      "lover",
+      "lover"
+    ],
+    "disclosure": {
+      "ring": "personal"
+    },
+    "audience": "participants_witnesses",
+    "feed": true,
+    "spokenVisit": false,
+    "valence": 1
   }
 }

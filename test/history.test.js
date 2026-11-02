@@ -1,3 +1,4 @@
+/* global it, expect */
 import { newEntities } from "game/entities";
 import { generateFamilies, Hex } from "game/map";
 import { disposition, RING_CAPS, addGoodwill, recalibrateRelationships } from "game/people";

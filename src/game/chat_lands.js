@@ -1,3 +1,4 @@
+import { knownEvents } from "game/events";
 import { Hex, WorldHex } from "game/hex";
 import { neighbours, SIDE_NAMES, worldKey } from "game/travel_geometry";
 
@@ -42,10 +43,10 @@ export function knownPlaces(s,viewer) {
   return known;
 }
 export function ownTrips(s,npc) {
-  return (s.events||[]).filter(e=>["world_visit","world_move","return"].includes(e.type)&&e.people[0]==npc&&e.fromWorld&&e.toWorld&&s.knowledge?.[npc]?.events?.includes(e.id));
+  return knownEvents(s,npc).filter(e=>["world_visit","world_move","return"].includes(e.type)&&e.people[0]==npc&&e.fromWorld&&e.toWorld);
 }
 export function visitedVillage(s,npc,id) {
-  return s.ecs.village?.[npc]?.villageId==id || (s.events||[]).some(e=>e.people[0]==npc&&e.type=="visit"&&e.toVillage==id&&s.knowledge?.[npc]?.events?.includes(e.id));
+  return s.ecs.village?.[npc]?.villageId==id || knownEvents(s,npc).some(e=>e.people[0]==npc&&e.type=="visit"&&e.toVillage==id);
 }
 export function landsFact(s,npc) {
   const e=s.ecs,origin=villagePoint(s,s.villages?.[e.village?.[npc]?.villageId])||e.spatial?.[npc];

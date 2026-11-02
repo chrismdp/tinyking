@@ -1,3 +1,4 @@
+import { villagePeople } from "game/population_index";
 import { closeChat, startVillagerChat } from "game/chat";
 import { Hex } from "game/hex";
 import { isResident } from "game/residents";
@@ -71,7 +72,7 @@ export function villageElder(s,villageId) {
   const v=s.villages?.[villageId];if(!v)return null;
   const eligible=id=>localAdult(s,id,villageId) && membership(s,id,villageId)=="household" && !s.ecs.playable?.[id];
   if(v.elderId && eligible(v.elderId))return v.elderId;
-  return Object.keys(s.ecs.personable || {}).filter(eligible).sort((a,b)=>s.ecs.personable[b].age-s.ecs.personable[a].age || a.localeCompare(b))[0] || null;
+  return villagePeople(s,villageId).filter(eligible).sort((a,b)=>s.ecs.personable[b].age-s.ecs.personable[a].age || a.localeCompare(b))[0] || null;
 }
 export function oathReadiness(s,actorId,speakerId) {
   // Needs are latched by the native planner sensors and cleared by actual
@@ -102,7 +103,7 @@ export function observeChop(s,actorId,targetId,order) {
   if(s.generatingHistory || actorId!=s.ui.playerId || !order || order.commonsIncident)return;
   const permission=resourcePermission(s,actorId,targetId);
   if(permission.kind!="common" || permission.permitted)return;
-  const observers=Object.keys(s.ecs.personable || {}).filter(id=>id!=actorId && localAdult(s,id,permission.villageId) &&
+  const observers=villagePeople(s,permission.villageId).filter(id=>id!=actorId && localAdult(s,id,permission.villageId) &&
     membership(s,id,permission.villageId) && !s.ecs.interior?.[id]?.buildingId && distance(s,id,actorId)<=OBSERVATION_REACH && distance(s,id,targetId)<=OBSERVATION_REACH && s.ecs.planner?.[id]);
   if(!observers.length)return;
   const c=customs(s);

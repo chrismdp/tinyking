@@ -1,3 +1,4 @@
+import { residentPeople } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
 import { FOODS, TIMBER, amountOf } from "game/goods";
 import { reserveWorkYard } from "game/land_use";
@@ -14,7 +15,7 @@ export const EXPANSIONS = [
 ];
 export function householdRoster(s) {
   const homes=new Map();
-  for(const id of Object.keys(s.ecs.personable || {}))if(!s.ecs.personable[id].dead && isResident(s,id)) {
+  for(const id of residentPeople(s))if(!s.ecs.personable[id].dead && isResident(s,id)) {
     const house=s.ecs.household?.[id]?.houseId;
     if(!homes.has(house))homes.set(house,[]);
     homes.get(house).push(id);

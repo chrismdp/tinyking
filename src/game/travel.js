@@ -1,3 +1,6 @@
+import { attachPeople, updateDirectoryPerson, hydratePeople } from "game/person_storage";
+import { bindNewsContext, rememberNewsScopes, indexEventKnowledge } from "game/event_knowledge";
+import { refreshPersonIndex } from "game/population_index";
 import { compactMap, summarySeason, buildHistoryMap, restoreDetails } from "game/world_history";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { advanceEnvironment } from "game/environment";
@@ -30,7 +33,7 @@ const IDENTITY = ["personable", "personality", "kinship", "relationships", "name
 const clone = value => JSON.parse(JSON.stringify(value));
 const holdingFor = (s, id) => Object.fromEntries((s.ecs.holder[id]?.held || []).filter(item => !s.ecs.possession?.[item] && householdAccess(s.ecs, id, item)).map(item => [s.ecs.good[item]?.type, true]));
 export function freezeOpinions(s) {
-  for (const id in s.ecs.personality) {
+  for (const id of Object.keys(s.ecs.personality||{})) {
     const p = s.ecs.personality[id];
     p.opinionSeed ??= s.peopleSeed;
     p.opinionThresholds ||= {
@@ -49,6 +52,7 @@ const knowledgeSets = new WeakMap();
 // remember each published component head and only copy changed heads again.
 const referenceIndexes = new WeakMap();
 export function withReferenceIndex(j, transition) {
+  if(j.localPeople)return transition();
   if (referenceIndexes.has(j)) return transition();
   const index = { heads: new Map(), maps: new WeakMap(), opinions: new WeakSet(),
     components: Object.fromEntries(IDENTITY.map(key => [key, {}])) };
@@ -69,9 +73,10 @@ export function withReferenceIndex(j, transition) {
 }
 
 function publish(s, j) {
+  if(j.localPeople)bindNewsContext(s,j);
   const catalogue = referenceIndexes.get(j);
   if (!catalogue) freezeOpinions(s);
-  const roster = catalogue && s.residents ? Object.keys(s.residents) : Object.keys(s.ecs.personable);
+  const roster = (catalogue || j.localPeople) && s.residents ? Object.keys(s.residents) : Object.keys(s.ecs.personable);
   // Keep the original order of newly published deaths, including people whose
   // ECS reference predates their residence. Estate/event ordering is observable.
   if (catalogue) {
@@ -98,6 +103,8 @@ function publish(s, j) {
     j.people[id] ||= {};
     for (const key of IDENTITY) if (s.ecs[key]?.[id]) j.people[id][key] = s.ecs[key][id];
     catalogue?.remember(id, j.people[id]);
+    updateDirectoryPerson(j,id);
+    if(j.localPeople)(j.locations ||= {})[id]=s.residents?.[id] ? s.map?.worldKey || j.active : null;
   }
   if (!j.eventOrder) {
     j.eventOrder = Object.fromEntries(Object.keys(j.events).map((id, index) => [id, index]));
@@ -109,10 +116,12 @@ function publish(s, j) {
     const e=events[index];
     if (!(e.id in j.events)) j.eventOrder[e.id] = j.nextEventOrder++;
     j.events[e.id] = e;
+    if(j.localPeople && e.awareness)indexEventKnowledge(s,e);
   }
   if(j.wholeWorld)publishedEvents.set(events,events.length);
   j.knowledge ||= {};
-  for (const id in s.knowledge) {
+  for (const id of j.localPeople ? (s.knowledge===j.knowledge ? [] : Object.keys(s.residents||{})) : Object.keys(s.knowledge||{})) {
+    if(!s.knowledge?.[id])continue;
     const known = s.knowledge[id];
     if(j.wholeWorld){publishKnowledge(s,j,id,known);continue;}
     const previous = j.knowledge[id];
@@ -179,7 +188,7 @@ function reconcileEstates(s, j) {
       const p = map.ecs.possession[id];
       if (dying.has(p.ownerId)) items.push([id,p]);
     }
-    for (const asset in map.ecs.controllable) {
+    for (const asset of Object.keys(map.ecs.controllable||{})) {
       const c = map.ecs.controllable[asset];
       if (asset != c.controllerId && dying.has(c.controllerId) && (!map.ecs.personable[asset] || map.residents[asset])) assets.push({asset,c,owner:c.controllerId});
     }
@@ -236,6 +245,10 @@ function reconcileEstates(s, j) {
   }
 }
 function references(s, j, road = false) {
+  if(j.localPeople) {
+    attachPeople(s,j);bindNewsContext(s,j);
+    return;
+  }
   Object.defineProperty(s, "peopleDirectory", {
     value: j.people,
     enumerable: false,
@@ -403,14 +416,16 @@ export async function ensureMap(s, key, progress, options) {
     const stored=j.hexRecords?.[key] && await s.persistence?.readHex(j.hexRecords[key]);
     const update=progress || (async(label,value)=>{if(s.transition)await s.ui?.actions?.progress_update?.(label,.15+.75*value);});
     let map;
+    if(stored)hydratePeople(stored,j);
     if (stored) map = stored.unopenedDetail ? applyPreparedDetail(s, key, stored, summary) : restoreDetails(stored, summary);
-    else if (s.worldHistory?.detailOrigins && (key !== j.active || s.ui.playerId)) {
+    else if ((s.worldHistory?.detailOrigins || j.detailRecipes) && (key !== j.active || s.ui.playerId)) {
       const prepared = await prepareDetail(s, key, update, options);
       map = applyPreparedDetail(s, key, prepared, summary);
       delete j.preparedMaps[key];
     } else map = await buildHistoryMap(s,hex,summary,update,options);
     delete map.unopenedDetail;
     j.maps[key]=map;
+    if(j.localPeople){publish(map,j);references(map,j);}
     return map;
   }
   if (j.maps[key]) return j.maps[key];
@@ -630,6 +645,7 @@ function queueTravel(s, tileId) {
   return true;
 }
 function takeTraveller(s, id) {
+  rememberNewsScopes(s,id);
   releaseLocalWork(s, id);
   const playable = s.ecs.playable?.[id];
   if (playable) playable.homesByMap={...playable.homesByMap,[s.map.worldKey || worldKey(s.world.home)]:s.ecs.household?.[id]?.houseId};
@@ -651,6 +667,7 @@ function takeTraveller(s, id) {
     for (const key of Object.keys(s.space)) s.space[key] = s.space[key].filter(i => i != entity);
   }
   delete s.residents[id];
+  refreshPersonIndex(s,id);
   s.redraws?.push(...ids);
   const chatPairs={};
   for(const [key,record] of Object.entries(s.chat?.pairs||{}))if(record.actorId==id||record.npcId==id) {
@@ -669,6 +686,7 @@ function putTraveller(s, bundle, point, j) {
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (s.ecs[key] ||= {})[id] = value;
   const id = bundle.id;
   s.residents[id] = true;
+  if(j?.localPeople)(j.locations ||= {})[id]=s.map?.worldKey || j.active;
   const playable = s.ecs.playable?.[id];
   if (playable) playable.known = playable.knownByMap?.[s.map.worldKey || worldKey(s.world.home)] || [];
   Object.assign(s.ecs.spatial[id], point);
@@ -712,6 +730,7 @@ function putTraveller(s, bundle, point, j) {
     jobs: [],
     ordered
   };
+  refreshPersonIndex(s,id);
   s.redraws?.push(id);
 }
 function clearMapDialogs(s) {
@@ -784,8 +803,10 @@ function ageTraveller(s, bundle, season) {
     }
   };
   for (const [id, components] of Object.entries(bundle.entities)) for (const [key, value] of Object.entries(components)) (transit.ecs[key] ||= {})[id] = clone(value);
+  if(s.newsModel)transit.newsModel=s.newsModel;
   references(transit, s.travel, true);
-  if (bundle.knowledge) transit.knowledge[bundle.id] = clone(bundle.knowledge);
+  if(s.newsModel)transit.newsModel=s.newsModel;
+  if (bundle.knowledge) transit.knowledge[bundle.id] = s.newsModel ? bundle.knowledge : clone(bundle.knowledge);
   if(Object.keys(bundle.chatPairs||{}).length)transit.chat={version:1,pairs:clone(bundle.chatPairs)};
   let aged;
   if (s.travel.wholeWorld) {
@@ -794,7 +815,7 @@ function ageTraveller(s, bundle, season) {
     // drift and demographic rules without historyStep's second copy of every
     // remote person's entire relationship list. Death can reassign a remote
     // dependent's controller, so isolate those small records too.
-    for (const id in transit.ecs.controllable) if (!bundle.entities[id]) transit.ecs.controllable[id] = { ...transit.ecs.controllable[id] };
+    for (const id of Object.keys(transit.ecs.controllable||{})) if (!bundle.entities[id]) transit.ecs.controllable[id] = { ...transit.ecs.controllable[id] };
     drift(transit, 24 * DAYS_IN_SEASON);
     advanceSeason(transit, season, true);
     aged = transit;
@@ -1097,7 +1118,7 @@ export async function advanceWorldClock(s, {
 } = {}) {
   const j = s.travel;
   if (!j) return;
-  if (j.wholeWorld && s.transition && !referenceIndexes.has(j)) return withReferenceIndex(j, () => advanceWorldClock(s, { travelling }));
+  if (j.wholeWorld && !j.localPeople && s.transition && !referenceIndexes.has(j)) return withReferenceIndex(j, () => advanceWorldClock(s, { travelling }));
   j.world = s.world;
   j.days = s.days;
   j.maps[j.active] = localSnapshot(s);

@@ -1,3 +1,4 @@
+import { residentPeople } from "game/population_index";
 import { entityId, isResident } from "game/residents";
 import { cancelFavour } from "game/favours";
 import { Hex } from "game/hex";
@@ -66,9 +67,9 @@ export function repairHouseholds(state) {
     }
   }
   const bedNeeds = {};
-  for(const id of Object.keys(ecs.personable))if(isResident(state,id) && !ecs.personable[id].dead && ecs.household?.[id]?.houseId)bedNeeds[ecs.household[id].houseId]=(bedNeeds[ecs.household[id].houseId] || 0)+1;
+  for(const id of residentPeople(state))if(isResident(state,id) && !ecs.personable[id].dead && ecs.household?.[id]?.houseId)bedNeeds[ecs.household[id].houseId]=(bedNeeds[ecs.household[id].houseId] || 0)+1;
   const residents = {};
-  for (const id of Object.keys(ecs.personable)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
+  for (const id of residentPeople(state)) if (isResident(state,id) && !ecs.guest?.[id] && !ecs.personable[id].dead && ecs.household?.[id]?.houseId) (residents[ecs.household[id].houseId] ||= []).push(id);
   for (const houseId of Object.keys(ecs.building || {})) {
     const members = residents[houseId] || [];
     const old = ecs.controllable[houseId]?.controllerId;

@@ -1,3 +1,4 @@
+import { householdMembers, villagePeople } from "game/population_index";
 import { TIMBER, amountOf } from "game/goods";
 import { householdStore } from "game/favours";
 import { topController } from "game/playable";
@@ -178,8 +179,8 @@ export function generateVillageLife(state, seed, start) {
       village.sharedPlaces.push(id);
     }
     // First allocate every yard; fields must not take another family's backyard.
-    const inhabited = village.houses.filter(house => Object.keys(ecs.personable).some(id =>
-      !ecs.personable[id].dead && ecs.personable[id].age >= 18 && ecs.household[id]?.houseId == house));
+    const inhabited = village.houses.filter(house => householdMembers(state,house).some(id =>
+      !ecs.personable[id].dead && ecs.personable[id].age >= 18));
     for (const houseId of village.houses) {
       if (ecs.household[houseId]?.plot) continue;
       const origin = Hex().fromPoint(ecs.spatial[houseId]);
@@ -250,7 +251,7 @@ export function generateVillageLife(state, seed, start) {
         nameable: { nickname: household.trade == "smith" ? "Forge" : household.trade + " workshop" },
         workplace: { houseId, trade: household.trade, power: household.trade == "miller" ? "wind" : null, builtDay: state.days }
       }, houseId);
-      const worker = Object.keys(ecs.personable).find(id => ecs.household[id]?.houseId == houseId && !ecs.personable[id].dead && ecs.personable[id].age >= 18);
+      const worker = householdMembers(state,houseId).find(id => !ecs.personable[id].dead && ecs.personable[id].age >= 18);
       ecs.profession ||= {};
       if (worker) ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
       if (worker && ecs.planner?.[worker]) ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
@@ -320,7 +321,7 @@ export function generateVillageLife(state, seed, start) {
       return used;
     };
     let used = spacesAround(venues.map(id => ecs.spatial[id]));
-    const population = Object.keys(ecs.personable).filter(id => !ecs.personable[id].dead && ecs.village[id].villageId == village.id).length;
+    const population = villagePeople(state,village.id).filter(id => !ecs.personable[id].dead).length;
     if (used.length < population) {
       // Fields can surround the original green. Choose the nearest reachable
       // unused tile with room for everyone, leaving all household plots intact.
@@ -344,7 +345,7 @@ export function generateVillageLife(state, seed, start) {
           const move={day:state.days,placeId:green,fromHex,toHex:keyOf(ecs.spatial[green]),reason:"more public gathering space"};
           (village.greenMoves ||= []).push(move);
           const head=ecs.controllable[ecs.controllable[green].controllerId]?.controllerId;
-          const locals=Object.keys(ecs.personable).filter(id=>isResident(state,id) && !ecs.personable[id].dead && ecs.village[id]?.villageId==village.id);
+          const locals=villagePeople(state,village.id).filter(id=>!ecs.personable[id].dead);
           const actor=locals.find(id=>id==head) || locals.find(id=>ecs.personable[id].age>=18) || locals[0];
           recordEvent(state,"green_moved",actor?[actor]:[],[green],{...move,villageId:village.id});
         }
@@ -392,7 +393,7 @@ export function eveningPlace(state, actorId) {
   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
   if (!v) return null;
   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
-  const villagers = Object.keys(state.ecs.personable).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
+  const villagers = villagePeople(state,v.id).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
     state.ecs.village[person]?.villageId == v.id);
   const key = JSON.stringify([Math.floor(state.days), villagers, places]);
   const pools = places.map(id => state.ecs.meetingPlace[id].gatheringPoints);

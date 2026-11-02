@@ -1,3 +1,4 @@
+import { knowsEvent, relevantEvent } from "game/event_knowledge";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
@@ -189,7 +190,8 @@ export function meet(state, a, b) {
 export function addGoodwill(state, from, to, amount, introduce = true) {
   if (from == to) return;
   const observer=state.ecs.relationships[to];
-  if(!introduce && !observer.known[from]) {
+  if(state.newsModel && (!isResident(state,from) || !isResident(state,to)) && !observer?.known[from] && !closeFamily(state,to).includes(from))introduce=false;
+  if(!introduce && !observer?.known[from]) {
     (observer.unmetGoodwill ||= {})[from]=(observer.unmetGoodwill?.[from] || 0)+amount;
     return;
   }
@@ -261,7 +263,7 @@ export function initializeRelationships(state, seed) {
   calibrateOpinions(state);
   state.ecs.relationships = {};
   const villagers = {};
-  for (const id in state.ecs.personality) {
+  for (const id of Object.keys(state.ecs.personality||{})) {
     state.ecs.relationships[id] = { id, known: {} };
     const village = state.ecs.village[id].villageId;
     if (village) (villagers[village] ||= []).push(id);
@@ -498,6 +500,7 @@ const disclosureFamily = (state, id, families) => {
 export function canDiscloseEvent(state, speaker, viewer, event, families) {
   const rule=EVENT_TYPES[event?.type]?.disclosure;
   if(!rule || event.sealed)return false;
+  if(event.awareness && (!knowsEvent(state,speaker,event) || !relevantEvent(state,viewer,event,families)))return false;
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
   const trust=rank(speaker,viewer),family=rule.family;
   if(trust<RINGS.indexOf(rule.ring))return false;

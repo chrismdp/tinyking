@@ -1,3 +1,5 @@
+import { nearbyPeople } from "game/population_index";
+import { knowsEvent } from "game/event_knowledge";
 import LINES from "data/conversation_lines.json";
 import { nearbyRequester, reasonGone } from "game/favours";
 import { hashUnit } from "game/math";
@@ -20,14 +22,19 @@ function audibleSpeech(s,npc) {
   return u;
 }
 // Simulation owns learning. Reading an above-head label is always pure.
+const audibleSpeakers=new WeakMap();
 export function updateOverhearing(s) {
   const viewer=s.ui?.playerId;if(!viewer)return;
-  for(const [npc,p] of Object.entries(s.ecs.planner||{})) {
+  const candidates=new Set([...(audibleSpeakers.get(s.ecs)||[]),...nearbyPeople(s,s.ecs.spatial?.[viewer],HEARING_REACH)]),active=new Set();
+  audibleSpeakers.set(s.ecs,active);
+  for(const npc of candidates) {
+    const p=s.ecs.planner?.[npc];if(!p)continue;
     const speech=p.world.social?.utterance;
     if(!speech)continue;
     const audible=!!audibleSpeech(s,npc);
+    if(audible)active.add(npc);
     if(speech.audible!==audible){speech.audible=audible;s.redraws?.push(npc);}
-    if(!audible || !speech.eventId || s.knowledge?.[viewer]?.events?.includes(speech.eventId))continue;
+    if(!audible || !speech.eventId || knowsEvent(s,viewer,(s.events||[]).find(e=>e.id==speech.eventId)))continue;
     const event=(s.events||[]).find(e=>e.id==speech.eventId);
     tellNews(s,npc,viewer,event,speech.lineId,speech.namedPeople);
     s.redraws?.push(viewer,npc);

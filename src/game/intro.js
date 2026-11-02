@@ -1,3 +1,4 @@
+import { refreshPersonIndex } from "game/population_index";
 import { goalEvidence } from "game/guidance";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { newEntities } from "game/entities";
@@ -55,6 +56,7 @@ export function arrivalRoute(state) {
 
 function move(state, point) {
   Object.assign(state.ecs.spatial[state.ui.playerId], point);
+  refreshPersonIndex(state,state.ui.playerId);
 }
 
 function along(points, t) {

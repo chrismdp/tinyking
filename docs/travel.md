@@ -78,9 +78,10 @@ The arrival camp remains separate from this temporary journey camp.
 
 `state.travel` owns the world seed, active coordinate, visited/generated map
 snapshots, an authoritative people directory, events, NPC transit and visit
-records, and the processed season. Each snapshot stores local ECS, spatial index,
-map, households/villages, relationships, knowledge/events, favours, weather snow
-and ecology. `residents[id]` distinguishes actual residents (including deceased
+records, and the processed season. Each snapshot stores local terrain, physical ECS, households, villages, favours,
+weather, snow and ecology. The world directory owns personal components and
+knowledge once. Saved hexes hold person and event IDs. Runtime ECS tables expose
+local residents and resolve remote identities through the directory. `residents[id]` distinguishes actual residents (including deceased
 local ancestors) from reference-only people. Physical planners/spatial/holder
 records move once; a person can be resident on one map or in transit.
 
@@ -101,13 +102,12 @@ random personality. This retains disposition/ring caps for existing haters,
 friends and potential partners without manufacturing compatibility. Goodwill
 still drifts; ring capacity and actual contact rules still apply.
 
-The directory retains ancestors and person/quest references globally. A map
-imports only the family, known-social and ownership references it needs. Kin
-queries can also resolve ancestors in the directory. Two-generation ancestry
-checks are rebuilt outside a synchronous history scope, so importing a previously
-missing grandparent cannot leave a stale cousin result. Remote people do not
-age, drift, court or appear physically in a local step. Remote family/person
-sheets remain readable, with “Away in another world hex” and no talk controls.
+The directory retains ancestors and person references globally. A runtime hex
+contains its residents as ECS entries. Remote component lookups resolve through
+the directory, without importing remote relationship tables into that hex.
+People in other hexes do not age, drift or court in its local step.
+Remote family sheets remain readable, with no talk controls.
+Kinship exclusions still resolve grandparents through the directory.
 
 ## Time and autonomous visits
 
@@ -198,9 +198,10 @@ character is on the walkable edge.
 A map has a persisted monotonic `eventIds.next` sequence, independent of imported
 or replaced event arrays. Pure history steps copy that counter; live snapshots
 share the active map's counter. Global event IDs therefore cannot be reused after
-an unseen remote inheritance or local/global refresh. The directory merges each
-person's learned event IDs, and arrival/reference refresh restores them to their
-resident map. Heirs retain knowledge of their own remote inheritance.
+an unseen remote inheritance or local/global refresh. New worlds keep one knowledge record per person. Event knowledge uses the
+private and scoped rules in [Social life](social.md). Travel retains the same
+person and remembers the scopes they actually visited. Legacy saves retain
+their learned-event merge policy.
 
 Arrival batches import legal-owner chains for real cargo, land all initial due
 travellers, then refresh each touched community's references and household once.
@@ -208,11 +209,10 @@ They retain the start-of-step demographic/transfer boundary. Local orders or
 favours accepted during the walk out are cancelled again at the actual walkable
 edge, through the same release paths, before any borrowed crop crosses it.
 
-Reference refresh uses one multi-source two-generation family walk, rather than
-repeating the same shared ancestry for every person. A stable global event-order
-index lets each map import its learned event IDs directly in the original order.
-These are derived indexes: no resident, event, relationship, season or encounter
-is sampled, skipped or capped to reduce processing cost.
+New-world reference refresh attaches directory views. It does not expand a
+family or news closure. Household, village, building and nearby-person indexes
+serve local queries. Births, moves, arrivals, departures and walking update
+these indexes. They are runtime data and do not enter saves.
 
 Rendering samples opaque entity IDs for tree shape and object orientation without
 converting the ID to a number. Legacy numeric IDs retain their existing looks;
@@ -227,8 +227,9 @@ Walking spends a little energy. Current journey dates use `DAYS_IN_SEASON`.
 ## Storage and memory
 
 `travel.maps` retains compact records for every land community and the active
-detailed map. Compact records contain people, households, legal ownership,
-stores, relationships and events. They contain no tile table, crop slots,
+detailed map. Compact records contain local household and property state, stores, resident
+IDs and event references. Personal components, relationships and knowledge live
+in the world directory. They contain no tile table, crop slots,
 animal simulation, terrain surface or planners.
 
 A departure commits its detailed hex record and the new world manifest in one
@@ -241,7 +242,7 @@ records. It preserves the map seed, buildings, fields, stores and objects.
 The seasonal cursor prevents another update of the same season.
 
 The manifest records the active hex, saved record versions, compact communities,
-people directory, travellers, calendar and remaining journey. A reload during a
+people directory, shared event knowledge, travellers, calendar and remaining journey. A reload during a
 local departure walk restores that walk. A completed hop checkpoint restores the
 arrival. It does not repeat the transfer. Superseded hex versions leave storage
 in the same transaction as the replacement manifest.
@@ -254,9 +255,12 @@ that policy. No new history replaces people in an old save.
 
 New games still finish all 180 world seasons before play. They then build the
 starting hex and its land neighbours. Other hexes retain compact history only.
-The construction inputs come from the completed history. Later seasons cannot
-change the terrain, house sites, trees or initial village layout of an unopened
-hex.
+The construction plans retain house assignments and adult, deceased and guest
+roles as person IDs. They contain no personal component or knowledge copies.
+Compressed plans retain the fixed household and terrain inputs. Generation
+releases the raw `worldHistory` workspace when these plans are ready. A later
+build reads personal identity from the directory and applies current residents
+and ownership before play.
 
 A hop opens the arrival hex first. After its first frame, the game prepares any
 missing detail in the arrival hex's land neighbours. Entering a hex waits for an

@@ -1,3 +1,4 @@
+import { householdMembers } from "game/population_index";
 import { harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
 import { isResident } from "game/residents";
@@ -33,7 +34,7 @@ export function fuelReady(s, workplaceId) {
   const w = s.ecs.workplace?.[workplaceId];
   return !!w && (!FUEL_TRADES[w.trade] || w.fuelHours > 0 || s.ecs.container?.[householdStore(s, w.houseId)]?.amounts.wood >= 1);
 }
-const residents = (s, house) => Object.keys(s.ecs.personable || {}).filter(id => live(s, id) && s.ecs.household?.[id]?.houseId == house);
+const residents = (s, house) => householdMembers(s,house).filter(id => live(s,id));
 const foods = FOODS;
 // One inventory pass per needs update, rather than one full good scan for
 // every household. These transient indices preserve the existing access rule.

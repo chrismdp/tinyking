@@ -11,7 +11,11 @@
     "feed": true,
     "spokenVisit": false,
     "chat": "{a} built a {building}",
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "founding": {
     "sentence": "{a} and {b} founded {village} beside an accessible route",
@@ -25,7 +29,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "household_arrival": {
     "sentence": "{a} established a household in {village}",
@@ -38,7 +47,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "green_moved": {
     "sentence": "The community moved its green for more gathering space",
@@ -48,7 +62,11 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "house_built": {
     "sentence": "{a} built a household home using {timber} timber",
@@ -61,7 +79,11 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "expansion": {
     "sentence": "{a} added a {addition} using {timber} timber",
@@ -74,7 +96,11 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "departure": {
     "sentence": "{a} left for {toWorld}{journey_reason}",
@@ -86,7 +112,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "arrival": {
     "sentence": "{a} arrived in {worldHex}",
@@ -98,7 +129,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "world_visit": {
     "sentence": "{a} arrived from {fromWorld} to meet people",
@@ -110,7 +146,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": true
+    "spokenVisit": true,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "return": {
     "sentence": "{a} returned home from {fromWorld}",
@@ -122,7 +163,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": true
+    "spokenVisit": true,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "world_move": {
     "sentence": "{a} settled in {toWorld} after marrying",
@@ -134,7 +180,12 @@
       "ring": "social"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "defiance": {
     "sentence": "{a} {defiance_account} {b}{defiance_suffix}",
@@ -149,7 +200,12 @@
     "feed": true,
     "spokenVisit": false,
     "chat": "{a} {defiance_spoken} {b}",
-    "valence": -1
+    "valence": -1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "commons_cut": {
     "sentence": "{a} cut common woodland without permission",
@@ -162,7 +218,11 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": -1
+    "valence": -1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "commons_warning": {
     "sentence": "{a} warned {b} about cutting village commons (\u2212{loss} goodwill)",
@@ -177,7 +237,11 @@
     "feed": true,
     "spokenVisit": false,
     "chat": "{a} warned {b} about cutting village commons",
-    "valence": -1
+    "valence": -1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "commons_report": {
     "sentence": "{a} reported the cutting to elder {b} (\u2212{loss} goodwill)",
@@ -193,7 +257,11 @@
     "feed": true,
     "spokenVisit": false,
     "chat": "{a} reported {c}\u2019s cutting to elder {b}",
-    "valence": -1
+    "valence": -1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "village_oath": {
     "sentence": "{a} swore the local oath with elder {b}",
@@ -206,7 +274,11 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "village_leave": {
     "sentence": "{a} left the village before elder {b}",
@@ -219,7 +291,11 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "favour": {
     "sentence": "{a} helped {b} with {favour_kind} (+{goodwill} goodwill)",
@@ -234,7 +310,12 @@
     "feed": true,
     "spokenVisit": false,
     "chat": "{a} helped {b} with {favour_kind}",
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "harvest": {
     "sentence": "{a} brought in {quantity} grain",
@@ -247,7 +328,11 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "fire": {
     "sentence": "A fire broke out{fire_place}",
@@ -257,7 +342,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "festival": {
     "sentence": "{a} attended the {title}",
@@ -269,7 +359,11 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "village"
+    ]
   },
   "birth": {
     "sentence": "{a} was born to {parents}",
@@ -284,7 +378,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "marriage": {
     "sentence": "{a} and {b} married{village_suffix}",
@@ -298,7 +397,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "death": {
     "sentence": "{a} died{cause_suffix}",
@@ -310,7 +414,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "move": {
     "sentence": "{a} moved to {to_house}{to_village_suffix}",
@@ -322,7 +431,12 @@
       "ring": "social"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "visit": {
     "sentence": "{a} visited {b}{to_village_suffix}",
@@ -335,7 +449,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": true
+    "spokenVisit": true,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "quarrel": {
     "sentence": "{a} quarrelled with {b}",
@@ -412,6 +531,11 @@
         "b": "partner",
         "seasons": 1
       }
+    ],
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
     ]
   },
   "reconciliation": {
@@ -468,6 +592,11 @@
         "b": "partner",
         "seasons": 0
       }
+    ],
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
     ]
   },
   "gift": {
@@ -515,6 +644,11 @@
         "person": "listener",
         "value": "gift"
       }
+    ],
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
     ]
   },
   "settlement": {
@@ -528,7 +662,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "hex"
+    ]
   },
   "household_join": {
     "sentence": "{a} joined the household of {b}",
@@ -542,7 +681,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "succession": {
     "sentence": "{b} {succession_account} {a}",
@@ -555,7 +699,12 @@
       "ring": "public"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "celebration": {
     "sentence": "{a} and {b} celebrated their wedding",
@@ -569,7 +718,12 @@
     },
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "inheritance": {
     "sentence": "{b} inherited {estate} from {a}",
@@ -582,7 +736,12 @@
       "ring": "personal"
     },
     "feed": true,
-    "spokenVisit": false
+    "spokenVisit": false,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   },
   "affair": {
     "sentence": "{a} and {b} began an affair",
@@ -657,6 +816,11 @@
         "person": "listener",
         "value": "affair_discovered"
       }
+    ],
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
     ]
   },
   "romance": {
@@ -672,6 +836,11 @@
     "audience": "participants_witnesses",
     "feed": true,
     "spokenVisit": false,
-    "valence": 1
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ]
   }
 }

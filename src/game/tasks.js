@@ -1,3 +1,4 @@
+import { refreshPersonIndex } from "game/population_index";
 import { spendEnergy, eatOwnedFood } from "game/energy";
 import { FIELD_STATES, ownsField, harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
@@ -221,6 +222,7 @@ export function walk_to(state, actorId, world, dt, firstRun, target, { plotAcces
       s.x += dx * speed;
       s.y += dy * speed;
     }
+    refreshPersonIndex(state,actorId);
     spendEnergy(state,actorId,dt*24,weightCost<1?3:1);
   }
   return Task.CONTINUE;

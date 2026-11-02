@@ -1,3 +1,4 @@
+import { residentPeople } from "game/population_index";
 import { HOUR, DAYS_IN_SEASON } from "game/time";
 import { isResident } from "game/residents";
 
@@ -7,7 +8,7 @@ import { FOODS } from "game/goods";
 
 // Resident needs share the hourly clock. Missed meals never cause death.
 export function updateNeeds(state, elapsed = HOUR) {
-  for (const [id, person] of Object.entries(state.ecs.personable || {})) {
+  for (const [id, person] of residentPeople(state).map(id=>[id,state.ecs.personable[id]])) {
     if (person.dead || !isResident(state, id)) continue;
     person.tiredness += elapsed;
     if (!Number.isFinite(person.energy)) person.hunger = (person.hunger || 0) + elapsed;
@@ -26,7 +27,7 @@ export function advanceOffscreenNeeds(state, end) {
     stores.filter(store => state.ecs.controllable?.[store] && householdAccess(state.ecs, id, store))]));
   for (let at = from + HOUR; at <= end + 1e-9; at += HOUR) {
     state.days = at;
-    for (const [id, person] of Object.entries(state.ecs.personable)) {
+    for (const [id, person] of residentPeople(state).map(id=>[id,state.ecs.personable[id]])) {
       if (person.dead || !isResident(state, id)) continue;
       if (person.hunger > .9) {
         const house = state.ecs.household?.[id]?.houseId;

@@ -1,3 +1,6 @@
+import { PERSON_COMPONENTS, updateDirectoryPerson } from "game/person_storage";
+import { rememberNewsScopes } from "game/event_knowledge";
+import { residentPeople, withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
 import { relatedPeople, withCloseFamilyIndex } from "game/social_kin";
 import { finishTransition } from "game/history_scope";
@@ -23,7 +26,7 @@ export const SOCIAL_RATES = {
 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
 const roll = (s, key) => hashUnit(s.peopleSeed + ":social:" + key);
-const living = s => Object.keys(s.ecs.personable).filter(id => alive(s, id) && isResident(s, id) && !s.ecs.playable?.[id]);
+const living = s => residentPeople(s).filter(id => alive(s, id) && isResident(s, id) && !s.ecs.playable?.[id]);
 const distance = (s, a, b) => {
   const p = s.ecs.spatial?.[a],
     q = s.ecs.spatial?.[b];
@@ -36,10 +39,16 @@ const add = (s, components) => {
     id
   };
   if (components.personable && s.residents) s.residents[id] = true;
+  const directory=s.newsContext || s.travel;
+  if(components.personable && directory?.localPeople) {
+    directory.people[id]=Object.fromEntries(PERSON_COMPONENTS.filter(key=>s.ecs[key]?.[id]).map(key=>[key,s.ecs[key][id]]));
+    updateDirectoryPerson(directory,id);
+  }
   if (components.spatial?.immovable && s.space) {
     const key = Hex().fromPoint(components.spatial).toString();
     s.space[key] = [...(s.space[key] || []), id];
   }
+  refreshPersonIndex(s,id);
   s.redraws?.push(id);
   return id;
 };
@@ -99,6 +108,7 @@ export function moveHouse(s, id, houseId, summary = false) {
   const fromHouse = s.ecs.household[id]?.houseId,
     fromVillage = s.ecs.village[id]?.villageId;
   if (fromHouse == houseId) return;
+  rememberNewsScopes(s,id);
   if (availableHouse(s, houseId, [id])) s.ecs.controllable[houseId].controllerId = id;
   s.ecs.household[id] = {
     id,
@@ -110,6 +120,7 @@ export function moveHouse(s, id, houseId, summary = false) {
     id,
     villageId: s.ecs.village[houseId]?.villageId ?? null
   };
+  refreshPersonIndex(s,id);
   invalidateEventIndex(s);
   const w = s.ecs.planner?.[id]?.world;
   if (w) {
@@ -136,6 +147,7 @@ export function moveHouse(s, id, houseId, summary = false) {
     x: s.ecs.spatial[houseId].x,
     y: s.ecs.spatial[houseId].y
   };
+  refreshPersonIndex(s,id);
   recordEvent(s, "move", [id], [], {
     fromHouse,
     toHouse: houseId,
@@ -151,7 +163,7 @@ function coupleHouse(s, a, b, dependents = []) {
     village = s.villages?.[ecs.village[a]?.villageId];
   const counts = {},
     excluded = new Set([a, b, ...dependents]);
-  for (const id of Object.keys(ecs.personable).filter(id => alive(s,id) && isResident(s,id))) if (!excluded.has(id)) {
+  for (const id of residentPeople(s).filter(id => alive(s,id) && isResident(s,id))) if (!excluded.has(id)) {
     const house = ecs.household[id]?.houseId;
     counts[house] = (counts[house] || 0) + 1;
   }
@@ -338,6 +350,7 @@ export function birth(s, a, b, season) {
       }
     }
   });
+  refreshPersonIndex(s,child);
   invalidateEventIndex(s);
   for (const p of [a, b]) {
     ecs.kinship[p].children.push(child);
@@ -449,7 +462,7 @@ export function retryCourtships(s) {
 export function advanceSeason(s, season, summary = false) {
   const previous=s.summarisingHistory;
   s.summarisingHistory=summary;
-  try {return withSocialIndex(s, () => withEventIndex(s, () => withRelationshipIndex(s, () => advanceSeasonRules(s, season, summary))));}
+  try {return withPopulationIndex(s, () => withSocialIndex(s, () => withEventIndex(s, () => withRelationshipIndex(s, () => advanceSeasonRules(s, season, summary)))));}
   finally {if(previous===undefined)delete s.summarisingHistory;else s.summarisingHistory=previous;}
 }
 function advanceSeasonRules(s, season, summary) {
@@ -459,7 +472,7 @@ function advanceSeasonRules(s, season, summary) {
   s.social.courtships ||= {};
   s.social.avoidance ||= {};
   const ecs = s.ecs,
-    ids = Object.keys(ecs.personable).filter(id => alive(s,id) && isResident(s,id) && (!ecs.playable?.[id] || ecs.playable[id].arrivedAt != null) && (!s.generatingHistory || !ecs.playable?.[id])).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
+    ids = residentPeople(s).filter(id => alive(s,id) && isResident(s,id) && (!ecs.playable?.[id] || ecs.playable[id].arrivedAt != null) && (!s.generatingHistory || !ecs.playable?.[id])).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
   for (const key of Object.keys(s.social.courtships)) {
     const [a, b] = key.split(":");
     // Absence is already priced by drift. Keep time spent mutually Intimate;
@@ -584,7 +597,7 @@ export function historyStep(worldHexState, season) {
     residents: worldHexState.residents && {
       ...worldHexState.residents
     },
-    events: [...(worldHexState.events || [])],
+    events: (worldHexState.events || []).map(e=>e.awareness ? {...e,awareness:structuredClone(e.awareness)} : e),
     knowledge: {},
     villages: {},
     space: {

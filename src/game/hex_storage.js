@@ -1,7 +1,8 @@
+import { stripPeople, hydratePeople } from "./person_storage";
 import { compactMap } from "./community_summary";
 import { gameData, compressGame, decompressGame, serialiseGame, SAVE_VERSION } from "./save_game";
 // Kept separate from travel so the storage worker does not load the simulation.
-export const LOCAL_FIELDS=["compact","settlement","eventIds","ecs","space","map","villages","events","knowledge","chat","talking","social","favours","customs","ecology","snow","snowRevision","environmentUpdatedAt","needsUpdatedAt","landUseRevision","residents","peopleSeed","opinionThresholds","days"];
+export const LOCAL_FIELDS=["newsModel","compact","settlement","eventIds","ecs","space","map","villages","events","knowledge","chat","talking","social","favours","customs","ecology","snow","snowRevision","environmentUpdatedAt","needsUpdatedAt","landUseRevision","residents","peopleSeed","opinionThresholds","days"];
 let sequence=0;
 const snapshot=s=>Object.fromEntries(LOCAL_FIELDS.filter(k=>s[k]!==undefined).map(k=>[k,s[k]]));
 export async function encodeWorldSave(state,archived={},read=async()=>undefined) {
@@ -9,7 +10,7 @@ export async function encodeWorldSave(state,archived={},read=async()=>undefined)
   const travel=state.travel,hexRecords={...travel.hexRecords},records={};
   const changed={...travel.preparedMaps,...Object.fromEntries(Object.entries(travel.maps).filter(([,map])=>!map.compact)),...archived,[travel.active]:snapshot(state)};
   for(const [key,map] of Object.entries(changed)) {
-    const text=serialiseGame(map),hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
+    const text=serialiseGame(stripPeople(map,travel)),hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
     const digest=Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,"0")).join("");
     const previous=hexRecords[key] && await read(hexRecords[key]);
     if(previous?.digest===digest)continue;
@@ -17,7 +18,7 @@ export async function encodeWorldSave(state,archived={},read=async()=>undefined)
     const bytes=await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
     records[record]={version:SAVE_VERSION,digest,bytes};hexRecords[key]=record;
   }
-  const manifest={...gameData(state),travel:{...travel,hexRecords,maps:Object.fromEntries(Object.entries(travel.maps).filter(([key])=>key!==travel.active).map(([key,map])=>[key,map.compact?map:compactMap(map)]))}};
+  const manifest={...gameData(state),travel:{...travel,hexRecords,maps:Object.fromEntries(Object.entries(travel.maps).filter(([key])=>key!==travel.active).map(([key,map])=>[key,stripPeople(map.compact?map:compactMap(map),travel)]))}};
   delete manifest.travel.preparedMaps;
   for(const field of LOCAL_FIELDS)delete manifest[field];
   // The active hex has its own record. The world manifest keeps the compact
@@ -30,6 +31,8 @@ export async function decodeWorldSave(world,read) {
   const record=await read(world.hexRecords[world.active]);
   if(!record)throw new Error("The saved hex is missing: "+world.active);
   const map=await decompressGame(record.bytes);
+  for(const away of Object.values(manifest.travel.maps))hydratePeople(away,manifest.travel);
+  hydratePeople(map,manifest.travel);
   Object.assign(manifest,map);manifest.travel.maps[world.active]=map;
   manifest.redraws=[];
   if(manifest.social?.festivals)manifest.festivals=manifest.social.festivals;

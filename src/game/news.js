@@ -1,3 +1,4 @@
+import { knowsEvent, unheardNews } from "game/event_knowledge";
 import TYPES from "data/event_types.json";
 import LINES from "data/conversation_lines.json";
 import { personLabel } from "game/knowledge";
@@ -73,6 +74,15 @@ export function newsPreference(s,teller,listener,event,families) {
   return audience*(1+trust/8);
 }
 export function chooseNews(s,teller,listener) {
+  if(s.newsModel) {
+    let best,bestScore=-Infinity;const families=new Map();
+    for(const event of unheardNews(s,teller,listener)) {
+      const weight=newsPreference(s,teller,listener,event,families);if(!weight)continue;
+      const score=weight*(1+1/(1+Math.max(0,s.days-event.day)));
+      if(score>bestScore || score===bestScore && event.id<best.id){best=event;bestScore=score;}
+    }
+    return best;
+  }
   const index=eventIndex(s),heard=membership(s.knowledge?.[listener]?.events||empty);
   const cache=storyGroups(s,teller,index);
   let best,bestOrder,bestScore=-Infinity;
@@ -94,6 +104,11 @@ export function chooseNews(s,teller,listener) {
   return best;
 }
 export function listenerNewsScore(s,teller,listener) {
+  if(s.newsModel) {
+    const events=unheardNews(s,teller,listener).sort((a,b)=>b.day-a.day || a.id.localeCompare(b.id));
+    for(const event of events){const score=newsPreference(s,teller,listener,event);if(score)return score;}
+    return 0;
+  }
   // Companion sorting needs a possible conversation, not a full story ranking
   // for every candidate. Use the latest permitted unheard account here; rank
   // all eligible stories only when this pair actually completes a contact.
@@ -114,11 +129,11 @@ function namedEventPeople(s,speaker,event) {
   });
 }
 export function tellNews(s,teller,listener,event,lineId,namedPeople=[]) {
-  const known=membership(s.knowledge?.[listener]?.events||empty).has(event.id);
+  const known=event.awareness?knowsEvent(s,listener,event):membership(s.knowledge?.[listener]?.events||empty).has(event.id);
   learnEvent(s,listener,event);
   if(known || event.sealed)return;
   const k=s.knowledge[listener];
-  (k.spokenSources ||= {})[event.id] ||= {speakerId:teller,day:s.days,lineId};
+  if(!event.awareness || event.awareness.status==="private" || s.ecs.playable?.[listener])(k.spokenSources ||= {})[event.id] ||= {speakerId:teller,day:s.days,lineId};
   k.people ||= {};
   for(const id of namedPeople) {
     k.people[id] ||= {traits:[]};

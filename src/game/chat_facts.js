@@ -1,3 +1,5 @@
+import { knowsEvent } from "game/event_knowledge";
+import { householdMembers } from "game/population_index";
 import { condition } from "game/social_conditions";
 import { personComponent } from "game/residents";
 import { familySearchFacts, maternalIntroduction } from "game/mother_family";
@@ -20,12 +22,12 @@ export const VISITS=Object.keys(EVENT_TYPES).filter(type=>EVENT_TYPES[type].spok
 const trades={baker:"oven",smith:"forge",carpenter:"workshop",weaver:"loom",tanner:"tan-yard",miller:"mill"};
 export const words=n=>["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"][n] ?? String(n);
 const living=(s,id)=>!!s.ecs.personable[id]&&!s.ecs.personable[id].dead;
-const residents=(s,h)=>Object.keys(s.ecs.personable).filter(id=>living(s,id)&&s.ecs.household?.[id]?.houseId==h);
+const residents=(s,h)=>householdMembers(s,h).filter(id=>living(s,id));
 export function knows(s,viewer,id) {
   const c=s.chat?.active;
   if(c&&viewer==c.npcId&&id==c.actorId&&!c.knewBefore&&!s.knowledge?.[viewer]?.people?.[id])return false;
   return !!id && (viewer==id || !!s.knowledge?.[viewer]?.people?.[id] || !!s.ecs.relationships?.[viewer]?.known[id]);}
-export function heard(s,viewer,e) {return !!e && !!s.knowledge?.[viewer]?.events?.includes(e.id);}
+export function heard(s,viewer,e) {return knowsEvent(s,viewer,e);}
 export function notable(s,id) {
   const h=s.ecs.household?.[id]?.houseId,v=s.ecs.village?.[id]?.villageId;
   return living(s,id) && (!!s.ecs.profession?.[id] || !!h&&s.ecs.controllable[h]?.controllerId==id || !!v&&villageElder(s,v)==id);
@@ -221,7 +223,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "answer_expected_is":return c.expectation==a.value;
   case "closing_reply_is":return c.closingReply==a.value;
   case "question_is":return c.question?.family==a.family&&c.question?.situation==a.situation;
-  case "relative_known_dead":return !!s.knowledge?.[viewer]?.events?.some(id=>(s.events||[]).some(e=>e.id==id&&e.type=="death"&&e.people[0]==person));
+  case "relative_known_dead":return knownEvents(s,viewer).some(e=>e.type=="death"&&e.people[0]==person);
   case "has_no_children":return !k(person).children.length;
   case "npc_first_encounter":return !c.knewBefore;
   case "npc_knew_player_before_chat":return c.knewBefore;

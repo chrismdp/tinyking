@@ -1,3 +1,5 @@
+import { knowsEvent, scopedKnownEvents, promoteKnowledge, indexEventKnowledge } from "game/event_knowledge";
+import { nearbyPeople, villagePeople, populationOrder } from "game/population_index";
 import { crossesWall } from "game/social_visibility";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
@@ -16,6 +18,17 @@ export function learnEvent(state, viewerId, event, discovery="heard") {
   if(event.sealed)return;
   state.knowledge ||= {};
   const knowledge = state.knowledge[viewerId] ||= { people: {}, feelings: {} };
+  if(event.awareness) {
+    if(knowsEvent(state,viewerId,event))return;
+    event.awareness.knowers.push(viewerId);
+    indexEventKnowledge(state,event);
+    const effects=EVENT_TYPES[event.type]?.onLearn;
+    const apply=id=>{if(effects?.length)applySocialEffects(state,effects,eventBindings(event,id),recordEvent);};
+    if(EVENT_TYPES[event.type]?.audience=="participants_witnesses")(knowledge.discoveries ||= {})[event.id]={kind:discovery,day:state.days};
+    apply(viewerId);
+    promoteKnowledge(state,event,apply);
+    return;
+  }
   knowledge.events ||= [];
   let known = eventSets.get(knowledge.events);
   if (!known || known.size != knowledge.events.length) { known = new Set(knowledge.events); eventSets.set(knowledge.events, known); }
@@ -39,6 +52,14 @@ export function invalidateEventIndex(state) {
 }
 const villageKey = id => id == null ? null : String(id);
 function eventViewers(state, villageId, family, people) {
+  if(state.newsModel) {
+    const summary=state.compact || state.summarisingHistory || state.generatingHistory;
+    const audience=new Set(summary ? villagePeople(state,villageId) : nearbyPeople(state,state.ecs.spatial?.[people[0]],300));
+    if(summary)for(const id of family)if(isResident(state,id) && state.ecs.personable?.[id])audience.add(id);
+    for(const id of people)if(state.ecs.personable?.[id])audience.add(id);
+    for(const id of nearbyPeople(state,state.ecs.spatial?.[people[0]],300))if(state.ecs.playable?.[id])audience.add(id);
+    return populationOrder(state,audience);
+  }
   const index = eventIndexes.get(state);
   if (!index) return Object.keys(state.ecs.personable || {});
   if (!index.people) {
@@ -76,9 +97,11 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     day: state.days, season: Math.floor(state.days / DAYS_IN_SEASON), villageId,
     place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],
+    ...(state.newsModel?{hexKey:state.map?.worldKey || state.travel?.active,awareness:{status:"private",knowers:[],villages:[],hexes:[]}}:{}),
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);
+  if(event.awareness)indexEventKnowledge(state,event);
   if(event.sealed)return event;
   const occurrenceEffects=EVENT_TYPES[type]?.onOccurrence;
   if(occurrenceEffects?.length)applySocialEffects(state,occurrenceEffects,eventBindings(event),recordEvent);
@@ -86,7 +109,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     const audience = new Set(people);
     if (!state.generatingHistory && !state.summarisingHistory && !event.summary) {
       const origin=state.ecs.spatial?.[people[0]],interior=state.ecs.interior?.[people[0]]?.buildingId;
-      for (const id of Object.keys(state.ecs.personable || {})) {
+      for (const id of nearbyPeople(state,origin,85)) {
         const p=state.ecs.spatial?.[id],w=state.ecs.planner?.[id]?.world;
         if (!state.ecs.personable[id].dead && isResident(state,id) && !w?.sleeping && state.ecs.planner?.[id]?.task?.[0]!="sleep" && origin && p && state.ecs.interior?.[id]?.buildingId==interior && (origin.x-p.x)**2+(origin.y-p.y)**2<=85**2 && !crossesWall(state,origin,p,interior))audience.add(id);
       }
@@ -124,7 +147,8 @@ export function recordEvent(state, type, people, items = [], details = {}) {
 
 export function knownEvents(state, viewerId, aboutId) {
   const ids = new Set(state.knowledge?.[viewerId]?.events || []);
-  return (state.events || []).filter(e => !e.sealed && ids.has(e.id) && (!(viewerId == state.ui?.playerId && EVENT_TYPES[e.type]?.spokenVisit) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
+  const events=state.newsModel ? scopedKnownEvents(state,viewerId).sort((a,b)=>a.day-b.day || a.id.localeCompare(b.id)) : state.events || [];
+  return events.filter(e => !e.sealed && (e.awareness ? knowsEvent(state,viewerId,e) : ids.has(e.id)) && (!(viewerId == state.ui?.playerId && EVENT_TYPES[e.type]?.spokenVisit) || e.people.includes(viewerId) || !!state.knowledge?.[viewerId]?.spokenSources?.[e.id]) && (!aboutId || e.people.includes(aboutId)));
 }
 
 // Catalogue wording is shared by dated news and generated conversation rows.

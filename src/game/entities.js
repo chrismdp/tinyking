@@ -1,3 +1,5 @@
+import { PERSON_COMPONENTS, updateDirectoryPerson } from "game/person_storage";
+import { refreshPersonIndex } from "game/population_index";
 import { entityId } from "game/residents";
 import { Hex } from "game/map";
 
@@ -22,6 +24,13 @@ export function newEntities(state, entities, prefix = "") {
       }
       state.space[hex].push(id);
     }
+    const directory=state.newsContext || state.travel;
+    if(entity.personable && directory?.localPeople) {
+      directory.people[id]=Object.fromEntries(PERSON_COMPONENTS.filter(key=>state.ecs[key]?.[id]).map(key=>[key,state.ecs[key][id]]));
+      updateDirectoryPerson(directory,id);
+      if(state.residents)state.residents[id]=true;
+    }
+    refreshPersonIndex(state,id);
     return id;
   });
 }
@@ -32,6 +41,8 @@ export function deleteEntity(state, id) {
   Object.keys(state.ecs).forEach(c => {
     delete state.ecs[c][id];
   });
+
+  refreshPersonIndex(state,id);
 
   // NOTE: Tell whatever is drawing the world that this entity has gone
   state.redraws.push(id);

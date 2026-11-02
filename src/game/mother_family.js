@@ -1,3 +1,5 @@
+import { updateDirectoryPerson } from "game/person_storage";
+import { refreshPersonIndex } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
 /* global require */
 import MersenneTwister from "mersenne-twister";
@@ -48,7 +50,7 @@ export function seedMotherFamily(s,actor,seed) {
     r.household={id,houseId:null};r.village={id,villageId:null};r.relationships={id,known:{}};
     (s.peopleDirectory ||= {})[id]=r;
     r.nameable.nickname=fullName(s,id);
-    if(s.travel)s.travel.people[id]=r;
+    if(s.travel){s.travel.people[id]=r;updateDirectoryPerson(s.travel,id);}
     return id;
   };
   const familySeed=e.nameable[anchor].familySeed??g.random_int();
@@ -71,6 +73,7 @@ export function seedMotherFamily(s,actor,seed) {
       for(const parent of parents)kin(s,parent).children.push(id);
       e.controllable[id].controllerId=e.controllable[house]?.controllerId||id;
       if(s.residents)s.residents[id]=true;
+      refreshPersonIndex(s,id);
       for(const other of adults.filter(x=>e.village[x]?.villageId==village)) {
         if(parents.some(parent=>kin(s,other).parents.includes(parent))){welcomeCloseKin(s,id,other);welcomeCloseKin(s,other,id);}
         else {meet(s,id,other);meet(s,other,id);}

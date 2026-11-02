@@ -1,4 +1,5 @@
-import { captureDetailOrigins, prepareNeighbourDetails } from "game/hex_detail";
+import { householdMembers, withPopulationIndex } from "game/population_index";
+import { captureDetailOrigins, prepareNeighbourDetails, releaseHistoryWorkspace } from "game/hex_detail";
 import { compactMap, SUMMARY_COMPONENTS } from "game/community_summary";
 export { compactMap } from "game/community_summary";
 import MersenneTwister from "mersenne-twister";
@@ -28,24 +29,25 @@ export function rollHexContents(seed,hex,starting=false) {
 }
 export function summarySeason(map,season) {
   if(map.social?.lastSeason>=season)return;
-  return withRelationshipIndex(map,()=>withEventIndex(map,()=>{
+  return withPopulationIndex(map,()=>withRelationshipIndex(map,()=>withEventIndex(map,()=>{
     map.days=season*DAYS_IN_SEASON;
     drift(map,24*DAYS_IN_SEASON);
     advanceSeason(map,season,true);
     // One household livelihood transition, with no hourly needs or field replay.
+    const residentOrder=new Map(Object.keys(map.residents||{}).map((id,n)=>[id,n]));
     const houses=new Set([...Object.keys(map.ecs.building||{}),...Object.keys(map.ecs.shelter||{}).filter(id=>map.ecs.shelter[id].stage==="house")]);
     for(const house of houses) {
       const h=map.ecs.household[house],store=map.ecs.container[h?.storeId];if(!store)continue;
-      const members=Object.keys(map.residents||{}).filter(id=>!map.ecs.personable[id]?.dead&&map.ecs.household[id]?.houseId===house);
+      const members=householdMembers(map,house).filter(id=>!map.ecs.personable[id]?.dead).sort((a,b)=>residentOrder.get(a)-residentOrder.get(b));
       const harvest=(season%4+4)%4===2?Math.max(0,h.summaryFields||0)*18:0;
       store.amounts.grain=Math.max(0,(store.amounts.grain||0)+harvest-members.length*3);
       if(harvest&&members.length)recordEvent(map,"harvest",[members[0]],[house],{amount:harvest,summary:true});
     }
     map.needsUpdatedAt=map.environmentUpdatedAt=map.days;
-  }));
+  })));
 }
 function foundingMap(world,hex,contents,seed) {
-  const key=worldKey(hex),s={compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-180*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:-181,courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
+  const key=worldKey(hex),s={newsModel:1,compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-180*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:-181,courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
   const generator=new MersenneTwister(seed),entrances={};
   for(const [side,n] of neighbours(hex).entries())if(world.hexes.some(h=>!h.ocean&&worldKey(h)===worldKey(n))) {
     const route=world.landSeed ? routeCrossing({...world,home:hex},side) : {hexes:[{x:22,y:2},{x:22,y:3},{x:22,y:4}]};
@@ -84,7 +86,11 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   }
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
-  initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.season=-180;
+  initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.localPeople=true;s.travel.season=-180;
+  for(const map of Object.values(maps)) {
+    for(const id of Object.keys(map.residents))s.travel.people[id]=Object.fromEntries(["personable","personality","kinship","relationships","nameable","controllable","household","village","playable"].filter(key=>map.ecs[key]?.[id]).map(key=>[key,map.ecs[key][id]]));
+    Object.assign(s.travel.knowledge,map.knowledge);
+  }
   await advanceHistorySeasons(s,-179,0,progress);
   s.days=.375;s.travel.days=s.days;s.travel.season=0;
   for(const map of Object.values(s.travel.maps)) {
@@ -116,13 +122,14 @@ export async function generateWorldGame(s,seed,progress=async()=>{},options={}) 
   delete s.compact;Object.assign(s,map);
   await advanceWorldClock(s);
   await prepareNeighbourDetails(s, (label, value) => progress("Preparing nearby lands: " + label, .8 + .2 * value), options);
+  await releaseHistoryWorkspace(s);
   s.travel.maps[s.travel.active]=localSnapshot(s);
   return {map:s.map,playerId:Object.keys(s.ecs.playable)[0]};
 }
 
 export async function buildHistoryMap(s,hex,summary,progress,options={}) {
   const fresh={ecs:{nextId:1,namespace:"terrain"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:s.days};
-  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents:s.worldHistory.contents[worldKey(hex)],noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
+  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents:(s.worldHistory?.contents || s.travel.contents)[worldKey(hex)],noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
   fresh.map=result.map;return localSnapshot(fresh);
 }
 
@@ -146,7 +153,7 @@ export function installStoredHistory(s,summary,sites,contents,noPlayer) {
   const e=s.ecs;
   e.interior ||= {};
   for(const [key,table] of Object.entries(summary.ecs))if(typeof table==="object"&&key!=="spatial")Object.assign(e[key]|| (e[key]={}),structuredClone(table));
-  s.residents={...summary.residents};s.events=[...summary.events];s.eventIds={...summary.eventIds};s.knowledge=structuredClone(summary.knowledge);s.social=structuredClone(summary.social);s.peopleSeed=summary.peopleSeed;s.opinionThresholds=summary.opinionThresholds;
+  s.newsModel=summary.newsModel;s.residents={...summary.residents};s.events=[...summary.events];s.eventIds={...summary.eventIds};s.knowledge=structuredClone(summary.knowledge);s.social=structuredClone(summary.social);s.peopleSeed=summary.peopleSeed;s.opinionThresholds=summary.opinionThresholds;
   s.villages=Object.fromEntries(Object.entries(summary.villages).map(([id,v])=>[id,{...v,sharedPlaces:[]}]));
   const pads=Object.values(sites),used=new Set();
   for(const [id,b] of Object.entries(e.building)) {
@@ -226,7 +233,7 @@ export function restoreDetails(detail,summary) {
     if(e.personable[id].dead&&e.planner?.[id]){e.planner[id].task=null;e.planner[id].plan=null;}
   }
   placeSummaryCargo(detail,summary);
-  for(const key of ["events","eventIds","knowledge","social","residents","days"])detail[key]=summary[key];
+  for(const key of ["newsModel","events","eventIds","knowledge","social","residents","days"])detail[key]=summary[key];
   detail.needsUpdatedAt=detail.environmentUpdatedAt=summary.days;
   delete detail.compact;
   repairHouseholds(detail);

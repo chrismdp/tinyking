@@ -1,3 +1,4 @@
+import { villagePeople } from "game/population_index";
 import { DAYS_IN_SEASON, day_of_season, hour_of_day, season } from "game/time";
 import { recordEvent, knownEvents, learnEvent } from "game/events";
 import { eventSentence } from "game/events";
@@ -56,7 +57,7 @@ export function updateFestival(s) {
   const a=s.ui.playerId,active=fs.active;
   for(const v of Object.values(s.villages || {})) {
     const place=festivalPlace(s,v);if(!place)continue;
-    const present=Object.keys(s.ecs.personable || {}).filter(id=>id!=a&&!s.ecs.personable[id].dead&&isResident(s,id)&&s.ecs.village?.[id]?.villageId==v.id&&near(s,id,place,300));
+    const present=villagePeople(s,v.id).filter(id=>id!=a&&!s.ecs.personable[id].dead&&isResident(s,id)&&s.ecs.village?.[id]?.villageId==v.id&&near(s,id,place,300));
     if(near(s,a,place) && present.length && !active.attended[a+":"+v.id]) {
       active.attended[a+":"+v.id]={day:s.days,rewarded:[]};
       const eventById=id=>(s.events || []).find(e=>e.id==id);

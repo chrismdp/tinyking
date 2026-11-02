@@ -1,6 +1,7 @@
+import { householdMembers, refreshPersonIndex } from "game/population_index";
 import { canCourt, eligiblePartner, marry, chatTogether, moveHouse } from "game/social";
 import { addGoodwill, disposition, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
-import { isResident, entityId } from "game/residents";
+import { entityId } from "game/residents";
 import { Hex } from "game/hex";
 import { closeFamily, recordEvent } from "game/events";
 
@@ -70,7 +71,7 @@ export function foundHousehold(s) {
     origin:{day:s.days,people:[a],houseId:house,reason,centreHex:String(centre)}};
   if(s.settlement)s.settlement.layoutDirty=true;
   s.ecs.village[house]={...s.ecs.village[house],id:house,villageId:id};
-  for(const person of Object.keys(s.ecs.personable))if(s.ecs.household[person]?.houseId==house)s.ecs.village[person]={...s.ecs.village[person],id:person,villageId:id};
+  for(const person of householdMembers(s,house)){s.ecs.village[person]={...s.ecs.village[person],id:person,villageId:id};refreshPersonIndex(s,person);}
   recordEvent(s,"settlement",[a],[house],{villageId:id,reason});return true;
 }
 export function canInviteHome(s,a,b) {
@@ -83,6 +84,6 @@ export function canInviteHome(s,a,b) {
 export function householdRoom(s,house,person) {
   const beds=new Set([house,...(s.ecs.building?.[house]?.rooms||[]),...Object.keys(s.ecs.interior||{}).filter(id=>s.ecs.interior[id].buildingId==house)]);
   const capacity=[...beds].reduce((sum,id)=>sum+(s.ecs.sleepable?.[id]?.capacity||0),0);
-  const residents=Object.keys(s.ecs.personable).filter(id=>isResident(s,id) && !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId==house);
+  const residents=householdMembers(s,house).filter(id=>!s.ecs.personable[id].dead);
   return capacity>=residents.length+(residents.includes(person)?0:1);
 }

@@ -1,3 +1,4 @@
+import { householdMembers, trackPopulation } from "game/population_index";
 import { updateFestival, seasonTurnAt } from "game/seasons";
 import { DAYS_IN_SEASON } from "game/time";
 import { playerDay, daylight } from "game/energy";
@@ -49,12 +50,8 @@ function updatePlanners(state, frameMod) {
   return withFenceCache(state, () => withGardenHelpIndex(state, () => updatePlannerFrame(state, frameMod)));
 }
 function updatePlannerFrame(state, frameMod) {
-  const childrenByHome = new Map();
-  for (const [id, child] of Object.entries(state.ecs.personable || {})) if (!child.dead && child.age >= 6 && child.age < 18 && isResident(state, id)) {
-    const home = state.ecs.household?.[id]?.houseId;
-    if (!childrenByHome.has(home)) childrenByHome.set(home, []);
-    childrenByHome.get(home).push(id);
-  }
+  trackPopulation(state);
+  const childrenByHome = {get(home) {return householdMembers(state,home).filter(id=>{const child=state.ecs.personable[id];return !child.dead && child.age>=6 && child.age<18;});}};
   expireChatApproach(state);
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];

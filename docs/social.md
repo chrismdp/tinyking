@@ -6,7 +6,7 @@ Generation starts with founding households and advances 180 seasons, or 45 game 
 
 ## Records
 
-Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. Each person's `state.knowledge[id].events` contains the event identities they know. Ask about copies permitted events from the speaker’s knowledge and records the spoken source. Completed-contact bookkeeping itself copies no events or possessions. Warnings, reports, oaths, gifts, courtship, play and household invitations therefore disclose no family history. A spoken family answer grants only its stated facts; a disclosed possession event can identify that item.
+Each event contains `id`, `type`, `people`, `day`, `season`, `villageId`, `place` and `items`. Moves add `fromHouse` and `toHouse`. Deaths add `cause`. The event list lives at `state.events`. New worlds store knowledge on events, with private knowers and village or hex scopes. `knownEvents` reads that state. Earlier saves keep their per-person event lists. Ask about copies permitted events from the speaker’s knowledge and records the spoken source. Completed-contact bookkeeping itself copies no events or possessions. Warnings, reports, oaths, gifts, courtship, play and household invitations therefore disclose no family history. A spoken family answer grants only its stated facts; a disclosed possession event can identify that item.
 
 A personal item has an ECS identity and a `possession` component. It contains `name`, `kind`, `ownerId`, `maker`, `originalOwner` and `owners`. Each entry in `owners` contains `personId`, `day` and `reason`. `carried` separates personal belongings from the two working hands. Personal items never enter commodity totals. A gift transfers the same unique item and appends its new owner. Splitting an ordinary stack preserves its good metadata.
 
@@ -14,7 +14,34 @@ Households own their house, rooms, stores, fields, workshops and animals through
 
 ## Rules
 
-Ordinary events inform participants and close family. Private events use their declared audience. Other villagers hear an event with probabilities of 12%, 40%, 75% or 100%, according to their closest ring with a participant. A nearby player can witness live news. Generated history gives the arriving player no automatic knowledge. The feed reads only the player’s known events, including legitimately heard history. The feed and social activity labels share the player-knowledge name filter; the raw world name formatter cannot reveal an unknown identity.
+In new worlds, ordinary summary events inform participants, local close kin
+and selected villagers. Live hearing checks use people within 300 world units.
+Romance and affairs inform participants and actual witnesses within 85 units.
+Summary history invents no witnesses. Remote family do not hear an event merely
+because their components are available in the directory. Existing moved kin
+and travellers retain their real links. Learning news about a remote stranger
+can change anonymous regard, without creating acquaintance.
+
+Every event starts private, with explicit knowers. When half a village knows
+it, with a minimum of three knowers, it becomes generally known there. A village
+smaller than three needs all its people. Covered individual entries are removed.
+When two villages in one hex know it and at least 60% of that hex is covered,
+with at least four people, the event becomes public in that hex. Public status
+does not inform another hex. Travellers must carry relevant news there.
+
+The event catalogue declares relevance to affected people, kin, its village or
+its hex. Work and harvest news usually stay in their village. Travel and major
+community events can matter throughout their hex. Gossip carries only relevant
+news and still passes `canDiscloseEvent`. On departure, a person remembers the
+knowledge scopes they visited, up to that date. They do not learn later news
+from a place they left. Private exceptions retain explicit knowledge outside a
+promoted scope. Sealed backstory remains hidden.
+
+Promotion gives the scope its learning effects once. Later hearing does not
+repeat them. NPC source and reaction rows covered by promotion are removed.
+Player spoken sources and private discoveries retain their evidence. The feed
+and activity labels continue to hide unknown identities. Earlier saves retain
+the former initial audiences and learned-event lists.
 
 Event definitions declare `onOccurrence` and `onLearn` effects. Effects change directional goodwill, set avoidance, record a reaction, or record a consequential event. Learning about a quarrel with close kin costs three goodwill towards their opponent. A gift adds one goodwill towards the first participant when the second participant is close kin. Reconciliation restores three goodwill towards each participant whose opponent is close kin, matching the family loss from a quarrel. Each person receives learning effects once per event. Repeated hearing and travel knowledge merges keep the same event identity and do not replay these effects.
 
@@ -40,7 +67,7 @@ Seasonal history uses the same birth, courtship, death and inheritance functions
 
 ## Local-map travel boundary
 
-All references are existing ECS people and household IDs. Social visits and home moves stay inside this world hex’s state. No person is copied or invented to satisfy a marriage. Separate WORLD hex travel, persistence and ID namespaces remain the next travel task. `historyStep` has no renderer or pathfinding dependency; summary encounters use the same eligibility, relationship effects, kin exclusions, consent, demographic and ownership rules. Live navigation is isolated in `social_visits.js`.
+All references are existing ECS people and household IDs. Social visits and home moves stay inside this world hex’s state. No person is copied or invented to satisfy a marriage. World travel carries these same people and event identities between hexes. `historyStep` has no renderer or pathfinding dependency; summary encounters use the same eligibility, relationship effects, kin exclusions, consent, demographic and ownership rules. Live navigation is isolated in `social_visits.js`.
 
 Generation runs the same seasonal transition on its owned summary rather than making 180 unnecessary snapshots. The exported seasonal step still copies caller state. Candidate pools and event-membership caches avoid repeated scans without changing outcomes.
 
@@ -85,9 +112,9 @@ The shared event catalogue is `src/data/event_types.json`. It defines each type�
 
 One policy, `canDiscloseEvent`, governs NPC speech, player Tell and legacy Ask about. Public events include weddings, births, deaths, completed buildings, household arrivals and oaths. Social trust admits moves, help and woodland incidents. Personal trust admits inheritance, household joining, gifts, reconciliation, quarrels and defiance. A public legacy answer discloses its event without disclosing an unrelated family tree.
 
-A quarrel between current spouses needs Intimate trust, or Personal trust for a listener with negative goodwill towards a subject. The policy excludes either subject’s close kin and close friends from third-party disclosure. It reads current kinship and directional bonds. Initial family learning remains unchanged, so withholding later speech does not erase existing knowledge.
+A quarrel between current spouses needs Intimate trust, or Personal trust for a listener with negative goodwill towards a subject. The policy excludes either subject’s close kin and close friends from third-party disclosure. It reads current kinship and directional bonds. Disclosure does not erase existing knowledge. New-world initial family learning stays within the local hex.
 
-Player Tell uses only known, unsealed, permitted records. A card carries the catalogue topic and every participant. Anonymous witnesses can tell what happened without naming unknown people. New listeners learn through `learnEvent`, which keeps family reactions once per learner. Spoken sources retain the first teller, day and line. Retelling records the player as the new listener’s source while preserving the player’s earlier source.
+Player Tell uses only known, unsealed, permitted records. A card carries the catalogue topic and every participant. Anonymous witnesses can tell what happened without naming unknown people. New listeners learn through `learnEvent`, which keeps family reactions once per learner. Private spoken sources retain the first teller, day and line. Player sources also retain this evidence after promotion. Retelling records the player as the new listener’s source while preserving the player’s earlier source.
 
 Mood preferences are stable calculations from each person’s personality, tastes, identity and opinion seed. Learned mood scores live beside topic evidence in personal knowledge. Existing save and traveller knowledge records carry that evidence and spoken event sources.
 
@@ -100,7 +127,7 @@ The seasonal encounter represents six half-hours and permits at most one event i
 
 `canDiscloseEvent` filters every candidate before preferences apply. The catalogue marks good and unflattering news with `valence`. Unflattering news favours listeners with distant or hostile bonds towards the subjects. Good news favours listeners with close bonds. Trust and recency also weight the choice. Companion selection checks the latest permitted unheard account before ranking otherwise equal listeners. News preferences break ties between otherwise equal social companions. Partner attraction and existing friendship retain priority. Hard exclusions remain exclusions regardless of preference.
 
-`learnEvent` applies the existing kin reactions only on first learning. `spokenSources` records the teller, day and catalogue account. Later hearing preserves that first source. A listener also learns names actually stated by the teller, without gaining acquaintance or trait knowledge. Anonymous accounts stay anonymous. Visits between villages and existing traveller bundles carry the same event IDs and personal knowledge. Seasonal copies own their source and learned-person maps. Temporary indexes group repeated stories by type and participants. Selection scores only the newest unheard account in each group. These indexes do not enter saves.
+`learnEvent` applies the existing kin reactions only on first learning. `spokenSources` records the teller, day and catalogue account. Later hearing preserves that first source. A listener also learns names actually stated by the teller, without gaining acquaintance or trait knowledge. Anonymous accounts stay anonymous. Visits between villages and existing traveller bundles carry the same event IDs and personal knowledge. Seasonal copies own their source and learned-person maps. New-world news selection intersects the teller’s knowledge with the listener’s village, hex and affected kin. People in the same scope already share its general news, so selection skips those scope lists. Earlier saves retain the story-group index. Neither index enters saves.
 
 ## Hearing and evening callers
 
@@ -124,6 +151,6 @@ An unhappy married person in a mutual romance with someone other than their spou
 
 When a spouse first learns an affair, they lose 30 goodwill towards their unfaithful spouse. A declared quarrel then applies its ordinary six-point losses and avoidance. Reaction records use the event identity. There is no separation, eviction, parentage change or succession dispute.
 
-Romance and affair records live on relationship bonds. Latest action attempts live on the relationship component. Reactions and discovery records live in personal knowledge. Existing generic saves, traveller components, identity records and `LOCAL_FIELDS` carry these containers. `historyStep` copies the attempt, reaction and discovery maps at the snapshot boundary. Individual writes then take constant time. No travel, map, world-history or save field list changes are needed.
+Romance and affair records live on relationship bonds. Latest action attempts live on the relationship component. Reactions and discovery records live in personal knowledge. Existing generic saves, traveller components, identity records and `LOCAL_FIELDS` carry these containers. `historyStep` copies the attempt, reaction and discovery maps at the snapshot boundary. Individual writes then take constant time. New-world event audiences and scope memory use the shared world storage. Legacy saves retain their original containers.
 
 Occurrence effects do not introduce strangers. An anonymous goodwill change stays in `relationships[id].unmetGoodwill` until actual contact introduces that person. It drifts towards zero at the ordinary rate. The shared goodwill query includes this regard. Saves, traveller identity records and seasonal copies retain it. Existing kin reactions keep their previous first-learning behaviour.

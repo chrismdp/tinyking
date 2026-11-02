@@ -265,26 +265,24 @@ const emptyWorld = () => ({
   },
   days: 0.375
 });
-export async function ensureMap(s, key) {
+// Coordinates, rather than visit order, choose the destination seed and IDs.
+export function destinationPlan(s, key) {
   const j = s.travel;
-  if (j.maps[key]) return j.maps[key];
   const hex = s.world.hexes.find(h => worldKey(h) == key);
   if (!hex || hex.ocean) throw new Error("Cannot enter " + key);
-  const fresh = emptyWorld(),
-    seed = Math.floor(hashUnit(j.seed + ":hex:" + key) * 4294967296);
-  fresh.ecs.namespace = "w" + hex.x + "_" + hex.y + "-";
-  const started = performance.now();
-  const result = await generateMap(fresh, seed, async (label, value) => {
-    if (s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label, .15 + .75 * value);
-  }, {
-    world: s.world,
-    hex,
-    noPlayer: true,
-    worldSeed: j.seed,
-    routeHistory: j.routeHistory || [],
-    sealedBorders: Object.keys(j.sealedBorders || {})
-  });
-  fresh.map = result.map;
+  return {
+    seed: Math.floor(hashUnit(j.seed + ":hex:" + key) * 4294967296),
+    namespace: "w" + hex.x + "_" + hex.y + "-",
+    options: {
+      world: s.world, hex, noPlayer: true, worldSeed: j.seed,
+      routeHistory: j.routeHistory || [], sealedBorders: Object.keys(j.sealedBorders || {})
+    }
+  };
+}
+
+// Register an actually generated local community and catch up its seasons.
+export async function registerDestination(s, key, fresh) {
+  const j = s.travel;
   const knownTrips=new Set((j.routeHistory || []).map(t=>t.key));
   j.routeHistory ||= [];
   for(const trip of fresh.settlement?.journeys || [])if(trip.borderKey && !trip.imported && !knownTrips.has(trip.key))j.routeHistory.push(trip);
@@ -306,16 +304,26 @@ export async function ensureMap(s, key) {
       kind: "fresh"
     });
   }
-  j.timings ||= [];
-  j.timings.push({
-    key,
-    ms: performance.now() - started,
-    season: j.season
-  });
   j.maps[key] = localSnapshot(fresh);
   publish(fresh, j);
   return j.maps[key];
 }
+export async function ensureMap(s, key) {
+  const j = s.travel;
+  if (j.maps[key]) return j.maps[key];
+  const plan = destinationPlan(s, key), fresh = emptyWorld();
+  fresh.ecs.namespace = plan.namespace;
+  const started = performance.now();
+  const result = await generateMap(fresh, plan.seed, async (label, value) => {
+    if (s.transition && s.ui?.actions?.progress_update) await s.ui.actions.progress_update(label, .15 + .75 * value);
+  }, plan.options);
+  fresh.map = result.map;
+  const destination = await registerDestination(s, key, fresh);
+  j.timings ||= [];
+  j.timings.push({ key, ms: performance.now() - started, season: j.season });
+  return destination;
+}
+
 export function releaseLocalWork(s, id) {
   const p = s.ecs.planner?.[id];
   if (p) {

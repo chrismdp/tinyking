@@ -5,8 +5,8 @@ import { reserveBuildingClearance } from "game/tree_clearance";
 
 // Initial conditions only: flat land, real navigation, houses, families and
 // stocked rooms. Village life must allocate all plots, fields, yards and trades.
-export const flatVillage = (count, { seed = 1, days = 0.375, founding = true, woodland = false } = {}) => {
-  const s = { ecs: { nextId: 1, good: {}, farmable: {} }, days, game_speed: "normal", ui: { show: {} }, redraws: [],
+export const flatVillage = (count, { seed = 1, days = 0.375, founding = true, woodland = false, namespace = "" } = {}) => {
+  const s = { ecs: { nextId: 1, namespace, good: {}, farmable: {} }, days, game_speed: "normal", ui: { show: {} }, redraws: [],
     villages: { fixture: { id: "fixture", houses: [] } } };
   const grid = Grid.hexagon({ center: Hex(0, 0), radius: 9 });
   const tiles = newEntities(s, grid.map(hex => ({

@@ -16,6 +16,7 @@ const socialHistory = seed => {
 
 it("generates forty-five years of dated history, dead ancestors and inherited objects deterministically", async () => {
   const s = await socialHistory(13), again = await socialHistory(13);
+  expect(s).toEqual(again);
   expect(s.events).toEqual(again.events);
   expect(s.ecs.kinship).toEqual(again.ecs.kinship);
   expect(s.events.some(e => e.type == "birth")).toBe(true);

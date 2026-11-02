@@ -43,3 +43,42 @@ it("counts starting wood after leaving the camp clearing empty", () => {
     expect(trees.filter(t => start.distance(Hex().fromPoint(t)) <= 4).length).toBeGreaterThanOrEqual(MIN_START_TREES);
   }
 });
+
+it("prepares repeatable two-hex entrances with reachable doors, wood and food on a small map", () => {
+  const { prepareEntrances, edgeSide } = require("game/travel_geometry");
+  const { WorldGrid, WorldHex } = require("game/hex");
+  const { newEntities } = require("game/entities");
+  const { s, start, tileAt } = flatVillage(3);
+  const grid = Grid.hexagon({ radius: 9 });
+  s.map = { centre: { x: 0, y: 0 }, radius: 9, playerStartTile: start };
+  s.villages.fixture.centre = { x: 0, y: 0 };
+  const world = { home: { x: 0, y: 0 }, hexes: WorldGrid.hexagon({ radius: 1 }).map(h => ({ ...h, ocean: false })) };
+  world.home = { ...WorldHex(0, 0) };
+  const landscape = Object.fromEntries(grid.map(h => [h, { ...h.toPoint(), terrain: "grassland" }]));
+  const settlements = Object.fromEntries(Object.keys(s.ecs.building).map(id => {
+    const h = Hex().fromPoint(s.ecs.spatial[id]);
+    return [h, { ...h }];
+  }));
+  const entrances = prepareEntrances(grid, landscape, settlements, world, s.map.centre, s.map.radius);
+  expect(entrances).toEqual(prepareEntrances(grid, structuredClone(landscape), settlements, world, s.map.centre, s.map.radius));
+  expect(Object.keys(entrances)).toHaveLength(6);
+  for (const [side, entry] of Object.entries(entrances)) {
+    entry.tileIds = entry.hexes.map(h => tileAt[Hex(h)]);
+    expect(edgeSide(s, entry.tileIds[0])).toBe(+side);
+    expect(entry.hexes.map(h => Hex(0, 0).distance(Hex(h)))).toEqual([9, 8, 7]);
+    expect(Hex(entry.hexes[0]).distance(Hex(entry.hexes[2]))).toBe(2);
+    for (let i = 0; i < 3; i++) {
+      expect(s.ecs.walkable[entry.tileIds[i]].speed).toBeGreaterThan(0);
+      if (i) expect(Object.values(s.ecs.walkable[entry.tileIds[i - 1]].neighbours)).toContain(entry.tileIds[i]);
+    }
+    const goal = Hex(entry.hexes[2]), from = entry.tileIds[2];
+    expect(Object.keys(s.ecs.building).some(id => path(s, from, tileAt[Hex().fromPoint(s.ecs.spatial[id])])?.length > 0)).toBe(true);
+    const trees = generateTrees(13, landscape, settlements, grid.pointWidth(), grid.pointHeight(), { biomeAt: () => "desert", start: goal });
+    const wood = newEntities(s, trees.map(p => ({ spatial: { ...p, immovable: true }, tree: {}, good: { type: "wood", amount: 1 } })));
+    generateForage(s, 13, goal, { onlyStart: true });
+    const reachable = ids => ids.filter(id => goal.distance(Hex().fromPoint(s.ecs.spatial[id])) <= 4 &&
+      path(s, from, tileAt[Hex().fromPoint(s.ecs.spatial[id])])?.length > 0);
+    expect(reachable(wood).length).toBeGreaterThanOrEqual(MIN_START_TREES);
+    expect(reachable(Object.keys(s.ecs.forageable)).length).toBeGreaterThanOrEqual(3);
+  }
+});

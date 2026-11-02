@@ -59,3 +59,20 @@ it("skipping at any phase and the URL bypass produce the same finished camp as w
   startIntro(bypassed, { skip: true });
   expect(bypassed.ecs).toEqual(watched.ecs);
 });
+
+it("keeps the entry outside the map and the three walkable tiles consecutive", () => {
+  const state = routeFixture(), route = arrivalRoute(state);
+  const at = point => (state.space[Hex().fromPoint(point)] || []).find(id => state.ecs.mappable[id]);
+  expect(at(route.points[0])).toBeUndefined();
+  expect(route.tileIds).toHaveLength(3);
+  const hexes = route.tileIds.map(id => Hex().fromPoint(state.ecs.spatial[id]));
+  expect(hexes.map(h => Hex(state.map.centre).distance(h))).toEqual([3, 2, 1]);
+  expect(hexes[0].distance(hexes[2])).toBe(2);
+  for (let i = 0; i < route.tileIds.length; i++) {
+    expect(state.ecs.walkable[route.tileIds[i]].speed).toBeGreaterThan(0);
+    if (i) expect(Object.values(state.ecs.walkable[route.tileIds[i - 1]].neighbours)).toContain(route.tileIds[i]);
+  }
+  expect(at(route.points.at(-1))).toBe(route.tileIds.at(-1));
+  expect(Hex().fromPoint(route.campPoint).toString()).toBe(Hex(state.map.playerStartTile).toString());
+  expect(arrivalRoute(state)).toEqual(route);
+});

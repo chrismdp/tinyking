@@ -418,20 +418,29 @@ function discoverStartingTiles(ecs, id, center) {
   discoverTiles(ecs, { id, tiles });
 }
 
-export async function generateMap(state, seed, progressUpdate, options = {}) {
-  await progressUpdate("Shaping the land", 0);
-  // NOTE: a new map starts with an empty space index; entity ids restart at
-  // 1, so anything left from an old map would point at the wrong entities
+// The map lifecycle reset is independent of terrain size and history.
+export function resetMapState(state) {
   state.space = {};
   state.redraws ||= [];
+  state.snow = {};
+  state.snowRevision = 0;
+  state.environmentUpdatedAt = state.days;
+}
+
+export function removeMapPlayer(state) {
+  for (const id of Object.keys(state.ecs.playable)) for (const component of Object.values(state.ecs)) if (component && typeof component == "object") delete component[id];
+  state.ecs.playable = {};
+}
+
+export async function generateMap(state, seed, progressUpdate, options = {}) {
+  await progressUpdate("Shaping the land", 0);
+  // Entity ids restart at 1; an old index would point at different entities.
+  resetMapState(state);
   state.world = options.world ? { ...options.world, home: { ...options.hex } } : generateWorld(seed);
   if (options.geographyFixture == "mountain-pass") {
     const centre = worldPoint(state.world.home, MAP_CENTRE.toPoint());
     state.world.geographyFixture = {kind:"mountain-pass", ...centre};
   }
-  state.snow = {};
-  state.snowRevision = 0;
-  state.environmentUpdatedAt = state.days;
 
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   let landscape = await generateTerrain(grid, state.world, progressUpdate);
@@ -658,10 +667,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     entry.wood = Object.keys(state.ecs.tree || {}).filter(near).length;
     entry.food = Object.keys(state.ecs.forageable || {}).filter(near).length;
   }
-  if (options.noPlayer) {
-    for (const id of Object.keys(state.ecs.playable)) for (const component of Object.values(state.ecs)) if (component && typeof component == "object") delete component[id];
-    state.ecs.playable = {};
-  }
+  if (options.noPlayer) removeMapPlayer(state);
   updateWeather(state, 0, options.worldSeed ?? seed);
   await progressUpdate("Ready to arrive", 1);
 

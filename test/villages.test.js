@@ -300,7 +300,7 @@ it("keeps wild plants and woodland out of cultivated plots and tree crowns clear
   for(const id of Object.keys(s.ecs.tree))expect(treeAllowed(s,s.ecs.spatial[id])).toBe(true);
 });
 
-it("spreads evening visitors across the green so household groups do not occupy the same spot", async () => {
+it("gives evening visitors body-sized spaces clear of houses, pens, fields and workplaces", () => {
   const { s } = villageLife(8, { seed: 1, founding: false });
   s.days = 0.8;
   for (const village of Object.values(s.villages)) {
@@ -310,11 +310,30 @@ it("spreads evening visitors across the green so household groups do not occupy 
       find_place(s, id, w, 0, true, "meet", "space");
       return w.places.meet;
     });
-    for (let a = 0; a < places.length; a++) for (let b = a + 1; b < places.length; b++) {
-      if (places[a].id == places[b].id) expect(Math.hypot(places[a].x - places[b].x, places[a].y - places[b].y)).toBeGreaterThan(10);
+    for (const [i, p] of places.entries()) {
+      expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true);
+      expect(s.ecs.village[p.id].villageId).toBe(village.id);
+      const centre = s.ecs.spatial[p.id];
+      expect(Math.hypot(p.x - centre.x, p.y - centre.y)).toBeLessThan(300);
+      for (const other of places.slice(i + 1)) expect(Math.hypot(p.x - other.x, p.y - other.y)).toBeGreaterThanOrEqual(32);
+      for (const house of Object.keys(s.ecs.building)) {
+        const h = s.ecs.spatial[house];
+        expect(Math.hypot(p.x - h.x, p.y - h.y)).toBeGreaterThanOrEqual(55);
+      }
+      for (const pen of Object.values(s.ecs.pasture)) {
+        expect(Math.abs(p.x - pen.centre.x) >= pen.halfWidth + 12 || Math.abs(p.y - pen.centre.y) >= pen.halfDepth + 12).toBe(true);
+      }
+      for (const field of Object.keys(s.ecs.farmable)) {
+        expect(Hex().fromPoint(p).toString()).not.toBe(Hex().fromPoint(s.ecs.spatial[field]).toString());
+      }
+      for (const [id, workplace] of Object.entries(s.ecs.workplace)) {
+        const w = s.ecs.spatial[id];
+        expect(Math.hypot(p.x - w.x, p.y - w.y)).toBeGreaterThanOrEqual(workplace.trade == "miller" ? 45 : 30);
+      }
     }
   }
 });
+
 
 it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
   const { s, village: fixtureVillage, tileAt, start } = flatVillage(8, { seed: 8, founding: false });
@@ -375,4 +394,26 @@ it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only 
     expect(s.ecs.household[host].estateAccount.consumed.wood).toBeGreaterThanOrEqual(8);
     if(venue.kind=="alehouse")expect(s.ecs.growth[id].construction).toMatchObject({timber:8,storeId:s.ecs.household[host].storeId});
   }
+});
+
+it("waits without spending funded venue timber when public roads leave no footprint", () => {
+  const { s, village, start } = flatVillage(6);
+  s.settlement = { version: 1, journeys: [], appliedJourneys: {}, sites: {} };
+  generateVillageLife(s, 1, start);
+  for (const tile of Object.values(s.ecs.mappable)) {
+    tile.route = [0];
+  }
+  // Initial conditions for a retry: all spare ground is reserved for roads,
+  // while every household can afford a venue. Native siting must wait.
+  for (const house of village.houses) {
+    const store = s.ecs.container[s.ecs.household[house].storeId];
+    expect(store.amounts.grain).toBeGreaterThanOrEqual(8);
+    store.amounts.grain -= 8;
+    store.amounts.wood = 8;
+  }
+  const stock = () => village.houses.map(id => ({ ...s.ecs.container[s.ecs.household[id].storeId].amounts }));
+  const before = stock();
+  generateVillageLife(s, 1, start);
+  expect(village.sharedPlaces.some(id => ["chapel", "alehouse"].includes(s.ecs.meetingPlace[id].kind))).toBe(false);
+  expect(stock()).toEqual(before);
 });

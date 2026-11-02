@@ -1,9 +1,9 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { generateWorld } from "game/overworld";
-import { worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
+import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { routeCrossing, buildGeography, groundForState, MAX_WALK_SLOPE } from "game/geography";
 import { neighbours, worldKey } from "game/travel_geometry";
-import { addBidirectionalLink } from "game/pathfinding";
+import { addBidirectionalLink, path } from "game/pathfinding";
 import { walk_to } from "game/tasks";
 
 it("chooses the same physical shared crossing from either side, independent of request order", () => {
@@ -40,15 +40,19 @@ it("does not bridge ocean or genuinely separated land across a shared edge", () 
 it("builds a broad house-scale mountain with a navigable graded road through its pass", () => {
   const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
   const c = MAP_CENTRE.toPoint();
+  // Use the real labelled fixture field, without settlements or history.
+  const field = createLandField("13:0", { kind: "mountain-pass", ...c });
   const landscape = Object.fromEntries(grid.map(h => {
     const p = h.toPoint();
-    // Initial fixture: a whole ridge, with a low saddle north of its centre.
-    const elevation = 20 + 850 * Math.exp(-(((p.x-c.x)/650)**2)) * (1 - 0.78*Math.exp(-(((p.y-c.y+420)/260)**2)));
+    const elevation = field.elevationAt(p);
     return [h, { ...p, terrain: elevation > 180 ? "mountain" : "grassland", elevation }];
   }));
   const west = grid.filter(h => h.x < MAP_CENTRE.x - 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
   const east = grid.filter(h => h.x > MAP_CENTRE.x + 15).sort((a,b) => Math.abs(a.toPoint().y-c.y)-Math.abs(b.toPoint().y-c.y))[0];
-  const geo = buildGeography(grid, landscape, {}, {}, [west, east]);
+  const geo = buildGeography(grid, landscape, {}, {}, [west, east], {
+    terrainAt: p => field.elevationAt(p) > 180 ? "mountain" : "grassland",
+    elevationAt: (x, y) => field.elevationAt({ x, y })
+  });
   const s = { map: { seed: 13, geography: geo }, ecs: { mappable: {}, spatial: {}, walkable: {} }, space: {} };
   grid.forEach((h, i) => { const id=String(i); s.ecs.mappable[id]=landscape[h]; s.ecs.spatial[id]=h.toPoint(); s.ecs.walkable[id]={speed:landscape[h].terrain=="grassland"?1:0,worn:{},neighbours:{}}; s.space[h]=[id]; });
   // The untravelled foundation reserves geometry without inventing use.
@@ -61,6 +65,9 @@ it("builds a broad house-scale mountain with a navigable graded road through its
     const a=s.space[h]?.[0], b=s.space[n]?.[0];
     if(a && b && s.ecs.walkable[a].speed && s.ecs.walkable[b].speed) addBidirectionalLink(s.ecs,a,side,b);
   }
+  expect(path(s, s.space[west][0], s.space[east][0])).toBeDefined();
+  expect(Math.min(...road.map(h => Hex(h).toPoint().x))).toBeLessThan(c.x - 650);
+  expect(Math.max(...road.map(h => Hex(h).toPoint().x))).toBeGreaterThan(c.x + 650);
   s.ecs.spatial.walker={...west.toPoint()}; s.ecs.holder={walker:{held:[]}}; s.ecs.personable={walker:{hunger:0}};
   s.ecs.controllable={walker:{controllerId:"walker"}}; s.ecs.playable={}; s.redraws=[];
   const world={places:{}}, goal=s.space[east][0]; let result;

@@ -267,3 +267,51 @@ it("runtime children inherit the established calibration without recalibrating e
   expect(s.ecs.personality[child].opinionSeed).toBe(s.ecs.personality[ids[1]].opinionSeed);
   expect(JSON.stringify(ids.map(id => s.ecs.personality[id]))).toBe(before);
 });
+
+it("replays coordinate destinations with real namespaced households and exactly three catch-up seasons", async () => {
+  const { community } = require("./support/travel");
+  const { foundingVillage } = require("./support/founding");
+  const { generateHistory } = require("game/history");
+  const { removeMapPlayer } = require("game/map");
+  const { destinationPlan, registerDestination, ensureMap } = require("game/travel");
+  const { neighbours, worldKey } = require("game/travel_geometry");
+  const a = community(), b = community();
+  const key = worldKey(neighbours(a.s.world.home)[0]);
+  a.s.travel.season = b.s.travel.season = 3;
+  const make = async s => {
+    const plan = destinationPlan(s, key);
+    const fresh = foundingVillage(plan.seed, { namespace: plan.namespace });
+    // Surveyed sites are the input. Real settlement history creates every
+    // destination household, object and ID; no generated result is stubbed.
+    fresh.world = { ...plan.options.world, home: { ...plan.options.hex } };
+    fresh.map = { ...fresh.map, seed: plan.seed, worldKey: key, centre: { x: 0, y: 0 }, radius: 9 };
+    await generateHistory(fresh, plan.seed);
+    removeMapPlayer(fresh);
+    return registerDestination(s, key, fresh);
+  };
+  const plan = destinationPlan(a.s, key);
+  b.s.travel.maps.unrelated = {};
+  expect(destinationPlan(b.s, key)).toEqual(plan);
+  delete b.s.travel.maps.unrelated;
+  const otherKey = worldKey(neighbours(a.s.world.home)[1]);
+  expect(destinationPlan(a.s, otherKey).seed).not.toBe(plan.seed);
+  expect(destinationPlan(a.s, otherKey).namespace).not.toBe(plan.namespace);
+  expect(plan.options.noPlayer).toBe(true);
+  const x = await make(a.s), y = await make(b.s);
+  expect(x).toEqual(y);
+  expect(x.social.lastSeason).toBe(3);
+  expect(Object.keys(x.ecs.playable)).toHaveLength(0);
+  expect(Object.keys(x.ecs.building)).toHaveLength(3);
+  expect(Object.keys(x.ecs.personable).length).toBeGreaterThan(0);
+  const entityIds = ecs => Object.values(ecs).filter(v => v && typeof v === "object").flatMap(c => Object.keys(c));
+  const sourceIds = new Set(entityIds(a.s.ecs));
+  expect(entityIds(x.ecs).some(id => sourceIds.has(id))).toBe(false);
+  expect(entityIds(x.ecs).every(id => id.startsWith(plan.namespace))).toBe(true);
+  expect(x.ecs.nextId).toEqual(expect.any(Number));
+  expect(a.s.travel.historyCalls.filter(c => c.key === key).map(c => c.season)).toEqual([1, 2, 3]);
+  const before = structuredClone(x), calls = [...a.s.travel.historyCalls];
+  expect(await ensureMap(a.s, key)).toBe(x);
+  expect(x).toEqual(before);
+  expect(a.s.travel.historyCalls).toEqual(calls);
+  expect(Object.keys(a.s.travel.maps)).toHaveLength(2);
+});

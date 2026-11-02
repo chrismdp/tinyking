@@ -1,7 +1,8 @@
 import { createHeightField } from "game/height";
-import { generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES } from "game/map";
+import { resetMapState, generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES } from "game/map";
 import { createLandField, worldPoint } from "game/world_terrain";
 import { BIOMES } from "game/overworld";
+import { updateWeather } from "game/weather";
 import { newEntities } from "game/entities";
 import { repairHouseholds } from "game/possessions";
 import { birth } from "game/social";
@@ -130,4 +131,47 @@ describe("trees", () => {
     });
   });
 
+});
+
+it("clears a previous spatial index before IDs are reused", () => {
+  const state = { ecs: { nextId: 1 }, days: .375 };
+  const addTile = hex => newEntities(state, [{ spatial: { ...hex.toPoint(), immovable: true }, mappable: { terrain: "grassland" } }])[0];
+  const old = addTile(Hex(0, 0));
+  expect(state.space[Hex(0, 0)]).toEqual([old]);
+  state.ecs = { nextId: 1 };
+  resetMapState(state);
+  const fresh = addTile(Hex(2, 0));
+  expect(fresh).toBe(old);
+  expect(state.space[Hex(0, 0)]).toBeUndefined();
+  for (const hex in state.space) {
+    for (const id of state.space[hex]) {
+      expect(state.ecs.spatial[id]).toBeDefined();
+      expect(Hex().fromPoint(state.ecs.spatial[id]).toString()).toEqual(hex);
+    }
+    expect(state.space[hex].filter(id => state.ecs.mappable[id]).length).toBeLessThanOrEqual(1);
+  }
+});
+
+it("resets dirty snow and weather to the same fresh conditions on a small map", () => {
+  const make = dirty => {
+    const state = { ecs: { nextId: 1 }, days: .375, snow: dirty ? { stale: 1 } : {},
+      snowRevision: dirty ? 99 : 0, weather: dirty ? { stale: { type: "snow" } } : {} };
+    resetMapState(state);
+    const home = { x: 0, y: 0, temperature: "cold", moisture: "wet", biome: "snowfield" };
+    state.world = { home, hexes: [home] };
+    newEntities(state, [0, 1000].map(elevation => ({ spatial: { ...Hex(elevation / 1000, 0).toPoint(), immovable: true },
+      mappable: { terrain: "grassland", elevation, temperature: "cold", warmth: 0 } })));
+    updateWeather(state, 0, 13);
+    return state;
+  };
+  const state = make(true), clean = make(false);
+  expect(Object.keys(state.weather)).toHaveLength(1);
+  expect(state.weather.stale).toBeUndefined();
+  expect(Object.keys(state.snow)).toHaveLength(2);
+  expect(state.snow.stale).toBeUndefined();
+  expect(state.weather).toEqual(clean.weather);
+  expect(state.snow).toEqual(clean.snow);
+  expect(state.snowRevision).toBe(clean.snowRevision);
+  expect(state.environmentUpdatedAt).toBe(state.days);
+  expect(Object.values(state.snow).some(depth => depth > 0)).toBe(true);
 });

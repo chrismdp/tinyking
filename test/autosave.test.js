@@ -121,3 +121,26 @@ it.each([false, true])("waits thirty seconds after watched/skipped handover befo
     expect(client).toHaveBeenCalledTimes(2);
   } finally { jest.useRealTimers(); }
 });
+
+it("discards a menu save request before returning to a playable life", async () => {
+  const state = { days: 1, ecs: { playable: { p: {} } }, ui: { playerId: "p", show: { main_menu: true } } };
+  const client = jest.fn().mockResolvedValue({ bytes: 1 });
+  const persistence = createAutosave(state, client);
+  await persistence.request();
+  state.ui.show.main_menu = false;
+  await persistence.flush();
+  expect(client).not.toHaveBeenCalled();
+});
+
+it("commits an arrival checkpoint during the first-save delay and clears the delay afterwards", async () => {
+  const state = { days: .375, intro: { active: true }, travel: {}, ecs: { playable: { p: {} } }, ui: { playerId: "p", show: {} } };
+  const frames = [], client = jest.fn().mockResolvedValue({ hexRecords: {} });
+  const persistence = createAutosave(state, client, () => {}, fn => frames.push(fn));
+  persistence.requestInitial();
+  const committed = persistence.deferCheckpoint({ departed: { ecs: {} } });
+  expect(client).not.toHaveBeenCalled();
+  frames.shift()();
+  await committed;
+  await persistence.request();
+  expect(client.mock.calls.map(([operation]) => operation)).toEqual(["checkpoint", "save"]);
+});

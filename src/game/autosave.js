@@ -40,7 +40,12 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     if (deferred && !final) return deferred.promise;
     if (!requested || pending && !final || state.generating || state.worldBusy || state.transition) return pending;
     const checkpoint = deferred;
-    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) { checkpoint?.resolve(null); return null; }
+    if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) {
+      deferred = null;
+      requested = false;
+      checkpoint?.resolve(null);
+      return null;
+    }
     if (initial && !final && !checkpoint) {
       if (state.intro?.active) return pending;
       saveAfter ??= performance.now() + FIRST_SAVE_DELAY_MS;

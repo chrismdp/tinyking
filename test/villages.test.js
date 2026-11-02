@@ -1,5 +1,6 @@
 import { TIMBER, amountOf } from "game/goods";
 import { Hex } from "game/map";
+import { newEntities } from "game/entities";
 import { path } from "game/pathfinding";
 import { generateVillageLife } from "game/villages";
 import { createSimulation } from "game/simulation";
@@ -7,7 +8,7 @@ import { DAYS_IN_SEASON } from "game/time";
 import { topController } from "game/playable";
 import { solve } from "game/htn";
 import { find_place } from "game/tasks";
-import { treeAllowed } from "game/tree_clearance";
+import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
 
 import { flatVillage } from "./support/village";
 
@@ -15,6 +16,8 @@ const villageLife = (count = 3, options = {}) => {
   const fixture = flatVillage(count, options);
   if (options.funded) {
     for (const room of Object.values(fixture.s.ecs.container)) room.amounts.grain += 8;
+    const firstStore = fixture.s.ecs.building[fixture.village.houses[0]].rooms.find(id => fixture.s.ecs.container[id]);
+    fixture.s.ecs.container[firstStore].amounts.planks = 4;
     fixture.s.settlement = { version: 1, journeys: [], appliedJourneys: {}, sites: {} };
   }
   generateVillageLife(fixture.s, options.seed ?? 1, fixture.start);
@@ -54,6 +57,7 @@ it("keeps winter crops dormant and deterministically varies growing-season progr
   const { s } = villageLife(3, { seed: 2, days: 3 * DAYS_IN_SEASON + 0.375 });
   const farms = Object.values(s.ecs.farmable || {});
   expect(farms.length).toBeGreaterThan(0);
+  farms.forEach((farm, index) => { farm.slots[0].growth = 0.25 + index % 3; });
   const growth = farms.map(f => f.slots[0].growth);
   const sim = createSimulation(s);
   for (let i = 0; i < 300; i++) sim.step(10*(6), 0);
@@ -64,6 +68,7 @@ it("scales unique trades on funded generated plots, with an adult and a workplac
   let planksSpent=0;
   for (const seed of [1, 2, 20]) {
     const { s } = villageLife(8, { seed, funded: true });
+    expect(Object.values(s.ecs.household).filter(h => h.trade)).toHaveLength(1);
     // INITIAL trade fixture: corrected history can leave a household below the
     // four-timber workshop cost. Replace equal grain with planks, preserving
     // store capacity and the estate ledger. Layout must still build real shops.
@@ -312,7 +317,23 @@ it("spreads evening visitors across the green so household groups do not occupy 
 });
 
 it("finds enough nearby gathering ground after fields are allocated and indexes a resited green", async () => {
-  const { s } = villageLife(8, { seed: 8, founding: false });
+  const { s, village: fixtureVillage, tileAt, start } = flatVillage(8, { seed: 8, founding: false });
+  s.settlement = { version: 1, sites: {}, journeys: [], appliedJourneys: {} };
+  // Initial public places are on the far boundary. The household search has
+  // no gathering space there, so native allocation must actually move the green.
+  const initialGreen = Hex(9, 0).toPoint();
+  const [green, well] = newEntities(s, [
+    { spatial: { ...initialGreen, immovable: true }, meetingPlace: { kind: "green" },
+      controllable: { controllerId: fixtureVillage.houses[0] }, village: { villageId: fixtureVillage.id } },
+    { spatial: { x: initialGreen.x - 28, y: initialGreen.y - 23, immovable: true }, meetingPlace: { kind: "well" },
+      controllable: { controllerId: fixtureVillage.houses[0] }, village: { villageId: fixtureVillage.id } }
+  ]);
+  fixtureVillage.sharedPlaces = [green, well];
+  s.ecs.mappable[tileAt[Hex(9, 0)]].villagePlot = true;
+  reserveBuildingClearance(s, green);
+  reserveBuildingClearance(s, well);
+  generateVillageLife(s, 8, start);
+  expect(s.ecs.spatial[green]).not.toMatchObject(initialGreen);
   for (const village of Object.values(s.villages)) {
     const visitors = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.village[id].villageId == village.id);
     const venues = village.sharedPlaces.filter(id => ["green", "alehouse"].includes(s.ecs.meetingPlace[id].kind));

@@ -30,7 +30,7 @@ it("sets walking speed from terrain alone", () => {
 it("refreshes physical habitat on two real tiles after grading their altitude", () => {
   const home = { x: 0, y: 0 };
   const world = { home, centre: home, radius: 5, climate: { seed: 13,
-    moisture: { wind: { x: 1, y: 0 }, u0: -1, v0: -1, width: 2, height: 2, step: 50000, values: [.3, .5, .7, .9] } } };
+    moisture: { wind: { x: 1, y: 0 }, u0: 0, v0: 0, width: 2, height: 2, step: 50000, values: [.3, .5, .7, .9] } } };
   const state = { world, ecs: { nextId: 1 }, ecology: { tiles: {} } };
   const ids = newEntities(state, [Hex(22, 22), Hex(22, 23)].map(h => ({ spatial: h.toPoint(), mappable: { elevation: -1 } })));
   const warmth = [];
@@ -50,6 +50,8 @@ it("refreshes physical habitat on two real tiles after grading their altitude", 
   expect(Math.max(...warmth) - Math.min(...warmth)).toBeGreaterThan(.05);
   expect(state.ecs.mappable[ids[1]].temperature).toBe("cold");
   expect(state.ecs.mappable[ids[1]].warmth).toBeLessThan(state.ecs.mappable[ids[1]].climateWarmth);
+  expect(state.ecs.mappable[ids[0]].moistureValue).toBe(.3);
+  expect(state.ecs.mappable[ids[1]].moistureValue).toBeGreaterThan(state.ecs.mappable[ids[0]].moistureValue);
 });
 
 it.each([20, 1234, 98765])("samples physical terrain and elevation before settlement clearing (seed %s)", async seed => {

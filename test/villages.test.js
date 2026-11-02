@@ -9,6 +9,7 @@ import { topController } from "game/playable";
 import { solve } from "game/htn";
 import { find_place } from "game/tasks";
 import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
+import { reserveRoad } from "game/land_use";
 
 import { flatVillage } from "./support/village";
 
@@ -23,6 +24,20 @@ const villageLife = (count = 3, options = {}) => {
   generateVillageLife(fixture.s, options.seed ?? 1, fixture.start);
   return fixture;
 };
+
+it("allocates crops away from an existing public road", () => {
+  const { s, tileAt, start } = flatVillage(3);
+  const road = [Hex(-1, -2), Hex(-2, -2)].map(h => tileAt[h]);
+  expect(reserveRoad(s, road)).toBe(true);
+  generateVillageLife(s, 1, start);
+  const fields = Object.keys(s.ecs.farmable);
+  expect(fields.length).toBeGreaterThan(0);
+  for (const id of fields) {
+    expect(road).not.toContain(id);
+    expect(s.ecs.mappable[id].route || []).toHaveLength(0);
+  }
+  for (const id of road) expect(s.ecs.mappable[id].route.length).toBeGreaterThan(0);
+});
 
 it("gives every household a plot, 1–2 owned historical crops and 1–2 backyards on nearby land", async () => {
   const { s } = villageLife();

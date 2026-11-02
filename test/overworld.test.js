@@ -130,7 +130,7 @@ describe("physical home selection", () => {
     const candidates = [
       { x: 0, y: 0, ocean: true, landFraction: .2 },
       { x: 1, y: 0, ocean: false, landFraction: .64 },
-      { x: 2, y: 0, ocean: false, landFraction: .8 },
+      { x: 2, y: 0, ocean: false, landFraction: .65 },
       { x: 3, y: 0, ocean: false, landFraction: .9 }
     ];
     const home = findHome(candidates, flatField, villageStart);
@@ -170,6 +170,9 @@ describe("physical home selection", () => {
       .map(h => keyOf(Hex().fromPoint(worldPoint(home, h.toPoint())))));
     const wetField = { ...flatField, terrainAt: p => dryKeys.has(keyOf(Hex().fromPoint(p))) ? "grassland" : "deep water" };
     expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, villageStart)).toBeUndefined();
+    localTiles.slice(dryKeys.size, Math.ceil(localTiles.length * .6)).forEach(h =>
+      dryKeys.add(keyOf(Hex().fromPoint(worldPoint(home, h.toPoint())))));
+    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, villageStart)).toBeDefined();
     const stonyField = { ...flatField, terrainAt: () => "stone" };
     expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], stonyField, villageStart)).toBeUndefined();
   });

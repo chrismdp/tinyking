@@ -45,7 +45,7 @@ it("counts starting wood after leaving the camp clearing empty", () => {
 });
 
 it("prepares repeatable two-hex entrances with reachable doors, wood and food on a small map", () => {
-  const { prepareEntrances, edgeSide } = require("game/travel_geometry");
+  const { prepareEntrances, edgeSide, exitPoint } = require("game/travel_geometry");
   const { WorldGrid, WorldHex } = require("game/hex");
   const { newEntities } = require("game/entities");
   const centre = Hex(9, 9);
@@ -61,10 +61,12 @@ it("prepares repeatable two-hex entrances with reachable doors, wood and food on
     return [h, { ...h }];
   }));
   const entrances = prepareEntrances(grid, landscape, settlements, world, s.map.centre, s.map.radius);
+  s.map.entrances = entrances;
   expect(entrances).toEqual(prepareEntrances(grid, structuredClone(landscape), settlements, world, s.map.centre, s.map.radius));
   expect(Object.keys(entrances)).toHaveLength(6);
   for (const [side, entry] of Object.entries(entrances)) {
     entry.tileIds = entry.hexes.map(h => tileAt[Hex(h)]);
+    expect(exitPoint(s, entry.tileIds[0])).toEqual(entry.start);
     expect(edgeSide(s, entry.tileIds[0])).toBe(+side);
     expect(entry.hexes.map(h => centre.distance(Hex(h)))).toEqual([9, 8, 7]);
     expect(Hex(entry.hexes[0]).distance(Hex(entry.hexes[2]))).toBe(2);
@@ -73,6 +75,7 @@ it("prepares repeatable two-hex entrances with reachable doors, wood and food on
       if (i) expect(Object.values(s.ecs.walkable[entry.tileIds[i - 1]].neighbours)).toContain(entry.tileIds[i]);
     }
     const goal = Hex(entry.hexes[2]), from = entry.tileIds[2];
+    expect(s.ecs.mappable[from].terrain).toBe("grassland");
     expect(Object.keys(s.ecs.building).some(id => path(s, from, tileAt[Hex().fromPoint(s.ecs.spatial[id])])?.length > 0)).toBe(true);
     const trees = generateTrees(13, landscape, settlements, grid.pointWidth(), grid.pointHeight(), { biomeAt: () => "desert", start: goal });
     const wood = newEntities(s, trees.map(p => ({ spatial: { ...p, immovable: true }, tree: {}, good: { type: "wood", amount: 1 } })));

@@ -1,19 +1,22 @@
 import { createHeightField } from "game/height";
 import { generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES } from "game/map";
 import { createLandField, worldPoint } from "game/world_terrain";
-import { generateWorld, homeOf, BIOMES } from "game/overworld";
+import { BIOMES } from "game/overworld";
 import { newEntities } from "game/entities";
 import { repairHouseholds } from "game/possessions";
 import { birth } from "game/social";
 import { flatVillage } from "./support/village";
 
 it.each([20, 1234, 98765])("samples physical terrain and elevation before settlement clearing (seed %s)", async seed => {
-  const world = generateWorld(seed), field = createLandField(world.landSeed);
+  const home = { x: 5, y: 5 };
+  const world = { landSeed: seed + ":0", home: { ...home }, hexes: [{ x: 4, y: 5 }, home] };
+  const field = createLandField(world.landSeed);
   const grid = [[0, 22], [22, 0], [22, 22], [44, 22], [22, 44]].map(([x, y]) => Hex(x, y));
   const landscape = await generateTerrain(grid, world, async () => {});
+  expect(Object.keys(landscape)).toHaveLength(grid.length);
   for (const tile of Object.values(landscape)) {
-    expect(tile.terrain).toBe(field.terrainAt(worldPoint(homeOf(world), tile)));
-    expect(tile.elevation).toBe(field.elevationAt(worldPoint(homeOf(world), tile)));
+    expect(tile.terrain).toBe(field.terrainAt(worldPoint(home, tile)));
+    expect(tile.elevation).toBe(field.elevationAt(worldPoint(home, tile)));
   }
 });
 

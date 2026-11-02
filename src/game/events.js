@@ -145,6 +145,10 @@ export function recordEvent(state, type, people, items = [], details = {}) {
   return event;
 }
 
+// Travel keeps one event body in the world catalogue, including accounts that
+// were learned elsewhere and are absent from this hex's authored event list.
+export const eventById=(state,id)=>state.newsContext?.events?.[id] || state.travel?.events?.[id] || (state.events||[]).find(event=>event.id===id);
+
 export function knownEvents(state, viewerId, aboutId) {
   const ids = new Set(state.knowledge?.[viewerId]?.events || []);
   const events=state.newsModel ? scopedKnownEvents(state,viewerId).sort((a,b)=>a.day-b.day || a.id.localeCompare(b.id)) : state.events || [];

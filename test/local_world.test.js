@@ -51,4 +51,6 @@ it("keeps unwilling adults local while a willing seeker can use the existing roa
   for(const other of Object.keys(home.residents))if(other!==id && !home.ecs.playable[other]){home.ecs.personable[other].age=10;home.ecs.personable[other].lifeYears=.5;}
   s.days+=7;await advanceWorldClock(s,{travelling:true});
   expect(Object.values(s.travel.events).some(e=>e.type==="departure"&&e.people[0]===id)).toBe(true);
+  expect(Object.hasOwn(home.ecs.personable,id)).toBe(false);
+  expect(home.ecs.personable[id]).toBe(s.travel.people[id].personable);
 });

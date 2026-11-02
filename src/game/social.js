@@ -15,7 +15,7 @@ import { Hex } from "game/hex";
 import MersenneTwister from "mersenne-twister";
 import { addGoodwill, disposition, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift, peopleInRings, withRelationshipIndex } from "game/people";
 import { hashUnit } from "game/math";
-import { recordEvent, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
+import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
   birthPerSeason: 0.55,
@@ -397,7 +397,7 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
     for(const v of visits)if(v)v.newsExchanged=true;
     for(const [speaker,listener] of [[a,b],[b,a]]) {
       const line=spoken.find(l=>l.speakerId==speaker);
-      beginSocialSpeech(s,speaker,listener,line&&(s.events||[]).find(e=>e.id==line.eventId));
+      beginSocialSpeech(s,speaker,listener,line&&eventById(s,line.eventId));
     }
   }
   return true;

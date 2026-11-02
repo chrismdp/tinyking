@@ -54,3 +54,14 @@ it.each(["distance","interior","wall","extension","ended","sleep","sealed"])("do
   expect(s.knowledge[p]?.events||[]).not.toContain(event.id);
   expect(overheardHint(s,a)).toBeNull();
 });
+
+it("hears a traveller's spoken account from the world catalogue without importing its event body",()=>{
+  const {state:s,person:a,player:p,event}=setup();
+  s.travel={events:{[event.id]:event}};
+  s.events=[];
+  expect(overheardHint(s,a)).toMatch(/9 grain/);
+  updateOverhearing(s);
+  expect(s.knowledge[p].events).toContain(event.id);
+  expect(s.knowledge[p].spokenSources[event.id].speakerId).toBe(a);
+  expect(s.events).toEqual([]);
+});

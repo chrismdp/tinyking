@@ -1,3 +1,4 @@
+import { eventById } from "game/events";
 import { knowsEvent } from "game/event_knowledge";
 import { householdMembers } from "game/population_index";
 import { condition } from "game/social_conditions";
@@ -168,7 +169,7 @@ export function sourceValues(s,c,b,d) {
   case "npc_known_unheard_event_for_question":return newsEvents(s,c).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
-  case "event_just_told_by_player":return [eventFact(s,(s.events||[]).find(x=>x.id==c.toldEventId))].filter(Boolean);
+  case "event_just_told_by_player":return [eventFact(s,eventById(s,c.toldEventId))].filter(Boolean);
   case "event_person":return [personFact(s,ref(d.event)?.people[d.index])].filter(Boolean);
   case "event_other_participant":return (ref(d.event)?.people||[]).filter(id=>id!=person(d.person)).map(id=>personFact(s,id));
   case "event_participant_who_is_close_kin_of":return (ref(d.event)?.people||[]).filter(id=>closeFamily(s,person(d.person)).includes(id)).map(id=>personFact(s,id));

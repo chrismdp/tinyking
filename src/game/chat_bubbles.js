@@ -1,3 +1,4 @@
+import { eventById } from "game/events";
 import { nearbyPeople } from "game/population_index";
 import { knowsEvent } from "game/event_knowledge";
 import LINES from "data/conversation_lines.json";
@@ -16,7 +17,7 @@ function audibleSpeech(s,npc) {
   const a=e.spatial?.[npc],b=e.spatial?.[viewer],interior=e.interior?.[npc]?.buildingId;
   if(!a||!b || (a.x-b.x)**2+(a.y-b.y)**2>HEARING_REACH**2 || interior!=e.interior?.[viewer]?.buildingId || crossesWall(s,a,b,interior))return null;
   if(u.eventId) {
-    const event=(s.events||[]).find(e=>e.id==u.eventId);
+    const event=eventById(s,u.eventId);
     if(!event || !canDiscloseEvent(s,npc,viewer,event))return null;
   }
   return u;
@@ -34,8 +35,8 @@ export function updateOverhearing(s) {
     const audible=!!audibleSpeech(s,npc);
     if(audible)active.add(npc);
     if(speech.audible!==audible){speech.audible=audible;s.redraws?.push(npc);}
-    if(!audible || !speech.eventId || knowsEvent(s,viewer,(s.events||[]).find(e=>e.id==speech.eventId)))continue;
-    const event=(s.events||[]).find(e=>e.id==speech.eventId);
+    if(!audible || !speech.eventId || knowsEvent(s,viewer,eventById(s,speech.eventId)))continue;
+    const event=eventById(s,speech.eventId);
     tellNews(s,npc,viewer,event,speech.lineId,speech.namedPeople);
     s.redraws?.push(viewer,npc);
   }

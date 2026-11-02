@@ -176,7 +176,9 @@ function reconcileEstates(s, j) {
   for (const person in j.people) {
     const records = j.people[person];
     if (dying.has(records.controllable?.controllerId) && records.controllable.controllerId != person) {
-      records.controllable = { ...records.controllable, controllerId: successor(records.controllable.controllerId) || person };
+      const controllerId=successor(records.controllable.controllerId) || person;
+      if(j.localPeople)records.controllable.controllerId=controllerId;
+      else records.controllable = { ...records.controllable, controllerId };
       referenceIndexes.get(j)?.remember(person, records);
     }
   }
@@ -663,7 +665,7 @@ function takeTraveller(s, id) {
     for (const [key, component] of Object.entries(s.ecs)) if (component && typeof component == "object" && component[entity]) {
       entities[entity][key] = component[entity];
       // Identity records stay as remote references for family, ownership, news.
-      if (entity != id || !IDENTITY.includes(key)) delete component[entity];
+      if (entity != id || !IDENTITY.includes(key) || s.travel?.localPeople || s.newsContext?.localPeople) delete component[entity];
     }
     for (const key of Object.keys(s.space)) s.space[key] = s.space[key].filter(i => i != entity);
   }

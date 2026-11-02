@@ -1,3 +1,4 @@
+import { eventById } from "game/events";
 import EVENT_TYPES from "data/event_types.json";
 import { displayName } from "game/knowledge";
 import { MOODS, moodScore } from "game/chat_moods";
@@ -213,7 +214,7 @@ function effects(s,c,line) {
   }
   const disclosed=[];
   for(const key of line.disclosure?.events||[]) {
-    const event=(s.events||[]).find(e=>e.id==b[key]?.id);if(!event)continue;
+    const event=eventById(s,b[key]?.id);if(!event)continue;
     if(line.speaker=="player"){c.toldEventId=event.id;c.npcKnewEvent=heard(s,c.npcId,event);}
     learnEvent(s,viewer,event);disclosed.push(event);
     const k=knowledge(s,viewer);(k.spokenSources ||= {})[event.id] ||= {speakerId:speaker,day:s.days,lineId:line.id};

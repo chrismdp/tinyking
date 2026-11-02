@@ -400,13 +400,22 @@ it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only 
 it("waits without spending funded venue timber when public roads leave no footprint", () => {
   const { s, village, start } = flatVillage(6);
   s.settlement = { version: 1, journeys: [], appliedJourneys: {}, sites: {} };
+  // Give each house enough initial timber for one actual trade station.
+  // Establish the native trade quota before isolating the venue retry.
+  for (const house of village.houses) {
+    const storeId = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
+    const store = s.ecs.container[storeId];
+    store.amounts.grain -= 4;
+    store.amounts.wood = 4;
+  }
   generateVillageLife(s, 1, start);
+  expect(village.houses.filter(id => s.ecs.household[id].trade)).toHaveLength(4);
   for (const tile of Object.values(s.ecs.mappable)) {
     tile.route = [0];
   }
   // Initial conditions for a retry: all spare ground is reserved for roads,
   // while one household can afford a venue. Native siting must wait.
-  const host = village.houses.find(id => s.ecs.container[s.ecs.household[id].storeId].amounts.grain >= 8);
+  const host = village.houses.find(id => s.ecs.household[id].trade && s.ecs.container[s.ecs.household[id].storeId].amounts.grain >= 8);
   expect(host).toBeDefined();
   const store = s.ecs.container[s.ecs.household[host].storeId];
   store.amounts.grain -= 8;

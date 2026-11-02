@@ -2,7 +2,8 @@
   {
     "id": "reconcile",
     "hooks": [
-      "contact"
+      "contact",
+      "season"
     ],
     "chance": 1,
     "when": {
@@ -22,7 +23,24 @@
         "actor",
         "partner"
       ]
-    }
+    },
+    "period": "season",
+    "effects": [
+      {
+        "op": "goodwill",
+        "person": "actor",
+        "towards": "partner",
+        "amount": 6,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "partner",
+        "towards": "actor",
+        "amount": 6,
+        "introduce": false
+      }
+    ]
   },
   {
     "id": "visit_other_village",
@@ -71,26 +89,10 @@
       "contact",
       "season"
     ],
-    "chance": 0.12,
+    "chance": 0.08,
     "stop": true,
     "when": {
       "any": [
-        {
-          "test": "disposition_is",
-          "args": {
-            "person": "actor",
-            "towards": "partner",
-            "value": "hate"
-          }
-        },
-        {
-          "test": "disposition_is",
-          "args": {
-            "person": "partner",
-            "towards": "actor",
-            "value": "hate"
-          }
-        },
         {
           "test": "goodwill_below",
           "args": {
@@ -124,14 +126,77 @@
         "actor",
         "partner"
       ]
-    }
+    },
+    "period": "season"
+  },
+  {
+    "id": "quarrel_friction",
+    "hooks": [
+      "contact",
+      "season"
+    ],
+    "chance": 0.0015,
+    "stop": true,
+    "when": {
+      "any": [
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "value": "hate"
+          }
+        },
+        {
+          "test": "disposition_is",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "value": "hate"
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "avoiding",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "goodwill_below",
+          "args": {
+            "person": "actor",
+            "towards": "partner",
+            "value": 0
+          }
+        },
+        {
+          "test": "goodwill_below",
+          "args": {
+            "person": "partner",
+            "towards": "actor",
+            "value": 0
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "quarrel",
+      "people": [
+        "actor",
+        "partner"
+      ]
+    },
+    "period": "season"
   },
   {
     "id": "romance",
     "hooks": [
       "contact"
     ],
-    "chance": 0.18,
+    "chance": 0.02,
     "when": {
       "all": [
         {
@@ -167,7 +232,7 @@
           "args": {
             "person": "actor",
             "towards": "partner",
-            "ring": "personal"
+            "ring": "intimate"
           }
         },
         {
@@ -175,7 +240,7 @@
           "args": {
             "person": "partner",
             "towards": "actor",
-            "ring": "personal"
+            "ring": "intimate"
           }
         }
       ],

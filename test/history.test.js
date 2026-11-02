@@ -1,17 +1,44 @@
+/* global it, expect */
 import { newEntities } from "game/entities";
 import { generateMap, generateFamilies, Hex } from "game/map";
 import { disposition, RING_CAPS } from "game/people";
 import { historyStep } from "game/social";
-const generate = async seed => {
+import { maritalSatisfaction } from "game/social_conditions";
+const generate = async (seed, observe = () => {}) => {
   const s = { ecs: { nextId: 1 }, days: 0.375, redraws: [], ui: { show: {} } };
-  await generateMap(s, seed, async () => {});
+  await generateMap(s, seed, async () => observe(s));
   return s;
 };
 
 it("generates forty-five years of dated history, dead ancestors and inherited objects deterministically", async () => {
-  const s = await generate(13), again = await generate(13);
+  const unhappyMarriages = new Set();
+  const affairMarriages = new Set(), spouses = new Map();
+  let seenEvents = 0;
+  const s = await generate(13, state => {
+    if (!state.generatingHistory) return;
+    for (const [id, kin] of Object.entries(state.ecs.kinship || {})) {
+      if (!kin.spouse || id >= kin.spouse) continue;
+      const scores = [maritalSatisfaction(state, id), maritalSatisfaction(state, kin.spouse)];
+      if (scores.every(score => score != null) && Math.min(...scores) < 30) unhappyMarriages.add([id, kin.spouse].join(":"));
+    }
+    for (const event of (state.events || []).slice(seenEvents)) {
+      const [a, b] = event.people;
+      if (event.type == "marriage") { spouses.set(a, b); spouses.set(b, a); }
+      if (event.type == "death") { spouses.delete(spouses.get(a)); spouses.delete(a); }
+      if (event.type == "affair") {
+        expect(spouses.has(a)).toBe(true);
+        affairMarriages.add([a, spouses.get(a)].sort().join(":"));
+      }
+    }
+    seenEvents = state.events?.length || 0;
+  });
+  const again = await generate(13);
   expect(s.events).toEqual(again.events);
   expect(s.ecs.kinship).toEqual(again.ecs.kinship);
+  const count = type => s.events.filter(e => e.type == type).length;
+  expect(count("romance")).toBeLessThan(count("marriage"));
+  console.info("Social history frequency", { romance: count("romance"), marriage: count("marriage"), affair: count("affair"), unhappyMarriages: unhappyMarriages.size, affairMarriages: affairMarriages.size });
+  expect(affairMarriages.size).toBeLessThan(unhappyMarriages.size / 2);
   expect(s.events.some(e => e.type == "birth")).toBe(true);
   expect(s.events.some(e => e.type == "marriage")).toBe(true);
   expect(s.events.some(e => e.type == "marriage" && new Set(e.fromVillages).size > 1)).toBe(true);

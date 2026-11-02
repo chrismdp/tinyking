@@ -3,6 +3,9 @@ import { peopleWorld } from "./support/people";
 import { condition, conditions, maritalSatisfaction } from "game/social_conditions";
 import { recordEvent, learnEvent, withEventIndex } from "game/events";
 import TYPES from "data/event_types.json";
+import { runSeasonSocialActions, runSocialActions } from "game/social_actions";
+import { drift } from "game/people";
+import { DAYS_IN_SEASON } from "game/time";
 
 const P=(test,args)=>({test,args});
 export function fixture() {
@@ -42,6 +45,16 @@ it("declares kin effects in the catalogue and applies each only on first learnin
   expect(s.ecs.relationships[a].known[player].goodwill).toBe(-3);
   expect(s.knowledge[a].reactions[event.id]).toBeDefined();
 });
+it("restores a parent's regard for both quarrelling children when they make peace",()=>{
+  const {state:s,person:a,sibling:b,parent}=peopleWorld();
+  for(const child of [a,b])s.ecs.relationships[parent].known[child]={ring:"intimate",goodwill:66,base:66};
+  recordEvent(s,"quarrel",[a,b],[],{audienceIds:[parent]});
+  for(const child of [a,b])expect(s.ecs.relationships[parent].known[child].goodwill).toBe(63);
+  const peace=recordEvent(s,"reconciliation",[a,b],[],{audienceIds:[parent]});
+  for(const child of [a,b])expect(s.ecs.relationships[parent].known[child].goodwill).toBe(66);
+  learnEvent(s,parent,peace);
+  for(const child of [a,b])expect(s.ecs.relationships[parent].known[child].goodwill).toBe(66);
+});
 it.each([false,true])("keeps affairs to participants and actual witnesses, including indexed history (%s)",indexed=>{
   const {state:s,a,b,spouse,listener}=fixture();
   s.ecs.spatial[spouse].x+=1000;s.ecs.spatial[listener].x+=1000;
@@ -68,11 +81,62 @@ it("supports a JSON action on contact and deduplicates reversed pairs in one mom
   expect(runSocialActions(s,"contact",a,b,{actions})).toHaveLength(1);
 });
 it("quarrels repeatedly between low-goodwill spouses despite a like disposition",()=>{
-  const {chatTogether}=require("game/social");
   const {state:s,a,spouse}=fixture();
-  for(let day=0;day<140;day++){s.days=day;chatTogether(s,a,spouse,true,6);}
+  // Five years of household opportunities, with ordinary seasonal recovery.
+  for(let season=0;season<20;season++){
+    s.days=season*DAYS_IN_SEASON;
+    drift(s,24*DAYS_IN_SEASON);
+    runSeasonSocialActions(s,[a,spouse],true);
+  }
   expect(s.events.filter(e=>e.type=="quarrel")).not.toHaveLength(0);
   expect(s.events.filter(e=>e.type=="quarrel").length).toBeGreaterThan(3);
+});
+it.each(["spouses","housemates"])("lets unhappy %s quarrel regularly without losing goodwill forever",kind=>{
+  const simulate=()=>{
+    const {state:s,a,spouse:b}=fixture();
+    s.summarisingHistory=true;
+    if(kind=="housemates")for(const id of [a,b])s.ecs.kinship[id].spouse=null;
+    for(const [x,y] of [[a,b],[b,a]])s.ecs.relationships[x].known[y]={ring:"public",goodwill:-12,base:-12};
+    const goodwill=[];
+    for(let season=0;season<80;season++){
+      s.days=season*DAYS_IN_SEASON;
+      drift(s,24*DAYS_IN_SEASON);
+      runSeasonSocialActions(s,[a,b],true);
+      goodwill.push(s.ecs.relationships[a].known[b].goodwill,s.ecs.relationships[b].known[a].goodwill);
+    }
+    return {s,goodwill};
+  };
+  const {s,goodwill}=simulate(),quarrels=s.events.filter(e=>e.type=="quarrel");
+  expect(quarrels.length).toBeGreaterThan(10);
+  expect(quarrels.length).toBeLessThanOrEqual(60);
+  expect(Math.min(...goodwill)).toBeGreaterThanOrEqual(-18);
+  expect(s.events.filter(e=>e.type=="reconciliation").length).toBeGreaterThanOrEqual(quarrels.length-1);
+  expect(simulate().s.events).toEqual(s.events);
+});
+it("does not turn a positive household bond into a feud from disposition alone",()=>{
+  const {state:s,a,b}=fixture();s.summarisingHistory=true;
+  s.opinionThresholds={hate:100,love:101};
+  for(let season=0;season<80;season++){
+    s.days=season*DAYS_IN_SEASON;
+    drift(s,24*DAYS_IN_SEASON);
+    runSeasonSocialActions(s,[a,b],true);
+  }
+  expect((s.events||[]).filter(e=>e.type=="quarrel").length).toBeLessThanOrEqual(5);
+  for(const [x,y] of [[a,b],[b,a]])expect(s.ecs.relationships[x].known[y].goodwill).toBeGreaterThanOrEqual(60);
+});
+it("shares one seasonal quarrel attempt between household and repeated reversed contact",()=>{
+  const {state:s,a,spouse:b}=fixture();s.summarisingHistory=true;
+  for(const [x,y] of [[a,b],[b,a]])s.ecs.relationships[x].known[y]={ring:"public",goodwill:-12,base:-12};
+  for(let season=0;season<20;season++){
+    s.days=season*DAYS_IN_SEASON;
+    runSeasonSocialActions(s,[a,b],true);
+    const attempts=JSON.stringify(s.ecs.relationships[a].actionMoments);
+    for(let day=0;day<DAYS_IN_SEASON;day++){
+      s.days=season*DAYS_IN_SEASON+day;
+      runSocialActions(s,"contact",b,a,{summary:true,conversations:6});
+    }
+    expect(JSON.stringify(s.ecs.relationships[a].actionMoments)).toBe(attempts);
+  }
 });
 it("forms romance only through mutual attraction between unrelated adults; mutual closeness alone fails",()=>{
   const {runSocialActions}=require("game/social_actions");
@@ -80,7 +144,7 @@ it("forms romance only through mutual attraction between unrelated adults; mutua
   for(let d=0;d<60;d++){s.days=d;runSocialActions(s,"contact",a,b);}
   expect(s.ecs.relationships[a].known[b].romance).toBeUndefined();
   s.opinionThresholds={hate:-100,love:-50};
-  for(let d=60;d<120;d++){s.days=d;runSocialActions(s,"contact",a,b);}
+  for(let d=60;d<120;d++){s.days=d;runSocialActions(s,"contact",a,b,{summary:true,conversations:6});}
   expect(s.ecs.relationships[a].known[b].romance).toBeDefined();
   expect(s.ecs.kinship[a].spouse).toBe(spouse);
   s.ecs.kinship[b].parents=[a];delete s.ecs.relationships[a].known[b].romance;delete s.ecs.relationships[b].known[a].romance;

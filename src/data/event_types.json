@@ -432,7 +432,7 @@
         "op": "goodwill",
         "person": "listener",
         "towards": "actor",
-        "amount": 1,
+        "amount": 3,
         "when": {
           "all": [
             {
@@ -452,7 +452,8 @@
               }
             }
           ]
-        }
+        },
+        "each": "participant"
       },
       {
         "op": "reaction",

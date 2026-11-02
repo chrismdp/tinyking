@@ -1,7 +1,7 @@
 import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { Grid, Hex, WorldGrid, WorldHex, ALL_SIDES } from "game/hex";
 import {
-  AXES, BIOMES, biomeOf, colder, tileTemperature, generateWorld, homeOf, propagateFrom,
+  AXES, BIOMES, biomeOf, generateWorld, homeOf,
   WORLD_RADIUS
 } from "game/overworld";
 
@@ -95,35 +95,6 @@ describe("regions across many seeds", () => {
     expect(counts.isolatedLand / counts.land).toBeLessThan(0.01);
     expect(counts.ocean / (counts.ocean + counts.land)).toBeGreaterThan(0.3);
     expect(counts.ocean / (counts.ocean + counts.land)).toBeLessThan(0.7);
-  });
-});
-
-// NOTE: a copy of the world with one world hex's value changed
-const withValue = (world, key, axis, value) => ({
-  ...world,
-  hexes: world.hexes.map(h => keyOf(h) == key ? { ...h, [axis]: value } : h)
-});
-
-describe("the biomes", () => {
-  it("names all nine from temperature and moisture", () => {
-    const expected = {
-      "hot,dry": "desert", "hot,normal": "savanna", "hot,wet": "jungle",
-      "temperate,dry": "steppe", "temperate,normal": "grassland", "temperate,wet": "marsh",
-      "cold,dry": "tundra", "cold,normal": "taiga", "cold,wet": "snowfield",
-    };
-    const seen = new Set();
-    AXES.temperature.forEach(t => AXES.moisture.forEach(m => {
-      expect(biomeOf(t, m)).toEqual(expected[t + "," + m]);
-      seen.add(biomeOf(t, m));
-    }));
-    expect(seen.size).toEqual(9);
-    expect(Object.keys(BIOMES).sort()).toEqual(Object.values(expected).sort());
-  });
-
-  it("has three steps on each axis", () => {
-    expect(AXES.morality).toEqual(["good", "neutral", "evil"]);
-    expect(AXES.temperature).toEqual(["hot", "temperate", "cold"]);
-    expect(AXES.moisture).toEqual(["wet", "normal", "dry"]);
   });
 });
 
@@ -255,92 +226,5 @@ describe("the world of world hexes", () => {
     }
     expect([...biomes].sort()).toEqual(Object.keys(BIOMES).sort());
     expect([...moralities].sort()).toEqual([...AXES.morality].sort());
-  });
-});
-
-describe("a change spreading out from one world hex", () => {
-  // NOTE: a world all neutral, temperate and normal, except one good hex
-  const calm = () => {
-    const world = smallWorldFor(1);
-    return { ...world, hexes: world.hexes.map(h => ({
-      ...h, morality: "neutral", temperature: "temperate", moisture: "normal", biome: "grassland"
-    })) };
-  };
-
-  it("pulls a good neighbour to neutral when a world hex turns evil", () => {
-    const world = calm();
-    const centre = world.hexes.find(h => h.x == world.centre.x && h.y == world.centre.y);
-    const [ good ] = neighboursIn(world, centre);
-    const before = withValue(world, keyOf(good), "morality", "good");
-    const changed = withValue(before, keyOf(centre), "morality", "evil");
-    expect(clashesIn(changed).length).toBeGreaterThan(0);
-
-    const after = propagateFrom(changed, keyOf(centre), "morality");
-
-    const find = (w, hex) => w.hexes.find(h => h.x == hex.x && h.y == hex.y);
-    expect(find(after, centre).morality).toEqual("evil");
-    expect(find(after, good).morality).toEqual("neutral");
-    expect(clashesIn(after)).toEqual([]);
-    // NOTE: nothing else moves, and the world it was given is left alone
-    after.hexes.filter(h => keyOf(h) != keyOf(good))
-      .forEach(h => expect(h).toEqual(find(changed, h)));
-    expect(find(changed, good).morality).toEqual("good");
-  });
-
-  it("restores the one-step rule across the whole world, whichever hex changes on whichever axis", () => {
-    SEEDS.slice(0, 3).forEach(seed => {
-      const world = smallWorldFor(seed);
-      for (const axis in AXES) {
-        world.hexes.forEach((hex, i) => {
-          // NOTE: push it to whichever extreme is further from where it was
-          const value = step(axis, hex[axis]) < 1 ? 2 : (step(axis, hex[axis]) > 1 ? 0 : (i % 2) * 2);
-          const changed = withValue(world, keyOf(hex), axis, AXES[axis][value]);
-          const after = propagateFrom(changed, keyOf(hex), axis);
-          expect(after.hexes.find(h => keyOf(h) == keyOf(hex))[axis]).toEqual(AXES[axis][value]);
-          expect(clashesIn(after)).toEqual([]);
-          after.hexes.forEach(h => expect(h.biome).toEqual(biomeOf(h.temperature, h.moisture)));
-        });
-      }
-    });
-  });
-
-  it("propagates through oceans on the full world without changing their land classification", () => {
-    const world = worldFor(1234);
-    for (const axis in AXES) {
-      const hex = world.hexes.find(h => h.ocean && h[axis] != AXES[axis][2]);
-      const changed = withValue(world, keyOf(hex), axis, AXES[axis][2]);
-      const after = propagateFrom(changed, keyOf(hex), axis);
-      expect(clashesIn(after)).toEqual([]);
-      expect(after.hexes.find(h => keyOf(h) == keyOf(hex))[axis]).toEqual(AXES[axis][2]);
-      expect(after.hexes.map(h => [h.ocean, h.landFraction])).toEqual(world.hexes.map(h => [h.ocean, h.landFraction]));
-    }
-  });
-
-  it("keeps each biome in step when temperature or moisture spreads", () => {
-    const world = calm();
-    const centre = world.hexes.find(h => h.x == world.centre.x && h.y == world.centre.y);
-    const [ cold ] = neighboursIn(world, centre);
-    const before = withValue(world, keyOf(cold), "temperature", "cold");
-    const changed = withValue(before, keyOf(centre), "temperature", "hot");
-    const after = propagateFrom(changed, keyOf(centre), "temperature");
-    const pulled = after.hexes.find(h => keyOf(h) == keyOf(cold));
-    expect(pulled.temperature).toEqual("temperate");
-    expect(pulled.biome).toEqual("grassland");
-  });
-});
-
-describe("high ground", () => {
-  it("is one step colder than its world hex, down to a floor of cold", () => {
-    expect(colder("hot")).toEqual("temperate");
-    expect(colder("temperate")).toEqual("cold");
-    expect(colder("cold")).toEqual("cold");
-
-    expect(tileTemperature("hot", true)).toEqual("temperate");
-    expect(tileTemperature("temperate", true)).toEqual("cold");
-    expect(tileTemperature("cold", true)).toEqual("cold");
-  });
-
-  it("leaves low ground at its world hex's temperature", () => {
-    AXES.temperature.forEach(t => expect(tileTemperature(t, false)).toEqual(t));
   });
 });

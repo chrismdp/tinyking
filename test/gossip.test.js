@@ -204,3 +204,15 @@ it("rechecks changed kinship on the next news choice", () => {
   s.ecs.kinship[b].children=[];s.ecs.kinship[c].parents=[];
   expect(chooseNews(s,a,b)?.id).toBe(event.id);
 });
+
+it("keeps the newest unheard account across longer learned histories", () => {
+  const { state:s, person:a, parent:b, sibling:c } = setup();
+  const events=Array.from({length:70},(_,i)=>recordEvent(s,"harvest",[c],[],{day:s.days-i,audienceIds:[a]}));
+  expect(chooseNews(s,a,b)?.id).toBe(events[0].id);
+  for(const event of events.slice(0,31))learnEvent(s,b,event);
+  expect(chooseNews(s,a,b)?.id).toBe(events[31].id);
+  for(const event of events.slice(31,64))learnEvent(s,b,event);
+  expect(chooseNews(s,a,b)?.id).toBe(events[64].id);
+  for(const event of events.slice(64))learnEvent(s,b,event);
+  expect(chooseNews(s,a,b)).toBeUndefined();
+});

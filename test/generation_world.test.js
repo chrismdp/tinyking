@@ -137,7 +137,6 @@ describe("generateMap", () => {
     expect(homeOf(state.world).landFraction).toBeGreaterThanOrEqual(0.65);
     const land = Object.values(state.ecs.mappable).filter(t => !t.terrain.includes("water"));
     expect(land.length / 1519).toBeGreaterThanOrEqual(0.6);
-
   });
 
   it("keeps everything at or above zero, so the map's points stay positive", async () => {
@@ -156,14 +155,12 @@ describe("generateMap", () => {
       const id = state.space[hex.toString()].find(e => state.ecs.mappable[e]);
       expect(state.ecs.mappable[id].terrain).toEqual("grassland");
     });
-
   });
 
   it("keeps the world of world hexes in state, playing in the chosen land hex", async () => {
     const state = world();
     expect(state.world).toEqual(generateWorld(13));
     expect(homeOf(state.world)).toBeDefined();
-
   });
 
   it("samples actual physical tile positions continuously and keeps alpine ground colder", async () => {
@@ -226,7 +223,6 @@ describe("generateMap", () => {
     for (const id in state.ecs.mappable) {
       expect(state.ecs.walkable[id].speed).toEqual(speeds[state.ecs.mappable[id].terrain]);
     }
-
   });
 });
 
@@ -282,7 +278,6 @@ describe("villages", () => {
       const home = state.ecs.household[id].houseId;
       expect(state.ecs.village[id].villageId).toBe(state.ecs.village[home].villageId);
     }
-
   });
 });
 
@@ -325,6 +320,13 @@ it("makes camp two hexes in with a bedroll, reachable village, wood and food", (
       path(state, from, tileAt(state.ecs.spatial[id]))?.length > 0)).toBe(true);
   }
 }, 15000);
+
+it("initializes weather and snow for every generated world hex and local tile", () => {
+  const state = world();
+  expect(Object.keys(state.weather)).toHaveLength(91);
+  expect(Object.keys(state.snow)).toHaveLength(1519);
+  expect(Object.values(state.snow).some(depth => depth > 0)).toBe(true);
+});
 
 it("keeps jittered trees on existing walkable grassland near the entry edge", async () => {
   const state = world();
@@ -373,7 +375,7 @@ it("occupied hexes keep level house pads and gentle road triangles at local alti
   expect(roads).toBeGreaterThan(20);
 }, 15000);
 
-it("generates deterministic facing-edge routes with food, wood and a reachable village, without a replacement player", async () => {
+it("prepares facing-edge routes with food, wood and a reachable village, without a replacement player", async () => {
   const make = async () => {
     const s = mutableWorld();
     const descendants = Object.keys(s.ecs.personable).filter(id => s.ecs.personable[id].born < 0);

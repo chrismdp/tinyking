@@ -384,6 +384,7 @@ it.each([[6,16,true],[6,0,false],[4,16,false]])("builds paid public venues only 
   const kinds=village.sharedPlaces.map(id=>s.ecs.meetingPlace[id].kind);
   expect(kinds).toContain("well");expect(kinds).toContain("green");
   expect(kinds.includes("chapel")).toBe(expected);expect(kinds.includes("alehouse")).toBe(expected);
+  for (const id of village.sharedPlaces) expect(s.ecs.village[id].villageId).toBe(village.id);
   const venues=village.sharedPlaces.filter(id=>["chapel","alehouse"].includes(s.ecs.meetingPlace[id].kind));
   const trades=village.houses.filter(id=>s.ecs.household[id].trade);
   expect(before-balances()).toBe(venues.length*8+trades.length*4);

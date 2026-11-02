@@ -40,8 +40,8 @@ const worldFor = seed => {
   return worlds.get(seed);
 };
 
-// NOTE: Include complete worlds and oceans; measuring a walk's parent alone
-// misses the borders that make a map look speckled. Cache the surveys.
+// Sample all regional neighbours directly. Physical ocean/land checks below
+// use the three real surveyed worlds, without repeating these 100 surveys.
 const regions = Array.from({ length: 100 }, (_, i) => generateRegions(i + 1));
 const regionalWorlds = () => regions;
 
@@ -111,7 +111,7 @@ describe("the world of world hexes", () => {
   });
 
   it("gives every world hex a value on each axis, and the biome they make", () => {
-    const world = worldFor(98765);
+    const world = worldFor(13);
     world.hexes.forEach(h => {
       expect(AXES.morality).toContain(h.morality);
       expect(AXES.temperature).toContain(h.temperature);

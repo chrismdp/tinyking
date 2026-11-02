@@ -263,14 +263,12 @@ function references(s, j, road = false) {
   let frontier = [...required];
   for (let depth = 0; depth < 2; depth++) {
     const next = [];
-    const add = other => {
-      if (other && !required.has(other)) { required.add(other); next.push(other); }
-    };
     for (const id of frontier) {
       const kin = j.people[id]?.kinship || s.ecs.kinship[id];
-      for (const other of kin?.parents || []) add(other);
-      for (const other of kin?.children || []) add(other);
-      add(kin?.spouse);
+      for (const other of [...(kin?.parents || []), ...(kin?.children || []), kin?.spouse]) if (other && !required.has(other)) {
+        required.add(other);
+        next.push(other);
+      }
     }
     frontier = next;
   }

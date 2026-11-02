@@ -45,6 +45,14 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   for (const v of Object.values(s.villages)) for (const house of v.houses) {
     const store = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
     const stock=s.ecs.container[store],account=s.ecs.household[house].estateAccount;
+    // These are the completed historical crop states, rather than only the
+    // freshly sown inputs covered by village layout generation.
+    for (const field of s.ecs.household[house].fields) for (const slot of s.ecs.farmable[field].slots) {
+      expect(["sown", "harvestable", "harvested", "empty"]).toContain(slot.state);
+      if (["sown", "harvestable"].includes(slot.state)) expect(slot.content).toBe("grain");
+      else expect(slot.content).toBeNull();
+      expect(slot.growth).toBeGreaterThanOrEqual(0);
+    }
     expect(account).toBeDefined();
     expect(Object.values(stock.amounts).reduce((n,v)=>n+v,0)).toBeLessThanOrEqual(stock.capacity);
     for(const type of new Set([...Object.keys(account.initial),...Object.keys(account.produced),...Object.keys(account.consumed)])) {

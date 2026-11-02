@@ -306,7 +306,7 @@ const terrainValueFn = {
   "grassland": (distance) => (10 - distance * 2),
 };
 
-const walkable = {
+export const walkable = {
   "mountain": 0,
   "shallow water": 0,
   "deep water": 0,

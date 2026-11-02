@@ -5,6 +5,7 @@ import { consumeStored, depositProduced } from "game/settlement_growth";
 import { flatVillage } from "./support/village";
 import { generateHistory } from "game/history";
 import { foundingVillage } from "./support/founding";
+import { freezeOpinions } from "game/travel";
 
 // Two declared hamlets are enough for cross-village marriage, descendants,
 // death and inheritance. Only the history component runs its 180 seasons.
@@ -20,6 +21,11 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   expect(s.events).toEqual(again.events);
   expect(s.ecs.kinship).toEqual(again.ecs.kinship);
   expect(s.events.some(e => e.type == "birth")).toBe(true);
+  const descendants = Object.keys(s.ecs.personable).filter(id => s.ecs.personable[id].born < 0);
+  expect(descendants.length).toBeGreaterThan(0);
+  descendants.forEach(id => expect(s.ecs.personality[id].opinionThresholds).toBeUndefined());
+  freezeOpinions(s);
+  descendants.forEach(id => expect(s.ecs.personality[id].opinionThresholds).toEqual(s.opinionThresholds));
   expect(s.events.some(e => e.type == "marriage")).toBe(true);
   expect(s.events.some(e => e.type == "marriage" && new Set(e.fromVillages).size > 1)).toBe(true);
   const player = Object.keys(s.ecs.playable)[0];

@@ -1,12 +1,56 @@
 import { createHeightField } from "game/height";
-import { resetMapState, generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES } from "game/map";
-import { createLandField, worldPoint } from "game/world_terrain";
+import { resetMapState, generateTerrain, generateSettlements, generateFamilies, Hex, Grid, generateTrees, MIN_START_TREES, walkable } from "game/map";
+import { createLandField, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
 import { BIOMES } from "game/overworld";
+import { climateAt, localHabitat, setTileElevation, temperatureName, biomeMixture } from "game/biome_field";
 import { updateWeather } from "game/weather";
 import { newEntities } from "game/entities";
 import { repairHouseholds } from "game/possessions";
 import { birth } from "game/social";
 import { flatVillage } from "./support/village";
+
+it("declares a complete positive local hexagon with a 132-tile rim", () => {
+  expect(MAP_RADIUS).toBe(22);
+  const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
+  expect(grid).toHaveLength(1519);
+  expect(new Set(grid.map(String)).size).toBe(1519);
+  expect(grid.filter(h => MAP_CENTRE.distance(h) == MAP_RADIUS)).toHaveLength(132);
+  for (const h of grid) {
+    expect(MAP_CENTRE.distance(h)).toBeLessThanOrEqual(MAP_RADIUS);
+    const { x, y } = h.toPoint();
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(y).toBeGreaterThanOrEqual(0);
+  }
+});
+
+it("sets walking speed from terrain alone", () => {
+  expect(walkable).toEqual({ grassland: 1, stone: .5, mountain: 0, "shallow water": 0, "deep water": 0 });
+});
+
+it("refreshes physical habitat on two real tiles after grading their altitude", () => {
+  const home = { x: 0, y: 0 };
+  const world = { home, centre: home, radius: 5, climate: { seed: 13,
+    moisture: { wind: { x: 1, y: 0 }, u0: -1, v0: -1, width: 2, height: 2, step: 50000, values: [.3, .5, .7, .9] } } };
+  const state = { world, ecs: { nextId: 1 }, ecology: { tiles: {} } };
+  const ids = newEntities(state, [Hex(22, 22), Hex(22, 23)].map(h => ({ spatial: h.toPoint(), mappable: { elevation: -1 } })));
+  const warmth = [];
+  for (const [i, id] of ids.entries()) {
+    const p = state.ecs.spatial[id], altitude = i ? 1400 : 20;
+    state.ecology.tiles[Hex().fromPoint(p)] = { id };
+    setTileElevation(state, id, altitude);
+    const tile = state.ecs.mappable[id], climate = climateAt(world, worldPoint(home, p));
+    expect(tile).toEqual(localHabitat(world, p, altitude));
+    expect(tile.climateWarmth).toBeCloseTo(climate.climateWarmth, 12);
+    expect(tile.moistureValue).toBeCloseTo(climate.moistureValue, 12);
+    expect(tile.biomeMix).toEqual(biomeMixture(tile.warmth, tile.moistureValue));
+    expect(tile.temperature).toBe(temperatureName(tile.warmth));
+    expect(state.ecology.tiles[Hex().fromPoint(p)].biomeMix).toEqual(tile.biomeMix);
+    warmth.push(tile.warmth);
+  }
+  expect(Math.max(...warmth) - Math.min(...warmth)).toBeGreaterThan(.05);
+  expect(state.ecs.mappable[ids[1]].temperature).toBe("cold");
+  expect(state.ecs.mappable[ids[1]].warmth).toBeLessThan(state.ecs.mappable[ids[1]].climateWarmth);
+});
 
 it.each([20, 1234, 98765])("samples physical terrain and elevation before settlement clearing (seed %s)", async seed => {
   const home = { x: 5, y: 5 };

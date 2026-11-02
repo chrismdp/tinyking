@@ -1,8 +1,7 @@
 import { Hex, Grid, ALL_SIDES } from "game/hex";
-import { generateWorld } from "game/overworld";
 import { createHeightField } from "game/height";
 import { buildGeography, groundForState, safeTile, suitableHouse } from "game/geography";
-import { createLandField, MAP_CENTRE, MAP_RADIUS, worldPoint } from "game/world_terrain";
+import { MAP_CENTRE } from "game/world_terrain";
 
 const slopes = (ground, p) => Hex().corners().map((a, k, corners) => {
   const b = corners[(k + 1) % 6];
@@ -10,27 +9,23 @@ const slopes = (ground, p) => Hex().corners().map((a, k, corners) => {
   return Math.hypot(slope.dx, slope.dy);
 });
 
-it("a distant low pad cannot cut the seed13 ridge beside its preserved shared border", () => {
-  const world = generateWorld(13), field = createLandField(world.landSeed);
-  const grid = Grid.hexagon({ center: MAP_CENTRE, radius: MAP_RADIUS });
+it("a distant low pad cannot cut a high ridge beside its preserved shared border", () => {
+  const centre = Hex(8, 8), ridge = Hex(15, 8), house = Hex(2, 8);
+  const grid = Grid.hexagon({ center: centre, radius: 8 });
+  const elevationAt = (x, y) => 20 + 850 * Math.exp(-(((x - ridge.toPoint().x) / 200) ** 2 + ((y - ridge.toPoint().y) / 800) ** 2));
   const surface = {
-    terrainAt: p => field.terrainAt(worldPoint(world.home, p)),
-    elevationAt: (x, y) => field.elevationAt(worldPoint(world.home, { x, y }))
+    terrainAt: p => elevationAt(p.x, p.y) > 180 ? "mountain" : "grassland",
+    elevationAt
   };
   const landscape = Object.fromEntries(grid.map(h => {
     const p = h.toPoint();
     return [h, { ...p, terrain: surface.terrainAt(p), elevation: surface.elevationAt(p.x, p.y) }];
   }));
   const natural = createHeightField({ seed: 0, terrainAt: k => surface.terrainAt(Hex(...k.split(",").map(Number)).toPoint()), elevationAt: surface.elevationAt });
-  // Range refinement moves the old cone and makes its old pad (7,21) steep.
-  // Select an actual high border ridge and a distant viable lowland pad in
-  // this same ordinary seed, retaining the exact no-distant-cut assertion.
-  const ridge=[...grid].filter(h=>MAP_CENTRE.distance(h)>=MAP_RADIUS-2)
-    .sort((a,b)=>natural.hex(b.toPoint()).centre-natural.hex(a.toPoint()).centre)[0];
   expect(natural.hex(ridge.toPoint()).centre).toBeGreaterThan(600);
-  const house=grid.find(h=>MAP_CENTRE.distance(h)<MAP_RADIUS-3 && h.distance(ridge)>10 &&
-    landscape[h].terrain=="grassland" && natural.hex(h.toPoint()).centre<120 && suitableHouse(natural,h.toPoint()));
-  expect(house).toBeDefined();
+  expect(house.distance(ridge)).toBeGreaterThan(10);
+  expect(natural.hex(house.toPoint()).centre).toBeLessThan(120);
+  expect(suitableHouse(natural, house.toPoint())).toBe(true);
   const settlements={[house]:{...house,frontDoorSide:0}};
   const geography = buildGeography(grid, landscape, settlements, {}, [], surface);
   expect(Object.keys(settlements)).toHaveLength(1);

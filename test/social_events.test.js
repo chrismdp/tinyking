@@ -194,3 +194,15 @@ it("does not invent witnesses when the contact hook is invoked directly in summa
   const [{event}]=runSocialActions(s,"contact",a,b,{summary:true,actions:[{id:"summary_privacy",hooks:["contact"],chance:1,event:{type:"affair",people:["actor","partner"]}}]});
   expect(s.knowledge[spouse]?.events||[]).not.toContain(event.id);
 });
+
+it("includes an arrived player in seasonal household quarrels without forcing a chosen visit",()=>{
+  const {advanceSeason}=require("game/social");
+  const {state:s,player,person:a}=peopleWorld();
+  s.ecs.playable[player].arrivedAt=0;
+  s.ecs.kinship[player].spouse=a;s.ecs.kinship[a].spouse=player;
+  s.ecs.relationships[player].known[a]={ring:"public",goodwill:-12,base:-12};
+  s.ecs.relationships[a].known[player]={ring:"public",goodwill:-12,base:-12};
+  s.ecs.personable[a].lastBirth=100;
+  for(let season=1;season<=12;season++){s.days=season*7;advanceSeason(s,season);}
+  expect(s.events.some(e=>e.type=="quarrel"&&e.people.includes(a)&&e.people.includes(player))).toBe(true);
+});

@@ -476,7 +476,7 @@ function advanceSeasonRules(s, season, summary) {
   settleAdults(s, summary);
   const participants = ids.filter(id => alive(s, id));
   const roster = participants.filter(id => !ecs.playable?.[id]);
-  runSeasonSocialActions(s,roster,summary);
+  runSeasonSocialActions(s,participants,summary);
   if (summary) {
     const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
     const byVillage = new Map(),

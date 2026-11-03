@@ -1,4 +1,4 @@
-import { community } from "./support/travel";
+import { rowOfTiles } from "./support/world";
 import { createSimulation } from "game/simulation";
 import { INTRO_TIMING } from "game/intro";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
@@ -43,8 +43,17 @@ it("rejects Start game before a player exists, even after generation finishes", 
 
 it("starts a new game from the menu, hands over an owned camp and resumes time", async () => {
   startIntro.mockImplementation(jest.requireActual("game/intro").startIntro);
-  const { s } = community();
-  delete s.ecs.household[s.ui.playerId];
+  const { state: s, tiles, villager: playerId } = rowOfTiles(3);
+  s.ui = { playerId, show: {} };
+  s.villages = {};
+  s.map = { playerStartTile: { x: 2, y: 0 } };
+  s.arrivalEntry = { tileIds: tiles, campPoint: { x: s.ecs.spatial[tiles[2]].x, y: s.ecs.spatial[tiles[2]].y },
+    start: { ...s.ecs.spatial[tiles[0]], x: s.ecs.spatial[tiles[0]].x - 65 } };
+  s.ecs.personable = { [playerId]: { age: 25, hunger: 0, tiredness: 0 } };
+  s.ecs.playable[playerId] = { known: [] };
+  s.ecs.household = {};
+  s.ecs.manager = { [playerId]: { jobs: [], ordered: true } };
+  s.ecs.planner = { [playerId]: { id: playerId, world: { ordered: true, places: {}, jobs: [], no_place_for: {}, feeling: {}, holding: {}, days: s.days } } };
   s.ecs.container ||= {};
   s.ui.show.main_menu = true;
   s.game_speed = "paused";

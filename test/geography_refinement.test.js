@@ -1,4 +1,3 @@
-import { generateWorld } from "game/overworld";
 import { Task } from "game/htn";
 import { advanceEnvironment } from "game/environment";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
@@ -14,8 +13,9 @@ import { updateEcology, forageAvailable } from "game/ecology";
 import { updateCrops, growingAt } from "game/climate";
 import { canPlaceField, reserveRoad } from "game/land_use";
 
+// Seed 13's recorded home is (5,3); sample that field directly.
 it("normal terrain includes broad raised gentle land as well as valleys and peaks", () => {
-  const w=generateWorld(13), f=createLandField(w.landSeed), origin=worldPoint(w.home,MAP_CENTRE.toPoint());
+  const f=createLandField("13:0"), origin=worldPoint({x:5,y:3},MAP_CENTRE.toPoint());
   const points=[];
   for(let x=-3000;x<=3000;x+=100) for(let y=-3000;y<=3000;y+=100) {
     const p={x:origin.x+x,y:origin.y+y}, height=f.elevationAt(p);
@@ -27,9 +27,9 @@ it("normal terrain includes broad raised gentle land as well as valleys and peak
 });
 
 it("house, road and camp pads retain their local highland altitude", () => {
-  const grid=Grid.hexagon({center:MAP_CENTRE,radius:MAP_RADIUS});
+  const grid=Grid.hexagon({center:Hex(4,4),radius:4});
   const landscape=Object.fromEntries(grid.map(h=>[h,{...h.toPoint(),terrain:"grassland",elevation:480}]));
-  const house=Hex(22,22), start=Hex(12,22), edge=Hex(44,22), middle=Hex(43,22), camp=Hex(42,22);
+  const house=Hex(4,4), start=Hex(1,4), edge=Hex(8,4), middle=Hex(7,4), camp=Hex(6,4);
   const geo=buildGeography(grid,landscape,{[house]:{...house,frontDoorSide:0}}, {0:{hexes:[edge,middle,camp],start:edge.toPoint()}},[start],{terrainAt:()=>"grassland",elevationAt:()=>480});
   const s={map:{seed:13,geography:geo},space:Object.fromEntries(grid.map(h=>[h,[String(h)]])),ecs:{mappable:landscape}};
   const ground=groundForState(s);
@@ -40,7 +40,7 @@ it("house, road and camp pads retain their local highland altitude", () => {
 });
 
 it("normal neighbouring regions keep the same raised shared corner heights", () => {
-  const w=generateWorld(13), field=createLandField(w.landSeed), grid=Grid.hexagon({center:MAP_CENTRE,radius:MAP_RADIUS});
+  const home={x:5,y:3}, field=createLandField("13:0"), grid=Grid.hexagon({center:MAP_CENTRE,radius:MAP_RADIUS});
   const corners=home=>{
     const landscape=Object.fromEntries(grid.map(h=>{const p=h.toPoint(), world=worldPoint(home,p);return [h,{...p,terrain:field.terrainAt(world),elevation:field.elevationAt(world)}];}));
     const surface={terrainAt:p=>field.terrainAt(worldPoint(home,p)),elevationAt:(x,y)=>field.elevationAt(worldPoint(home,{x,y}))};
@@ -50,7 +50,7 @@ it("normal neighbouring regions keep the same raised shared corner heights", () 
       return [Math.round(p.x*1000)+","+Math.round(p.y*1000),height];
     }));
   };
-  const a=corners(w.home), b=corners(neighbours(w.home)[0]);
+  const a=corners(home), b=corners(neighbours(home)[0]);
   const shared=[...a].filter(([key])=>b.has(key));
   expect(shared.length).toBeGreaterThan(10);
   for(const [key,height] of shared) expect(height).toBeCloseTo(b.get(key),5);

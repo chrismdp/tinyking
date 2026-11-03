@@ -1,4 +1,4 @@
-import { flatVillage } from "./support/village";
+import { peopleWorld } from "./support/people";
 import { foundingVillage, foundHouseholds } from "./support/founding";
 import * as history from "game/history";
 import * as possessions from "game/possessions";
@@ -73,16 +73,14 @@ it("retains complete personal objects and unrelated owned loose goods through ph
     for (const [id, components] of Object.entries(created)) for (const [key, value] of Object.entries(components)) expect(s.ecs[key][id]).toEqual(value);
   };
   try {
-    const s = foundingVillage(13);
+    const s = foundingVillage(13, { firstSeason: -2 });
     runPhysicalHistory(s, 13);
     expect(Object.keys(created)).toHaveLength(Object.keys(s.villages).length);
   } finally { createSpy.mockRestore(); }
 });
 
 it("hands over a genuinely inherited object without duplicating or merging same-type heirlooms", async () => {
-  const { s, village } = flatVillage(3, { seed: 13 });
-  const player = s.ui.playerId;
-  const founder = Object.keys(s.ecs.personable).find(id => s.ecs.household[id]?.houseId == village.houses[0]);
+  const { state: s, player, person: founder } = peopleWorld();
   possessions.createPossession(s, founder, "Silver ring");
   possessions.createPossession(s, founder, "Silver ring");
   possessions.die(s, founder);

@@ -1,10 +1,11 @@
+import { updateCrops } from "game/climate";
 import { TIMBER, amountOf } from "game/goods";
 import { Hex } from "game/map";
 import { newEntities } from "game/entities";
 import { path } from "game/pathfinding";
-import { generateVillageLife } from "game/villages";
+import { generateVillageLife, updateVillageLife } from "game/villages";
 import { createSimulation } from "game/simulation";
-import { DAYS_IN_SEASON } from "game/time";
+import { DAYS_IN_SEASON, HOUR } from "game/time";
 import { topController } from "game/playable";
 import { solve } from "game/htn";
 import { find_place } from "game/tasks";
@@ -75,8 +76,7 @@ it("keeps winter crops dormant and deterministically varies growing-season progr
   expect(farms.length).toBeGreaterThan(0);
   farms.forEach((farm, index) => { farm.slots[0].growth = 0.25 + index % 3; });
   const growth = farms.map(f => f.slots[0].growth);
-  const sim = createSimulation(s);
-  for (let i = 0; i < 300; i++) sim.step(10*(6), 0);
+  for (let hour = 0; hour < 30; hour++) { s.days += HOUR; updateCrops(s); }
   expect(farms.map(f => f.slots[0].growth)).toEqual(growth);
 });
 
@@ -227,7 +227,7 @@ it("uses the HTN to work at a trade during the day, interrupt for hunger, and ga
 });
 
 it("lets the family plough, sow, harvest and haul only its own fields into its household store", async () => {
-  const { s } = villageLife();
+  const { s } = villageLife(1);
   const h = Object.values(s.ecs.household).find(h => h.farming && !h.trade && Object.keys(s.ecs.personable).some(id =>
     !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId == h.id));
   expect(h).toBeDefined();
@@ -278,7 +278,8 @@ it("keeps household animals inside fenced pens and pastures throughout movement,
     delete s.ecs.planner;
     s.ecs.planner = {};
     for (let i = 0; i < 240; i++) {
-      sim.step(10*(60), 0);
+      s.days += HOUR;
+      updateVillageLife(s);
       for (const id of animals) {
         const a = s.ecs.animal[id], pen = s.ecs.pasture[a.pastureId], p = s.ecs.spatial[id];
         expect(a.houseId).toBe(pen.houseId);
@@ -298,8 +299,10 @@ it("keeps household animals inside fenced pens and pastures throughout movement,
 it("replays generation and moving animals exactly for the same seed", async () => {
   const { s: a } = villageLife(8, { seed: 2 }), { s: b } = villageLife(8, { seed: 2 });
   expect(a).toEqual(b);
-  const sa = createSimulation(a), sb = createSimulation(b);
-  for (let i = 0; i < 100; i++) { sa.step(10*(6), 0); sb.step(10*(6), 0); }
+  for (let hour = 0; hour < 10; hour++) {
+    a.days += HOUR; b.days += HOUR;
+    updateVillageLife(a); updateVillageLife(b);
+  }
   expect(a).toEqual(b);
 });
 

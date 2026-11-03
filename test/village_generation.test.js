@@ -210,17 +210,17 @@ it("rejects an unestablished infeasible hamlet without dropping a person or cons
   const s=viableVillage(3,()=>{},false);
   const [person]=newEntities(s,[{personable:{age:30},playable:{},controllable:{controllerId:"self"},container:{capacity:100,amounts:{wood:37,grain:42}}}]);
   const before=structuredClone({person:s.ecs.personable[person],store:s.ecs.container[person]});
-  const impossible=jest.spyOn(landUse,"reserveWorkYard").mockReturnValue(false);
-  try {
-    expect(()=>reserveFoundingFields(s)).not.toThrow();
-    expect(s.villages).toEqual({});
-    expect(s.settlement.rejectedSites).toHaveLength(3);
-    expect(Object.keys(s.ecs.building)).toHaveLength(0);
-    expect(Object.keys(s.ecs.personable)).toEqual([person]);
-    expect(s.ecs.personable[person]).toEqual(before.person);
-    expect(s.ecs.container[person]).toEqual(before.store);
-    expect(s.events).toEqual([]);
-  } finally {impossible.mockRestore();}
+  // Initial survey opportunities on rock have no cultivable field or yard.
+  // The rejection rule needs no terrain-wide search with every yard mocked out.
+  for(const tile of Object.values(s.ecs.mappable))tile.terrain="stone";
+  expect(()=>reserveFoundingFields(s)).not.toThrow();
+  expect(s.villages).toEqual({});
+  expect(s.settlement.rejectedSites).toHaveLength(3);
+  expect(Object.keys(s.ecs.building)).toHaveLength(0);
+  expect(Object.keys(s.ecs.personable)).toEqual([person]);
+  expect(s.ecs.personable[person]).toEqual(before.person);
+  expect(s.ecs.container[person]).toEqual(before.store);
+  expect(s.events).toEqual([]);
 });
 
 it("dates a real green relocation while retaining its founding site and enough separated public places",()=>{

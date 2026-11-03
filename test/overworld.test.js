@@ -1,5 +1,4 @@
 import { createLandField, findHome, surveyWorld, worldPoint, MAP_CENTRE, MAP_RADIUS } from "game/world_terrain";
-import { villageStart } from "game/geography";
 import { Grid, Hex, WorldGrid, WorldHex, ALL_SIDES } from "game/hex";
 import {
   AXES, BIOMES, biomeOf, generateRegions, repairRegions, homeOf, WORLD_RADIUS
@@ -133,7 +132,7 @@ describe("physical home selection", () => {
       { x: 2, y: 0, ocean: false, landFraction: .65 },
       { x: 3, y: 0, ocean: false, landFraction: .9 }
     ];
-    const home = findHome(candidates, flatField, villageStart);
+    const home = findHome(candidates, flatField, () => true);
     expect(home).toBe(candidates[2]);
     expect(home.landFraction).toBeGreaterThanOrEqual(.65);
     expect(home.ocean).toBe(false);
@@ -146,7 +145,7 @@ describe("physical home selection", () => {
   it("classifies seven surveyed regions from their actual land samples and retains their axes", () => {
     const records = WorldGrid.spiral({ center: WorldHex(5, 5), radius: 1 }).map(h => ({ ...h,
       temperature: "temperate", moisture: "normal", morality: "neutral" }));
-    const surveyed = surveyWorld(records, 13, villageStart);
+    const surveyed = surveyWorld(records, 13, () => true);
     const field = createLandField(surveyed.landSeed);
     expect(surveyed.hexes).toHaveLength(7);
     for (const [i, h] of surveyed.hexes.entries()) {
@@ -160,7 +159,7 @@ describe("physical home selection", () => {
   });
 
   it("requires 60 percent dry land and two grassland rings at the chosen boundary start", () => {
-    const home = findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], flatField, villageStart);
+    const home = findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], flatField, () => true);
     const start = Hex(home.start);
     expect(MAP_CENTRE.distance(start)).toBe(MAP_RADIUS - 2);
     Grid.hexagon({ center: start, radius: 2 }).forEach(h =>
@@ -169,18 +168,18 @@ describe("physical home selection", () => {
     const dryKeys = new Set(localTiles.slice(0, Math.floor(localTiles.length * .59))
       .map(h => keyOf(Hex().fromPoint(worldPoint(home, h.toPoint())))));
     const wetField = { ...flatField, terrainAt: p => dryKeys.has(keyOf(Hex().fromPoint(p))) ? "grassland" : "deep water" };
-    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, villageStart)).toBeUndefined();
+    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, () => true)).toBeUndefined();
     localTiles.slice(dryKeys.size, Math.ceil(localTiles.length * .6)).forEach(h =>
       dryKeys.add(keyOf(Hex().fromPoint(worldPoint(home, h.toPoint())))));
-    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, villageStart)).toBeDefined();
+    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], wetField, () => true)).toBeDefined();
     const stonyField = { ...flatField, terrainAt: () => "stone" };
-    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], stonyField, villageStart)).toBeUndefined();
+    expect(findHome([{ x: 0, y: 0, ocean: false, landFraction: 1 }], stonyField, () => true)).toBeUndefined();
   });
 
   it("accepts a farmable home of every declared biome and morality", () => {
     for (const [i, [biome, climate]] of Object.entries(BIOMES).entries()) {
       const morality = AXES.morality[i % AXES.morality.length];
-      const chosen = findHome([{ x: 0, y: 0, ...climate, biome, morality, ocean: false, landFraction: 1 }], flatField, villageStart);
+      const chosen = findHome([{ x: 0, y: 0, ...climate, biome, morality, ocean: false, landFraction: 1 }], flatField, () => true);
       expect(chosen).toMatchObject({ biome, morality, ...climate, ocean: false });
       expect(chosen.landFraction).toBeGreaterThanOrEqual(.65);
       expect(chosen.start).toBeDefined();

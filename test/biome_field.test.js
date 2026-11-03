@@ -1,11 +1,16 @@
-import { generateWorld } from "game/overworld";
 import { climateAt, habitatAt, chooseBiome, mixValue, woodsAt, localHabitat, setTileElevation } from "game/biome_field";
 import { worldPoint, MAP_CENTRE } from "game/world_terrain";
 import { Hex, WorldHex, WorldGrid, ALL_SIDES } from "game/hex";
 import { snowlineAt, frozenAt } from "game/climate";
 
+const climateWorld = (seed = 13) => ({
+  home: { x: 5, y: 3 }, centre: { x: 5, y: 5 }, radius: 5,
+  climate: { seed, moisture: { wind: { x: 1, y: 0 }, u0: 0, v0: 0,
+    width: 2, height: 2, step: 100000, values: [.3, .6, .45, .75] } }
+});
+
 it.each([13,20])("samples finite normalised varied habitats without world mutation, seed %s",seed=>{
-  const world=generateWorld(seed), before=JSON.stringify(world);
+  const world=climateWorld(seed), before=JSON.stringify(world);
   const h=world.home, p=worldPoint(h,MAP_CENTRE.toPoint());
   const samples=[];
   for(let x=-1500;x<=1500;x+=300) samples.push(habitatAt(world,{x:p.x+x,y:p.y},100));
@@ -19,7 +24,7 @@ it.each([13,20])("samples finite normalised varied habitats without world mutati
 });
 
 it("agrees at the same physical edge point from either active reach and changes smoothly across it",()=>{
-  const world=generateWorld(13), a=WorldHex(world.home);
+  const world=climateWorld(13), a=WorldHex(world.home);
   const b=WorldGrid.hexagon({center:a,radius:1}).neighborsOf(a,ALL_SIDES)[0];
   const ap=worldPoint(a,MAP_CENTRE.toPoint()),bp=worldPoint(b,MAP_CENTRE.toPoint());
   const p={x:(ap.x+bp.x)/2,y:(ap.y+bp.y)/2};
@@ -39,7 +44,7 @@ it("agrees at the same physical edge point from either active reach and changes 
 });
 
 it("uses continuous sea-level temperature for a shared seasonal snowline, with alpine habitat at altitude",()=>{
-  const world=generateWorld(13),p=worldPoint(world.home,MAP_CENTRE.toPoint());
+  const world=climateWorld(13),p=worldPoint(world.home,MAP_CENTRE.toPoint());
   const climate=climateAt(world,p),low=habitatAt(world,p,20),high=habitatAt(world,p,1400);
   expect(high.warmth).toBeLessThan(low.warmth);
   expect(high.temperature).toBe("cold");
@@ -50,7 +55,7 @@ it("uses continuous sea-level temperature for a shared seasonal snowline, with a
 });
 
 it("refreshes physical habitat and regrowth habitat when a real building pad changes altitude",()=>{
-  const world=generateWorld(13),p=MAP_CENTRE.toPoint();
+  const world=climateWorld(13),p=MAP_CENTRE.toPoint();
   const state={world,ecs:{spatial:{tile:p},mappable:{tile:localHabitat(world,p,100)}},ecology:{tiles:{[String(Hex().fromPoint(p))]:{id:"tile"}}}};
   setTileElevation(state,"tile",700);
   expect(state.ecs.mappable.tile).toEqual(localHabitat(world,p,700));

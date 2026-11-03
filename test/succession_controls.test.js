@@ -47,7 +47,7 @@ it("keeps the same assets through two natural seasonal deaths without controller
   const {s,ids:[a,b,c],house}=community();s.ecs.kinship[a].spouse=b;s.ecs.kinship[b].spouse=a;s.ecs.kinship[b].children=[c];s.ecs.kinship[c].parents=[a,b];s.ecs.kinship[a].children=[c];
   s.ecs.controllable[house].controllerId=a;Object.assign(s.ecs.personable[a],{age:60,lifeYears:23});Object.assign(s.ecs.personable[b],{age:58,lifeYears:22});const item=createPossession(s,a,"Founder ring");
   for(const [season,dead,heir]of [[1,a,b],[2,b,c]]){
-    s.days=season*3;Object.assign(s.ecs.personable[dead],{age:87,lifeYears:36.75});advanceSeason(s,season);await resolveSuccession(s);
+    s.days=season*3;Object.assign(s.ecs.personable[dead],{age: 102,lifeYears: 102 / 8});advanceSeason(s,season);await resolveSuccession(s);
     expect(s.ui.playerId).toBe(heir);expect(s.ecs.controllable[house].controllerId).toBe(heir);expect(topController(s.ecs,heir)).toBe(heir);
   }
   expect(s.ecs.possession[item].owners.map(o=>o.personId)).toEqual([a,b,c]);

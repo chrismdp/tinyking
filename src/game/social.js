@@ -22,7 +22,8 @@ import { hashUnit } from "game/math";
 import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
-  birthPerSeason: 0.55,
+  birthPerSeason: 2,
+  birthCooldownSeasons: 1,
   travellerShare: 0.05,
   courtshipSeasons: 2
 };
@@ -606,7 +607,7 @@ function advanceSeasonRules(s, season, summary) {
       if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canHaveChild(s,a,b)) continue;
       const house = ecs.household[a]?.houseId;
       if ((occupants.get(house) || 0) >= 6) continue;
-      if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < 4) continue;
+      if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < SOCIAL_RATES.birthCooldownSeasons) continue;
       if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) {
         birth(s, a, b, season);
         occupants.set(house, (occupants.get(house) || 0) + 1);

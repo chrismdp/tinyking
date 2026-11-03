@@ -33,7 +33,7 @@ it("resolves ungenerated NPC visits without generating terrain, and later return
     expect(Object.keys(s.travel.maps)).toEqual(["5,5"]);
     expect(s.residents[npc]).toBe(true);
     expect(s.ecs.personable[npc].visitedWorlds).toContain("6,5");
-    expect(s.ecs.personable[npc].lifeYears).toBe(6.75);
+    expect(s.ecs.personable[npc].lifeYears).toBe(35/8);
     expect(s.ecs.personable[npc]).toMatchObject(needs); // roads and reference visit freeze needs
     expect(s.events.some(e => e.type == "return" && e.people.includes(npc))).toBe(true);
   } finally { generate.mockRestore(); }
@@ -56,9 +56,9 @@ it("materialises a waiting reference visitor once the player opens that reach, w
   expect(there.residents[npc]).toBe(true);
   expect(there.ecs.possession[item].ownerId).toBe(npc);
   expect(Object.values(s.travel.maps).filter(map => map.ecs.good[item])).toHaveLength(1);
-  expect(there.ecs.personable[npc].lifeYears).toBe(5.75);
+  expect(there.ecs.personable[npc].lifeYears).toBe(27/8);
   await advanceWorldClock(s);
-  expect(there.ecs.personable[npc].lifeYears).toBe(5.75);
+  expect(there.ecs.personable[npc].lifeYears).toBe(27/8);
   expect(s.travel.transit.some(t => t.bundle.id == npc)).toBe(false);
 });
 

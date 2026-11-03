@@ -1,4 +1,4 @@
-import { isAdult } from "game/life_stages";
+import { isAdult, LIFE_STAGES, LIFE_YEARS_PER_SEASON } from "game/life_stages";
 import { updateDirectoryPerson } from "game/person_storage";
 import { refreshPersonIndex } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
@@ -22,7 +22,7 @@ export const backstoryFor=(s,actor=s.ui.playerId)=>s.backstories?.[actor];
 // or generating another reach. Reference people have no body, planner or map.
 export function seedMotherFamily(s,actor,seed) {
   if(backstoryFor(s,actor)||!s.map||!s.ecs.kinship?.[actor])return;
-  const e=s.ecs,g=new MersenneTwister(seed),age=e.personable[actor].age+18;
+  const e=s.ecs,g=new MersenneTwister(seed),age=e.personable[actor].age+LIFE_STAGES.youngAdult.from;
   updateFavours(s);
   const at=e.spatial[actor];
   const villages=Object.values(s.villages||{}).filter(v=>v.houses?.length).sort((a,b)=>{
@@ -37,7 +37,7 @@ export function seedMotherFamily(s,actor,seed) {
     const locals=adults.filter(id=>e.village[id]?.villageId==village.id);
     const room=id=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==e.household[id].houseId).length<6;
     const work=id=>Object.values(s.favours.requests).some(r=>r.householdId==e.household[id].houseId&&r.status=="offered");
-    const suitable=id=>kin(s,id).parents.every(p=>personComponent(s,"personable",p).age>=age+18) &&
+    const suitable=id=>kin(s,id).parents.every(p=>personComponent(s,"personable",p).age>=age+LIFE_STAGES.youngAdult.from) &&
       ([...kin(s,id).parents,...siblingsOf(s,id)].some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<6));
     anchor=locals.filter(suitable).sort((a,b)=>Number(work(b)&&room(b))-Number(work(a)&&room(a))||Number(disposition(s,b,actor)!="hate")-Number(disposition(s,a,actor)!="hate")||Number(kin(s,b).parents.length>0)-Number(kin(s,a).parents.length>0)||e.personable[b].age-e.personable[a].age||a.localeCompare(b))[0];
     if(anchor)break;
@@ -68,7 +68,7 @@ export function seedMotherFamily(s,actor,seed) {
     const houses=s.villages[village].houses;
     const house=houses.find(h=>h==e.household[anchor].houseId&&Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<6)||houses.find(h=>Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<6);
     if(house) {
-      const p=generatePerson({spatial:{...e.spatial[anchor]},male:g.random_int()%2==0,age:Math.max(18,age-2),familySeed,generator:g,days:s.days});
+      const p=generatePerson({spatial:{...e.spatial[anchor]},male:g.random_int()%2==0,age:Math.max(LIFE_STAGES.youngAdult.from,age-2),familySeed,generator:g,days:s.days});
       const [id]=newEntities(s,[{...p,household:{houseId:house},village:{villageId:village},relationships:{known:{}}}],"person-");
       e.kinship[id].parents=parents;
       for(const parent of parents)kin(s,parent).children.push(id);
@@ -84,16 +84,16 @@ export function seedMotherFamily(s,actor,seed) {
       siblings.push(id);
     }
   }
-  const fatherId=reference(true,Math.max(65,age+12),g.random_int(),{dead:true,historical:true,unrevealed:true});
+  const fatherId=reference(true,Math.max(LIFE_STAGES.old.from,age+12),g.random_int(),{dead:true,historical:true,unrevealed:true});
   const queenId=reference(false,age+1,g.random_int(),{unrevealed:true});
-  const halfBrotherId=reference(true,Math.max(18,e.personable[actor].age-2),g.random_int(),{unrevealed:true});
+  const halfBrotherId=reference(true,Math.max(LIFE_STAGES.youngAdult.from,e.personable[actor].age-2),g.random_int(),{unrevealed:true});
   s.peopleDirectory[halfBrotherId].personality.traits.push("cruel");
   kin(s,actor).parents=[motherId,fatherId];kin(s,motherId).children=[actor];
   kin(s,fatherId).children=[actor,halfBrotherId];kin(s,fatherId).spouse=queenId;kin(s,queenId).spouse=fatherId;
   kin(s,queenId).children=[halfBrotherId];kin(s,halfBrotherId).parents=[queenId,fatherId];
   const b=(s.backstories ||= {})[actor]={motherId,fatherId,queenId,halfBrotherId,homeVillageId:village,relatives:[]};
   // Chronology uses the game's accelerated age scale, before arrival.
-  const birth=-Math.max(3,(e.personable[actor].age-18)/2+2)*4*DAYS_IN_SEASON;
+  const birth=-e.personable[actor].age / LIFE_YEARS_PER_SEASON * DAYS_IN_SEASON;
   const hidden=(type,people,day,details={})=>recordEvent(s,type,people,[],{sealed:true,audienceIds:[],day,season:Math.floor(day/DAYS_IN_SEASON),...details});
   hidden("marriage",[fatherId,motherId],birth-DAYS_IN_SEASON,{title:"old king"});
   hidden("birth",[actor,motherId,fatherId],birth);

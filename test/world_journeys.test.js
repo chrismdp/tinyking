@@ -66,7 +66,7 @@ it("autonomously searches despite unrelated but incompatible locals, while playe
   expect(dest.residents[seeker]).toBe(true);
   expect(s.residents[seeker]).toBeUndefined();
   expect(s.travel.transit.some(t => t.bundle.id == seeker)).toBe(false);
-  expect(dest.ecs.personable[seeker].age).toBe(26); // one departure and one journey season
+  expect(dest.ecs.personable[seeker].age).toBe(29); // one departure and one journey season
   expect(dest.events.some(e => e.type === "world_visit" && e.people[0] === seeker)).toBe(true);
   expect(Object.keys(s.travel.maps)).toHaveLength(2);
   expect(s.travel.active).toBe(a.s.map.worldKey);
@@ -429,7 +429,7 @@ it("processes death in transit with the real carried heirloom and remote heir, r
     s = a.s,
     id = a.ids[1],
     heir = a.ids[2];
-  s.ecs.personable[id].age = 88;
+  s.ecs.personable[id].age = 102;
   s.ecs.personable[id].lifeYears = 37.25;
   s.ecs.kinship[id].children = [heir];
   s.ecs.kinship[heir].parents = [id];
@@ -604,7 +604,7 @@ it.each([false, true])("reconciles death after a visit/marriage move across the 
     expect(dest.ecs.guest?.[id]).toBeUndefined();
     expect(s.travel.visits[id]).toBeUndefined();
   }
-  dest.ecs.personable[id].age = 88;
+  dest.ecs.personable[id].age = 102;
   dest.ecs.personable[id].lifeYears = 37.25;
   await stepSeason(s);
   const home = s.travel.maps["5,5"];

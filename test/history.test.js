@@ -1,3 +1,4 @@
+import { HISTORY_SEASONS } from "game/time";
 /* global it, expect */
 import { newEntities } from "game/entities";
 import { generateFamilies, Hex } from "game/map";
@@ -9,14 +10,14 @@ import { foundingVillage } from "./support/founding";
 import { freezeOpinions } from "game/travel";
 
 // Two declared hamlets are enough for cross-village marriage, descendants,
-// death and inheritance. Only the history component runs its 180 seasons.
+// death and inheritance. Only the history component runs the configured history seasons.
 const socialHistory = seed => {
-  const s = foundingVillage(seed, { twoVillages: true, firstSeason: -180 });
+  const s = foundingVillage(seed, { twoVillages: true, firstSeason: -HISTORY_SEASONS });
   generateHistory(s, seed);
   return s;
 };
 
-it("generates forty-five years of dated history, dead ancestors and inherited objects deterministically", async () => {
+it("generates the configured years of dated history, dead ancestors and inherited objects deterministically", async () => {
   const s = await socialHistory(13), again = await socialHistory(13);
   expect(s).toEqual(again);
   expect(s.events).toEqual(again.events);
@@ -33,7 +34,7 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   expect(s.knowledge?.[player]?.events || []).toEqual([]);
   expect(s.events.some(e => e.type == "death")).toBe(true);
   expect(s.events.some(e => e.type == "inheritance")).toBe(true);
-  expect(Math.min(...s.events.map(e => e.season))).toBeLessThanOrEqual(-176);
+  expect(Math.min(...s.events.map(e => e.season))).toBeLessThanOrEqual(-HISTORY_SEASONS + 4);
   expect(Object.values(s.ecs.possession).some(p => p.owners.length > 1)).toBe(true);
   const living = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead);
   expect(living.some(id => s.ecs.kinship[id].parents.some(p => s.ecs.personable[p].dead))).toBe(true);
@@ -47,8 +48,8 @@ it("generates forty-five years of dated history, dead ancestors and inherited ob
   const counts = { hate: 0, like: 0, love: 0 };
   for (const a of living) for (const b of living) if (a != b) counts[disposition(s, a, b)]++;
   const n = living.length * (living.length - 1);
-  expect(counts.hate / n).toBeCloseTo(0.2, 2);
-  expect(counts.love / n).toBeCloseTo(0.2, 2);
+  expect(counts.hate).toBe(Math.floor(n * .2));
+  expect(counts.love).toBe(n - Math.floor(n * .8));
   for (const v of Object.values(s.villages)) { expect(v.houses.length).toBeGreaterThanOrEqual(3); expect(v.houses.length).toBeLessThanOrEqual(8); }
   for (const v of Object.values(s.villages)) for (const house of v.houses) {
     const store = s.ecs.building[house].rooms.find(id => s.ecs.container[id]);
@@ -83,8 +84,8 @@ it("keeps reciprocal kinship, bounded rings and calibrated dispositions in gener
   const counts = { hate: 0, like: 0, love: 0 };
   for (const a of living) for (const b of living) if (a != b) counts[disposition(s, a, b)]++;
   const n = living.length * (living.length - 1);
-  expect(counts.hate / n).toBeCloseTo(0.2, 2);
-  expect(counts.love / n).toBeCloseTo(0.2, 2);
+  expect(counts.hate).toBe(Math.floor(n * .2));
+  expect(counts.love).toBe(n - Math.floor(n * .8));
 });
 
 it("keeps goodwill earned during history when calibrating the arriving population", () => {

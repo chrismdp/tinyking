@@ -24,7 +24,7 @@ function fixture() {
   s.ecs.spatial[a]={...s.ecs.spatial[near],id:a};
   const sim=createSimulation(s);
   const until=predicate=>{for(let n=0;n<1200&&!predicate();n++)sim.step(10*(1), 0);expect(predicate()).toBeTruthy();};
-  const succeed=async()=>{s.game_speed="paused";s.days=3;Object.assign(s.ecs.personable[a],{age:87,lifeYears:36.75});advanceSeason(s,1);await resolveSuccession(s);};
+  const succeed=async()=>{s.game_speed="paused";s.days=3;Object.assign(s.ecs.personable[a],{age: 102,lifeYears: 102 / 8});advanceSeason(s,1);await resolveSuccession(s);};
   return {s,a,b,c,tree,ownTree,until,succeed};
 }
 it("keeps the heir's actual oath and rejects the dead actor's oath under real membership and resource permission rules",async()=>{

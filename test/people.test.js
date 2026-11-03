@@ -55,12 +55,12 @@ describe("generated people", () => {
       const kin = state.ecs.kinship && state.ecs.kinship[id];
       expect(kin).toBeDefined();
       expect(Number.isInteger(person.age)).toBe(true);
-      expect(person.size).toBe(person.age < 18 ? 12 : 20);
+      expect(person.size).toBe(person.age < 16 ? 12 : 20);
       expect(kin.parents).not.toContain(id);
       expect(kin.children).not.toContain(id);
       for (const parent of kin.parents) {
         expect(state.ecs.kinship[parent].children).toContain(id);
-        expect(state.ecs.personable[parent].age - person.age).toBeGreaterThanOrEqual(18);
+        expect(state.ecs.personable[parent].age - person.age).toBeGreaterThanOrEqual(16);
         if (state.ecs.kinship[parent].parents.length) threeGenerations++;
         children++;
       }
@@ -68,7 +68,7 @@ describe("generated people", () => {
       if (kin.spouse) {
         expect(kin.spouse).not.toBe(id);
         expect(state.ecs.kinship[kin.spouse].spouse).toBe(id);
-        expect(person.age).toBeGreaterThanOrEqual(18);
+        expect(person.age).toBeGreaterThanOrEqual(16);
         couples++;
       }
     }

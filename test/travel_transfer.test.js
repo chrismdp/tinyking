@@ -45,7 +45,7 @@ it.each([false, true])("settles real borrowed working-hand cargo only if its liv
   const { a, s, player, owner, heir } = fixture();
   s.ecs.kinship[owner].spouse = heir;
   s.ecs.kinship[heir].spouse = owner;
-  if (death) Object.assign(s.ecs.personable[owner], { age: 88, lifeYears: 37.25 });
+  if (death) Object.assign(s.ecs.personable[owner], { age: 102, lifeYears: 102 / 8 });
   const { ring, grain } = borrowedCargo(s, player, owner);
   const before = s.days, identity = { ...s.ecs.personable[player] };
   await travel(s, 0);
@@ -93,7 +93,7 @@ it.each([false, true])("settles real borrowed working-hand cargo only if its liv
 it("retains the recorded successive heirs when both die naturally in the same journey season", async () => {
   const { s, b, player, owner, heir } = fixture();
   const finalHeir = b.ids[0];
-  for (const id of [owner, heir]) Object.assign(s.ecs.personable[id], { age: 88, lifeYears: 37.25 });
+  for (const id of [owner, heir]) Object.assign(s.ecs.personable[id], { age: 102, lifeYears: 102 / 8 });
   s.ecs.kinship[owner].spouse = heir;
   s.ecs.kinship[heir].spouse = owner;
   s.ecs.kinship[heir].children = [finalHeir];
@@ -173,7 +173,7 @@ it.each([false, true])("keeps the existing road season's complete identity and e
   const {s,owner,heir,player}=fixture();
   const {departNpc}=require("game/travel"),{serialiseGame,restoreGame}=require("game/save_game");
   s.ecs.kinship[owner].spouse=heir;s.ecs.kinship[heir].spouse=owner;
-  if(death)Object.assign(s.ecs.personable[owner],{age:88,lifeYears:37.25});
+  if(death)Object.assign(s.ecs.personable[owner],{age: 102,lifeYears: 102 / 8});
   const item=createPossession(s,owner,"Road season parity");
   require("game/people").meet(s,owner,player);
   s.ecs.relationships[owner].known[player].goodwill+=9;

@@ -1,3 +1,4 @@
+import { HISTORY_SEASONS, historyLabel, historyFoundingSeason } from "game/time";
 import { personSize } from "game/life_stages";
 import { installStoredHistory } from "game/world_history";
 import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
@@ -632,12 +633,12 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
     await progressUpdate("Ready to arrive", 1);
     return { playerId: Object.keys(state.ecs.playable)[0], map: state.map };
   }
-  state.settlement = { version: 1, lastSeason: -181, preparedSeason: -181, sites: {}, journeys: [], appliedJourneys: {}, sealedBorders: options.sealedBorders || [] };
+  state.settlement = { version: 1, lastSeason: (-HISTORY_SEASONS - 1), preparedSeason: (-HISTORY_SEASONS - 1), sites: {}, journeys: [], appliedJourneys: {}, sealedBorders: options.sealedBorders || [] };
   const transitRoutes=geography.routes.filter(route=>Object.values(entrances).some(e=>Hex(e.hexes[2]).equals(Hex(route[0]))));
   const transitHexes=transitRoutes.flat().map(h=>Hex(h));
   for(const hex of transitHexes)state.ecs.mappable[tileAt(state,hex.toPoint())].settlementTransit=true;
   for (const [index,village] of Object.values(villages).entries()) {
-    const foundingSeason = index ? -32-Math.floor(hashUnit(seed+":founding:"+village.id)*148) : -180;
+    const foundingSeason = historyFoundingSeason(hashUnit(seed+":founding:"+village.id), !index);
     const sites=Object.values(settlements).filter(h=>h.villageId==village.id);
     const approach=site=>Grid.hexagon({center:Hex(site),radius:1}).neighborsOf(Hex(site),ALL_SIDES)[site.frontDoorSide];
     const access=site=>Math.min(...transitHexes.map(h=>h.distance(approach(site))));
@@ -663,7 +664,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   generateFamilies({ state, seed, playerStartTile, founding: true });
   initializeEcology(state,seed);
   await generateHistory(state, seed, options.routeHistory || [], completed =>
-    progressUpdate("Forty-five years of history: year " + Math.ceil(completed / 4), .45 + .45 * completed / 180));
+    progressUpdate(historyLabel(completed), .45 + .45 * completed / HISTORY_SEASONS));
   await progressUpdate("Waking the villagers", .9);
   const playerId = Object.values(state.ecs.playable)[0].id;
   state.ecs.controllable[playerId].controllerId = playerId;

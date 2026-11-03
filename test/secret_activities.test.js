@@ -207,7 +207,7 @@ it("rare confidences have a stable seasonal chance rather than a roll on every c
       opportunities.push(season);
     }
   }
-  expect(opportunities.length).toBeGreaterThan(0);expect(opportunities.length).toBeLessThan(15);
+  expect(opportunities.length).toBeGreaterThan(0);expect(opportunities.length).toBeLessThan(32);
 });
 
 it("preserves meeting progress and first-learning effects through save/reload",()=>{

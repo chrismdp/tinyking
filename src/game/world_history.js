@@ -16,7 +16,7 @@ import { createPossession, repairHouseholds } from "game/possessions";
 import { recordEvent, withEventIndex } from "game/events";
 import { hashUnit } from "game/math";
 import { neighbours, worldKey } from "game/travel_geometry";
-import { DAYS_IN_SEASON } from "game/time";
+import { DAYS_IN_SEASON, HISTORY_SEASONS, historyLabel } from "game/time";
 import { worldPoint } from "game/world_terrain";
 
 const requirePoint=pad=>Hex(pad.x,pad.y).toPoint();
@@ -51,7 +51,7 @@ export function summarySeason(map,season,buildHomes=true) {
   finally {if(!buildHomes){if(sites)Object.defineProperty(map,"houseSites",sites);else delete map.houseSites;}}
 }
 function foundingMap(world,hex,contents,seed) {
-  const key=worldKey(hex),s={newsModel:1,compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-180*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:-181,courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
+  const key=worldKey(hex),s={newsModel:1,compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-HISTORY_SEASONS*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:(-HISTORY_SEASONS - 1),courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
   const generator=new MersenneTwister(seed),entrances={};
   for(const [side,n] of neighbours(hex).entries())if(world.hexes.some(h=>!h.ocean&&worldKey(h)===worldKey(n))) {
     const route=world.landSeed ? routeCrossing({...world,home:hex},side) : {hexes:[{x:22,y:2},{x:22,y:3},{x:22,y:4}]};
@@ -62,7 +62,7 @@ function foundingMap(world,hex,contents,seed) {
     s.villages[v.id]={id:v.id,name:v.name,kind:contents.kind,worldKey:key,houses:[],centre:{x:8+vi*7,y:15},sharedPlaces:[]};
     for(let i=0;i<v.houseCount;i++) {
       const point={x:vi*1200+i*210,y:0};
-      const [house]=newEntities(s,[{spatial:{...point,immovable:true},nameable:{nickname:contents.kind==="town"?"Town house":"Family cottage"},building:{entrance:0,rooms:[],builtDay:-180*DAYS_IN_SEASON},household:{fields:[],backyards:[],summaryFields:2},village:{villageId:v.id},controllable:{}}],"home-");
+      const [house]=newEntities(s,[{spatial:{...point,immovable:true},nameable:{nickname:contents.kind==="town"?"Town house":"Family cottage"},building:{entrance:0,rooms:[],builtDay:-HISTORY_SEASONS*DAYS_IN_SEASON},household:{fields:[],backyards:[],summaryFields:2},village:{villageId:v.id},controllable:{}}],"home-");
       const [store]=newEntities(s,[{container:{capacity:180,amounts:{grain:36,wood:16}},controllable:{controllerId:house}}],"store-");
       s.ecs.household[house].storeId=store;s.villages[v.id].houses.push(house);
       const pair=newEntities(s,[true,false].map(male=>({...generatePerson({spatial:{...point},male,age:22+generator.random_int()%12,familySeed:generator.random_int(),generator,days:s.days}),household:{houseId:house},village:{villageId:v.id}})),"person-");
@@ -90,12 +90,12 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   }
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
-  initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.localPeople=true;s.travel.season=-180;
+  initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.localPeople=true;s.travel.season=-HISTORY_SEASONS;
   for(const map of Object.values(maps)) {
     for(const id of Object.keys(map.residents))s.travel.people[id]=Object.fromEntries(["personable","personality","kinship","relationships","nameable","controllable","household","village","playable"].filter(key=>map.ecs[key]?.[id]).map(key=>[key,map.ecs[key][id]]));
     Object.assign(s.travel.knowledge,map.knowledge);
   }
-  await advanceHistorySeasons(s,-179,0,progress);
+  await advanceHistorySeasons(s,(-HISTORY_SEASONS + 1),0,progress);
   s.days=.375;s.travel.days=s.days;s.travel.season=0;
   for(const map of Object.values(s.travel.maps)) {
     map.days=s.days;map.social.lastSeason=0;
@@ -106,14 +106,14 @@ export async function generateWorldHistory(s,seed,progress=async()=>{},world=gen
   Object.assign(s,s.travel.maps[s.travel.active]);s.days=.375;
 }
 // Run the same shared seasonal boundary on declared communities of any size.
-// New games retain the complete -179..0 range and existing progress values.
+// New games advance exactly HISTORY_SEASONS boundaries, ending at arrival.
 export async function advanceHistorySeasons(s,firstSeason,lastSeason,progress=async()=>{}) {
   await withReferenceIndex(s.travel,async()=>{
     for(let season=firstSeason;season<=lastSeason;season++) {
       s.days=season*DAYS_IN_SEASON;
       await advanceWorldClock(s,{travelling:true});
       Object.assign(s,s.travel.maps[s.travel.active]);
-      await progress("Forty-five years of world history: year "+Math.ceil((season+180)/4),.08+.7*(season+180)/180);
+      await progress(historyLabel(season+HISTORY_SEASONS,true),.08+.7*(season+HISTORY_SEASONS)/HISTORY_SEASONS);
     }
   });
 }
@@ -191,7 +191,7 @@ export function installStoredHistory(s,summary,sites,contents,noPlayer) {
     (e.manager|| (e.manager={}))[id]={id,jobs:[]};
     (e.planner|| (e.planner={}))[id]={id,world:{no_place_for:{},jobs:[],places:{},feeling:{},holding:{},days:s.days}};
   }
-  // Add the stranger only after all 180 world seasons have finished.
+  // Add the stranger only after all historical world seasons have finished.
   e.playable ||= {};
   if(!noPlayer) {
     const generator=new MersenneTwister(s.map.seed);

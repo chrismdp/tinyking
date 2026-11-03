@@ -1,3 +1,4 @@
+import { LIFE_YEARS_PER_GAME_YEAR } from "game/life_stages";
 import { updateCustoms } from "game/village_customs";
 import { rememberOwnConversations } from "game/knowledge";
 import MersenneTwister from "mersenne-twister";
@@ -35,7 +36,7 @@ function stranger(s) {
   const g=new MersenneTwister(seed),male=g.random_int()%2==0;
   const entry=s.map.entrances[0] || Object.values(s.map.entrances)[0];
   const [id]=newEntities(s,[{spatial:{...(entry?.campPoint || Hex(s.map.playerStartTile).toPoint())},nameable:{type:"person",male,familySeed:g.random_int(),seed:g.random_int()},
-    personable:{type:"person",age:24,lifeYears:5,size:20,male,hair:g.random_int()%7,body:male?0x4E3F30:0x3B6071,hunger:.4,tiredness:.2},
+    personable:{type:"person",age:24,lifeYears:24/LIFE_YEARS_PER_GAME_YEAR,size:20,male,hair:g.random_int()%7,body:male?0x4E3F30:0x3B6071,hunger:.4,tiredness:.2},
     personality:{...generatePersonality(g),opinionSeed:s.peopleSeed,opinionThresholds:{...s.opinionThresholds}},
     kinship:{parents:[],children:[],spouse:null},relationships:{known:{}},household:{houseId:null},village:{villageId:null},
     controllable:{},traits:{values:{}},attributes:{},holder:{held:[],capacity:2},manager:{jobs:[]},planner:{world:{}},playable:{known:[]}}],"stranger-");

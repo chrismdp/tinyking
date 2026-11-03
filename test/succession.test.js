@@ -83,7 +83,7 @@ it("does not let a deceased actor finish a timed gift or marriage", () => {
   expect(talk(s,player,s.ecs.planner[player].world,1,false,person,"give_gift")).toBe(Task.ABORT);
 });
 
-it("keeps the new stranger entirely outside initial forty-five-year history", () => {
+it("keeps the new stranger entirely outside initial twelve-year history", () => {
   const {s,ids:[player]}=community();const identity={...s.ecs.personable[player]};
   generateHistory(s,13);
   expect(s.ecs.personable[player]).toEqual(identity);
@@ -117,7 +117,7 @@ it.each(["spouse","minor"])("continues after a shared lifecycle death as the act
   s.ecs.relationships[other].known[player]={ring:"intimate",goodwill:95,base:16};
   s.ecs.relationships[other].known[heir]={ring:"public",goodwill:-2,base:0};
   s.ecs.planner[heir].task=["walk_to",house];s.ecs.planner[heir].world.social={partnerId:other};
-  const point={...s.ecs.spatial[heir]};s.days=DAYS_IN_SEASON-.001;Object.assign(s.ecs.personable[player],{age:87,lifeYears:36.75});
+  const point={...s.ecs.spatial[heir]};s.days=DAYS_IN_SEASON-.001;Object.assign(s.ecs.personable[player],{age: 102,lifeYears: 102 / 8});
   const sim=createSimulation(s);await sim.step(10*(60), 0);if(sim.pending)await sim.pending;
   expect(s.ecs.personable[player]).toMatchObject({dead:true,deathCause:"old age",heirId:heir});
   expect(s.ui.playerId).toBe(heir);expect(s.ecs.controllable[house].controllerId).toBe(heir);

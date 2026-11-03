@@ -24,7 +24,7 @@ it("settles player road death once without overwriting the advanced departed com
   s.ecs.playable[a].arrivedAt = s.days;
   s.ecs.kinship[a].spouse = b; s.ecs.kinship[b].spouse = a;
   s.ecs.controllable[house].controllerId = a;
-  Object.assign(s.ecs.personable[a], { age: 87, lifeYears: 36.75 });
+  Object.assign(s.ecs.personable[a], { age: 102, lifeYears: 102 / 8 });
   const ring = createPossession(s, a, "Dynasty ring");
   const [cargo] = newEntities(s, [{ spatial: { ...s.ecs.spatial[a] }, good: { type: "wood", amount: 1 }, haulable: {}, controllable: { controllerId: a } }]);
   give(s.ecs, cargo, a);
@@ -96,7 +96,7 @@ it("offscreen old age uses the live death rule and settles the estate", () => {
   const { s, ids: [, actor, heir] } = community();
   delete s.travel;
   s.days=DAYS_IN_SEASON-.001;
-  Object.assign(s.ecs.personable[actor],{age:88,lifeYears:37.25});
+  Object.assign(s.ecs.personable[actor],{age: 102,lifeYears: 102 / 8});
   s.ecs.kinship[actor].spouse = heir; s.ecs.kinship[heir].spouse = actor;
   const item = createPossession(s, actor, "Hungry householder's ring");
   const live = structuredClone(s); live.ecs.planner = {};

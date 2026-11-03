@@ -79,7 +79,7 @@ it("grows a child in two game years and keeps inherited traits and reciprocal ki
   const child = birth(s, a, b, 0);
   expect(s.ecs.personable[child].age).toBe(0);
   for (let season = 0; season < 8; season++) advanceSeason(s, season);
-  expect(s.ecs.personable[child].age).toBeGreaterThanOrEqual(18);
+  expect(s.ecs.personable[child].age).toBe(16);
   expect(s.ecs.personable[child].size).toBe(20);
   expect(s.ecs.kinship[a].children).toContain(child);
   expect(s.ecs.kinship[child].parents).toEqual([a, b]);
@@ -169,7 +169,7 @@ it("lets grown children leave crowded households for empty village homes", () =>
 
 it('keeps a claimed dying worker snapshot pure while releasing only their copied crop claims', () => {
   const { state: s, person, player, tiles } = require('./support/people').peopleWorld();
-  s.ecs.personable[person].age = 88;
+  s.ecs.personable[person].age = 102;
   s.ecs.farmable = { [tiles[5]]: { id: tiles[5], claimerId: player, slots: [{ state: 'harvestable', workerId: person }, { state: 'ploughed', workerId: player }] } };
   s.ecs.planner[person].world.helpingFriend = { kind: 'field', targetId: tiles[5], idx: 0 };
   const before = JSON.stringify(s);

@@ -1,3 +1,4 @@
+import { HISTORY_SEASONS } from "game/time";
 import { isAdult } from "game/life_stages";
 import { TIMBER, FOODS, amountOf } from "game/goods";
 import { setTileElevation } from "game/biome_field";
@@ -127,7 +128,7 @@ export function reserveFoundingFields(s) {
   const sites=Object.values(s.settlement.sites).flat(),now=s.days;
   for(const site of sites)site.navigationLinks ||= {...s.ecs.walkable[at(s,site.point)].neighbours};
   for(const site of sites)for(const side of ALL_SIDES)if(side!=site.entrance)removeBidirectionalLink(s.ecs,at(s,site.point),side);
-  s.days=-181*DAYS_IN_SEASON;
+  s.days=(-HISTORY_SEASONS - 1)*DAYS_IN_SEASON;
   try {
     for(const site of sites)site.yard=reserveSiteYard(s,site,sites);
     for(const site of [...sites]) {

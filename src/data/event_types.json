@@ -808,7 +808,7 @@
         {
           "teller": "participant",
           "listener": "outsider",
-          "chancePerSeason": 0.01,
+          "chancePerSeason": 0.03940399,
           "when": {
             "all": [
               {
@@ -1195,7 +1195,7 @@
         {
           "teller": "participant",
           "listener": "outsider",
-          "chancePerSeason": 0.01,
+          "chancePerSeason": 0.03940399,
           "when": {
             "all": [
               {

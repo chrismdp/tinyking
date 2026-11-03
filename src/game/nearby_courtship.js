@@ -7,7 +7,7 @@ import { bindNewsContext } from "game/event_knowledge";
 import { withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { withRelationshipIndex } from "game/people";
 import { withEventIndex } from "game/events";
-import { SOCIAL_RATES, canCourt, chatTogether, courtTogether, courtshipPreference, withSocialIndex } from "game/social";
+import { canCourt, chatTogether, courtTogether, courtshipPreference, withSocialIndex } from "game/social";
 import { relatedPeople } from "game/social_kin";
 import { moveMarriageResidents, publishCommunity } from "game/travel";
 

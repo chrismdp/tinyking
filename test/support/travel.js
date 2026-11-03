@@ -116,7 +116,7 @@ export function community({
     },
     personable: {
       age: 25,
-      lifeYears: 5.5,
+      lifeYears: 25 / 8,
       hunger: .2,
       tiredness: .2
     },

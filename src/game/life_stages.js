@@ -20,4 +20,4 @@ export const canFatherChild = age => isAdult(age) && age < LIFE_STAGES.old.from;
 export const canSeekPartner = canFatherChild;
 export const canHelpAtHome = age => age >= LIFE_STAGES.teenager.from;
 export const personSize = age => isDependent(age) ? 12 : 20;
-export const oldAgeDeathChance = age => age < LIFE_STAGES.old.from ? 0 : Math.min(1, .02 * 2 ** ((age - LIFE_STAGES.old.from) / LIFE_STAGES.teenager.from));
+export const oldAgeDeathChance = age => age < LIFE_STAGES.old.from ? 0 : Math.min(1, .02 * 2 ** ((age - LIFE_STAGES.old.from) / LIFE_YEARS_PER_GAME_YEAR));

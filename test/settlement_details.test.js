@@ -1,3 +1,4 @@
+import { HISTORY_SEASONS, HISTORY_YEARS, DAYS_IN_SEASON } from "game/time";
 import { historicalDate, centreHousehold } from "game/settlement_details";
 import { biography } from "game/biography";
 import { eventSentence } from "game/events";
@@ -9,7 +10,7 @@ it("shows the actual inherited centre household without disclosing an unknown pe
   expect(centreHousehold(s,"v")).toEqual({houseId:"house",ownerId:"heir",name:"an unknown person"});
   s.ecs.relationships.p.known.heir={};
   expect(centreHousehold(s,"v").name).toBe("Martha");
-  expect(historicalDate(-180*7)).toBe("Spring, year -44");
+  expect(historicalDate(-HISTORY_SEASONS*DAYS_IN_SEASON)).toBe("Spring, year " + (1-HISTORY_YEARS));
 });
 
 it("only puts learned construction events in a biography and reports their real date", () => {

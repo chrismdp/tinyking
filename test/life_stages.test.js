@@ -1,3 +1,4 @@
+/* global it, expect */
 import { lifeStage, isAdult, isDependent, canBearChild, canFatherChild, canHelpAtHome, personSize, oldAgeDeathChance } from "game/life_stages";
 import { advanceSeason, eligiblePartner, canHaveChild, SOCIAL_RATES } from "game/social";
 import { playerOrderAllowed } from "game/manager";
@@ -97,4 +98,18 @@ it.each([7,8,16,24,40,56])("passes the stage label into player-facing conversati
   const {state:s,person}=peopleWorld();s.ecs.personable[person].age=age;
   expect(personFact(s,person).life_stage).toBe(lifeStage(age).label);
   expect(personFact(s,person).age_words).toBeUndefined();
+});
+
+it("allows another birth next season on the compressed life clock", () => {
+  const {state:s,person:a,sibling:b}=peopleWorld();
+  s.ecs.kinship[a].parents=[];s.ecs.kinship[b].parents=[];
+  s.ecs.kinship[a].spouse=b;s.ecs.kinship[b].spouse=a;
+  s.ecs.nameable[b].male=true;
+  s.ecs.personable[a].lastBirth=s.ecs.personable[b].lastBirth=-1;
+  const old=SOCIAL_RATES.birthPerSeason;
+  try {
+    SOCIAL_RATES.birthPerSeason=5;
+    advanceSeason(s,0);
+    expect((s.events||[]).filter(e=>e.type=="birth")).toHaveLength(1);
+  } finally {SOCIAL_RATES.birthPerSeason=old;}
 });

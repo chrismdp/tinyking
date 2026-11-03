@@ -1,3 +1,4 @@
+import { HISTORY_SEASONS } from "game/time";
 import { Hex } from "game/hex";
 import { reserveFoundingFields, prepareSettlementSeason } from "game/settlement";
 import { DAYS_IN_SEASON } from "game/time";
@@ -17,7 +18,7 @@ export function foundingVillage(seed = 13, { twoVillages = false, firstSeason = 
   s.ecs.container ||= {};
   s.ecs.household ||= {};
   s.map.entrances = {};
-  s.settlement = { version: 1, preparedSeason: -181, lastSeason: -181,
+  s.settlement = { version: 1, preparedSeason: (-HISTORY_SEASONS - 1), lastSeason: (-HISTORY_SEASONS - 1),
     sites: Object.fromEntries(Object.entries(namedLayouts).map(([id, points]) => [id, points.map(([x, y], i) => ({
       point: Hex(x, y).toPoint(), entrance: 1, establishSeason: firstSeason + i
     }))])), journeys: [], appliedJourneys: {} };

@@ -46,7 +46,7 @@ it("finds a distant unrelated adult when every local adult is kin; consent and k
   s.ecs.relationships[b].known[a].ring = "personal";
   expect(marry(s, a, b)).toBe(false);
   s.ecs.relationships[b].known[a].ring = "intimate";
-  s.ecs.personable[b].age = 17; expect(canCourt(s, a, b)).toBe(false);
+  s.ecs.personable[b].age = 15; expect(canCourt(s, a, b)).toBe(false);
   s.ecs.personable[b].age = 24; s.ecs.kinship[b].spouse = kin;
   expect(canCourt(s, a, b)).toBe(false);
   expect(canCourt(s, a, player)).toBe(false);

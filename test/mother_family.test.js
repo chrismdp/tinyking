@@ -117,3 +117,11 @@ it("speaks an on-topic named search answer and learns a lead without revealing t
   expect(s.knowledge[player].familyWhereabouts[sibling].villageId).toBe("village");
   expect(s.ecs.playable[player].known).toEqual(known);expect(s.knowledge[player].people[sibling].nameOnly).toBe(true);
 });
+
+it("dates the stranger's birth with the shared two-life-years-per-season clock",()=>{
+  const {state:s,player}=setup();
+  const born=s.events.find(e=>e.type=="birth"&&e.people[0]==player);
+  expect(-born.day/7*2).toBe(s.ecs.personable[player].age);
+  const mother=s.peopleDirectory[s.backstories[player].motherId].personable;
+  expect(mother.age-s.ecs.personable[player].age).toBe(16);
+});

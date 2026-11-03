@@ -1,7 +1,0 @@
-
-Test Suites: 2 passed, 2 total
-Tests:       37 passed, 37 total
-Snapshots:   0 total
-Time:        5.199 s, estimated 37 s
-Ran all test suites within paths "test/nearby_courtship.test.js", "test/scoped_news.test.js".
-Test results written to: shots/history-cpu-news-tests.json

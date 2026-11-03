@@ -1,7 +1,0 @@
-
-Test Suites: 4 passed, 4 total
-Tests:       71 passed, 71 total
-Snapshots:   0 total
-Time:        5.957 s, estimated 6 s
-Ran all test suites within paths "test/courtship_contact.test.js", "test/nearby_courtship.test.js", "test/social.test.js", "test/social_mobility.test.js".
-Test results written to: shots/history-cpu-family-window-green3.json

@@ -1,7 +1,0 @@
-
-Test Suites: 7 passed, 7 total
-Tests:       107 passed, 107 total
-Snapshots:   0 total
-Time:        2.81 s, estimated 3 s
-Ran all test suites within paths "test/scoped_discovery.test.js", "test/secret_activities.test.js", "test/scoped_news.test.js", "test/social_events.test.js", "test/local_queries.test.js", "test/chat_tell.test.js", "test/gossip.test.js".
-Test results written to: shots/merge-carried-green.json

@@ -1,7 +1,0 @@
-
-/home/cp/code/tinyking-world/test/nearby_courtship.test.js
-  108:28  error  'require' is not defined  no-undef
-  342:28  error  'require' is not defined  no-undef
-
-✖ 2 problems (2 errors, 0 warnings)
-

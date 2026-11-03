@@ -46,7 +46,7 @@ it("finds a distant unrelated adult when every local adult is kin; consent and k
   intimate(s, a, kin); intimate(s, a, parent); intimate(s, a, b);
   expect(canCourt(s, a, b)).toBe(true);
   expect(canCourt(s, a, kin)).toBe(false); expect(canCourt(s, a, parent)).toBe(false);
-  s.ecs.relationships[b].known[a].ring = "personal";
+  s.ecs.relationships[b].known[a].ring = "social";
   expect(marry(s, a, b)).toBe(false);
   s.ecs.relationships[b].known[a].ring = "intimate";
   s.ecs.personable[b].age = 15; expect(canCourt(s, a, b)).toBe(false);
@@ -79,7 +79,8 @@ it("walks to a real friend in another community, chats there and walks home", ()
 });
 
 it("does not travel across disconnected terrain or start visits over food, sleep or work", () => {
-  const { state: s, a, b, tiles } = communities();
+  const { state: s, a, b, tiles, parent, kin } = communities();
+  for(const id of [parent,kin])s.ecs.planner[id].world.currentJob="work";
   s.days = 18 / 24; intimate(s, a, b);
   for (const key of ["hungry", "tired"]) {
     s.ecs.planner[a].world.feeling[key] = true; socialHour(s);
@@ -309,7 +310,7 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
   expect(wedding.day).toBeLessThanOrEqual(quietUntil + 2*DAYS_IN_SEASON);
 });
 
-it("requires fresh contact to marry and clears courtship progress when mutual intimacy ends", () => {
+it("requires fresh contact to marry and clears courtship progress when mutual Personal consent ends", () => {
   const { state: s, a, b } = communities();
   intimate(s, a, b);
   const key = [a, b].sort().join(":");
@@ -317,7 +318,7 @@ it("requires fresh contact to marry and clears courtship progress when mutual in
   s.days = 3*DAYS_IN_SEASON; advanceSeason(s, 3);
   expect(s.social.courtships[key]).toBe(0);
   expect(s.ecs.kinship[a].spouse).toBeNull();
-  s.ecs.relationships[b].known[a].ring = "personal";
+  s.ecs.relationships[b].known[a].ring = "social";
   s.social.contacts[key] = 4*DAYS_IN_SEASON; s.days = 4*DAYS_IN_SEASON; advanceSeason(s, 4);
   expect(s.social.courtships[key]).toBeUndefined();
   expect(s.ecs.kinship[a].spouse).toBeNull();

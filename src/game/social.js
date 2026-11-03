@@ -20,7 +20,7 @@ import { entityId, isResident } from "game/residents";
 import { Hex } from "game/hex";
 // No map, renderer, DOM or pathfinding imports: also runs on an unvisited world hex.
 import MersenneTwister from "mersenne-twister";
-import { addGoodwill, disposition, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift, peopleInRings, withRelationshipIndex } from "game/people";
+import { addGoodwill, disposition, goodwillTowards, generatePersonality, meet, TRAIT_PAIRS, copyRelationshipList, drift, peopleInRings, withRelationshipIndex } from "game/people";
 import { hashUnit } from "game/math";
 import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
@@ -29,6 +29,7 @@ export const SOCIAL_RATES = {
   birthCooldownSeasons: 1,
   travellerShare: 0.05,
   courtshipSeasons: lifeClockSeasons(2),
+  practicalCourtshipSeasons: 1,
   recentContactSeasons: lifeClockSeasons(1)
 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
@@ -93,6 +94,9 @@ export function eligiblePartner(s, a, b, deliberate = false) {
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
+const willing = (s,a,b) => disposition(s,a,b)!="hate" && disposition(s,b,a)!="hate" && goodwillTowards(s,a,b)>=0 && goodwillTowards(s,b,a)>=0;
+export const attractionRank = (s,a,b) => mutuallyOriented(s,a,b) && willing(s,a,b) ? mutualAttraction(s,a,b)?2:1 : 0;
+export const partnerInterest = (s,a,b) => eligiblePartner(s,a,b) ? attractionRank(s,a,b) : 0;
 export function courtshipPreference(s, a, b, proximity = 1) {
   const ageGap = Math.abs(s.ecs.personable[a].age - s.ecs.personable[b].age);
   return proximity * (1 + Math.max(0, s.ecs.relationships[a].known[b]?.goodwill || 0) / 12) / (1 + ageGap / 5) ** 2;
@@ -102,13 +106,16 @@ export function compareSocial(s, a, b, c, newsScores=new Map()) {
     if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
     return newsScores.get(id);
   };
-  const romanticB = romanticInterest(s, a, b), romanticC = romanticInterest(s, a, c);
+  const romanticB = partnerInterest(s, a, b), romanticC = partnerInterest(s, a, c);
   const value = id => romanticB && romanticC ? courtshipPreference(s, a, id, s.ecs.village[a]?.villageId === s.ecs.village[id]?.villageId ? 1 : .35) : s.ecs.relationships[a].known[id]?.goodwill || 0;
   return Number(romanticC) - Number(romanticB) || value(c) - value(b) || score(c)-score(b);
 }
 export function canCourt(s, a, b, deliberate = false) {
-  return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b, deliberate) && mutuallyOriented(s, a, b);
+  return eligiblePartner(s,a,b,deliberate) && mutuallyOriented(s,a,b) && willing(s,a,b) &&
+    ["personal","intimate"].includes(s.ecs.relationships?.[a]?.known[b]?.ring) && ["personal","intimate"].includes(s.ecs.relationships?.[b]?.known[a]?.ring);
 }
+const loveMatch = (s,a,b) => mutualAttraction(s,a,b) && [a,b].every((id,i)=>s.ecs.relationships[id].known[[b,a][i]]?.ring=="intimate");
+const courtshipWait = (s,a,b) => loveMatch(s,a,b) ? SOCIAL_RATES.courtshipSeasons : SOCIAL_RATES.practicalCourtshipSeasons;
 
 // Empty does not mean ownerless: an inherited estate may have an absentee owner.
 export function availableHouse(s, houseId, people = []) {
@@ -290,6 +297,7 @@ export function marry(s, a, b, summary = false, deliberate = false) {
   const fromVillages = [s.ecs.village[a]?.villageId, s.ecs.village[b]?.villageId];
   for (const id of [a, b, ...dependents]) moveHouse(s, id, house, summary);
   recordEvent(s, "marriage", [a, b], [], {
+    kind: loveMatch(s,a,b) ? "love" : "practical",
     fromVillages,
     houseId: house
   });
@@ -462,7 +470,7 @@ function settleAdults(s, summary) {
 function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
   const used = new Set();
   for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON)) {
+    for (const b of peopleInRings(s, a, ["personal","intimate"]).sort((b,c)=>Number(loveMatch(s,a,c))-Number(loveMatch(s,a,b)))) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON)) {
       if (courtTogether(s, a, b, season, summary)) {
         used.add(a);
         used.add(b);
@@ -477,7 +485,7 @@ export function courtTogether(s, a, b, season, summary = false) {
   if((s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-SOCIAL_RATES.recentContactSeasons*DAYS_IN_SEASON))return false;
   const started = s.social.courtships[key] ?? season;
   s.social.courtships[key] = started;
-  return season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary);
+  return season - started >= courtshipWait(s,a,b) && marry(s, a, b, summary);
 }
 
 // Hourly contact can arrive just after a seasonal wedding check. Retry only
@@ -485,8 +493,8 @@ export function courtTogether(s, a, b, season, summary = false) {
 export function retryCourtships(s) {
   const season = s.days / DAYS_IN_SEASON;
   for (const [key, started] of Object.entries(s.social?.courtships || {})) {
-    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON) continue;
     const [a,b] = key.split(":");
+    if (season - started < courtshipWait(s,a,b) || (s.social.contacts?.[key] ?? -Infinity) < s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON) continue;
     marry(s,a,b);
   }
 }
@@ -566,7 +574,7 @@ function advanceSeasonRules(s, season, summary) {
         const avoided = avoiding.get(a);
         let b,
           best = -Infinity,
-          bestInterest = false;
+          bestInterest = 0;
         for (const pool of seekingPartner ? [localOrFriend, singles] : [localOrFriend]) for (const id of pool) {
           const local = localOrFriend.has(id);
           if (pool == singles && local) continue;
@@ -574,9 +582,9 @@ function advanceSeasonRules(s, season, summary) {
           if (avoided?.has(id)) continue;
           const seeking = seekingPartner && singles.has(id) && !related(s, a, id);
           if (!local && !seeking) continue;
-          const interest = seeking && mutualAttraction(s, a, id),
+          const interest = seeking ? partnerInterest(s,a,id) : 0,
             score = interest ? courtshipPreference(s, a, id, ecs.village[a]?.villageId === ecs.village[id]?.villageId ? 1 : .35) : known[id]?.goodwill || 0;
-          if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
+          if (interest > bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
             b = id;
             best = score;
             bestInterest = interest;

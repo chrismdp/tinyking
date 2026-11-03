@@ -8,7 +8,7 @@ import { bindNewsContext } from "game/event_knowledge";
 import { withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { withRelationshipIndex } from "game/people";
 import { withEventIndex } from "game/events";
-import { canCourt, chatTogether, courtTogether, courtshipPreference, withSocialIndex } from "game/social";
+import { canCourt, chatTogether, courtTogether, courtshipPreference, attractionRank, withSocialIndex } from "game/social";
 import { relatedPeople } from "game/social_kin";
 import { moveMarriageResidents, publishCommunity } from "game/travel";
 
@@ -70,11 +70,12 @@ export function availableCourtshipCandidates(index, key, id, paired) {
 // A seeded weighted race favours nearby people. Existing closeness strengthens
 // the preference; the caller changes the seed each season to explore strangers.
 export function chooseCourtshipCandidate(candidates, id, seed) {
-  let choice, best = Infinity;
+  let choice, best = Infinity, bestInterest = -1;
   for (const candidate of candidates) {
+    const interest=attractionRank(candidate.map,id,candidate.id);
     const score = -Math.log(Math.max(Number.EPSILON, hashUnit(seed + ":nearby-partner:" + id + ":" + candidate.id))) /
       courtshipPreference(candidate.map, id, candidate.id, candidate.weight);
-    if (score < best) { choice = candidate; best = score; }
+    if (interest > bestInterest || interest == bestInterest && score < best) { choice = candidate; best = score; bestInterest=interest; }
   }
   return choice;
 }

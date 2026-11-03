@@ -251,12 +251,12 @@ it("uses the other family's available house and records the wedding in that hous
   expect(view.events.find(e => e.type === "marriage").hexKey).toBe("6,5");
 });
 
-it("restarts the life-year wait if mutual Intimate feelings were lost between meetings", () => {
+it("restarts the wait if mutual Personal consent was lost between meetings", () => {
   const { s, home, away } = neighbourhood(), a = home.ids[0], b = away.ids[0];
   for (const map of Object.values(s.travel.maps)) for (const id of Object.keys(map.residents)) if (![a, b].includes(id)) map.ecs.personable[id].age = 10;
   for (const [from, to] of [[a, b], [b, a]]) s.travel.people[from].relationships.known[to] = { ring: "intimate", goodwill: 80 };
   s.days = 7; runNearbyCourtships(s, 1);
-  s.travel.people[b].relationships.known[a] = { ring: "personal", goodwill: 59 };
+  s.travel.people[b].relationships.known[a] = { ring: "social", goodwill: 29 };
   s.days = 14; runNearbyCourtships(s, 2);
   expect(s.travel.people[a].kinship.spouse).toBeNull();
   s.days = 21; runNearbyCourtships(s, 3);

@@ -10,15 +10,14 @@ import { closeFamily, recordEvent } from "game/events";
 export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
 export function marriageTasteReason(s,a,b) {
   if (!mutuallyOriented(s,a,b)) return "You are not romantically compatible with each other.";
-  if (relationshipCap(s,b,a) < 3) return "Their fixed tastes prevent an Intimate relationship with you. Marriage is impossible.";
-  if (relationshipCap(s,a,b) < 3) return "Your fixed tastes prevent an Intimate relationship with them. Marriage is impossible.";
+  if (relationshipCap(s,b,a) < 2 || relationshipCap(s,a,b) < 2) return "One of you dislikes the other. Marriage needs willing partners.";
   return null;
 }
 export function marriageReason(s,a,b) {
   if (!eligiblePartner(s,a,b,true)) return "Marriage needs living unmarried adults who are not close kin.";
   const taste = marriageTasteReason(s,a,b);
   if (taste) return taste;
-  if (!canMarryPlayer(s,a,b)) return "Marriage needs both of you to consider each other a closest friend.";
+  if (!canMarryPlayer(s,a,b)) return "Marriage needs mutual Personal regard and no ill will.";
   return null;
 }
 export function familyConversation(s,a,b,key) {

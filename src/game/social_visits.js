@@ -7,7 +7,7 @@ import { inviteToFire } from "game/campfire_visits";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
-import { advanceSeason, retryCourtships, eligiblePartner, romanticInterest, compareSocial } from "game/social";
+import { advanceSeason, retryCourtships, eligiblePartner, partnerInterest, compareSocial } from "game/social";
 
 const navAt = (s, p) => p && (s.space[Hex().fromPoint(p)] || []).find(id => s.ecs.walkable[id]);
 const idle = (p, child) => p && !p.world.ordered && !p.world.capturedBy && !p.world.feeling.hungry && !p.world.feeling.tired &&
@@ -42,7 +42,7 @@ export function socialHour(s) {
   const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], isDependent(s.ecs.personable[id].age)));
   startChildPlay(s, ids, hour);
   const adults = ids.filter(id => isAdult(s.ecs.personable[id].age) && !s.ecs.planner[id].world.social);
-  const seekers = new Set(adults.filter(a => adults.some(b => romanticInterest(s, a, b))));
+  const seekers = new Set(adults.filter(a => adults.some(b => partnerInterest(s, a, b))));
   adults.sort((a, b) => Number(seekers.has(b)) - Number(seekers.has(a)));
   const used = new Set();
   // Allow a wish to meet a partner, or an existing relationship, to motivate travel.

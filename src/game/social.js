@@ -420,6 +420,7 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
       beginSocialSpeech(s,speaker,listener,line&&eventById(s,line.eventId));
     }
   }
+  if(!summary && canCourt(s,a,b))courtTogether(s,a,b,Math.floor(s.days/DAYS_IN_SEASON));
   return true;
 }
 
@@ -464,22 +465,35 @@ function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summa
   }
 }
 
+function clearCourtship(s,key) {
+  delete s.social.courtships[key];
+  delete s.social.courtshipContacts?.[key];
+}
 export function courtTogether(s, a, b, season, summary = false) {
   const key = [a, b].sort().join(":");
-  if (!canCourt(s, a, b)) { delete s.social.courtships[key]; return false; }
+  if (!canCourt(s, a, b)) { clearCourtship(s,key); return false; }
+  const contact=s.social.contacts?.[key] ?? -Infinity;
+  if(contact < (summary ? s.days : s.days-DAYS_IN_SEASON))return false;
   const started = s.social.courtships[key] ?? season;
   s.social.courtships[key] = started;
-  return season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary);
+  // Time apart retains closeness, but cannot stand in for actually courting.
+  // Six chats in one summary visit still count as just one meeting day.
+  const meetings=s.social.courtshipContacts ||= {}, contactDay=Math.floor(contact);
+  const progress=meetings[key] ||= {count:0,day:null};
+  if(progress.day!==contactDay){progress.count++;progress.day=contactDay;}
+  if(season-started < SOCIAL_RATES.courtshipSeasons || progress.count <= SOCIAL_RATES.courtshipSeasons)return false;
+  if(!marry(s,a,b,summary))return false;
+  clearCourtship(s,key);
+  return true;
 }
 
-// Hourly contact can arrive just after a seasonal wedding check. Retry only
-// existing courtships so their original seasonal start and delay stay intact.
+// Hourly contact can supply the next actual seasonal courtship meeting. The
+// same entry point owns contact validation, progress and the proposal delay.
 export function retryCourtships(s) {
   const season = Math.floor(s.days / DAYS_IN_SEASON);
-  for (const [key, started] of Object.entries(s.social?.courtships || {})) {
-    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - DAYS_IN_SEASON) continue;
+  for (const key of Object.keys(s.social?.courtships || {})) {
     const [a,b] = key.split(":");
-    marry(s,a,b);
+    courtTogether(s,a,b,season);
   }
 }
 
@@ -505,7 +519,7 @@ function advanceSeasonRules(s, season, summary) {
     // a recent real conversation is still required before a live wedding.
     // A neighbouring courtship is checked at the shared world boundary, where
     // both actual communities are present. A local season must keep its time.
-    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) delete s.social.courtships[key];
+    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) clearCourtship(s,key);
   }
   for (const id of ids) {
     const p = ecs.personable[id];

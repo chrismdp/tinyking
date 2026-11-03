@@ -109,7 +109,9 @@ export function runNearbyCourtships(s, season) {
     const [a, b] = pair.split(":"), left = index.people.get(a), right = index.people.get(b);
     if (left?.key === right?.key && left) continue;
     const nearby = left && right && courtshipCandidates(index, left.key, a).some(c => c.id === b);
-    if (!nearby || !canCourt(identityQuery(left.map, [a, b]), a, b)) delete map.social.courtships[pair];
+    if (!nearby || !canCourt(identityQuery(left.map, [a, b]), a, b)) {
+      delete map.social.courtships[pair];delete map.social.courtshipContacts?.[pair];
+    }
   }
   const order = [...index.people.values()].map(person => ({ ...person, order: hashUnit(j.seed + ":nearby-order:" + season + ":" + person.id) })).sort((a, b) => a.order - b.order);
   for (const seeker of order) {
@@ -123,6 +125,8 @@ export function runNearbyCourtships(s, season) {
     paired.add(a); paired.add(b);
     view.days = s.days;
     const pair = [a, b].sort().join(":");
+    const progress = right.social.courtshipContacts?.[pair], current = left.social.courtshipContacts?.[pair];
+    if(progress && (!current || progress.day > current.day))(left.social.courtshipContacts ||= {})[pair]=progress;
     const started = right.social.courtships[pair];
     if (started != null) left.social.courtships[pair] = Math.min(left.social.courtships[pair] ?? started, started);
     const avoidance = [left.social.avoidance?.[pair], right.social.avoidance?.[pair]].filter(until => until != null);
@@ -132,6 +136,8 @@ export function runNearbyCourtships(s, season) {
     }))));
     if (view.social.courtships[pair] != null) right.social.courtships[pair] = view.social.courtships[pair];
     else delete right.social.courtships[pair];
+    if (left.social.courtshipContacts?.[pair]) (right.social.courtshipContacts ||= {})[pair]=left.social.courtshipContacts[pair];
+    else delete right.social.courtshipContacts?.[pair];
     if (left.social.avoidance[pair] != null) right.social.avoidance[pair] = left.social.avoidance[pair];
     else delete right.social.avoidance[pair];
     if (left.social.contacts?.[pair] != null) (right.social.contacts ||= {})[pair] = left.social.contacts[pair];

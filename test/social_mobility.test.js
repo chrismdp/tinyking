@@ -320,7 +320,7 @@ it("marries a mature mutual Intimate couple after fresh contact between seasonal
   intimate(s,a,b);
   const key=[a,b].sort().join(':');
   s.days=3*DAYS_IN_SEASON+.5;
-  s.social={lastSeason:3,courtships:{[key]:0},contacts:{[key]:s.days},avoidance:{}};
+  s.social={lastSeason:3,courtships:{[key]:0},courtshipContacts:{[key]:{count:2,day:7}},contacts:{[key]:s.days},avoidance:{}};
   socialHour(s);
   expect(s.ecs.kinship[a].spouse).toBe(b);
   expect(s.events.find(e=>e.type=='marriage'&&e.people.includes(a)&&e.people.includes(b))).toBeDefined();

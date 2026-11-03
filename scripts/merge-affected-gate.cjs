@@ -3,9 +3,9 @@
 const fs=require("fs"),{execFileSync,spawnSync}=require("child_process");
 // Reuse the maintained selector; give its outputs this delivery's own names.
 const source=fs.readFileSync("scripts/history-cpu-gate.cjs","utf8")
-  .replace('const base="76bdf9411e611834fb1fe36461ab25e6a43224c6";', 'const base="83a79ed";')
+  .replace("const base=\"76bdf9411e611834fb1fe36461ab25e6a43224c6\";", "const base=\"83a79ed\";")
   .replaceAll("history-cpu-affected", "one-world-merge-affected")
-  .replace('"/tmp/27agents-gate-2.lock"', '"/tmp/27agents-gate.lock"');
+  .replace("\"/tmp/27agents-gate-2.lock\"", "\"/tmp/27agents-gate.lock\"");
 const target="shots/merge-gate-runner.cjs";
 fs.writeFileSync(target,source);
 const result=spawnSync(process.execPath,[target,...process.argv.slice(2)],{stdio:"inherit"});

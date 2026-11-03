@@ -7,6 +7,7 @@
 const fs = require("fs"), path = require("path"), os = require("os"), assert = require("assert/strict");
 const { chromium } = require("playwright-core");
 const [label, device = "desktop", url = "http://127.0.0.1:8194"] = process.argv.slice(2);
+const liveOnly = process.argv.includes("--live-only");
 assert(label, "usage: step8-measure.cjs LABEL desktop|mobile [URL]");
 const out = path.resolve(".cache/step8", label + "-" + device);
 fs.mkdirSync(path.join(out, "tmp"), { recursive: true });
@@ -79,7 +80,7 @@ async function workerSession(browser) {
     });
   }, 100);
   await page.addInitScript(() => {
-    const t = window.step8 = { events: [], frames: [], ticks: [], renders: [], saves: [], progress: [], recording: false, heldHistory: false };
+    const t = window.step8 = { events: [], frames: [], ticks: [], renders: [], visits: [], saves: [], progress: [], recording: false, heldHistory: false };
     const event = (name, extra = {}) => t.events.push({ name, time: performance.now(), ...extra });
     t.state = () => {
       const el = document.querySelector("#game");
@@ -149,6 +150,16 @@ async function workerSession(browser) {
           return add(frameMod => {
             const at = performance.now(), flushed = t.flushMilliseconds;
             const result = listener(frameMod);
+            if (t.recording && n === 2) {
+              t.seenVisits ||= new WeakSet();
+              for (const [id, p] of Object.entries(s.ecs.planner || {})) {
+                const visit = p.world.social;
+                if (!visit || t.seenVisits.has(visit)) continue;
+                t.seenVisits.add(visit);
+                if (visit.kind === "play" ? id < visit.partnerId : visit.visitor)
+                  t.visits.push({ hour: Math.floor(s.days * 24 + 1e-7), kind: visit.kind || "visit", actor: id, partner: visit.partnerId });
+              }
+            }
             if (t.recording && (n === 2 || n === 3)) (n === 2 ? t.ticks : t.renders).push(Math.max(0, performance.now() - at - (n === 2 ? t.flushMilliseconds - flushed : 0)));
             return result;
           });
@@ -188,8 +199,13 @@ async function workerSession(browser) {
       await profileStart();
       await page.waitForTimeout(31000);
       await profileStop("live");
-      report.live = await page.evaluate(() => { step8.recording = false; return { ms: performance.now() - step8.liveStart, frames: step8.frames, ticks: step8.ticks, renders: step8.renders, day: step8.state().days }; });
+      report.live = await page.evaluate(() => { step8.recording = false; return { ms: performance.now() - step8.liveStart, frames: step8.frames, ticks: step8.ticks, renders: step8.renders, visits: step8.visits, day: step8.state().days }; });
       report.frames = stats(report.live.frames); report.ticks = stats(report.live.ticks); report.renders = stats(report.live.renders);
+    }
+    if (liveOnly) {
+      assert.deepEqual(report.errors, []);
+      report.pass = true;
+      return;
     }
     // First full checkpoint has no saved hex pointers; request bypasses only the
     // intentional 30s autosave delay. It uses the real persistence/worker path.

@@ -54,17 +54,17 @@ it.each([[15,false,false],[16,true,true],[39,true,true],[40,false,true],[55,fals
   expect(canHaveChild(s,b,a)).toBe(mother);
 });
 
-it("retains births for two men, and lets an eligible woman be the mother in a two-woman couple", () => {
+it("refuses births for same-sex couples throughout the parenting windows", () => {
   const {state:s,person:a,sibling:b}=peopleWorld();
   s.ecs.kinship[a].parents=[];s.ecs.kinship[b].parents=[];
   s.ecs.nameable[a].male=s.ecs.nameable[b].male=true;
   s.ecs.personable[a].age=55;
-  expect(canHaveChild(s,a,b)).toBe(true);
+  expect(canHaveChild(s,a,b)).toBe(false);
   s.ecs.personable[a].age=56;
   expect(canHaveChild(s,a,b)).toBe(false);
   s.ecs.nameable[a].male=s.ecs.nameable[b].male=false;
   s.ecs.personable[a].age=40;s.ecs.personable[b].age=39;
-  expect(canHaveChild(s,a,b)).toBe(true);
+  expect(canHaveChild(s,a,b)).toBe(false);
   s.ecs.personable[b].age=40;
   expect(canHaveChild(s,a,b)).toBe(false);
 });
@@ -124,6 +124,7 @@ it.each([[4,true],[6,false]])("keeps birth room for eight household members (%i 
   s.ecs.personable[parent].dead=true;
   s.ecs.kinship[a].parents=[];s.ecs.kinship[b].parents=[];
   s.ecs.kinship[a].spouse=b;s.ecs.kinship[b].spouse=a;
+  s.ecs.nameable[b].male=true;
   for(let n=0;n<children;n++)birth(s,a,b,-10-n);
   const old=SOCIAL_RATES.birthPerSeason;
   try {

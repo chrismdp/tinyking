@@ -1,5 +1,5 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
-import { isAdult, isDependent, canSeekPartner, canBearChild, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
+import { isAdult, isDependent, canSeekPartner, canParentTogether, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
 import { residentPeople, withPopulationIndex, refreshPersonIndex } from "game/population_index";
@@ -168,13 +168,9 @@ export function moveHouse(s, id, houseId, summary = false) {
   });
 }
 export function canHaveChild(s,a,b) {
-  const pair=[a,b];
-  if (!pair.every(id=>canSeekPartner(s.ecs.personable[id].age)) || s.ecs.household[a]?.houseId != s.ecs.household[b]?.houseId || related(s,a,b)) return false;
-  const women=pair.filter(id=>s.ecs.nameable[id]?.male===false);
-  // Births have always supported same-sex parents. With no woman, retain that
-  // rule; with women, at least one must be within the mother's life stages.
-  return !women.length || women.some(id=>canBearChild(s.ecs.personable[id].age));
+  return parentWindows(s,a,b) && s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId && !related(s,a,b);
 }
+const parentWindows = (s,a,b) => canParentTogether(...[a,b].map(id => ({ male: s.ecs.nameable[id]?.male, age: s.ecs.personable[id].age })));
 function coupleHouse(s, a, b, dependents = []) {
   const ecs = s.ecs,
     village = s.villages?.[ecs.village[a]?.villageId];
@@ -297,6 +293,7 @@ export function marry(s, a, b, summary = false, deliberate = false) {
   return true;
 }
 export function birth(s, a, b, season) {
+  if (!parentWindows(s,a,b)) return null;
   const ecs = s.ecs,
     generator = new MersenneTwister(Math.floor(roll(s, "child:" + a + ":" + season) * 4294967296));
   const personality = generatePersonality(generator);

@@ -16,6 +16,11 @@ export const isAdult = age => age >= LIFE_STAGES.youngAdult.from;
 export const isDependent = age => age < LIFE_STAGES.youngAdult.from;
 export const canBearChild = age => isAdult(age) && age < LIFE_STAGES.middleAged.from;
 export const canFatherChild = age => isAdult(age) && age < LIFE_STAGES.old.from;
+export function canParentTogether(a, b) {
+  const mother = a.male === false ? a : b.male === false ? b : null;
+  const father = a.male === true ? a : b.male === true ? b : null;
+  return !!mother && !!father && canBearChild(mother.age) && canFatherChild(father.age);
+}
 // Automatic courtship keeps its former upper window for either sex.
 export const canSeekPartner = canFatherChild;
 export const canHelpAtHome = age => age >= LIFE_STAGES.teenager.from;

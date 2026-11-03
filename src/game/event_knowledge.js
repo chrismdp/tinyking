@@ -159,10 +159,18 @@ export function unheardNews(s,teller,listener) {
       index.villageNews.get(villageOf(s,listener)),index.hexNews.get(personHex(s,listener))].filter(Boolean);
     const scopeLists=[...unshared.keys()].map(key=>(key.startsWith("v:")?index.villages:index.hexes).get(key.slice(2))).filter(Boolean);
     const count=lists=>lists.reduce((n,list)=>n+list.size,0);
-    const candidates=new Set((count(scopeLists)<count(relevantLists)?scopeLists:relevantLists).flatMap(list=>[...list]));
-    for(const event of candidates)if(!event.awareness.knowers.includes(teller) && knowsInScopes(teller,event,scopes))events.add(event);
+    const fromScopes=count(scopeLists)<count(relevantLists);
+    const candidates=new Set();
+    for(const list of fromScopes?scopeLists:relevantLists)for(const event of list)candidates.add(event);
+    for(const event of candidates) {
+      if(events.has(event))continue;
+      if(fromScopes && !relevantLists.some(list=>list.has(event)))continue;
+      if(!event.awareness.knowers.includes(teller) && knowsInScopes(teller,event,scopes) &&
+        relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard))events.add(event);
+    }
   }
-  return [...events].filter(event=>relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard));
+  // Every insertion already checked relevance and knowledge in this query.
+  return [...events];
 }
 export function promoteKnowledge(s,event,onLearn) {
   const a=event.awareness;if(!a)return;

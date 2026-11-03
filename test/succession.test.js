@@ -99,13 +99,16 @@ it("ages the player during live and offscreen seasons without automatic marriage
   expect(next.ecs.kinship[player].spouse).toBeNull();
 });
 
-it("allows a genuine player marriage to produce reciprocal children on actual seasons with cooldown", () => {
+it("allows a genuine player marriage to produce reciprocal children on actual seasons with a one-season cooldown", () => {
   const {state:s,player,person,step}=weddingWorld();intimate(s,player,person);enqueueTask(s,{key:"marry"},person);step(2);
   for(let season=1;season<=4 && !s.ecs.kinship[player].children.length;season++){s.days=season*DAYS_IN_SEASON;advanceSeason(s,season);}
   const children=s.ecs.kinship[player].children;expect(children.length).toBeGreaterThan(0);
   const child=children[0];expect(s.ecs.kinship[child].parents).toEqual(expect.arrayContaining([player,person]));
   expect(s.ecs.kinship[person].children).toContain(child);
-  const count=children.length;advanceSeason(s,Math.floor(s.days/DAYS_IN_SEASON)+1);expect(s.ecs.kinship[player].children).toHaveLength(count);
+  const count=children.length,nextSeason=Math.floor(s.days/DAYS_IN_SEASON)+1;
+  advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
+  expect(s.ecs.personable[player].lastBirth).toBe(nextSeason);
+  advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
 });
 
 it.each(["spouse","minor"])("continues after a shared lifecycle death as the actual %s with their own identity and estate provenance", async kind => {

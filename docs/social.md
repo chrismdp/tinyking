@@ -60,6 +60,12 @@ Existing goodwill strengthens a seeded preference. Unfamiliar choices change
 each season. The pool includes eligible people before attraction is known.
 Partner preference also favours similar ages. Old childhood bonds therefore
 compete with actual peers when a person reaches adulthood.
+Each person stores a fixed orientation in `personality.orientation`, derived
+from their personal name seed. The shares in `ORIENTATION_SHARES` are 93%
+opposite sex, 4% same sex and 3% both. Save loading fills missing orientations
+from the same seed. Romantic attraction, indexed courtship choices, deliberate
+courtship, romance and affairs require reciprocal orientation compatibility.
+Friendship, disposition and goodwill do not depend on orientation.
 Ordinary meetings
 within a hex continue through local history or live visits. Nearby courtship
 adds seasonal conversations across the boundary, without a journey or a guest

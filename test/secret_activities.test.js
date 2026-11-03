@@ -13,6 +13,7 @@ import { indexPeople, nearbyPeople } from "game/people_space";
 function fixture() {
   const f=peopleWorld(),{state:s,person:a,sibling:b,parent:spouse,player:friend,tiles}=f;
   for(const id of [a,b,spouse,friend])s.ecs.kinship[id]={parents:[],children:[],spouse:null};
+  for(const id of [a,b])s.ecs.personality[id].orientation="same";
   s.ecs.kinship[a].spouse=spouse;s.ecs.kinship[spouse].spouse=a;
   for(const [x,y] of [[a,b],[b,a],[spouse,a],[a,friend],[friend,a]])s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66};
   s.ecs.household[b].houseId=tiles[5];

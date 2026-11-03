@@ -11,6 +11,7 @@ const P=(test,args)=>({test,args});
 export function fixture() {
   const w=peopleWorld(), {state:s,person:a,sibling:b,parent:spouse,player:listener}=w;
   for(const id of [a,b,spouse,listener])s.ecs.kinship[id]={parents:[],children:[],spouse:null};
+  for(const id of [a,b])s.ecs.personality[id].orientation="same";
   s.ecs.kinship[a].spouse=spouse;s.ecs.kinship[spouse].spouse=a;
   for(const [x,y,g] of [[a,spouse,-12],[spouse,a,66],[a,b,66],[b,a,66]])s.ecs.relationships[x].known[y]={ring:g>=60?"intimate":"public",goodwill:g,base:g};
   return {...w,a,b,spouse,listener};

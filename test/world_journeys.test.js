@@ -25,6 +25,10 @@ function pairedWorld() {
       key: worldKey(neighbours(a.s.world.home)[0]),
       player: false
     });
+  for (const row of [a, b]) for (const id of row.ids) {
+    row.s.ecs.nameable[id].male = true;
+    row.s.ecs.personality[id].orientation = "same";
+  }
   // These long courtship/estate scenarios need real meals now that offscreen
   // residents obey starvation. Keep their original relationship assertions.
   for (const { s, house } of [a, b]) (s.ecs.container ||= {})[house] = {

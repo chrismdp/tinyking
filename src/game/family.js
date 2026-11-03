@@ -1,4 +1,5 @@
 import { isAdult } from "game/life_stages";
+import { mutuallyOriented } from "game/orientation";
 import { householdMembers, refreshPersonIndex } from "game/population_index";
 import { canCourt, eligiblePartner, marry, chatTogether, moveHouse } from "game/social";
 import { addGoodwill, disposition, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
@@ -8,6 +9,7 @@ import { closeFamily, recordEvent } from "game/events";
 
 export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
 export function marriageTasteReason(s,a,b) {
+  if (!mutuallyOriented(s,a,b)) return "You are not romantically compatible with each other.";
   if (relationshipCap(s,b,a) < 3) return "Their fixed tastes prevent an Intimate relationship with you. Marriage is impossible.";
   if (relationshipCap(s,a,b) < 3) return "Your fixed tastes prevent an Intimate relationship with them. Marriage is impossible.";
   return null;
@@ -34,7 +36,7 @@ export function familyConversation(s,a,b,key) {
     recordEvent(s,"household_join",[b,a],[],{houseId:house});
     return {ok:true,message:"Your friend agreed to join your household. Their belongings remain theirs."};
   }
-  const reason = key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." :
+  const reason = !mutuallyOriented(s,a,b) ? marriageTasteReason(s,a,b) : key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." :
     disposition(s,a,b) == "hate" || disposition(s,b,a) == "hate" ? marriageTasteReason(s,a,b) : null;
   if (reason) return {ok:false,message:reason};
   if (!spendPatience(s,a,b)) return {ok:false,message:"They have had enough of talking for today."};

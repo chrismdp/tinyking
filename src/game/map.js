@@ -27,6 +27,7 @@ import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 import { updateWeather } from "game/weather";
 import { generatePersonality, initializeRelationships } from "game/people";
+import { orientationForSeed } from "game/orientation";
 import { MAP_RADIUS, MAP_CENTRE, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
@@ -54,11 +55,12 @@ export const BODY_MALE = 0x4E3F30;
 export const BODY_FEMALE = 0x3B6071;
 
 export function generatePerson({ spatial, male, age, familySeed, generator, days }) {
+  const seed = generator.random_int();
   return {
-    nameable: { type: "person", familySeed, male, seed: generator.random_int() },
+    nameable: { type: "person", familySeed, male, seed },
     spatial,
     kinship: { parents: [], spouse: null, children: [] },
-    personality: generatePersonality(generator),
+    personality: { ...generatePersonality(generator), orientation: orientationForSeed(seed) },
     traits: { values: {} },
     attributes: {},
     controllable: {},

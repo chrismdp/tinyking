@@ -22,7 +22,8 @@ function communities() {
   s.ecs.kinship[b] = { parents: [], children: [], spouse: null };
   s.ecs.relationships[b] = { known: {} };
   s.ecs.controllable[b].controllerId = b;
-  s.ecs.nameable[b] = { nickname: "Dora Hill" };
+  s.ecs.nameable[b] = { nickname: "Dora Hill", male: false };
+  for (const id of [a, b]) s.ecs.personality[id].orientation = "same";
   s.ecs.spatial[b] = { ...s.ecs.spatial[tiles[5]] };
   s.ecs.household[b].houseId = tiles[5]; s.ecs.village[b].villageId = "other";
   s.ecs.building = { [tiles[3]]: { rooms: [] }, [tiles[5]]: { rooms: [] } };

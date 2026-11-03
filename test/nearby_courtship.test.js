@@ -27,7 +27,11 @@ function neighbourhood(awayKey = "6,5") {
     s.villages[villageId] = { id: villageId, houses: [house], sharedPlaces: [] };
     s.ecs.village[row.ids[2]].villageId = villageId;
     s.ecs.household[row.ids[2]].houseId = house;
-    for (const id of row.ids) s.ecs.personality[id].traveller = false;
+    for (const id of row.ids) {
+      s.ecs.personality[id].traveller = false;
+      s.ecs.personality[id].orientation = "both";
+      s.ecs.nameable[id].male = true;
+    }
   }
   const s = home.s;
   attach(s, away.s);

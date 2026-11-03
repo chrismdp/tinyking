@@ -1,4 +1,5 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
+import { initialiseOrientation, mutuallyOriented } from "game/orientation";
 import { isAdult, isDependent, canSeekPartner, canParentTogether, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
@@ -38,6 +39,7 @@ const distance = (s, a, b) => {
 };
 const add = (s, components) => {
   const id = entityId(s.ecs, "social-");
+  if (components.personable) initialiseOrientation(components, id);
   for (const [key, value] of Object.entries(components)) (s.ecs[key] ||= {})[id] = {
     ...value,
     id
@@ -79,7 +81,7 @@ function mutualAttraction(s, a, b) {
   if(index && !index.has(a))index.set(a,new Map());
   const cache=index?.get(a);
   if(cache?.has(b))return cache.get(b);
-  const answer=disposition(s,a,b)=="love" && disposition(s,b,a)=="love" && !related(s,a,b);
+  const answer=mutuallyOriented(s,a,b) && disposition(s,a,b)=="love" && disposition(s,b,a)=="love" && !related(s,a,b);
   cache?.set(b,answer);return answer;
 }
 
@@ -103,7 +105,7 @@ export function compareSocial(s, a, b, c, newsScores=new Map()) {
   return Number(romanticC) - Number(romanticB) || value(c) - value(b) || score(c)-score(b);
 }
 export function canCourt(s, a, b, deliberate = false) {
-  return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b, deliberate);
+  return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b, deliberate) && mutuallyOriented(s, a, b);
 }
 
 // Empty does not mean ownerless: an inherited estate may have an absentee owner.

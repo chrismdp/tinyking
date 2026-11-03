@@ -1,4 +1,5 @@
 import ACTIVITIES from "data/secret_activities.json";
+import { conditions } from "game/social_conditions";
 import { eventRoles } from "game/event_roles";
 import { activeSecretActivities, activityProgress, recordActivity } from "game/secret_activity_history";
 import { nearbyPeople } from "game/people_space";
@@ -53,6 +54,7 @@ export function activityPlace(s,event,activityId) {
 
 export function startSecretActivity(s,event,activityId,place) {
   const rules=ACTIVITIES[activityId],people=rules.participants.map(role=>eventRoles(event)[role]);
+  if(!conditions(s,eventRoles(event),rules.when))return false;
   if(!people.every(id=>free(s,id)))return false;
   place ||= activityPlace(s,event,activityId);
   if(!place)return false;

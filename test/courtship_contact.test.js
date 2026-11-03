@@ -4,6 +4,7 @@ import { chatTogether, eligiblePartner, canCourt, marry, courtTogether } from "g
 function couple(ageA=25,ageB=25) {
   const { state:s,person:a,sibling:b,parent }=peopleWorld();
   for(const id of [a,b])s.ecs.kinship[id]={parents:[],children:[],spouse:null};
+  for(const id of [a,b])s.ecs.personality[id].orientation="same";
   s.ecs.personable[a].age=ageA;s.ecs.personable[b].age=ageB;
   const house=s.ecs.household[a].houseId;
   s.ecs.building={ [house]:{rooms:[]} };

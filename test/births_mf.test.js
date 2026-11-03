@@ -64,6 +64,7 @@ for (const mode of ["history", "live", "player household"]) {
 
 it.each([true, false])("keeps courtship and marriage for same-sex couples (male=%s)", male => {
   const { s, a, b } = couple(male, male, 30, 30);
+  for (const id of [a, b]) s.ecs.personality[id].orientation = "same";
   s.ecs.kinship[a].spouse = s.ecs.kinship[b].spouse = null;
   s.opinionThresholds = { hate: -100, love: -99 };
   for (const [x, y] of [[a, b], [b, a]]) s.ecs.relationships[x].known[y] = { ring: "intimate", goodwill: 66, base: 66 };

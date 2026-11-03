@@ -198,6 +198,10 @@ it.each([false, true])("keeps the existing road season's complete identity and e
 
 it("retains the existing mutual-interest result for adult pairs, refusals, kin and missing spouses", () => {
   const { s, ids } = community({ player: false }), { viableResidents } = require("game/travel");
+  for (const id of ids) {
+    s.ecs.nameable[id].male = true;
+    s.ecs.personality[id].orientation = "same";
+  }
   const [a, b, c] = ids;
   expect([...viableResidents(s)].sort()).toEqual([...ids].sort());
   s.ecs.personality[a].opinionThresholds = { hate: -100, love: 100 };

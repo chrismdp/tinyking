@@ -1,4 +1,5 @@
 import { isAdult, isDependent } from "game/life_stages";
+import { mutuallyOriented } from "game/orientation";
 import { eventParticipants } from "game/event_roles";
 import { RINGS, disposition, goodwillTowards } from "game/people";
 import { personComponent } from "game/residents";
@@ -53,6 +54,7 @@ export function condition(s,b,{test,args:a={}}) {
   case "related":return valid(x,y)&&(x==y||relatedPeople(s,x,y,true));
   case "marital_satisfaction_below": {const n=maritalSatisfaction(s,p);return n!=null&&n<a.value;}
   case "mutual_romance":return valid(x,y)&&!!bond(s,x,y)?.romance&&!!bond(s,y,x)?.romance;
+  case "mutually_oriented":return valid(x,y)&&mutuallyOriented(s,x,y);
   case "affair_exists":return valid(x,y)&&!!(bond(s,x,y)?.affair||bond(s,y,x)?.affair);
   case "different_village": {const h=personComponent(s,"village",x)?.villageId,v=personComponent(s,"village",y)?.villageId;return valid(x,y)&&h!=null&&v!=null&&h!=v;}
   case "avoiding":return valid(x,y)&&s.social?.avoidance?.[pairKey(x,y)]>s.days;

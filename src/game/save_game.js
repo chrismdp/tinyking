@@ -1,5 +1,6 @@
 import { attachPeople, syncWorldSave } from "./person_storage";
 import { bindNewsContext } from "./event_knowledge";
+import { restoreOrientations } from "./orientation";
 // Everything affecting play is saved. Only browser resources and the save
 // controller and transient screen fades are excluded; UI actions are reattached by World on restore.
 export const SAVE_VERSION = 1;
@@ -78,6 +79,7 @@ export function restoreGame(text) {
   };
   save.nodes.forEach((node, i) => node.entries.forEach(([key, value]) => { objects[i][key] = decode(value); }));
   const data = { ...decode(save.root), redraws: [] };
+  restoreOrientations(data);
   if (data.game_speed && data.game_speed != "paused") data.game_speed = "normal";
   if (data.ui?.show?.journal) data.ui.show.journal = false;
   return data;

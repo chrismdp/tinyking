@@ -242,6 +242,13 @@
             "towards": "actor",
             "ring": "intimate"
           }
+        },
+        {
+          "test": "mutually_oriented",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
         }
       ],
       "none": [
@@ -324,6 +331,13 @@
         },
         {
           "test": "mutual_romance",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "mutually_oriented",
           "args": {
             "a": "actor",
             "b": "partner"

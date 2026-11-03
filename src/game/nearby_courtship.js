@@ -1,4 +1,5 @@
 import { canSeekPartner } from "game/life_stages";
+import { mutuallyOriented } from "game/orientation";
 import { neighbours, worldKey } from "game/travel_geometry";
 import { hashUnit } from "game/math";
 import { SUMMARY_COMPONENTS } from "game/community_summary";
@@ -59,6 +60,7 @@ export function availableCourtshipCandidates(index, key, id, paired) {
   // read-only eligibility check needs no terrain, property or meeting view.
   return courtshipCandidates(index, key, id).filter(candidate => {
     if (paired.has(candidate.id) || !single(candidate.map, candidate.id)) return false;
+    if (!mutuallyOriented(left, id, candidate.id, candidate.map)) return false;
     // Both endpoints came from the seasonal eligible-resident buckets. Only
     // current single status and kinship remain variable during this pass.
     return !relatedPeople(query, id, candidate.id, false, index.ancestry);

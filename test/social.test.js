@@ -7,6 +7,7 @@ import { socialHour } from "game/social_visits";
 import { topController } from "game/playable";
 
 const mutual = (s, a, b) => {
+  for (const id of [a, b]) s.ecs.personality[id].orientation = "same";
   s.ecs.relationships[a].known[b] = { ring: "intimate", goodwill: 66, base: 66 };
   s.ecs.relationships[b].known[a] = { ring: "intimate", goodwill: 66, base: 66 };
 };

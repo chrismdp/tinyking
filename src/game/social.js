@@ -492,7 +492,7 @@ function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summa
   const used = new Set(),pairs=[];
   for (const a of roster) {
     const candidates=[...new Set([s.ecs.relationships[a].commitment?.partnerId,...peopleInRings(s,a,["personal","intimate"])].filter(Boolean))];
-    for(const b of candidates)if(a<b)pairs.push([a,b]);
+    for(const b of candidates)if(a<b && isResident(s,b))pairs.push([a,b]);
   }
   pairs.sort(([a,b],[c,d])=>Number(loveMatch(s,c,d))-Number(loveMatch(s,a,b)));
   for(const [a,b] of pairs)if(!used.has(a) && !used.has(b)) {
@@ -519,6 +519,7 @@ export function retryCourtships(s) {
   pending.sort(([left],[right])=>Number(loveMatch(s,...right.split(":")))-Number(loveMatch(s,...left.split(":"))));
   for (const [key, started] of pending) {
     const [a,b] = key.split(":");
+    if(!isResident(s,a) || !isResident(s,b))continue;
     if (season - started < courtshipWait(s,a,b)) continue;
     courtTogether(s,a,b,season);
   }
@@ -542,7 +543,7 @@ function advanceSeasonRules(s, season, summary) {
     ids = residentPeople(s).filter(id => alive(s,id) && isResident(s,id) && (!ecs.playable?.[id] || ecs.playable[id].arrivedAt != null) && (!s.generatingHistory || !ecs.playable?.[id])).filter(id => ecs.kinship?.[id] && ecs.relationships?.[id] && ecs.personality?.[id]);
   for (const key of Object.keys(s.social.courtships)) {
     const [a, b] = key.split(":");
-    // Absence is already priced by drift. Keep time spent mutually Intimate;
+    // Absence is already priced by drift. Keep time spent with mutual consent;
     // a recent real conversation is still required before a live wedding.
     // A neighbouring courtship is checked at the shared world boundary, where
     // both actual communities are present. A local season must keep its time.

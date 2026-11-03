@@ -8,6 +8,7 @@ import { knownEvents } from "game/events";
 import { canDiscloseEvent, goodwillTowards } from "game/people";
 import LINES from "data/conversation_lines.json";
 import { seasonLines } from "game/seasons";
+import { advanceWorldClock } from "game/travel";
 
 function families(key="6,5") {
   const home=community({player:false}),away=community({namespace:"away-",key:"6,5",player:false});
@@ -122,6 +123,17 @@ it("also arranges between two households in the same village",()=>{
   s.days=7;runNearbyCourtships(s,1);
   expect(Object.values(s.travel.events).filter(e=>e.type=="betrothal")).toHaveLength(1);
   s.days=14;runNearbyCourtships(s,2);
+  expect(s.travel.people[a].kinship.spouse).toBe(b);
+});
+
+it("keeps a cross-border betrothal through real community seasons and then holds an arranged wedding",async()=>{
+  const {s,a,b}=families();s.days=7;runNearbyCourtships(s,1);
+  const promise=Object.values(s.travel.events).find(e=>e.type=="betrothal");
+  expect(promise).toBeDefined();
+  s.travel.season=1;s.days=14;
+  await advanceWorldClock(s,{travelling:true});
+  const wedding=Object.values(s.travel.events).find(e=>e.type=="marriage"&&e.people.includes(a)&&e.people.includes(b));
+  expect(wedding).toMatchObject({kind:"arranged",betrothalId:promise.id,season:2});
   expect(s.travel.people[a].kinship.spouse).toBe(b);
 });
 

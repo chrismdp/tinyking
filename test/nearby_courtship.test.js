@@ -240,11 +240,9 @@ it("uses the other family's available house and records the wedding in that hous
   newEntities(s, Array.from({ length: 4 }, () => ({ personable: { age: 10 }, kinship: { parents: [], children: [] },
     household: { houseId: home.house }, village: { villageId: "v" }, controllable: {} })));
   const view = courtshipState(s.travel.maps["5,5"], s.travel.maps["6,5"], s.travel);
-  const pair = [a,b].sort().join(":");
+  const pair=[a,b].sort().join(":");
   view.social.courtships[pair] = 1;
-  // Housing fixture: two completed courtship seasons and fresh third contact.
-  view.social.courtshipContacts = { [pair]: { count: 2, day: 14 } };
-  view.days = 21; view.social.contacts = { [pair]: view.days };
+  view.days=21;view.social.contacts={ [pair]:view.days };
   expect(courtTogether(view, a, b, 3, true)).toBe(true);
   expect(view.ecs.household[a].houseId).toBe(away.house);
   expect(view.events.find(e => e.type === "marriage").hexKey).toBe("6,5");
@@ -276,11 +274,9 @@ it("respects avoidance recorded by either community and waits for a real convers
 it("lets a consenting couple in full compact households build a cottage under the existing village limit", () => {
   const { s, home, away, a, b } = crowdedNeighbourhood();
   const view = courtshipState(s.travel.maps["5,5"], s.travel.maps["6,5"], s.travel);
-  const pair = [a,b].sort().join(":");
+  const pair=[a,b].sort().join(":");
   view.social.courtships[pair] = 1;
-  // Housing fixture: two completed courtship seasons and fresh third contact.
-  view.social.courtshipContacts = { [pair]: { count: 2, day: 14 } };
-  view.days = 21; view.social.contacts = { [pair]: view.days };
+  view.days=21;view.social.contacts={ [pair]:view.days };
   expect(courtTogether(view, a, b, 3, true)).toBe(true);
   const house = view.ecs.household[a].houseId;
   expect([home.house, away.house]).not.toContain(house);
@@ -295,11 +291,9 @@ it("waits for timber when a compact couple needs a new cottage", () => {
   const { s, a, b } = crowdedNeighbourhood();
   for (const map of Object.values(s.travel.maps)) for (const store of Object.values(map.ecs.container)) store.amounts.wood = 11;
   const view = courtshipState(s.travel.maps["5,5"], s.travel.maps["6,5"], s.travel);
-  const pair = [a,b].sort().join(":");
+  const pair=[a,b].sort().join(":");
   view.social.courtships[pair] = 1;
-  // Housing fixture: two completed courtship seasons and fresh third contact.
-  view.social.courtshipContacts = { [pair]: { count: 2, day: 14 } };
-  view.days = 21; view.social.contacts = { [pair]: view.days };
+  view.days=21;view.social.contacts={ [pair]:view.days };
   expect(courtTogether(view, a, b, 3, true)).toBe(false);
   expect(view.ecs.kinship[a].spouse).toBeNull();
 });
@@ -310,11 +304,9 @@ it("does not let houses in the adjacent hex occupy this village's cottage sites"
   newEntities(right, Array.from({ length: 8 }, (_, i) => ({ building: { rooms: [] }, controllable: {},
     spatial: { x: origin.x + (i % 4) * 210, y: origin.y + Math.floor(i / 4) * 210 }, village: { villageId: "away-v" } })));
   const view = courtshipState(s.travel.maps["5,5"], right, s.travel);
-  const pair = [a,b].sort().join(":");
+  const pair=[a,b].sort().join(":");
   view.social.courtships[pair] = 1;
-  // Housing fixture: two completed courtship seasons and fresh third contact.
-  view.social.courtshipContacts = { [pair]: { count: 2, day: 14 } };
-  view.days = 21; view.social.contacts = { [pair]: view.days };
+  view.days=21;view.social.contacts={ [pair]:view.days };
   expect(courtTogether(view, a, b, 3, true)).toBe(true);
 });
 
@@ -322,11 +314,9 @@ it("keeps physical construction out of a temporary meeting on a detailed map", (
   const { s, a, b } = crowdedNeighbourhood();
   for (const map of Object.values(s.travel.maps)) delete map.compact;
   const view = courtshipState(s.travel.maps["5,5"], s.travel.maps["6,5"], s.travel);
-  const pair = [a,b].sort().join(":");
+  const pair=[a,b].sort().join(":");
   view.social.courtships[pair] = 1;
-  // Housing fixture: two completed courtship seasons and fresh third contact.
-  view.social.courtshipContacts = { [pair]: { count: 2, day: 14 } };
-  view.days = 21; view.social.contacts = { [pair]: view.days };
+  view.days=21;view.social.contacts={ [pair]:view.days };
   expect(courtTogether(view, a, b, 3, true)).toBe(false);
 });
 
@@ -417,4 +407,20 @@ it("queries private news by listener audience without reading unrelated stories"
   expect(unheardNews(left, teller, listener)).toEqual([relevant]);
   learnEvent(left, listener, relevant);
   expect(unheardNews(left, teller, listener)).toEqual([]);
+});
+
+
+it("rechecks a seeker's single status after the seasonal index was built", () => {
+  const { s,home } = neighbourhood(), a=home.ids[0], b=home.ids[1];
+  const index=createCourtshipIndex(s.travel.maps);
+  s.travel.people[a].kinship.spouse=b;
+  expect(availableCourtshipCandidates(index,"5,5",a,new Set())).toEqual([]);
+});
+
+it("keeps people past the family age window out of automatic courtship buckets", () => {
+  const {s,home,away}=neighbourhood(),a=home.ids[0],b=away.ids[0];
+  s.travel.people[b].personable.age=56;
+  const index=createCourtshipIndex(s.travel.maps);
+  expect(index.people.has(b)).toBe(false);
+  expect(courtshipCandidates(index,"5,5",a).map(c=>c.id)).not.toContain(b);
 });

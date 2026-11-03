@@ -21,6 +21,7 @@ import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventInd
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
   birthPerSeason: 0.55,
+  parentAgeLimit: 55,
   travellerShare: 0.05,
   oldDeathPerSeason: 0.02,
   courtshipSeasons: 2,
@@ -84,7 +85,7 @@ function mutualAttraction(s, a, b) {
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
 export function eligiblePartner(s, a, b, deliberate = false) {
-  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
+  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (deliberate || s.ecs.personable[a].age <= SOCIAL_RATES.parentAgeLimit && s.ecs.personable[b].age <= SOCIAL_RATES.parentAgeLimit) && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
@@ -420,7 +421,6 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
       beginSocialSpeech(s,speaker,listener,line&&eventById(s,line.eventId));
     }
   }
-  if(!summary && canCourt(s,a,b))courtTogether(s,a,b,Math.floor(s.days/DAYS_IN_SEASON));
   return true;
 }
 
@@ -465,35 +465,23 @@ function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summa
   }
 }
 
-function clearCourtship(s,key) {
-  delete s.social.courtships[key];
-  delete s.social.courtshipContacts?.[key];
-}
 export function courtTogether(s, a, b, season, summary = false) {
   const key = [a, b].sort().join(":");
-  if (!canCourt(s, a, b)) { clearCourtship(s,key); return false; }
-  const contact=s.social.contacts?.[key] ?? -Infinity;
-  if(contact < (summary ? s.days : s.days-DAYS_IN_SEASON))return false;
+  if (!canCourt(s, a, b)) { delete s.social.courtships[key]; return false; }
+  if((s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-DAYS_IN_SEASON))return false;
   const started = s.social.courtships[key] ?? season;
   s.social.courtships[key] = started;
-  // Time apart retains closeness, but cannot stand in for actually courting.
-  // Six chats in one summary visit still count as just one meeting day.
-  const meetings=s.social.courtshipContacts ||= {}, contactDay=Math.floor(contact);
-  const progress=meetings[key] ||= {count:0,day:null};
-  if(progress.day!==contactDay){progress.count++;progress.day=contactDay;}
-  if(season-started < SOCIAL_RATES.courtshipSeasons || progress.count <= SOCIAL_RATES.courtshipSeasons)return false;
-  if(!marry(s,a,b,summary))return false;
-  clearCourtship(s,key);
-  return true;
+  return season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary);
 }
 
-// Hourly contact can supply the next actual seasonal courtship meeting. The
-// same entry point owns contact validation, progress and the proposal delay.
+// Hourly contact can arrive just after a seasonal wedding check. Retry only
+// existing courtships so their original seasonal start and delay stay intact.
 export function retryCourtships(s) {
   const season = Math.floor(s.days / DAYS_IN_SEASON);
-  for (const key of Object.keys(s.social?.courtships || {})) {
+  for (const [key, started] of Object.entries(s.social?.courtships || {})) {
+    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - DAYS_IN_SEASON) continue;
     const [a,b] = key.split(":");
-    courtTogether(s,a,b,season);
+    marry(s,a,b);
   }
 }
 
@@ -519,7 +507,7 @@ function advanceSeasonRules(s, season, summary) {
     // a recent real conversation is still required before a live wedding.
     // A neighbouring courtship is checked at the shared world boundary, where
     // both actual communities are present. A local season must keep its time.
-    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) clearCourtship(s,key);
+    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) delete s.social.courtships[key];
   }
   for (const id of ids) {
     const p = ecs.personable[id];
@@ -535,7 +523,7 @@ function advanceSeasonRules(s, season, summary) {
   withCloseFamilyIndex(s, () => {
     runSeasonSocialActions(s,participants,summary);
     if (summary) {
-      const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
+      const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && ecs.personable[id].age <= SOCIAL_RATES.parentAgeLimit && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
       const byVillage = new Map(),
         live = new Set(roster);
       for (const id of roster) {
@@ -611,7 +599,7 @@ function advanceSeasonRules(s, season, summary) {
     for (const a of locals) {
       const b = ecs.kinship[a].spouse,
         p = ecs.personable[a];
-      if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canCourtParents(s,a,b) || p.age < 18 || p.age > 55 || ecs.personable[b].age > 55) continue;
+      if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canCourtParents(s,a,b) || p.age < 18 || p.age > SOCIAL_RATES.parentAgeLimit || ecs.personable[b].age > SOCIAL_RATES.parentAgeLimit) continue;
       const house = ecs.household[a]?.houseId;
       if ((occupants.get(house) || 0) >= 6) continue;
       if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < 4) continue;

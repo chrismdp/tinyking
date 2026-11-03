@@ -55,7 +55,7 @@ require.extensions[".csv"] = (module, filename) => { module.exports = fs.readFil
   const s = { ecs: { nextId: 1 }, space: {}, redraws: [], days: .375, ui: { show: {} }, game_speed: "paused" };
   const report = { label, seed: 13, node: process.version, cpu: os.cpus()[0].model, loadBefore: os.loadavg(), started: new Date().toISOString(), source: {} };
   const crypto = require("crypto");
-  for (const file of ["nearby_courtship", "social", "events", "event_knowledge", "travel", "world_history", "map", "geography", "villages"]) report.source[file] = crypto.createHash("sha256").update(fs.readFileSync("src/game/" + file + ".js")).digest("hex");
+  for (const file of ["nearby_courtship", "social", "news", "social_actions", "social_conditions", "events", "event_knowledge", "travel", "world_history", "map", "geography", "villages"]) report.source[file] = crypto.createHash("sha256").update(fs.readFileSync("src/game/" + file + ".js")).digest("hex");
   const stages = [], at = performance.now(), cpu = process.cpuUsage(); let last;
   const result = await generateWorldGame(s, 13, async label => {
     if (label !== last) { stages.push({ label, ms: performance.now() - at - exportMs }); last = label; }

@@ -1,6 +1,9 @@
+/* global it, expect */
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
 import { socialHour } from "game/social_visits";
+import { inviteToFire } from "game/campfire_visits";
+import { rebuildPopulationIndex } from "game/population_index";
 import { closeChat, startVillagerChat, lineCandidates } from "game/chat";
 import { hashUnit } from "game/math";
 
@@ -88,4 +91,29 @@ it("keeps the elder's ordinary oath question available during a fire chat",()=>{
   for(let i=0;i<2200&&!s.chat?.active;i++)w.step(.005);
   expect(s.chat?.active?.npcId).toBe(n);
   expect(lineCandidates(s,s.chat.active,"customs_question","player").some(l=>l.situation=="oath")).toBe(true);
+});
+
+it("keeps a reachable distant friend and excludes 200 far strangers before guest checks",()=>{
+  const {state:s,player:p,person:n,tiles}=setup();
+  // A fast, one-way approach still permits guests from beyond speech range.
+  for(const tile of tiles)s.ecs.walkable[tile].speed=10;
+  s.ecs.spatial[n]={...s.ecs.spatial[tiles[5]]};
+  const outward=Object.keys(s.ecs.walkable[tiles[1]].neighbours).find(side=>s.ecs.walkable[tiles[1]].neighbours[side]==tiles[2]);
+  delete s.ecs.walkable[tiles[1]].neighbours[outward];
+  s.ecs.relationships[n].known[p]={ring:"personal",goodwill:40};
+  let checks=0;
+  for(let i=0;i<200;i++) {
+    const id="far-guest-"+i;
+    for(const key of ["personable","personality","kinship","relationships","household","village","planner","nameable"])
+      s.ecs[key][id]=structuredClone(s.ecs[key][n]);
+    s.ecs.relationships[id]={known:{}};
+    s.ecs.spatial[id]={x:100000+i*1000,y:100000};
+    Object.defineProperty(s.ecs.personable[id],"dead",{get(){checks++;return false;},enumerable:true});
+  }
+  rebuildPopulationIndex(s);
+  s.social={courtships:{},avoidance:{}};
+  checks=0;
+  inviteToFire(s,plan=>!!plan);
+  expect(visitor(s)).toEqual([n]);
+  expect(checks).toBe(0);
 });

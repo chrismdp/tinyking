@@ -1,6 +1,7 @@
-/* global it, expect */
+/* global it, expect, jest */
 import { rowOfTiles } from "./support/world";
 import { socialHour } from "game/social_visits";
+import * as social from "game/social";
 import { rebuildPopulationIndex } from "game/population_index";
 
 function fixture(extra = 0, childExtras = false) {
@@ -140,3 +141,24 @@ it("preserves the ordered visit and child-play choices across hourly opportuniti
 `);
 });
 
+it.each([false,true])("does not compare unrelated far strangers against potential companions (children %s)", childExtras => {
+  const interest=jest.spyOn(social,"partnerInterest"),eligible=jest.spyOn(social,"eligiblePartner");
+  const measure=extra=>{
+    const s=fixture(extra,childExtras);s.days=10.001/24;
+    let knownChecks=0;
+    for(const id of Object.keys(s.ecs.relationships)) {
+      const known=s.ecs.relationships[id].known;
+      s.ecs.relationships[id].known=new Proxy(known,{get(target,key){if(typeof key=="string")knownChecks++;return target[key];}});
+    }
+    interest.mockClear();eligible.mockClear();socialHour(s);
+    return {interest:interest.mock.calls.length,eligible:eligible.mock.calls.length,knownChecks,choices:choices(s)};
+  };
+  try {
+    const before=measure(0),after=measure(200);
+    process.stdout.write(JSON.stringify({childExtras,before,after})+"\n");
+    expect(after.choices).toEqual(before.choices);
+    expect(after.interest).toBe(before.interest);
+    expect(after.eligible).toBe(before.eligible);
+    expect(after.knownChecks).toBe(before.knownChecks);
+  } finally {interest.mockRestore();eligible.mockRestore();}
+});

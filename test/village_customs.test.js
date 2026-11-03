@@ -1,6 +1,8 @@
+/* global it, expect, require */
 import { respond, discussOath } from "./support/customs_chat";
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
+import { rebuildPopulationIndex } from "game/population_index";
 import { enqueueTask } from "game/manager";
 import { householdAccess } from "game/playable";
 import { commonLand, resourcePermission, villageElder, observeChop, updateCustoms, oathEligibility, membership } from "game/village_customs";
@@ -292,4 +294,25 @@ it("still opens an answerable warning with spent patience and changes no hidden 
   expect(respond(s,"refuse")).toBe(true);expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-5);
   expect(s.events.find(e=>e.type=="defiance")).toMatchObject({people:[w.player,w.person],reason:"woodland"});
   expect(s.knowledge[w.player].people[w.person].topicTastes).toBeUndefined();
+});
+
+it("keeps the same commons witnesses without checking 200 distant village members",()=>{
+  const w=world(),s=w.state;
+  observeChop(s,w.player,w.tree,{});
+  const before=s.customs.incidents[0].observers;
+  expect(before).toEqual([w.person,w.parent]);
+  delete s.customs;
+  let checks=0;
+  for(let i=0;i<200;i++) {
+    const id="far-witness-"+i;
+    for(const key of ["personable","village","household","planner"])
+      s.ecs[key][id]=structuredClone(s.ecs[key][w.person]);
+    s.ecs.spatial[id]={x:100000+i*1000,y:100000};
+    Object.defineProperty(s.ecs.personable[id],"age",{get(){checks++;return 30;},enumerable:true});
+  }
+  rebuildPopulationIndex(s);
+  checks=0;
+  observeChop(s,w.player,w.tree,{});
+  expect(s.customs.incidents[0].observers).toEqual(before);
+  expect(checks).toBe(0);
 });

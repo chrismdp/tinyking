@@ -48,7 +48,7 @@ function reconstructPath(cameFrom, id) {
 
 // NOTE: The frontier is a stable minimum heap. Updating a score adds an
 // entry; stale entries are skipped when popped, without sorting the frontier.
-class Frontier {
+export class Frontier {
   constructor() { this.entries = []; this.order = 0; }
   before(a, b) { return a.score < b.score || (a.score == b.score && a.order < b.order); }
   push(id, score) {

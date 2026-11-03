@@ -1,9 +1,10 @@
-import { isAdult, isDependent } from "game/life_stages";
+import { isAdult, isDependent, canSeekPartner } from "game/life_stages";
 import { eveningSecretActivities } from "game/secret_activities";
 import { DAYS_IN_SEASON } from "game/time";
 import { LOCOMOTION_RATIO } from "game/locomotion";
 import { conversationPositions } from "game/conversation";
 import { inviteToFire } from "game/campfire_visits";
+import { residentPeople, nearbyPeople, householdMembers, populationOrder, withPopulationIndex } from "game/population_index";
 // Live local-map travel. The seasonal social module deliberately has no navigation dependency.
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
@@ -24,7 +25,16 @@ export function returnFromVisit(s, id) {
   if (socialTask(p)) { p.task = null; p.plan = null; }
 }
 
-export function socialHour(s) {
+export const socialHour = s => withPopulationIndex(s, () => runSocialHour(s));
+
+// Null and missing homes compared equal in the original household test.
+const housemates = (s, id) => {
+  const house = s.ecs.household[id]?.houseId;
+  return house == null ? [...householdMembers(s, null), ...householdMembers(s, undefined)] : householdMembers(s, house);
+};
+const familiar = (s, id) => Object.keys(s.ecs.relationships[id].known).filter(other => s.ecs.relationships[id].known[other]?.ring != "public");
+
+function runSocialHour(s) {
   const season = Math.floor(s.days / DAYS_IN_SEASON);
   s.social ||= { lastSeason: season, courtships: {}, avoidance: {} };
   if (s.social.lastSeason == null) s.social.lastSeason = season;
@@ -39,11 +49,17 @@ export function socialHour(s) {
   if (hour < 9 || hour >= 21) return;
   eveningSecretActivities(s);
   inviteToFire(s,idle);
-  const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], isDependent(s.ecs.personable[id].age)));
+  const ids = residentPeople(s).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], isDependent(s.ecs.personable[id].age)));
   startChildPlay(s, ids, hour);
   const adults = ids.filter(id => isAdult(s.ecs.personable[id].age) && !s.ecs.planner[id].world.social);
-  const seekers = new Set(adults.filter(a => adults.some(b => partnerInterest(s, a, b))));
+  // All eligible partners in this hex remain candidates, including strangers
+  // across the map. Married and older adults never enter this pool.
+  const singles = adults.filter(id => canSeekPartner(s.ecs.personable[id].age) &&
+    (!s.ecs.kinship[id].spouse || !s.ecs.personable[s.ecs.kinship[id].spouse] || s.ecs.personable[s.ecs.kinship[id].spouse].dead));
+  const singleIds = new Set(singles);
+  const seekers = new Set(singles.filter(a => singles.some(b => partnerInterest(s, a, b))));
   adults.sort((a, b) => Number(seekers.has(b)) - Number(seekers.has(a)));
+  const adultOrder = new Map(adults.map((id, i) => [id, i]));
   const used = new Set();
   // Allow a wish to meet a partner, or an existing relationship, to motivate travel.
   for (const a of adults) {
@@ -51,7 +67,9 @@ export function socialHour(s) {
     const newsScores=new Map();
     const pa = s.ecs.spatial[a], from = navAt(s, pa);
     if (!from) continue;
-    const candidates = adults.filter(b => {
+    const pool = new Set([...nearbyPeople(s, pa, 85), ...housemates(s, a), ...familiar(s, a),
+      ...(singleIds.has(a) ? singles : [])]);
+    const candidates = [...pool].filter(b => adultOrder.has(b)).sort((b, c) => adultOrder.get(b) - adultOrder.get(c)).filter(b => {
       if (b == a || used.has(b)) return false;
       if (s.ecs.planner[b].world.social) return false;
       const pb = s.ecs.spatial[b], bond = s.ecs.relationships[a]?.known[b];
@@ -83,9 +101,11 @@ export function socialHour(s) {
 function startChildPlay(s, ids, hour) {
   if (hour < 10 || hour >= 19) return;
   const children = ids.filter(id => isDependent(s.ecs.personable[id].age));
+  const childIds = new Set(children);
   for (const a of children) {
     if (s.ecs.planner[a].world.social) continue;
-    const b = children.find(b => b != a && !s.ecs.planner[b].world.social && s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&
+    const pool = populationOrder(s, new Set([...housemates(s, a), ...familiar(s, a)]));
+    const b = pool.find(b => childIds.has(b) && b != a && !s.ecs.planner[b].world.social && s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&
       (s.ecs.relationships[a]?.known[b]?.ring && s.ecs.relationships[a].known[b].ring != "public" || s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId) && !(s.social.avoidance?.[[a,b].sort().join(":")] > s.days));
     if (!b) continue;
     const green = s.villages?.[s.ecs.village[a]?.villageId]?.sharedPlaces?.find(id => s.ecs.meetingPlace?.[id]?.kind == "green");

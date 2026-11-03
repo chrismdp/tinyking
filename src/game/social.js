@@ -1,4 +1,4 @@
-import { PERSON_COMPONENTS, updateDirectoryPerson } from "game/person_storage";
+import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
 import { residentPeople, withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
@@ -682,9 +682,11 @@ export function historyStep(worldHexState, season) {
     copy.map=worldHexState.map && {...worldHexState.map};
     for (const [id,v] of Object.entries(worldHexState.villages || {})) copy.villages[id]=JSON.parse(JSON.stringify(v));
   }
-  copy.days = season * DAYS_IN_SEASON;
-  drift(copy, 24 * DAYS_IN_SEASON);
-  advanceOffscreenNeeds(copy, season * DAYS_IN_SEASON);
-  advanceSeason(copy, season, true);
-  return copy;
+  return withDetachedPeople(copy,()=>{
+    copy.days = season * DAYS_IN_SEASON;
+    drift(copy, 24 * DAYS_IN_SEASON);
+    advanceOffscreenNeeds(copy, season * DAYS_IN_SEASON);
+    advanceSeason(copy, season, true);
+    return copy;
+  });
 }

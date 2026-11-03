@@ -1,4 +1,4 @@
-import { stripPeople, hydratePeople } from "./person_storage";
+import { stripPeople, hydratePeople, syncWorldSave } from "./person_storage";
 import { compactMap } from "./community_summary";
 import { gameData, compressGame, decompressGame, serialiseGame, SAVE_VERSION } from "./save_game";
 // Kept separate from travel so the storage worker does not load the simulation.
@@ -6,6 +6,7 @@ export const LOCAL_FIELDS=["newsModel","compact","settlement","eventIds","ecs","
 let sequence=0;
 const snapshot=s=>Object.fromEntries(LOCAL_FIELDS.filter(k=>s[k]!==undefined).map(k=>[k,s[k]]));
 export async function encodeWorldSave(state,archived={},read=async()=>undefined) {
+  syncWorldSave(state);
   if(!state.travel?.wholeWorld)return {world:{version:SAVE_VERSION,bytes:await compressGame(state)},records:{}};
   const travel=state.travel,hexRecords={...travel.hexRecords},records={};
   const changed={...travel.preparedMaps,...Object.fromEntries(Object.entries(travel.maps).filter(([,map])=>!map.compact)),...archived,[travel.active]:snapshot(state)};

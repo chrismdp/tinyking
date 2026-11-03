@@ -36,6 +36,7 @@ it("keeps caller history, scope memory and the world directory unchanged in a pu
   const s=world();s.knowledge[s.ui.playerId]={people:{},newsScopes:{"v:old":-7}};
   const before=structuredClone(gameData(s));
   historyStep(s,1);
+  expect(s.travel).toEqual(before.travel);
   expect(gameData(s)).toEqual(before);
 });
 it("keeps unwilling adults local while a willing seeker can use the existing road rules",async()=>{

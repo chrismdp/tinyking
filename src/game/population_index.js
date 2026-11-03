@@ -1,3 +1,4 @@
+import { syncPerson } from "game/person_storage";
 import { finishTransition } from "game/history_scope";
 import { isResident } from "game/residents";
 
@@ -20,6 +21,7 @@ export function withPopulationIndex(s,fn) {
   return finishTransition(fn,()=>indexes.delete(s.ecs));
 }
 export function refreshPersonIndex(s,id) {
+  syncPerson(s,id);
   const index=indexes.get(s.ecs);if(!index)return;
   const previous=index.records.get(id);
   const person=s.ecs.personable?.[id];

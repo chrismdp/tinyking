@@ -50,3 +50,18 @@ it("reattaches remote reads and world news after the worker structured clone",()
   expect(s.newsContext).toBe(s.travel);
   expect(Object.keys(s.ecs.personable)).not.toContain(remote);
 });
+
+it("saves a newly assigned home and its event before the next world hour",async()=>{
+  const {moveHouse}=require("game/social"),{eventById,knownEvents}=require("game/events");
+  const {s}=community(),id=s.ui.playerId;s.travel.localPeople=true;s.travel.wholeWorld=true;s.newsModel=1;
+  attachPeople(s,s.travel);
+  const [home]=require("game/entities").newEntities(s,[{spatial:{x:100,y:100,immovable:true},shelter:{stage:"house"},controllable:{controllerId:id},village:{villageId:"v"},household:{}}],"new-home-");
+  moveHouse(s,id,home);
+  const event=s.events.at(-1);
+  const packet=await encodeWorldSave(s),disk=new Map(Object.entries(packet.records)),loaded=await decodeWorldSave(structuredClone(packet.world),key=>disk.get(key));
+  expect(loaded.ecs.household[id].houseId).toBe(home);
+  expect(loaded.ecs.household[id]).toBe(loaded.travel.people[id].household);
+  expect(eventById(loaded,event.id)).toEqual(event);
+  const {bindNewsContext}=require("game/event_knowledge");bindNewsContext(loaded,loaded.travel);
+  expect(knownEvents(loaded,id)).toContainEqual(event);
+});

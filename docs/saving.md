@@ -63,3 +63,8 @@ no detailed record.
 Snapshots and saves exclude redraw requests and runtime query indexes. Restore
 creates fresh redraw requests for the active map. Earlier single-record saves
 and earlier whole-world manifests retain their original knowledge policy.
+
+Before a checkpoint, the active hex publishes its current personal components
+and newly recorded events to the directory. A save between hours therefore
+retains a new home and its news. Pure history copies keep directory writes
+detached from the caller.

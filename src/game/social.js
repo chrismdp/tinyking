@@ -25,7 +25,7 @@ import { hashUnit } from "game/math";
 import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
-  birthPerSeason: 5,
+  birthPerSeason: .45,
   birthCooldownSeasons: 1,
   travellerShare: 0.05,
   courtshipSeasons: lifeClockSeasons(2),

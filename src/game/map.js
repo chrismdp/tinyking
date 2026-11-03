@@ -397,7 +397,9 @@ export async function generateSettlements(seed, grid, landscape, start, progress
     const chosen = [];
     const size = contents?.settlements[centres.length]?.houseCount || 3 + generator.random_int() % 6;
     for (const site of sites) {
-      if (!contents && chosen.length >= size) break;
+      // Extra pads impose grading constraints even though history has no
+      // households for them. Survey only the homes this village needs.
+      if (chosen.length >= size) break;
       if (chosen.every(h => h.distance(site) >= 2) &&
         Object.values(settlements).every(h => Hex(h).distance(site) >= 2)) chosen.push(site);
     }
@@ -426,7 +428,7 @@ export async function generateSettlements(seed, grid, landscape, start, progress
         const sites=[centre,...inland.filter(h=>h.distance(centre)<=5).sort((a,b)=>centre.distance(a)-centre.distance(b)||a.x-b.x||a.y-b.y)];
         const pads=[];
         for(const h of sites)if(pads.every(p=>p.distance(h)>=2) && Object.values(settlements).every(p=>Hex(p).distance(h)>=2))pads.push(h);
-        if(pads.length>=specification.houseCount){chosen=pads;break;}
+        if(pads.length>=specification.houseCount){chosen=pads.slice(0,specification.houseCount);break;}
       }
       if(!chosen)throw new Error("Cannot survey the stored households of "+specification.id);
       const centre=chosen[0],id=specification.id;

@@ -1,21 +1,26 @@
-The birth policy is implemented. Population acceptance remains blocked: seed 13 ends with 250 living people against the required 560–757. The branch is not ready to merge against the full brief.
+The birth policy and seeded orientation are implemented. Seed 13 ends with 403 living people against the required 560–757. Population acceptance still fails by 157 people. The branch is not ready to merge against the full population requirement.
 
-All births now require a man and a woman, using `nameable.male`. The woman must be 16–39 and the man 16–55. Same-sex couples retain courtship and marriage. Household capacity remains eight. Adoption, orphan placement, courtship, attraction and mortality rules remain unchanged.
+All births require a man and a woman, using `nameable.male`. The woman must be 16–39 and the man 16–55. Reciprocal orientation now governs romantic attraction, courtship, romance and affairs. Same-sex couples retain courtship and marriage when both orientations permit it. Household capacity remains eight. Adoption, orphan placement, friendship, goodwill and mortality rules remain unchanged.
 
-The final source is `da8c409` on `feat/births-mf`, based on `4a9a05d299dd7c01864caa11af0c209acd71acf8`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch code inspection, vault write or bench-ledger write occurred. Main figures below come from the brief.
+The final runtime source is `c31e618` on `feat/births-mf`. The orientation work started at `631fa54`. The earlier birth-policy runtime was `da8c409`, based on `4a9a05d299dd7c01864caa11af0c209acd71acf8`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch code inspection, vault write or bench-ledger write occurred. Main figures below come from the brief.
 
-| Measure | Main | Delivered | Acceptance |
-| --- | ---: | ---: | --- |
-| Living people after history | 686 | 250 | Fail: 560–757 |
-| History births | 1,270 | 815 | Report |
-| History marriages | 426 | 333 | Report |
-| New-game CPU, seconds | 61 | 44.323 | Pass: ≤309 |
-| New-game elapsed time, seconds | Not supplied | 41.181 | Report |
-| Heap after GC, decimal MB | About 158 | 133.029 | Pass: <250 |
-| Heap after GC, MiB | 157.53 in prior report | 126.867 | Report |
-| Retained people | 1,510 | 1,055 | Report |
-| History deaths | 824 | 805 | Report |
-| Same-sex history births | 377 | 0 | Pass |
+| Measure | Main | Before orientation | Delivered | Acceptance |
+| --- | ---: | ---: | ---: | --- |
+| Living people after history | 686 | 250 | 403 | Fail: 560–757 |
+| History births | 1,270 | 815 | 977 | Report |
+| History marriages | 426 | 333 | 317 | Report |
+| Man–woman marriages | Not supplied | 231 | 317 | Report |
+| Man–man marriages | Not supplied | 50 | 0 | Report |
+| Woman–woman marriages | Not supplied | 52 | 0 | Report |
+| New-game CPU, seconds | 61 | 44.323 | 61.507 | Pass: ≤309 |
+| New-game elapsed time, seconds | Not supplied | 41.181 | 57.336 | Report |
+| Heap after GC, decimal MB | About 158 | 133.029 | 146.914 | Pass: <250 |
+| Heap after GC, MiB | Not supplied | 126.867 | 140.109 | Report |
+| Retained people | 1,510 | 1,055 | 1,217 | Report |
+| History deaths | 824 | 805 | 814 | Report |
+| Same-sex history births | 377 | 0 | 0 | Pass |
+
+The birth-policy evidence below records the earlier stage. The Orientation section records the final combined branch and its current limits.
 
 The unchanged `scripts/local-population-measure.js` measured a seed-13 new game, then called `startGame` with the intro skipped. Its timers exclude Babel loading, diagnostic exports and forced GC. Demographics come from the history export before the arriving player and royal backstory. The final saved game retains the family quest, three named relatives and both royal birth events. Source hashes match the frozen runtime.
 
@@ -241,4 +246,112 @@ Every affected test file and its final pass count follows.
 | `test/world_map_routes.test.js` | 1/1 |
 | `test/world_travel.test.js` | 12/12 |
 
-The unresolved acceptance failure is population: 250 living people, 310 below the minimum. The requested policy, affected tests, build, CPU and heap checks pass. No successful population rebalance or full-ticket completion is claimed.
+The birth-policy stage ended with 250 living people, 310 below the minimum. Its policy, affected tests, build, CPU and heap checks passed. The Orientation section below supersedes that population result.
+
+
+## Orientation
+
+Orientation and birth tuning raise seed 13 from 250 to 403 living people, an increase of 153. This remains 157 below the minimum. Compared with main, the final branch has 283 fewer living people, 293 fewer births and 109 fewer marriages. CPU is 0.507 seconds above the supplied main figure. Heap after GC is about 11.086 MB lower. Compared with the branch before orientation, births increase by 162 and marriages decrease by 16. CPU increases by 17.184 seconds and heap by 13.885 MB.
+
+The original saved history confirms the diagnosis. Its 333 marriages comprise 231 man–woman, 50 man–man and 52 woman–woman couples. All 120 founding marriages are man–woman. Of the 213 marriages formed during history, 111 are man–woman, 50 man–man and 52 woman–woman. Same-sex couples therefore account for 47.9% of simulated marriages and 30.6% of all marriages. These counts come from `regress-history-births-mf-delivered.v8`, retained from the previous worker.
+
+Each person stores `personality.orientation` once. `ORIENTATION_SHARES` in `src/game/orientation.js` holds the three shares: opposite sex 93%, same sex 4%, both 3%. The assignment hashes `nameable.seed` without consuming another random draw. A missing personal seed uses the stable person ID. Generated people, newborns and succession strangers receive the field.
+
+Save restoration fills missing values in local components, remote identities and older per-map records. Existing values survive restoration.
+
+Romantic interest and automatic or deliberate courtship require reciprocal orientation compatibility. Nearby candidate filtering uses the existing village and neighbouring-hex index. It reads each endpoint from its actual map and never scans the population for a candidate. Romance and affair actions use the same condition. Existing incompatible affair bonds cannot schedule new secret meetings. Friendship disposition, goodwill, relationship rings and ordinary social contact retain their existing rules.
+
+Founding and previously married couples retain their spouses.
+
+The final history contains 317 man–woman marriages and no same-sex marriages. This includes 120 founding couples and 197 simulated marriages. The intermediate multiplier of 2.2 produced one woman–woman marriage, so a same-sex outcome remains possible for this seed. Small fixtures also demonstrate both male and female same-sex couples courting and marrying when compatible.
+
+All 1,217 retained history people have an orientation. All 197 simulated marriages and all 178 romance events pass the reciprocal-orientation audit. This history has no affair events. All 977 history births pass the sex and parental-age checks. Maximum living household occupancy is eight. The saved new game retains the family quest, three named relatives and both royal births. Both royal births also pass the sex and parental-age checks.
+
+The seeded distribution test creates 10,000 individual people, without generating a world:
+
+| Orientation | Requested share | Observed people | Observed share |
+| --- | ---: | ---: | ---: |
+| Opposite sex | 93% | 9,270 | 92.70% |
+| Same sex | 4% | 417 | 4.17% |
+| Both | 3% | 313 | 3.13% |
+
+Calibration changed the rate before testing cooldown changes. Every run used seed 13, 48 history seasons and household capacity eight. History-only runs stop at the same history boundary as a new game. Their CPU figures are not used for the new-game acceptance comparison.
+
+| Birth multiplier | Cooldown, seasons | Living people | Births | Marriages | Run |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 2.2 | 1 | 396 | 969 | 310 | New game |
+| 5 | 1 | 403 | 977 | 317 | New game |
+| 1 | 1 | 224 | 682 | 239 | History only |
+| 5 | 2 | 181 | 514 | 194 | History only |
+| 1.5 | 1 | 285 | 822 | 267 | History only |
+| 5 | 0 | 403 | 977 | 317 | History only |
+| 5, final source | 1 | 403 | 977 | 317 | New game |
+
+The final multiplier is five. Since the population factor is at least 0.2, every eligible birth opportunity succeeds. The final cooldown remains one season. A zero cooldown produces identical people, events, knowledge, villages and locations because each couple receives one seasonal opportunity. Increasing the cooldown to two reduces the population sharply. The later intermediate-rate check also fails to reach the target. These runs do not prove that every intermediate multiplier fails.
+
+The final snapshot measures the remaining limits:
+
+| Limit | Final observation |
+| --- | --- |
+| Single adults aged 16–55 | 97 of 121, or 80.2%; two are in transit |
+| Resident single seekers | 95 |
+| Seekers with a nearby single candidate | 95 |
+| Seekers with an unrelated, reciprocally oriented candidate | 89 |
+| Seekers with a mutually loved candidate | 13 |
+| Seekers with mutual love and mutual Intimate bonds | 2 |
+| Women aged 16–39 | 23, including 18 single women |
+| Living couples | 34 |
+| Couples outside either parental age window | 31 |
+| Couples within both windows but in a full home | 2 |
+| Couples within both windows with household room | 1 |
+| Houses | 149, including 144 occupied and three full |
+| Villages at the eight-house limit | 0 |
+| Living people aged 56 or older | 273 of 403, or 67.7% |
+| Living people younger than 16 | 9 |
+
+The candidate counts use the actual courtship index after attaching the saved identity directory. Compatibility alone leaves many candidates available. Fixed personality tastes and mutual closeness leave few couples ready to court. Most living couples are already outside the parenting windows. Housing capacity is a local limit for two potentially fertile couples, but most houses have room at the end. This snapshot describes the final state, rather than every earlier seasonal constraint.
+
+No tested configuration meets the population target. No extra births per opportunity, relaxed consent, changed personality tastes, wider age windows, extra housing capacity or new demographic rules were added.
+
+The first regression run exposed ten orientation failures after fixing a missing-contact fixture. Added boundary tests then exposed deliberate courtship and old affair-meeting failures. The final 21 orientation tests cover reciprocal same-sex and opposite-sex compatibility, both-sex attraction, unchanged friendship, indexed filtering without population scans, deterministic assignment, shares, newborns, save migration, deliberate courtship, romance, affairs and old affair meetings.
+
+Existing fixtures now specify compatible orientations where their scenarios require courtship or romance. The nearby and journey fixtures also supply the previously absent sex. Changes are confined to `births_mf`, `courtship_contact`, `nearby_courtship`, `secret_activities`, `social`, `social_events`, `social_mobility`, `travel_transfer` and `world_journeys` tests. Their original assertions remain. No shared harness or fixture file changed.
+
+| Check | Result |
+| --- | --- |
+| Initial corrected regression fixture | 9 passed, 10 failed |
+| New deliberate-courtship and affair-meeting regressions | 19 passed, 2 failed |
+| Focused orientation and social checks | 191/191 passed across eight files |
+| First affected gate | 1,289 passed, five old fixtures failed across two files |
+| Corrected journey and transfer fixtures | 29/29 passed |
+| Affected gate before rate tuning | 1,294/1,294 passed across 134 files |
+| Affected gate on final rate | 1,294/1,294 passed across 134 files |
+| ESLint on nine runtime files and the new orientation tests | Exit 0, no warnings |
+| Whitespace | Pass |
+| Production build | Exit 0; app 16.520 s, save worker 0.727 s |
+| Final new-game CPU | 61.507 s, below 309 s |
+| Final heap after GC | 146.914 MB, below 250 MB |
+| Runtime source manifest | All 181 tracked source files match the frozen measurement source |
+
+The affected gate uses the existing import-graph selector rooted at `631fa54` and supplies an explicit file list to Jest. It runs under `/tmp/27agents-gate.lock`. Measurements and the single production build use `/tmp/27agents-gate-2.lock`. No whole-suite run, selection exception or TypeScript check applies. This project is JavaScript and defines no typecheck command. The build retains three bundle-size warnings. No visual surface changed, and the independent browser acceptance pass remains the coordinator's responsibility.
+
+The unchanged `scripts/local-population-measure.js` produced the final acceptance measurement on the frozen runtime. Its export and GC boundaries match the previous worker's measurement. Diagnostic calibration overrides remain in ignored local runners. Main comparisons use only the supplied figures. No other branch was read. No delegation, push, stash, dependency installation, vault write or bench-ledger write occurred.
+
+| Green commit | Scope |
+| --- | --- |
+| `17062ae` | Seeded orientation, reciprocal romantic compatibility, migration and fixture corrections |
+| `c31e618` | Guaranteed eligible births, retained one-season cooldown and updated birth documentation |
+
+Only this report is committed under `shots/`. Reproduction commands use the retained ignored runners:
+
+```bash
+node shots/orientation-delivered-affected-gate.cjs
+flock -w 7200 /tmp/27agents-gate-2.lock env -u NODE_OPTIONS node --expose-gc scripts/local-population-measure.js orientation-delivered
+node shots/orientation-inspect.cjs orientation-delivered
+node shots/orientation-limits.cjs orientation-delivered
+flock -w 7200 /tmp/27agents-gate-2.lock npm run build
+```
+
+Final receipts: [affected gate](orientation-delivered-affected-receipt.json), [test results](orientation-delivered-affected-tests.json), [measurement](regress-profile-orientation-delivered.json), [demographic and birth audit](orientation-delivered-counts.json), [remaining limits](orientation-delivered-limits.json), [cooldown comparison](orientation-cooldown-comparison.json), [distribution](orientation-shares.json), [runtime manifest](orientation-frozen-runtime-manifest.json), [build](orientation-delivered-build.log), [lint](orientation-delivered-lint.log). Failed attempts remain ignored beside them.
+
+The unresolved limit is population: 403 living people against 560–757. Orientation, save migration, birth policy, household capacity, affected checks, build, CPU and heap checks pass. The measured constraints do not justify adding rules outside this brief.

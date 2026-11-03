@@ -8,6 +8,7 @@ const fs = require("fs"), path = require("path"), os = require("os"), assert = r
 const { chromium } = require("playwright-core");
 const [label, device = "desktop", url = "http://127.0.0.1:8194"] = process.argv.slice(2);
 const liveOnly = process.argv.includes("--live-only");
+const fixedLive = process.argv.includes("--fixed-live");
 assert(label, "usage: step8-measure.cjs LABEL desktop|mobile [URL]");
 const out = path.resolve(".cache/step8", label + "-" + device);
 fs.mkdirSync(path.join(out, "tmp"), { recursive: true });
@@ -79,7 +80,7 @@ async function workerSession(browser) {
       polling = false;
     });
   }, 100);
-  await page.addInitScript(() => {
+  await page.addInitScript(({ fixedLive }) => {
     const t = window.step8 = { events: [], frames: [], ticks: [], renders: [], visits: [], saves: [], progress: [], recording: false, heldHistory: false };
     const event = (name, extra = {}) => t.events.push({ name, time: performance.now(), ...extra });
     t.state = () => {
@@ -91,6 +92,16 @@ async function workerSession(browser) {
           if (s?.persistence && s?.ui) return s;
         }
         fiber = fiber.return;
+      }
+    };
+    const observeVisits = s => {
+      t.seenVisits ||= new WeakSet();
+      for (const [id, p] of Object.entries(s.ecs.planner || {})) {
+        const visit = p.world.social;
+        if (!visit || t.seenVisits.has(visit)) continue;
+        t.seenVisits.add(visit);
+        if (visit.kind === "play" ? id < visit.partnerId : visit.visitor)
+          t.visits.push({ hour: Math.floor(s.days * 24 + 1e-7), kind: visit.kind || "visit", actor: id, partner: visit.partnerId });
       }
     };
     const channels = new WeakMap(), Channel = window.MessageChannel;
@@ -149,16 +160,22 @@ async function workerSession(browser) {
           if (n === 2) t.drive = listener;
           return add(frameMod => {
             const at = performance.now(), flushed = t.flushMilliseconds;
-            const result = listener(frameMod);
-            if (t.recording && n === 2) {
-              t.seenVisits ||= new WeakSet();
-              for (const [id, p] of Object.entries(s.ecs.planner || {})) {
-                const visit = p.world.social;
-                if (!visit || t.seenVisits.has(visit)) continue;
-                t.seenVisits.add(visit);
-                if (visit.kind === "play" ? id < visit.partnerId : visit.visitor)
-                  t.visits.push({ hour: Math.floor(s.days * 24 + 1e-7), kind: visit.kind || "visit", actor: id, partner: visit.partnerId });
+            let result;
+            if (n === 2 && fixedLive && !s.intro?.active) {
+              // Hold the real initial state until recording starts, then give
+              // both versions the same 1,860 ordinary 60 Hz planner steps.
+              // Catch up after slow render frames instead of dropping time.
+              if (t.recording) {
+                const due = Math.min(1860, Math.floor((performance.now() - t.liveStart) * 60 / 1000));
+                while ((t.fixedSteps || 0) < due) {
+                  result = listener(1);
+                  t.fixedSteps = (t.fixedSteps || 0) + 1;
+                  observeVisits(s);
+                }
               }
+            } else {
+              result = listener(frameMod);
+              if (t.recording && n === 2) observeVisits(s);
             }
             if (t.recording && (n === 2 || n === 3)) (n === 2 ? t.ticks : t.renders).push(Math.max(0, performance.now() - at - (n === 2 ? t.flushMilliseconds - flushed : 0)));
             return result;
@@ -168,7 +185,7 @@ async function workerSession(browser) {
       let ticker = s.ticker;
       Object.defineProperty(s, "ticker", { configurable: true, enumerable: true, get: () => ticker, set: value => { ticker = value; instrumentTicker(value); } });
     }, 1);
-  });
+  }, { fixedLive });
   const profileStart = () => cdp.send("Profiler.start");
   const profileStop = async name => { const result = await cdp.send("Profiler.stop"); write(name + ".cpuprofile", result.profile); };
   try {
@@ -199,7 +216,9 @@ async function workerSession(browser) {
       await profileStart();
       await page.waitForTimeout(31000);
       await profileStop("live");
-      report.live = await page.evaluate(() => { step8.recording = false; return { ms: performance.now() - step8.liveStart, frames: step8.frames, ticks: step8.ticks, renders: step8.renders, visits: step8.visits, day: step8.state().days }; });
+      report.live = await page.evaluate(() => { step8.recording = false; return { ms: performance.now() - step8.liveStart, frames: step8.frames, ticks: step8.ticks, renders: step8.renders, visits: step8.visits, fixedSteps: step8.fixedSteps, day: step8.state().days }; });
+      if (fixedLive) assert.equal(report.live.fixedSteps, 1860, "fixed live sample completed all planner steps");
+      report.fixedLive = fixedLive;
       report.frames = stats(report.live.frames); report.ticks = stats(report.live.ticks); report.renders = stats(report.live.renders);
     }
     if (liveOnly) {

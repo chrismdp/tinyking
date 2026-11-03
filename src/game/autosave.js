@@ -1,17 +1,27 @@
 import { gameData } from "./save_game";
 import { worldSaveData } from "./hex_storage";
+import { saveMark } from "./save_trace";
 
 export const FIRST_SAVE_DELAY_MS = 30000;
 
 export function createSaveClient(worker) {
   return (operation, state) => new Promise((resolve, reject) => {
+    const trace = {};
     const channel = new MessageChannel();
     channel.port1.onmessage = ({ data: { result, error } }) => {
+      saveMark(trace, "acknowledged");
       channel.port1.close();
       if (error) reject(new Error(error));
-      else resolve(result);
+      else {
+        if (result?.trace) Object.assign(result.trace, trace);
+        resolve(result);
+      }
     };
-    try { worker.postMessage({ operation, state }, [channel.port2]); }
+    try {
+      saveMark(trace, "postStarted");
+      worker.postMessage({ operation, state }, [channel.port2]);
+      saveMark(trace, "postReturned");
+    }
     catch (error) { channel.port1.close(); channel.port2.close(); reject(error); }
   });
 }
@@ -62,8 +72,12 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     const prepared = Object.entries(travel?.preparedMaps || {});
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
+    const trace = {};
+    saveMark(trace, "packetStarted");
     const payload = state.travel?.wholeWorld ? worldSaveData(state, checkpoint?.hexes) : checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state);
+    saveMark(trace, "packetBuilt");
     const saving = client(checkpoint ? "checkpoint" : "save", payload).then(result => {
+      if (result?.trace) Object.assign(result.trace, trace);
       if(checkpoint && !result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
       return result;
     });

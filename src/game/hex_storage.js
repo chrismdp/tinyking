@@ -1,6 +1,7 @@
 import { stripPeople, hydratePeople, syncWorldSave } from "./person_storage";
 import { compactMap } from "./community_summary";
 import { gameData, compressGame, decompressGame, serialiseGame, SAVE_VERSION } from "./save_game";
+import { saveMark } from "./save_trace";
 // Kept separate from travel so the storage worker does not load the simulation.
 export const LOCAL_FIELDS=["newsModel","compact","settlement","eventIds","ecs","space","map","villages","events","knowledge","chat","talking","social","favours","customs","ecology","snow","snowRevision","environmentUpdatedAt","needsUpdatedAt","landUseRevision","residents","peopleSeed","opinionThresholds","days"];
 let sequence=0;
@@ -17,21 +18,28 @@ export function worldSaveData(state,archived={}) {
   for(const field of LOCAL_FIELDS)delete manifest[field];
   return {state:manifest,hexes:Object.fromEntries(Object.entries(changed).map(([key,map])=>[key,stripPeople(map,travel)]))};
 }
-export async function encodeWorldSave(state,archived={},read=async()=>undefined) {
+export async function encodeWorldSave(state,archived={},read=async()=>undefined,trace) {
   // Accept both the legacy full snapshot and the projected page packet.
   const packet=state.travel?.wholeWorld && !state.ecs ? {state,hexes:archived} : worldSaveData(state,archived);
-  return encodeSavePacket(packet,read);
+  return encodeSavePacket(packet,read,trace);
 }
-export async function encodeSavePacket({state,hexes},read=async()=>undefined) {
+export async function encodeSavePacket({state,hexes},read=async()=>undefined,trace) {
   if(!state.travel?.wholeWorld)return {world:{version:SAVE_VERSION,bytes:await compressGame(state)},records:{}};
   const travel=state.travel,hexRecords={...travel.hexRecords},records={};
   for(const [key,map] of Object.entries(hexes)) {
-    const text=serialiseGame(map),hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
+    const stage = trace ? { key } : null;
+    if(stage) { (trace.hexes ||= []).push(stage); saveMark(stage,"jsonStarted"); }
+    const text=serialiseGame(map);
+    if(stage)saveMark(stage,"jsonDone");
+    const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
+    if(stage)saveMark(stage,"hashDone");
     const digest=Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,"0")).join("");
     const previous=hexRecords[key] && await read(hexRecords[key]);
+    if(stage)saveMark(stage,"readDone");
     if(previous?.digest===digest)continue;
     const record="hex:"+Date.now().toString(36)+":"+(++sequence)+":"+key;
     const bytes=await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+    if(stage)saveMark(stage,"gzipDone");
     records[record]={version:SAVE_VERSION,digest,bytes};hexRecords[key]=record;
   }
   const manifest={...state,travel:{...travel,hexRecords}};

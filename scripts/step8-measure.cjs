@@ -274,6 +274,8 @@ async function workerSession(browser) {
         // Finish arrival as a player can, then wait for its scheduled atomic
         // checkpoint. Do not include the optional 5.2s arrival animation.
         s.ui.actions.skip_intro(); s.ui.actions.set_speed("paused");
+        if (s.worldBusy || s.transition || s.intro?.active) throw new Error("Arrival is not playable");
+        const playable = performance.now();
         await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
         while (!step8.saves.slice(saveIndex).some(row => row.operation === "checkpoint" && row.active === route.to && row.end)) {
           if (performance.now() - firstFrame > 120000) throw new Error("Arrival checkpoint did not finish");
@@ -283,13 +285,13 @@ async function workerSession(browser) {
         await new Promise(resolve => setTimeout(resolve, 0));
         if (s.persistence.error) throw new Error(s.persistence.error);
         const saves = step8.saves.slice(saveIndex), progress = step8.progress.slice(progressIndex);
-        return { ...route, walkAndHopMs: performance.now() - at, firstFrame, end: performance.now(), frames, saves, progress, lastSave: s.persistence.lastSave, day: s.days };
+        return { ...route, started: at, playable, walkAndHopMs: performance.now() - at, firstFrame, end: performance.now(), frames, saves, progress, lastSave: s.persistence.lastSave, day: s.days };
       }, route);
       await profileStop("hop-" + (i + 1));
       const began = hop.progress.find(p => p.label === "One season on the road")?.time;
       const opened = hop.progress.find(p => /Opening the familiar|Preparing the lands ahead/.test(p.label))?.time;
       const arrived = hop.progress.find(p => p.label === "Arriving at the edge of the region")?.time;
-      Object.assign(hop, { totalMs: hop.end - began, awayMs: opened - began, buildMs: arrived - opened, arrivalMs: hop.firstFrame - arrived, saveAndSchedulingMs: hop.end - hop.firstFrame });
+      Object.assign(hop, { totalMs: hop.playable - hop.started, checkpointCompletionMs: hop.end - hop.started, checkpointWaitMs: began - hop.started, awayMs: opened - began, buildMs: arrived - opened, arrivalMs: hop.playable - arrived, saveAndSchedulingMs: hop.end - hop.firstFrame });
       report.hops.push(hop); write("report.json", report);
       console.log(label, device, "hop", i + 1, hop.totalMs, hop.awayMs, hop.buildMs, hop.saveAndSchedulingMs);
     }

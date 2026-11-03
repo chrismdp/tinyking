@@ -25,6 +25,23 @@ beforeAll(() => { storedFixture = makeFixture(); });
 const fixture = () => structuredClone(storedFixture);
 afterEach(() => jest.restoreAllMocks());
 
+it("checks arrival priority again after a background preparation yields", async () => {
+  const { s, away } = fixture();
+  let pending = false, resumed = false;
+  s.persistence = { afterCheckpoint: () => pending ? Promise.resolve() : null };
+  jest.spyOn(require("game/world_history"), "buildHistoryMap").mockImplementation(async (context, hex, origin, progress) => {
+    await progress("Building terrain", .1);
+    resumed = true;
+    return structuredClone(away.travel.maps["6,5"]);
+  });
+  const preparing = prepareNeighbourDetails(s, async () => { pending = true; }, { background: true });
+  await new Promise(resolve => setImmediate(resolve));
+  expect(resumed).toBe(false);
+  pending = false;
+  await preparing;
+  expect(resumed).toBe(true);
+});
+
 it("starts neighbours after the arrival checkpoint commits and a further frame", async () => {
   const { s, away } = fixture(), frames = [], disk = new Map();
   let acknowledge, saved;

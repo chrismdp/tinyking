@@ -106,10 +106,11 @@ export async function prepareNeighbourDetails(s, progress = async () => {}, opti
   for (const [index, key] of pending.entries()) {
     if (s.travel !== j) return;
     await prepareDetail(s, key, async (label, value) => {
+      await progress(label, (index + value) / pending.length);
       // A new arrival takes priority over older background preparations.
+      // Check after the yield: travel or its checkpoint can start during it.
       while (options.background && s.travel === j && (s.transition ? s.transition.destination !== key : s.persistence?.afterCheckpoint?.())) await new Promise(resolve => setTimeout(resolve, 16));
       if (s.travel !== j) return;
-      await progress(label, (index + value) / pending.length);
     }, options);
     j.detailQueue = j.detailQueue.filter(other => other !== key);
   }

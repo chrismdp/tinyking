@@ -970,6 +970,7 @@ function journeyIntent(s, id, key, j, season, prospects) {
   const p = s.ecs.personable[id],
     kin = s.ecs.kinship?.[id];
   if (!p || p.dead || isDependent(p.age) || s.ecs.playable?.[id] || kin?.spouse && !s.ecs.personable[kin.spouse]?.dead) return null;
+  if(s.ecs.relationships?.[id]?.commitment)return null;
   const visit = j.visits[id];
   if (visit) {
     if (season < visit.arrived + 3) return null;

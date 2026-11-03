@@ -137,6 +137,17 @@ it("keeps a cross-border betrothal through real community seasons and then holds
   expect(s.travel.people[a].kinship.spouse).toBe(b);
 });
 
+it("keeps betrothed travellers at home through the seasonal wedding",async()=>{
+  const {s,a,b}=families();
+  for(const id of [a,b])s.travel.people[id].personality.traveller=true;
+  s.days=7;await advanceWorldClock(s,{travelling:true});
+  const promise=Object.values(s.travel.events).find(e=>e.type=="betrothal");
+  expect(promise).toBeDefined();
+  expect(s.travel.transit.some(t=>[a,b].includes(t.bundle.id))).toBe(false);
+  s.days=14;await advanceWorldClock(s,{travelling:true});
+  expect(Object.values(s.travel.events).find(e=>e.type=="marriage"&&e.betrothalId==promise.id)).toMatchObject({kind:"arranged",season:2});
+});
+
 it("keeps a betrothal exclusive, prevents early direct weddings, and rechecks willingness",()=>{
   const {a,b,head,view}=families(),v=view();v.days=7;
   runSocialActions(v,"arrange",a,b,{summary:true});

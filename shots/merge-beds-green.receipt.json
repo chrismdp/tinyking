@@ -1,0 +1,28 @@
+{
+  "head": "90a5999faa7bb20c98e02d7925907a3a8b6bbee4",
+  "command": [
+    "flock",
+    "-w",
+    "7200",
+    "/tmp/27agents-gate.lock",
+    "env",
+    "-u",
+    "NODE_OPTIONS",
+    "npx",
+    "jest",
+    "--runTestsByPath",
+    "test/history_beds.test.js",
+    "test/one_world.test.js",
+    "test/hex_detail.test.js",
+    "test/nearby_courtship.test.js",
+    "test/tasks.test.js",
+    "--maxWorkers=2",
+    "--workerIdleMemoryLimit=1GB",
+    "--json",
+    "--outputFile=shots/merge-beds-green.json"
+  ],
+  "started": "2026-11-03T04:32:04.413Z",
+  "ms": 9265,
+  "exitCode": 0,
+  "signal": null
+}

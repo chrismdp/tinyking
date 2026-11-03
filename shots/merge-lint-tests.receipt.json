@@ -1,0 +1,21 @@
+{
+  "head": "0961f331c2c57b68c0ee9d1d831cf99f974b860f",
+  "command": [
+    "npx",
+    "eslint",
+    "--global",
+    "it",
+    "--global",
+    "expect",
+    "--global",
+    "require",
+    "test/scoped_discovery.test.js",
+    "test/scoped_news.test.js",
+    "test/secret_activities.test.js",
+    "test/social_events.test.js"
+  ],
+  "started": "2026-11-03T04:24:51.368Z",
+  "ms": 2369,
+  "exitCode": 1,
+  "signal": null
+}

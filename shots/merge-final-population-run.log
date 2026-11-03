@@ -1,0 +1,10 @@
+{"season":-160,"people":701,"living":701}
+{"season":-140,"people":983,"living":983}
+{"season":-120,"people":1154,"living":1148}
+{"season":-100,"people":1263,"living":1174}
+{"season":-80,"people":1348,"living":1140}
+{"season":-60,"people":1432,"living":998}
+{"season":-40,"people":1538,"living":805}
+{"season":-20,"people":1639,"living":650}
+{"season":0,"people":1733,"living":580}
+{"label":"one-world-merge-final","cpuMs":235240.125,"ms":234781.52986000004,"memoryAfterGc":{"rss":1086472192,"heapTotal":774475776,"heapUsed":238750848,"external":4554037,"arrayBuffers":806942}}

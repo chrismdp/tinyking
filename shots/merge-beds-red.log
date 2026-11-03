@@ -1,0 +1,24 @@
+FAIL test/history_beds.test.js
+  ● places the existing beds of summary cottages in their surveyed detailed homes
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: "old-bed"
+    Received array: ["5", "store"]
+
+      17 |   s.map={playerStartTile:pad,entrances:{}};
+      18 |   installStoredHistory(s,summary,{home:{x:pad.x,y:pad.y,frontDoorSide:0}},{discoveries:["ruins"]},true);
+    > 19 |   expect(s.ecs.building.home.rooms).toContain("old-bed");
+         |                                     ^
+      20 |   expect(Object.keys(s.ecs.sleepable)).toEqual(["old-bed"]);
+      21 |   expect(s.ecs.spatial["old-bed"]).toMatchObject(pad.toPoint());
+      22 |   expect(s.ecs.interior["old-bed"].buildingId).toBe("home");
+
+      at Object.<anonymous> (test/history_beds.test.js:19:37)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        0.66 s
+Ran all test suites within paths "test/history_beds.test.js".
+Test results written to: shots/merge-beds-red.json

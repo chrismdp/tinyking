@@ -1,0 +1,7 @@
+
+Test Suites: 5 passed, 5 total
+Tests:       66 passed, 66 total
+Snapshots:   0 total
+Time:        1.949 s, estimated 2 s
+Ran all test suites within paths "test/scoped_discovery.test.js", "test/secret_activities.test.js", "test/scoped_news.test.js", "test/social_events.test.js", "test/local_queries.test.js".
+Test results written to: shots/merge-discovery-green2.json

@@ -1,0 +1,91 @@
+FAIL test/scoped_discovery.test.js
+  ● discovers affair once when the affected resident learns through village promotion
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      20 |   expect(event.awareness.villages).toContain("village");
+      21 |   const discoveryType=type==="affair"?"found_out":"poaching_found_out";
+    > 22 |   expect(s.events.filter(e=>e.type===discoveryType)).toHaveLength(1);
+         |                                                      ^
+      23 |   expect(s.events.find(e=>e.type===discoveryType)).toMatchObject({people:[affected,a,b],causeEventId:event.id,discovery:"general"});
+      24 |   const before=JSON.stringify(s.ecs.relationships);
+      25 |   learnEvent(s,affected,event);learnEvent(s,player,event);
+
+      at test/scoped_discovery.test.js:22:54
+
+  ● discovers poaching once when the affected resident learns through village promotion
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      20 |   expect(event.awareness.villages).toContain("village");
+      21 |   const discoveryType=type==="affair"?"found_out":"poaching_found_out";
+    > 22 |   expect(s.events.filter(e=>e.type===discoveryType)).toHaveLength(1);
+         |                                                      ^
+      23 |   expect(s.events.find(e=>e.type===discoveryType)).toMatchObject({people:[affected,a,b],causeEventId:event.id,discovery:"general"});
+      24 |   const before=JSON.stringify(s.ecs.relationships);
+      25 |   learnEvent(s,affected,event);learnEvent(s,player,event);
+
+      at test/scoped_discovery.test.js:22:54
+
+  ● applies friend knock-ons once when found_out promotes to their village
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      37 |   learnEvent(s,spouse,event,"witness");
+      38 |   const found=s.events.find(e=>e.type==="found_out");
+    > 39 |   expect(found).toBeDefined();
+         |                 ^
+      40 |   expect(knownEvents(s,learner)).not.toContain(found);
+      41 |   // The fourth resident was away when the three other residents learned.
+      42 |   // Return before the third explicit knower promotes this discovery.
+
+      at test/scoped_discovery.test.js:39:17
+
+  ● applies betrayed kin knock-ons once when found_out promotes to their village
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      37 |   learnEvent(s,spouse,event,"witness");
+      38 |   const found=s.events.find(e=>e.type==="found_out");
+    > 39 |   expect(found).toBeDefined();
+         |                 ^
+      40 |   expect(knownEvents(s,learner)).not.toContain(found);
+      41 |   // The fourth resident was away when the three other residents learned.
+      42 |   // Return before the third explicit knower promotes this discovery.
+
+      at test/scoped_discovery.test.js:39:17
+
+  ● applies lover kin knock-ons once when found_out promotes to their village
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      37 |   learnEvent(s,spouse,event,"witness");
+      38 |   const found=s.events.find(e=>e.type==="found_out");
+    > 39 |   expect(found).toBeDefined();
+         |                 ^
+      40 |   expect(knownEvents(s,learner)).not.toContain(found);
+      41 |   // The fourth resident was away when the three other residents learned.
+      42 |   // Return before the third explicit knower promotes this discovery.
+
+      at test/scoped_discovery.test.js:39:17
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 5 total
+Snapshots:   0 total
+Time:        1.489 s
+Ran all test suites within paths "test/scoped_discovery.test.js".
+Test results written to: shots/merge-discovery-red.json

@@ -1,0 +1,7 @@
+
+Test Suites: 5 passed, 5 total
+Tests:       56 passed, 56 total
+Snapshots:   0 total
+Time:        8.265 s, estimated 9 s
+Ran all test suites within paths "test/history_beds.test.js", "test/one_world.test.js", "test/hex_detail.test.js", "test/nearby_courtship.test.js", "test/tasks.test.js".
+Test results written to: shots/merge-beds-green.json

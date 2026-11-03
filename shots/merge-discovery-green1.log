@@ -1,0 +1,63 @@
+FAIL test/secret_activities.test.js
+  ● allows affair gossip to a spouse through loyalty and records one discovery
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      42 |   expect(canDiscloseEvent(s,friend,spouse,event)).toBe(true);
+      43 |   exchangeNews(s,friend,spouse);
+    > 44 |   const found=s.events.filter(e=>e.type=="found_out");expect(found).toHaveLength(1);
+         |                                                                     ^
+      45 |   expect(found[0]).toMatchObject({people:[spouse,a,b],causeEventId:event.id});
+      46 |   expect(s.knowledge[spouse].discoveries[event.id].kind).toBe("heard");
+      47 |   expect(goodwillTowards(s,spouse,a)).toBeLessThanOrEqual(0);
+
+      at test/secret_activities.test.js:44:69
+
+  ● allows affair gossip to a spouse through spite and records one discovery
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      42 |   expect(canDiscloseEvent(s,friend,spouse,event)).toBe(true);
+      43 |   exchangeNews(s,friend,spouse);
+    > 44 |   const found=s.events.filter(e=>e.type=="found_out");expect(found).toHaveLength(1);
+         |                                                                     ^
+      45 |   expect(found[0]).toMatchObject({people:[spouse,a,b],causeEventId:event.id});
+      46 |   expect(s.knowledge[spouse].discoveries[event.id].kind).toBe("heard");
+      47 |   expect(goodwillTowards(s,spouse,a)).toBeLessThanOrEqual(0);
+
+      at test/secret_activities.test.js:44:69
+
+FAIL test/scoped_news.test.js
+  ● applies discovery effects once, including repeated hearing after promotion
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 2
+    Received array:  [{"awareness": {"hexes": [], "knowers": [], "since": {"v:village": 0.375}, "status": "general", "villages": ["village"]}, "causeEventId": "event-1", "day": 0.375, "discovery": "heard", "hexKey": undefined, "id": "event-2", "items": [], "people": ["7", "8", "10"], "place": "4", "reason": "affair_discovery", "season": 0, "summary": true, "type": "found_out", "villageId": "village"}, {"awareness": {"hexes": [], "knowers": [], "since": {"v:village": 0.375}, "status": "general", "villages": ["village"]}, "causeEventId": "event-2", "day": 0.375, "hexKey": undefined, "id": "event-3", "items": [], "people": ["7", "8"], "place": "4", "reason": "affair_discovery", "season": 0, "summary": true, "type": "quarrel", "villageId": "village"}]
+
+      46 |   const event=recordEvent(s,"affair",[person,sibling]);
+      47 |   learnEvent(s,player,event);learnEvent(s,player,event);
+    > 48 |   expect(s.events.filter(e=>e.reason==="affair_discovery")).toHaveLength(1);
+         |                                                             ^
+      49 | });
+      50 |
+      51 | it("makes news public only inside the hex reached by two informed villages",()=>{
+
+      at Object.<anonymous> (test/scoped_news.test.js:48:61)
+
+
+Test Suites: 2 failed, 3 passed, 5 total
+Tests:       3 failed, 63 passed, 66 total
+Snapshots:   0 total
+Time:        2.764 s
+Ran all test suites within paths "test/scoped_discovery.test.js", "test/secret_activities.test.js", "test/scoped_news.test.js", "test/social_events.test.js", "test/local_queries.test.js".
+Test results written to: shots/merge-discovery-green1.json

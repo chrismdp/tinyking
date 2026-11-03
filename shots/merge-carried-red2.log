@@ -1,0 +1,41 @@
+FAIL test/scoped_discovery.test.js
+  ● uses the carried source account for disclosure and discovery when it is absent from local event history
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      81 |   s.events=s.events.filter(e=>e!==source);
+      82 |   const {canDiscloseEvent}=require("game/people");
+    > 83 |   expect(canDiscloseEvent(s,a,friend,meeting)).toBe(true);
+         |                                                ^
+      84 |   learnEvent(s,spouse,meeting,"witness");
+      85 |   expect(knownEvents(s,spouse)).toContain(source);
+      86 |   expect(s.events.filter(e=>e.type==="found_out"&&e.causeEventId===source.id)).toHaveLength(1);
+
+      at Object.<anonymous> (test/scoped_discovery.test.js:83:48)
+
+  ● carries news to a captured affected party after their household and spouse change
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: {"affected": [{"other": "10", "personId": "9", "role": "betrayed", "subject": "8"}], "audienceIds": ["8", "10"], "awareness": {"hexes": [], "knowers": [], "since": {"v:village": 0.375}, "status": "general", "villages": ["village"]}, "day": 0.375, "hexKey": "home", "id": "event-1", "items": [], "people": ["8", "10"], "place": "4", "season": 0, "type": "affair", "villageId": "village"}
+    Received: undefined
+
+       96 |   learnEvent(s,teller,event,"witness");
+       97 |   const {chooseNews,tellNews}=require("game/news");
+    >  98 |   expect(chooseNews(s,teller,spouse)).toBe(event);
+          |                                       ^
+       99 |   tellNews(s,teller,spouse,event,"test");
+      100 |   expect(s.events.filter(e=>e.type==="found_out"&&e.people[0]===spouse)).toHaveLength(1);
+      101 | });
+
+      at Object.<anonymous> (test/scoped_discovery.test.js:98:39)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 6 passed, 8 total
+Snapshots:   0 total
+Time:        0.777 s, estimated 1 s
+Ran all test suites within paths "test/scoped_discovery.test.js".
+Test results written to: shots/merge-carried-red2.json

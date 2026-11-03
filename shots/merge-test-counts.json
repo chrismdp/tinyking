@@ -1,0 +1,657 @@
+{
+  "suites": 130,
+  "tests": 1157,
+  "failed": 0,
+  "rows": [
+    {
+      "file": "test/acceptance_selection.test.js",
+      "passed": 17,
+      "total": 17
+    },
+    {
+      "file": "test/arrival_tasks.test.js",
+      "passed": 31,
+      "total": 31
+    },
+    {
+      "file": "test/arrival.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/autosave.test.js",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "file": "test/biography.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/campfire_visits.test.js",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "file": "test/chat_acceptance.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/chat_answers.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/chat_guidance.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/chat_row_rules.test.js",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "file": "test/chat_tell.test.js",
+      "passed": 21,
+      "total": 21
+    },
+    {
+      "file": "test/chat_travel.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/chat_visits.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/chat.test.js",
+      "passed": 37,
+      "total": 37
+    },
+    {
+      "file": "test/core_loop.test.js",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "file": "test/courtship_contact.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/designation_selection.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/ecology_habitat.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/ecology.test.js",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "file": "test/entities.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/event_index.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/event_knowledge.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/family_history_integration.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/favours.test.js",
+      "passed": 49,
+      "total": 49
+    },
+    {
+      "file": "test/field_designation.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/fireside.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/first_run.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/food_economy.test.js",
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "file": "test/food_routes.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/food_variety.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/forage_designation.test.js",
+      "passed": 20,
+      "total": 20
+    },
+    {
+      "file": "test/friend_help.test.js",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "file": "test/gathering.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/geography_foundations.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/geography_placement.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/geography_refinement.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/gift_choices.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/gossip_bubbles.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/gossip.test.js",
+      "passed": 17,
+      "total": 17
+    },
+    {
+      "file": "test/happy_paths.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/height.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/hex_detail.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/hex_eviction.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/hex_storage.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/history_beds.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/history_items.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/history_reference_index.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/history_scope.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/history.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/hop_checkpoint.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/household_routines.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/htn.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/info_ownership.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/integration_food.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/intro.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/journey_memory.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/leaks_regressions.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/local_queries.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/local_world.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/manager.test.js",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "file": "test/map.test.js",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "file": "test/mother_family.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/nearby_courtship.test.js",
+      "passed": 33,
+      "total": 33
+    },
+    {
+      "file": "test/one_world.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/pathfinding.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/people_feedback.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/people_goals.test.js",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "file": "test/people_interactions.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/people_orders.test.js",
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "file": "test/people_panel.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/people.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/person_activity.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/person_storage.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/play_session_feedback.test.js",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "file": "test/player_day.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/player_farming.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/player_household.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/possession_disclosure.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/realm_map.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/reference_views.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/relationship_index.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/relationships.test.js",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "file": "test/remote_family_review.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/replay_findings.test.js",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "file": "test/replay2_findings.test.js",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "file": "test/replay2_warning_care.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/roads_tracks.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/save_client.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/save_game.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/scoped_discovery.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/scoped_news.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/season_polish.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/seasons.test.js",
+      "passed": 18,
+      "total": 18
+    },
+    {
+      "file": "test/secret_activities.test.js",
+      "passed": 24,
+      "total": 24
+    },
+    {
+      "file": "test/settlement_access.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/settlement_details.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/settlement_growth.test.js",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "file": "test/settlement_history.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/settlement_woodland.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/shelter_placement.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/simulation.test.js",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "file": "test/social_events.test.js",
+      "passed": 29,
+      "total": 29
+    },
+    {
+      "file": "test/social_gifts.test.js",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "file": "test/social_mobility.test.js",
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "file": "test/social.test.js",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "file": "test/succession_controls.test.js",
+      "passed": 9,
+      "total": 9
+    },
+    {
+      "file": "test/succession_customs.test.js",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "file": "test/succession_knowledge.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/succession.test.js",
+      "passed": 18,
+      "total": 18
+    },
+    {
+      "file": "test/survival.test.js",
+      "passed": 22,
+      "total": 22
+    },
+    {
+      "file": "test/tasks.test.js",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "file": "test/tiredness.test.js",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "file": "test/travel_generation_review.test.js",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "file": "test/travel_review.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/travel_transfer.test.js",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "file": "test/travel.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/tree_clearance.test.js",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "file": "test/village_customs_favours.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/village_customs_readiness.test.js",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "file": "test/village_customs_travel.test.js",
+      "passed": 2,
+      "total": 2
+    },
+    {
+      "file": "test/village_customs.test.js",
+      "passed": 23,
+      "total": 23
+    },
+    {
+      "file": "test/village_generation.test.js",
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "file": "test/village_hauling.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/villages.test.js",
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "file": "test/wood_task_estimates.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/woodland_generation.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/work_visit_wear.test.js",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "file": "test/world_journeys.test.js",
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "file": "test/world_map_routes.test.js",
+      "passed": 1,
+      "total": 1
+    },
+    {
+      "file": "test/world_travel.test.js",
+      "passed": 12,
+      "total": 12
+    }
+  ]
+}

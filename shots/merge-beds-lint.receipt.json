@@ -1,0 +1,13 @@
+{
+  "head": "90a5999faa7bb20c98e02d7925907a3a8b6bbee4",
+  "command": [
+    "npx",
+    "eslint",
+    "src/game/world_history.js",
+    "scripts/merge-browser.cjs"
+  ],
+  "started": "2026-11-03T04:32:28.999Z",
+  "ms": 1131,
+  "exitCode": 0,
+  "signal": null
+}

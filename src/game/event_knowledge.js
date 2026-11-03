@@ -9,13 +9,12 @@ const indexes=new WeakMap(),scopeCaches=new WeakMap();
 function storyKey(index,event) {
   if(index.storyKeys.has(event))return index.storyKeys.get(event);
   const signature=[event.type,...event.people,event.villageId,event.hexKey].join(":");
-  if(!index.storySignatures.has(signature))index.storySignatures.set(signature,signature);
+  if(!index.storySignatures.has(signature)) {
+    index.storySignatures.set(signature,signature);
+    index.storyRoutes.set(signature,{people:event.people,village:event.villageId,hex:event.hexKey,
+      relevance:TYPES[event.type]?.relevance||["affected"]});
+  }
   const key=index.storySignatures.get(signature);index.storyKeys.set(event,key);
-  const relevance=TYPES[event.type]?.relevance||["affected"];
-  index.storyRoutes.set(event,[...event.people.map(id=>["subjects",id]),
-    ...(relevance.includes("kin")?event.people.map(id=>["kin",id]):[]),
-    ...(relevance.includes("village")?[["villages",event.villageId]]:[]),
-    ...(relevance.includes("hex")?[["hexes",event.hexKey]]:[])]);
   return key;
 }
 const add=(map,key,event)=>{if(!map.has(key))map.set(key,new Set());map.get(key).add(event);};
@@ -24,7 +23,7 @@ function indexFor(s) {
   let index=indexes.get(source);
   if(!index) {
     const people=s.newsContext?.people || s.travel?.people || s.peopleDirectory,local=s.ecs?.personable||{};
-    index={events:new Map(),private:new Map(),privateStories:new Map(),storyKeys:new WeakMap(),storyRoutes:new WeakMap(),privateCandidates:new Map(),storySignatures:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map(),
+    index={events:new Map(),private:new Map(),privateStories:new Map(),storyKeys:new WeakMap(),storyRoutes:new Map(),privateCandidates:new Map(),storySignatures:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map(),
       dead:id=>!!(people?.[id]?.personable || local[id])?.dead};indexes.set(source,index);
     for(const event of Array.isArray(source)?source:Object.values(source))indexEventInto(index,event);
   }
@@ -34,11 +33,16 @@ function indexFor(s) {
 // index changes only when a story group first appears or its last event leaves.
 function routePrivateGroup(index,id,event,group,adding) {
   let routes=index.privateCandidates.get(id);
-  if(!routes){if(!adding)return;routes={subjects:new Map(),kin:new Map(),villages:new Map(),hexes:new Map()};index.privateCandidates.set(id,routes);}
-  for(const [table,key] of index.storyRoutes.get(event)) {
-    if(adding)add(routes[table],key,group);
-    else {const bucket=routes[table].get(key);bucket?.delete(group);if(!bucket?.size)routes[table].delete(key);}
-  }
+  if(!routes){if(!adding)return;routes={people:new Map(),villages:new Map(),hexes:new Map()};index.privateCandidates.set(id,routes);}
+  const meta=index.storyRoutes.get(storyKey(index,event));
+  const update=(table,key)=>{
+    let bucket=table.get(key);
+    if(adding){if(!bucket)table.set(key,bucket=[]);bucket.push(group);}
+    else if(bucket){const at=bucket.indexOf(group);if(at>=0)bucket.splice(at,1);if(!bucket.length)table.delete(key);}
+  };
+  for(const person of new Set(meta.people))update(routes.people,person);
+  if(meta.relevance.includes("village"))update(routes.villages,meta.village);
+  if(meta.relevance.includes("hex"))update(routes.hexes,meta.hex);
 }
 function privateStory(index,id,event,adding) {
   if(index.dead(id)){index.privateStories.delete(id);index.privateCandidates.delete(id);return;}
@@ -140,8 +144,8 @@ export function unheardNews(s,teller,listener) {
   if(personComponent(s,"personable",teller)?.dead)return [];
   const index=indexFor(s),events=new Set(),scopes=scopesFor(s,teller),heard=scopesFor(s,listener),families=new Map();
   const routes=index.privateCandidates.get(teller),groups=new Set();
-  if(routes)for(const bucket of [routes.subjects.get(listener),routes.villages.get(villageOf(s,listener)),
-    routes.hexes.get(personHex(s,listener)),...closeFamily(s,listener).map(id=>routes.kin.get(id))])
+  if(routes)for(const bucket of [routes.people.get(listener),routes.villages.get(villageOf(s,listener)),
+    routes.hexes.get(personHex(s,listener)),...closeFamily(s,listener).map(id=>routes.people.get(id))])
     for(const group of bucket||[])groups.add(group);
   for(const group of groups) {
     for(const event of group)if(relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard)){events.add(event);break;}

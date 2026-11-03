@@ -1,4 +1,4 @@
-import { isAdult, isDependent } from "game/life_stages";
+import { isAdult, isDependent, lifeStage } from "game/life_stages";
 import { mutuallyOriented } from "game/orientation";
 import { eventParticipants } from "game/event_roles";
 import { RINGS, disposition, goodwillTowards } from "game/people";
@@ -39,6 +39,9 @@ export function condition(s,b,{test,args:a={}}) {
   case "person_dead":return !!person(s,p)?.dead;
   case "is_adult":return alive(s,p)&&isAdult(person(s,p).age);
   case "is_dependent":return valid(p)&&isDependent(person(s,p).age);
+  case "life_stage_is":return alive(s,p)&&lifeStage(person(s,p).age).label==a.value;
+  case "parent_of":return valid(x,y)&&!!kin(s,y)?.parents.includes(x);
+  case "is_courting":return valid(p)&&(!!personComponent(s,"relationships",p)?.commitment || Object.keys(s.social?.courtships||{}).some(key=>key.split(":").includes(p)));
   case "has_trait":return valid(p)&&!!personComponent(s,"personality",p)?.traits.includes(a.trait);
   case "disposition_is":return valid(p,q)&&disposition(s,p,q)==a.value;
   case "cold_towards":return valid(p,q)&&(disposition(s,p,q)=="hate"||goodwillTowards(s,p,q)<0);

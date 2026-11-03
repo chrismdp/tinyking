@@ -17,6 +17,14 @@ export function applySocialEffects(s,effects,bindings,recordEvent) {
       if(!conditions(s,b,effect.when))continue;
       const id=p=>boundId(b,p),a=id(effect.person),other=id(effect.towards);
       switch(effect.op) {
+      case "commitment": {
+        const first=id(effect.a),second=id(effect.b),details=Object.fromEntries(Object.entries(effect.details||{}).map(([key,role])=>[key,id(role)]));
+        for(const [person,partnerId] of [[first,second],[second,first]])s.ecs.relationships[person].commitment={
+          kind:effect.kind,partnerId,since:s.days,waitSeasons:effect.waitSeasons,eventId:b.event?.id,...details
+        };
+        ((s.social ||= {}).courtships ||= {})[pairKey(first,second)]=s.days/DAYS_IN_SEASON;
+        break;
+      }
       case "goodwill":if(s.ecs.relationships?.[a]&&s.ecs.personable?.[other])addGoodwill(s,other,a,effect.amount,effect.introduce!==false);break;
       case "avoidance": {
         s.social ||= {};s.social.avoidance ||= {};

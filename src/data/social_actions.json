@@ -375,5 +375,363 @@
         "partner"
       ]
     }
+  },
+  {
+    "id": "arranged_refusal",
+    "hooks": [
+      "arrange"
+    ],
+    "chance": 1,
+    "period": "season",
+    "attemptGroup": "family_arrangement",
+    "oncePerPerson": [
+      "head",
+      "otherHead"
+    ],
+    "participants": {
+      "head": {
+        "component": "controllable",
+        "of": {
+          "component": "household",
+          "of": "actor",
+          "field": "houseId"
+        },
+        "field": "controllerId"
+      },
+      "otherHead": {
+        "component": "controllable",
+        "of": {
+          "component": "household",
+          "of": "partner",
+          "field": "houseId"
+        },
+        "field": "controllerId"
+      }
+    },
+    "when": {
+      "all": [
+        {
+          "test": "life_stage_is",
+          "args": {
+            "person": "actor",
+            "value": "Young adult"
+          }
+        },
+        {
+          "test": "life_stage_is",
+          "args": {
+            "person": "partner",
+            "value": "Young adult"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "head"
+          }
+        },
+        {
+          "test": "parent_of",
+          "args": {
+            "a": "head",
+            "b": "actor"
+          }
+        },
+        {
+          "test": "same_household",
+          "args": {
+            "a": "head",
+            "b": "actor"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "otherHead"
+          }
+        },
+        {
+          "test": "parent_of",
+          "args": {
+            "a": "otherHead",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "same_household",
+          "args": {
+            "a": "otherHead",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "mutually_oriented",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "goodwill_at_least",
+          "args": {
+            "person": "head",
+            "towards": "otherHead",
+            "value": 10
+          }
+        },
+        {
+          "test": "goodwill_at_least",
+          "args": {
+            "person": "otherHead",
+            "towards": "head",
+            "value": 10
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "same_household",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "related",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "has_living_spouse",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "is_courting",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "has_living_spouse",
+          "args": {
+            "person": "partner"
+          }
+        },
+        {
+          "test": "is_courting",
+          "args": {
+            "person": "partner"
+          }
+        }
+      ],
+      "any": [
+        {
+          "test": "cold_towards",
+          "args": {
+            "person": "actor",
+            "towards": "partner"
+          }
+        },
+        {
+          "test": "cold_towards",
+          "args": {
+            "person": "partner",
+            "towards": "actor"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "betrothal_refusal",
+      "people": [
+        "actor",
+        "partner",
+        "head",
+        "otherHead"
+      ]
+    },
+    "stop": true
+  },
+  {
+    "id": "arranged_betrothal",
+    "hooks": [
+      "arrange"
+    ],
+    "chance": 1,
+    "period": "season",
+    "attemptGroup": "family_arrangement",
+    "oncePerPerson": [
+      "head",
+      "otherHead"
+    ],
+    "participants": {
+      "head": {
+        "component": "controllable",
+        "of": {
+          "component": "household",
+          "of": "actor",
+          "field": "houseId"
+        },
+        "field": "controllerId"
+      },
+      "otherHead": {
+        "component": "controllable",
+        "of": {
+          "component": "household",
+          "of": "partner",
+          "field": "houseId"
+        },
+        "field": "controllerId"
+      }
+    },
+    "when": {
+      "all": [
+        {
+          "test": "life_stage_is",
+          "args": {
+            "person": "actor",
+            "value": "Young adult"
+          }
+        },
+        {
+          "test": "life_stage_is",
+          "args": {
+            "person": "partner",
+            "value": "Young adult"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "head"
+          }
+        },
+        {
+          "test": "parent_of",
+          "args": {
+            "a": "head",
+            "b": "actor"
+          }
+        },
+        {
+          "test": "same_household",
+          "args": {
+            "a": "head",
+            "b": "actor"
+          }
+        },
+        {
+          "test": "is_adult",
+          "args": {
+            "person": "otherHead"
+          }
+        },
+        {
+          "test": "parent_of",
+          "args": {
+            "a": "otherHead",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "same_household",
+          "args": {
+            "a": "otherHead",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "mutually_oriented",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "goodwill_at_least",
+          "args": {
+            "person": "head",
+            "towards": "otherHead",
+            "value": 10
+          }
+        },
+        {
+          "test": "goodwill_at_least",
+          "args": {
+            "person": "otherHead",
+            "towards": "head",
+            "value": 10
+          }
+        }
+      ],
+      "none": [
+        {
+          "test": "same_household",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "related",
+          "args": {
+            "a": "actor",
+            "b": "partner"
+          }
+        },
+        {
+          "test": "has_living_spouse",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "is_courting",
+          "args": {
+            "person": "actor"
+          }
+        },
+        {
+          "test": "has_living_spouse",
+          "args": {
+            "person": "partner"
+          }
+        },
+        {
+          "test": "is_courting",
+          "args": {
+            "person": "partner"
+          }
+        },
+        {
+          "test": "cold_towards",
+          "args": {
+            "person": "actor",
+            "towards": "partner"
+          }
+        },
+        {
+          "test": "cold_towards",
+          "args": {
+            "person": "partner",
+            "towards": "actor"
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "betrothal",
+      "people": [
+        "actor",
+        "partner",
+        "head",
+        "otherHead"
+      ]
+    },
+    "stop": true
   }
 ]

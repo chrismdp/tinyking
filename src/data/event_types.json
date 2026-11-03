@@ -402,6 +402,54 @@
       "affected",
       "kin",
       "village"
+    ],
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "event.head",
+        "towards": "event.otherHead",
+        "amount": 6,
+        "introduce": false,
+        "when": {
+          "all": [
+            {
+              "test": "person_alive",
+              "args": {
+                "person": "event.head"
+              }
+            },
+            {
+              "test": "person_alive",
+              "args": {
+                "person": "event.otherHead"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "goodwill",
+        "person": "event.otherHead",
+        "towards": "event.head",
+        "amount": 6,
+        "introduce": false,
+        "when": {
+          "all": [
+            {
+              "test": "person_alive",
+              "args": {
+                "person": "event.head"
+              }
+            },
+            {
+              "test": "person_alive",
+              "args": {
+                "person": "event.otherHead"
+              }
+            }
+          ]
+        }
+      }
     ]
   },
   "death": {
@@ -1350,6 +1398,77 @@
       "affected",
       "kin",
       "village"
+    ]
+  },
+  "betrothal": {
+    "sentence": "{a} and {b} were betrothed by their families",
+    "topic": "family",
+    "roles": [
+      "betrothed",
+      "partner",
+      "head",
+      "otherHead"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "valence": 1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ],
+    "onOccurrence": [
+      {
+        "op": "commitment",
+        "a": "betrothed",
+        "b": "partner",
+        "kind": "arranged",
+        "waitSeasons": 1,
+        "details": {
+          "head": "head",
+          "otherHead": "otherHead"
+        }
+      }
+    ]
+  },
+  "betrothal_refusal": {
+    "sentence": "The proposed marriage between {a} and {b} was refused",
+    "topic": "family",
+    "roles": [
+      "betrothed",
+      "partner",
+      "head",
+      "otherHead"
+    ],
+    "disclosure": {
+      "ring": "public"
+    },
+    "feed": true,
+    "spokenVisit": false,
+    "valence": -1,
+    "relevance": [
+      "affected",
+      "kin",
+      "village"
+    ],
+    "onOccurrence": [
+      {
+        "op": "goodwill",
+        "person": "head",
+        "towards": "otherHead",
+        "amount": -2,
+        "introduce": false
+      },
+      {
+        "op": "goodwill",
+        "person": "otherHead",
+        "towards": "head",
+        "amount": -2,
+        "introduce": false
+      }
     ]
   }
 }

@@ -10,6 +10,8 @@ import { withRelationshipIndex } from "game/people";
 import { withEventIndex } from "game/events";
 import { canCourt, chatTogether, courtTogether, courtshipPreference, attractionRank, withSocialIndex } from "game/social";
 import { relatedPeople } from "game/social_kin";
+import { SOCIAL_ACTIONS, runSocialActions, socialActionBindings, socialActionAvailable } from "game/social_actions";
+import { clearCourtship } from "game/social";
 import { moveMarriageResidents, publishCommunity } from "game/travel";
 
 const single = (map, id) => {
@@ -60,10 +62,29 @@ export function availableCourtshipCandidates(index, key, id, paired) {
   // read-only eligibility check needs no terrain, property or meeting view.
   return courtshipCandidates(index, key, id).filter(candidate => {
     if (paired.has(candidate.id) || !single(candidate.map, candidate.id)) return false;
+    if(left.ecs.relationships[id].commitment && left.ecs.relationships[id].commitment.partnerId!=candidate.id)return false;
+    const promised=candidate.map.ecs.relationships[candidate.id].commitment;
+    if(promised && promised.partnerId!=id)return false;
     if (!mutuallyOriented(left, id, candidate.id, candidate.map)) return false;
     // Both endpoints came from the seasonal eligible-resident buckets. Only
     // current single status and kinship remain variable during this pass.
     return !relatedPeople(query, id, candidate.id, false, index.ancestry);
+  });
+}
+
+// Inspect only nearby eligible buckets and the two household controllers.
+// Identity components resolve through the directory; no physical view is copied.
+export function arrangementCandidates(index,key,id) {
+  const left=index.people.get(id)?.map;
+  if(!left || !single(left,id))return [];
+  const actions=SOCIAL_ACTIONS.filter(action=>action.hooks.includes("arrange"));
+  return courtshipCandidates(index,key,id).filter(candidate=>{
+    const right=candidate.map;
+    if(!single(right,candidate.id))return false;
+    const house=left.ecs.household[id]?.houseId,otherHouse=right.ecs.household[candidate.id]?.houseId;
+    const query={...identityQuery(left,[id,candidate.id]),days:left.days, social:{courtships:{...left.social?.courtships,...right.social?.courtships}},
+      ecs:{...left.ecs,controllable:{[house]:left.ecs.controllable[house],[otherHouse]:right.ecs.controllable[otherHouse]}}};
+    return actions.some(action=>socialActionAvailable(query,action,socialActionBindings(query,action,id,candidate.id),id,candidate.id));
   });
 }
 
@@ -88,6 +109,7 @@ export function courtshipState(left, right, directory) {
   const view = { ...left, ecs, compact: !!left.compact, summarisingHistory: true, residents: { ...left.residents, ...right.residents },
     villages: { ...left.villages, ...right.villages }, events: [], space: {}, redraws: [],
     eventIds: left.eventIds ||= { next: left.events.length } };
+  view.social={...left.social,courtships:{...left.social?.courtships,...right.social?.courtships}};
   delete view.settlement;
   Object.defineProperty(view, "communityHexes", { value: Object.fromEntries([
     ...[...Object.keys(left.residents), ...Object.keys(left.ecs.building || {}), ...Object.keys(left.ecs.shelter || {})].map(id => [id, left.map.worldKey]),
@@ -114,16 +136,33 @@ export function runNearbyCourtships(s, season) {
     const [a, b] = pair.split(":"), left = index.people.get(a), right = index.people.get(b);
     if (left?.key === right?.key && left) continue;
     const nearby = left && right && courtshipCandidates(index, left.key, a).some(c => c.id === b);
-    if (!nearby || !canCourt(identityQuery(left.map, [a, b]), a, b)) delete map.social.courtships[pair];
+    if (!nearby || !canCourt(identityQuery(left.map, [a, b]), a, b)) {
+      delete map.social.courtships[pair];
+      if(left)clearCourtship(left.map,a,b);
+      if(right)clearCourtship(right.map,a,b);
+    }
   }
   const order = [...index.people.values()].map(person => ({ ...person, order: hashUnit(j.seed + ":nearby-order:" + season + ":" + person.id) })).sort((a, b) => a.order - b.order);
+  for(const seeker of order) {
+    const {id:a,key,map:left}=seeker;
+    const candidate=chooseCourtshipCandidate(arrangementCandidates(index,key,a),a,j.seed+":arrange:"+season);
+    if(!candidate)continue;
+    const b=candidate.id,right=candidate.map,view=viewFor(left,right);view.days=s.days;
+    const fired=withPopulationIndex(view,()=>withRelationshipIndex(view,()=>withEventIndex(view,()=>runSocialActions(view,"arrange",a,b,{summary:true}))));
+    if(!fired.length)continue;
+    const pair=[a,b].sort().join(":");
+    if(view.social.courtships[pair]!=null)for(const map of [left,right])map.social.courtships[pair]=view.social.courtships[pair];
+    if(view!==left){left.events.push(...view.events);view.events.length=0;}
+    publishCommunity(left,j);if(right!==left)publishCommunity(right,j);
+  }
   for (const seeker of order) {
     const { id: a, key, map: left } = seeker;
     if (paired.has(a) || !single(left, a)) continue;
     const candidates = availableCourtshipCandidates(index, key, a, paired);
-    const candidate = chooseCourtshipCandidate(candidates, a, j.seed + ":" + season);
+    const promised=left.ecs.relationships[a]?.commitment?.partnerId;
+    const candidate = promised ? candidates.find(c=>c.id==promised) : chooseCourtshipCandidate(candidates, a, j.seed + ":" + season);
     // Ordinary same-hex meetings already ran in summarySeason / live play.
-    if (!candidate || candidate.key === key) continue;
+    if (!candidate || candidate.key === key && !promised) continue;
     const b = candidate.id, right = candidate.map, view = viewFor(left, right);
     paired.add(a); paired.add(b);
     view.days = s.days;
@@ -140,9 +179,9 @@ export function runNearbyCourtships(s, season) {
     if (left.social.avoidance[pair] != null) right.social.avoidance[pair] = left.social.avoidance[pair];
     else delete right.social.avoidance[pair];
     if (left.social.contacts?.[pair] != null) (right.social.contacts ||= {})[pair] = left.social.contacts[pair];
-    left.events.push(...view.events); view.events.length = 0;
+    if(view!==left){left.events.push(...view.events); view.events.length = 0;}
     left.ecs.nextId = view.ecs.nextId;
-    if (married) {
+    if (married && left!==right) {
       // Commit a new cottage and its rooms before transferring its residents.
       for (const component of SUMMARY_COMPONENTS) for (const [id, value] of Object.entries(view.ecs[component])) {
         if (left.ecs[component]?.[id] || right.ecs[component]?.[id] || j.people[id]) continue;

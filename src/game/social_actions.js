@@ -5,10 +5,35 @@ import { applySocialEffects } from "game/social_effects";
 import { recordEvent } from "game/events";
 import { hashUnit } from "game/math";
 import { DAYS_IN_SEASON } from "game/time";
+import { personComponent } from "game/residents";
 
 // Authored chances retain their former half-life-year units. Convert once,
 // before aggregating completed conversations; custom fixture actions are exact.
 export const SOCIAL_ACTIONS = ACTION_TUNING.map(action => ({ ...action, chance: lifeClockChance(action.chance) }));
+
+// Component paths also bind non-person assets, such as a resident's house owner.
+export function participantBinding(s,bindings,source) {
+  if(typeof source=="string")return boundId(bindings,source);
+  if(source.spouseOf)return personComponent(s,"kinship",bindings[source.spouseOf])?.spouse;
+  return personComponent(s,source.component,participantBinding(s,bindings,source.of))?.[source.field];
+}
+export function socialActionBindings(s,action,a,b) {
+  const bindings={actor:a,partner:b,first:a,second:b};
+  const visit=s.ecs.planner?.[a]?.world.social;
+  bindings.visitor=visit?.visitor===false?b:a;bindings.host=bindings.visitor==a?b:a;
+  for(const [role,source] of Object.entries(action.participants||{}))bindings[role]=participantBinding(s,bindings,source);
+  return bindings;
+}
+function attempts(s,action,bindings,a,b) {
+  const moment=Math.floor(s.days/(action.period=="season"?DAYS_IN_SEASON:1));
+  const stamp=(action.attemptGroup||action.id)+":"+pairKey(a,b)+(action.directional?":"+bindings.actor:"");
+  return (action.oncePerPerson?.map(role=>boundId(bindings,role))||[a,b]).map(id=>({
+    owner:s.ecs.relationships?.[id],moment,stamp:action.oncePerPerson?(action.attemptGroup||action.id)+":"+id:stamp
+  }));
+}
+export function socialActionAvailable(s,action,bindings,a,b) {
+  return conditions(s,bindings,action.when) && attempts(s,action,bindings,a,b).every(({owner,moment,stamp})=>owner&&owner.actionMoments?.[stamp]!=moment);
+}
 
 // Work only on a supplied encounter pair. No population-wide action scans.
 export function runSocialActions(s,hook,a,b,{conversations=1,actions=SOCIAL_ACTIONS,summary=false}={}) {
@@ -18,17 +43,12 @@ export function runSocialActions(s,hook,a,b,{conversations=1,actions=SOCIAL_ACTI
     if(!action.hooks.includes(hook))continue;
     const pairs=action.directional?[[a,b],[b,a]]:[[a,b]];
     for(const [first,second] of pairs) {
-      const bindings={actor:first,partner:second,first,second};
-      const visit=s.ecs.planner?.[first]?.world.social;
-      bindings.visitor=visit?.visitor===false?second:first;bindings.host=bindings.visitor==first?second:first;
-      for(const [role,source] of Object.entries(action.participants||{}))bindings[role]=typeof source=="string"?bindings[source]:s.ecs.kinship?.[bindings[source.spouseOf]]?.spouse;
-      if(!conditions(s,bindings,action.when))continue;
-      const owner=s.ecs.relationships?.[a];if(!owner)continue;
+      const bindings=socialActionBindings(s,action,first,second);
+      if(!socialActionAvailable(s,action,bindings,a,b))continue;
       const moment=Math.floor(s.days/(action.period=="season"?DAYS_IN_SEASON:1));
       const stamp=action.id+":"+key+(action.directional?":"+first:"");
-      if(owner.actionMoments?.[stamp]==moment || s.ecs.relationships?.[b]?.actionMoments?.[stamp]==moment)continue;
       // Remember attempts, including a failed chance, through saves and travel.
-      for(const id of [a,b]) {const r=s.ecs.relationships[id];if(r)(r.actionMoments ||= {})[stamp]=moment;}
+      for(const {owner,moment,stamp} of attempts(s,action,bindings,a,b))(owner.actionMoments ||= {})[stamp]=moment;
       const chance=1-(1-action.chance)**conversations;
       if(hashUnit(s.peopleSeed+":action:"+stamp+":"+moment)>=chance)continue;
       let event;

@@ -154470,6 +154470,370 @@
   }
  },
  {
+  "id": "npc.event_news.catalogue_betrothal.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_betrothal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_betrothal.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_betrothal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.event_news.catalogue_betrothal_refusal.base.01",
+  "speaker": "npc",
+  "family": "event_news",
+  "situation": "catalogue_betrothal_refusal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal_refusal"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "npc",
+      "viewer": "player",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{npc.id}:{player.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.gossip_tell.catalogue_betrothal_refusal.base.01",
+  "speaker": "player",
+  "family": "gossip_tell",
+  "situation": "catalogue_betrothal_refusal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "player_known_permitted_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal_refusal"
+     }
+    },
+    {
+     "test": "can_disclose_event",
+     "args": {
+      "speaker": "player",
+      "viewer": "npc",
+      "event": "event"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.tell_sentence} {event.when}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "tell_event:{player.id}:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "gossip_reaction"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
   "id": "npc.campfire.company.base.01",
   "speaker": "npc",
   "family": "campfire",
@@ -157645,6 +158009,158 @@
      "args": {
       "event": "event",
       "type": "poaching_found_out"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_betrothal.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_betrothal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{event.account_sentence}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "overheard:{npc.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.overheard_news.catalogue_betrothal_refusal.base.01",
+  "speaker": "npc",
+  "family": "overheard_news",
+  "situation": "catalogue_betrothal_refusal",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_known_unheard_event_for_question"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "world_bubble"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "betrothal_refusal"
      }
     }
    ],

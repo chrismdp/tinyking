@@ -90,7 +90,7 @@ function mutualAttraction(s, a, b) {
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
 export function eligiblePartner(s, a, b, deliberate = false) {
-  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && isAdult(s.ecs.personable[a].age) && isAdult(s.ecs.personable[b].age) && (deliberate || canSeekPartner(s.ecs.personable[a].age) && canSeekPartner(s.ecs.personable[b].age)) && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
+  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && isAdult(s.ecs.personable[a].age) && isAdult(s.ecs.personable[b].age) && (deliberate || canSeekPartner(s.ecs.personable[a].age) && canSeekPartner(s.ecs.personable[b].age)) && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && [a,b].every((id,i)=>!s.ecs.relationships?.[id]?.commitment || s.ecs.relationships[id].commitment.partnerId==[b,a][i]) && !related(s, a, b, deliberate);
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
@@ -112,10 +112,15 @@ export function compareSocial(s, a, b, c, newsScores=new Map()) {
 }
 export function canCourt(s, a, b, deliberate = false) {
   return eligiblePartner(s,a,b,deliberate) && mutuallyOriented(s,a,b) && willing(s,a,b) &&
-    ["personal","intimate"].includes(s.ecs.relationships?.[a]?.known[b]?.ring) && ["personal","intimate"].includes(s.ecs.relationships?.[b]?.known[a]?.ring);
+    (!!betrothal(s,a,b) || ["personal","intimate"].includes(s.ecs.relationships?.[a]?.known[b]?.ring) && ["personal","intimate"].includes(s.ecs.relationships?.[b]?.known[a]?.ring));
 }
+const betrothal = (s,a,b) => s.ecs.relationships?.[a]?.commitment?.partnerId==b && s.ecs.relationships?.[b]?.commitment?.partnerId==a ? s.ecs.relationships[a].commitment : null;
 const loveMatch = (s,a,b) => mutualAttraction(s,a,b) && [a,b].every((id,i)=>s.ecs.relationships[id].known[[b,a][i]]?.ring=="intimate");
-const courtshipWait = (s,a,b) => loveMatch(s,a,b) ? SOCIAL_RATES.courtshipSeasons : SOCIAL_RATES.practicalCourtshipSeasons;
+const courtshipWait = (s,a,b) => betrothal(s,a,b)?.waitSeasons ?? (loveMatch(s,a,b) ? SOCIAL_RATES.courtshipSeasons : SOCIAL_RATES.practicalCourtshipSeasons);
+export function clearCourtship(s,a,b) {
+  delete s.social.courtships[[a,b].sort().join(":")];
+  for(const [id,other] of [[a,b],[b,a]])if(s.ecs.relationships?.[id]?.commitment?.partnerId==other)delete s.ecs.relationships[id].commitment;
+}
 
 // Empty does not mean ownerless: an inherited estate may have an absentee owner.
 export function availableHouse(s, houseId, people = []) {
@@ -282,6 +287,9 @@ function coupleHouse(s, a, b, dependents = []) {
 }
 export function marry(s, a, b, summary = false, deliberate = false) {
   if (!canCourt(s, a, b, deliberate)) return false;
+  const promise=betrothal(s,a,b);
+  if(promise && s.days/DAYS_IN_SEASON-promise.since/DAYS_IN_SEASON<promise.waitSeasons)return false;
+  const kind=promise?.kind || (loveMatch(s,a,b)?"love":"practical");
   const dependents = [...new Set([a, b].flatMap(id => s.ecs.kinship[id].children))].filter(id => alive(s, id) && isDependent(s.ecs.personable[id].age) && [s.ecs.household[a]?.houseId, s.ecs.household[b]?.houseId].includes(s.ecs.household[id]?.houseId));
   if (dependents.length > HOUSEHOLD_CAPACITY - 2) return false;
   const house = coupleHouse(s, a, b, dependents);
@@ -297,10 +305,12 @@ export function marry(s, a, b, summary = false, deliberate = false) {
   const fromVillages = [s.ecs.village[a]?.villageId, s.ecs.village[b]?.villageId];
   for (const id of [a, b, ...dependents]) moveHouse(s, id, house, summary);
   recordEvent(s, "marriage", [a, b], [], {
-    kind: loveMatch(s,a,b) ? "love" : "practical",
+    kind,
+    ...(promise?{head:promise.head,otherHead:promise.otherHead,betrothalId:promise.eventId}:{}),
     fromVillages,
     houseId: house
   });
+  if(s.social?.courtships)clearCourtship(s,a,b);
   repairHouseholds(s);
   return true;
 }
@@ -470,7 +480,8 @@ function settleAdults(s, summary) {
 function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
   const used = new Set();
   for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["personal","intimate"]).sort((b,c)=>Number(loveMatch(s,a,c))-Number(loveMatch(s,a,b)))) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON)) {
+    const candidates=[...new Set([s.ecs.relationships[a].commitment?.partnerId,...peopleInRings(s,a,["personal","intimate"])].filter(Boolean))];
+    for (const b of candidates.sort((b,c)=>Number(loveMatch(s,a,c))-Number(loveMatch(s,a,b)))) if (a < b && !used.has(a) && !used.has(b)) {
       if (courtTogether(s, a, b, season, summary)) {
         used.add(a);
         used.add(b);
@@ -481,8 +492,8 @@ function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summa
 
 export function courtTogether(s, a, b, season, summary = false) {
   const key = [a, b].sort().join(":");
-  if (!canCourt(s, a, b)) { delete s.social.courtships[key]; return false; }
-  if((s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-SOCIAL_RATES.recentContactSeasons*DAYS_IN_SEASON))return false;
+  if (!canCourt(s, a, b)) { clearCourtship(s,a,b); return false; }
+  if(!betrothal(s,a,b) && (s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-SOCIAL_RATES.recentContactSeasons*DAYS_IN_SEASON))return false;
   const started = s.social.courtships[key] ?? season;
   s.social.courtships[key] = started;
   return season - started >= courtshipWait(s,a,b) && marry(s, a, b, summary);
@@ -494,8 +505,8 @@ export function retryCourtships(s) {
   const season = s.days / DAYS_IN_SEASON;
   for (const [key, started] of Object.entries(s.social?.courtships || {})) {
     const [a,b] = key.split(":");
-    if (season - started < courtshipWait(s,a,b) || (s.social.contacts?.[key] ?? -Infinity) < s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON) continue;
-    marry(s,a,b);
+    if (season - started < courtshipWait(s,a,b)) continue;
+    courtTogether(s,a,b,season);
   }
 }
 
@@ -521,7 +532,7 @@ function advanceSeasonRules(s, season, summary) {
     // a recent real conversation is still required before a live wedding.
     // A neighbouring courtship is checked at the shared world boundary, where
     // both actual communities are present. A local season must keep its time.
-    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) delete s.social.courtships[key];
+    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) clearCourtship(s,a,b);
   }
   for (const id of ids) {
     const p = ecs.personable[id];

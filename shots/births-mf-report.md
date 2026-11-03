@@ -1,26 +1,29 @@
-The birth policy, seeded orientation and life-clock conversion are implemented. With a normal birth probability, seed 13 ends with 127 living people against the required 560–757. Population acceptance fails by 433. CPU is 29.225 seconds and heap after GC is 110.144 MB. The branch is not ready to merge against the full population requirement. The new Life clock and bonds section supersedes the earlier population result.
+Practical and arranged marriages complete the branch's birth-policy, orientation and life-clock work. Seed 13 ends history with 716 living people, within 560–757. New-game CPU is 66.912 seconds and heap after GC is 166.479 MB. Both resource limits pass. The Practical and arranged marriages section below records the final implementation and evidence. Earlier sections retain the intermediate results.
 
-All births require a man and a woman, using `nameable.male`. The woman must be 16–39 and the man 16–55. Reciprocal orientation now governs romantic attraction, courtship, romance and affairs. Same-sex couples retain courtship and marriage when both orientations permit it. Household capacity remains eight. Adoption, orphan placement and mortality retain their existing rules. Social growth, decay and waits now follow the life clock. Fixed tastes and marriage consent retain their existing rules.
+Births require a man and a woman. The woman's window remains 16–39 and the man's remains 16–55. Reciprocal orientation governs courtship, romance and affairs. Household capacity remains eight. Birth probability is 0.85 before population scaling, with a maximum chance of 0.9. Every eligible birth roll can fail. Practical marriage needs mutual Personal regard and no negative disposition or goodwill. Love matches take priority and court faster. Friendly heads can arrange consenting young adults' betrothals through the social event catalogue.
 
-The current runtime source is `6f69a55` on `feat/births-mf`. The orientation-stage runtime was `c31e618`. The orientation work started at `631fa54`. The earlier birth-policy runtime was `da8c409`, based on `4a9a05d299dd7c01864caa11af0c209acd71acf8`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch code inspection, vault write or bench-ledger write occurred. Main figures below come from the brief.
+The final runtime is `06700c8` on `feat/births-mf`, starting this ticket at `5f7ca11`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch inspection, vault write or bench-ledger write occurred. Main figures come from the brief.
 
-| Measure | Main | Before life-clock work | Delivered | Acceptance |
+| Measure | Main | Before this ticket | Delivered | Acceptance |
 | --- | ---: | ---: | ---: | --- |
-| Living people after history | 686 | 403 | 127 | Fail: 560–757 |
-| History births | 1,270 | 977 | 397 | Report |
-| History marriages | 426 | 317 | 182 | Report |
-| Man–woman marriages | Not supplied | 317 | 181 | Report |
-| Man–man marriages | Not supplied | 0 | 0 | Report |
-| Woman–woman marriages | Not supplied | 0 | 1 | Report |
-| New-game CPU, seconds | 61 | 61.507 | 29.225 | Pass: ≤309 |
-| New-game elapsed time, seconds | Not supplied | 57.336 | 25.546 | Report |
-| Heap after GC, decimal MB | About 158 | 146.914 | 110.144 | Pass: <250 |
-| Heap after GC, MiB | Not supplied | 140.109 | 105.042 | Report |
-| Retained people | 1,510 | 1,217 | 637 | Report |
-| History deaths | 824 | 814 | 510 | Report |
-| Same-sex history births | 377 | 0 | 0 | Pass |
+| Living people after history | 686 | 127 | 716 | Pass: 560–757 |
+| History births | 1,270 | 397 | 1,164 | Report |
+| History marriages, including founders | 426 | 182 | 579 | Report |
+| Man–woman marriages | Not supplied | 181 | 560 | Report |
+| Man–man marriages | Not supplied | 0 | 10 | Report |
+| Woman–woman marriages | Not supplied | 1 | 9 | Report |
+| New-game CPU, seconds | 61 | 29.225 | 66.912 | Pass: ≤309 |
+| New-game elapsed time, seconds | Not supplied | 25.546 | 59.529 | Report |
+| Heap after GC, decimal MB | About 158 | 110.144 | 166.479 | Pass: <250 |
+| Retained people | 1,510 | 637 | 1,404 | Report |
+| History deaths | 824 | 510 | 688 | Report |
+| Births outside the sex or age rules | Not supplied | 0 | 0 | Pass |
 
-The birth-policy and Orientation sections record earlier stages. Life clock and bonds records the current branch and its limits.
+The final run has 30 more living people, 106 fewer births and 153 more marriages than main. It has 589 more living people, 767 more births and 397 more marriages than the starting branch. These are history counts before the arriving player and royal backstory. The started game retains its family quest, two named relatives and both valid royal births.
+
+## Birth policy
+
+This section records the original birth-policy stage at `da8c409`. Its measurements describe that intermediate source.
 
 The unchanged `scripts/local-population-measure.js` measured a seed-13 new game, then called `startGame` with the intro skipped. Its timers exclude Babel loading, diagnostic exports and forced GC. Demographics come from the history export before the arriving player and royal backstory. The final saved game retains the family quest, three named relatives and both royal birth events. Source hashes match the frozen runtime.
 
@@ -359,6 +362,8 @@ The unresolved limit is population: 403 living people against 560–757. Orienta
 
 ## Life clock and bonds
 
+This section records the intermediate life-clock stage. Practical and arranged marriages below supersedes its population result.
+
 The life-clock conversion and normal birth probability are implemented. Seed 13 ends with 127 living people, 433 below the minimum. Population acceptance fails. Work stops at the measured constraint, as requested. Practical marriages need a separate decision from Chris and the coordinator.
 
 The runtime is `6f69a55`. The fixture corrections are `fb20ab1` and do not change runtime files. Work started at `71b766c` in `/home/cp/code/tk-births`. Only seed 13 was evaluated. No other branch was read. Dependencies were already installed. No delegation, push, stash, vault write or bench-ledger write occurred.
@@ -515,3 +520,156 @@ flock -w 7200 /tmp/27agents-gate-2.lock npm run build
 Final receipts: [starting ages](orientation-delivered-ages.json), [final ages and spacing](life-clock-final-ages.json), [profile](regress-profile-life-clock-final.json), [birth and orientation audit](life-clock-final-counts.json), [remaining limits](life-clock-final-limits.json), [affected command](life-clock-affected-receipt.json), [original affected results](life-clock-affected-tests.json), [corrected results](life-clock-gate-corrections-tests.json), [combined affected results](life-clock-combined-tests.json), [source hashes](life-clock-frozen-runtime-manifest.json), [lint](life-clock-final-lint.log), [build](life-clock-final-build.log). Failed attempts remain beside them.
 
 Population and the main age comparison remain unresolved. The measured partner constraint needs a policy decision outside this brief.
+
+
+## Practical and arranged marriages
+
+The implementation meets the seed-13 population and resource limits. The final runtime is `06700c8`. The ticket began at `5f7ca11` in this worktree. Only seed 13 was measured. The summary above covers the complete branch. Earlier stages remain in this report as development evidence.
+
+### Marriage rules and data
+
+Practical partners need mutual Personal rings or closer. Both must be single adults, reciprocally oriented, unrelated and free of negative disposition or goodwill. Existing automatic age windows and housing checks remain. Love matches retain mutual love and mutual Intimate consent. They win candidate and wedding priority checks. Their wait is half a season, compared with one season for practical matches. Summary history samples both waits at seasonal meetings. Player proposals retain their timed visit and now accept practical consent too.
+
+Family proposals run at the shared seasonal world boundary. Candidate selection uses the existing nearby courtship index. It reads the home hex and its neighbours. Query tests forbid enumeration of maps, residents, person tables, relationship tables and the world directory. Event and housing views contain at most the two actual communities.
+
+The catalogue binds each young person's household owner as their head. That head must be a living adult parent in the same household. Both young people must be Young adults, single, unrelated, compatible and free of other courtship. The heads each need at least ten goodwill towards the other. Families can share a village, occupy different villages in a hex, or live across a nearby hex boundary. The young people can be strangers.
+
+Acceptance records `betrothal` and a reciprocal exclusive commitment. Its one-season wait lives in event data. The existing marriage path rechecks consent, kin, orientation, age and housing. The wedding carries its betrothal ID and both original heads. Its data effects give each living head six goodwill towards the other. A young person's hate disposition or negative goodwill records `betrothal_refusal`. Its data effects cost each head two goodwill. Each head gets one proposal attempt per season, including refusals.
+
+Both events declare public disclosure, family topics and relevance to affected people, kin and the village. Their `seasonSection` puts them in ordinary season news. The existing generator produced six conversation rows across NPC accounts, player gossip and world speech. The catalogue now has 1,434 rows and passes validation.
+
+The engine additions are small, general operations:
+
+| Addition | Purpose |
+| --- | --- |
+| Component paths in participant bindings | Resolve a person's household and its owner without searching people |
+| `life_stage_is` condition | Test a named stage through the shared life clock |
+| `parent_of` condition | Test an existing parent link |
+| `is_courting` condition | Test an existing courtship or exclusive commitment |
+| `commitment` effect | Store reciprocal partners, start time, wait, source event and authored details |
+| `attemptGroup` and `oncePerPerson` | Share seasonal attempt records across outcomes and siblings |
+| `seasonSection` event field | Include authored news in the season account |
+
+Cross-border meetings save courtship starts, contact and avoidance to both communities. Local checks leave remote commitments for the shared world boundary. Betrothed NPCs do not leave on journeys to seek company. These rules preserve the accepted match until its wedding check.
+
+### Birth tuning and capacity
+
+The final base chance is 0.85. The existing population factor remains 0.2–2. `maxBirthChance` limits the result to 0.9, so the effective chance is 17%–90%. This preserves unsuccessful rolls even in sparse villages. The one-season cooldown, one opportunity per couple, woman's window 16–39 and capacity eight remain.
+
+At the reference population, the expected interval is 1.176 seasons, or 2.353 life years. The final history has 723 completed intervals between births to the same woman. Their mean is 1.799 seasons, or 3.599 life years. The median is one season. These completed intervals exclude single-child mothers and gaps cut off by the endpoint or maternal window.
+
+The first development run exposed a ninth household member after a traveller returned. A birth had used that temporarily absent member's place. Birth and wedding capacity checks now reserve places through the small visit ledger. They do not search the world population. A failing seven-resident fixture previously produced nine births across 30 seeds despite an absent eighth member. It produces none after the correction. The final generated maximum occupancy is eight.
+
+These are sequential development runs. They do not isolate birth probability from the accompanying correctness fixes. Every run uses seed 13, 48 history seasons, unchanged age windows and capacity eight.
+
+| Base chance | Implementation state | Living | Births | Marriages |
+| --- | --- | ---: | ---: | ---: |
+| 0.45 | Initial practical and arranged paths | 418 | 702 | 396 |
+| 0.65 | Reserved absent household places, maximum chance 0.9 | 542 | 921 | 476 |
+| 0.70 | Same capacity and probability rules | 552 | 949 | 485 |
+| 0.75 | Wedding priority and season news fixes | 523 | 930 | 475 |
+| 0.85 | Before saving both communities' courtship state | 635 | 1,079 | 535 |
+| 0.85 | Saved both communities' courtship state | 737 | 1,181 | 591 |
+| 0.85 | Preserved remote commitments through local checks | 737 | 1,181 | 591 |
+| 0.85 | Final: respected commitments during company journeys | 716 | 1,164 | 579 |
+
+### Seed-13 acceptance
+
+The unchanged `scripts/local-population-measure.js` generated a new game and called `startGame` with the intro skipped. CPU excludes initial Babel loading, diagnostic exports and forced collection. Heap is measured after GC. Demographics use the history export before the player and sealed royal backstory arrive. All 182 tracked source hashes match the frozen final source. The profiler's recorded runtime hashes also match.
+
+| Measure | Main | Starting branch | Final branch |
+| --- | ---: | ---: | ---: |
+| Living people | 686 | 127 | 716 |
+| Child, 0–7 | Unavailable | 0 | 60 |
+| Teenager, 8–15 | Unavailable | 0 | 55 |
+| Young adult, 16–23 | Unavailable | 2 | 49 |
+| Adult, 24–39 | Unavailable | 11 | 150 |
+| Middle-aged, 40–55 | Unavailable | 31 | 116 |
+| Old, 56+ | Unavailable | 83 | 286 |
+| Births | 1,270 | 397 | 1,164 |
+| Total marriages | 426 | 182 | 579 |
+| Preset founding marriages | Not supplied | 120 | 120 |
+| Simulated love marriages | Not supplied | 62 under the former love rule | 178 |
+| Simulated practical marriages | Not available under former rule | 0 | 274 |
+| Simulated arranged marriages | Not available under former rule | 0 | 7 |
+| Betrothals | Not available under former rule | 0 | 7 |
+| Refusals | Not available under former rule | 0 | 1 |
+| CPU, seconds | 61 | 29.225 | 66.912 |
+| Elapsed time, seconds | Unavailable | 25.546 | 59.529 |
+| Heap after GC, decimal MB | About 158 | 110.144 | 166.479 |
+| Heap after GC, MiB | Unavailable | 105.042 | 158.767 |
+
+The marriage categories sum to 459 simulated weddings. The 120 preset founding couples enter history already married and remain separate from the three observed marriage paths. All seven arranged weddings reference their actual betrothal and occur exactly one season later. Every simulated wedding passes reciprocal orientation checks. All 1,164 history births and both royal births pass the sex and parental-age audit. Every retained person has an orientation. Maximum living occupancy is eight.
+
+| Women's age measure, life years | Main | Starting branch | Final branch |
+| --- | --- | ---: | ---: |
+| Median first marriage, born during history | Unavailable | 24, 63 women | 22, 451 women |
+| Median first birth, born during history | Unavailable | 28, 49 mothers | 26, 321 mothers |
+| Median first recorded marriage, including founders | Unavailable | 26, 183 women | 24, 571 women |
+| Median first recorded birth, including founders | Unavailable | 30, 167 mothers | 28, 441 mothers |
+
+Ages use retained age, death season or history endpoint, event season, and two life years per season. Each woman contributes her earliest recorded event once. Dead women remain included. Founding weddings do not measure bond formation. The cohort born during history avoids that problem, but excludes women who never marry or give birth. Main's age pyramid and medians were not supplied. No other branch was read to obtain them.
+
+The final snapshot has 91 women aged 16–39, including 37 single women. It has 23 fertile couples with room and 26 in full homes. Housing and parenting limits therefore still constrain actual births. The population target passes without changing those limits.
+
+### Tests, corrections and receipts
+
+Small fixtures preceded implementation. Initial practical tests exposed the Intimate-only requirement. Arranged tests exposed missing actions, commitments, indexed selection, weddings and generated news. Later regressions exposed the absent member's place, wedding retry priority, missing season news, one-sided border state, remote commitment cancellation and engaged travellers leaving to seek company. Each failed attempt remains in ignored logs.
+
+| Acceptance criterion | Evidence |
+| --- | --- |
+| Practical marriage without love | Real `courtTogether` wedding with mutual Personal consent and `kind: practical` |
+| Dislike blocks practical marriage | Negative disposition and goodwill from either endpoint reject consent |
+| Love wins and courts faster | Actual contact choice, mature hourly and seasonal wedding checks, and the half-season live wait |
+| Heads need goodwill | Either head below the authored threshold prevents both proposal outcomes |
+| Either young person can refuse | Disposition and goodwill refusal fixtures, event identity and two-point family costs |
+| Betrothal produces a wedding after a season | Direct wait boundary, same village, same hex, adjacent hex and full world-clock transitions |
+| Families gain goodwill after the wedding | Both heads gain six only after the wedding through event data |
+| Candidate selection does not scan population | Proxies throw on enumeration while the nearby query still finds the match |
+| Ordinary news and conversation | Public disclosure, known events, season-page inclusion and all three generated row families |
+| Existing constraints remain | Orientation, kin, age, single status, existing courtship, headhood, housing and birth fixtures |
+
+| Check | Result |
+| --- | --- |
+| Practical regressions before implementation | One failed, four passed |
+| Arranged regressions before implementation | Eight failed, eight passed |
+| Focused feature checks before final world fixes | 195/195 passed across 12 files |
+| Initial affected gate, base `5f7ca11` | 1,327 passed, seven failed across 139 files |
+| Corrected affected gate at `bb1c4a0` | 1,336/1,336 passed across 139 files |
+| New world-clock and traveller regressions | Both failed before their respective fixes |
+| Final affected corrections at `06700c8` | 127/127 passed across eight files |
+| Combined final affected evidence | 1,338/1,338 passed across 139 files |
+| Runtime ESLint and new-test ESLint | Exit 0, no warnings |
+| Conversation catalogue validation | Zero problems, 1,434 rows |
+| Whitespace | Pass |
+| Final production build | Exit 0, app 16.691 s, save worker 0.546 s |
+| Frozen source manifest | All 182 tracked source files match |
+
+The affected selector walks imports from the diff against `5f7ca11` and supplies an explicit Jest file list. It uses `/tmp/27agents-gate.lock`. The final eight files replace 125 earlier results with 127 results. Other passing evidence remains. New runtime fixes were restricted to remote wedding checks and company journeys. The correction gate covers those paths and the relevant travel files. No whole suite, shared-harness exception or TypeScript check applies. This JavaScript project defines no typecheck command. Measurements and builds use the second shared lock. Earlier builds preceded the final world fixes and are superseded. The final build retains three bundle-size warnings.
+
+Existing tests preserve their substantive assertions. Consent-loss fixtures now use Social instead of Personal. The disconnected-route fixture keeps the two local relatives busy so that it still tests the intended destination. Cooldown fixtures temporarily force both birth settings and restore them afterward. Production probabilities remain below one. The old two-to-three-season reference-spacing assertion was replaced because this ticket authorises a birth rebalance. Binomial outcome checks, failed sparse-village rolls, duplicate-season checks and reciprocal children assertions remain.
+
+| Green commit | Scope |
+| --- | --- |
+| `475a864` | Practical consent, preference and focused fixtures |
+| `a9f4aa1` | Data-driven family proposals, commitments, news and arranged fixtures |
+| `76bdb42` | Capacity reservations for temporarily absent members |
+| `bb1c4a0` | Love wedding priority, both communities' courtship state, probability and documentation |
+| `b87e9ed` | Remote commitments survive local seasonal and hourly checks |
+| `06700c8` | Betrothed travellers remain for their wedding |
+
+Only this report is tracked under `shots/`. Logs, receipts, runners and exports remain ignored. Reproduction commands use the retained local runners:
+
+```bash
+node shots/marriages-affected-gate.cjs
+flock -w 7200 /tmp/27agents-gate-2.lock env -u NODE_OPTIONS node --expose-gc scripts/local-population-measure.js marriages-accepted
+node shots/life-clock-ages.cjs marriages-accepted
+node shots/orientation-inspect.cjs marriages-accepted
+node shots/marriages-kinds.cjs marriages-accepted
+node shots/orientation-limits.cjs marriages-accepted
+flock -w 7200 /tmp/27agents-gate-2.lock npm run build
+```
+
+Final receipts: [profile](regress-profile-marriages-accepted.json), [ages and spacing](marriages-accepted-ages.json), [birth and orientation audit](marriages-accepted-counts.json), [marriage categories and delays](marriages-accepted-marriages.json), [remaining constraints](marriages-accepted-limits.json), [affected command](marriages-affected-receipt.json), [affected results](marriages-affected-tests.json), [final corrections](marriages-delivered-corrections-tests.json), [combined evidence](marriages-combined-gate.json), [source hashes](marriages-frozen-runtime-manifest.json), [lint](marriages-accepted-lint.log), [catalogue](marriages-final-catalogue.log), [build](marriages-accepted-build.log). Initial failures and superseded measurements remain beside them.
+
+Population, resource limits and requested behavior pass. Main's age distribution and medians remain unavailable. The independent browser acceptance pass remains the coordinator's responsibility under the project rules. No visual layout changed, and no duplicate browser acceptance pass was run.

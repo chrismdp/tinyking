@@ -1,3 +1,4 @@
+import { isAdult, canHelpAtHome } from "game/life_stages";
 import { refreshPersonIndex } from "game/population_index";
 import { meetInSecret } from "game/secret_activities";
 import { spendEnergy, eatOwnedFood } from "game/energy";
@@ -1372,7 +1373,7 @@ export function end_world_arrival(state, actorId, world) { delete world.worldArr
 export function tend_garden(state, actorId, world, dt, firstRun, gardenId) {
   const ecs = state.ecs, garden = ecs.backyard?.[gardenId], farm = ecs.farmable?.[gardenId];
   const suitable = garden?.kind == "vegetable" || ownsField(state,actorId,gardenId);
-  if (!suitable || !farm || farm.houseId != ecs.household[actorId]?.houseId || ecs.personable[actorId].age < 6 || time.season(state.days) == "winter" || math.squaredDistance(ecs.spatial[actorId], ecs.spatial[gardenId]) > 12 ** 2) return Task.ABORT;
+  if (!suitable || !farm || farm.houseId != ecs.household[actorId]?.houseId || !canHelpAtHome(ecs.personable[actorId].age) || time.season(state.days) == "winter" || math.squaredDistance(ecs.spatial[actorId], ecs.spatial[gardenId]) > 12 ** 2) return Task.ABORT;
   const slot = ecs.farmable[gardenId]?.slots.find(slot => slot.state == "sown" && slot.tendedDay != Math.floor(state.days));
   if (!slot) return Task.FINISH;
   if (!workComplete(state, actorId, world, dt, firstRun, GARDEN_CARE_TIME)) return Task.CONTINUE;
@@ -1385,7 +1386,7 @@ export function tend_garden(state, actorId, world, dt, firstRun, gardenId) {
 
 export function play_together(state, actorId, world, dt, firstRun, partnerId) {
   const v = world.social, other = state.ecs.planner[partnerId]?.world.social;
-  if (!v || v.kind != "play" || other?.partnerId != actorId || world.capturedBy || state.ecs.planner[partnerId]?.world.capturedBy || state.ecs.planner[partnerId]?.world.feeling.hungry || state.ecs.planner[partnerId]?.world.feeling.tired || state.ecs.personable[partnerId]?.dead || state.ecs.personable[actorId].age >= 18 || state.ecs.personable[partnerId].age >= 18 || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
+  if (!v || v.kind != "play" || other?.partnerId != actorId || world.capturedBy || state.ecs.planner[partnerId]?.world.capturedBy || state.ecs.planner[partnerId]?.world.feeling.hungry || state.ecs.planner[partnerId]?.world.feeling.tired || state.ecs.personable[partnerId]?.dead || isAdult(state.ecs.personable[actorId].age) || isAdult(state.ecs.personable[partnerId].age) || world.feeling.hungry || world.feeling.tired || state.days >= v.expires) return Task.FINISH;
   if (!v.started) {
     if (math.squaredDistance(state.ecs.spatial[actorId], state.ecs.spatial[partnerId]) > 85 ** 2) return Task.CONTINUE;
     v.started = other.started = state.days;

@@ -1,3 +1,4 @@
+import { lifeStageLabel } from "game/life_stages";
 import { eventById } from "game/events";
 import { knowsEvent } from "game/event_knowledge";
 import { householdMembers } from "game/population_index";
@@ -54,7 +55,7 @@ export function personFact(s,id) {
   const e=s.ecs,n=personComponent(s,"nameable",id)||{},p=personComponent(s,"personable",id),v=e.village?.[id]?.villageId,h=e.household?.[id]?.houseId;
   const full=s.personName?.(id) || n.nickname || (n.type=="person" && n.seed!=null ? require("game/name").name(n) : null) || (n.firstName ? [n.firstName,n.familyName].filter(Boolean).join(" ") : undefined);
   return {id,first_name:full?.split(" ")[0],family_name:full?.split(" ").slice(1).join(" "),name:full,village:v,household:h,
-    village_name:s.villages?.[v]?.name,age_words:words(Math.floor(p.age)),trade:e.profession?.[id]?.trade,
+    village_name:s.villages?.[v]?.name,life_stage:lifeStageLabel(p.age),trade:e.profession?.[id]?.trade,
     workplace_name:trades[e.profession?.[id]?.trade],children_words:words((e.kinship[id]?.children||[]).filter(c=>living(s,c)).length),
     him_her:n.male?"him":"her",he_she:n.male?"he":"she",boy_girl:n.male?"boy":"girl",son_daughter:n.male?"son":"daughter",
     arrived_when:e.playable?.[id]?.arrivedAt!=null?relativeDate(s,{day:e.playable[id].arrivedAt}):undefined};

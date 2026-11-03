@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { residentPeople } from "game/population_index";
 import { entityId, isResident } from "game/residents";
 import { cancelFavour } from "game/favours";
@@ -83,7 +84,7 @@ export function repairHouseholds(state) {
     const household = ecs.household?.[houseId];
     if (household?.trade) {
       const previous = Object.keys(ecs.profession || {}).find(id => ecs.profession[id].houseId == houseId);
-      const worker = members.includes(previous) && ecs.personable[previous].age >= 18 ? previous : members.find(id => ecs.personable[id].age >= 18 && !ecs.playable?.[id]);
+      const worker = members.includes(previous) && isAdult(ecs.personable[previous].age) ? previous : members.find(id => isAdult(ecs.personable[id].age) && !ecs.playable?.[id]);
       for (const id of Object.keys(ecs.profession || {})) if (ecs.profession[id].houseId == houseId && id != worker) {
         delete ecs.profession[id];
         if (ecs.planner?.[id]) delete ecs.planner[id].world.profession;

@@ -1,3 +1,4 @@
+import { lifeStageLabel } from "game/life_stages";
 import { warningConsequences, villageElder } from "game/village_customs";
 import React from "react";
 import PropTypes from "prop-types";
@@ -72,7 +73,7 @@ export function ChatPanel() {
   const explain=icon=>setInfo(explainIcon(s,icon,learned));
   const speak=choice=>{if(busy||sending.current)return;sending.current=true;setSelected(null);setHover(null);setInfo("");s.ui.actions.choose_chat_line(choice);};
   const identity=displayName(s,c.npcId)!="an unknown person",village=s.villages?.[s.ecs.village[c.npcId]?.villageId]?.name;
-  const description=[identity?`${s.ecs.personable[c.npcId]?.age} years`:"You have not been introduced",identity&&village, ...(learned.traits||[]).slice(0,2)].filter(Boolean).join(" · ");
+  const description=[identity?lifeStageLabel(s.ecs.personable[c.npcId]?.age):"You have not been introduced",identity&&village, ...(learned.traits||[]).slice(0,2)].filter(Boolean).join(" · ");
   const focusKey=e=>{
     if(e.key=="Escape"){e.stopPropagation();s.ui.actions.close_chat();}
     if(e.key=="Tab") {

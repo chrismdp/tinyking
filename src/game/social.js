@@ -1,3 +1,4 @@
+import { isAdult, isDependent, canSeekPartner, canBearChild, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
 import { residentPeople, withPopulationIndex, refreshPersonIndex } from "game/population_index";
@@ -22,12 +23,8 @@ import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventInd
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
   birthPerSeason: 0.55,
-  parentAgeLimit: 55,
   travellerShare: 0.05,
-  oldDeathPerSeason: 0.02,
-  courtshipSeasons: 2,
-  childYears: 2,
-  adultYearsPerGameYear: 2
+  courtshipSeasons: 2
 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
 const roll = (s, key) => hashUnit(s.peopleSeed + ":social:" + key);
@@ -86,7 +83,7 @@ function mutualAttraction(s, a, b) {
 
 // Eligibility is local-map wide. This does not imply attraction or consent.
 export function eligiblePartner(s, a, b, deliberate = false) {
-  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && s.ecs.personable[a].age >= 18 && s.ecs.personable[b].age >= 18 && (deliberate || s.ecs.personable[a].age <= SOCIAL_RATES.parentAgeLimit && s.ecs.personable[b].age <= SOCIAL_RATES.parentAgeLimit) && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
+  return !!s.ecs.kinship?.[a] && !!s.ecs.kinship?.[b] && a != b && isResident(s, a) && isResident(s, b) && alive(s, a) && alive(s, b) && (deliberate || !s.ecs.playable?.[a] && !s.ecs.playable?.[b]) && isAdult(s.ecs.personable[a].age) && isAdult(s.ecs.personable[b].age) && (deliberate || canSeekPartner(s.ecs.personable[a].age) && canSeekPartner(s.ecs.personable[b].age)) && (!s.ecs.kinship[a]?.spouse || !alive(s, s.ecs.kinship[a].spouse)) && (!s.ecs.kinship[b]?.spouse || !alive(s, s.ecs.kinship[b].spouse)) && !related(s, a, b, deliberate);
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
@@ -168,8 +165,13 @@ export function moveHouse(s, id, houseId, summary = false) {
     toVillage: s.ecs.village[id].villageId
   });
 }
-function canCourtParents(s,a,b) {
-  return s.ecs.personable[b].age >= 18 && s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId && !related(s,a,b);
+export function canHaveChild(s,a,b) {
+  const pair=[a,b];
+  if (!pair.every(id=>canSeekPartner(s.ecs.personable[id].age)) || s.ecs.household[a]?.houseId != s.ecs.household[b]?.houseId || related(s,a,b)) return false;
+  const women=pair.filter(id=>s.ecs.nameable[id]?.male===false);
+  // Births have always supported same-sex parents. With no woman, retain that
+  // rule; with women, at least one must be within the mother's life stages.
+  return !women.length || women.some(id=>canBearChild(s.ecs.personable[id].age));
 }
 function coupleHouse(s, a, b, dependents = []) {
   const ecs = s.ecs,
@@ -271,7 +273,7 @@ function coupleHouse(s, a, b, dependents = []) {
 }
 export function marry(s, a, b, summary = false, deliberate = false) {
   if (!canCourt(s, a, b, deliberate)) return false;
-  const dependents = [...new Set([a, b].flatMap(id => s.ecs.kinship[id].children))].filter(id => alive(s, id) && s.ecs.personable[id].age < 18 && [s.ecs.household[a]?.houseId, s.ecs.household[b]?.houseId].includes(s.ecs.household[id]?.houseId));
+  const dependents = [...new Set([a, b].flatMap(id => s.ecs.kinship[id].children))].filter(id => alive(s, id) && isDependent(s.ecs.personable[id].age) && [s.ecs.household[a]?.houseId, s.ecs.household[b]?.houseId].includes(s.ecs.household[id]?.houseId));
   if (dependents.length > 4) return false;
   const house = coupleHouse(s, a, b, dependents);
   if (!house) return false;
@@ -436,13 +438,13 @@ function settleAdults(s, summary) {
   for (const village of Object.values(s.villages || {})) {
     for (const house of village.houses || []) {
       if (members(house).length) continue;
-      const candidates = roster.filter(id => familyHomeAvailable(s, house, [id, ecs.kinship[id]?.spouse]) && ecs.personable[id].age >= 18 && ecs.kinship[id]?.parents.length && ecs.controllable[ecs.household[id]?.houseId]?.controllerId != id && members(ecs.household[id]?.houseId).length > 2).sort((a, b) => ecs.personable[a].age - ecs.personable[b].age || a.localeCompare(b));
+      const candidates = roster.filter(id => familyHomeAvailable(s, house, [id, ecs.kinship[id]?.spouse]) && isAdult(ecs.personable[id].age) && ecs.kinship[id]?.parents.length && ecs.controllable[ecs.household[id]?.houseId]?.controllerId != id && members(ecs.household[id]?.houseId).length > 2).sort((a, b) => ecs.personable[a].age - ecs.personable[b].age || a.localeCompare(b));
       for (const id of candidates) {
         const from = ecs.household[id].houseId,
           spouse = ecs.kinship[id].spouse;
         const family = [id];
         if (alive(s, spouse) && ecs.household[spouse]?.houseId == from) family.push(spouse);
-        family.push(...ecs.kinship[id].children.filter(child => alive(s, child) && ecs.personable[child].age < 18 && ecs.household[child]?.houseId == from));
+        family.push(...ecs.kinship[id].children.filter(child => alive(s, child) && isDependent(ecs.personable[child].age) && ecs.household[child]?.houseId == from));
         if (family.some(id=>ecs.playable?.[id]) || members(from).length - family.length < 2) continue;
         for (const person of family) moveHouse(s, person, house, summary);
         residents[from] = members(from).filter(id => !family.includes(id));
@@ -512,11 +514,11 @@ function advanceSeasonRules(s, season, summary) {
   }
   for (const id of ids) {
     const p = ecs.personable[id];
-    p.lifeYears = (p.lifeYears ?? (p.age < 18 ? p.age / 9 : 2 + (p.age - 18) / SOCIAL_RATES.adultYearsPerGameYear)) + 0.25;
-    p.age = Math.floor(p.lifeYears < 2 ? p.lifeYears * 9 : 18 + (p.lifeYears - 2) * SOCIAL_RATES.adultYearsPerGameYear);
-    p.size = p.age < 18 ? 12 : 20;
+    p.age += LIFE_YEARS_PER_SEASON;
+    p.lifeYears = p.age / LIFE_YEARS_PER_GAME_YEAR;
+    p.size = personSize(p.age);
     s.redraws?.push(id);
-    if (p.age >= 60 && roll(s, "death:" + id + ":" + season) < SOCIAL_RATES.oldDeathPerSeason * (1 + (p.age - 60) / 12) || p.age >= 88) die(s, id);
+    if (roll(s, "death:" + id + ":" + season) < oldAgeDeathChance(p.age)) die(s, id);
   }
   settleAdults(s, summary);
   const participants = ids.filter(id => alive(s, id));
@@ -524,7 +526,7 @@ function advanceSeasonRules(s, season, summary) {
   withCloseFamilyIndex(s, () => {
     runSeasonSocialActions(s,participants,summary);
     if (summary) {
-      const singles = new Set(roster.filter(id => ecs.personable[id].age >= 18 && ecs.personable[id].age <= SOCIAL_RATES.parentAgeLimit && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
+      const singles = new Set(roster.filter(id => canSeekPartner(ecs.personable[id].age) && (!ecs.kinship[id].spouse || !alive(s, ecs.kinship[id].spouse))));
       const byVillage = new Map(),
         live = new Set(roster);
       for (const id of roster) {
@@ -601,7 +603,7 @@ function advanceSeasonRules(s, season, summary) {
     for (const a of locals) {
       const b = ecs.kinship[a].spouse,
         p = ecs.personable[a];
-      if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canCourtParents(s,a,b) || p.age < 18 || p.age > SOCIAL_RATES.parentAgeLimit || ecs.personable[b].age > SOCIAL_RATES.parentAgeLimit) continue;
+      if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canHaveChild(s,a,b)) continue;
       const house = ecs.household[a]?.houseId;
       if ((occupants.get(house) || 0) >= 6) continue;
       if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < 4) continue;
@@ -618,7 +620,7 @@ function advanceSeasonRules(s, season, summary) {
 export function historyStep(worldHexState, season) {
   if (worldHexState.social?.lastSeason >= season) return worldHexState;
   // Events, names and geography are immutable. Copy only the records this step
-  // can change; a forty-five-year history must not recopy the map or old events.
+  // can change; a generated history must not recopy the map or old events.
   const copy = {
     ...worldHexState,
     peopleDirectory: worldHexState.peopleDirectory,

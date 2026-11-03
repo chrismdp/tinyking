@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { residentPeople } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
 import { FOODS, TIMBER, amountOf } from "game/goods";
@@ -127,7 +128,7 @@ export function growBuildings(s, season, residents=householdRoster(s)) {
     if(g.lastSeason>=season)continue;
     const house=e.workplace?.[id]?.houseId || e.meetingPlace?.[id]?.houseId || id;
     const occupants=residents.get(house) || [];
-    const adults=occupants.filter(p=>e.personable[p].age>=18);
+    const adults=occupants.filter(p=>isAdult(e.personable[p].age));
     const store=e.container?.[e.household?.[house]?.storeId];
     const output=g.production-g.lastProduction, recent=output+(g.previousOutput || 0);
     const use=Object.entries(g.meetings).filter(([day])=>Number(day)>=(season-1)*DAYS_IN_SEASON && Number(day)<season*DAYS_IN_SEASON).reduce((n,[,users])=>n+Object.keys(users).length,0);

@@ -1,3 +1,4 @@
+import { personSize } from "game/life_stages";
 import { installStoredHistory } from "game/world_history";
 import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
 import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, settlementSite, suitableHouse } from "game/geography";
@@ -24,7 +25,7 @@ import { initializeEcology, generateForage } from "game/ecology";
 import { generateVillageLife } from "game/villages";
 import { expansionFits, expandedFootprint } from "game/settlement_growth";
 import { updateWeather } from "game/weather";
-import { ADULT_AGE, generatePersonality, initializeRelationships } from "game/people";
+import { generatePersonality, initializeRelationships } from "game/people";
 import { MAP_RADIUS, MAP_CENTRE, worldPoint } from "game/world_terrain";
 
 export { HEX_SIZE, Hex, InnerHex, Grid, ALL_SIDES } from "game/hex";
@@ -64,7 +65,7 @@ export function generatePerson({ spatial, male, age, familySeed, generator, days
     personable: {
       type: "person",
       age,
-      size: age < ADULT_AGE ? 12 : 20,
+      size: personSize(age),
       male,
       hair: generator.random_int() % HAIR.length,
       body: male ? BODY_MALE : BODY_FEMALE,

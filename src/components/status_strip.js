@@ -1,3 +1,4 @@
+import { isDependent } from "game/life_stages";
 import { foodChoices } from "game/energy";
 import { FOOD_ENERGY } from "game/goods";
 import { enqueueTask } from "game/manager";
@@ -122,7 +123,7 @@ export function Journal() {
   const state=React.useContext(GameState),ecs=state.ecs,id=state.ui.playerId;
   if(!state.ui.show?.journal)return null;
   const person=ecs.personable[id],goals=peopleGoals(state),homeId=ecs.household?.[id]?.houseId;
-  const heir=heirFor(state,id),garden=person.age<18 && gardenHelp(state,id,null,true);
+  const heir=heirFor(state,id),garden=isDependent(person.age) && gardenHelp(state,id,null,true);
   const member=Object.values(state.villages || {}).some(v=>membership(state,id,v.id));
   return <aside id="journal" role="dialog" aria-label="Journal">
     <header><h2>Journal</h2><button aria-label="Close journal" onClick={()=>{state.ui.show.journal=false;state.ui.actions.end_turn();}}>Close</button></header>

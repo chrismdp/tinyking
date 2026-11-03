@@ -1,9 +1,10 @@
+import { isAdult, isDependent } from "game/life_stages";
 import { villagePeople } from "game/population_index";
 import { closeChat, startVillagerChat } from "game/chat";
 import { Hex } from "game/hex";
 import { isResident } from "game/residents";
 import { householdAccess } from "game/playable";
-import { beginInteraction, completeConversation, addGoodwill, ADULT_AGE } from "game/people";
+import { beginInteraction, completeConversation, addGoodwill } from "game/people";
 import { recordEvent, learnEvent } from "game/events";
 import { cancelTask } from "game/manager";
 import { SPEECH_REACH } from "game/conversation";
@@ -19,7 +20,7 @@ const distance = (s,a,b) => {
   return p && q ? Math.hypot(p.x-q.x,p.y-q.y) : Infinity;
 };
 const alive = (s,id) => !!s.ecs.personable?.[id] && !s.ecs.personable[id].dead && isResident(s,id) && !!s.ecs.spatial?.[id];
-const localAdult = (s,id,v) => alive(s,id) && s.ecs.personable[id].age>=ADULT_AGE && s.ecs.village?.[id]?.villageId==v;
+const localAdult = (s,id,v) => alive(s,id) && isAdult(s.ecs.personable[id].age) && s.ecs.village?.[id]?.villageId==v;
 
 // The one derivation boundary for later settlement growth: use real plots,
 // buildings and venues, then flood only their connected walkable fringe.
@@ -88,7 +89,7 @@ export function oathEligibility(s,actorId,villageId) {
   const elder=villageElder(s,villageId),house=s.ecs.household?.[actorId]?.houseId;
   const readiness=oathReadiness(s,actorId,elder);
   let reason;
-  if(!alive(s,actorId)||s.ecs.personable[actorId].age<ADULT_AGE)reason="Only a living adult may take the oath.";
+  if(!alive(s,actorId)||isDependent(s.ecs.personable[actorId].age))reason="Only a living adult may take the oath.";
   else if(!elder)reason="There is no resident elder to receive the oath.";
   else if(house && s.ecs.village?.[house]?.villageId && s.ecs.village[house].villageId!=villageId)reason="Your household belongs to another village. Make your own home here first.";
   else if(!s.knowledge?.[actorId]?.people?.[elder]?.conversation || (s.ecs.relationships[elder]?.known[actorId]?.goodwill || 0)<OATH_TRUST) {

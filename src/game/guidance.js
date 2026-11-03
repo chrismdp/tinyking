@@ -1,3 +1,4 @@
+import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { familyGoal, backstoryFor } from "game/mother_family";
 import { chatUnavailable, canReachTask } from "game/manager";
 import { ownsField } from "game/farming";
@@ -56,7 +57,7 @@ export function openingGuidance(state) {
   const firstDay=arrived!=null && state.days<Math.floor(arrived)+1+6/24;
   const contacts=Object.values(state.knowledge?.[actorId]?.people||{}).filter(p=>p.conversation).length;
   const completedFavour=Object.values(state.favours?.requests||{}).some(r=>r.actorId==actorId&&r.status=="completed");
-  if((contacts>=2 || completedFavour) && (person.age??18)>=18) {
+  if((contacts>=2 || completedFavour) && isAdult(person.age ?? LIFE_STAGES.youngAdult.from)) {
     const owned=id=>ecs.controllable?.[id] && topController(ecs,id)==actorId;
     const shelter=Object.keys(ecs.shelter||{}).find(owned);
     const site=Object.keys(ecs.construction||{}).find(owned);
@@ -80,7 +81,7 @@ export function openingGuidance(state) {
   }
   const hasSeed=Object.keys(ecs.good||{}).some(id=>ecs.good[id].type=="grain"&&ecs.good[id].amount>=1&&householdAccess(ecs,actorId,id)) ||
     Object.keys(ecs.container||{}).some(id=>ecs.container[id].amounts.grain>=1&&householdAccess(ecs,actorId,id));
-  if(hasSeed && (person.age??18)>=18) {
+  if(hasSeed && isAdult(person.age ?? LIFE_STAGES.youngAdult.from)) {
     const fields=Object.keys(ecs.farmable||{}).filter(id=>ownsField(state,actorId,id));
     const field=fields.find(id=>ecs.farmable[id].slots.some(slot=>slot.state=="ploughed")) || fields.find(id=>ecs.farmable[id].slots.some(slot=>["empty","harvested","rotten"].includes(slot.state)));
     if(field) {

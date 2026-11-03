@@ -1,3 +1,4 @@
+import { isDependent, LIFE_STAGES } from "game/life_stages";
 import { knowsEvent, relevantEvent } from "game/event_knowledge";
 import { disclosureEvent, disclosureRoute } from "game/event_disclosure";
 import EVENT_TYPES from "data/event_types.json";
@@ -15,7 +16,7 @@ export const TRAIT_PAIRS = [
   ["hard-working", "lazy"], ["generous", "greedy"], ["proud", "humble"],
   ["pious", "worldly"], ["cheerful", "gloomy"], ["brave", "timid"]
 ];
-export const ADULT_AGE = 18;
+export const ADULT_AGE = LIFE_STAGES.youngAdult.from;
 
 function draw(generator, values) {
   return values.splice(generator.random_int() % values.length, 1)[0];
@@ -94,7 +95,7 @@ function writableBond(list, id) {
 }
 
 // Index only synchronous, owned transitions. Discard every index before callers
-// regain access to their mutable records; generation can own all 180 seasons.
+// regain access to their mutable records; generation can own all history seasons.
 const relationshipScopes = new WeakMap(), relationshipIndexes = new WeakMap();
 function indexList(state, list) {
   const scope = relationshipScopes.get(state);
@@ -273,7 +274,7 @@ export function initializeRelationships(state, seed) {
     for (const id of ids) {
       const kin = state.ecs.kinship[id];
       const personal = new Set([...kin.parents, ...siblingsOf(state, id), ...kin.children]);
-      const intimate = new Set([kin.spouse, ...kin.children.filter(child => state.ecs.personable[child].age < ADULT_AGE)]);
+      const intimate = new Set([kin.spouse, ...kin.children.filter(child => isDependent(state.ecs.personable[child].age))]);
       const list = state.ecs.relationships[id].known;
       // Neighbours first, then kin: a family bond takes a slot from a neighbour.
       const neighbours = ids.filter(other => other != id).sort((a, b) =>

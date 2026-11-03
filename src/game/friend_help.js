@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { harvestFits } from "game/farming";
 import { topController } from "game/playable";
 import { STAGES } from "game/construction";
@@ -5,7 +6,7 @@ import { triangleCenters } from "game/map";
 
 export function friendEligible(s, id) {
   const ecs = s.ecs, player = s.ui?.playerId, person = ecs.personable?.[id];
-  return id != player && person && !person.dead && person.age >= 18 && person.hunger <= .9 && person.tiredness <= .9 &&
+  return id != player && person && !person.dead && isAdult(person.age) && person.hunger <= .9 && person.tiredness <= .9 &&
     ["personal", "intimate"].includes(ecs.relationships?.[id]?.known[player]?.ring);
 }
 // One extra pair of hands per site. The player keeps their current order; the helper

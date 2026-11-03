@@ -1,3 +1,4 @@
+import { isDependent } from "game/life_stages";
 import { householdAccess, topController } from "game/playable";
 import { householdStore } from "game/favours";
 import { containerItemCount } from "game/container";
@@ -12,7 +13,7 @@ export function ownsField(s, actor, id) {
   return !!farm && farm.houseId==s.ecs.household?.[actor]?.houseId && householdAccess(s.ecs,actor,id);
 }
 export function fieldOrders(s, actor, id) {
-  if(!ownsField(s,actor,id) || s.ecs.personable[actor]?.age<18)return [];
+  if(!ownsField(s,actor,id) || isDependent(s.ecs.personable[actor]?.age))return [];
   const farm=s.ecs.farmable[id];
   const jobs=Object.entries(FIELD_STATES).filter(([,states])=>farm.slots.some(slot=>states.includes(slot.state))).map(([key])=>({key}));
   if(season(s.days)!="winter" && farm.slots.some(slot=>slot.state=="sown" && slot.tendedDay!=Math.floor(s.days)))jobs.push({key:"tend_field"});

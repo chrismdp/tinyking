@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { householdMembers } from "game/population_index";
 import { harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
@@ -122,7 +123,7 @@ export function updateFavours(s) {
   }
   for (const [house, h] of Object.entries(ecs.household || {})) {
     if (!h.storeId || !ecs.container?.[h.storeId]) continue;
-    const family = residents(s, house).filter(id => id != player && ecs.personable[id].age >= 18).sort();
+    const family = residents(s, house).filter(id => id != player && isAdult(ecs.personable[id].age)).sort();
     const head = ecs.controllable[house]?.controllerId;
     const giverId = family.includes(head) ? head : family[0]; if (!giverId) continue;
     const offer = (kind, targetId, quantity, reason, extra = {}) => {
@@ -163,7 +164,7 @@ export function visibleFavours(s, personId) {
 // A met adult can ask for the same real household need in person. The
 // accepted request names that person, and keeps the existing delivery reward.
 export function canRequestForHousehold(s, request, personId) {
-  return live(s, personId) && s.ecs.personable[personId].age >= 18 &&
+  return live(s, personId) && isAdult(s.ecs.personable[personId].age) &&
     s.ecs.household?.[personId]?.houseId == request.householdId &&
     !!s.knowledge?.[s.ui.playerId]?.people?.[personId]?.conversation;
 }

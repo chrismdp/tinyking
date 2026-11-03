@@ -1,3 +1,4 @@
+import { isAdult, isDependent, canHelpAtHome } from "game/life_stages";
 import { HOUR, hour_of_day, season } from "game/time";
 import { isResident } from "game/residents";
 
@@ -39,16 +40,16 @@ function gardenOccupied(state, garden, actor) {
 // A short care visit adds real growth once per day, never creates a commodity.
 export function gardenHelp(state, actor, childrenByHome, explicit = false) {
   const ecs = state.ecs, age = ecs.personable?.[actor]?.age;
-  if (age < 6 || !explicit && ecs.playable?.[actor] || !isResident(state, actor) || season(state.days) == "winter" || hour_of_day(state.days) < 8 || hour_of_day(state.days) >= 18) return null;
+  if (!canHelpAtHome(age) || !explicit && ecs.playable?.[actor] || !isResident(state, actor) || season(state.days) == "winter" || hour_of_day(state.days) < 8 || hour_of_day(state.days) >= 18) return null;
   const home = ecs.household?.[actor]?.houseId;
   // Leave this light household work to a comfortable older child when one is
   // available; adults keep the fields and trades moving and cover care otherwise.
-  if (age >= 18 && (childrenByHome?.get(home) || []).some(id => {
+  if (isAdult(age) && (childrenByHome?.get(home) || []).some(id => {
     const child = ecs.personable[id], p = ecs.planner?.[id];
-    return !child.dead && child.age >= 6 && child.age < 18 && isResident(state, id) && ecs.household?.[id]?.houseId == home && p && !p.world.ordered && !p.world.capturedBy && !p.world.social && !p.world.worldJourney && child.hunger <= .9 && child.tiredness <= .9;
+    return !child.dead && canHelpAtHome(child.age) && isDependent(child.age) && isResident(state, id) && ecs.household?.[id]?.houseId == home && p && !p.world.ordered && !p.world.capturedBy && !p.world.social && !p.world.worldJourney && child.hunger <= .9 && child.tiredness <= .9;
   })) return null;
   const gardens = (ecs.household?.[home]?.backyards || []).filter(id => ecs.backyard?.[id]?.kind == "vegetable");
-  const plots = [...gardens, ...(age < 18 ? ecs.household?.[home]?.fields || [] : [])];
+  const plots = [...gardens, ...(isDependent(age) ? ecs.household?.[home]?.fields || [] : [])];
   return plots.find(id => ecs.farmable?.[id]?.slots.some(slot => slot.state == "sown" && slot.tendedDay != Math.floor(state.days)) &&
     !gardenOccupied(state, id, actor)) || null;
 }

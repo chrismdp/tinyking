@@ -1,3 +1,4 @@
+import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { physicalOrder, workBlocked } from "game/energy";
 import { customsIntentUnavailable } from "game/village_customs";
 import { nightTime } from "game/home";
@@ -18,7 +19,7 @@ export const chatIntentUnavailable = (state,actor,target,intent) => intent?custo
 export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "eat_food", "rest", "travel"];
 export function playerOrderAllowed(state, key) {
   const p = state.ecs.personable[state.ui.playerId];
-  return key != "find_food" && p && !p.dead && ((p.age ?? 18) >= 18 || CHILD_ORDERS.includes(key));
+  return key != "find_food" && p && !p.dead && (isAdult(p.age ?? LIFE_STAGES.youngAdult.from) || CHILD_ORDERS.includes(key));
 }
 
 export const firstFreeJob = (jobs, key) => jobs.find(j => !j.assignedId && !j.waiting && j.job.key == key);

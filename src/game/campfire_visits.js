@@ -1,3 +1,4 @@
+import { isDependent } from "game/life_stages";
 import { localHome } from "game/construction";
 import { actualHome } from "game/home";
 import { hashUnit, squaredDistance } from "game/math";
@@ -33,7 +34,7 @@ export function inviteToFire(s,idle) {
   const nav=p=>(s.space[Hex().fromPoint(p)]||[]).find(id=>e.walkable[id]);
   const to=nav(e.spatial[actor]);if(!to)return;
   const candidates=Object.keys(e.planner).filter(id=>{
-    if(id==actor || e.playable?.[id] || e.personable[id]?.dead || e.personable[id]?.age<18 || !e.personality?.[id] || !e.relationships?.[id] || !idle(e.planner[id]) || e.interior?.[id])return false;
+    if(id==actor || e.playable?.[id] || e.personable[id]?.dead || isDependent(e.personable[id]?.age) || !e.personality?.[id] || !e.relationships?.[id] || !idle(e.planner[id]) || e.interior?.[id])return false;
     const bond=e.relationships[id].known[actor];
     if(bond?.goodwill<0 || s.social?.avoidance?.[[id,actor].sort().join(":")]>s.days)return false;
     const alone=!actualHome(s,id)&&!Object.keys(e.relationships[id].known).some(other=>other!=id && isResident(s,other) && e.personable[other]&&!e.personable[other].dead);

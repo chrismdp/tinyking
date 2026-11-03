@@ -1,3 +1,4 @@
+import { isAdult, isDependent } from "game/life_stages";
 import { eveningSecretActivities } from "game/secret_activities";
 import { DAYS_IN_SEASON } from "game/time";
 import { LOCOMOTION_RATIO } from "game/locomotion";
@@ -38,9 +39,9 @@ export function socialHour(s) {
   if (hour < 9 || hour >= 21) return;
   eveningSecretActivities(s);
   inviteToFire(s,idle);
-  const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], s.ecs.personable[id].age < 18));
+  const ids = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable?.[id] && s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id] && idle(s.ecs.planner[id], isDependent(s.ecs.personable[id].age)));
   startChildPlay(s, ids, hour);
-  const adults = ids.filter(id => s.ecs.personable[id].age >= 18 && !s.ecs.planner[id].world.social);
+  const adults = ids.filter(id => isAdult(s.ecs.personable[id].age) && !s.ecs.planner[id].world.social);
   const seekers = new Set(adults.filter(a => adults.some(b => romanticInterest(s, a, b))));
   adults.sort((a, b) => Number(seekers.has(b)) - Number(seekers.has(a)));
   const used = new Set();
@@ -81,7 +82,7 @@ export function socialHour(s) {
 
 function startChildPlay(s, ids, hour) {
   if (hour < 10 || hour >= 19) return;
-  const children = ids.filter(id => s.ecs.personable[id].age >= 4 && s.ecs.personable[id].age < 18);
+  const children = ids.filter(id => isDependent(s.ecs.personable[id].age));
   for (const a of children) {
     if (s.ecs.planner[a].world.social) continue;
     const b = children.find(b => b != a && !s.ecs.planner[b].world.social && s.ecs.village[a]?.villageId == s.ecs.village[b]?.villageId &&

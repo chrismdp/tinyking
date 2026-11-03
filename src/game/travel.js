@@ -1,3 +1,4 @@
+import { isAdult, isDependent } from "game/life_stages";
 import { attachPeople, updateDirectoryPerson, hydratePeople } from "game/person_storage";
 import { bindNewsContext, rememberNewsScopes, indexEventKnowledge } from "game/event_knowledge";
 import { refreshPersonIndex } from "game/population_index";
@@ -945,7 +946,7 @@ export function viableResidents(s) {
   const e = s.ecs, prospects = new Set();
   const candidates = Object.keys(s.residents).filter(id => {
     const p = e.personable[id], kin = e.kinship?.[id];
-    return s.residents[id] && p && !p.dead && p.age >= 18 && !e.playable?.[id] && kin &&
+    return s.residents[id] && p && !p.dead && isAdult(p.age) && !e.playable?.[id] && kin &&
       (!kin.spouse || !e.personable[kin.spouse] || e.personable[kin.spouse].dead);
   });
   if(s.newsModel) {
@@ -968,7 +969,7 @@ export function viableResidents(s) {
 function journeyIntent(s, id, key, j, season, prospects) {
   const p = s.ecs.personable[id],
     kin = s.ecs.kinship?.[id];
-  if (!p || p.dead || p.age < 18 || s.ecs.playable?.[id] || kin?.spouse && !s.ecs.personable[kin.spouse]?.dead) return null;
+  if (!p || p.dead || isDependent(p.age) || s.ecs.playable?.[id] || kin?.spouse && !s.ecs.personable[kin.spouse]?.dead) return null;
   const visit = j.visits[id];
   if (visit) {
     if (season < visit.arrived + 3) return null;

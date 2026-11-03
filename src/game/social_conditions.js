@@ -1,3 +1,4 @@
+import { isAdult, isDependent } from "game/life_stages";
 import { eventParticipants } from "game/event_roles";
 import { RINGS, disposition, goodwillTowards } from "game/people";
 import { personComponent } from "game/residents";
@@ -35,8 +36,8 @@ export function condition(s,b,{test,args:a={}}) {
   case "participant_friend":return eventParticipants(b.event).some(id=>RINGS.indexOf(bond(s,p,id)?.ring)>=RINGS.indexOf(a.ring));
   case "person_alive":return alive(s,p);
   case "person_dead":return !!person(s,p)?.dead;
-  case "is_adult":return alive(s,p)&&person(s,p).age>=18;
-  case "age_below":return valid(p)&&person(s,p).age<a.age;
+  case "is_adult":return alive(s,p)&&isAdult(person(s,p).age);
+  case "is_dependent":return valid(p)&&isDependent(person(s,p).age);
   case "has_trait":return valid(p)&&!!personComponent(s,"personality",p)?.traits.includes(a.trait);
   case "disposition_is":return valid(p,q)&&disposition(s,p,q)==a.value;
   case "cold_towards":return valid(p,q)&&(disposition(s,p,q)=="hate"||goodwillTowards(s,p,q)<0);

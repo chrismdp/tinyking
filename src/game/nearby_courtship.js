@@ -1,3 +1,4 @@
+import { canSeekPartner } from "game/life_stages";
 import { neighbours, worldKey } from "game/travel_geometry";
 import { hashUnit } from "game/math";
 import { SUMMARY_COMPONENTS } from "game/community_summary";
@@ -12,7 +13,7 @@ import { moveMarriageResidents, publishCommunity } from "game/travel";
 
 const single = (map, id) => {
   const e = map.ecs, p = e.personable[id], kin = e.kinship?.[id];
-  return map.residents[id] && p && !p.dead && p.age >= 18 && p.age <= SOCIAL_RATES.parentAgeLimit && !e.playable?.[id] && kin &&
+  return map.residents[id] && p && !p.dead && canSeekPartner(p.age) && !e.playable?.[id] && kin &&
     (!kin.spouse || e.personable[kin.spouse]?.dead) && e.personality?.[id] && e.relationships?.[id];
 };
 const villageBucket = (key, village) => village ?? "unsettled:" + key;

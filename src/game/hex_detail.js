@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { compressGame, decompressGame } from "game/save_game";
 import { stripPeople, hydratePeople, PERSON_COMPONENTS } from "game/person_storage";
 import { buildHistoryMap, restoreDetails } from "game/world_history";
@@ -33,7 +34,7 @@ export async function releaseHistoryWorkspace(s) {
   for(const [key,origin] of Object.entries(s.worldHistory.detailOrigins)) {
     const recipe=stripPeople(origin,j),ids=recipe.personIds;
     recipe.construction={homes:Object.fromEntries(ids.map(id=>[id,origin.ecs.household[id]?.houseId])),
-      adults:ids.filter(id=>origin.ecs.personable[id].age>=18),dead:ids.filter(id=>origin.ecs.personable[id].dead),
+      adults:ids.filter(id=>isAdult(origin.ecs.personable[id].age)),dead:ids.filter(id=>origin.ecs.personable[id].dead),
       guests:ids.filter(id=>origin.ecs.guest?.[id]),controllers:Object.fromEntries(ids.map(id=>[id,origin.ecs.controllable[id]?.controllerId]))};
     for(const table of Object.values(recipe.ecs))if(table && typeof table==="object")for(const id of ids)delete table[id];
     const bytes=new Uint8Array(await compressGame(recipe));

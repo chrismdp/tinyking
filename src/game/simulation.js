@@ -1,3 +1,4 @@
+import { isDependent, canHelpAtHome } from "game/life_stages";
 import { householdMembers, trackPopulation } from "game/population_index";
 import { updateFestival, seasonTurnAt } from "game/seasons";
 import { DAYS_IN_SEASON } from "game/time";
@@ -51,7 +52,7 @@ function updatePlanners(state, frameMod) {
 }
 function updatePlannerFrame(state, frameMod) {
   trackPopulation(state);
-  const childrenByHome = {get(home) {return householdMembers(state,home).filter(id=>{const child=state.ecs.personable[id];return !child.dead && child.age>=6 && child.age<18;});}};
+  const childrenByHome = {get(home) {return householdMembers(state,home).filter(id=>{const child=state.ecs.personable[id];return !child.dead && canHelpAtHome(child.age) && isDependent(child.age);});}};
   expireChatApproach(state);
   for (const id in state.ecs.planner) {
     const planner = state.ecs.planner[id];
@@ -76,7 +77,7 @@ function updatePlannerFrame(state, frameMod) {
       }
       if (!nightHome && planner.task?.[0] != "sleep") leaveHome(state,id);
     }
-    planner.world.child = state.ecs.personable[id]?.age < 18;
+    planner.world.child = isDependent(state.ecs.personable[id]?.age);
     if (!planner.world.ordered) planner.world.gardenHelp = gardenHelp(state, id, childrenByHome);
     refreshGardenHelpIndex(state, id);
     if (id != state.ui.playerId) {

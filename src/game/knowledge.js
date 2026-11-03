@@ -1,3 +1,4 @@
+import { isDependent } from "game/life_stages";
 import { knownEvents } from "game/events";
 import { Hex } from "game/hex";
 import { personComponent } from "game/residents";
@@ -62,7 +63,7 @@ export function personLabel(state, id, resolve = state.personName, viewer = stat
       knownEvents(state,viewer).some(e=>e.type=="marriage" && e.people.includes(id) && e.people.includes(spouse));
     if(disclosed)return "the " + spouseTrade + "'s " + (n?.male===true?"husband":n?.male===false?"wife":"spouse");
   }
-  const child = person.age < 18;
+  const child = isDependent(person.age);
   const who = n?.male == null ? (child ? "a child" : "a person") : child ? (n.male ? "a boy" : "a girl") : (n.male ? "a man" : "a woman");
   const house = personComponent(state, "household", id)?.houseId, at = state.ecs.spatial?.[house];
   const seen = at && state.ecs.playable?.[viewer]?.known?.some(h => String(Hex(h)) == String(Hex().fromPoint(at)));

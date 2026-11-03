@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { householdMembers, refreshPersonIndex } from "game/population_index";
 import { canCourt, eligiblePartner, marry, chatTogether, moveHouse } from "game/social";
 import { addGoodwill, disposition, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
@@ -20,7 +21,7 @@ export function marriageReason(s,a,b) {
 }
 export function familyConversation(s,a,b,key) {
   if (key == "play") {
-    if (s.ecs.personable[a].age >= 18 || s.ecs.personable[b].age >= 18) return {ok:false,message:"Choose another child to play together."};
+    if (isAdult(s.ecs.personable[a].age) || isAdult(s.ecs.personable[b].age)) return {ok:false,message:"Choose another child to play together."};
     if (!spendPatience(s,a,b)) return {ok:false,message:"They have had enough of talking for today."};
     beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
     return {ok:true,message:"You played together."};
@@ -60,7 +61,7 @@ export function familyConversation(s,a,b,key) {
 
 export function canFoundHousehold(s) {
   const a=s.ui.playerId,house=s.ecs.household?.[a]?.houseId;
-  return s.ecs.personable[a].age>=18 && !s.ecs.personable[a].dead && (s.ecs.building?.[house] || s.ecs.shelter?.[house]?.stage=="house") && s.ecs.controllable[house]?.controllerId==a && !s.ecs.village?.[house]?.villageId;
+  return isAdult(s.ecs.personable[a].age) && !s.ecs.personable[a].dead && (s.ecs.building?.[house] || s.ecs.shelter?.[house]?.stage=="house") && s.ecs.controllable[house]?.controllerId==a && !s.ecs.village?.[house]?.villageId;
 }
 export function foundHousehold(s) {
   if(!canFoundHousehold(s))return false;
@@ -76,7 +77,7 @@ export function foundHousehold(s) {
 }
 export function canInviteHome(s,a,b) {
   const house=s.ecs.household?.[a]?.houseId;
-  return a!=b && !s.ecs.personable[a]?.dead && !s.ecs.personable[b]?.dead && s.ecs.personable[a]?.age>=18 && s.ecs.personable[b]?.age>=18 &&
+  return a!=b && !s.ecs.personable[a]?.dead && !s.ecs.personable[b]?.dead && isAdult(s.ecs.personable[a]?.age) && isAdult(s.ecs.personable[b]?.age) &&
     (!s.ecs.kinship[b]?.spouse || s.ecs.personable[s.ecs.kinship[b].spouse]?.dead) && house!=s.ecs.household[b]?.houseId && (s.ecs.building?.[house] || s.ecs.shelter?.[house]?.stage=="house") && s.ecs.controllable[house]?.controllerId==a &&
     ["personal","intimate"].includes(s.ecs.relationships[b]?.known[a]?.ring) && ["personal","intimate"].includes(s.ecs.relationships[a]?.known[b]?.ring);
 }

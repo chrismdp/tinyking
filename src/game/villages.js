@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { householdMembers, villagePeople } from "game/population_index";
 import { TIMBER, amountOf } from "game/goods";
 import { householdStore } from "game/favours";
@@ -49,7 +50,7 @@ export function settlementLayoutInputs(state) {
   const residents=householdRoster(state);
   return JSON.stringify([state.landUseRevision,Object.values(state.villages).map(v=>[v.id,v.houses.map(id=>{
     const wood=amountOf(state.ecs.container[householdStore(state,id)].amounts,TIMBER);
-    return [id,wood>=4,wood>=8,(residents.get(id) || []).some(p=>state.ecs.personable[p].age>=18)];
+    return [id,wood>=4,wood>=8,(residents.get(id) || []).some(p=>isAdult(state.ecs.personable[p].age))];
   }),v.sharedPlaces])]);
 }
 
@@ -181,7 +182,7 @@ export function generateVillageLife(state, seed, start) {
     }
     // First allocate every yard; fields must not take another family's backyard.
     const inhabited = village.houses.filter(house => householdMembers(state,house).some(id =>
-      !ecs.personable[id].dead && ecs.personable[id].age >= 18));
+      !ecs.personable[id].dead && isAdult(ecs.personable[id].age)));
     for (const houseId of village.houses) {
       if (ecs.household[houseId]?.plot) continue;
       const origin = Hex().fromPoint(ecs.spatial[houseId]);
@@ -252,7 +253,7 @@ export function generateVillageLife(state, seed, start) {
         nameable: { nickname: household.trade == "smith" ? "Forge" : household.trade + " workshop" },
         workplace: { houseId, trade: household.trade, power: household.trade == "miller" ? "wind" : null, builtDay: state.days }
       }, houseId);
-      const worker = householdMembers(state,houseId).find(id => !ecs.personable[id].dead && ecs.personable[id].age >= 18);
+      const worker = householdMembers(state,houseId).find(id => !ecs.personable[id].dead && isAdult(ecs.personable[id].age));
       ecs.profession ||= {};
       if (worker) ecs.profession[worker] = { id: worker, trade: household.trade, workplaceId: household.workplaceId, houseId };
       if (worker && ecs.planner?.[worker]) ecs.planner[worker].world.profession = { ...ecs.profession[worker] };
@@ -347,7 +348,7 @@ export function generateVillageLife(state, seed, start) {
           (village.greenMoves ||= []).push(move);
           const head=ecs.controllable[ecs.controllable[green].controllerId]?.controllerId;
           const locals=villagePeople(state,village.id).filter(id=>!ecs.personable[id].dead);
-          const actor=locals.find(id=>id==head) || locals.find(id=>ecs.personable[id].age>=18) || locals[0];
+          const actor=locals.find(id=>id==head) || locals.find(id=>isAdult(ecs.personable[id].age)) || locals[0];
           recordEvent(state,"green_moved",actor?[actor]:[],[green],{...move,villageId:village.id});
         }
         used = spaces;

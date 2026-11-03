@@ -1,3 +1,4 @@
+import { isAdult, isDependent, lifeStageLabel } from "game/life_stages";
 import { full as gameDate } from "game/time";
 import { patience } from "game/chat_patience";
 import { TopicTastes } from "./chat_panel";
@@ -112,7 +113,7 @@ export function PersonPanel({ entityId }) {
   const dead = personComponent(state, "personable", entityId).dead;
   const present = isResident(state,entityId);
   const object = pronoun == "She" ? "her" : pronoun == "He" ? "him" : "them";
-  const benefit = !dead && personComponent(state, "personable", entityId).age >= 18 && rank >= RINGS.indexOf("personal") ?
+  const benefit = !dead && isAdult(personComponent(state, "personable", entityId).age) && rank >= RINGS.indexOf("personal") ?
     `${pronoun} can help with your building or field when free and fed. Deliver building materials first. Help comes in ${possessive} own time; you do not control ${object}.` :
     dead ? "Their feelings are part of the past." : `${pronoun} ${pronoun == "They" ? "share" : "shares"} ${possessive} family tree and gossip.`;
   const queue = (key, metadata = {}) => {
@@ -124,32 +125,32 @@ export function PersonPanel({ entityId }) {
   const trade = ecs.profession?.[entityId]?.trade;
   const owner = houseId && estate.ecs.controllable[houseId]?.controllerId;
   const successor = owner && personComponent(state, "personable", owner) ? heirFor({...state,ecs:estate.ecs,residents:estate.residents},owner) : null;
-  const occupation = personComponent(state, "personable", entityId).age < 18 ? "Child" : trade ? titleCase(trade) :
+  const occupation = isDependent(personComponent(state, "personable", entityId).age) ? lifeStageLabel(personComponent(state, "personable", entityId).age) : trade ? titleCase(trade) :
     personComponent(state, "household", houseId)?.farming ? "Farming household" : null;
   const approach = ecs.manager[player]?.jobs.find(j=>j.job.key=="chat" && j.targetId==entityId);
   const approachMessage = approach?.waiting || (state.ui.talkResult?.personId==entityId ? state.ui.talkResult.message : null);
   const activity = approachMessage ? null : !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>
-      <p className="person-meta">{identified ? <>{personComponent(state, "personable", entityId).age} years · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
+      <p className="person-meta">{identified ? <>{lifeStageLabel(personComponent(state, "personable", entityId).age)} · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
     {approachMessage && <p className="talk-result" role="status">{approachMessage}</p>}
     <div className="person-body">
       {!dead && personComponent(state, "kinship", player)?.spouse == entityId && <p className="talk-note">You are married.</p>}
-      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && personComponent(state, "personable", player).age >= 18 && <div className="court-actions" aria-label="Courtship"><button disabled={!left || !eligiblePartner(state,player,entityId,true)} onClick={() => queue("court")}>Court</button><button disabled={!left || !canMarryPlayer(state,player,entityId)} onClick={() => queue("marry")}>Ask to marry</button></div>}
+      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && isAdult(personComponent(state, "personable", player).age) && <div className="court-actions" aria-label="Courtship"><button disabled={!left || !eligiblePartner(state,player,entityId,true)} onClick={() => queue("court")}>Court</button><button disabled={!left || !canMarryPlayer(state,player,entityId)} onClick={() => queue("marry")}>Ask to marry</button></div>}
       {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={slots.free<slots.minimum} onClick={() => queue("chat")}>Chat</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
-      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && personComponent(state, "personable", player).age>=18 && <p className="talk-note">{marriageReason(state,player,entityId) || "You both feel close enough. Visit to ask and join a family home."}</p>}
+      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && isAdult(personComponent(state, "personable", player).age) && <p className="talk-note">{marriageReason(state,player,entityId) || "You both feel close enough. Visit to ask and join a family home."}</p>}
       {!dead && present && canInviteHome(state,player,entityId) && <button onClick={()=>queue("invite_home")}>Invite to your household</button>}
-      {!dead && present && entityId != player && personComponent(state, "personable", player).age < 18 && personComponent(state, "personable", entityId).age < 18 && <button disabled={!left} onClick={() => queue("play")}>Play together</button>}
+      {!dead && present && entityId != player && isDependent(personComponent(state, "personable", player).age) && isDependent(personComponent(state, "personable", entityId).age) && <button disabled={!left} onClick={() => queue("play")}>Play together</button>}
       {!dead && present && <VillageMembership personId={entityId}/>}
-      {!dead && present && personComponent(state, "personable", player).age >= 18 && <PersonRequests personId={entityId}/>}
+      {!dead && present && isAdult(personComponent(state, "personable", player).age) && <PersonRequests personId={entityId}/>}
       {!dead && present && (!left || !trusted) && <p className="talk-note">{!left ? TALK_TIRED : SOCIAL_REQUIRED}</p>}
       <p className="talk-note">Patience: {slots.free} / {slots.max} slots free{slots.free<slots.minimum ? ` · ready in ${Math.ceil(slots.readyIn)} game hours` : ""}</p>
       <p className="label">Topic tastes · discover them in conversation</p><TopicTastes personId={entityId}/>
       {Object.entries(learned[entityId]?.personReactions||{}).map(([id,evidence])=><p className="talk-note" key={id}>{evidence.score>0?"Welcomes":evidence.score<0?"Dislikes":"Is neutral about"} {id==entityId?"attention":"talk of "+knownName(id)} · {gameDate(evidence.day)}</p>)}
       <p className="label">Traits you know</p>
       <div className="known-traits">{traits.map((trait, i) => <span key={i} className={"trait" + (visibleTraits.has(trait) ? "" : " unknown")} title={visibleTraits.has(trait) ? undefined : "Unknown trait"}>{visibleTraits.has(trait) ? titleCase(trait) : "?"}</span>)}</div>
-      {identified && <div className="family-status"><p className="label">Household and inheritance</p><p>Owner: {owner && personComponent(state, "personable", owner) ? knownName(owner) : "Unclaimed home"}</p><p>Household heir: {successor && !knownKinship(state,player,owner,successor) ? "Not yet learned" : successor ? knownName(successor) + (personComponent(state, "personable", successor)?.age < 18 ? " · Child" : "") : "No living heir"}</p><small>Spouse, then eldest living child, then nearest kin.</small></div>}
+      {identified && <div className="family-status"><p className="label">Household and inheritance</p><p>Owner: {owner && personComponent(state, "personable", owner) ? knownName(owner) : "Unclaimed home"}</p><p>Household heir: {successor && !knownKinship(state,player,owner,successor) ? "Not yet learned" : successor ? knownName(successor) + (isDependent(personComponent(state, "personable", successor)?.age) ? " · " + lifeStageLabel(personComponent(state, "personable", successor).age) : "") : "No living heir"}</p><small>Spouse, then eldest living child, then nearest kin.</small></div>}
       <div className="biography"><p className="label">Their story</p>{biography(state, player, entityId, id => displayName(state, id)).map(f => <p key={f.key}>{f.text}</p>)}</div>
       <div className="relationship">{contacted ? <><div className="feeling-line"><strong>{feeling.hint ? subject + " " + feeling.hint : relationshipSentence(pronoun, "you", ring, possessive)}</strong><Ring ring={ring}/></div>
         <p>{trusted ? benefit : `An impression from your conversation. You do not yet know what ${pronoun.toLowerCase()} ${pronoun == "They" ? "think" : "thinks"} of you.`}</p>
@@ -268,7 +269,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
         const person = !node.unknown && personComponent(state, "personable", node.id);
         const dead = person?.dead, heir = person && heirOf(state, node.id);
         const label = node.unknown ? "?" : (dead ? "† " : "") + displayName(state, node.id);
-        const meta = node.unknown ? "Not yet known" : dead ? "Died aged " + node.age : node.age + " · " + (node.age >= 18 && (!node.spouse || personComponent(state, "personable", node.spouse)?.dead) ? "Unmarried adult" : node.age < 18 ? "Child" : "Living");
+        const meta = node.unknown ? "Not yet known" : dead ? "Died · " + lifeStageLabel(node.age) : lifeStageLabel(node.age) + " · " + (isAdult(node.age) && (!node.spouse || personComponent(state, "personable", node.spouse)?.dead) ? "Unmarried adult" : isDependent(node.age) ? "Growing up" : "Living");
         const houseId = person && personComponent(state, "household", node.id)?.houseId;
         const householder = !dead && houseId && state.ecs.controllable[houseId]?.controllerId == node.id;
         const tag = [node.id == tree.rootId && "Selected person", householder && "Householder", heir && "◇ Heir · " + heir].filter(Boolean).join(" · ");

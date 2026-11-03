@@ -85421,7 +85421,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.first_name}'s my {link.kin_term}. {relative.age_words|cap} now.",
+  "text": "{relative.first_name}'s my {link.kin_term}. {relative.life_stage|cap} now.",
   "facts": [
    {
     "ref": "link",
@@ -85967,10 +85967,9 @@
      }
     },
     {
-     "test": "age_below",
+     "test": "is_dependent",
      "args": {
-      "person": "relative",
-      "age": 18
+      "person": "relative"
      }
     }
    ],
@@ -85989,7 +85988,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.first_name}, my {link.kin_term}. {relative.age_words|cap}, and growing fast.",
+  "text": "{relative.first_name}, my {link.kin_term}. {relative.life_stage|cap}, and growing fast.",
   "facts": [
    {
     "ref": "link",
@@ -86266,7 +86265,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.first_name}'s my {link.kin_term}. {relative.age_words|cap} now.",
+  "text": "{relative.first_name}'s my {link.kin_term}. {relative.life_stage|cap} now.",
   "facts": [
    {
     "ref": "link",
@@ -87602,7 +87601,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.first_name} is my {link.kin_term}. {relative.age_words|cap} now.",
+  "text": "{relative.first_name} is my {link.kin_term}. {relative.life_stage|cap} now.",
   "facts": [
    {
     "ref": "link",
@@ -91278,10 +91277,9 @@
      }
     },
     {
-     "test": "age_below",
+     "test": "is_dependent",
      "args": {
-      "person": "relative",
-      "age": 18
+      "person": "relative"
      }
     }
    ],
@@ -91300,7 +91298,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.first_name}'s {relative.age_words}, and growing fast.",
+  "text": "{relative.first_name}. {relative.life_stage|cap} now, and growing fast.",
   "facts": [
    {
     "ref": "relative",
@@ -91381,10 +91379,9 @@
      }
     },
     {
-     "test": "age_below",
+     "test": "is_dependent",
      "args": {
-      "person": "relative",
-      "age": 18
+      "person": "relative"
      }
     }
    ],
@@ -91403,7 +91400,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{relative.age_words|cap} now. Shooting up.",
+  "text": "{relative.life_stage|cap} now. Shooting up.",
   "facts": [
    {
     "ref": "relative",
@@ -94284,7 +94281,7 @@
    "add": [],
    "remove": []
   },
-  "text": "{child.first_name}'s my {child.kin_term}. {child.age_words|cap} now.",
+  "text": "{child.first_name}'s my {child.kin_term}. {child.life_stage|cap} now.",
   "facts": [
    {
     "ref": "child",
@@ -118622,10 +118619,9 @@
      }
     },
     {
-     "test": "age_below",
+     "test": "is_dependent",
      "args": {
-      "person": "npc",
-      "age": 18
+      "person": "npc"
      }
     }
    ],
@@ -118706,10 +118702,9 @@
      }
     },
     {
-     "test": "age_below",
+     "test": "is_dependent",
      "args": {
-      "person": "npc",
-      "age": 18
+      "person": "npc"
      }
     }
    ],

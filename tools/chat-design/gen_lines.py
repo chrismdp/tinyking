@@ -1598,17 +1598,17 @@ npc_family("spouse_dated", [TRUST_SOCIAL, KIN("spouse"), ALIVE, P("event_type_is
    LINK_F + [F("wedding", ["id", "type", "people", "day"], "past")], events=["wedding"])
 npc_family("child", [TRUST_SOCIAL, KIN("child"), ALIVE], [
     "I've a {link.kin_term}, {relative.first_name}.",
-    "{relative.first_name}'s my {link.kin_term}. {relative.age_words|cap} now.",
+    "{relative.first_name}'s my {link.kin_term}. {relative.life_stage|cap} now.",
     "I've a {link.kin_term} called {relative.first_name}.",
     V("My {link.kin_term} {relative.first_name} lives over in {relative.village_name}.", "away",
       P("different_village", a="npc", b="relative"), facts=[F("relative", ["village"])]),
     V("{relative.first_name}'s my youngest.", "youngest", P("is_youngest_living_child", parent="npc", child="relative")),
-    V("{relative.first_name}, my {link.kin_term}. {relative.age_words|cap}, and growing fast.", "young",
-      P("age_below", person="relative", age=18), facts=[F("relative", ["age"])]),
+    V("{relative.first_name}, my {link.kin_term}. {relative.life_stage|cap}, and growing fast.", "young",
+      P("is_dependent", person="relative"), facts=[F("relative", ["age"])]),
 ], [T("family"), R("relative")], LINK_B, LINK_F + [F("relative", ["age"])])
 npc_family("parent", [TRUST_SOCIAL, KIN("parent"), ALIVE], [
     "My {link.kin_term} is {relative.first_name}.",
-    "{relative.first_name}'s my {link.kin_term}. {relative.age_words|cap} now.",
+    "{relative.first_name}'s my {link.kin_term}. {relative.life_stage|cap} now.",
     "I'm {relative.first_name}'s {link.inverse_term}.",
     V("My {link.kin_term}, {relative.first_name}, lives in {relative.village_name}.", "away",
       P("different_village", a="npc", b="relative"), facts=[F("relative", ["village"])]),
@@ -1626,7 +1626,7 @@ npc_family("grandchild", [TRUST_SOCIAL, KIN("grandchild"), ALIVE], [
 ], [T("family"), R("relative")], LINK_B, LINK_F)
 npc_family("grandparent", [TRUST_SOCIAL, KIN("grandparent"), ALIVE], [
     "My {link.kin_term}'s {relative.first_name}.",
-    "{relative.first_name} is my {link.kin_term}. {relative.age_words|cap} now.",
+    "{relative.first_name} is my {link.kin_term}. {relative.life_stage|cap} now.",
     "I'm {relative.first_name}'s {link.inverse_term}.",
 ], [T("family"), R("relative")], LINK_B, LINK_F + [F("relative", ["age"])])
 npc_family("dead_relative", [TRUST_SOCIAL, P("person_dead", person="relative"),
@@ -1710,8 +1710,8 @@ relative_news("children", [P("living_child_count_at_least", person="relative", c
     "{relative.first_name} has {relative.children_words} children now.",
     "{relative.first_name}'s got {relative.children_words} of their own."],
     [F("relative", ["children_living_count"])])
-relative_news("young", [P("age_below", person="relative", age=18)], [
-    "{relative.first_name}'s {relative.age_words}, and growing fast.", "{relative.age_words|cap} now. Shooting up."],
+relative_news("young", [P("is_dependent", person="relative")], [
+    "{relative.first_name}. {relative.life_stage|cap} now, and growing fast.", "{relative.life_stage|cap} now. Shooting up."],
     [F("relative", ["age"])])
 relative_news("away", [P("different_village", a="npc", b="relative")], [
     "{relative.first_name} lives in {relative.village_name} now.", "Over in {relative.village_name}, these days."],
@@ -1801,7 +1801,7 @@ player_family("spouse", [P("has_living_spouse", person="player")], [
     [T("family"), R("spouse")], {"spouse": {"source": "spouse_of", "person": "player"}},
     [F("spouse", ["identity", "kinship"])], people=["spouse"])
 player_family("child", [P("living_child_count_at_least", person="player", count=1)], [
-    "I've a {child.kin_term}, {child.first_name}.", "{child.first_name}'s my {child.kin_term}. {child.age_words|cap} now."],
+    "I've a {child.kin_term}, {child.first_name}.", "{child.first_name}'s my {child.kin_term}. {child.life_stage|cap} now."],
     [T("family"), R("child")], {"child": {"source": "player_child"}},
     [F("child", ["identity", "kinship", "age"])], people=["child"])
 player_family("parent", [P("has_living_parent", person="player")], [
@@ -2250,7 +2250,7 @@ npc_refusal("favour_ask", "no_need", [P("no_live_request_for_household", person=
     V("No.", "cool", GW_BELOW(0)),
 ], ["That their household has no need you can help with"], "no_need:{npc.id}:{player.id}:{context.encounter_number}",
    icons=[T("help")], facts=[F("favours", ["no_offered_request_for_household"])])
-npc_refusal("favour_ask", "child", [P("age_below", person="npc", age=18)], [
+npc_refusal("favour_ask", "child", [P("is_dependent", person="npc")], [
     "You'd best ask the grown-ups.", "Ask at home. Not me."],
     ["That children cannot ask favours"], "child_no_ask:{npc.id}:{player.id}",
     icons=[T("help")], facts=[F("npc", ["age"])])

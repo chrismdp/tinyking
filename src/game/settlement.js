@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { TIMBER, FOODS, amountOf } from "game/goods";
 import { setTileElevation } from "game/biome_field";
 import { FUEL_TRADES, FUEL_HOURS, householdStore } from "game/favours";
@@ -367,7 +368,7 @@ export function prepareSettlementSeason(s,season) {
 }
 
 function summariseLivelihood(s,house,season,residents,woodland) {
-  const e=s.ecs,h=e.household[house],occupants=(residents.get(house) || []).filter(id=>!e.guest?.[id] && (e.personable[id].born ?? -Infinity)<=s.days-DAYS_IN_SEASON && (e.household[id].since ?? -Infinity)<=s.days-DAYS_IN_SEASON),adults=occupants.filter(id=>e.personable[id].age>=19);
+  const e=s.ecs,h=e.household[house],occupants=(residents.get(house) || []).filter(id=>!e.guest?.[id] && (e.personable[id].born ?? -Infinity)<=s.days-DAYS_IN_SEASON && (e.household[id].since ?? -Infinity)<=s.days-DAYS_IN_SEASON),adults=occupants.filter(id=>isAdult(e.personable[id].age));
   if(!h?.storeId || !adults.length)return;
   const store=e.container[h.storeId], amounts=store.amounts, worker=adults[0];
   const ledger=h.livelihood ||= {grainGrown:0,grainSown:0,foodConsumed:0,timberHarvested:0,tradeInputs:0};
@@ -449,7 +450,7 @@ function summariseJourneys(s,season,residents) {
         s.days=atDay;for(const id of attending)recordMeetingUse(s,venue,id);s.days=now;
       }
     }
-    const adult=village.houses.flatMap(h=>residents.get(h) || []).find(id=>!s.ecs.guest?.[id] && s.ecs.personable[id].age>=19 && (s.ecs.household[id].since ?? -Infinity)<=s.days-1.25);
+    const adult=village.houses.flatMap(h=>residents.get(h) || []).find(id=>!s.ecs.guest?.[id] && isAdult(s.ecs.personable[id].age) && (s.ecs.household[id].since ?? -Infinity)<=s.days-1.25);
     if(!adult)continue;
     const entries=Object.values(s.map.entrances || {}).filter(e=>!s.settlement.sealedBorders?.includes(e.key));
     const entry=entries[Math.floor(hashUnit(village.id+":crossing:"+season)*entries.length)];
@@ -477,7 +478,7 @@ export function settleSeason(s,season,summary=false) {
   const changedInputs=!s.generatingHistory || s.settlement.layoutInputs!==settlementLayoutInputs(s);
   if(s.settlement.estatesInitialized && changedInputs && Object.values(s.villages).some(v=>v.houses.some(id=>!s.ecs.household[id].fields.length) ||
     v.houses.filter(id=>s.ecs.household[id].trade).length<Math.min(6,Math.max(0,v.houses.length-2)) &&
-    v.houses.some(id=>!s.ecs.household[id].trade && (residents.get(id) || []).some(p=>s.ecs.personable[p].age>=18) && amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER)>=4) ||
+    v.houses.some(id=>!s.ecs.household[id].trade && (residents.get(id) || []).some(p=>isAdult(s.ecs.personable[p].age)) && amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER)>=4) ||
     v.houses.length>=5 && ["chapel","alehouse"].some(kind=>!v.sharedPlaces.some(id=>s.ecs.meetingPlace[id].kind==kind)) &&
     v.houses.some(id=>amountOf(s.ecs.container[s.ecs.household[id].storeId].amounts,TIMBER)>=8)))generateVillageLife(s,s.peopleSeed,s.map.playerStartTile);
   growBuildings(s,season,residents);

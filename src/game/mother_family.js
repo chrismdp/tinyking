@@ -1,3 +1,4 @@
+import { isAdult } from "game/life_stages";
 import { updateDirectoryPerson } from "game/person_storage";
 import { refreshPersonIndex } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
@@ -30,7 +31,7 @@ export function seedMotherFamily(s,actor,seed) {
   });
   // Prefer an established household with genuine work. A sibling who has not
   // yet featured in the simulated history can join its remaining bed.
-  const adults=Object.keys(e.personable).filter(id=>id!=actor&&alive(s,id)&&e.personable[id].age>=18&&e.household?.[id]?.houseId);
+  const adults=Object.keys(e.personable).filter(id=>id!=actor&&alive(s,id)&&isAdult(e.personable[id].age)&&e.household?.[id]?.houseId);
   let anchor;
   for(const village of villages) {
     const locals=adults.filter(id=>e.village[id]?.villageId==village.id);

@@ -1,3 +1,4 @@
+import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { villagePeople } from "game/population_index";
 import { DAYS_IN_SEASON, day_of_season, hour_of_day, season } from "game/time";
 import { recordEvent, knownEvents, learnEvent } from "game/events";
@@ -111,7 +112,7 @@ function lifeSummary(s,records) {
   const event=records[0],n=records.length;
   const count=(["Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"][n] || String(n));
   const people=records.map(e=>e.people[0]);
-  const adults=people.every(id=>(s.ecs.personable?.[id]?.age ?? 18)>=18);
+  const adults=people.every(id=>isAdult(s.ecs.personable?.[id]?.age ?? LIFE_STAGES.youngAdult.from));
   const male=people.every(id=>s.ecs.nameable?.[id]?.male===true),female=people.every(id=>s.ecs.nameable?.[id]?.male===false);
   const who=adults?(male?"men":female?"women":"people"):"people";
   const reason=event.reason=="seeking company"?"to seek company elsewhere":event.reason=="returning home"?"to return home":event.reason;

@@ -1,10 +1,11 @@
 /* eslint-disable no-undef */
 // Builder smoke: a real seed-13 game, one hop, then a walking save/reload.
 const {chromium}=require("playwright-core"),fs=require("fs"),assert=require("assert/strict"),{spawn,execFileSync}=require("child_process");
+const label=process.env.MERGE_BROWSER_LABEL||"merge";
 const report={seed:13,port:8191,head:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),errors:[],timings:{}};
-const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report,null,2));
+const save=()=>fs.writeFileSync("shots/"+label+"-browser.json",JSON.stringify(report,null,2));
 (async()=>{
-  const fd=fs.openSync("shots/merge-dev-server.log","w");
+  const fd=fs.openSync("shots/"+label+"-dev-server.log","w");
   const server=spawn(process.execPath,[require.resolve("webpack-cli/bin/cli.js"),"serve","--config","webpack.dev.js","--port","8191","--host","127.0.0.1"],{stdio:["ignore",fd,fd]});
   report.serverPid=server.pid;save();let context;
   try {
@@ -14,7 +15,7 @@ const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report
       if(server.exitCode!=null || Date.now()-start>120000)throw new Error("Owned development server did not start");
       await new Promise(resolve=>setTimeout(resolve,1000));
     }
-    context=await chromium.launchPersistentContext(process.cwd()+"/shots/merge-browser-profile",{
+    context=await chromium.launchPersistentContext(process.cwd()+"/shots/"+label+"-browser-profile",{
       executablePath:process.env.CHROME||"/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome",
       viewport:{width:1440,height:900},args:["--use-gl=swiftshader","--use-angle=swiftshader","--enable-unsafe-swiftshader"]
     });
@@ -33,7 +34,7 @@ const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report
     };});
     await page.evaluate(()=>{tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});
     report.timings.newGameMs=Date.now()-at;report.initial=await facts();save();
-    await page.screenshot({path:"shots/merge-start.png"});
+    await page.screenshot({path:"shots/"+label+"-start.png"});
     // The existing seed-13 route is adjacent; planning and walking use normal actions.
     await page.evaluate(()=>{tinyking.ui.actions.plan_journey("6,2");if(tinyking.travel.journey?.route.length!==1)throw new Error("Expected one adjacent hop");});
     at=Date.now();
@@ -54,7 +55,7 @@ const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report
     assert.equal(report.hop.to,"6,2");
     await page.evaluate(()=>{[...document.querySelectorAll("button")].find(b=>/skip/i.test(b.textContent))?.click();tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});
     report.arrived=await facts();assert.equal(report.arrived.player,report.initial.player);assert.equal(report.arrived.copies,1);assert.equal(report.arrived.season,report.initial.season+1);save();
-    await page.screenshot({path:"shots/merge-arrival.png"});
+    await page.screenshot({path:"shots/"+label+"-arrival.png"});
     await page.evaluate(async destination=>{
       const s=tinyking,sim=tinykingTravel.createSimulation(),id=s.ui.playerId,start={...s.ecs.spatial[id]};
       s.ui.actions.plan_journey(destination);if(s.travel.journey?.route.length!==1)throw new Error("Expected return route");
@@ -64,7 +65,7 @@ const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report
       s.game_speed="paused";s.ticker.stop();
     },report.initial.active);
     report.walking=await facts();assert.equal(report.walking.active,report.hop.to);assert(report.walking.journey);save();
-    await page.screenshot({path:"shots/merge-mid-journey.png"});
+    await page.screenshot({path:"shots/"+label+"-mid-journey.png"});
     at=Date.now();
     report.saved=await page.evaluate(async()=>{const s=tinyking;await s.persistence.request(true);if(s.persistence.error)throw new Error(s.persistence.error);return s.persistence.lastSave;});
     await page.reload({waitUntil:"domcontentloaded"});
@@ -73,7 +74,7 @@ const save=()=>fs.writeFileSync("shots/merge-browser.json",JSON.stringify(report
     await page.evaluate(()=>{tinyking.ui.actions.set_speed("paused");tinyking.ticker.stop();});
     report.restored=await facts();report.timings.saveAndReloadMs=Date.now()-at;
     assert.deepEqual(report.restored,report.walking);assert.equal(report.restored.sharedHome,true);assert.equal(report.restored.sharedKnowledge,true);assert.equal(report.restored.copies,1);
-    await page.screenshot({path:"shots/merge-reloaded.png"});
+    await page.screenshot({path:"shots/"+label+"-reloaded.png"});
     assert.deepEqual(report.errors,[]);report.pass=true;save();
   }finally {
     if(context)await context.close();

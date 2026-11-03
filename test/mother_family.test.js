@@ -17,7 +17,7 @@ import { newEntities } from "game/entities";
 
 const setup=()=>{const f=peopleWorld(),s=f.state;s.map={seed:13};s.ecs.spatial[f.player]={...s.ecs.spatial[f.person]};s.villages.village.houses=[f.tiles[3]];s.villages.village.id="village";s.ecs.container={[f.tiles[3]]:{capacity:100,amounts:{}}};s.ecs.household[f.tiles[3]]={storeId:f.tiles[3]};seedMotherFamily(s,f.player,13);return f;};
 
-it.each([[true,true,60,60],[false,false,60,60],[false,true,80,60],[false,true,60,96]])("does not invent backstory children for an ineligible ancestral couple (%s, %s, %i, %i)", (maleA,maleB,ageA,ageB)=>{
+it.each([[true,true,60,60],[false,false,60,60],[false,true,106,60],[false,true,60,120]])("does not invent backstory children for an ineligible ancestral couple (%s, %s, %i, %i)", (maleA,maleB,ageA,ageB)=>{
   const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
   s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];
   s.ecs.nameable[parent].male=maleA;s.ecs.nameable[sibling].male=maleB;
@@ -33,6 +33,37 @@ it.each([[true,true,60,60],[false,false,60,60],[false,true,80,60],[false,true,60
     const record=s.peopleDirectory[id]||Object.fromEntries(["nameable","personable","kinship"].map(key=>[key,s.ecs[key][id]]));
     const parents=record.kinship.parents;
     if(parents.length==2)expect(parents.map(p=>(s.peopleDirectory[p]?.nameable||s.ecs.nameable[p]).male).sort()).toEqual([false,true]);
+  }
+});
+
+it.each([[90,100],[100,110]])("fits the mother's age to an older local family (%i, %i) and keeps both royal births eligible",(grandmotherAge,grandfatherAge)=>{
+  const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
+  s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];
+  s.ecs.personable[person].age=54;
+  s.ecs.personable[parent].age=grandmotherAge;s.ecs.personable[sibling].age=grandfatherAge;
+  s.ecs.nameable[sibling].male=true;
+  s.ecs.household[parent].houseId=s.ecs.household[sibling].houseId=null;
+  s.ecs.kinship[person].parents=[parent,sibling];
+  s.ecs.kinship[parent]={parents:[],children:[person],spouse:sibling};
+  s.ecs.kinship[sibling]={parents:[],children:[person],spouse:parent};
+  seedMotherFamily(s,player,13);
+  expect(s.backstories?.[player]).toBeDefined();
+  const b=s.backstories[player],mother=s.peopleDirectory[b.motherId];
+  expect(mother.kinship.parents).toEqual([parent,sibling]);
+  expect(mother.personable.age-s.ecs.personable[player].age).toBeGreaterThanOrEqual(16);
+  expect(mother.personable.age-s.ecs.personable[player].age).toBeLessThanOrEqual(39);
+  for(const [id,max] of [[parent,39],[sibling,55]]) {
+    const age=s.ecs.personable[id].age-mother.personable.age;
+    expect(age).toBeGreaterThanOrEqual(16);expect(age).toBeLessThanOrEqual(max);
+  }
+  for(const event of s.events.filter(e=>e.type=="birth"&&e.sealed)) {
+    const childAge=(s.ecs.personable[event.people[0]]||s.peopleDirectory[event.people[0]].personable).age;
+    const parents=event.people.slice(1).map(id=>s.peopleDirectory[id]);
+    expect(parents.map(p=>p.nameable.male).sort()).toEqual([false,true]);
+    for(const p of parents) {
+      expect(p.personable.age-childAge).toBeGreaterThanOrEqual(16);
+      expect(p.personable.age-childAge).toBeLessThanOrEqual(p.nameable.male?55:39);
+    }
   }
 });
 it("uses two living established relatives even when their village has no spare bed",()=>{

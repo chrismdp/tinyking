@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { isAdult, isDependent, canSeekPartner, canBearChild, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
@@ -22,7 +23,7 @@ import { hashUnit } from "game/math";
 import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
-  birthPerSeason: 2,
+  birthPerSeason: 2.2,
   birthCooldownSeasons: 1,
   travellerShare: 0.05,
   courtshipSeasons: 2
@@ -185,7 +186,7 @@ function coupleHouse(s, a, b, dependents = []) {
   }
   const members = house => counts[house] || 0;
   const family = [...new Set([ecs.household[a]?.houseId, ecs.household[b]?.houseId])].filter(id => ecs.building?.[id] || ecs.shelter?.[id]?.stage == "house");
-  const rooms = family.filter(id => members(id) <= 4 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
+  const rooms = family.filter(id => members(id) <= HOUSEHOLD_CAPACITY - 2 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
   const room = (s.communityHexes ? rooms.sort((a,b) => members(a)-members(b)) : rooms)[0];
   if (room) return room;
   const villageHomes = [...new Set([...(village?.houses || []), ...(s.villages?.[ecs.village[b]?.villageId]?.houses || []), ...Object.keys(ecs.building || {}).filter(id => [a, b].includes(ecs.controllable[id]?.controllerId))])];
@@ -239,7 +240,7 @@ function coupleHouse(s, a, b, dependents = []) {
       ...point
     },
     sleepable: {
-      capacity: 6,
+      capacity: HOUSEHOLD_CAPACITY,
       level: 1,
       occupiers: []
     },
@@ -275,7 +276,7 @@ function coupleHouse(s, a, b, dependents = []) {
 export function marry(s, a, b, summary = false, deliberate = false) {
   if (!canCourt(s, a, b, deliberate)) return false;
   const dependents = [...new Set([a, b].flatMap(id => s.ecs.kinship[id].children))].filter(id => alive(s, id) && isDependent(s.ecs.personable[id].age) && [s.ecs.household[a]?.houseId, s.ecs.household[b]?.houseId].includes(s.ecs.household[id]?.houseId));
-  if (dependents.length > 4) return false;
+  if (dependents.length > HOUSEHOLD_CAPACITY - 2) return false;
   const house = coupleHouse(s, a, b, dependents);
   if (!house) return false;
   // Retain previous spouses in event history; current spouse links are reciprocal.
@@ -606,9 +607,9 @@ function advanceSeasonRules(s, season, summary) {
         p = ecs.personable[a];
       if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canHaveChild(s,a,b)) continue;
       const house = ecs.household[a]?.houseId;
-      if ((occupants.get(house) || 0) >= 6) continue;
+      if ((occupants.get(house) || 0) >= HOUSEHOLD_CAPACITY) continue;
       if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < SOCIAL_RATES.birthCooldownSeasons) continue;
-      if (roll(s, "birth:" + a + ":" + season) < SOCIAL_RATES.birthPerSeason * fertility) {
+      if (roll(s, "birth:" + a + ":" + season) < Math.min(1, SOCIAL_RATES.birthPerSeason * fertility)) {
         birth(s, a, b, season);
         occupants.set(house, (occupants.get(house) || 0) + 1);
       }

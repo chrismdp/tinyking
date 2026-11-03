@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { HISTORY_SEASONS } from "game/time";
 import { isAdult } from "game/life_stages";
 import { TIMBER, FOODS, amountOf } from "game/goods";
@@ -304,7 +305,7 @@ export function constructHome(s, villageId, people, options={}) {
   }
   s.settlement.layoutDirty=true;
   s.landUseRevision=(s.landUseRevision || 0)+1;
-  const [bed,store]=newEntities(s,[{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},sleepable:{capacity:6,level:1,occupiers:[]}},{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},container:{capacity:200,amounts:starting}}]);
+  const [bed,store]=newEntities(s,[{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},sleepable:{capacity:HOUSEHOLD_CAPACITY,level:1,occupiers:[]}},{spatial:{...site.point},interior:{buildingId:house},controllable:{controllerId:house},container:{capacity:200,amounts:starting}}]);
   if(options.timber!=null) {funding.amounts={}; delete e.container[people[0]];}
   e.building[house].rooms=[bed,store];e.household[house].storeId=store;
   if(site.field)e.household[house].fieldReservation=site.field;

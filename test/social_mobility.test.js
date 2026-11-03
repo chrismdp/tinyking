@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from "./support/people";
 import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason } from "game/social";
@@ -162,7 +163,7 @@ it("never seizes an empty living owner's estate when a crowded couple needs a ho
   s.ecs.building[estate] = { rooms: [] }; s.ecs.controllable[estate] = { controllerId: "owner" };
   s.ecs.personable.owner = { age: 40 }; s.ecs.village[estate] = { villageId: "village" };
   s.villages.village.houses.push(estate);
-  for (const h of [tiles[3], tiles[5]]) for (let n = 0; n < 5; n++) {
+  for (const h of [tiles[3], tiles[5]]) for (let n = 0; n < HOUSEHOLD_CAPACITY - 1; n++) {
     const id = h + "resident" + n;
     s.ecs.personable[id] = { age: 25 }; s.ecs.household[id] = { houseId: h };
   }
@@ -226,7 +227,7 @@ it("leaves legacy survival-only actors outside family simulation without inventi
   expect(s.ecs.kinship).toBeUndefined();
 });
 
-it("counts an earlier birth before a second couple can exceed the six-resident home bound", () => {
+it("counts an earlier birth before a second couple can exceed the household resident bound", () => {
   const { state: s, a, b, parent, kin, tiles } = communities();
   for (const id of [a, b, parent, kin]) {
     s.ecs.personable[id].age = 25;
@@ -238,11 +239,16 @@ it("counts an earlier birth before a second couple can exceed the six-resident h
   for (const key of ["personable", "personality", "kinship", "relationships", "household", "village", "planner", "manager", "controllable", "holder", "nameable", "spatial"]) s.ecs[key][child] = structuredClone(s.ecs[key][a]);
   s.ecs.personable[child].age = 12; s.ecs.kinship[child] = { parents: [a, b], children: [], spouse: null };
   s.ecs.kinship[a].children = [child]; s.ecs.kinship[b].children = [child];
+  for(let n=0;n<HOUSEHOLD_CAPACITY-6;n++) {
+    const id=child+n;
+    for(const key of ["personable","personality","kinship","relationships","household","village","planner","manager","controllable","holder","nameable","spatial"])s.ecs[key][id]=structuredClone(s.ecs[key][child]);
+    s.ecs.kinship[a].children.push(id);s.ecs.kinship[b].children.push(id);
+  }
   // This deterministic season gives both existing, unrelated couples a birth opportunity.
   s.days = 14*DAYS_IN_SEASON; advanceSeason(s, 14);
   const residents = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && !s.ecs.playable[id] && s.ecs.household[id]?.houseId == tiles[3]);
   expect(s.events.filter(e => e.type == "birth")).toHaveLength(1);
-  expect(residents).toHaveLength(6);
+  expect(residents).toHaveLength(HOUSEHOLD_CAPACITY);
 });
 
 

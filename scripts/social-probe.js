@@ -3,6 +3,8 @@ require("./game-register");
 const fs = require("fs");
 const OUT = process.env.SOCIAL_OUT || "shots";
 fs.mkdirSync(OUT, { recursive: true });
+const { HISTORY_YEARS } = require("../src/game/time");
+const { lifeStageLabel } = require("../src/game/life_stages");
 const { generateMap } = require("../src/game/map");
 const { historyStep } = require("../src/game/social");
 const { name } = require("../src/game/name");
@@ -26,8 +28,8 @@ const { eventSentence } = require("../src/game/events");
     reports.push(report); console.log(JSON.stringify(report));
     if (seed == 20) {
       const v = Object.values(s.villages)[0], display = id => s.ecs.nameable[id] ? name(s.ecs.nameable[id]) : "unclaimed";
-      const lines = [v.name + " — 45 years before arrival", "", "Families"];
-      for (const house of v.houses) { lines.push("House " + house); for (const id in s.ecs.personable) if (s.ecs.household[id]?.houseId == house) lines.push("  " + display(id) + ", " + s.ecs.personable[id].age + (s.ecs.personable[id].dead ? " (dead)" : "") + "; parents: " + s.ecs.kinship[id].parents.map(display).join(", ")); }
+      const lines = [v.name + " — " + HISTORY_YEARS + " years before arrival", "", "Families"];
+      for (const house of v.houses) { lines.push("House " + house); for (const id in s.ecs.personable) if (s.ecs.household[id]?.houseId == house) lines.push("  " + display(id) + ", " + lifeStageLabel(s.ecs.personable[id].age) + (s.ecs.personable[id].dead ? " (dead)" : "") + "; parents: " + s.ecs.kinship[id].parents.map(display).join(", ")); }
       lines.push("", "Key events"); for (const e of s.events.filter(e => e.villageId == v.id)) lines.push(eventSentence(s, e, display));
       lines.push("", "Heirlooms"); for (const p of Object.values(s.ecs.possession)) if (s.ecs.village[p.originalOwner]?.villageId == v.id) lines.push(p.name + "; made by " + display(p.maker) + "; " + p.owners.map(o => display(o.personId) + " (" + o.reason + ")").join(" → "));
       fs.writeFileSync(OUT + "/history.txt", lines.join("\n"));

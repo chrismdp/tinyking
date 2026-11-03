@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { community, attach } from "./support/travel";
 import { newEntities } from "game/entities";
 import { attachPeople } from "game/person_storage";
@@ -45,7 +46,7 @@ function crowdedNeighbourhood() {
     const map = s.travel.maps[row.s.map.worldKey]; map.compact = true;
     const [store] = newEntities(map, [{ container: { capacity: 180, amounts: { wood: 16, grain: 36 } }, controllable: { controllerId: row.house } }]);
     map.ecs.household[row.house].storeId = store;
-    newEntities(map, Array.from({ length: 4 }, () => ({ personable: { age: 10 }, kinship: { parents: [], children: [] },
+    newEntities(map, Array.from({ length: HOUSEHOLD_CAPACITY - 2 }, () => ({ personable: { age: 10 }, kinship: { parents: [], children: [] },
       personality: { ...map.ecs.personality[row.ids[0]] }, relationships: { known: {} }, nameable: { nickname: "Child" },
       household: { houseId: row.house }, village: { villageId: row.s.ecs.village[row.ids[0]].villageId }, controllable: {} })));
   }
@@ -237,7 +238,7 @@ it("uses the other family's available house and records the wedding in that hous
   const { s, home, away } = neighbourhood(), a = home.ids[0], b = away.ids[0];
   for (const [from, to] of [[a, b], [b, a]]) s.travel.people[from].relationships.known[to] = { ring: "intimate", goodwill: 80 };
   // Six residents in the seeker's family home; the other family has space.
-  newEntities(s, Array.from({ length: 4 }, () => ({ personable: { age: 10 }, kinship: { parents: [], children: [] },
+  newEntities(s, Array.from({ length: HOUSEHOLD_CAPACITY - 2 }, () => ({ personable: { age: 10 }, kinship: { parents: [], children: [] },
     household: { houseId: home.house }, village: { villageId: "v" }, controllable: {} })));
   const view = courtshipState(s.travel.maps["5,5"], s.travel.maps["6,5"], s.travel);
   const pair=[a,b].sort().join(":");

@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 /* global jest, it, expect, require */
 jest.mock("../src/data/male_names.csv",()=>["William","John"]);
 jest.mock("../src/data/female_names.csv",()=>["Agnes","Mary"]);
@@ -20,7 +21,7 @@ it("uses two living established relatives even when their village has no spare b
   s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];
   s.ecs.household[player].houseId=tiles[0];
   s.ecs.kinship[sibling].parents=[];s.ecs.kinship[parent].children=[person];
-  newEntities(s,Array.from({length:3},()=>({personable:{age:30},spatial:{...s.ecs.spatial[person]},controllable:{controllerId:parent},kinship:{parents:[],children:[],spouse:null},household:{houseId:tiles[3]},village:{villageId:"village"}})));
+  newEntities(s,Array.from({length:HOUSEHOLD_CAPACITY-3},()=>({personable:{age:30},spatial:{...s.ecs.spatial[person]},controllable:{controllerId:parent},kinship:{parents:[],children:[],spouse:null},household:{houseId:tiles[3]},village:{villageId:"village"}})));
   seedMotherFamily(s,player,13);
   expect(s.backstories?.[player]?.relatives.map(r=>r.id)).toEqual(expect.arrayContaining([person,parent]));
   expect(s.backstories[player].relatives.length).toBeGreaterThanOrEqual(2);

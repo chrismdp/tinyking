@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { peopleWorld } from "./support/people";
 import { recordEvent, learnEvent, knownEvents } from "game/events";
 import { createPossession, transferPossession, die, heirFor } from "game/possessions";
@@ -134,7 +135,7 @@ it("indexes a new marriage cottage on a supplied summary-world house site", () =
   for (const house of s.villages.village.houses) {
     s.ecs.building[house] = { rooms: [] }; s.ecs.spatial[house] = { x: 270, y: 52 };
     s.ecs.village[house] = { villageId: "village" }; s.ecs.controllable[house] = { controllerId: house };
-    for (let n = 0; n < 5; n++) {
+    for (let n = 0; n < HOUSEHOLD_CAPACITY - 1; n++) {
       const id = house + n; s.ecs.personable[id] = { age: 25 }; s.ecs.household[id] = { houseId: house };
       s.ecs.controllable[id] = { controllerId: house }; s.ecs.village[id] = { villageId: "village" };
     }

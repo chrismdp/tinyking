@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { householdMembers, withPopulationIndex } from "game/population_index";
 import { attachPeople } from "game/person_storage";
 import { captureDetailOrigins, prepareNeighbourDetails, releaseHistoryWorkspace } from "game/hex_detail";
@@ -175,7 +176,7 @@ export function installStoredHistory(s,summary,sites,contents,noPlayer) {
     // Summary-built cottages already own beds. Give those same entities their
     // detailed positions, rather than leaving unpositioned beds in the planner.
     const beds=Object.keys(summary.ecs.sleepable||{}).filter(bed=>summary.ecs.interior?.[bed]?.buildingId===id);
-    if(!beds.length)beds.push(...newEntities(s,[{spatial:point,sleepable:{capacity:6,level:1,occupiers:[]},interior:{buildingId:id},controllable:{controllerId:id}}]));
+    if(!beds.length)beds.push(...newEntities(s,[{spatial:point,sleepable:{capacity:HOUSEHOLD_CAPACITY,level:1,occupiers:[]},interior:{buildingId:id},controllable:{controllerId:id}}]));
     for(const bed of beds) {e.spatial[bed]={id:bed,...point};e.sleepable[bed].occupiers=[];}
     const h=e.household[id],store=h.storeId;
     e.spatial[store]={id:store,...point};(e.interior|| (e.interior={}))[store]={id:store,buildingId:id};

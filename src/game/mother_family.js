@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { isAdult, LIFE_STAGES, LIFE_YEARS_PER_SEASON } from "game/life_stages";
 import { updateDirectoryPerson } from "game/person_storage";
 import { refreshPersonIndex } from "game/population_index";
@@ -35,10 +36,10 @@ export function seedMotherFamily(s,actor,seed) {
   let anchor;
   for(const village of villages) {
     const locals=adults.filter(id=>e.village[id]?.villageId==village.id);
-    const room=id=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==e.household[id].houseId).length<6;
+    const room=id=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==e.household[id].houseId).length<HOUSEHOLD_CAPACITY;
     const work=id=>Object.values(s.favours.requests).some(r=>r.householdId==e.household[id].houseId&&r.status=="offered");
     const suitable=id=>kin(s,id).parents.every(p=>personComponent(s,"personable",p).age>=age+LIFE_STAGES.youngAdult.from) &&
-      ([...kin(s,id).parents,...siblingsOf(s,id)].some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<6));
+      ([...kin(s,id).parents,...siblingsOf(s,id)].some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<HOUSEHOLD_CAPACITY));
     anchor=locals.filter(suitable).sort((a,b)=>Number(work(b)&&room(b))-Number(work(a)&&room(a))||Number(disposition(s,b,actor)!="hate")-Number(disposition(s,a,actor)!="hate")||Number(kin(s,b).parents.length>0)-Number(kin(s,a).parents.length>0)||e.personable[b].age-e.personable[a].age||a.localeCompare(b))[0];
     if(anchor)break;
   }
@@ -66,7 +67,7 @@ export function seedMotherFamily(s,actor,seed) {
   let siblings=siblingsOf(s,motherId).filter(id=>alive(s,id)&&e.village?.[id]?.villageId==village);
   if(siblings.length<2) {
     const houses=s.villages[village].houses;
-    const house=houses.find(h=>h==e.household[anchor].houseId&&Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<6)||houses.find(h=>Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<6);
+    const house=houses.find(h=>h==e.household[anchor].houseId&&Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<HOUSEHOLD_CAPACITY)||houses.find(h=>Object.keys(e.personable).filter(id=>alive(s,id)&&e.household?.[id]?.houseId==h).length<HOUSEHOLD_CAPACITY);
     if(house) {
       const p=generatePerson({spatial:{...e.spatial[anchor]},male:g.random_int()%2==0,age:Math.max(LIFE_STAGES.youngAdult.from,age-2),familySeed,generator:g,days:s.days});
       const [id]=newEntities(s,[{...p,household:{houseId:house},village:{villageId:village},relationships:{known:{}}}],"person-");

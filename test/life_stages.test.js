@@ -1,6 +1,7 @@
 /* global it, expect */
 import { lifeStage, isAdult, isDependent, canBearChild, canFatherChild, canHelpAtHome, personSize, oldAgeDeathChance } from "game/life_stages";
-import { advanceSeason, eligiblePartner, canHaveChild, SOCIAL_RATES } from "game/social";
+import { advanceSeason, eligiblePartner, canHaveChild, birth, SOCIAL_RATES } from "game/social";
+import { canFoundHousehold } from "game/family";
 import { playerOrderAllowed } from "game/manager";
 import { personFact } from "game/chat_facts";
 import { condition } from "game/social_conditions";
@@ -32,6 +33,10 @@ it.each([[15,false],[16,true],[55,true],[56,true]])("starts adult work and delib
   expect(eligiblePartner(s,a,b,true)).toBe(adult);
   expect(eligiblePartner(s,a,b)).toBe(adult&&age<56);
   expect(condition(s,{actor:a}, {test:"is_adult",args:{person:"actor"}})).toBe(adult);
+  const home=s.ecs.household[a].houseId;
+  s.ecs.building={[home]:{rooms:[]}};s.ecs.controllable[home]={controllerId:a};
+  s.ecs.village[home]={villageId:null};
+  expect(!!canFoundHousehold(s)).toBe(adult);
 });
 
 it("lets teenagers help at home while adult work waits for Young adult", () => {
@@ -111,5 +116,19 @@ it("allows another birth next season on the compressed life clock", () => {
     SOCIAL_RATES.birthPerSeason=5;
     advanceSeason(s,0);
     expect((s.events||[]).filter(e=>e.type=="birth")).toHaveLength(1);
+  } finally {SOCIAL_RATES.birthPerSeason=old;}
+});
+
+it.each([[4,true],[6,false]])("keeps birth room for eight household members (%i existing children)", (children,possible) => {
+  const {state:s,person:a,sibling:b,parent}=peopleWorld();
+  s.ecs.personable[parent].dead=true;
+  s.ecs.kinship[a].parents=[];s.ecs.kinship[b].parents=[];
+  s.ecs.kinship[a].spouse=b;s.ecs.kinship[b].spouse=a;
+  for(let n=0;n<children;n++)birth(s,a,b,-10-n);
+  const old=SOCIAL_RATES.birthPerSeason;
+  try {
+    SOCIAL_RATES.birthPerSeason=5;
+    advanceSeason(s,0);
+    expect(s.events.filter(e=>e.type=="birth")).toHaveLength(children+(possible?1:0));
   } finally {SOCIAL_RATES.birthPerSeason=old;}
 });

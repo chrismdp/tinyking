@@ -1,4 +1,7 @@
 /* eslint-disable no-undef */
+require("./game-register");
+const { HISTORY_SEASONS }=require("../src/game/time");
+const { LIFE_STAGES }=require("../src/game/life_stages");
 const fs=require("fs");
 const assert=require("node:assert/strict");
 const {chromium}=require("playwright-core");
@@ -10,6 +13,7 @@ const {chromium}=require("playwright-core");
   try {
     const page=await browser.newPage({viewport:{width:1440,height:900}});
     page.on("pageerror",e=>report.errors.push(e.message));
+    await page.addInitScript(rules=>{window.socialLifeRules=rules;},{historySeasons:HISTORY_SEASONS,adultAge:LIFE_STAGES.youngAdult.from});
     if(quick)await page.addInitScript(()=>{
       let state;
       Object.defineProperty(window,"tinyking",{configurable:true,get:()=>state,set:s=>{
@@ -17,7 +21,7 @@ const {chromium}=require("playwright-core");
         s.ui.actions.progress_update=async(...args)=>{
           await original(...args);
           if(window.socialQuickFixture || !s.generatingHistory || !s.ecs.personable)return;
-          const adults=Object.keys(s.ecs.personable).filter(id=>!s.ecs.playable?.[id]&&!s.ecs.personable[id].dead&&s.ecs.personable[id].age>=18&&!s.ecs.kinship[id]?.parents.length);
+          const adults=Object.keys(s.ecs.personable).filter(id=>!s.ecs.playable?.[id]&&!s.ecs.personable[id].dead&&s.ecs.personable[id].age>=window.socialLifeRules.adultAge&&!s.ecs.kinship[id]?.parents.length);
           if(new Set(adults.map(id=>s.ecs.household[id]?.houseId)).size<4)return;
           window.socialQuickFixture={label:"Seeded initial fixture: skip remaining prehistory and woodland catch-up after four founding households exist",lastSimulatedSeason:s.social.lastSeason};
           s.social.lastSeason=0;if(s.ecology)s.ecology.historyUpdatedAt=0;
@@ -35,11 +39,11 @@ const {chromium}=require("playwright-core");
     await page.evaluate(()=>window.tinyking.ui.actions.set_speed("paused"));
     report.history=await page.evaluate(()=>{
       const s=window.tinyking,counts={};for(const e of s.events)counts[e.type]=(counts[e.type]||0)+1;
-      return {seed:s.map.seed,counts,seasons:window.socialQuickFixture?window.socialQuickFixture.lastSimulatedSeason+181:180,initialFixture:window.socialQuickFixture,historyMs:s.historyGenerationMs};
+      return {seed:s.map.seed,counts,seasons:window.socialQuickFixture?window.socialQuickFixture.lastSimulatedSeason+window.socialLifeRules.historySeasons+1:window.socialLifeRules.historySeasons,initialFixture:window.socialQuickFixture,historyMs:s.historyGenerationMs};
     });write();
     report.actors=await page.evaluate(()=>{
       const s=window.tinyking,e=s.ecs,api=window.tinykingSocial,player=s.ui.playerId;
-      const adults=Object.keys(e.personable).filter(id=>id!=player&&!e.personable[id].dead&&e.personable[id].age>=18&&s.residents[id]);
+      const adults=Object.keys(e.personable).filter(id=>id!=player&&!e.personable[id].dead&&e.personable[id].age>=window.socialLifeRules.adultAge&&s.residents[id]);
       const kin=id=>e.kinship[id]||{parents:[],children:[]};
       const family=id=>new Set([kin(id).spouse,...kin(id).parents,...kin(id).children,...kin(id).parents.flatMap(p=>kin(p).children)]);
       const ancestors=id=>new Set([id,...kin(id).parents,...kin(id).parents.flatMap(p=>kin(p).parents)]);

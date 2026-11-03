@@ -6,7 +6,7 @@ Status: core loop, 1 November 2026. This describes the implemented game. The sep
 
 A stranger arrives, finds their mother’s family, and becomes part of a village whose people they come to love, and grieve.
 
-You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and forty-five years of shared world history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
+You arrive as a stranger with a camp, no house and no followers. Villages already have families, possessions and twelve game years of shared world history. You meet people, help with real work, build a home and form a family. You play one person at a time. When that person dies, their heir can become the next player. The world continues without a victory screen.
 
 The game aims to make these activities enjoyable:
 
@@ -58,14 +58,14 @@ Opening it does not pause time or generate detailed maps.
 Each person has a stable identity, parents, spouse, children, developmental age, personality and directional relationships. Dead people remain historical records. Families own houses, fields, stores, trades, animals, tools and keepsakes. Items retain the identities of their makers and earlier owners. [People](people.md), [social life](social.md) and [village life](villages.md) describe these systems.
 
 A new game generates all land communities together, before it builds the starting
-map. People visit neighbours, marry and move during those forty-five years.
+map. People visit neighbours, marry and move during those twelve game years.
 Biomes roll several villages, one town or no settlement. Roads are optional.
 Each land hex also receives one discovery. Arrival builds terrain and buildings
 from the seed and stored households. It does not generate another history.
 
-Generated history contains only the existing residents. The newly created stranger does not age, marry, die, meet villagers or inherit property during those forty-five years. Their lifecycle starts at arrival. After arrival, their actual person ages in live play and on the road. Reference-only people do not take a second local seasonal update.
+Generated history contains only the existing residents. The newly created stranger does not age, marry, die, meet villagers or inherit property during those twelve game years. Their lifecycle starts at arrival. After arrival, their actual person ages in live play and on the road. Reference-only people do not take a second local seasonal update.
 
-Children reach developmental age 18 in two game years. Adults then gain two displayed years per game year. Old-age deaths use the shared seasonal probability from age 60 and the final age-88 boundary. Missed meals never cause starvation deaths.
+Everyone ages two life years each season, or eight per game year. Life stages are Child (0–7), Teenager (8–15), Young adult (16–23), Adult (24–39), Middle-aged (40–55) and Old (56+). The player sees stage labels. Young adults can work, marry and form households. Women can bear children as Young adults or Adults. Men can father children through Middle-aged. Old-age death starts at 2% per season and doubles every eight life years, with no fixed age cap. Missed meals never cause starvation deaths.
 
 NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and two seasons of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
 
@@ -103,7 +103,7 @@ home and sits by their fire or camp. At 11pm they turn in unless in a conversati
 Villagers retain real meals and household larders. Low reserves cause food
 requests, and ripe crops cause harvest requests. Missed meals cannot kill them.
 
-Playable children keep explicit movement, conversation, gifts, Eat, Rest and travel. Children can choose Play together with another child. From age six, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
+Playable children keep explicit movement, conversation, gifts, Eat, Rest and travel. Children can choose Play together with another child. From Teenager, Help at home can tend eligible household crops in season. Adult construction, field creation and marriage remain unavailable to children. An idle playable child stays where left.
 
 Favours come from actual household harvest, food or fuel needs. Acceptance through a chat line starts physical work in place of the current order and authorises delivery. Completion awards goodwill once. Death or cancellation gives no completion reward. Already delivered goods and work remain done. See [favours and friends](favours.md).
 

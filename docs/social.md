@@ -2,7 +2,7 @@
 
 The social simulation runs without a renderer. `historyStep(worldHexState, season)` returns a new world state for one dated season. The input stays unchanged. Old events and geography stay shared because the step never edits them.
 
-Generation starts with founding households and advances 180 seasons, or 45 game years. Founding households start with adults. Seasonal births produce their children. The founders include unrelated families so that villagers can find partners outside their close kin. Dead people remain ECS records. Their `historical` flag keeps their bodies off the map. Family trees and provenance still refer to their original identities.
+Generation starts with founding households and advances 48 seasons, or 12 game years. Founding households start with adults. Seasonal births produce their children. The founders include unrelated families so that villagers can find partners outside their close kin. Dead people remain ECS records. Their `historical` flag keeps their bodies off the map. Family trees and provenance still refer to their original identities.
 
 ## Records
 
@@ -65,7 +65,7 @@ within a hex continue through local history or live visits. Nearby courtship
 adds seasonal conversations across the boundary, without a journey or a guest
 household. Each person keeps their actual news scope during the meeting.
 
-Automatic family seeking covers adults aged 18 to 55, the existing parenting
+Automatic family seeking covers Young adults through Middle-aged (16 to 55), the existing parenting
 age window. Older adults still meet friends and can marry through deliberate
 courtship. Younger widowed adults can seek a new partner.
 Eligibility excludes the player, living spouses, children and close kin.
@@ -82,7 +82,7 @@ exclude the player. After arrival, the player takes part in shared ageing,
 births and death. [Family and succession](design.md#marriage-ownership-and-succession)
 describes deliberate courtship and control transfer.
 
-A couple and their dependent children use a family house with room for six residents, then a genuinely available home in either community or an inherited estate they own. An empty home with a living unrelated owner is unavailable. Personal IDs, kin links and possessions survive a move. Move events preserve both home and village identities. A move resets stale plans, farming claims and trade assignments, then sends live movers home through the planner. If neither exists, a rendered world can build a cottage on nearby unused grassland. A summary world can supply plain `houseSites[villageId]` coordinates. The village retains its eight-house limit. If there is no suitable site, marriage waits. Marriage and moves retain both partners' personal belongings.
+A couple and their dependent children use a family house with room for eight residents, then a genuinely available home in either community or an inherited estate they own. An empty home with a living unrelated owner is unavailable. Personal IDs, kin links and possessions survive a move. Move events preserve both home and village identities. A move resets stale plans, farming claims and trade assignments, then sends live movers home through the planner. If neither exists, a rendered world can build a cottage on nearby unused grassland. A summary world can supply plain `houseSites[villageId]` coordinates. The village retains its eight-house limit. If there is no suitable site, marriage waits. Marriage and moves retain both partners' personal belongings.
 
 Compact world history supplies cottage sites around the existing village homes.
 Across a hex boundary, a couple prefers the less crowded valid family home.
@@ -93,11 +93,11 @@ Detailed preparation surveys enough foundations for the actual grown village.
 Marriage transfers a resident and their carried property once. Original homes,
 uncarried property and living owners retain their existing ownership rules.
 
-Birth probability is 55% per eligible couple per season. Population relative to three people per house scales it by 0.2 to 2. Couples wait one game year between births. Parents must be adult and at most 55. A household with six residents waits for room before another birth. Grown children can leave crowded households for ownerless homes or available close-family homes, including a family home in another village. A living owner keeps the estate. Couples take their dependent children with them. A child inherits one parent's trait and the other parent's tastes. Opposed traits stay excluded.
+Birth probability uses the 2.2 seasonal multiplier in `SOCIAL_RATES`, four times the former 0.55. Population relative to three people per house scales it by 0.2 to 2, with the resulting probability capped at 100%. Couples wait one season between births. A mother must be a Young adult or Adult (16–39). Both parents must be Young adults through Middle-aged (16–55). In a two-woman couple, at least one woman must be in the mother’s window. Couples with no woman keep the existing birth rule. A household with eight residents waits for room before another birth. Grown children can leave crowded households for ownerless homes or available close-family homes, including a family home in another village. A living owner keeps the estate. Couples take their dependent children with them. A child inherits one parent's trait and the other parent's tastes. Opposed traits stay excluded.
 
-Children reach developmental age 18 in two game years. Adults then gain two displayed years per game year. `lifeYears` stores elapsed game years on that scale. A newborn therefore reaches old-age eligibility after 23 game years. This keeps fast childhood separate from adult ageing.
+Everyone gains two life years per season. `lifeYears` stores age divided by eight. The shared life-stage module defines Child (0–7), Teenager (8–15), Young adult (16–23), Adult (24–39), Middle-aged (40–55) and Old (56+). The UI and conversations show these labels instead of exact ages. Teenagers can help at home. Young adults can do adult work. Both dependent stages can play together.
 
-From displayed age 60, death probability is 2% per season, multiplied by `1 + (age - 60) / 12`. Age 88 is the final old-age boundary. Inheritance chooses a living spouse, then the eldest living child, then the oldest person in the nearest kinship layer. With no heir, a personal item becomes an unclaimed estate and retains its provenance. A living player can inherit under the same rule. Pre-arrival history excludes the newly created stranger entirely.
+From Old (56), death probability is `min(1, 0.02 * 2 ** ((age - 56) / 8))` per season. People can survive past 88. The risk reaches 100% at 102, on the two-year seasonal clock. Inheritance chooses a living spouse, then the eldest living child, then the oldest person in the nearest kinship layer. With no heir, a personal item becomes an unclaimed estate and retains its provenance. A living player can inherit under the same rule. Pre-arrival history excludes the newly created stranger entirely.
 
 Seasonal history uses the same birth, courtship, death and inheritance functions. It summarises six half-hour conversations with a seasonal companion. Hostile companions have one accidental encounter because they avoid each other. Live visits begin only while idle after needs and work. From 14:00 to 21:00, people can choose a reachable friend or an eligible partner. A route must leave time for a half-hour conversation. The guest uses real `walk_to` tasks, the host waits, and the guest walks home after the visit. Hunger, sleep and ordered work interrupt the visit. Current activities distinguish travelling, waiting, chatting/courting, returning and moving home. Hourly play requires real proximity and a running social task. Seasonal history applies the same 168 hours of relationship drift as live play. Neglected goodwill moves towards its starting value at `0.025 * 3 / 7` per hour, or 1.8 per season.  One three-conversation visit earns 12 goodwill between mutually attracted people. With one visit per season, the new net gain is 10.2 rather than three. Rings, thresholds, conversation rewards and the two-season courtship wait stay unchanged. The same rate applies to live play and generated history, so generation can produce different starting families.
 
@@ -119,7 +119,7 @@ pathfinding dependency. Summary encounters share the eligibility, relationship,
 kin, consent, demographic and ownership rules. Live navigation remains in
 `social_visits.js`.
 
-Generation runs the same seasonal transition on its owned summary rather than making 180 unnecessary snapshots. The exported seasonal step still copies caller state. Candidate pools and event-membership caches avoid repeated scans without changing outcomes.
+Generation runs the same seasonal transition on its owned summary rather than making 48 unnecessary snapshots. The exported seasonal step still copies caller state. Candidate pools and event-membership caches avoid repeated scans without changing outcomes.
 Private news indexes group stories by their declared audience. Learning and
 promotion update these indexes. Seasonal courtship shares village candidate
 pools and ancestry queries. These derived indexes never enter saves.
@@ -153,7 +153,7 @@ visit. An on-topic answer takes priority when only one eligible wording remains.
 
 ## Seven-day seasons
 
-History still contains 180 seasons, or 45 years. Dates use seven days per season.
+History contains 48 seasons, or 12 game years. Dates use seven days per season.
 Ageing, births and old-age probabilities remain seasonal. Courtship still waits
 two seasons. Festival attendance and the season-turn page use only real events.
 Public honours and memorial readings disclose their actual recorded events to
@@ -228,3 +228,5 @@ Disclosure `routes` declare teller and listener conditions. They can admit an af
 The second example is poaching. `poaching_trip` sends two participants to woodland. The owner is an affected party, with no automatic knowledge. A sighting records `poaching_seen` and teaches the source event. First owner discovery records `poaching_found_out`. The owner loses 20 goodwill towards the poacher and ten towards the accomplice. Close kin who learn the discovery lose five towards the poacher. The example uses only data and the same engine. It does not add an automatic poaching recruitment rule or change resource ownership.
 
 Occurrence effects do not introduce strangers. An anonymous goodwill change stays in `relationships[id].unmetGoodwill` until actual contact introduces that person. It drifts towards zero at the ordinary rate. The shared goodwill query includes this regard. Saves, traveller identity records and seasonal copies retain it. Existing kin reactions keep their previous first-learning behaviour.
+
+The shorter history keeps lifetime opportunities for romance, affairs, summary sightings and rare confidences. Their old chances become `1 - (1 - p) ** 4`. Courtship consent, kin exclusions and housing capacity keep their existing rules.

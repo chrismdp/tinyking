@@ -184,3 +184,12 @@ it("keeps a real story available on a later visit and truthfully calls it known 
   expect(s.chat.active.transcript.some(l=>l.family=="gossip_reaction"&&l.situation=="known")).toBe(true);
   expect(s.knowledge[n].events.filter(id=>id==event.id)).toHaveLength(1);
 });
+
+it.each([[7,"Child"],[8,"Teenager"],[16,"Young adult"],[24,"Adult"],[40,"Middle-aged"],[56,"Old"]])("speaks the stage label instead of the exact age %i",(age,label)=>{
+  const {state:s,parent}=setup();s.ecs.personable[parent].age=age;
+  s.chat.active.phase="reply";
+  const line=lineCandidates(s,s.chat.active,"family_answer","npc").find(l=>l.id=="npc.family_answer.parent.base.02");
+  expect(line).toBeDefined();
+  expect(line.text).toContain(label+" now.");
+  expect(line.text).not.toMatch(/\d|\{|years old/);
+});

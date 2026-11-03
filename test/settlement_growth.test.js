@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { repairHouseholds } from "game/possessions";
 import { trade_work } from "game/tasks";
 import { HOUR } from "game/time";
@@ -109,7 +110,7 @@ it("expands through completed trade work across actual seasonal boundaries", () 
   expect(s.ecs.growth[work].stage).toBe(2);
   expect(s.ecs.controllable[house].controllerId).toBe(initialOwner);
   expect(s.ecs.building[house].rooms).toEqual(rooms);
-  expect(s.ecs.sleepable[rooms[0]].capacity).toBe(10);
+  expect(s.ecs.sleepable[rooms[0]].capacity).toBe(HOUSEHOLD_CAPACITY+4);
   expect(s.ecs.container[h.storeId].amounts.wood).toBe(48);
   const rear={x:s.ecs.spatial[house].x,y:s.ecs.spatial[house].y-70};
   expect(treeAllowed(s,rear)).toBe(false);
@@ -182,8 +183,8 @@ it("does not add beds for deceased or remote records, while a real large househo
   const [remote]=newEntities(s,[{personable:{age:30},household:{houseId:house}}]);
   s.residents[remote]=false;
   repairHouseholds(s);
-  expect(s.ecs.sleepable[bed].capacity).toBe(6);
-  const children=newEntities(s,Array.from({length:6},()=>({personable:{age:8},household:{houseId:house},controllable:{controllerId:people[0]}})));
+  expect(s.ecs.sleepable[bed].capacity).toBe(HOUSEHOLD_CAPACITY);
+  const children=newEntities(s,Array.from({length:HOUSEHOLD_CAPACITY},()=>({personable:{age:8},household:{houseId:house},controllable:{controllerId:people[0]}})));
   for(const id of children)s.residents[id]=true;
   repairHouseholds(s);
   const occupants=[...people,...children].length;

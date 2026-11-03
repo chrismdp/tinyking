@@ -45,7 +45,8 @@ it("applies discovery effects once, including repeated hearing after promotion",
   s.ecs.kinship[person].spouse=player;s.ecs.kinship[player].spouse=person;
   const event=recordEvent(s,"affair",[person,sibling]);
   learnEvent(s,player,event);learnEvent(s,player,event);
-  expect(s.events.filter(e=>e.reason==="affair_discovery")).toHaveLength(1);
+  expect(s.events.filter(e=>e.type==="quarrel" && e.reason==="affair_discovery")).toHaveLength(1);
+  expect(s.events.filter(e=>e.type==="found_out")).toHaveLength(1);
 });
 
 it("makes news public only inside the hex reached by two informed villages",()=>{

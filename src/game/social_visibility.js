@@ -1,3 +1,5 @@
+import { nearbyPeople } from "game/people_space";
+import { isResident } from "game/residents";
 import { buildingFootprint } from "game/tree_clearance";
 
 export function crossesWall(s,a,b,interior) {
@@ -15,5 +17,15 @@ export function crossesWall(s,a,b,interior) {
       else {const ends=[(-size-p[axis])/d,(size-p[axis])/d].sort((a,b)=>a-b);lo=Math.max(lo,ends[0]);hi=Math.min(hi,ends[1]);}
     }
     return hi>=lo;
+  });
+}
+
+// The same witness rule serves an occurrence and later meeting moments.
+export function eventWitnesses(s,people) {
+  const origin=s.ecs.spatial?.[people[0]],interior=s.ecs.interior?.[people[0]]?.buildingId;
+  return nearbyPeople(s,origin,85).filter(id=>{
+    const p=s.ecs.planner?.[id],point=s.ecs.spatial[id];
+    return !people.includes(id) && !s.ecs.personable[id]?.dead && isResident(s,id) &&
+      !p?.world.sleeping && p?.task?.[0]!="sleep" && s.ecs.interior?.[id]?.buildingId==interior && !crossesWall(s,origin,point,interior);
   });
 }

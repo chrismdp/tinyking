@@ -1,4 +1,5 @@
 import { knowsEvent, relevantEvent } from "game/event_knowledge";
+import { disclosureEvent, disclosureRoute } from "game/event_disclosure";
 import EVENT_TYPES from "data/event_types.json";
 import { finishTransition } from "game/history_scope";
 import { DAYS_IN_SEASON } from "game/time";
@@ -498,11 +499,15 @@ const disclosureFamily = (state, id, families) => {
   return families.get(id);
 };
 export function canDiscloseEvent(state, speaker, viewer, event, families) {
+  const account=event;
+  event=disclosureEvent(state,event);
   const rule=EVENT_TYPES[event?.type]?.disclosure;
-  if(!rule || event.sealed)return false;
-  if(event.awareness && (!knowsEvent(state,speaker,event) || !relevantEvent(state,viewer,event,families)))return false;
+  if(!rule || event?.sealed)return false;
+  if(account.awareness && (!knowsEvent(state,speaker,account) || !relevantEvent(state,viewer,account,families)))return false;
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
   const trust=rank(speaker,viewer),family=rule.family;
+  const route=disclosureRoute(state,event,speaker,viewer);
+  if(route.allowed!==undefined)return route.allowed;
   if(trust<RINGS.indexOf(rule.ring))return false;
   if(!family || family.between=="spouses" && !event.people.some(id=>event.people.includes(personComponent(state,"kinship",id)?.spouse)))return true;
   if(event.people.includes(viewer))return true;

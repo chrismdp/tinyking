@@ -1,6 +1,7 @@
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
 import { rememberNewsScopes } from "game/event_knowledge";
 import { residentPeople, withPopulationIndex, refreshPersonIndex } from "game/population_index";
+import { historySecretActivities } from "game/secret_activity_history";
 import { runSocialActions, runSeasonSocialActions } from "game/social_actions";
 import { relatedPeople, withCloseFamilyIndex } from "game/social_kin";
 import { finishTransition } from "game/history_scope";
@@ -584,6 +585,7 @@ function advanceSeasonRules(s, season, summary) {
       }
     }
   });
+  if(summary)historySecretActivities(s,participants,season);
   updateCourtships(s,season,summary,roster);
   const birthVillages=Object.keys(s.villages || {});
   if(participants.some(id=>ecs.village[id]?.villageId==null && (ecs.building?.[ecs.household[id]?.houseId] || ecs.shelter?.[ecs.household[id]?.houseId]?.stage=="house")))birthVillages.push(null);

@@ -15,6 +15,10 @@ export function trackPopulation(s) {
   indexes.set(s.ecs,index);
   for(const id of Object.keys(s.ecs.personable||{}))refreshPersonIndex(s,id);
 }
+export function rebuildPopulationIndex(s) {
+  indexes.delete(s.ecs);
+  trackPopulation(s);
+}
 export function withPopulationIndex(s,fn) {
   if(indexes.has(s.ecs))return fn();
   trackPopulation(s);

@@ -1,4 +1,6 @@
 import { scheduleNeighbourDetails } from "game/hex_detail";
+import { startSecretActivity, activityPlace } from "game/secret_activities";
+import { recordEvent } from "game/events";
 import { chatTogether } from "game/social";
 import { runSocialActions } from "game/social_actions";
 import { maritalSatisfaction } from "game/social_conditions";
@@ -380,7 +382,7 @@ export function World() {
       // NOTE: lets scripts/playtest.js look inside the running game
       window.tinyking = state;
       window.tinykingTravel = { createSimulation: () => createSimulation(state, { onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); } }) };
-      window.tinykingSocial = { chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
+      window.tinykingSocial = { startSecretActivity, activityPlace, recordEvent, chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };
       window.tinykingSettlement = { historicalDate, centreHousehold, villageArea, expandedFootprint, expansionFits, createSimulation };
       window.tinykingCustoms = { resourcePermission, commonLand, villageElder, membership, oathEligibility };
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };

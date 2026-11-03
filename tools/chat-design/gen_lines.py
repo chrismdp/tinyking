@@ -2893,6 +2893,7 @@ for r in rows:
         r["level"]={"ring":"public","standing":"oath-sworn","below":"risk","cost":2}
 
 # Catalogue entries supply the default account and Tell rows for every event.
+# This includes secret activities, affected-party discoveries and their news.
 # The runtime expands the event icon into its topic and all participant faces.
 EVENT_TYPES = json.loads((Path(__file__).resolve().parents[2] / "src/data/event_types.json").read_text())
 for etype in EVENT_TYPES:

@@ -173,7 +173,7 @@ export function promoteKnowledge(s,event,onLearn) {
     if(!locals.length)continue;
     const heard=locals.filter(id=>a.knowers.includes(id));
     if(heard.length<Math.min(locals.length,Math.max(3,Math.ceil(locals.length/2))))continue;
-    const newcomers=locals.filter(id=>!a.knowers.includes(id));
+    const newcomers=locals.filter(id=>!knowsEvent(s,id,event));
     for(const id of locals)promoted.add(id);
     a.villages.push(village);(a.since ||= {})[scopeKey("v",village)]=s.days;a.status="general";
     indexEventKnowledge(s,event);

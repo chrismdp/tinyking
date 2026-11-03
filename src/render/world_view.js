@@ -155,7 +155,11 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         objects[id].visible = revealAll || known.has(objects[id].userData.hexKey) || arrivalKnown.has(objects[id].userData.hexKey);
       }
     }
-    for (const id of deferredBuilds) if (isKnown(state.ecs.spatial[id])) state.redraws.push(id);
+    for (const id of deferredBuilds) {
+      const position = state.ecs.spatial[id];
+      if (!position) deferredBuilds.delete(id);
+      else if (isKnown(position)) state.redraws.push(id);
+    }
     forest.invalidate();
     instances.invalidate();
   };

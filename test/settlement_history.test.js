@@ -1,4 +1,5 @@
-import { settleSeason } from "game/settlement";
+import { flatVillage } from "./support/village";
+import { settleSeason, reserveFoundingFields, prepareSettlementSeason } from "game/settlement";
 import { foundingVillage, foundHouseholds } from "./support/founding";
 import { path } from "game/pathfinding";
 import { Hex } from "game/map";
@@ -8,12 +9,7 @@ import { rowOfTiles } from "./support/world";
 
 it("constructs the village from one actual household, with later dated homes and a persistent centre", async () => {
   const s = foundingVillage(13);
-  const tile = h => s.space[Hex(h)].find(id => s.ecs.mappable[id]);
-  const edge = tile({ x: -9, y: 0 });
-  s.map.entrances = { 0: { key: "fixture/next", hexes: [{ x: -9, y: 0 }, { x: -8, y: 0 }, { x: -7, y: 0 }], tileIds: [edge, tile({ x: -8, y: 0 }), tile({ x: -7, y: 0 })] } };
   foundHouseholds(s);
-  s.days = .375;
-  settleSeason(s, 0, true);
   expect(s.settlement.version).toBe(1);
   for (const v of Object.values(s.villages)) {
     const founding = s.events.find(e => e.type == "founding" && e.villageId == v.id);
@@ -40,6 +36,28 @@ it("constructs the village from one actual household, with later dated homes and
       expect(s.ecs.treeClearance[house]).toBeDefined();
     }
   }
+});
+
+function oneHousehold() {
+  const { s } = flatVillage(0, { seed: 13 });
+  s.peopleSeed = 13;
+  s.map.entrances = {};
+  s.villages.fixture.sharedPlaces = [];
+  s.ecs.building ||= {};
+  s.ecs.container ||= {};
+  s.ecs.household ||= {};
+  s.settlement = { version: 1, preparedSeason: -2, lastSeason: 0, journeys: [], appliedJourneys: {},
+    sites: { fixture: [{ point: Hex(0, -2).toPoint(), entrance: 1, establishSeason: -1 }] } };
+  reserveFoundingFields(s);
+  s.days = -7;
+  prepareSettlementSeason(s, -1);
+  s.days = 7;
+  return s;
+}
+
+it("keeps one household's summary stores balanced and its fields reachable outside crop interiors", () => {
+  const s = oneHousehold();
+  settleSeason(s, 1, true);
   for(const h of Object.values(s.ecs.household).filter(h=>h.estateAccount)) {
     const account=h.estateAccount, store=s.ecs.container[h.storeId];
     expect(Object.values(store.amounts).reduce((n,a)=>n+a,0)).toBeLessThanOrEqual(store.capacity);
@@ -55,6 +73,13 @@ it("constructs the village from one actual household, with later dated homes and
       else expect(s.ecs.mappable[access].route.length).toBeGreaterThan(0);
     }
   }
+});
+
+it("records evening meetings and a dated return crossing for real residents", () => {
+  const s = oneHousehold();
+  const tile = x => s.space[Hex(x, 0)].find(id => s.ecs.mappable[id]);
+  s.map.entrances = { 0: { key: "fixture/next", hexes: [-9, -8, -7].map(x => ({ x, y: 0 })), tileIds: [-9, -8, -7].map(tile) } };
+  settleSeason(s, 1, true);
   expect(s.settlement.journeys.some(j => j.reason == "evening meeting" && j.people.length)).toBe(true);
   expect(s.settlement.journeys.some(j => j.borderKey && j.returnDay > j.day)).toBe(true);
   for (const j of s.settlement.journeys) expect(j.people.every(id => s.ecs.personable[id])).toBe(true);

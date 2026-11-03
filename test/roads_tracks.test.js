@@ -5,7 +5,7 @@ import { markThroughRoutes, recordJourney } from "game/settlement_routes";
 import { reserveRoad } from "game/land_use";
 import { rowOfTiles } from "./support/world";
 
-it("connects surveyed crossings and village approaches while keeping house and field spurs local", () => {
+function junction() {
   const { state: s, tiles, villager } = rowOfTiles(7);
   s.map = { entrances: { 0: { tileIds: tiles.slice(0, 3) }, 3: { tileIds: [tiles[5], tiles[4], tiles[3]] } } };
   s.settlement = { journeys: [], appliedJourneys: {} };
@@ -18,6 +18,11 @@ it("connects surveyed crossings and village approaches while keeping house and f
   const door = +Object.keys(s.ecs.walkable[tiles[6]].neighbours)[0];
   newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[6]], immovable: true }, building: { entrance: door } }]);
   markThroughRoutes(s, [tiles[4]]);
+  return { s, tiles, field, villager };
+}
+
+it("connects surveyed crossings and village approaches while keeping house and field spurs local", () => {
+  const { s, tiles, field } = junction();
   const through = tiles.filter(id => s.ecs.mappable[id].throughRoute.length);
   expect(through).toEqual(tiles.slice(0, 6));
   expect(s.ecs.mappable[tiles[6]].throughRoute).toEqual([]);
@@ -27,10 +32,16 @@ it("connects surveyed crossings and village approaches while keeping house and f
     if (next) expect(s.ecs.mappable[next].throughRoute).toContain((side + 3) % 6);
   }
   expect(Object.values(s.ecs.walkable[tiles[6]].neighbours).some(id => through.includes(id))).toBe(true);
+});
+
+it("records wear on home and field journeys without turning their spurs into through roads", () => {
+  const { s, tiles, field, villager } = junction();
   recordJourney(s, { key: "home", people: [villager], from: tiles[6], to: tiles[0], borderKey: "a/b", count: 20 });
   recordJourney(s, { key: "field", people: [villager], from: tiles[6], to: field, count: 20 });
   expect(Object.values(s.ecs.walkable[tiles[6]].worn).some(n => n >= 10)).toBe(true);
   expect(Object.values(s.ecs.walkable[field].worn).some(n => n >= 10)).toBe(true);
+  expect(s.ecs.mappable[tiles[6]].throughRoute).toEqual([]);
+  expect(s.ecs.mappable[field].throughRoute).toEqual([]);
 });
 
 it("keeps a border traveller's house spur local and preserves its speed, wear and navigation",()=>{

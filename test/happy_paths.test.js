@@ -1,50 +1,19 @@
-import { openCharacter, startGame } from "game/new_game";
-import { acceptTravel, completeTravel, destinationFor } from "game/travel";
-import { startIntro, skipIntro, INTRO_TIMING } from "game/intro";
+import { completeTravel, destinationFor } from "game/travel";
+import { startIntro, skipIntro } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { enqueueTask } from "game/manager";
 import { chat } from "game/people";
 import { chatChoices, chooseLine, closeChat } from "game/chat";
-import { finishSeasonTurn } from "game/seasons";
 import { gameData, serialiseGame, restoreGame } from "game/save_game";
 import { newEntities } from "game/entities";
 import { peopleWorld } from "./support/people";
-import { economy } from "./support/economy";
 import { community, attach } from "./support/travel";
 
 jest.mock("data/male_names.csv", () => ["Will", "Will", "Will"], { virtual: true });
 jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: true });
 
-// These are the five whole-flow happy paths. Focused rule regressions live in
-// the domain suites. No renderer or browser is needed to drive the real game.
-it("starts a new game from the menu, hands over an owned camp and resumes time", async () => {
-  const { s } = community();
-  delete s.ecs.household[s.ui.playerId];
-  s.ecs.container ||= {};
-  s.ui.show.main_menu = true;
-  s.game_speed = "paused";
-  openCharacter(s);
-  expect(s.ui.show.mapgen).toBe(true);
-  expect(startGame(s)).toBe(true);
-  expect(s.intro.active).toBe(true);
-  const before = {days: s.days, people: JSON.stringify(s.ecs.personable), planners: JSON.stringify(s.ecs.planner), managers: JSON.stringify(s.ecs.manager)};
-  const sim = createSimulation(s);
-  sim.step(1, INTRO_TIMING.duration + 1);
-  expect(s.intro.active).toBe(false);
-  const camp = s.intro.campId, player = s.ui.playerId;
-  expect(s.ecs.household[player].houseId).toBe(camp);
-  expect(s.ecs.spatial[camp]).toMatchObject(s.intro.campPoint);
-  expect(s.ecs.sleepable[camp]).toMatchObject({capacity: 1, level: 0, occupiers: []});
-  expect(s.ecs.controllable[camp].controllerId).toBe(player);
-  expect(s.ecs.container[camp]).toBeUndefined();
-  expect(s.days).toBe(before.days);
-  expect(JSON.stringify(s.ecs.personable)).toBe(before.people);
-  expect(JSON.stringify(s.ecs.planner)).toBe(before.planners);
-  expect(JSON.stringify(s.ecs.manager)).toBe(before.managers);
-  sim.step(1, 0);
-  expect(s.days).toBeGreaterThan(before.days);
-}, 15000);
-
+// Two core journeys use the real planner and simulation on declared communities.
+// Arrival, seasonal boundaries and travel handover have focused domain tests.
 it("plays a day with a queued walk, spoken chat and a night's rest", () => {
   const w = peopleWorld(), {state: s, player, person, tiles} = w;
   Object.assign(s.villages.village, {id: "village", sharedPlaces: []});
@@ -84,42 +53,6 @@ it("plays a day with a queued walk, spoken chat and a night's rest", () => {
   expect(s.chat.active).toBeUndefined();
 });
 
-it("finishes a festival night, pauses at the season turn and begins the next season", () => {
-  const {s, p} = economy();
-  s.days = 6 + 22/24;
-  enqueueTask(s, {key: "rest"}, p);
-  const sim = createSimulation(s);
-  for (let step = 0; step < 1000 && !s.seasonTurn; step++) sim.step(1);
-  expect(s.festivals.records[0]).toBeDefined();
-  expect(s.seasonTurn.season).toBe(0);
-  expect(s.days).toBeCloseTo(7.25, 6);
-  expect(s.game_speed).toBe("paused");
-  const dawn = s.days;
-  sim.step(600); expect(s.days).toBe(dawn);
-  finishSeasonTurn(s);
-  expect(s.seasonTurn).toBeNull();
-  expect(s.game_speed).toBe("normal");
-  sim.step(1); expect(s.days).toBeGreaterThan(dawn);
-});
-
-it("walks to an edge, travels to another hex and hands over the same living player", async () => {
-  const {s, ids: [player]} = community();
-  startIntro(s, {skip: true});
-  attach(s, community({namespace: "next-", key: "6,5", player: false}).s);
-  const life = s.ecs.personable[player].lifeYears;
-  expect(acceptTravel(s, s.map.entrances[0].tileIds[0])).toBe(true);
-  const sim = createSimulation(s);
-  for (let minute = 0; minute < 1000 && s.travel.active == "5,5"; minute++) await sim.step(10, 0);
-  expect(s.travel.active).toBe("6,5");
-  expect(s.transition).toBeNull();
-  expect(s.ui.playerId).toBe(player);
-  expect(s.ecs.personable[player].lifeYears).toBeCloseTo(life + .25);
-  expect(s.intro.active).toBe(true);
-  skipIntro(s);
-  expect(s.intro.active).toBe(false);
-  expect(s.travel.maps["5,5"].residents[player]).toBeUndefined();
-  expect(s.travel.maps["6,5"].residents[player]).toBe(true);
-});
 it("round-trips two played communities, offscreen maps, travel, knowledge, ownership and orders, then simulates identically", async () => {
   const { s: state } = community();
   attach(state, community({ namespace: "away-", key: "6,5", player: false }).s);

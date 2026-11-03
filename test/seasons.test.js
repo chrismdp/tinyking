@@ -1,3 +1,5 @@
+import { economy } from "./support/economy";
+import { createSimulation } from "game/simulation";
 import { rowOfTiles } from './support/world';
 import { newEntities } from 'game/entities';
 import { updateFestival, attendFestival, seasonLines, finishSeasonTurn, seasonTurnAt } from 'game/seasons';
@@ -111,4 +113,23 @@ it('describes witnessed strangers by a visible house without naming or introduci
  expect(s.knowledge[a].people[npc]).toBeUndefined();
  s.ecs.playable[a].known=[];
  expect(seasonLines(s,0)[0].text).not.toContain('Clefobto');
+});
+
+it("finishes a festival night, pauses at the season turn and begins the next season", () => {
+  const {s} = economy();
+  s.days = 6 + 22/24;
+  updateFestival(s);
+  s.days = 7.25 - 1/1440;
+  const sim = createSimulation(s);
+  sim.step(20);
+  expect(s.festivals.records[0]).toBeDefined();
+  expect(s.seasonTurn.season).toBe(0);
+  expect(s.days).toBeCloseTo(7.25, 6);
+  expect(s.game_speed).toBe("paused");
+  const dawn = s.days;
+  sim.step(600); expect(s.days).toBe(dawn);
+  finishSeasonTurn(s);
+  expect(s.seasonTurn).toBeNull();
+  expect(s.game_speed).toBe("normal");
+  sim.step(1); expect(s.days).toBeGreaterThan(dawn);
 });

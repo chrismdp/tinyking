@@ -6,6 +6,9 @@ import { edgeSide, destinationFor, initialiseTravel, acceptTravel, localSnapshot
 import { createPossession } from "game/possessions";
 import { disposition } from "game/people";
 import { historyStep } from "game/history";
+import { community, attach } from "./support/travel";
+import { startIntro, skipIntro } from "game/intro";
+import { createSimulation } from "game/simulation";
 export function travelWorld() {
   const {
     state: s,
@@ -325,4 +328,23 @@ it("replays coordinate destinations with real namespaced households and exactly 
     expect(generate).toHaveBeenCalledTimes(3);
     expect(a.s.travel.timings.map(t => [t.key, t.season])).toEqual([[key, 3], [otherKey, 3]]);
   } finally { generate.mockRestore(); }
+});
+
+it("walks to an edge, travels to another hex and hands over the same living player", async () => {
+  const {s, ids: [player]} = community();
+  startIntro(s, {skip: true});
+  attach(s, community({namespace: "next-", key: "6,5", player: false}).s);
+  const life = s.ecs.personable[player].lifeYears;
+  expect(acceptTravel(s, s.map.entrances[0].tileIds[0])).toBe(true);
+  const sim = createSimulation(s);
+  for (let minute = 0; minute < 1000 && s.travel.active == "5,5"; minute++) await sim.step(10, 0);
+  expect(s.travel.active).toBe("6,5");
+  expect(s.transition).toBeNull();
+  expect(s.ui.playerId).toBe(player);
+  expect(s.ecs.personable[player].lifeYears).toBeCloseTo(life + .25);
+  expect(s.intro.active).toBe(true);
+  skipIntro(s);
+  expect(s.intro.active).toBe(false);
+  expect(s.travel.maps["5,5"].residents[player]).toBeUndefined();
+  expect(s.travel.maps["6,5"].residents[player]).toBe(true);
 });

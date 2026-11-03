@@ -1,7 +1,7 @@
 import { peopleWorld } from "./support/people";
 import { recordEvent, learnEvent } from "game/events";
 import { chatTogether, historyStep, compareSocial } from "game/social";
-import { newsPreference, chooseNews } from "game/news";
+import { newsPreference, chooseNews, exchangeNews } from "game/news";
 import { community, attach } from "./support/travel";
 import { departNpc, advanceWorldClock } from "game/travel";
 import { DAYS_IN_SEASON } from "game/time";
@@ -78,10 +78,10 @@ it("applies kin reactions once across repeated hearing and preserves the first s
   const before=s.ecs.relationships[b].known[a].goodwill;
   chatTogether(s,a,b);
   const after=s.ecs.relationships[b].known[a].goodwill;
-  expect(after).toBe(before+1-3);
+  expect(after).toBe(before+4-3);
   const source={...s.knowledge[b].spokenSources[e.id]};
   learnEvent(s,b,e);chatTogether(s,a,b);
-  expect(s.ecs.relationships[b].known[a].goodwill).toBe(after+1);
+  expect(s.ecs.relationships[b].known[a].goodwill).toBe(after+4);
   expect(s.knowledge[b].spokenSources[e.id]).toEqual(source);
 });
 it("rechecks disclosure if learning the first story lowers the second teller's trust",()=>{
@@ -90,7 +90,9 @@ it("rechecks disclosure if learning the first story lowers the second teller's t
   s.ecs.relationships[b].known[a]={ring:"personal",goodwill:31,base:31};
   recordEvent(s,"quarrel",[a,c],[],{audienceIds:[a]});
   const gift=recordEvent(s,"gift",[b,c],[],{audienceIds:[b]});
-  expect(chatTogether(s,a,b)).toBe(true);
+  // Isolate the two disclosures from the contact reward. Four goodwill from
+  // a conversation now outweighs the three-point kin reaction in this fixture.
+  expect(exchangeNews(s,a,b).length).toBeGreaterThan(0);
   expect(s.ecs.relationships[b].known[a].ring).toBe("social");
   expect(s.knowledge[a].events).not.toContain(gift.id);
 });

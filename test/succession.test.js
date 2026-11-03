@@ -4,7 +4,7 @@ import { peopleWorld } from "./support/people";
 import { canMarryPlayer } from "game/family";
 import { resolveSuccession } from "game/succession";
 import { generateHistory } from "game/history";
-import { advanceSeason, historyStep, canCourt } from "game/social";
+import { advanceSeason, historyStep, canCourt, SOCIAL_RATES } from "game/social";
 import { heirFor, die, createPossession } from "game/possessions";
 import { topController } from "game/playable";
 import { enqueueTask } from "game/manager";
@@ -106,9 +106,15 @@ it("allows a genuine player marriage to produce reciprocal children on actual se
   const child=children[0];expect(s.ecs.kinship[child].parents).toEqual(expect.arrayContaining([player,person]));
   expect(s.ecs.kinship[person].children).toContain(child);
   const count=children.length,nextSeason=Math.floor(s.days/DAYS_IN_SEASON)+1;
-  advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
-  expect(s.ecs.personable[player].lastBirth).toBe(nextSeason);
-  advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
+  // Force only this cooldown opportunity. The ordinary birth above keeps its
+  // real probability; the cooldown assertion must not depend on the next roll.
+  const rate=SOCIAL_RATES.birthPerSeason;
+  try {
+    SOCIAL_RATES.birthPerSeason=5;
+    advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
+    expect(s.ecs.personable[player].lastBirth).toBe(nextSeason);
+    advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
+  } finally {SOCIAL_RATES.birthPerSeason=rate;}
 });
 
 it.each(["spouse","minor"])("continues after a shared lifecycle death as the actual %s with their own identity and estate provenance", async kind => {

@@ -207,6 +207,8 @@ it("ordinary active seasons catch up off-screen residents exactly once and auton
     s = a.s,
     id = a.ids[1];
   s.villages.v.centre=Hex(6,6).toPoint();
+  // This sparse map has no beds. The live planner can still query that store.
+  s.ecs.sleepable={};
   // Diagnostic survival isolation: no meals/planning other than the traveller;
   // hunger is below starvation over these four ordinary active seasons.
   for (const p of Object.values(s.ecs.personable)) {
@@ -408,7 +410,7 @@ it("transit preserves a real season of outgoing goodwill for NPCs and the player
   });
   await stepSeason(s);
   const dest = s.travel.maps[b.s.map.worldKey];
-  expect(dest.ecs.relationships[id].known[friend].goodwill).toBeCloseTo(43.2);
+  expect(dest.ecs.relationships[id].known[friend].goodwill).toBeCloseTo(37.8);
   expect(dest.ecs.personable[id].hunger).toBe(hunger);
   const player = a.ids[0];
   s.ecs.relationships[player].known[friend] = {
@@ -422,7 +424,7 @@ it("transit preserves a real season of outgoing goodwill for NPCs and the player
   };
   acceptTravel(s, s.map.entrances[0].tileIds[0]);
   await completeTravel(s, s.ecs.manager[player].jobs[0]);
-  expect(s.ecs.relationships[player].known[friend].goodwill).toBeCloseTo(43.2);
+  expect(s.ecs.relationships[player].known[friend].goodwill).toBeCloseTo(37.8);
   expect(s.ecs.personable[player]).toMatchObject(needs);
 });
 it("processes death in transit with the real carried heirloom and remote heir, retaining the estate and news", async () => {

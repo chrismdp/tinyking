@@ -239,7 +239,7 @@ it("preserves remote bonds and complete input purity while exactly one resident 
     goodwill: 45,
     base: 0
   });
-  expect(next.ecs.relationships[parent].known[person].goodwill).toBeCloseTo(43.2);
+  expect(next.ecs.relationships[parent].known[person].goodwill).toBeCloseTo(37.8);
   expect(next.ecs.personable[parent].lifeYears).toBeGreaterThan(0);
   expect(next.ecs.personable[parent].age).toBeGreaterThanOrEqual(age);
   expect(next.ecs.personable[person]).toEqual(input.ecs.personable[person]);

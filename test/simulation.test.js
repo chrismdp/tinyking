@@ -99,7 +99,7 @@ it("refreshes world weather and snow on the hour, including every hour in a long
 
 it("drifts relationships once per crossed hour, and leaves them alone while paused", () => {
   const state = villageState("paused");
-  state.ecs.relationships = { 1: { known: { 2: { ring: "social", goodwill: 10.25 } } } };
+  state.ecs.relationships = { 1: { known: { 2: { ring: "social", goodwill: 10.5 } } } };
   state.ecs.personality = {
     1: { traits: [], likes: [], dislikes: [] },
     2: { traits: [], likes: [], dislikes: [] }
@@ -107,13 +107,13 @@ it("drifts relationships once per crossed hour, and leaves them alone while paus
   state.opinionThresholds = { hate: -1, love: 1 };
   const simulation = createSimulation(state);
   simulation.step(10*(180), 0);
-  expect(state.ecs.relationships[1].known[2].goodwill).toBe(10.25);
+  expect(state.ecs.relationships[1].known[2].goodwill).toBe(10.5);
   state.game_speed = "normal";
   simulation.step(10*(180*7/3), 0);
-  expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(10.175);
+  expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(10.2);
   expect(state.ecs.relationships[1].known[2].ring).toBe("social");
   // The same seasonal drift now spans seven hours followed by twenty-eight.
   simulation.step(10*(720*7/3), 0);
-  expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9.875);
+  expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9);
   expect(state.ecs.relationships[1].known[2].ring).toBe("public");
 });

@@ -49,6 +49,7 @@ it("points to an eligible explored shelter tile and explains how to select it",(
   s.knowledge={[p]:{people:Object.fromEntries([person,parent,sibling].map(id=>[id,{conversation:{day:s.days}}]))}};
   const hint=openingGuidance(s);
   expect(hint.selectId).toBeDefined();
+  expect(hint.text).toBe("Select grassland near camp and choose Build shelter before night.");
   expect(require("game/construction").canPlaceShelter(s,hint.selectId)).toBe(true);
 });
 

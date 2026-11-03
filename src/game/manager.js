@@ -37,7 +37,8 @@ export const removeJob = (ecs, managerId, key, targetId) => {
   return null;
 };
 
-// A new player order replaces the old one through the same cancellation rules.
+// Gathering promised supplies runs before its delivery without cancelling it.
+// Other player orders replace the old one through the same cancellation rules.
 export function enqueueTask(state, job, targetId, metadata = {}) {
   if (!playerOrderAllowed(state, job.key)) return null;
   const manager = state.ecs.manager[state.ui.playerId];
@@ -53,14 +54,18 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
       return entry;
     }
   }
-  for (const previous of [...manager.jobs]) cancelTask(state, previous.id);
-  manager.jobs.push(entry);
+  for (const previous of [...manager.jobs]) {
+    const request = requestForTask(state, previous);
+    if (request?.status == "accepted" &&
+      (job.key == "forage" && request.kind == "food" || job.key == "cut_tree_down" && request.kind == "wood")) {
+      if (previous.assignedId == state.ui.playerId) interruptOrder(state);
+    } else cancelTask(state, previous.id);
+  }
+  manager.jobs.unshift(entry);
   delete state.ecs.planner[state.ui.playerId].world.fireHome;
   delete state.ecs.planner[state.ui.playerId].world.byFire;
-  if (manager.jobs.length == 1) {
-    const planner = state.ecs.planner[state.ui.playerId];
-    if (planner.world.stationaryPlayer && planner.task?.[0] == "wait_for" || !["eat_food", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);
-  }
+  const planner = state.ecs.planner[state.ui.playerId];
+  if (planner.world.stationaryPlayer && planner.task?.[0] == "wait_for" || !["eat_food", "sleep", "forage"].includes(planner.task?.[0]) && !planner.world.feeling.hungry && !planner.world.feeling.tired) interruptOrder(state);
   return entry;
 }
 

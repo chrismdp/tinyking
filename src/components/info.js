@@ -131,9 +131,8 @@ export function Info({ entityId }) {
 
   return (
     <div>
-      {title && (<h1 className="capitalise handle">{title}
-        <span className="knockedback"> #{entity.id}</span>
-      </h1>)}
+      {title && (<h1 className="capitalise handle">{title}</h1>)}
+      {entity.forageable && entity.forageable.amount <= 0 && <p className="talk-note">Picked clean. Food regrows in the growing season.</p>}
       {state.settlement?.fixture && state.settlement.fixture.villageId==villageId && <p className="settlement-fixture">{state.settlement.fixture.label}: {state.settlement.fixture.stocks}</p>}
       {origin && <div className="settlement-history">
         <p><strong>{village.name}</strong> · {village.houses.length} homes · {villageArea(state,villageId).length} plots and access tiles</p>

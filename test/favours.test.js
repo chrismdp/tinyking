@@ -257,6 +257,57 @@ it('delivers food from genuine player ownership and rechecks a vanished cargo in
   expect(s.ecs.container[w.camp].amounts.grain).toBe(3);
 });
 
+it.each([['roots', 0], ['berries', 0], ['roots', 1], ['berries', 1]])(
+  'completes a promised food delivery by ordering Forage for %s after %i portions delivered', (kind, initial) => {
+    const w = favourWorld(), s = w.state;
+    s.ecs.container[w.store].amounts.grain = 0;
+    s.ecs.container[w.camp].amounts.grain = initial;
+    const plants = newEntities(s, Array.from({ length: 3 - initial }, () => ({
+      spatial: { ...s.ecs.spatial[w.tiles[1]] },
+      forageable: { kind, biome: 'grassland', amount: 1, growth: 0 }
+    })));
+    updateFavours(s);
+    const r = w.request('food');
+    s.knowledge[w.player].favours.push(r.id);
+    s.knowledge[w.player].offers[r.id] = { speakerId: w.person, day: s.days };
+    const task = acceptFavour(s, r.id, w.person);
+    if (initial) advanceUntil(w, () => r.delivered == initial);
+    readyPlayerTasks(s);
+    for (const [index, plant] of plants.entries()) {
+      enqueueTask(s, { key: 'forage' }, plant);
+      expect(r.status).toBe('accepted');
+      advanceUntil(w, () => r.delivered == initial + index + 1);
+      expect(s.ecs.forageable[plant].amount).toBe(0);
+    }
+    advanceUntil(w, () => r.status == 'completed');
+    expect(task.progress).toBe(1);
+    expect(r).toMatchObject({ progress: 3, delivered: 3, goodwill: 12 });
+    expect(s.ecs.container[w.store].amounts).toMatchObject({ grain: initial, [kind]: 3 - initial });
+    expect(r.receipts).toHaveLength(3);
+    expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeCloseTo(12, 0);
+    const earned = s.ecs.relationships[w.person].known[w.player].goodwill;
+    expect(finishFavour(s, r)).toBe(false);
+    expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(earned);
+    expect(s.events.filter(e => e.type == 'favour')).toHaveLength(1);
+  }
+);
+
+it('supplies an accepted wood favour with an explicit chop order', () => {
+  const w = favourWorld(), s = w.state, r = w.request('wood');
+  s.ecs.container[w.camp].amounts.wood = 0;
+  const [tree] = newEntities(s, [{ spatial: { ...s.ecs.spatial[w.tiles[1]] }, good: { type: 'wood', amount: 1 } }]);
+  const task = acceptFavour(s, r.id);
+  readyPlayerTasks(s);
+  enqueueTask(s, { key: 'cut_tree_down' }, tree);
+  expect(r.status).toBe('accepted');
+  advanceUntil(w, () => r.status == 'completed');
+  expect(task.progress).toBe(1);
+  expect(s.ecs.container[w.store].amounts.wood).toBe(1);
+  expect(s.ecs.good[tree]).toBeUndefined();
+  expect(r.receipts).toHaveLength(1);
+  expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeCloseTo(12, 0);
+});
+
 it('honours hostile disposition and ring capacity on an otherwise full promised reward', () => {
   const w = favourWorld(), s = w.state, r = w.request('wood');
   s.opinionThresholds = { hate: 100, love: 200 };

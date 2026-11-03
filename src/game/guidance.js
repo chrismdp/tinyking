@@ -51,7 +51,7 @@ export function openingGuidance(state) {
     const point=ecs.spatial[result.personId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
     const tile=Object.keys(ecs.walkable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&!ecs.mappable[id]?.buildingPlot&&!ecs.mappable[id]?.cropPlot)
       .sort((a,b)=>Math.hypot(ecs.spatial[a].x-point.x,ecs.spatial[a].y-point.y)-Math.hypot(ecs.spatial[b].x-point.x,ecs.spatial[b].y-point.y)).find(id=>canReachTask(state,actorId,id));
-    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to ground #"+tile+" by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
+    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to clear ground by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
   }
   const arrived=ecs.playable?.[actorId]?.arrivedAt;
   const firstDay=arrived!=null && state.days<Math.floor(arrived)+1+6/24;
@@ -73,7 +73,7 @@ export function openingGuidance(state) {
       const at=ecs.spatial[actorId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
       const tile=Object.keys(ecs.mappable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&ecs.mappable[id].terrain=="grassland")
         .sort((a,b)=>Math.hypot(ecs.spatial[a].x-at.x,ecs.spatial[a].y-at.y)-Math.hypot(ecs.spatial[b].x-at.x,ecs.spatial[b].y-at.y)).find(id=>canPlaceShelter(state,id));
-      return tile?{actorId,key:"shelter",text:"Select Grassland #"+tile+" near camp and choose Build shelter before night.",action:"Show shelter tile",selectId:tile}:
+      return tile?{actorId,key:"shelter",text:"Select grassland near camp and choose Build shelter before night.",action:"Show shelter tile",selectId:tile}:
         {actorId,key:"shelter",text:"Build shelter needs an available site on explored ground. Explore empty grass within three tiles of camp; select a tile to see its shelter requirements."};
     }
     if(firstDay && state.days%1*24>=17) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
@@ -87,14 +87,14 @@ export function openingGuidance(state) {
     if(field) {
       const sow=ecs.farmable[field].slots.some(slot=>slot.state=="ploughed"),job=sow?"sow_field":"plough_field",label=sow?"Sow":"Plough";
       return jobs.some(j=>j.job.key==job&&j.targetId==field)?{actorId,key:"seed_work",text:"Keep the game running to "+label.toLowerCase()+" your field."}:
-        {actorId,key:sow?"seed_sow":"seed_plough",text:"Select your field #"+field+" and choose "+label+(sow?" to plant your seed grain.":" to prepare a patch for your seed grain."),action:"Show field",selectId:field};
+        {actorId,key:sow?"seed_sow":"seed_plough",text:"Select your field and choose "+label+(sow?" to plant your seed grain.":" to prepare a patch for your seed grain."),action:"Show field",selectId:field};
     }
     if(!fields.length) {
       if(jobs.some(j=>j.job.key=="create_field"))return {actorId,key:"seed_work",text:"Keep the game running to clear your new field."};
       const at=ecs.spatial[actorId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
       const tile=Object.keys(ecs.mappable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&canPlaceField(state,id)&&designationPlants(state,actorId,id)!==null)
         .sort((a,b)=>Math.hypot(ecs.spatial[a].x-at.x,ecs.spatial[a].y-at.y)-Math.hypot(ecs.spatial[b].x-at.x,ecs.spatial[b].y-at.y))[0];
-      return tile?{actorId,key:"seed_field",text:"You have seed grain. Select Grassland #"+tile+" and choose Create Field.",action:"Show field tile",selectId:tile}:
+      return tile?{actorId,key:"seed_field",text:"You have seed grain. Select grassland and choose Create Field.",action:"Show field tile",selectId:tile}:
         {actorId,key:"seed_explore",text:"You have seed grain. Choose Move here at the edge of visible land to find unused grass for Create Field."};
     }
   }

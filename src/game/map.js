@@ -413,13 +413,17 @@ export async function generateSettlements(seed, grid, landscape, start, progress
       makeHouse(generator, settlements, grid, hex, landscape);
       settlements[hex].villageId = id;
       settlements[hex].villageCentre = hex.equals(centre);
+      if(contents)settlements[hex].surveyRadius=5;
     }
     await progressUpdate("Founding villages", .22);
   }
+  // Grading can reject a natural pad too. Keep the same inland survey and
+  // footprint available to replace every recorded village's failed pads.
+  const inland=contents ? grid.filter(h=>mainLand.has(String(h)) && start.distance(h)>3 && MAP_CENTRE.distance(h)<MAP_RADIUS-2 && !landscape[h].terrain.includes("water") && suitableHouse(natural,h.toPoint())) : [];
+  const settlementSites=contents ? [...new Set([...ranked,...inland])] : ranked;
   if (contents && centres.length<targetCount) {
     // Stored households cannot disappear because a coast has fewer natural
     // pads. Survey inland foundations for every remaining recorded home.
-    const inland=grid.filter(h=>mainLand.has(String(h)) && start.distance(h)>3 && MAP_CENTRE.distance(h)<MAP_RADIUS-2 && !landscape[h].terrain.includes("water") && suitableHouse(natural,h.toPoint()));
     for(let vi=centres.length;vi<targetCount;vi++) {
       const specification=contents.settlements[vi];
       let chosen;
@@ -433,7 +437,7 @@ export async function generateSettlements(seed, grid, landscape, start, progress
       if(!chosen)throw new Error("Cannot survey the stored households of "+specification.id);
       const centre=chosen[0],id=specification.id;
       villages[id]={id,name:specification.name,centre:{x:centre.x,y:centre.y},houses:[]};centres.push(centre);
-      for(const h of chosen){makeHouse(generator,settlements,grid,h,landscape);settlements[h].villageId=id;settlements[h].villageCentre=h.equals(centre);}
+      for(const h of chosen){makeHouse(generator,settlements,grid,h,landscape);settlements[h].villageId=id;settlements[h].villageCentre=h.equals(centre);settlements[h].surveyRadius=5;}
     }
   }
   // A coastal land hex can have no natural three-house clearing. It is still
@@ -453,7 +457,7 @@ export async function generateSettlements(seed, grid, landscape, start, progress
   Grid.hexagon({ center: start, radius: 1 }).forEach(hex => {
     landscape[hex].terrain = "grassland";
   });
-  return { settlements, villages, settlementSites: ranked };
+  return { settlements, villages, settlementSites };
 }
 
 function discoverStartingTiles(ecs, id, center) {

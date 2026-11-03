@@ -291,10 +291,11 @@ function gradeRoads(roadHexes, roadSides, initial, natural, settlements, surface
   return {heights};
 }
 export function replacementHouseSite(centre,settlements,sites,tried,houseCount) {
-  return centre && sites?.find(h=>!tried.has(String(h)) && h.distance(Hex(centre))<=(houseCount>4?5:3) &&
+  return centre && sites?.find(h=>!tried.has(String(h)) && h.distance(Hex(centre))<=(centre.surveyRadius || (houseCount>4?5:3)) &&
     Object.values(settlements).every(other=>h.distance(Hex(other))>=2));
 }
 export function buildGeography(tiles, landscape, settlements, entrances, anchors=[], surface={}) {
+  const surveyedCentres=new Map(Object.values(settlements).filter(h=>h.surveyRadius && h.villageCentre).map(h=>[h.villageId,{...h}]));
   const natural = createHeightField({seed:0,
     terrainAt:k=>landscape[k]?.terrain || surface.terrainAt?.(Hex(...k.split(",").map(Number)).toPoint()),
     elevationAt:surface.elevationAt || ((x,y)=>{
@@ -353,18 +354,18 @@ export function buildGeography(tiles, landscape, settlements, entrances, anchors
   };
   const triedSites=new Set(Object.keys(settlements));
   const rejectHouse=house=>{
-    // Retain the hamlet's real central neighbour when resolving overlapping
-    // aprons. Move the conflicting house to another eligible local site.
-    const neighbour=house.villageCentre && Object.values(settlements)
+    // Procedural hamlets retain their central neighbour. Recorded homes move
+    // the actual failed pad, including the centre, inside the fixed survey.
+    const neighbour=!house.surveyRadius && house.villageCentre && Object.values(settlements)
       .filter(h=>h!=house && !h.villageCentre && Hex(h).distance(Hex(house))<=4)
       .sort((a,b)=>Hex(a).distance(Hex(house))-Hex(b).distance(Hex(house)))[0];
     const rejected=neighbour || house, villageId=rejected.villageId;
     delete settlements[Hex(rejected)];
-    const centre=Object.values(settlements).find(h=>h.villageId==villageId && h.villageCentre);
+    const centre=surveyedCentres.get(villageId) || Object.values(settlements).find(h=>h.villageId==villageId && h.villageCentre);
     const replacement=replacementHouseSite(centre,settlements,surface.settlementSites,triedSites,surface.houseCounts?.[villageId]);
     if(replacement) {
       triedSites.add(String(replacement));
-      const placed={...rejected,x:replacement.x,y:replacement.y,villageCentre:false};
+      const placed={...rejected,x:replacement.x,y:replacement.y,villageCentre:!!rejected.villageCentre};
       settlements[replacement]=placed;
       for(const h of Grid.hexagon({center:replacement,radius:1})) landscape[h].terrain="grassland";
       prepareApproach(placed);

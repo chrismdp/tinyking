@@ -1,5 +1,6 @@
 import TYPES from "data/event_types.json";
 import { boundId } from "game/social_conditions";
+import { socialLookup } from "game/social_lookups";
 
 export function eventRoles(event) {
   return Object.fromEntries((TYPES[event?.type]?.roles || []).map((role,i)=>[role,event?.people[i]]));
@@ -19,7 +20,7 @@ export function affectedParties(s,event) {
   const roles=eventRoles(event),participants=eventParticipants(event),result=[];
   for(const rule of TYPES[event.type]?.affected || []) {
     for(const subject of rule.each=="participant" ? participants : [roles[rule.subject]]) {
-      const personId=typeof rule.from=="string" ? roles[rule.from] : s.ecs[rule.from.component]?.[subject]?.[rule.from.field];
+      const personId=typeof rule.from=="string" ? roles[rule.from] : socialLookup(s,{...roles,subject},rule.from);
       if(!personId || participants.includes(personId) || !s.ecs.personable?.[personId] || s.ecs.personable[personId].dead)continue;
       result.push({role:rule.role,personId,subject,other:participants.find(id=>id!=subject)});
     }

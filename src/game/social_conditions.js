@@ -6,12 +6,7 @@ import { personComponent } from "game/residents";
 import { closeFamily, relatedPeople } from "game/social_kin";
 
 export const pairKey = (a,b) => [a,b].sort().join(":");
-export const boundValue = (bindings,path) => {
-  if(typeof path != "string")return path;
-  // Most authored arguments are a single role, with no nested field to walk.
-  if(!path.includes("."))return bindings?.[path];
-  return path.split(".").reduce((v,k)=>v?.[k],bindings);
-};
+export const boundValue = (bindings,role) => typeof role=="string" ? bindings?.[role] : role;
 export const boundId = (bindings,path) => {const v=boundValue(bindings,path);return v?.id ?? v;};
 const person = (s,id) => personComponent(s,"personable",id);
 const alive = (s,id) => !!person(s,id) && !person(s,id).dead;

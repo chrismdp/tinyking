@@ -5,23 +5,17 @@ import { applySocialEffects } from "game/social_effects";
 import { recordEvent } from "game/events";
 import { hashUnit } from "game/math";
 import { DAYS_IN_SEASON } from "game/time";
-import { personComponent } from "game/residents";
+import { socialLookup } from "game/social_lookups";
 
 // Authored chances retain their former half-life-year units. Convert once,
 // before aggregating completed conversations; custom fixture actions are exact.
 export const SOCIAL_ACTIONS = ACTION_TUNING.map(action => ({ ...action, chance: lifeClockChance(action.chance) }));
 
-// Component paths also bind non-person assets, such as a resident's house owner.
-export function participantBinding(s,bindings,source) {
-  if(typeof source=="string")return boundId(bindings,source);
-  if(source.spouseOf)return personComponent(s,"kinship",bindings[source.spouseOf])?.spouse;
-  return personComponent(s,source.component,participantBinding(s,bindings,source.of))?.[source.field];
-}
 export function socialActionBindings(s,action,a,b) {
   const bindings={actor:a,partner:b,first:a,second:b};
   const visit=s.ecs.planner?.[a]?.world.social;
   bindings.visitor=visit?.visitor===false?b:a;bindings.host=bindings.visitor==a?b:a;
-  for(const [role,source] of Object.entries(action.participants||{}))bindings[role]=participantBinding(s,bindings,source);
+  for(const [role,source] of Object.entries(action.participants||{}))bindings[role]=typeof source=="string"?boundId(bindings,source):socialLookup(s,bindings,source);
   return bindings;
 }
 function attempts(s,action,bindings,a,b) {
@@ -54,7 +48,7 @@ export function runSocialActions(s,hook,a,b,{conversations=1,actions=SOCIAL_ACTI
       let event;
       if(action.event) {
         const people=action.event.people.map(role=>boundId(bindings,role)),details={summary};
-        for(const [name,source] of Object.entries(action.event.details||{}))details[name]=typeof source=="object"?s.ecs[source.component]?.[bindings[source.person]]?.[source.field]:source;
+        for(const [name,source] of Object.entries(action.event.details||{}))details[name]=typeof source=="object"?socialLookup(s,bindings,source):source;
         event=recordEvent(s,action.event.type,people,[],details);
       }
       applySocialEffects(s,action.effects,{...bindings,event},recordEvent);

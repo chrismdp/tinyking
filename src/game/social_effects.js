@@ -6,7 +6,7 @@ import { DAYS_IN_SEASON } from "game/time";
 import { lifeClockSeasons } from "game/social_clock";
 
 export function eventBindings(event,listener) {
-  return {...Object.fromEntries((TYPES[event.type]?.roles||[]).map((role,i)=>[role,event.people[i]])),event,actor:event.people[0],partner:event.people[1],subject:event.people[1],listener};
+  return {head:event.head,otherHead:event.otherHead,causeEventId:event.causeEventId,...Object.fromEntries((TYPES[event.type]?.roles||[]).map((role,i)=>[role,event.people[i]])),event,actor:event.people[0],partner:event.people[1],subject:event.people[1],listener};
 }
 
 // `person` owns the directional regard; `towards` is its subject.

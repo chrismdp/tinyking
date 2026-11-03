@@ -71,14 +71,10 @@
       ],
       "details": {
         "fromVillage": {
-          "person": "actor",
-          "component": "village",
-          "field": "villageId"
+          "villageOf": "actor"
         },
         "toVillage": {
-          "person": "partner",
-          "component": "village",
-          "field": "villageId"
+          "villageOf": "partner"
         }
       }
     }
@@ -390,22 +386,10 @@
     ],
     "participants": {
       "head": {
-        "component": "controllable",
-        "of": {
-          "component": "household",
-          "of": "actor",
-          "field": "houseId"
-        },
-        "field": "controllerId"
+        "householdHeadOf": "actor"
       },
       "otherHead": {
-        "component": "controllable",
-        "of": {
-          "component": "household",
-          "of": "partner",
-          "field": "houseId"
-        },
-        "field": "controllerId"
+        "householdHeadOf": "partner"
       }
     },
     "when": {
@@ -570,22 +554,10 @@
     ],
     "participants": {
       "head": {
-        "component": "controllable",
-        "of": {
-          "component": "household",
-          "of": "actor",
-          "field": "houseId"
-        },
-        "field": "controllerId"
+        "householdHeadOf": "actor"
       },
       "otherHead": {
-        "component": "controllable",
-        "of": {
-          "component": "household",
-          "of": "partner",
-          "field": "houseId"
-        },
-        "field": "controllerId"
+        "householdHeadOf": "partner"
       }
     },
     "when": {

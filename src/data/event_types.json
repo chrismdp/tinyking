@@ -406,8 +406,8 @@
     "onOccurrence": [
       {
         "op": "goodwill",
-        "person": "event.head",
-        "towards": "event.otherHead",
+        "person": "head",
+        "towards": "otherHead",
         "amount": 6,
         "introduce": false,
         "when": {
@@ -415,13 +415,13 @@
             {
               "test": "person_alive",
               "args": {
-                "person": "event.head"
+                "person": "head"
               }
             },
             {
               "test": "person_alive",
               "args": {
-                "person": "event.otherHead"
+                "person": "otherHead"
               }
             }
           ]
@@ -429,8 +429,8 @@
       },
       {
         "op": "goodwill",
-        "person": "event.otherHead",
-        "towards": "event.head",
+        "person": "otherHead",
+        "towards": "head",
         "amount": 6,
         "introduce": false,
         "when": {
@@ -438,13 +438,13 @@
             {
               "test": "person_alive",
               "args": {
-                "person": "event.head"
+                "person": "head"
               }
             },
             {
               "test": "person_alive",
               "args": {
-                "person": "event.otherHead"
+                "person": "otherHead"
               }
             }
           ]
@@ -898,8 +898,7 @@
         "role": "betrayed",
         "each": "participant",
         "from": {
-          "component": "kinship",
-          "field": "spouse"
+          "spouseOf": "subject"
         },
         "discovery": {
           "type": "found_out",
@@ -987,7 +986,7 @@
       {
         "op": "learn_event",
         "person": "listener",
-        "eventId": "event.causeEventId"
+        "eventId": "causeEventId"
       },
       {
         "op": "goodwill",
@@ -1167,7 +1166,7 @@
       {
         "op": "learn_event",
         "person": "listener",
-        "eventId": "event.causeEventId"
+        "eventId": "causeEventId"
       }
     ],
     "relevance": [
@@ -1314,7 +1313,7 @@
       {
         "op": "learn_event",
         "person": "listener",
-        "eventId": "event.causeEventId"
+        "eventId": "causeEventId"
       }
     ],
     "relevance": [
@@ -1357,7 +1356,7 @@
       {
         "op": "learn_event",
         "person": "listener",
-        "eventId": "event.causeEventId"
+        "eventId": "causeEventId"
       },
       {
         "op": "goodwill",

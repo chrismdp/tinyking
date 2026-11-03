@@ -113,6 +113,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     }
   };
   const objects = {};
+  const deferredBuilds = new Set();
   const labelRay = new THREE.Raycaster();
   const people = new Set();
   let known = new Set();
@@ -154,6 +155,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
         objects[id].visible = revealAll || known.has(objects[id].userData.hexKey) || arrivalKnown.has(objects[id].userData.hexKey);
       }
     }
+    for (const id of deferredBuilds) if (isKnown(state.ecs.spatial[id])) state.redraws.push(id);
     forest.invalidate();
     instances.invalidate();
   };
@@ -162,6 +164,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     .filter(id => id);
 
   const remove = id => {
+    deferredBuilds.delete(id);
     nightLights.remove(id);
     forest.remove(id);
     instances.remove(id);
@@ -228,6 +231,13 @@ export function createWorldView(renderer, state, { t, onSelect }) {
   const rebuild = id => {
     remove(id);
     if (!entityExists(state.ecs, id)) {
+      return;
+    }
+    // Undiscovered props have no visible mesh or pick target. Construct them
+    // on discovery; moving people and animals still update every frame.
+    const ecs = state.ecs, position = ecs.spatial[id];
+    if (position && !ecs.mappable[id] && !ecs.personable[id] && !ecs.animal?.[id] && !isKnown(position)) {
+      deferredBuilds.add(id);
       return;
     }
     const object = build(id);
@@ -474,6 +484,7 @@ export function createWorldView(renderer, state, { t, onSelect }) {
     camera,
     changeMap() {
       for (const id in objects) remove(id);
+      deferredBuilds.clear();
       for (const name of villageLabels.values()) { settlementOverlay.remove(name); models.disposeObject(name); }
       villageLabels.clear();
       if (areaOutline) { settlementOverlay.remove(areaOutline); models.disposeObject(areaOutline); }

@@ -1,26 +1,26 @@
-The birth policy and seeded orientation are implemented. Seed 13 ends with 403 living people against the required 560–757. Population acceptance still fails by 157 people. The branch is not ready to merge against the full population requirement.
+The birth policy, seeded orientation and life-clock conversion are implemented. With a normal birth probability, seed 13 ends with 127 living people against the required 560–757. Population acceptance fails by 433. CPU is 29.225 seconds and heap after GC is 110.144 MB. The branch is not ready to merge against the full population requirement. The new Life clock and bonds section supersedes the earlier population result.
 
-All births require a man and a woman, using `nameable.male`. The woman must be 16–39 and the man 16–55. Reciprocal orientation now governs romantic attraction, courtship, romance and affairs. Same-sex couples retain courtship and marriage when both orientations permit it. Household capacity remains eight. Adoption, orphan placement, friendship, goodwill and mortality rules remain unchanged.
+All births require a man and a woman, using `nameable.male`. The woman must be 16–39 and the man 16–55. Reciprocal orientation now governs romantic attraction, courtship, romance and affairs. Same-sex couples retain courtship and marriage when both orientations permit it. Household capacity remains eight. Adoption, orphan placement and mortality retain their existing rules. Social growth, decay and waits now follow the life clock. Fixed tastes and marriage consent retain their existing rules.
 
-The final runtime source is `c31e618` on `feat/births-mf`. The orientation work started at `631fa54`. The earlier birth-policy runtime was `da8c409`, based on `4a9a05d299dd7c01864caa11af0c209acd71acf8`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch code inspection, vault write or bench-ledger write occurred. Main figures below come from the brief.
+The current runtime source is `6f69a55` on `feat/births-mf`. The orientation-stage runtime was `c31e618`. The orientation work started at `631fa54`. The earlier birth-policy runtime was `da8c409`, based on `4a9a05d299dd7c01864caa11af0c209acd71acf8`. Work stayed in `/home/cp/code/tk-births`. Dependencies were already installed. No delegation, push, stash, other-branch code inspection, vault write or bench-ledger write occurred. Main figures below come from the brief.
 
-| Measure | Main | Before orientation | Delivered | Acceptance |
+| Measure | Main | Before life-clock work | Delivered | Acceptance |
 | --- | ---: | ---: | ---: | --- |
-| Living people after history | 686 | 250 | 403 | Fail: 560–757 |
-| History births | 1,270 | 815 | 977 | Report |
-| History marriages | 426 | 333 | 317 | Report |
-| Man–woman marriages | Not supplied | 231 | 317 | Report |
-| Man–man marriages | Not supplied | 50 | 0 | Report |
-| Woman–woman marriages | Not supplied | 52 | 0 | Report |
-| New-game CPU, seconds | 61 | 44.323 | 61.507 | Pass: ≤309 |
-| New-game elapsed time, seconds | Not supplied | 41.181 | 57.336 | Report |
-| Heap after GC, decimal MB | About 158 | 133.029 | 146.914 | Pass: <250 |
-| Heap after GC, MiB | Not supplied | 126.867 | 140.109 | Report |
-| Retained people | 1,510 | 1,055 | 1,217 | Report |
-| History deaths | 824 | 805 | 814 | Report |
+| Living people after history | 686 | 403 | 127 | Fail: 560–757 |
+| History births | 1,270 | 977 | 397 | Report |
+| History marriages | 426 | 317 | 182 | Report |
+| Man–woman marriages | Not supplied | 317 | 181 | Report |
+| Man–man marriages | Not supplied | 0 | 0 | Report |
+| Woman–woman marriages | Not supplied | 0 | 1 | Report |
+| New-game CPU, seconds | 61 | 61.507 | 29.225 | Pass: ≤309 |
+| New-game elapsed time, seconds | Not supplied | 57.336 | 25.546 | Report |
+| Heap after GC, decimal MB | About 158 | 146.914 | 110.144 | Pass: <250 |
+| Heap after GC, MiB | Not supplied | 140.109 | 105.042 | Report |
+| Retained people | 1,510 | 1,217 | 637 | Report |
+| History deaths | 824 | 814 | 510 | Report |
 | Same-sex history births | 377 | 0 | 0 | Pass |
 
-The birth-policy evidence below records the earlier stage. The Orientation section records the final combined branch and its current limits.
+The birth-policy and Orientation sections record earlier stages. Life clock and bonds records the current branch and its limits.
 
 The unchanged `scripts/local-population-measure.js` measured a seed-13 new game, then called `startGame` with the intro skipped. Its timers exclude Babel loading, diagnostic exports and forced GC. Demographics come from the history export before the arriving player and royal backstory. The final saved game retains the family quest, three named relatives and both royal birth events. Source hashes match the frozen runtime.
 
@@ -355,3 +355,163 @@ flock -w 7200 /tmp/27agents-gate-2.lock npm run build
 Final receipts: [affected gate](orientation-delivered-affected-receipt.json), [test results](orientation-delivered-affected-tests.json), [measurement](regress-profile-orientation-delivered.json), [demographic and birth audit](orientation-delivered-counts.json), [remaining limits](orientation-delivered-limits.json), [cooldown comparison](orientation-cooldown-comparison.json), [distribution](orientation-shares.json), [runtime manifest](orientation-frozen-runtime-manifest.json), [build](orientation-delivered-build.log), [lint](orientation-delivered-lint.log). Failed attempts remain ignored beside them.
 
 The unresolved limit is population: 403 living people against 560–757. Orientation, save migration, birth policy, household capacity, affected checks, build, CPU and heap checks pass. The measured constraints do not justify adding rules outside this brief.
+
+
+## Life clock and bonds
+
+The life-clock conversion and normal birth probability are implemented. Seed 13 ends with 127 living people, 433 below the minimum. Population acceptance fails. Work stops at the measured constraint, as requested. Practical marriages need a separate decision from Chris and the coordinator.
+
+The runtime is `6f69a55`. The fixture corrections are `fb20ab1` and do not change runtime files. Work started at `71b766c` in `/home/cp/code/tk-births`. Only seed 13 was evaluated. No other branch was read. Dependencies were already installed. No delegation, push, stash, vault write or bench-ledger write occurred.
+
+### Ages before implementation
+
+The saved `orientation-delivered` history supplies the starting branch measurement. Ages are reconstructed from each person's retained age, death season or history endpoint, and the event season. The slope is two life years per season. Each woman contributes her earliest recorded marriage or birth once. Dead women remain included.
+
+The main-history export and main age figures are absent from this worktree. The supplied reports contain population totals, but no marriage or birth medians. The instruction against reading other branches prevents a new main run. The main age comparison therefore remains unmeasured. No substitute branch was inspected.
+
+Founders enter history already married. Their founding weddings do not measure the time needed to form a bond. The primary comparison below uses women born during history, whose full recorded lives start with a birth event. This excludes founding weddings and the founders' later first births. It also excludes women who never marry or give birth, so these medians cannot measure their unmet opportunities.
+
+| Age measure, life years | Main | Starting branch | Final branch |
+| --- | --- | ---: | ---: |
+| Median first marriage, women born during history | Unavailable | 26, 195 women | 24, 63 women |
+| Median first birth, women born during history | Unavailable | 28, 140 mothers | 28, 49 mothers |
+| Median first recorded marriage, including founders | Unavailable | 27, 315 women | 26, 183 women |
+| Median first recorded birth, including founders | Unavailable | 28, 260 mothers | 30, 167 mothers |
+| First marriages at age 40+, women born during history | Unavailable | 29 of 195 | 7 of 63 |
+
+The fixture confirms a fourfold slowdown in goodwill earned per life year before implementation. The starting median first marriage still leaves seven seasonal opportunities before age 40. These figures support a timing problem but do not establish it as the sole cause of the population deficit. The final run changes both social rates and birth probability. It does not isolate their effects on population.
+
+### Conversion and rate audit
+
+`src/game/social_clock.js` defines the former clock once as 0.5 life years per season. It derives the scale from `LIFE_YEARS_PER_SEASON`, currently two. Growth and decay multiply by four. Independent chances use `1 - (1 - p) ** 4`. Waits divide by four.
+
+| Rate or wait | At the starting commit | Delivered value |
+| --- | ---: | ---: |
+| Contact goodwill towards someone loved | +4 per conversation | +16 |
+| Contact goodwill towards someone liked | +1 per conversation | +4 |
+| Contact goodwill towards someone hated | −0.25 per conversation | −1 |
+| Goodwill drift, per hour | 0.010714285714 | 0.042857142857 |
+| Goodwill drift, per season | 1.8 | 7.2 |
+| Festival attendance goodwill, once per season | +2 | +8 |
+| Negative-goodwill quarrel chance, per conversation | 0.08 | 0.28360704 |
+| Disposition-friction chance, per conversation | 0.0015 | 0.0059865134949376 |
+| Courtship wait, seasons | 2 | 0.5 |
+| Recent-contact window, seasons | 1 | 0.25 |
+| Avoidance effect of one authored season | 1 season | 0.25 season |
+| Birth base probability, per season | 5, guaranteed after population scaling | 0.45 |
+
+The contact reward applies to completed live and summary conversations. The six summary conversations remain six. Scaling their reward avoids counting the conversion twice. One three-conversation visit now earns 48 goodwill. After one season's drift, its net gain is 40.8. Per life year, that is the former `(12 - 1.8) / 0.5 = 20.4`.
+
+Rings have no separate promotion timer. Their thresholds remain 10, 30 and 60, and their capacities remain 10, six and two. The scaled goodwill reaches those same thresholds sooner. Disposition comes from fixed traits and tastes. It has no seasonal growth or decay rate. Opinion thresholds, orientation, age windows, kin exclusions and candidate weights retain their values.
+
+Romance and affair chances were already scaled by the life-stage worker. The JSON now stores their original chances, 0.02 and 0.12. `SOCIAL_ACTIONS` converts the catalogue once when loading it. The effective chances remain 0.07763184 and 0.40030464. Tests assert both values, so neither receives another fourfold conversion. Custom actions supplied explicitly to the runner retain their exact supplied probabilities.
+
+The previously scaled summary sighting chance remains 0.047142891264 for affairs and poaching. The rare confidence chance remains 0.03940399 on both disclosure routes. Those values are not converted again. Certain actions retain probability one. Quarrel and reconciliation effects remain −6 and +6 because those amounts belong to events, rather than elapsed time. The five-percent traveller share is a fixed trait, not a seasonal chance.
+
+Conversation duration, routes, daily visit scheduling, meal and sleep timing, and the news budget still describe physical game actions. They retain their existing values. Player conversation choices, gifts and family starting bonds are discrete effects, rather than seasonal relationship rates.
+
+Live wedding retries now use fractional seasons, so the half-season wait can finish between boundaries. A current completed conversation remains required. History samples meetings only at seasonal boundaries. Its earliest wedding after starting courtship is therefore the next seasonal meeting, two life years later. No intermediate contacts or dates are fabricated.
+
+### Birth probability and spacing
+
+The base probability is 0.45. The existing population factor remains 0.2–2, so the effective chance is 9%–90%. At the reference population, an eligible couple expects one birth every 2.22 seasons, or 4.44 life years. Crowding and sparse populations still change that interval. The one-season cooldown and eight-person household capacity retain their existing values.
+
+The final history contains 230 intervals between successive births to the same woman. Their mean is 1.913 seasons, or 3.826 life years. The median is one season. Of those intervals, 119 are one season, 82 are two or three, and 29 are four or more. The observed mean is close to the lower edge of the requested spacing, but the median is shorter. These completed intervals exclude mothers with only one child and gaps cut off by the history endpoint or maternal window. They are not an unbiased estimate of every eligible opportunity.
+
+The starting guaranteed-birth history has 717 completed intervals, with mean 1.167 seasons and median one. No further rate sweep or new birth rule was added after the final population failure.
+
+### Seed-13 acceptance
+
+The unchanged `scripts/local-population-measure.js` generated a new game and started it with the intro skipped. CPU excludes Babel loading, diagnostic exports and forced collection. Heap is measured after GC. Demographics come from the history export before the player and royal backstory arrive. Runtime hashes match all 182 tracked source files after the checks and fixture corrections.
+
+| Measure | Starting branch | Final branch | Acceptance |
+| --- | ---: | ---: | --- |
+| Living people | 403 | 127 | Fail: 560–757 |
+| Child, ages 0–7 | 9 | 0 | Report |
+| Teenager, ages 8–15 | 0 | 0 | Report |
+| Young adult, ages 16–23 | 14 | 2 | Report |
+| Adult, ages 24–39 | 32 | 11 | Report |
+| Middle-aged, ages 40–55 | 75 | 31 | Report |
+| Old, ages 56+ | 273 | 83 | Report |
+| History births | 977 | 397 | Report |
+| History marriages, including 120 founding couples | 317 | 182 | Report |
+| Marriages formed during history | 197 | 62 | Report |
+| New-game CPU, seconds | 61.507 | 29.225 | Pass: ≤309 |
+| New-game elapsed time, seconds | 57.336 | 25.546 | Report |
+| Heap after GC, decimal MB | 146.914 | 110.144 | Pass: <250 |
+| Heap after GC, MiB | 140.109 | 105.042 | Report |
+
+All 397 history births pass the sex and parental-age audit. All 62 simulated marriages and all romance or affair events pass reciprocal orientation checks. The final history contains 181 man–woman marriages and one woman–woman marriage, including founders. Maximum living household occupancy is six. Every retained person has an orientation. The started game retains its family quest, three named relatives and both valid royal births.
+
+### Remaining limit
+
+| Constraint at the final history snapshot | Starting branch | Final branch |
+| --- | ---: | ---: |
+| Resident single seekers | 95 | 40 |
+| Seekers with a nearby single candidate | 95 | 39 |
+| Seekers with a compatible, unrelated nearby candidate | 89 | 35 |
+| Seekers with a mutually loved candidate | 13 | 0 |
+| Seekers with mutual love and mutual Intimate bonds | 2 | 0 |
+| Women aged 16–39 | 23 | 7 |
+| Single women aged 16–39 | 18 | 7 |
+| Living couples | 34 | 7 |
+| Couples outside either parenting window | 31 | 7 |
+| Fertile couples in a full home | 2 | 0 |
+| Fertile couples with room at home | 1 | 0 |
+| Houses / occupied houses | 149 / 144 | 120 / 77 |
+| Full houses | 3 | 0 |
+| Villages at the eight-house limit | 0 | 0 |
+
+Compatible candidates remain available to 35 of 40 seekers. None has a mutually loved candidate, so faster goodwill cannot make those pairs mutually Intimate under the current tastes rule. All seven women in the maternal window are single. All seven living couples are outside the parenting windows. Empty housing remains available. This snapshot identifies a partner-formation constraint, rather than a final housing or birth-roll constraint. It does not describe every earlier season.
+
+The normal birth rate produces a much smaller population than the starting guaranteed rate. First marriage improves by two life years among women born during history. First birth does not improve for that cohort. The run does not support claiming that social-rate conversion alone restores the population. Mutual Personal marriages, wider age windows, extra housing, changed tastes and guaranteed births were not added. The coordinator must decide whether to authorise practical marriages or another change.
+
+### Tests and receipts
+
+Small fixtures ran before implementation. The first attempt failed to resolve the new module. After adding the clock helper, six behavioural tests failed and one passed. Failures showed quarter-speed goodwill, late marriage, the old drift rate and the long avoidance wait. After implementation, fixtures show equal net goodwill per life year in live and summary contact. A couple starting at age 16 with Social bonds marries at 18 after steady seasonal contact. A live couple waits exactly half a season. Tests also cover the contact cutoff and each chance conversion once.
+
+The normal-birth tests failed before changing the rate. They then passed with a small population of independently seeded three-person fixtures. Those tests check ordinary probability, expected spacing at the reference population, and one opportunity per season. No unit test generates a production world.
+
+| Check | Result |
+| --- | --- |
+| Initial behavioural regressions | 1 passed, 6 failed |
+| Focused social checks after fixture updates | 156/156 passed across nine files |
+| Birth regressions before rate change | 0 passed, 2 failed |
+| Focused birth and lifecycle checks | 115/115 passed across four files |
+| Initial affected gate, base `71b766c` | 1,293 passed, 7 failed across 134 files |
+| Corrected affected files | 67/67 passed across five files |
+| Combined final affected evidence | 1,300/1,300 passed across 134 files |
+| ESLint on six runtime files and both new tests | Exit 0, no warnings |
+| Whitespace | Pass |
+| Production build | Exit 0, app 18.139 s, save worker 0.570 s |
+| Frozen runtime manifest | All 182 source hashes match |
+
+The affected gate uses the existing import-graph selector with base `71b766c`, then supplies an explicit Jest file list. It runs under `/tmp/27agents-gate.lock`. Measurements, focused tests and the production build use a shared heavy-work lock. No whole suite, shared-harness exception or TypeScript check applies. This project is JavaScript and defines no typecheck command. The build retains three bundle-size warnings. No visual surface changed. Independent browser acceptance remains the coordinator's responsibility.
+
+Changed existing tests retain their substantive constraints. Nearby weddings and lost-intimacy resets use the shorter wait. Live mobility uses three completed visits to earn 48 goodwill, and its quiet period retains the former half-life-year duration. Its deterministic history fixture now specifies one compatible pair because the faster simulation otherwise produces a different consenting marriage. Quarrel frequency uses the compounded probability, and deduplication still checks the same quarrel attempt across hooks. Reconciliation can now occur within that season.
+
+The final five corrected files update travel and hourly drift numbers, contact rewards and the probabilistic birth fixture. The disclosure test calls the real news exchange directly because the larger contact reward outweighs its three-point kin reaction. It still requires demotion and refusal to disclose the second story. The journey fixture supplies an empty bed store for the real planner. The player cooldown test forces only the next opportunity after an ordinary probabilistic first birth. Original input-purity, reciprocal-family, needs, ownership and source assertions remain.
+
+The original affected failure is retained. Only the five failed files were rerun. Runtime did not change after measurement or build. Combined evidence replaces those five file results and preserves the other 129 passing files.
+
+| Green commit | Scope |
+| --- | --- |
+| `03b01e2` | Clock conversion, social rates, documentation and 156 passing focused tests |
+| `6f69a55` | Normal birth probability and 115 passing focused birth/lifecycle tests |
+| `fb20ab1` | Final affected-fixture corrections and 67 passing tests |
+
+Only this report is added to tracked `shots/` content. Logs, runners, exports and JSON receipts remain ignored. Reproduction commands use retained local runners:
+
+```bash
+node shots/life-clock-ages.cjs orientation-delivered
+node shots/life-clock-affected-gate.cjs
+flock -w 7200 /tmp/27agents-gate-2.lock env -u NODE_OPTIONS node --expose-gc scripts/local-population-measure.js life-clock-final
+node shots/orientation-inspect.cjs life-clock-final
+node shots/life-clock-ages.cjs life-clock-final
+node shots/orientation-limits.cjs life-clock-final
+flock -w 7200 /tmp/27agents-gate-2.lock npm run build
+```
+
+Final receipts: [starting ages](orientation-delivered-ages.json), [final ages and spacing](life-clock-final-ages.json), [profile](regress-profile-life-clock-final.json), [birth and orientation audit](life-clock-final-counts.json), [remaining limits](life-clock-final-limits.json), [affected command](life-clock-affected-receipt.json), [original affected results](life-clock-affected-tests.json), [corrected results](life-clock-gate-corrections-tests.json), [combined affected results](life-clock-combined-tests.json), [source hashes](life-clock-frozen-runtime-manifest.json), [lint](life-clock-final-lint.log), [build](life-clock-final-build.log). Failed attempts remain beside them.
+
+Population and the main age comparison remain unresolved. The measured partner constraint needs a policy decision outside this brief.

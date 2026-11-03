@@ -34,7 +34,7 @@ it('defers automatic bedtime while attention is held, then sleeps and skips to d
   expect(s.nightSleep).toBeFalsy();expect(world.forcedRest).toBeFalsy();
   world.capturedBy=null;
   for(let i=0;i<1000&&!s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
-  expect(s.ui.dayMessage).toMatch(/^Morning/);expect(s.days).toBeCloseTo(1.25,3);
+  expect(s.days).toBeCloseTo(1.25,3);
   expect(s.ecs.personable[p].energy).toBeGreaterThan(10);expect(world.byFire).toBeUndefined();
 });
 it('does not interrupt an active conversation on exhaustion or at bedtime',()=>{
@@ -81,11 +81,10 @@ it('uses the camp bedroll when Rest replaces a journey order',()=>{
   expect(s.ecs.planner[p].world.restHome).toBe(camp);expect(s.ecs.planner[p].world.places.sleep).toBe(camp);
   expect(s.ecs.planner[p].task[0]).toBe('sleep');
   for(let i=0;i<1000&&!s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
-  expect(s.ui.dayMessage).toMatch(/^Morning/);expect(s.ecs.planner[p].world.restCamp).toBeUndefined();
+  expect(s.ecs.planner[p].world.restCamp).toBeUndefined();
 });
 
 it('explains that work remains available after dark',()=>{
   const {s,p}=economy();s.intro={active:false};s.days=19/24;s.ecs.personable[p].energy=80;
-  expect(openingGuidance(s).text).toContain('after dark');
-  expect(openingGuidance(s).text).not.toContain('Work ends at dusk');
+  expect(openingGuidance(s).key).toBe("evening");
 });

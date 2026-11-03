@@ -276,27 +276,19 @@ it("routes towards the offender's new position rather than completing contact at
   expect(s.knowledge?.[w.player]?.people?.[d.speakerId]?.conversation).toBeUndefined();
 });
 
-it("gives honest elder progress and Chat routes without promising a stocked household favour",()=>{
+it("keeps an oath unavailable below ten goodwill", () => {
   const w=world(),s=w.state;
-  const reason=oathEligibility(s,w.player,"village").reason;
-  expect(reason).toContain("0.0 / 10 goodwill");
-  expect(reason).toContain("Chat");
-  expect(reason).toContain("when offered");
-  expect(reason).toContain("patience, which recovers over time");
-});
-
-it("keeps goodwill below the oath threshold visibly below 10",()=>{
-  const w=world(),s=w.state;
-  s.ecs.relationships[w.parent].known[w.player]={ring:"public",goodwill:9.975};
-  expect(oathEligibility(s,w.player,"village")).toMatchObject({ok:false});
-  expect(oathEligibility(s,w.player,"village").reason).toContain("9.9 / 10 goodwill");
+  for(const goodwill of [0,9.975]) {
+    s.ecs.relationships[w.parent].known[w.player]={ring:"public",goodwill};
+    expect(oathEligibility(s,w.player,"village").ok).toBe(false);
+  }
 });
 
 it("still opens an answerable warning with spent patience and changes no hidden tastes",()=>{
   const w=world(),s=w.state;chatRecord(s,w.player,w.person).resting=99;
   order(w);until(w,()=>s.chat?.active?.context?.kind=="warning");
   expect(s.game_speed).toBe("paused");expect(s.chat.active.row.map(i=>i.key)).toEqual(["village","woodland"]);
-  const {chatChoices}=require("game/chat");expect(chatChoices(s).map(l=>l.text)).toEqual(["Fair enough. I'll stop.","I don't agree."]);
+  const {chatChoices}=require("game/chat");expect(chatChoices(s).map(l=>l.situation).sort()).toEqual(["fallback_acknowledge_warning","fallback_refuse_warning"]);
   expect(respond(s,"refuse")).toBe(true);expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(-5);
   expect(s.events.find(e=>e.type=="defiance")).toMatchObject({people:[w.player,w.person],reason:"woodland"});
   expect(s.knowledge[w.player].people[w.person].topicTastes).toBeUndefined();

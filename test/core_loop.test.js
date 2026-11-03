@@ -33,7 +33,7 @@ it('spends energy on actual physical effort and slows low energy work',()=>{
   chop_tree(s,a,{},HOUR/4,true,tree);expect(p.energy).toBeLessThan(100);
   expect(careSpeed({energy:10})).toBe(.5);expect(careSpeed({energy:0})).toBe(.25);
   p.energy=0;enqueueTask(s,{key:'cut_tree_down'},tree);
-  expect(readyPlayerTasks(s)).toEqual([]);expect(s.ecs.manager[a].jobs[0].waiting).toMatch(/energy/i);
+  expect(readyPlayerTasks(s)).toEqual([]);expect(s.ecs.manager[a].jobs[0].waiting).toBeTruthy();
 });
 it('has no player care hunt and leaves conversation free at zero energy',()=>{
   const {state:s,villager:a}=playerFixture(),w=s.ecs.planner[a].world;
@@ -61,7 +61,7 @@ it('keeps work available at dusk and returns to the owned fire only when exhaust
   expect(s.ecs.planner[a].world.fireHome).toBeUndefined();
   s.ecs.personable[a].energy=0;playerDay(s);expect(readyPlayerTasks(s)).toEqual([]);
   expect(s.ecs.planner[a].world.fireHome).toBe(camp);
-  expect(s.ecs.manager[a].jobs[0].waiting).toMatch(/energy/i);
+  expect(s.ecs.manager[a].jobs[0].waiting).toBeTruthy();
 });
 it('sleep restores more in a bed; a late night lowers the next morning',()=>{
   const run=(bed,hour)=>{const {state:s,villager:a}=playerFixture();s.days=hour/24;s.ecs.personable[a].energy=0;

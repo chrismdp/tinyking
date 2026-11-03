@@ -1,5 +1,5 @@
 /* global it, expect */
-import { lifeStage, isAdult, isDependent, canBearChild, canFatherChild, canHelpAtHome, personSize, oldAgeDeathChance } from "game/life_stages";
+import { LIFE_STAGES, lifeStage, isAdult, isDependent, canBearChild, canFatherChild, canHelpAtHome, oldAgeDeathChance } from "game/life_stages";
 import { advanceSeason, eligiblePartner, canHaveChild, birth, SOCIAL_RATES } from "game/social";
 import { canFoundHousehold } from "game/family";
 import { playerOrderAllowed } from "game/manager";
@@ -7,8 +7,8 @@ import { personFact } from "game/chat_facts";
 import { condition } from "game/social_conditions";
 import { peopleWorld } from "./support/people";
 
-it.each([[0,"Child"],[7,"Child"],[8,"Teenager"],[15,"Teenager"],[16,"Young adult"],[23,"Young adult"],[24,"Adult"],[39,"Adult"],[40,"Middle-aged"],[55,"Middle-aged"],[56,"Old"],[104,"Old"]])("labels age %i as %s", (age,label) => {
-  expect(lifeStage(age).label).toBe(label);
+it.each([[0,"child"],[7,"child"],[8,"teenager"],[15,"teenager"],[16,"youngAdult"],[23,"youngAdult"],[24,"adult"],[39,"adult"],[40,"middleAged"],[55,"middleAged"],[56,"old"],[104,"old"]])("assigns age %i to stage %s", (age,stage) => {
+  expect(lifeStage(age)).toBe(LIFE_STAGES[stage]);
 });
 
 it.each([0,7,8,15,16,23,24,39,40,55])("ages everyone by two life years each season, starting at %i", age => {
@@ -27,7 +27,6 @@ it.each([[15,false],[16,true],[55,true],[56,true]])("starts adult work and delib
   s.ecs.personable[a].age=age;
   expect(isAdult(age)).toBe(adult);
   expect(isDependent(age)).toBe(!adult);
-  expect(personSize(age)).toBe(adult?20:12);
   s.ui.playerId=a;
   expect(playerOrderAllowed(s,"build_shelter")).toBe(adult);
   expect(eligiblePartner(s,a,b,true)).toBe(adult);

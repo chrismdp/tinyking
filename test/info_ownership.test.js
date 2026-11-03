@@ -1,88 +1,69 @@
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { GameState } from "../src/components/contexts";
-import { Info } from "../src/components/info";
+import { heirFor, repairHouseholds } from "game/possessions";
+import { socialActionBindings } from "game/social_actions";
+import { displayName } from "game/knowledge";
 
-jest.mock("components/contexts", () => require("../src/components/contexts"), { virtual: true });
-jest.mock("react-polyglot", () => ({ useTranslate: () => key => key }));
-jest.mock("components/name", () => require("../src/components/name"), { virtual: true });
-jest.mock("game/name", () => ({ name: n => n.nickname }));
-jest.mock("components/name_list", () => require("../src/components/name_list"), { virtual: true });
-jest.mock("components/job_list", () => ({ JobList: () => null }), { virtual: true });
-jest.mock("components/trait_list", () => ({ TraitList: () => null }), { virtual: true });
-jest.mock("components/farm_progress", () => ({ FarmProgress: () => null }), { virtual: true });
-jest.mock("components/sleeping_quarters", () => ({ SleepingQuarters: () => null }), { virtual: true });
-jest.mock("components/entity_container", () => ({ EntityContainer: () => null }), { virtual: true });
-
-const render = (state, id) => renderToStaticMarkup(<GameState.Provider value={state}><Info entityId={id}/></GameState.Provider>);
 function household() {
-  return { ui: { playerId: "p", actions: {} }, villages: { v: { name: "Withyford" }, elsewhere: { name: "Wrong village" } }, ecs: {
-    animal: { sheep: { houseId: "house", kind: "sheep" } },
-    farmable: { field: { houseId: "house", slots: [] } }, workplace: { forge: { houseId: "house", trade: "smith" } },
-    nameable: { sheep: { id: "sheep", nickname: "Sheep" }, head: { id: "head", nickname: "Agnes Miller" }, lord: { id: "lord", nickname: "Lord Ash" }, heir: { id: "heir", nickname: "Will Miller" } },
+  return { ui: { playerId: "p" }, ecs: {
+    animal: { sheep: { houseId: "house" } },
+    farmable: { field: { houseId: "house" } }, workplace: { forge: { houseId: "house" } },
+    household: { head: { houseId: "house" }, heir: { houseId: "house" } },
+    nameable: { sheep: { nickname: "Sheep" }, head: { nickname: "Agnes Miller" }, lord: { nickname: "Lord Ash" }, heir: { nickname: "Will Miller" } },
     personable: { head: {}, lord: {}, heir: {} },
     relationships: { p: { known: { head: { ring: "public" }, heir: { ring: "public" } } } },
-    // Asset controllers are deliberately stale: the house owns the household.
-    controllable: { house: { controllerId: "head" }, head: { controllerId: "lord" }, field: { controllerId: "lord" }, forge: { controllerId: "lord" } },
-    village: { house: { villageId: "v" }, sheep: { villageId: "elsewhere" } }, manager: {}
+    controllable: { house: { controllerId: "head" }, head: { controllerId: "lord" }, field: { controllerId: "lord" }, forge: { controllerId: "lord" } }
   } };
 }
+const headOf = (s, person) => socialActionBindings(s, { participants: { owner: { householdHeadOf: "actor" } } }, person).owner;
 
-it("identifies an animal's household and its house's village without an animal controller or the household's liege", () => {
-  const state = household();
-  const html = render(state, "sheep");
-  for (const text of ["Sheep", "Household:", "Agnes Miller", "Village:", "Withyford"]) expect(html).toContain(text);
-  expect(html).not.toContain("Lord Ash");
-  expect(html).not.toContain("Wrong village");
-  expect(state.ecs.controllable.sheep).toBeUndefined();
-  state.ecs.controllable.house.controllerId = "heir";
-  expect(render(state, "sheep")).toContain("Will Miller");
+it.each(["sheep", "field", "forge"])("repairs %s to its own household and resolves its direct head before and after inheritance", asset => {
+  const s = household();
+  repairHouseholds(s);
+  expect(s.ecs.controllable[asset].controllerId).toBe("house");
+  expect(headOf(s, "head")).toBe("head");
+  s.ecs.controllable.house.controllerId = "heir";
+  repairHouseholds(s);
+  expect(s.ecs.controllable[asset].controllerId).toBe("house");
+  expect(headOf(s, "head")).toBe("heir");
 });
 
-it("uses the same live household owner for fields and workshops", () => {
-  const state = household();
-  for (const id of ["field", "forge"]) {
-    const html = render(state, id);
-    for (const text of ["Household:", "Agnes Miller", "Village:", "Withyford"]) expect(html).toContain(text);
-    expect(html).not.toContain("Lord Ash");
-  }
+it("returns no owner when the household has no controller", () => {
+  const s = household();
+  delete s.ecs.controllable.house;
+  expect(headOf(s, "head")).toBeUndefined();
 });
 
-it("handles an unknown household without inventing a person or a village", () => {
-  const state = household();
-  delete state.ecs.controllable.house;
-  delete state.ecs.village.house;
-  const html = render(state, "sheep");
-  expect(html).toContain("Household:");
-  expect(html).toContain("Unknown");
-  expect(html).not.toContain("Agnes Miller");
-  expect(html).not.toContain("Wrong village");
+it("reveals an owner or worker's identity only through the current actor's knowledge", () => {
+  const s = household();
+  delete s.ecs.relationships.p.known.head;
+  const resolve = jest.fn(id => s.ecs.nameable[id].nickname), before = JSON.stringify(s);
+  displayName(s, headOf(s, "head"), resolve);
+  expect(resolve).not.toHaveBeenCalled();
+  expect(JSON.stringify(s)).toBe(before);
+  s.knowledge = { p: { people: { head: {} } } };
+  expect(displayName(s, "head", resolve)).toBe(s.ecs.nameable.head.nickname);
 });
 
-it("keeps an unintroduced household owner and assigned worker anonymous without changing knowledge", () => {
-  const state = household();
-  delete state.ecs.relationships.p.known.head;
-  state.ecs.manager.field = { jobs: [{ job: { key: "build_shelter" }, targetId: "field", assignedId: "head" }] };
-  const before = JSON.stringify(state);
-  const html = render(state, "field");
-  expect(html).toContain("an unknown person");
-  expect(html).not.toContain("Agnes Miller");
-  expect(html).toContain("Withyford");
-  expect(JSON.stringify(state)).toBe(before);
-  state.knowledge = { p: { people: { head: {} } } };
-  expect(render(state, "field")).toContain("Agnes Miller");
+it("keeps asset identities observable while controller names follow the actor", () => {
+  const s = household(), resolve = jest.fn(id => s.ecs.nameable[id].nickname);
+  expect(displayName(s, "sheep", resolve)).toBe(s.ecs.nameable.sheep.nickname);
+  resolve.mockClear();
+  displayName(s, "lord", resolve);
+  expect(resolve).not.toHaveBeenCalled();
+  s.ui.playerId = "lord";
+  expect(displayName(s, "lord", resolve)).toBe(s.ecs.nameable.lord.nickname);
+  s.ui.playerId = "heir";
+  expect(displayName(s, "heir", resolve)).toBe(s.ecs.nameable.heir.nickname);
 });
 
-it("keeps an unknown controller anonymous while preserving observable asset names and current heirs", () => {
-  const state = household();
-  state.ecs.nameable.store = { id: "store", nickname: "Wood store" };
-  state.ecs.controllable.store = { controllerId: "lord" };
-  let html = render(state, "store");
-  expect(html).toContain("Wood store"); expect(html).toContain("Controlled by:");
-  expect(html).toContain("an unknown person"); expect(html).not.toContain("Lord Ash");
-  state.ui.playerId = "lord";
-  expect(render(state, "store")).toContain("Lord Ash");
-  state.ui.playerId = "heir";
-  state.ecs.controllable.store.controllerId = "heir";
-  expect(render(state, "store")).toContain("Will Miller");
+it("keeps the current heir anonymous until this actor learns their identity", () => {
+  const s = household();
+  s.ecs.kinship = { head: { parents: [], children: ["heir"], spouse: null } };
+  delete s.ecs.relationships.p.known.heir;
+  const heir = heirFor(s, "head"), resolve = jest.fn(id => s.ecs.nameable[id].nickname);
+  expect(heir).toBe("heir");
+  displayName(s, heir, resolve);
+  expect(resolve).not.toHaveBeenCalled();
+  s.knowledge = { p: { people: { heir: {} } } };
+  expect(displayName(s, heir, resolve)).toBe(s.ecs.nameable.heir.nickname);
+  expect(s.ecs.controllable.house.controllerId).toBe("head");
 });

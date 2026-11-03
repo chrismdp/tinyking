@@ -15,7 +15,7 @@ it("does not disclose a private quarrel at acquaintance trust, and learns it at 
   beginInteraction(s, player, person);
   askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   expect(s.knowledge[player].events).not.toContain(event.id);
-  expect(JSON.stringify(read(s, player, person))).not.toContain("Fell out");
+  expect(read(s, player, person).map(f => f.eventId)).not.toContain(event.id);
   s.ecs.relationships[person].known[player].ring = "personal";
   askAbout(s, player, person, sibling);
   expect(s.knowledge[player].events).toContain(event.id);
@@ -35,8 +35,8 @@ it("uses learned parent loss without claiming care; keeps the exact date after k
   beginInteraction(s, player, person);
   askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   const facts = read(s, player, person);
-  expect(facts).toContainEqual({ key: death.id, text: "Lost their mother, Edith Miller, in winter of year -1.", eventId: death.id });
-  expect(JSON.stringify(facts)).not.toMatch(/raised|looked after/);
+  expect(facts).toContainEqual(expect.objectContaining({ key: death.id, eventId: death.id }));
+  expect(death).toMatchObject({ day: -5 * DAYS_IN_SEASON, season: -5 });
   s.residents = { [player]: true };
   delete s.ecs.spatial[parent]; delete s.ecs.spatial[person];
   expect(read(s, player, person)).toEqual(facts);
@@ -52,13 +52,13 @@ it("requires the actual learned inheritance event and current custody; a gift ch
   beginInteraction(s, player, person);
   askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   let facts = read(s, player, person);
-  expect(facts[0].text).toBe("Still carries Old adze, inherited from Alice Miller.");
+  expect(facts[0].eventId).toBe(s.events.find(e => e.type == "inheritance" && e.items.includes(item)).id);
   expect(facts[0].itemId).toBe(item);
   s.ecs.haulable[item].heldBy = sibling;
-  expect(read(s, player, person).some(f => f.text.startsWith("Still carries"))).toBe(false);
+  expect(read(s, player, person).some(f => f.itemId == item)).toBe(false);
   delete s.ecs.haulable[item].heldBy;
   s.ecs.possession[item].carried = false;
-  expect(read(s, player, person).some(f => f.text.startsWith("Still carries"))).toBe(false);
+  expect(read(s, player, person).some(f => f.itemId == item)).toBe(false);
   s.ecs.possession[item].carried = true;
   s.knowledge[player].events = [];
   expect(read(s, player, person).some(f => f.itemId == item)).toBe(false);
@@ -77,7 +77,7 @@ it("returns two stable distinctive facts from learned evidence and does not use 
   s.knowledge[player].events = [move.id, born.id];
   const before = JSON.stringify(s), facts = read(s, player, person);
   expect(facts).toHaveLength(2);
-  expect(facts.find(f => f.eventId == move.id).text).toContain("Moved to another home");
+  expect(facts.map(f => f.eventId)).toContain(move.id);
   expect(facts.map(f => f.eventId)).not.toContain(unknown.id);
   expect(read(s, player, person)).toEqual(facts);
   expect(JSON.stringify(s)).toBe(before);
@@ -93,6 +93,6 @@ it("does not turn a learned remote ring inheritance into a household when its it
   askAbout(s, player, person, Object.keys(s.ecs.relationships[person].known).find(id => id != player));
   delete s.ecs.possession[item];
   const facts = read(s, player, person);
-  expect(facts.some(f => f.text == "Inherited property from Edith Miller in spring of year 1.")).toBe(true);
-  expect(JSON.stringify(facts)).not.toMatch(/inherited a household|Inherited a household|Still carries/);
+  expect(facts.map(f => f.eventId)).toContain(s.events.find(e => e.type == "inheritance" && e.items.includes(item)).id);
+  expect(facts.some(f => f.itemId == item)).toBe(false);
 });

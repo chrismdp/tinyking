@@ -11,7 +11,6 @@ import { find_place } from "game/tasks";
 import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
 import { removeBidirectionalLink } from "game/pathfinding";
-import { currentActivity } from "game/person_activity";
 
 function communities() {
   const f = peopleWorld(), { state: s, person: a, sibling: kin, parent, tiles } = f;
@@ -66,7 +65,7 @@ it("walks to a real friend in another community, chats there and walks home", ()
   expect(s.ecs.planner[a].world.social.partnerId).toBe(b);
   step(.2);
   expect(s.ecs.spatial[a]).not.toEqual(start);
-  expect(currentActivity(s.ecs, a, k => k, () => "Dora")).toMatch(/Travelling|Visiting/);
+  expect(s.ecs.planner[a].world.social.partnerId).toBe(b);
   let returned = false;
   for (let i = 0; i < 38; i++) {
     step(.1);
@@ -103,7 +102,7 @@ it("interrupts a visit for a real meal and returns instead of retaining a stale 
   s.ecs.planner[a].world.holding.grain = true; s.ecs.personable[a].hunger = 1;
   step(.1);
   expect(s.ecs.planner[a].task[0]).toBe("eat");
-  expect(currentActivity(s.ecs, a, k => k)).toBe("tasks.eating");
+  expect(s.ecs.planner[a].task[0]).toBe("eat");
   step(1.1); expect(s.ecs.personable[a].hunger).toBeLessThan(.2);
   expect(s.ecs.good.meal).toBeUndefined();
 });

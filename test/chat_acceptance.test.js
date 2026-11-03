@@ -25,8 +25,7 @@ it("answers a children question about children even when the only undisclosed st
   (s.knowledge[n] ||= {people:{},feelings:{}}).events=[e.id];
   const q=lineCandidates(s,s.chat.active,"family_question","player").find(l=>l.situation=="children");
   const a=answer(s,q);
-  expect(a.text).toMatch(/children|little ones/i);
-  expect(a.text).not.toContain("Alice");
+  expect(a).toMatchObject({ family: "family_answer", situation: "no_children" });
   expect(s.knowledge[p].kinLinks).toBeUndefined();
 });
 it("replaces living-relative questions with condolences after a known death",()=>{
@@ -95,7 +94,7 @@ it.each(["no_request","refused","nothing_known"])("keeps every authored player q
     expect({id:q.id,answer:a?.family}).toEqual({id:q.id,answer:expected});
     // Subtopics must remain exact; a family-labelled sibling story is still
     // wrong for a children question.
-    if(q.situation=="children")expect(a.text).toMatch(/children|little ones/i);
+    if(q.situation=="children")expect(a.situation).toMatch(/(?:^|_)children$/);
     if(q.situation=="workplace_age")expect(a.situation).toMatch(/workplace_age/);
     seen.add(q.id);
   }

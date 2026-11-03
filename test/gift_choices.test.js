@@ -17,11 +17,11 @@ it("distinguishes held, loose, stockpiled and home goods, grouping only equivale
   const before = JSON.stringify(state.ecs);
   const choices = giftChoices(state, player);
   expect(choices).toHaveLength(5);
-  expect(choices.find(c => c.gift.sourceId == held)).toMatchObject({ source: "In your hands", amount: 1 });
-  expect(choices.find(c => c.gift.sourceId == loose)).toMatchObject({ source: expect.stringContaining("On the ground"), amount: 2, gift: { sourceId: loose, type: "wood", amount: 1 } });
-  expect(choices.find(c => c.gift.sourceId == stored).source).toContain("Stockpile");
-  expect(choices.find(c => c.gift.sourceId == homeStore)).toMatchObject({ source: "Home stores", amount: 3 });
-  expect(new Set(choices.map(c => c.source)).size).toBe(5);
+  expect(choices.find(c => c.gift.sourceId == held)).toMatchObject({ amount: 1 });
+  expect(choices.find(c => c.gift.sourceId == loose)).toMatchObject({ amount: 2, gift: { sourceId: loose, type: "wood", amount: 1 } });
+  expect(choices.find(c => c.gift.sourceId == stored).amount).toBe(1);
+  expect(choices.find(c => c.gift.sourceId == homeStore)).toMatchObject({ amount: 3 });
+  expect(new Set(choices.map(c => c.gift.sourceId)).size).toBe(5);
   expect(choices.some(c => [loose2, stolen].includes(c.gift.sourceId))).toBe(false);
   expect(choices.find(c => c.gift.sourceId == elsewhere).amount).toBe(1);
   expect(JSON.stringify(state.ecs)).toBe(before);

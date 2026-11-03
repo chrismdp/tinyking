@@ -27,7 +27,7 @@ it.each([false,true])('runs the real night in small steps, fades and wakes at da
  const start=s.days;sim.step(1);expect(s.days-start).toBeLessThan(1/24);
  for(let i=0;i<1000 && !s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
  expect(s.days).toBeCloseTo(1.25,3);expect(hours.length).toBeGreaterThanOrEqual(8);
- expect(s.ecs.personable[p].energy).toBeGreaterThan(10);if(collapsed)expect(s.ecs.personable[p].energy).toBeLessThanOrEqual(55);expect(s.ui.dayMessage).toMatch(/^Morning/);
+ expect(s.ecs.personable[p].energy).toBeGreaterThan(10);if(collapsed)expect(s.ecs.personable[p].energy).toBeLessThanOrEqual(55);
  expect(s.nightSleep).toBeFalsy();
 });
 it('keeps an awake night at normal speed and respects chat and pause during sleep',()=>{

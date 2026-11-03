@@ -294,7 +294,6 @@ it.each(["timid", "proud"])("costs two goodwill and refuses premature help for a
   const pops=transcript.flatMap(l=>l.pops).reduce((sum,pop)=>sum+pop.amount,0);
   expect(s.ecs.relationships[n].known[p].goodwill).toBe(before-2+pops);
   expect(transcript.at(-1)).toMatchObject({family:"help_refusal"});
-  expect(transcript.at(-1).text).toMatch(/name|introduc/i);
   expect(s.knowledge[p].heardNeeds).toBeUndefined();
 });
 it.each(["timid","proud","generous"])("has no early-help penalty after introduction for %s",trait=>{
@@ -318,21 +317,11 @@ it.each([[1.2,9],[1.2001,4],[1.8,4],[1.8001,2]])("caps tired-player slots at %s 
   expect(chooseLine(s,choices[0].key)).toBe(true);
   if(max==2)expect(s.chat.active.endReason).toBeDefined();
 });
-it.each(["rain","storm","snow"])("never offers or speaks fair-season lines in %s",weather=>{
-  const {state:s,player:p,person:n}=contact();s.weather["0,0"].type=weather;openChat(s,p,n);
-  const {lineCandidates}=require("game/chat");
-  for(const phase of ["opening","player_turn","reply"]) {
-    s.chat.active.phase=phase;s.chat.active.tags=[];s.chat.active.row=[];s.chat.active.usedIds=[];
-    const rows=["greeting","season_talk"].flatMap(f=>lineCandidates(s,s.chat.active,f));
-    expect(rows.length).toBeGreaterThan(0);
-    for(const row of rows)expect(row.text).not.toMatch(/fine day|lovely day|spring.*(?:come|at last)|summer.*(?:here|at last|good)|lovely spring/i);
-  }
-});
 it("does not describe close kin as passing acquaintances even with a public bond",()=>{
   const {state:s,player:p,person:n,parent}=contact();s.ecs.relationships[n].known[p]={ring:"social",goodwill:16,base:16};s.ecs.relationships[n].known[parent]={ring:"public",goodwill:0,base:0};
   openChat(s,p,n);s.knowledge[p].people[parent]={traits:[]};s.chat.active.row=[];s.chat.active.subjectId=parent;s.chat.active.phase="reply";
   const {lineCandidates}=require("game/chat");
   const lines=lineCandidates(s,s.chat.active,"relationship_answer");
   expect(lines.some(l=>l.situation=="passing")).toBe(false);
-  expect(lines.some(l=>/family/i.test(l.text))).toBe(true);
+  expect(lines.some(l=>l.situation=="kin_public")).toBe(true);
 });

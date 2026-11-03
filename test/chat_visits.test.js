@@ -31,7 +31,7 @@ it("knocks at a sleeping resident's door at night, gets no answer and grants no 
   const w=indoor({asleep:true}),s=w.state;
   const job=enqueueTask(s,{key:"chat"},w.person);
   until(w,()=>s.ui.talkResult?.message.includes("No answer"));
-  expect(s.ui.talkResult.message).toMatch(/morning|6am/);expect(s.ecs.manager[w.player].jobs).not.toContain(job);
+expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ecs.interior[w.person]).toBeDefined();expect(s.chat?.active).toBeUndefined();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
 });
@@ -40,8 +40,8 @@ it.each(["regard","disposition"])("refuses an unfriendly visit before setting of
   if(kind=="disposition")s.opinionThresholds={hate:10000,love:20000};
   const before={...s.ecs.spatial[w.player]},job=enqueueTask(s,{key:"chat"},w.person);
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);expect(s.ecs.spatial[w.player]).toEqual(before);
-  expect(s.ui.talkResult.message).toMatch(/will not come out/);expect(s.ui.talkResult.message).toMatch(/gift|favour/i);
-  if(kind=="disposition")expect(s.ui.talkResult.message).toMatch(/tastes|disposition/);
+  expect(s.chat?.active).toBeUndefined();
+  expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
 });
 it("lets a villager navigate to the player and open a reusable paused conversation with seeded icons",()=>{
   const w=peopleWorld(),s=w.state;

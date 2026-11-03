@@ -1,7 +1,7 @@
 import LINES from "data/conversation_lines.json";
 import { peopleWorld } from "./support/people";
 import { openChat, closeChat, speakLine, chatChoices, chooseLine, previewLine, lineCandidates, patience } from "game/chat";
-import { recordEvent, eventSentence } from "game/events";
+import { recordEvent } from "game/events";
 import { serialiseGame, restoreGame } from "game/save_game";
 
 jest.mock("game/name", () => ({name:n=>n?.nickname||"?",firstName:n=>n?.nickname?.split(" ")[0]||"?",familyName:n=>n?.nickname?.split(" ")[1]||"?"}));
@@ -45,7 +45,7 @@ it("marks woodland defiance, charges extra bad will, and records only the real p
   s.customs={incidents:[{id:1,actorId:p,villageId:"village",day:s.days,status:"queued"}]};
   const context={kind:"warning",actorId:p,speakerId:n,villageId:"village",incidentId:1};
   expect(openChat(s,p,n,{openingFamily:"village_warning",context,required:true})).toBe(true);
-  const choice=chatChoices(s).find(l=>l.text=="I don't agree.");
+  const choice=chatChoices(s).find(l=>l.situation=="fallback_refuse_warning");
   expect(choice.defiant).toBe(true);
   expect(previewLine(s,choice).remaining).toBe(2); // Village pair gone; Woodland + grievance remain.
   const before=s.ecs.relationships[n].known[p].goodwill;
@@ -56,7 +56,6 @@ it("marks woodland defiance, charges extra bad will, and records only the real p
   expect(event).toMatchObject({people:[p,n],reason:"woodland",lineId:choice.id,villageId:"village"});
   expect(s.knowledge[n].events).toContain(event.id);
   expect(s.knowledge[parent]?.events||[]).not.toContain(event.id);
-  expect(eventSentence(s,event,id=>s.ecs.nameable[id].nickname)).toContain("Will Ashdown refused to heed Agnes Miller's warning about the village woodland");
   expect(LINES.some(l=>l.family=="event_news"&&l.when.all.some(p=>p.test=="event_type_is"&&p.args.type=="defiance"))).toBe(true);
 
 });
@@ -150,7 +149,7 @@ it("can speak the recorded defiance account to a later listener through existing
   s.chat.active.phase="reply";s.chat.active.subjectId=p;
   const account=lineCandidates(s,s.chat.active,"event_news","npc").find(l=>l.b.event?.id==event.id);
   expect(account).toBeDefined();
-  expect(account.text).toContain("refused to heed the woodland warning");
+  expect(account.b.event.id).toBe(event.id);
   expect(speakLine(s,account)).toBe(true);
   expect(s.knowledge[parent].events).toContain(event.id);
   expect(s.knowledge[parent].spokenSources[event.id]).toMatchObject({speakerId:n,lineId:account.id});

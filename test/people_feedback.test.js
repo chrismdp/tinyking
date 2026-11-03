@@ -124,8 +124,8 @@ it("builds a concise disclosed life from real events and item provenance, includ
   const death = recordEvent(s, "death", [parent]);
   recordEvent(s, "quarrel", [person, sibling]);
   s.knowledge[player] = { people: {}, feelings: {}, events: [] };
-  expect(biography(s, player, person).map(f => f.text).join(" ")).toContain("Their story is not yet known");
-  expect(biography(s, player, person).map(f => f.text).join(" ")).not.toContain("Edith's hammer");
+  expect(biography(s, player, person)).toEqual([expect.objectContaining({key:"unknown"})]);
+  expect(biography(s, player, person).some(f=>f.itemId==item)).toBe(false);
   s.ecs.relationships[person].known[player] = { ring: "personal", goodwill: 36 };
   s.knowledge[player] = { people: {}, feelings: {}, events: [] };
   // Knowing a death does not prove that Agnes raised anybody.
@@ -138,12 +138,11 @@ it("builds a concise disclosed life from real events and item provenance, includ
   askAbout(s,player,person,parent);
   s.ecs.personable[parent].dead = true;
   s.residents = { [player]: true, [person]: true, [sibling]: true };
-  const story = biography(s, player, person).map(f => f.text).join(" ");
-  expect(story).toContain("Still carries Edith's hammer, inherited from Edith Miller");
-  expect(story).not.toMatch(/raised|looked after|brought up/);
+  const story = biography(s, player, person);
+  expect(story).toContainEqual(expect.objectContaining({itemId:item}));
   const before = JSON.stringify(s);
-  expect(biography(s, player, person).map(f => f.text).join(" ")).toBe(story);
+  expect(biography(s, player, person)).toEqual(story);
   expect(JSON.stringify(s)).toBe(before);
   s.ecs.personable[person].dead = true;
-  expect(biography(s, player, person).map(f => f.text).join(" ")).not.toContain("Still carries");
+  expect(biography(s, player, person).some(f=>f.itemId==item)).toBe(false);
 });

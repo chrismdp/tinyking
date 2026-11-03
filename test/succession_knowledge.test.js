@@ -21,7 +21,7 @@ it.each([true,false])("uses only the heir's own genuine spoken contact for biogr
   expect(!!s.knowledge[b]?.people?.[c]?.conversation).toBe(own);
   if(own) {
     expect(feelingHint(s,c,b).ring).toBeDefined();
-    expect(biography(s,b,c)[0].text).toContain("You have begun to know them");
+    expect(biography(s,b,c)[0].key).toBe("unknown");
 
     expect(peopleGoals(s).completed).toContain("trust");
     const other=community({namespace:"next-",key:worldKey(neighbours(s.world.home)[0]),player:false});attach(s,other.s);
@@ -30,7 +30,7 @@ it.each([true,false])("uses only the heir's own genuine spoken contact for biogr
 
     expect(peopleGoals(s).completed).toContain("trust");
     expect(feelingHint(s,c,b).ring).toBeDefined();
-    expect(biography(s,b,c)[0].text).toContain("You have begun to know them");
+    expect(biography(s,b,c)[0].key).toBe("unknown");
   } else {
     expect(feelingHint(s,c,b)).toEqual({});
 

@@ -102,7 +102,7 @@ it("returns a clear refusal when a real queued approach reaches an elder who bec
   for(let i=0;i<900 && s.ecs.manager[w.player].jobs.includes(job);i++)w.step(.01);
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ecs.planner[w.parent].world.feeling.tired).toBe(true);
-  expect(s.ui.talkResult.message).toContain("The elder needs rest");
+  expect(s.ui.talkResult.personId).toBe(w.parent);
   const a=s.ecs.spatial[w.player],b=s.ecs.spatial[w.parent];
   expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeLessThanOrEqual(SPEECH_REACH);
   for(const id of [w.player,w.parent]) {
@@ -128,7 +128,7 @@ it.each(["update","answer"])("explains native fatigue cancellation via %s withou
   if(path=="answer")expect(respond(s,"accept")).toBe(false);
   else updateCustoms(s);
   expect(s.chat?.active?.context).toBeUndefined();
-  expect(s.ui.customsResult.message).toContain("The elder needs rest");
+  expect(s.ui.customsResult.speakerId).toBe(w.parent);
   for(const id of [w.player,w.parent])expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
   expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
 });
@@ -138,7 +138,7 @@ it("offers the eligible oath in ordinary chat and explains all rights before acc
   expect(openChat(s,w.player,w.parent)).toBe(true);
   const question=chatChoices(s).find(l=>l.family=="customs_question"&&l.situation=="oath");
   expect(question).toBeDefined();expect(chooseLine(s,question.key)).toBe(true);
-  expect(s.chat.active.transcript.at(-1).text).toContain(require("game/village_customs").OATH_RIGHTS);
+  expect(s.chat.active.transcript.at(-1).family).toBe("village_oath");
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(false);
   expect(respond(s,"accept")).toBe(true);expect(membership(s,w.player,"village")).toBe("oath");
 });
@@ -148,8 +148,7 @@ it.each([false,true])("acknowledges declining a customs offer without repeating 
   expect(discussOath(s,w.player,w.parent,member).ok).toBe(true);
   const c=s.chat.active;expect(respond(s,"decline")).toBe(true);
   const answer=c.transcript.find(l=>l.family=="customs_acknowledged");
-  expect(answer.text).not.toContain("Old woodland warning");
-  expect(answer.text).toMatch(member?/remain.*member/:/no oath/);
+  expect(answer.situation).toBe("fallback_result");
   expect(membership(s,w.player,"village")).toBe(member?"oath":null);
 });
 

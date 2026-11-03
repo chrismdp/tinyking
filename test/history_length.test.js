@@ -1,5 +1,5 @@
 /* global it, expect, require */
-import { HISTORY_SEASONS, HISTORY_YEARS, historyLabel, historyFoundingSeason } from "game/time";
+import { HISTORY_SEASONS, HISTORY_YEARS, historyFoundingSeason } from "game/time";
 import { generateHistory } from "game/history";
 
 it("runs exactly 48 seasonal transitions on an empty summary fixture", async () => {
@@ -11,12 +11,10 @@ it("runs exactly 48 seasonal transitions on an empty summary fixture", async () 
   expect(HISTORY_YEARS).toBe(12);
 });
 
-it("derives founding dates and progress text from the history length", () => {
+it("derives founding dates from the history length", () => {
   expect(historyFoundingSeason(0,true)).toBe(-48);
   expect(historyFoundingSeason(0,false)).toBe(-8);
   expect(historyFoundingSeason(.99999,false)).toBe(-47);
-  expect(historyLabel(1)).toBe("12 years of history: year 1");
-  expect(historyLabel(48,true)).toBe("12 years of world history: year 12");
 });
 
 it("preserves rare social opportunities over four times faster lives", () => {

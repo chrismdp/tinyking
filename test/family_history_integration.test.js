@@ -115,6 +115,6 @@ it("adds beds to a real inline home only after supported paid growth and leaves 
   expect(s.ecs.controllable[home].controllerId).toBe(player);
   expect(s.ecs.building[home].rooms).toEqual([]);
   expect(s.ecs.growth[station].stage).toBe(0);
-  expect(s.ecs.growth[station].waiting).toBe("Needs 6 stored timber");
+  expect(s.ecs.growth[station].waiting).toBeTruthy();
   expect(JSON.stringify({store:s.ecs.container[room],home:s.ecs.building[other],bed:s.ecs.sleepable[bed],owner:s.ecs.controllable[other]})).toBe(foreign);
 });

@@ -20,7 +20,8 @@ Romance and affairs inform participants and actual witnesses within 85 units.
 Summary history invents no witnesses. Remote family do not hear an event merely
 because their components are available in the directory. Existing moved kin
 and travellers retain their real links. Five percent of people receive a fixed,
-seeded willingness to seek company abroad. Others stay in their hex. Willingness
+seeded willingness to seek company on long journeys. Nearby courtship and a
+household move on marriage do not require this trait. Willingness
 does not bypass local prospects, consent, routes or visit timing. Learning news about a remote stranger
 can change anonymous regard, without creating acquaintance.
 
@@ -49,9 +50,43 @@ Event definitions declare `onOccurrence` and `onLearn` effects. Effects change d
 
 An autonomous NPC conversation lasts half a game hour. Player Chat uses the paused matching panel in [Conversations](conversations.md), with no flat goodwill reward. A visit can include three conversations, with each effect earned after actual time together. They add four goodwill towards someone loved, one towards someone liked, or subtract 0.25 towards someone hated. Authored quarrels distinguish an unhappy relationship from personality friction. Negative goodwill in either direction permits regular quarrels at 8% per conversation. Otherwise, hate disposition permits rare friction at 0.15% per conversation. A quarrel costs six goodwill in both directions and starts one season of avoidance. Spouses and housemates receive six seasonal opportunities, with one attempt per action per season across household and contact hooks. The negative-goodwill action and the friction action have separate, mutually exclusive conditions. A quarrel also blocks either action for a full season through avoidance. Poor relationships can therefore cause quarrels without a chosen visit. After avoidance expires, the next household season or conversation records reconciliation before any quarrel attempt. It restores six goodwill in each direction, so quarrels alone cannot accumulate permanent losses. For villagers, meals and sleep run before storage, social visits and work. The player uses deliberate meals and rest with an energy budget. A full store cannot block a hungry person from eating carried grain. A person eats held food where they stand. An old gathering destination cannot delay a meal. Meals try household containers before stockpiles and loose harvest. Work retains its original resource order. Path wear discounts at most half a grassland edge, and starts at zero on an unworn path. The old unbounded reward created negative costs and long detours. These are functional food-use and routing corrections. Player orders retain their existing priority.
 
-Unmarried adults can meet and court across villages on the current local map. Eligibility excludes the player, living spouses, children and close kin. Mutual attraction guides partner seeking; that intent takes priority over even a very old family friendship, whose goodwill remains unbounded. Available seekers choose before casual companions; an existing friendship can also motivate a visit without romance. Courtship requires mutual Intimate rings. Parents, siblings and people who share grandparents cannot court. Mutual closeness must last two seasons before marriage. Starting live courtship and marrying need a conversation within the last seven days. Once courtship starts, its time remains while both people stay Intimate. A missed season of contact does not erase that closeness. Losing mutual Intimate still clears progress. A distant historical bond alone cannot trigger a wedding. Automatic courtship and marriage still exclude the player. After arrival, the player takes part in shared ageing, births and death. [Family and succession](design.md#marriage-ownership-and-succession) describes deliberate courtship and control transfer.
+Unmarried adults can meet and court within their village, elsewhere in their hex,
+and in adjacent hexes. A seasonal index groups eligible residents by village.
+Each seeker reads only their hex and its six neighbours. Candidate weights are
+1 within the village, 0.35 elsewhere in the hex, and 0.08 across its boundary.
+Existing goodwill strengthens a seeded preference. Unfamiliar choices change
+each season. The pool includes eligible people before attraction is known.
+Partner preference also favours similar ages. Old childhood bonds therefore
+compete with actual peers when a person reaches adulthood.
+Ordinary meetings
+within a hex continue through local history or live visits. Nearby courtship
+adds seasonal conversations across the boundary, without a journey or a guest
+household. Each person keeps their actual news scope during the meeting.
+
+Eligibility excludes the player, living spouses, children and close kin.
+Courtship requires mutual attraction and mutual Intimate rings. Parents, siblings
+and people who share grandparents cannot court. Mutual closeness must last two
+seasons before marriage. Starting automatic courtship and marrying need a conversation
+within the last seven days. Once courtship starts, its time remains while both
+people stay Intimate. A missed season of contact does not erase that closeness.
+Historical proposals use that season's completed meeting, so another old bond
+cannot replace the companion whom the person actually chose.
+Losing mutual Intimate clears progress before the next meeting. A distant
+historical bond alone cannot trigger a wedding. Automatic courtship and marriage
+exclude the player. After arrival, the player takes part in shared ageing,
+births and death. [Family and succession](design.md#marriage-ownership-and-succession)
+describes deliberate courtship and control transfer.
 
 A couple and their dependent children use a family house with room for six residents, then a genuinely available home in either community or an inherited estate they own. An empty home with a living unrelated owner is unavailable. Personal IDs, kin links and possessions survive a move. Move events preserve both home and village identities. A move resets stale plans, farming claims and trade assignments, then sends live movers home through the planner. If neither exists, a rendered world can build a cottage on nearby unused grassland. A summary world can supply plain `houseSites[villageId]` coordinates. The village retains its eight-house limit. If there is no suitable site, marriage waits. Marriage and moves retain both partners' personal belongings.
+
+Compact world history supplies cottage sites around the existing village homes.
+Across a hex boundary, a couple prefers the less crowded valid family home.
+Construction still requires a consenting couple with no suitable existing home.
+The couple pays the existing twelve-timber cost from its household store.
+Without sufficient timber, construction and marriage wait.
+Detailed preparation surveys enough foundations for the actual grown village.
+Marriage transfers a resident and their carried property once. Original homes,
+uncarried property and living owners retain their existing ownership rules.
 
 Birth probability is 55% per eligible couple per season. Population relative to three people per house scales it by 0.2 to 2. Couples wait one game year between births. Parents must be adult and at most 55. A household with six residents waits for room before another birth. Grown children can leave crowded households for ownerless homes or available close-family homes, including a family home in another village. A living owner keeps the estate. Couples take their dependent children with them. A child inherits one parent's trait and the other parent's tastes. Opposed traits stay excluded.
 
@@ -69,7 +104,15 @@ Seasonal history uses the same birth, courtship, death and inheritance functions
 
 ## Local-map travel boundary
 
-All references are existing ECS people and household IDs. Social visits and home moves stay inside this world hex’s state. No person is copied or invented to satisfy a marriage. World travel carries these same people and event identities between hexes. `historyStep` has no renderer or pathfinding dependency; summary encounters use the same eligibility, relationship effects, kin exclusions, consent, demographic and ownership rules. Live navigation is isolated in `social_visits.js`.
+All references use existing ECS people and household IDs. Local visits stay in
+their hex. At the shared seasonal boundary, nearby courtship can join two
+adjacent communities for a meeting. The temporary view keeps their populations
+and news scopes distinct. It never enters a save. Marriage can move a family
+between those communities through the existing transfer functions. No person is
+copied or invented to satisfy a marriage. `historyStep` has no renderer or
+pathfinding dependency. Summary encounters share the eligibility, relationship,
+kin, consent, demographic and ownership rules. Live navigation remains in
+`social_visits.js`.
 
 Generation runs the same seasonal transition on its owned summary rather than making 180 unnecessary snapshots. The exported seasonal step still copies caller state. Candidate pools and event-membership caches avoid repeated scans without changing outcomes.
 

@@ -147,7 +147,14 @@ use the seasonal household calculation above. Neither model permits starvation
 deaths. Old age uses the shared death and inheritance rules. Travellers retain
 the documented freeze of needs on the road.
 
-In new worlds, a fixed seeded 5% of people are willing to travel for company.
+Nearby courtship reaches villages in the same hex and its six adjacent hexes.
+Those meetings and marriage moves are local life. They require no traveller
+trait and create no journey or transit record. A seasonal eligibility index
+supplies candidates by village. Distance weights favour the home village and
+hex. Marriage uses the existing housing, consent, dependent-child and ownership
+rules. Compact history can build cottages within the eight-house village limit.
+
+In new worlds, a fixed seeded 5% of people are willing to make long journeys for company.
 An unmarried willing adult without a *viable mutual romantic prospect* locally can seek
 company in an adjacent land community, even if unrelated but incompatible adults
 are present. The same eligibility, kin exclusions and mutual love/Intimate ring

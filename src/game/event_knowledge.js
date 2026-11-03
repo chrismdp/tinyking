@@ -6,22 +6,30 @@ import { residentPeople, villagePeople } from "game/population_index";
 // Event knowledge is held by the event. The reverse and scope indexes are
 // derived, maintained on learning/promotion, and never serialised.
 const indexes=new WeakMap(),scopeCaches=new WeakMap();
-const storyKey=event=>[event.type,...event.people,event.villageId,event.hexKey].join(":");
+function storyKey(index,event) {
+  if(index.storyKeys.has(event))return index.storyKeys.get(event);
+  const signature=[event.type,...event.people,event.villageId,event.hexKey].join(":");
+  if(!index.storySignatures.has(signature))index.storySignatures.set(signature,signature);
+  const key=index.storySignatures.get(signature);index.storyKeys.set(event,key);return key;
+}
 const add=(map,key,event)=>{if(!map.has(key))map.set(key,new Set());map.get(key).add(event);};
 function indexFor(s) {
   const source=s.newsContext?.events || (s.events ||= []);
   let index=indexes.get(source);
   if(!index) {
-    index={events:new Map(),private:new Map(),privateStories:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map()};indexes.set(source,index);
+    const people=s.newsContext?.people || s.travel?.people || s.peopleDirectory,local=s.ecs?.personable||{};
+    index={events:new Map(),private:new Map(),privateStories:new Map(),storyKeys:new WeakMap(),storySignatures:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map(),
+      dead:id=>!!(people?.[id]?.personable || local[id])?.dead};indexes.set(source,index);
     for(const event of Array.isArray(source)?source:Object.values(source))indexEventInto(index,event);
   }
   return index;
 }
 function privateStory(index,id,event,adding) {
+  if(index.dead(id)){index.privateStories.delete(id);return;}
   let groups=index.privateStories.get(id);
   if(!groups){if(!adding)return;groups=new Map();index.privateStories.set(id,groups);}
-  const key=storyKey(event);let group=groups.get(key);
-  if(!group){if(!adding)return;group=[];groups.set(key,group);}
+  const key=storyKey(index,event);let group=groups.get(key);
+  if(!group){if(!adding)return;groups.set(key,[event]);return;}
   if(!adding){const at=group.indexOf(event);if(at>=0)group.splice(at,1);if(!group.length)groups.delete(key);return;}
   let lo=0,hi=group.length;
   while(lo<hi){const mid=(lo+hi)>>>1,other=group[mid];if(other.day>event.day || other.day===event.day && other.id<event.id)lo=mid+1;else hi=mid;}
@@ -30,6 +38,7 @@ function privateStory(index,id,event,adding) {
 function indexEventInto(index,event) {
   const a=event.awareness;if(!a)return;
   if(!index.events.has(event.id)) {
+    if(event.type==="death" && index.dead(event.people[0]))index.privateStories.delete(event.people[0]);
     for(const id of event.people)add(index.subjects,id,event);
     const relevance=TYPES[event.type]?.relevance||[];
     if(relevance.includes("village"))add(index.villageNews,event.villageId,event);
@@ -49,6 +58,7 @@ export function bindNewsContext(s,j) {
   Object.defineProperty(s,"newsContext",{value:j,writable:true,configurable:true});
 }
 export function personHex(s,id) {
+  if(s.communityHexes?.[id])return s.communityHexes[id];
   if(isResident(s,id) && s.ecs.personable?.[id])return s.map?.worldKey || s.travel?.active;
   return s.newsContext?.locations?.[id] || s.travel?.locations?.[id];
 }
@@ -111,19 +121,21 @@ export function scopedKnownEvents(s,id) {
 // People in the same village share its general news. Do not inspect those
 // stories one by one merely to discover that the listener knows them too.
 export function unheardNews(s,teller,listener) {
+  if(personComponent(s,"personable",teller)?.dead)return [];
   const index=indexFor(s),events=new Set(),scopes=scopesFor(s,teller),heard=scopesFor(s,listener),families=new Map();
   for(const group of index.privateStories.get(teller)?.values()||[]) {
     for(const event of group)if(relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard)){events.add(event);break;}
   }
   const unshared=new Map([...scopes].filter(([key,until])=>!heard.has(key) || heard.get(key)<until));
   if(unshared.size) {
-    // Outside shared scopes, only the listener's village, hex and affected kin
-    // can matter. Read those inverted lists, never all of a traveller's news.
-    const relevant=new Set();
-    for(const id of [listener,...closeFamily(s,listener)])for(const event of index.subjects.get(id)||[])relevant.add(event);
-    for(const event of index.villageNews.get(villageOf(s,listener))||[])relevant.add(event);
-    for(const event of index.hexNews.get(personHex(s,listener))||[])relevant.add(event);
-    for(const event of relevant)if(!event.awareness.knowers.includes(teller) && knowsInScopes(teller,event,scopes))events.add(event);
+    // Intersect from the smaller side. A traveller's small remembered scope
+    // must not force a read of the listener's entire village/kin archive.
+    const relevantLists=[...[listener,...closeFamily(s,listener)].map(id=>index.subjects.get(id)),
+      index.villageNews.get(villageOf(s,listener)),index.hexNews.get(personHex(s,listener))].filter(Boolean);
+    const scopeLists=[...unshared.keys()].map(key=>(key.startsWith("v:")?index.villages:index.hexes).get(key.slice(2))).filter(Boolean);
+    const count=lists=>lists.reduce((n,list)=>n+list.size,0);
+    const candidates=new Set((count(scopeLists)<count(relevantLists)?scopeLists:relevantLists).flatMap(list=>[...list]));
+    for(const event of candidates)if(!event.awareness.knowers.includes(teller) && knowsInScopes(teller,event,scopes))events.add(event);
   }
   return [...events].filter(event=>relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard));
 }
@@ -143,9 +155,9 @@ export function promoteKnowledge(s,event,onLearn) {
     indexEventKnowledge(s,event);
     for(const id of newcomers)onLearn(id);
   }
-  const hex=s.map?.worldKey || s.travel?.active;
+  const hex=s.communityHexes ? event.hexKey : s.map?.worldKey || s.travel?.active;
   if(hex && a.villages.length>=2 && !a.hexes.includes(hex)) {
-    const locals=residentPeople(s).filter(id=>!s.ecs.personable[id].dead),covered=locals.filter(id=>a.villages.includes(villageOf(s,id)) || a.knowers.includes(id));
+    const locals=residentPeople(s).filter(id=>!s.ecs.personable[id].dead && personHex(s,id)===hex),covered=locals.filter(id=>a.villages.includes(villageOf(s,id)) || a.knowers.includes(id));
     const villagesHere=new Set(covered.map(id=>villageOf(s,id)).filter(v=>a.villages.includes(v)));
     if(villagesHere.size>=2 && covered.length>=Math.max(4,Math.ceil(locals.length*.6))) {
       const newcomers=locals.filter(id=>!knowsEvent(s,id,event));

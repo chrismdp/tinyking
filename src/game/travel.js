@@ -1,6 +1,7 @@
 import { attachPeople, updateDirectoryPerson, hydratePeople } from "game/person_storage";
 import { bindNewsContext, rememberNewsScopes, indexEventKnowledge } from "game/event_knowledge";
 import { refreshPersonIndex } from "game/population_index";
+import { runNearbyCourtships } from "game/nearby_courtship";
 import { compactMap, summarySeason, buildHistoryMap, restoreDetails } from "game/world_history";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { advanceEnvironment } from "game/environment";
@@ -247,6 +248,27 @@ function reconcileEstates(s, j) {
     publish(map, j);
   }
 }
+export { publish as publishCommunity };
+
+export function moveMarriageResidents(s, moves) {
+  const j = s.travel, touched = new Set();
+  for (const { id, from, to } of moves) {
+    const house = from.ecs.household[id].houseId;
+    const bundle = takeTraveller(from, id);
+    putTraveller(to, bundle, to.ecs.spatial[house], j);
+    to.ecs.planner[id].world.moveHome = house;
+    delete j.visits[id];
+    recordEvent(to, "world_move", [id], [], { fromWorld: from.map.worldKey, toWorld: to.map.worldKey, reason: "marriage", summary: true });
+    touched.add(from); touched.add(to);
+  }
+  for (const map of touched) { repairHouseholds(map); references(map, j); publish(map, j); }
+  if (touched.has(j.maps[j.active])) {
+    for (const field of LOCAL_FIELDS) if (field !== "days") s[field] = j.maps[j.active][field];
+    s.redraws ||= [];
+    s.redraws.push(...moves.map(move => move.id));
+  }
+}
+
 function references(s, j, road = false) {
   if(j.localPeople) {
     attachPeople(s,j);bindNewsContext(s,j);
@@ -1155,7 +1177,7 @@ export async function advanceWorldClock(s, {
       if (j.wholeWorld) {
         const next=row.map.compact ? row.map : compactMap(row.map);
         if(next!==row.map)references(next,j);
-        summarySeason(next,season);
+        summarySeason(next,season,!!row.map.compact);
         next.days=s.days;
         j.maps[row.key]=row.map.compact ? next : restoreDetails(row.map,next);row.map=j.maps[row.key];
         publish(row.map,j);reconcileEstates(s,j);
@@ -1182,6 +1204,7 @@ export async function advanceWorldClock(s, {
       publish(next, j);
       reconcileEstates(s, j);
     }
+    runNearbyCourtships(s, season);
     await receiveNpcs(s, j);
     reconcileEstates(s, j);
     for (const {

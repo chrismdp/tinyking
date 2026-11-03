@@ -497,6 +497,7 @@ export async function generateMap(state, seed, progressUpdate, options = {}) {
   await progressUpdate("Finding paths through the land", .3);
   const geography = buildGeography(grid, landscape, settlements, entrances, [start], {
     settlementSites, reserveHouseYards:true,
+    houseCounts:options.contents && Object.fromEntries(options.contents.settlements.map(v=>[v.id,v.houseCount])),
     terrainAt:p=>field.terrainAt(worldPoint(state.world.home,p)),
     elevationAt:(x,y)=>field.elevationAt(worldPoint(state.world.home,{x,y}))
   });

@@ -290,6 +290,10 @@ function gradeRoads(roadHexes, roadSides, initial, natural, settlements, surface
   }
   return {heights};
 }
+export function replacementHouseSite(centre,settlements,sites,tried,houseCount) {
+  return centre && sites?.find(h=>!tried.has(String(h)) && h.distance(Hex(centre))<=(houseCount>4?5:3) &&
+    Object.values(settlements).every(other=>h.distance(Hex(other))>=2));
+}
 export function buildGeography(tiles, landscape, settlements, entrances, anchors=[], surface={}) {
   const natural = createHeightField({seed:0,
     terrainAt:k=>landscape[k]?.terrain || surface.terrainAt?.(Hex(...k.split(",").map(Number)).toPoint()),
@@ -357,8 +361,7 @@ export function buildGeography(tiles, landscape, settlements, entrances, anchors
     const rejected=neighbour || house, villageId=rejected.villageId;
     delete settlements[Hex(rejected)];
     const centre=Object.values(settlements).find(h=>h.villageId==villageId && h.villageCentre);
-    const replacement=centre && surface.settlementSites?.find(h=>!triedSites.has(String(h)) &&
-      h.distance(Hex(centre))<=3 && Object.values(settlements).every(other=>h.distance(Hex(other))>=2));
+    const replacement=replacementHouseSite(centre,settlements,surface.settlementSites,triedSites,surface.houseCounts?.[villageId]);
     if(replacement) {
       triedSites.add(String(replacement));
       const placed={...rejected,x:replacement.x,y:replacement.y,villageCentre:false};

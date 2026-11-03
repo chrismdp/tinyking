@@ -24,9 +24,10 @@ const proposalId="~settlement-proposal";
 function proposal(state,point,components,house) {
   const e=state.ecs;
   return {...state,ecs:{...e,spatial:{...e.spatial,[proposalId]:point},
-    controllable:{...e.controllable,[proposalId]:{controllerId:house}},
+    controllable:Object.assign(Object.create(Object.getPrototypeOf(e.controllable)),e.controllable,{[proposalId]:{controllerId:house}}),
     ...Object.fromEntries(Object.entries(components).map(([kind,record])=>[kind,{...e[kind],[proposalId]:record}]))}};
 }
+export { proposal as settlementProposal };
 // Align the full native roof and first bay inside one actual work hex.
 // The feasible interval comes from the sloping front edge and flat rear edge.
 export function workStationPoint(point) {

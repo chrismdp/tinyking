@@ -1,4 +1,5 @@
 import { householdMembers, withPopulationIndex } from "game/population_index";
+import { attachPeople } from "game/person_storage";
 import { captureDetailOrigins, prepareNeighbourDetails, releaseHistoryWorkspace } from "game/hex_detail";
 import { compactMap, SUMMARY_COMPONENTS } from "game/community_summary";
 export { compactMap } from "game/community_summary";
@@ -27,9 +28,11 @@ export function rollHexContents(seed,hex,starting=false) {
   const discoveries=["ruins","old inn","standing stones","travellers camp"];
   return {kind,roads:!hex.ocean&&roll("road")<.4,settlements:Array.from({length:count},(_,i)=>({id:"w"+hex.x+"_"+hex.y+"-village-"+(i+1),name:["Ash","Reed","Thorn","Hazel"][Math.floor(roll("name"+i)*4)]+["brook","ford","combe","wood"][i%4],houseCount:kind==="town"?8:3+Math.floor(roll("houses"+i)*2)})),discoveries:hex.ocean?[]:[discoveries[Math.floor(roll("discovery")*discoveries.length)]]};
 }
-export function summarySeason(map,season) {
+export function summarySeason(map,season,buildHomes=true) {
   if(map.social?.lastSeason>=season)return;
-  return withPopulationIndex(map,()=>withRelationshipIndex(map,()=>withEventIndex(map,()=>{
+  const sites=Object.getOwnPropertyDescriptor(map,"houseSites");
+  if(!buildHomes)Object.defineProperty(map,"houseSites",{value:Object.fromEntries(Object.keys(map.villages||{}).map(id=>[id,[]])),writable:true,configurable:true});
+  try {return withPopulationIndex(map,()=>withRelationshipIndex(map,()=>withEventIndex(map,()=>{
     map.days=season*DAYS_IN_SEASON;
     drift(map,24*DAYS_IN_SEASON);
     advanceSeason(map,season,true);
@@ -44,7 +47,8 @@ export function summarySeason(map,season) {
       if(harvest&&members.length)recordEvent(map,"harvest",[members[0]],[house],{amount:harvest,summary:true});
     }
     map.needsUpdatedAt=map.environmentUpdatedAt=map.days;
-  })));
+  })));}
+  finally {if(!buildHomes){if(sites)Object.defineProperty(map,"houseSites",sites);else delete map.houseSites;}}
 }
 function foundingMap(world,hex,contents,seed) {
   const key=worldKey(hex),s={newsModel:1,compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-180*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:-181,courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
@@ -129,7 +133,10 @@ export async function generateWorldGame(s,seed,progress=async()=>{},options={}) 
 
 export async function buildHistoryMap(s,hex,summary,progress,options={}) {
   const fresh={ecs:{nextId:1,namespace:"terrain"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:s.days};
-  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents:(s.worldHistory?.contents || s.travel.contents)[worldKey(hex)],noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
+  if(s.travel.localPeople){attachPeople(fresh,s.travel);fresh.knowledge={};}
+  const roll=(s.worldHistory?.contents || s.travel.contents)[worldKey(hex)];
+  const contents=roll && {...roll,settlements:roll.settlements.map(v=>({...v,houseCount:Math.max(v.houseCount,summary.villages[v.id]?.houses.length||0)}))};
+  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents,noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
   fresh.map=result.map;return localSnapshot(fresh);
 }
 

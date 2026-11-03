@@ -1,4 +1,4 @@
-import { knowsEvent, scopedKnownEvents, promoteKnowledge, indexEventKnowledge } from "game/event_knowledge";
+import { knowsEvent, scopedKnownEvents, promoteKnowledge, indexEventKnowledge, personHex } from "game/event_knowledge";
 import { nearbyPeople, villagePeople, populationOrder } from "game/population_index";
 import { crossesWall } from "game/social_visibility";
 import EVENT_TYPES from "data/event_types.json";
@@ -55,9 +55,9 @@ function eventViewers(state, villageId, family, people) {
   if(state.newsModel) {
     const summary=state.compact || state.summarisingHistory || state.generatingHistory;
     const audience=new Set(summary ? villagePeople(state,villageId) : nearbyPeople(state,state.ecs.spatial?.[people[0]],300));
-    if(summary)for(const id of family)if(isResident(state,id) && state.ecs.personable?.[id])audience.add(id);
+    if(summary)for(const id of family)if(isResident(state,id) && state.ecs.personable?.[id] && personHex(state,id)===personHex(state,people[0]))audience.add(id);
     for(const id of people)if(state.ecs.personable?.[id])audience.add(id);
-    for(const id of nearbyPeople(state,state.ecs.spatial?.[people[0]],300))if(state.ecs.playable?.[id])audience.add(id);
+    for(const id of nearbyPeople(state,state.ecs.spatial?.[people[0]],300))if(state.ecs.playable?.[id] && personHex(state,id)===personHex(state,people[0]))audience.add(id);
     return populationOrder(state,audience);
   }
   const index = eventIndexes.get(state);
@@ -97,7 +97,7 @@ export function recordEvent(state, type, people, items = [], details = {}) {
     day: state.days, season: Math.floor(state.days / DAYS_IN_SEASON), villageId,
     place: state.ecs.household?.[type == "visit" ? people[1] : people[0]]?.houseId || villageId,
     items: [...items],
-    ...(state.newsModel?{hexKey:state.map?.worldKey || state.travel?.active,awareness:{status:"private",knowers:[],villages:[],hexes:[]}}:{}),
+    ...(state.newsModel?{hexKey:personHex(state,people[0]) || state.map?.worldKey || state.travel?.active,awareness:{status:"private",knowers:[],villages:[],hexes:[]}}:{}),
     ...(type == "gift" ? { gifts: items.map(id => ({ id, type: state.ecs.good[id]?.type, ownerId: state.ecs.controllable[id]?.controllerId })), positions: Object.fromEntries(people.filter(id => state.ecs.spatial?.[id]).map(id =>
       [id, { x: state.ecs.spatial[id].x, y: state.ecs.spatial[id].y }])) } : {}), ...details };
   state.events.push(event);

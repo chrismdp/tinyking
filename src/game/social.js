@@ -7,7 +7,9 @@ import { finishTransition } from "game/history_scope";
 import { exchangeNews, listenerNewsScore, beginSocialSpeech } from "game/news";
 import { DAYS_IN_SEASON } from "game/time";
 import { advanceOffscreenNeeds } from "game/needs";
-import { prepareSettlementSeason, settleSeason, constructHome } from "game/settlement";
+import { prepareSettlementSeason, settleSeason, constructHome, HOUSE_TIMBER } from "game/settlement";
+import { consumeTimber } from "game/settlement_growth";
+import { amountOf, TIMBER } from "game/goods";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { entityId, isResident } from "game/residents";
 import { Hex } from "game/hex";
@@ -40,6 +42,7 @@ const add = (s, components) => {
     id
   };
   if (components.personable && s.residents) s.residents[id] = true;
+  if (s.communityHexes && components.building) s.communityHexes[id] = s.communityHexes[s.villages[components.village.villageId].houses[0]];
   const directory=s.newsContext;
   if(components.personable && directory?.localPeople) {
     directory.people[id]=Object.fromEntries(PERSON_COMPONENTS.filter(key=>s.ecs[key]?.[id]).map(key=>[key,s.ecs[key][id]]));
@@ -85,12 +88,18 @@ export function eligiblePartner(s, a, b, deliberate = false) {
 }
 export const eligiblePartners = (s, a) => living(s).filter(b => eligiblePartner(s, a, b));
 export const romanticInterest = (s, a, b) => eligiblePartner(s, a, b) && mutualAttraction(s, a, b);
+export function courtshipPreference(s, a, b, proximity = 1) {
+  const ageGap = Math.abs(s.ecs.personable[a].age - s.ecs.personable[b].age);
+  return proximity * (1 + Math.max(0, s.ecs.relationships[a].known[b]?.goodwill || 0) / 12) / (1 + ageGap / 5) ** 2;
+}
 export function compareSocial(s, a, b, c, newsScores=new Map()) {
   const score=id=>{
     if(!newsScores.has(id))newsScores.set(id,listenerNewsScore(s,a,id));
     return newsScores.get(id);
   };
-  return Number(romanticInterest(s, a, c)) - Number(romanticInterest(s, a, b)) || (s.ecs.relationships[a].known[c]?.goodwill || 0) - (s.ecs.relationships[a].known[b]?.goodwill || 0) || score(c)-score(b);
+  const romanticB = romanticInterest(s, a, b), romanticC = romanticInterest(s, a, c);
+  const value = id => romanticB && romanticC ? courtshipPreference(s, a, id, s.ecs.village[a]?.villageId === s.ecs.village[id]?.villageId ? 1 : .35) : s.ecs.relationships[a].known[id]?.goodwill || 0;
+  return Number(romanticC) - Number(romanticB) || value(c) - value(b) || score(c)-score(b);
 }
 export function canCourt(s, a, b, deliberate = false) {
   return s.ecs.relationships?.[a]?.known[b]?.ring == "intimate" && s.ecs.relationships?.[b]?.known[a]?.ring == "intimate" && eligiblePartner(s, a, b, deliberate);
@@ -121,6 +130,7 @@ export function moveHouse(s, id, houseId, summary = false) {
     id,
     villageId: s.ecs.village[houseId]?.villageId ?? null
   };
+  if (s.communityHexes) s.communityHexes[id] = s.communityHexes[houseId];
   refreshPersonIndex(s,id);
   invalidateEventIndex(s);
   const w = s.ecs.planner?.[id]?.world;
@@ -170,18 +180,25 @@ function coupleHouse(s, a, b, dependents = []) {
   }
   const members = house => counts[house] || 0;
   const family = [...new Set([ecs.household[a]?.houseId, ecs.household[b]?.houseId])].filter(id => ecs.building?.[id] || ecs.shelter?.[id]?.stage == "house");
-  const room = family.find(id => members(id) <= 4 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
+  const rooms = family.filter(id => members(id) <= 4 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
+  const room = (s.communityHexes ? rooms.sort((a,b) => members(a)-members(b)) : rooms)[0];
   if (room) return room;
   const villageHomes = [...new Set([...(village?.houses || []), ...(s.villages?.[ecs.village[b]?.villageId]?.houses || []), ...Object.keys(ecs.building || {}).filter(id => [a, b].includes(ecs.controllable[id]?.controllerId))])];
   const empty = villageHomes.find(id => members(id) == 0 && familyHomeAvailable(s, id, [a, b]));
   if (empty) return empty;
   if (!village) return null;
   if (s.settlement) return constructHome(s,village.id,[a,b,...dependents]);
+  if (village.houses.length >= 8) return null;
   // A summary world can provide build sites as plain coordinates. Rendered worlds
   // derive them from reachable village grassland, outside existing plots.
-  const sites = s.houseSites?.[village.id] || Object.keys(ecs.walkable || {}).filter(id => ecs.mappable[id]?.terrain == "grassland" && !ecs.mappable[id].villagePlot && distance(s, id, a) < 600 ** 2 && !Object.keys(ecs.building).some(h => distance(s, id, h) < 150 ** 2)).map(id => ecs.spatial[id]);
-  const point = sites.find(p => !Object.keys(ecs.building).some(id => (ecs.spatial[id].x - p.x) ** 2 + (ecs.spatial[id].y - p.y) ** 2 < 150 ** 2));
+  const origin = ecs.spatial[village.houses[0]];
+  const buildings = Object.keys(ecs.building || {}).filter(id => !s.communityHexes || s.communityHexes[id] === s.communityHexes[village.houses[0]]);
+  const sites = s.houseSites?.[village.id] || (s.compact && origin ? Array.from({ length: 8 }, (_, i) => ({ x: origin.x + (i % 4) * 210, y: origin.y + Math.floor(i / 4) * 210 })) : Object.keys(ecs.walkable || {}).filter(id => ecs.mappable[id]?.terrain == "grassland" && !ecs.mappable[id].villagePlot && distance(s, id, a) < 600 ** 2 && !buildings.some(h => distance(s, id, h) < 150 ** 2)).map(id => ecs.spatial[id]));
+  const point = sites.find(p => !buildings.some(id => (ecs.spatial[id].x - p.x) ** 2 + (ecs.spatial[id].y - p.y) ** 2 < 150 ** 2));
   if (!point) return null;
+  const fundingHouse = ecs.household[a]?.houseId, sourceStore = ecs.household[fundingHouse]?.storeId;
+  if (s.compact && amountOf(ecs.container?.[sourceStore]?.amounts, TIMBER) < HOUSE_TIMBER) return null;
+  if (s.compact) consumeTimber(s, fundingHouse, HOUSE_TIMBER, sourceStore);
   const tile = Object.keys(ecs.mappable || {}).find(id => Math.abs(ecs.spatial[id].x - point.x) < 0.1 && Math.abs(ecs.spatial[id].y - point.y) < 0.1);
   if (tile) ecs.mappable[tile] = {
     ...ecs.mappable[tile],
@@ -201,6 +218,7 @@ function coupleHouse(s, a, b, dependents = []) {
     },
     household: {
       farming: false,
+      summaryFields: s.compact ? 2 : undefined,
       fields: [],
       backyards: []
     },
@@ -245,6 +263,8 @@ function coupleHouse(s, a, b, dependents = []) {
   ecs.building[house].rooms = [bed, store];
   ecs.household[house].storeId = store;
   village.houses.push(house);
+  if (s.compact) recordEvent(s, "house_built", [a, b, ...dependents], [house], { houseId: house, villageId: village.id,
+    timber: HOUSE_TIMBER, sourceStore, reason: "household establishment", summary: true });
   return house;
 }
 export function marry(s, a, b, summary = false, deliberate = false) {
@@ -435,16 +455,21 @@ function settleAdults(s, summary) {
 function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
   const used = new Set();
   for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (summary || (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= s.days - DAYS_IN_SEASON)) {
-      const key = a + ":" + b;
-      const started = s.social.courtships[key] ?? season;
-      s.social.courtships[key] = started;
-      if (season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary)) {
+    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - DAYS_IN_SEASON)) {
+      if (courtTogether(s, a, b, season, summary)) {
         used.add(a);
         used.add(b);
       }
     }
   }
+}
+
+export function courtTogether(s, a, b, season, summary = false) {
+  const key = [a, b].sort().join(":");
+  if (!canCourt(s, a, b)) { delete s.social.courtships[key]; return false; }
+  const started = s.social.courtships[key] ?? season;
+  s.social.courtships[key] = started;
+  return season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary);
 }
 
 // Hourly contact can arrive just after a seasonal wedding check. Retry only
@@ -478,7 +503,9 @@ function advanceSeasonRules(s, season, summary) {
     const [a, b] = key.split(":");
     // Absence is already priced by drift. Keep time spent mutually Intimate;
     // a recent real conversation is still required before a live wedding.
-    if (!canCourt(s, a, b)) delete s.social.courtships[key];
+    // A neighbouring courtship is checked at the shared world boundary, where
+    // both actual communities are present. A local season must keep its time.
+    if (isResident(s, a) && isResident(s, b) && !canCourt(s, a, b)) delete s.social.courtships[key];
   }
   for (const id of ids) {
     const p = ecs.personable[id];
@@ -540,7 +567,7 @@ function advanceSeasonRules(s, season, summary) {
           const seeking = seekingPartner && singles.has(id) && !related(s, a, id);
           if (!local && !seeking) continue;
           const interest = seeking && mutualAttraction(s, a, id),
-            score = known[id]?.goodwill || 0;
+            score = interest ? courtshipPreference(s, a, id, ecs.village[a]?.villageId === ecs.village[id]?.villageId ? 1 : .35) : known[id]?.goodwill || 0;
           if (interest && !bestInterest || interest == bestInterest && (score > best || score == best && (!b || newsScore(id)>newsScore(b) || newsScore(id)==newsScore(b) && id.localeCompare(b)<0))) {
             b = id;
             best = score;

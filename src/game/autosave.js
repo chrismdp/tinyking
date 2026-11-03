@@ -32,7 +32,7 @@ export function connectSaveWorker() {
 const afterPaint = fn => requestAnimationFrame(() => setTimeout(fn, 0));
 
 export function createAutosave(state, client, changed = () => {}, afterFrame = afterPaint) {
-  let requested = false, pending = null, deferred = null, initial = false, saveAfter = null;
+  let requested = false, pending = null, deferred = null, checkpointWrite = null, initial = false, saveAfter = null;
   const status = { ready: false, hasSave: false, error: null, lastSave: null };
   const flush = (final = false) => {
     // The arrival gets a complete rendering opportunity before postMessage's
@@ -65,6 +65,7 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
       if(checkpoint && !result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
       return result;
     });
+    if (checkpoint) checkpointWrite = saving;
     const snapshotMilliseconds = performance.now() - started;
     const current = saving.then(result => {
       if(result.hexRecords && travel && state.travel===travel) {
@@ -75,6 +76,7 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
       status.error = null;
       status.lastSave = { ...result, snapshotMilliseconds, totalMilliseconds: performance.now() - started, day };
     }).catch(error => { status.error = "Could not save: " + error.message; }).finally(() => {
+      if (checkpointWrite === saving) checkpointWrite = null;
       changed();
       if (pending === current) { pending = null; flush(); }
     });
@@ -83,6 +85,7 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     return pending;
   };
   return Object.assign(status, {
+    afterCheckpoint() { return deferred?.promise || checkpointWrite; },
     requestInitial() { initial = true; saveAfter = null; requested = true; return flush(); },
     request(final = false) { requested = true; return flush(final); },
     flush,

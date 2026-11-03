@@ -5,6 +5,7 @@ import { encodeWorldSave, decodeWorldSave } from "game/hex_storage";
 import { gameData, decompressGame } from "game/save_game";
 import { newEntities } from "game/entities";
 import { community, attach } from "./support/travel";
+import { createAutosave } from "game/autosave";
 
 const makeFixture = () => {
   const { s } = community();
@@ -23,6 +24,34 @@ let storedFixture;
 beforeAll(() => { storedFixture = makeFixture(); });
 const fixture = () => structuredClone(storedFixture);
 afterEach(() => jest.restoreAllMocks());
+
+it("starts neighbours after the arrival checkpoint commits and a further frame", async () => {
+  const { s, away } = fixture(), frames = [], disk = new Map();
+  let acknowledge, saved;
+  const build = jest.spyOn(require("game/world_history"), "buildHistoryMap").mockResolvedValue(structuredClone(away.travel.maps["6,5"]));
+  s.persistence = createAutosave(s, async (operation, payload) => {
+    const copy = structuredClone(payload);
+    const packet = await encodeWorldSave(copy.state, copy.hexes);
+    await new Promise(resolve => { acknowledge = resolve; });
+    for (const [key, record] of Object.entries(packet.records)) disk.set(key, record);
+    saved = structuredClone(packet.world);
+    return { hexRecords: packet.hexRecords };
+  }, () => {}, fn => frames.push(fn));
+  const committed = s.persistence.deferCheckpoint({});
+  scheduleNeighbourDetails(s, fn => frames.push(fn));
+  frames.shift()(); // Submit the arrival checkpoint.
+  frames.shift()(); // Neighbours have a frame, but no durable acknowledgement.
+  expect(build).not.toHaveBeenCalled();
+  while (!acknowledge) await new Promise(resolve => setImmediate(resolve));
+  acknowledge(); await committed;
+  await Promise.resolve();
+  expect(build).not.toHaveBeenCalled();
+  const loaded = await decodeWorldSave(saved, key => disk.get(key));
+  expect(loaded.travel.active).toBe(s.travel.active);
+  expect(loaded.travel.detailQueue).toEqual(["6,5"]);
+  frames.shift()();
+  expect(build).toHaveBeenCalledTimes(1);
+});
 
 it("deduplicates an unfinished build and owns its historical construction inputs", async () => {
   const { s, away } = fixture();

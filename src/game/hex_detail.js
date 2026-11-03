@@ -107,7 +107,7 @@ export async function prepareNeighbourDetails(s, progress = async () => {}, opti
     if (s.travel !== j) return;
     await prepareDetail(s, key, async (label, value) => {
       // A new arrival takes priority over older background preparations.
-      while (options.background && s.travel === j && s.transition && s.transition.destination !== key) await new Promise(resolve => setTimeout(resolve, 16));
+      while (options.background && s.travel === j && (s.transition ? s.transition.destination !== key : s.persistence?.afterCheckpoint?.())) await new Promise(resolve => setTimeout(resolve, 16));
       if (s.travel !== j) return;
       await progress(label, (index + value) / pending.length);
     }, options);
@@ -122,11 +122,17 @@ export function scheduleNeighbourDetails(s, schedule = afterPaint) {
   // Persist intent before yielding. Reload derives any remaining work from the
   // active hex and the committed detail pointers, including interrupted builds.
   j.detailQueue = detailNeighbours(s).filter(key => j.maps[key]?.compact && !j.hexRecords?.[key] && !j.preparedMaps?.[key]);
-  schedule(() => {
+  const start = () => {
     if (s.travel !== j) return;
     prepareNeighbourDetails(s, () => new Promise(resolve => setTimeout(resolve, 0)), { background: true })
       .then(() => { if (s.travel === j) s.persistence?.request(); })
       .catch(error => { if (s.travel === j) s.detailError = error.message; });
+  };
+  schedule(() => {
+    const checkpoint = s.persistence?.afterCheckpoint?.();
+    // Give the acknowledged arrival a frame before terrain preparation starts.
+    if (checkpoint) checkpoint.then(() => schedule(start), () => {});
+    else start();
   });
 }
 

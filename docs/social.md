@@ -222,6 +222,18 @@ From 18:00 to 21:00, the player can receive a caller near their own home fire, c
 
 `src/data/social_actions.json` defines participant bindings, conditions, seeded chance, effects and the event to record. `social_conditions.js` supplies pure ring, goodwill, trait, kin, age and spouse tests for chat and simulation. Roles are explicit: actor, partner, spouse, subject, teller and listener. Missing people fail the test. Unknown tests never satisfy a condition.
 
+Data refers to people only by roles and named lookups, never by component or field names. A lookup answers one specific question in code. A new kind of question gets a new named lookup in `social_lookups.js`. Data cannot describe storage routes or nested steps. Unknown lookup names raise an error.
+
+Participant bindings use an existing role, such as `"visitor"`, or a named lookup, such as `{ "householdHeadOf": "actor" }`. Bindings follow their declared order, so a lookup can use an earlier role. The available lookups are:
+
+| Lookup | Question |
+| --- | --- |
+| `spouseOf` | Who is this person's spouse? |
+| `householdHeadOf` | Who heads this person's household? |
+| `villageOf` | Which village does this person belong to? |
+
+Event `people` entries name bound roles. Event `details` contain literal values or named lookups, such as `"fromVillage": { "villageOf": "actor" }`. Code binds saved marriage heads as `head` and `otherHead`, and the source event as `causeEventId`. Conditions and effects use these names directly. They do not follow paths through an event record.
+
 `chatTogether` runs contact actions after actual contact. Summary encounters use the same function. `advanceSeasonRules` also runs seasonal actions for household pairs. Actions never scan all possible village pairs. An action remembers its latest attempt per pair and calendar day, including failed chances. Quarrels and reconciliation use a calendar season instead. Reversed contact, repeated half-hours, saves and traveller transfers cannot retry that moment. Summary contact combines its conversation opportunities into one seeded trial. A quarrel stops further contact actions and the news exchange.
 
 Reconciliation (spike situation 2) and a visit from another village (situation 9) are the two additional data actions. Both reuse real contact and existing event definitions. Reconciliation runs on contact and household seasons. It clears expired avoidance and restores the six goodwill lost to the quarrel in each direction. The visit binds the actual visitor and host and records their villages. Local visit recording stays with the physical task. Neither action needs event-specific scheduler code.
@@ -251,7 +263,7 @@ Romance and affair records live on relationship bonds. Social action attempts li
 `src/data/secret_activities.json` declares each activity. Its source event binds named roles to existing people. The entry declares participants, conditions, evening chance, time window, place kinds, duration and witness moments. Its `witnessEvent` declares the news recorded at the activity. The same entry declares the seasonal sighting chance, eligible neighbours and witness weights. Scheduling runs in the existing hourly social pass. It indexes source events once and considers active participants. Running tasks query witnesses only at the declared moments. Witnesses, live
 hearing and activity sites share the local population spatial index.
 
-`event_types.json` separates event roles from participants. For example, a poaching event names two poachers and an owner. Only the poachers participate. `affected` declares the owner, or resolves each lover's spouse through `kinship.spouse`. The event saves these affected identities. Each declaration names a discovery event and binds its people. First learning by any route records that discovery once for each affected person. Discovery effects use the ordinary occurrence and learning effects. Learning effects run once for each person and event.
+`event_types.json` separates event roles from participants. For example, a poaching event names two poachers and an owner. Only the poachers participate. An `affected` rule uses `"from": "owner"` for an existing role, or `"from": { "spouseOf": "subject" }` for a lookup. With `"each": "participant"`, `subject` names each participant in turn. Otherwise, the rule's `subject` names an event role. The event saves these affected identities before relationships change. Each declaration names a discovery event and binds its people. First learning by any route records that discovery once for each affected person. Discovery effects use the ordinary occurrence and learning effects. Learning effects run once for each person and event.
 
 Disclosure `routes` declare teller and listener conditions. They can admit an affected person's close friends, hostile outsiders or a participant's rare confidence. `chancePerSeason` limits automatic confidences without rerolling during repeated conversations. `affectedOnlyByRoutes` prevents ordinary gossip from bypassing those conditions. A witnessed activity uses `disclosure.via` to inherit its source event's policy. Its `learn_event` effect teaches that source event. Discovery news declares ordinary disclosure and its own effects.
 

@@ -12,7 +12,6 @@ import { SPEECH_REACH } from "game/conversation";
 export const OBSERVATION_REACH = 300;
 export const WARNING_LOSS = 3, REPEAT_LOSS = 6, ELDER_LOSS = 2, REPEAT_ELDER_LOSS = 4;
 export const OATH_TRUST = 10;
-export const COMMONS_RULE = "The commons follow walkable land up to two hex steps beyond household plots and shared places. Household plots stay private. Distant unclaimed woodland is free.";
 export const OATH_RIGHTS = "You can gather this village's common woodland. In return, help neighbours through favours and keep your social ties. Household stores, crops and belongings keep their existing permissions. This promise is yours alone and grants no rights in other villages. Speak with the elder to leave. Your common gathering rights then end.";
 const keyAt = (s,p) => p && (s.space?.[Hex().fromPoint(p)] || []).find(id=>s.ecs.walkable?.[id]);
 const distance = (s,a,b) => {

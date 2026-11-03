@@ -2,7 +2,7 @@ import ACTIVITIES from "data/secret_activities.json";
 import { conditions } from "game/social_conditions";
 import { eventRoles } from "game/event_roles";
 import { activeSecretActivities, activityProgress, recordActivity } from "game/secret_activity_history";
-import { nearbyPeople } from "game/people_space";
+import { nearbyPeople } from "game/population_index";
 import { hashUnit, squaredDistance } from "game/math";
 import { Hex, Grid } from "game/hex";
 import { path } from "game/pathfinding";

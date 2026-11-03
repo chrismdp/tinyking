@@ -6,7 +6,6 @@ import { give } from "game/holder";
 import { TRIANGLES, Hex, Grid, ALL_SIDES } from "game/map";
 import { addBidirectionalLink } from "game/pathfinding";
 import { HOUR, DAYS_IN_SEASON } from "game/time";
-import { anyControlledAlive } from "game/playable";
 import { Task, solve } from "game/htn";
 
 function hungryVillage() {
@@ -218,13 +217,6 @@ it("same-seed planners replay identically without global randomness", () => {
   } finally {
     random.mockRestore();
   }
-});
-
-it("a dead actor can be checked even when the player owns buildings", () => {
-  const { state, villager, tiles } = hungryVillage();
-  state.ecs.personable[villager].dead = true;
-  state.ecs.controllable[tiles[0]] = { id: tiles[0], controllerId: villager };
-  expect(anyControlledAlive(state.ecs, villager)).toBe(false);
 });
 
 it("a second villager cannot pick up a stockpiled meal that someone already ate", () => {

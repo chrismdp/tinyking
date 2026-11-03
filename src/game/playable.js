@@ -3,16 +3,6 @@ export function discoverTiles(ecs, action) {
   ecs.playable[id].known.push(...tiles);
 }
 
-export function directlyControlledBy(ecs, id) {
-  return Object.values(ecs.controllable).filter(c => c.controllerId == id && c.id != c.controllerId);
-}
-
-export function anyControlledAlive(ecs, playableId) {
-  return [playableId, ...directlyControlledBy(ecs, playableId).map(c => c.id)]
-    .map(id => ecs.personable[id])
-    .some(p => p && !p.dead);
-}
-
 export function topController(ecs, id) {
   if (!ecs.controllable[id]) {
     throw "Called topController on " + id + " which isn't a controllable entity";

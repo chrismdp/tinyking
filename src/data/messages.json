@@ -1,38 +1,5 @@
 {
-  "traits.values.add.eaten": "eats a meal",
-  "traits.values.add.hungry": "gets hungry",
-  "traits.values.add.cold": "gets cold",
-  "traits.values.add.starving": "begins to starve",
-  "traits.values.add.thinned": "has thinned vegetation",
-  "traits.values.add.planted": "is planted with new saplings",
-  "traits.values.add.deforested": "becomes deforested",
-  "traits.values.add.decimated": "loses almost all its trees",
-  "traits.values.remove": "loses '%{value}'",
-  "mappable.set.terrain": "changes to %{value}",
-  "personable.explore.radius": "reveals %{smart_count} tile in each direction |||| reveals %{smart_count} tiles in each direction",
-  "personable.die.exhaustion": "dies of exhaustion!",
-  "personable.die.hunger": "dies of hunger!",
-  "spatial.move": "moves here",
-  "attributes.lose.moves": "uses %{smart_count} movement point |||| uses %{smart_count} movement points",
-
-  "target.mappable.terrain.is": "the terrain is %{value}",
-
-  "target.traits.values.not.has": "%{target} is not marked %{value}",
-  "target.traits.values.has": "%{target} is marked %{value}",
-
-  "target.personable": "%{target} is a person",
-
-  "season.is": "it is %{value}",
-  "season.not.is": "it is not %{value}",
-  "time_of_day.is": "it is the %{value}",
-  "time_of_day.not.is": "it is not the %{value}",
-
   "info": {
-    "end_turn_conditions": "At the end of this turn",
-    "unless_actions": "(unless actions change things)",
-    "because": "Because:",
-    "you_control": "You control this character. Click to move or assign to a job.",
-    "chosen_action": "Chosen action:",
     "until": "(%{time})"
   },
 
@@ -47,67 +14,6 @@
     "harvestable": "Harvestable field",
     "dirt": "Mud and soil",
     "stone": "Stony ground"
-  },
-  "turn": {
-    "hunger": "%{target} will get hungry.",
-    "eat": "%{target} will eat, if there's enough food.",
-    "starve": "Because %{target} still hasn't eaten today, starvation will begin to set in!",
-    "die": "%{target} will die!",
-    "colder": "%{target} will get colder."
-  },
-  "action": {
-    "cancel": "Cancel",
-    "gather_grain": {
-      "name": "Gather Grain",
-      "summary": "Comb the fields for enough kernels of wild wheat to be able to sow a field."
-    },
-    "harvest_field": {
-      "name": "Harvest field",
-      "summary": "Time to bring in the crops and reap the rewards of all the hard work."
-    },
-    "plough_field": {
-      "name": "Plough field",
-      "summary": "Create furrows with minimal tools suitable for growing crops."
-    },
-    "sow_field": {
-      "name": "Sow field",
-      "summary": "Scatter grain into the ploughed furrows by hand, covering it as far as possible."
-    },
-    "recover": {
-      "name": "Recover",
-      "summary": "The world is starting to swim before your eyes... time to crash out and recuperate."
-    },
-    "rest": {
-      "name": "Rest",
-      "summary": "There's nothing to eat, but at least there's time to relax."
-    },
-    "prepare_gruel": {
-      "name": "Prepare gruel",
-      "summary": "Mash together a basic gruel from the grain you have, and eat it cold."
-    },
-    "chop_trees": {
-      "name": "Chop trees",
-      "summary": "Cut a few trees down using makeshift tools."
-    },
-    "plant_trees": {
-      "name": "Forestry",
-      "summary": "Attempt to restore the forest by spacing seedlings and planting where possible."
-    },
-    "fish": {
-      "name": "Fish"
-    },
-    "explore": {
-      "name": "Explore",
-      "summary": "Explore the surrounding area."
-    },
-    "sleep": {
-      "name": "Sleep indoors",
-      "summary": "Get some rest in a proper bed."
-    },
-    "move": {
-      "name": "Move here",
-      "summary": "Move to this location"
-    }
   },
   "jobs": {
     "cut_tree_down": "Cut down",

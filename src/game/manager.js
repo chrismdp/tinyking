@@ -26,13 +26,6 @@ export const firstFreeJob = (jobs, key) => jobs.find(j => !j.assignedId && !j.wa
 
 export const jobQueueFor = (ecs, id) => ecs.manager[ecs.guest?.[id] ? id : topController(ecs, id)].jobs;
 
-export const pushJob = (ecs, actorId, entry) => {
-  const jobs = jobQueueFor(ecs, actorId);
-  if (!jobs.some(j => j.job.key == entry.job.key && j.targetId == entry.targetId)) {
-    jobs.push(entry);
-  }
-};
-
 export const removeJob = (ecs, managerId, key, targetId) => {
   const jobs = ecs.manager[managerId].jobs;
   const idx = jobs.findIndex(j => j.job.key == key && j.targetId == targetId);

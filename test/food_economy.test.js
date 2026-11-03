@@ -8,7 +8,6 @@ import { HOUR } from "game/time";
 import { completeTradeProduction } from "game/settlement_growth";
 import { advanceOffscreenNeeds } from "game/needs";
 import { settleSeason } from "game/settlement";
-import { stationarySupplies } from "game/stationary_care";
 import { collectShelterLog, deliverShelterLog, shelterLogSource } from "game/construction";
 import { householdFood } from "game/favours";
 
@@ -16,10 +15,9 @@ function goods(f, types) {
   return newEntities(f.s, types.map(type => ({ spatial: { ...f.s.ecs.spatial[f.p] }, good: { type, amount: 1 }, haulable: {}, controllable: { controllerId: f.p } })));
 }
 
-it.each(["bread", "flour"])("eats %s in chosen meals, nearby supply sensing and household food accounting", type => {
+it.each(["bread", "flour"])("eats %s in chosen meals and household food accounting", type => {
   const f = economy(), { s, p, camp } = f;
   s.ecs.container[camp].amounts = { [type]: 5 };
-  expect(stationarySupplies(s, p).meal).toMatchObject({ type, kind: "container" });
   expect(householdFood(s).get(camp)).toBe(5);
   s.ecs.personable[p].energy = 20;
   enqueueTask(s,{key:"eat_food"},camp,{foodType:type});
@@ -43,7 +41,6 @@ it.each(["grain", "wood", "bread", "flour"])("cannot pick up a whole %s from a f
   expect(tasks.pick_up_from_container(s, p, world, 0, true, "food", type)).toBe(Task.ABORT);
   expect(s.ecs.container[camp].amounts[type]).toBe(.25);
   expect(s.ecs.holder[p].held).toEqual([]);
-  expect(stationarySupplies(s, p).meal).toBeUndefined();
 });
 
 it.each([["miller", "grain"], ["baker", "flour"], ["carpenter", "wood"]])("%s cannot turn fractions into free output", (trade, input) => {

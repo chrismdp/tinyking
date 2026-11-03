@@ -9,7 +9,7 @@ import { Task, solve, runTask } from "game/htn";
 import { DAYS_IN_SEASON } from "game/time";
 import { lifeClockSeasons } from "game/social_clock";
 import { historySecretActivities, startSecretActivity } from "game/secret_activities";
-import { indexPeople, nearbyPeople } from "game/people_space";
+import { rebuildPopulationIndex as indexPeople, nearbyPeople } from "game/population_index";
 
 function fixture() {
   const f=peopleWorld(),{state:s,person:a,sibling:b,parent:spouse,player:friend,tiles}=f;

@@ -1,4 +1,4 @@
-import { isDependent, LIFE_STAGES } from "game/life_stages";
+import { isDependent } from "game/life_stages";
 import { lifeClockRate } from "game/social_clock";
 import { knowsEvent, relevantEvent } from "game/event_knowledge";
 import { disclosureEvent, disclosureRoute } from "game/event_disclosure";
@@ -17,7 +17,6 @@ export const TRAIT_PAIRS = [
   ["hard-working", "lazy"], ["generous", "greedy"], ["proud", "humble"],
   ["pious", "worldly"], ["cheerful", "gloomy"], ["brave", "timid"]
 ];
-export const ADULT_AGE = LIFE_STAGES.youngAdult.from;
 
 function draw(generator, values) {
   return values.splice(generator.random_int() % values.length, 1)[0];

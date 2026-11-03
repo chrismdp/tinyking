@@ -39,14 +39,6 @@ body {
   opacity: 0.5;
 }
 
-.level-warning {
-  color: #e2c879;
-}
-
-.level-error {
-  color: #992e30;
-}
-
 a {
   color: white;
 }
@@ -675,9 +667,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
     .row.overlay { flex-wrap: wrap; }
     .row label { flex-basis: 85px; }
   }
-}
-
-@media (min-width: 701px) and (min-height: 501px) {
 }
 
 @media (min-width: 650px) and (max-height: 500px) {

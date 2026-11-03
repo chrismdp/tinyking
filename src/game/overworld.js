@@ -47,34 +47,6 @@ const neighbourKeys = hex => {
   return neighbourIndex.get(key);
 };
 
-// NOTE: When one world hex's value on an axis changes, the change spreads:
-// any neighbour now more than a step away is pulled to one step away, and
-// so on outwards from each hex that moved, until the one-step rule holds
-// everywhere again. The changed hex keeps its new value; hexes only ever
-// move towards it, so the spreading stops. Returns a new world.
-export function propagateFrom(world, key, axis) {
-  const steps = AXES[axis];
-  const hexes = world.hexes.map(h => ({ ...h }));
-  const byKey = new Map(hexes.map(h => [Hex(h.x, h.y).toString(), h]));
-  const queue = [key];
-  while (queue.length > 0) {
-    const from = byKey.get(queue.shift());
-    for (const next of neighbourKeys(Hex(from.x, from.y))) {
-      const to = byKey.get(next);
-      if (!to) {
-        continue;
-      }
-      const pulled = steps[pullTowards(steps.indexOf(to[axis]), steps.indexOf(from[axis]))];
-      if (pulled != to[axis]) {
-        to[axis] = pulled;
-        queue.push(next);
-      }
-    }
-  }
-  hexes.forEach(h => { h.biome = biomeOf(h.temperature, h.moisture); });
-  return { ...world, hexes };
-}
-
 const layouts = new Map();
 export function generateRegions(seed, { radius = WORLD_RADIUS } = {}) {
   const centre = radius == WORLD_RADIUS ? WORLD_CENTRE : Hex(radius, radius);

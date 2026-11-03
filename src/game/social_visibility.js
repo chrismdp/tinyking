@@ -1,4 +1,4 @@
-import { nearbyPeople } from "game/people_space";
+import { nearbyPeople } from "game/population_index";
 import { isResident } from "game/residents";
 import { buildingFootprint } from "game/tree_clearance";
 

@@ -11,7 +11,7 @@ const add=(table,key,id)=>{if(!table.has(key))table.set(key,new Set());const ids
 const remove=(table,key,id)=>{const ids=table.get(key);if(ids?.delete(id))versions.set(ids,(versions.get(ids)||0)+1);};
 export function trackPopulation(s) {
   if(indexes.has(s.ecs))return;
-  const index={order:new Map(),records:new Map(),residents:new Map([[null,new Set()]]),houses:new Map(),villages:new Map(),buildings:new Map(),cells:new Map(),next:0};
+  const index={order:new Map(),records:new Map(),residents:new Map([[null,new Set()]]),houses:new Map(),villages:new Map(),cells:new Map(),next:0};
   indexes.set(s.ecs,index);
   for(const id of Object.keys(s.ecs.personable||{}))refreshPersonIndex(s,id);
 }
@@ -30,13 +30,13 @@ export function refreshPersonIndex(s,id) {
   const previous=index.records.get(id);
   const person=s.ecs.personable?.[id];
   if(!person || !isResident(s,id)){
-    if(previous)for(const [table,key] of [["houses",previous.house],["villages",previous.village],["buildings",previous.building],["cells",previous.cell]])remove(index[table],key,id);
+    if(previous)for(const [table,key] of [["houses",previous.house],["villages",previous.village],["cells",previous.cell]])remove(index[table],key,id);
     index.records.delete(id);remove(index.residents,null,id);return;
   }
   if(!index.order.has(id))index.order.set(id,index.next++);
-  const record={house:s.ecs.household?.[id]?.houseId,village:s.ecs.village?.[id]?.villageId??null,building:s.ecs.interior?.[id]?.buildingId,cell:cell(s.ecs.spatial?.[id])};
+  const record={house:s.ecs.household?.[id]?.houseId,village:s.ecs.village?.[id]?.villageId??null,cell:cell(s.ecs.spatial?.[id])};
   index.records.set(id,record);add(index.residents,null,id);
-  for(const [table,field] of [["houses","house"],["villages","village"],["buildings","building"],["cells","cell"]]) {
+  for(const [table,field] of [["houses","house"],["villages","village"],["cells","cell"]]) {
     if(previous && previous[field]!==record[field])remove(index[table],previous[field],id);
     add(index[table],record[field],id);
   }
@@ -52,7 +52,6 @@ const ordered=(index,ids)=>{
 export const residentPeople=s=>query(s,index=>ordered(index,index.residents.get(null)));
 export const householdMembers=(s,house)=>query(s,index=>ordered(index,index.houses.get(house)||[]));
 export const villagePeople=(s,village)=>query(s,index=>ordered(index,index.villages.get(village??null)||[]));
-export const buildingOccupants=(s,building)=>query(s,index=>ordered(index,index.buildings.get(building)||[]));
 export function nearbyPeople(s,point,radius) {
   if(!point)return [];
   return query(s,index=>{

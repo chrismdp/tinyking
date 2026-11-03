@@ -115,6 +115,7 @@ it.each([20, 1234, 98765])("sites named hamlets and creates families directly (s
 it("provides a bed for every member of the larger households", () => {
   const { s: state, village } = flatVillage(3, { seed: 1234, founding: false });
   const parents = Object.keys(state.ecs.personable).filter(id => state.ecs.household[id]?.houseId == village.houses[1] && state.ecs.kinship[id].spouse);
+  for (const id of parents) state.ecs.personable[id].age = 30;
   for (let i = 0; i < 7; i++) birth(state, parents[0], parents[1], i);
   repairHouseholds(state);
   for (const id in state.ecs.building) {

@@ -1,5 +1,5 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
-import { isAdult, LIFE_STAGES, LIFE_YEARS_PER_SEASON } from "game/life_stages";
+import { isAdult, canBearChild, canFatherChild, canParentTogether, LIFE_STAGES, LIFE_YEARS_PER_SEASON } from "game/life_stages";
 import { updateDirectoryPerson } from "game/person_storage";
 import { refreshPersonIndex } from "game/population_index";
 import { DAYS_IN_SEASON } from "game/time";
@@ -33,12 +33,26 @@ export function seedMotherFamily(s,actor,seed) {
   // Prefer an established household with genuine work. A sibling who has not
   // yet featured in the simulated history can join its remaining bed.
   const adults=Object.keys(e.personable).filter(id=>id!=actor&&alive(s,id)&&isAdult(e.personable[id].age)&&e.household?.[id]?.houseId);
+  const supportsChildren=id=>{
+    const parents=kin(s,id).parents;
+    // Both the mother and a possible younger sibling must fit the ancestry.
+    const childAges=[age,age-2];
+    if(!parents.length)return childAges.every(childAge=>canFatherChild(Math.max(age,e.personable[id].age)+20-childAge));
+    return childAges.every(childAge=>{
+      const pair=parents.map(parent=>{
+        const p=personComponent(s,"personable",parent);
+        const presentAge=p.age+(p.dead&&p.died!=null?(s.days-p.died)/DAYS_IN_SEASON*LIFE_YEARS_PER_SEASON:0);
+        return {male:personComponent(s,"nameable",parent).male,age:presentAge-childAge};
+      });
+      return pair.length==2?canParentTogether(...pair):pair.every(p=>p.male===true?canFatherChild(p.age):p.male===false&&canBearChild(p.age));
+    });
+  };
   let anchor;
   for(const village of villages) {
     const locals=adults.filter(id=>e.village[id]?.villageId==village.id);
     const room=id=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==e.household[id].houseId).length<HOUSEHOLD_CAPACITY;
     const work=id=>Object.values(s.favours.requests).some(r=>r.householdId==e.household[id].houseId&&r.status=="offered");
-    const suitable=id=>kin(s,id).parents.every(p=>personComponent(s,"personable",p).age>=age+LIFE_STAGES.youngAdult.from) &&
+    const suitable=id=>supportsChildren(id) &&
       ([...kin(s,id).parents,...siblingsOf(s,id)].some(other=>alive(s,other)&&e.village?.[other]?.villageId==village.id) || village.houses.some(h=>Object.keys(e.personable).filter(p=>alive(s,p)&&e.household?.[p]?.houseId==h).length<HOUSEHOLD_CAPACITY));
     anchor=locals.filter(suitable).sort((a,b)=>Number(work(b)&&room(b))-Number(work(a)&&room(a))||Number(disposition(s,b,actor)!="hate")-Number(disposition(s,a,actor)!="hate")||Number(kin(s,b).parents.length>0)-Number(kin(s,a).parents.length>0)||e.personable[b].age-e.personable[a].age||a.localeCompare(b))[0];
     if(anchor)break;

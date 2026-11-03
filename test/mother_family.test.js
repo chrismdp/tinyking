@@ -16,6 +16,25 @@ import LINES from "data/conversation_lines.json";
 import { newEntities } from "game/entities";
 
 const setup=()=>{const f=peopleWorld(),s=f.state;s.map={seed:13};s.ecs.spatial[f.player]={...s.ecs.spatial[f.person]};s.villages.village.houses=[f.tiles[3]];s.villages.village.id="village";s.ecs.container={[f.tiles[3]]:{capacity:100,amounts:{}}};s.ecs.household[f.tiles[3]]={storeId:f.tiles[3]};seedMotherFamily(s,f.player,13);return f;};
+
+it.each([[true,true,60,60],[false,false,60,60],[false,true,80,60],[false,true,60,96]])("does not invent backstory children for an ineligible ancestral couple (%s, %s, %i, %i)", (maleA,maleB,ageA,ageB)=>{
+  const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
+  s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];
+  s.ecs.nameable[parent].male=maleA;s.ecs.nameable[sibling].male=maleB;
+  s.ecs.personable[parent].age=ageA;s.ecs.personable[sibling].age=ageB;
+  s.ecs.kinship[person].parents=[parent,sibling];
+  s.ecs.kinship[parent]={parents:[],children:[person],spouse:sibling};
+  s.ecs.kinship[sibling]={parents:[],children:[person],spouse:parent};
+  seedMotherFamily(s,player,13);
+  const b=s.backstories[player];
+  expect(b).toBeDefined();
+  expect(s.peopleDirectory[b.motherId].kinship.parents).not.toEqual([parent,sibling]);
+  for(const id of [b.motherId,...b.relatives.map(r=>r.id)]) {
+    const record=s.peopleDirectory[id]||Object.fromEntries(["nameable","personable","kinship"].map(key=>[key,s.ecs[key][id]]));
+    const parents=record.kinship.parents;
+    if(parents.length==2)expect(parents.map(p=>(s.peopleDirectory[p]?.nameable||s.ecs.nameable[p]).male).sort()).toEqual([false,true]);
+  }
+});
 it("uses two living established relatives even when their village has no spare bed",()=>{
   const {state:s,player,person,parent,sibling,tiles}=peopleWorld();
   s.map={seed:13};s.villages.village.id="village";s.villages.village.houses=[tiles[3]];

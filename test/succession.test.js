@@ -20,7 +20,7 @@ const community = (...args) => {
 };
 
 const intimate = (s,a,b) => { for (const [x,y] of [[a,b],[b,a]]) s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66}; };
-const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; return f; };
+const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.nameable[f.player].male=true; f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; return f; };
 
 it("requires mutual adult consent for deliberate marriage, while NPC matchmaking excludes the player", () => {
   const {state:s,player:a,person:b,parent}=weddingWorld();

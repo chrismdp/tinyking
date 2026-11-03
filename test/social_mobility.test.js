@@ -235,6 +235,7 @@ it("counts an earlier birth before a second couple can exceed the household resi
     s.ecs.household[id].houseId = tiles[3]; s.ecs.village[id].villageId = "village";
   }
   for (const [x, y] of [[a, b], [parent, kin]]) { s.ecs.kinship[x].spouse = y; s.ecs.kinship[y].spouse = x; }
+  for (const [id,male] of [[a,true],[b,false],[parent,true],[kin,false]]) s.ecs.nameable[id].male=male;
   const child = "resident-child";
   for (const key of ["personable", "personality", "kinship", "relationships", "household", "village", "planner", "manager", "controllable", "holder", "nameable", "spatial"]) s.ecs[key][child] = structuredClone(s.ecs[key][a]);
   s.ecs.personable[child].age = 12; s.ecs.kinship[child] = { parents: [a, b], children: [], spouse: null };

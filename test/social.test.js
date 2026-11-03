@@ -77,6 +77,7 @@ it("requires mutual Intimate adults, excludes kin and player, and creates a shar
 
 it("grows a child in two game years and keeps inherited traits and reciprocal kin", () => {
   const { state: s, person: a, sibling: b } = peopleWorld();
+  s.ecs.nameable[b].male = true;
   const child = birth(s, a, b, 0);
   expect(s.ecs.personable[child].age).toBe(0);
   for (let season = 0; season < 8; season++) advanceSeason(s, season);

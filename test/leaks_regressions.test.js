@@ -23,6 +23,7 @@ it('discovers for the walker rather than a playable household controller, includ
 
 it('gives a playable parent and newborn their reciprocal family bond and known identity', () => {
   const {s,ids:[a,b]} = community();
+  s.ecs.nameable[a].male = true; s.ecs.nameable[b].male = false;
   s.ecs.playable[a].arrivedAt = s.days;
   s.ecs.kinship[a].spouse=b; s.ecs.kinship[b].spouse=a;
   const child = birth(s,a,b,1);

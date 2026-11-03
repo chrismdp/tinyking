@@ -6,6 +6,7 @@ import { die } from "game/possessions";
 
 const world = () => {
   const w = peopleWorld(), s = w.state, house = w.tiles[3];
+  s.ecs.nameable[w.sibling].male = true;
   const components = Object.fromEntries(Object.entries(s.ecs).filter(([, records]) => records[w.person]).map(([key, records]) =>
     [key, JSON.parse(JSON.stringify(records[w.person]))]));
   components.kinship = { parents: [], children: [], spouse: null };

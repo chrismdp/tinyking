@@ -273,6 +273,7 @@ it("finds newly created people through the spatial lookup before their first pla
   const event=recordEvent(s,"romance",[a,b]);
   expect(s.knowledge[newcomer]?.events||[]).toContain(event.id);
   const {birth}=require("game/social");
+  s.ecs.nameable[b].male=true;
   const child=birth(s,a,b,0);
   const later=recordEvent(s,"romance",[a,b]);
   expect(s.knowledge[child]?.events||[]).toContain(later.id);

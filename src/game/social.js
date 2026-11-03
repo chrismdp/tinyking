@@ -187,15 +187,25 @@ export function canHaveChild(s,a,b) {
   return parentWindows(s,a,b) && s.ecs.household[a]?.houseId == s.ecs.household[b]?.houseId && !related(s,a,b);
 }
 const parentWindows = (s,a,b) => canParentTogether(...[a,b].map(id => ({ male: s.ecs.nameable[id]?.male, age: s.ecs.personable[id].age })));
+function householdCounts(s,roster,excluded=new Set()) {
+  const counts={},present=new Set();
+  for(const id of roster)if(alive(s,id) && isResident(s,id) && !excluded.has(id)) {
+    const house=s.ecs.household[id]?.houseId;
+    counts[house]=(counts[house]||0)+1;present.add(id+":"+house);
+  }
+  // Travellers retain a place in their real home. Their small visit ledger
+  // supplies absent members without searching the world people directory.
+  for(const [id,visit] of Object.entries((s.newsContext||s.travel)?.visits||{})) {
+    const house=visit.household?.houseId;
+    if(excluded.has(id) || present.has(id+":"+house) || !alive(s,id) || !s.ecs.building?.[house] && s.ecs.shelter?.[house]?.stage!="house")continue;
+    counts[house]=(counts[house]||0)+1;
+  }
+  return counts;
+}
 function coupleHouse(s, a, b, dependents = []) {
   const ecs = s.ecs,
     village = s.villages?.[ecs.village[a]?.villageId];
-  const counts = {},
-    excluded = new Set([a, b, ...dependents]);
-  for (const id of residentPeople(s).filter(id => alive(s,id) && isResident(s,id))) if (!excluded.has(id)) {
-    const house = ecs.household[id]?.houseId;
-    counts[house] = (counts[house] || 0) + 1;
-  }
+  const counts=householdCounts(s,residentPeople(s),new Set([a,b,...dependents]));
   const members = house => counts[house] || 0;
   const family = [...new Set([ecs.household[a]?.houseId, ecs.household[b]?.houseId])].filter(id => ecs.building?.[id] || ecs.shelter?.[id]?.stage == "house");
   const rooms = family.filter(id => members(id) <= HOUSEHOLD_CAPACITY - 2 - dependents.length && (members(id) > 0 || availableHouse(s, id, [a, b])));
@@ -612,26 +622,22 @@ function advanceSeasonRules(s, season, summary) {
   if(summary)historySecretActivities(s,participants,season);
   updateCourtships(s,season,summary,roster);
   const birthVillages=Object.keys(s.villages || {});
+  const occupants=householdCounts(s,participants);
   if(participants.some(id=>ecs.village[id]?.villageId==null && (ecs.building?.[ecs.household[id]?.houseId] || ecs.shelter?.[ecs.household[id]?.houseId]?.stage=="house")))birthVillages.push(null);
   for (const villageId of birthVillages) {
     const locals = participants.filter(id => (ecs.village[id]?.villageId ?? null) == villageId);
     const target = (s.villages?.[villageId]?.houses?.length || new Set(locals.map(id=>ecs.household[id]?.houseId)).size || 3) * 3;
     const fertility = Math.min(2, Math.max(0.2, target / Math.max(1, locals.length)));
-    const occupants = new Map();
-    for (const id of locals) {
-      const house = ecs.household[id]?.houseId;
-      occupants.set(house, (occupants.get(house) || 0) + 1);
-    }
     for (const a of locals) {
       const b = ecs.kinship[a].spouse,
         p = ecs.personable[a];
       if (!b || !isResident(s, b) || a > b || !alive(s, b) || ecs.kinship[b]?.spouse != a || !canHaveChild(s,a,b)) continue;
       const house = ecs.household[a]?.houseId;
-      if ((occupants.get(house) || 0) >= HOUSEHOLD_CAPACITY) continue;
+      if ((occupants[house] || 0) >= HOUSEHOLD_CAPACITY) continue;
       if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < SOCIAL_RATES.birthCooldownSeasons) continue;
       if (roll(s, "birth:" + a + ":" + season) < Math.min(1, SOCIAL_RATES.birthPerSeason * fertility)) {
         birth(s, a, b, season);
-        occupants.set(house, (occupants.get(house) || 0) + 1);
+        occupants[house]=(occupants[house]||0)+1;
       }
     }
   }

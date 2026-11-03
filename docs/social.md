@@ -63,6 +63,9 @@ within a hex continue through local history or live visits. Nearby courtship
 adds seasonal conversations across the boundary, without a journey or a guest
 household. Each person keeps their actual news scope during the meeting.
 
+Automatic family seeking covers adults aged 18 to 55, the existing parenting
+age window. Older adults still meet friends and can marry through deliberate
+courtship. Younger widowed adults can seek a new partner.
 Eligibility excludes the player, living spouses, children and close kin.
 Courtship requires mutual attraction and mutual Intimate rings. Parents, siblings
 and people who share grandparents cannot court. Mutual closeness must last two
@@ -115,6 +118,9 @@ kin, consent, demographic and ownership rules. Live navigation remains in
 `social_visits.js`.
 
 Generation runs the same seasonal transition on its owned summary rather than making 180 unnecessary snapshots. The exported seasonal step still copies caller state. Candidate pools and event-membership caches avoid repeated scans without changing outcomes.
+Private news indexes group stories by their declared audience. Learning and
+promotion update these indexes. Seasonal courtship shares village candidate
+pools and ancestry queries. These derived indexes never enter saves.
 
 `node scripts/social-mobility-probe.js` reports initial, five-year and twenty-year seasonal population, age cohorts, events and eligible local/distant partners for seeds 20, 1234 and 98765. Eligibility is an opportunity, not attraction or consent. Finite communities can lose people or have no mutually attracted partner. These rules do not promise a marriage for every adult or survival forever.
 

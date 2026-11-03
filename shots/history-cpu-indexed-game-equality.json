@@ -1,0 +1,18 @@
+{
+  "kind": "game",
+  "left": "local-population-delivery",
+  "right": "history-cpu-indexed",
+  "fullStateEqual": true,
+  "leftCounts": {
+    "people": 1774,
+    "households": 218,
+    "events": 45635,
+    "communities": 40
+  },
+  "rightCounts": {
+    "people": 1774,
+    "households": 218,
+    "events": 45635,
+    "communities": 40
+  }
+}

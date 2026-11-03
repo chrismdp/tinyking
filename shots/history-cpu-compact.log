@@ -1,0 +1,10 @@
+{"season":-160,"people":701,"living":701}
+{"season":-140,"people":983,"living":983}
+{"season":-120,"people":1154,"living":1148}
+{"season":-100,"people":1273,"living":1184}
+{"season":-80,"people":1375,"living":1166}
+{"season":-60,"people":1464,"living":1029}
+{"season":-40,"people":1562,"living":832}
+{"season":-20,"people":1666,"living":683}
+{"season":0,"people":1769,"living":613}
+{"label":"history-cpu-compact","cpuMs":290141.178,"ms":276933.52351,"memoryAfterGc":{"rss":1144229888,"heapTotal":838438912,"heapUsed":262284680,"external":4535907,"arrayBuffers":805742}}

@@ -150,8 +150,8 @@ the documented freeze of needs on the road.
 Nearby courtship reaches villages in the same hex and its six adjacent hexes.
 Those meetings and marriage moves are local life. They require no traveller
 trait and create no journey or transit record. A seasonal eligibility index
-supplies candidates by village. Distance weights favour the home village and
-hex. Marriage uses the existing housing, consent, dependent-child and ownership
+supplies candidates by village within the shared automatic family age window,
+18 to 55. Distance weights favour the home village and hex. Marriage uses the existing housing, consent, dependent-child and ownership
 rules. Compact history can build cottages within the eight-house village limit.
 
 In new worlds, a fixed seeded 5% of people are willing to make long journeys for company.

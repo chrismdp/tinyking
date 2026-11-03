@@ -1,0 +1,146 @@
+{
+  "runtimeCommit": "5a75b620b4c45ac03ee297f493492aaa1fe57540",
+  "controls": {
+    "seed": 13,
+    "seasons": 180,
+    "landCommunities": 40,
+    "detailedMaps": 4
+  },
+  "limitsPassed": {
+    "cpuSeconds": true,
+    "heapMB": true,
+    "living": true,
+    "births": true,
+    "marriages": true
+  },
+  "cpuSeconds": 251.885631,
+  "wallSeconds": 246.11485526299998,
+  "heapAfterGcMB": 238.872968,
+  "living": 570,
+  "births": 1483,
+  "marriages": 576,
+  "runtimeHashesMatchMeasurement": {
+    "nearby_courtship": true,
+    "social": true,
+    "news": true,
+    "social_actions": true,
+    "social_conditions": true,
+    "events": true,
+    "event_knowledge": true,
+    "travel": true,
+    "world_history": true,
+    "map": true,
+    "geography": true,
+    "villages": true
+  },
+  "equality": [
+    {
+      "kind": "history",
+      "left": "local-population-delivery",
+      "right": "history-cpu-indexed",
+      "fullStateEqual": true,
+      "leftCounts": {
+        "people": 1769,
+        "households": 218,
+        "events": 45628,
+        "communities": 40
+      },
+      "rightCounts": {
+        "people": 1769,
+        "households": 218,
+        "events": 45628,
+        "communities": 40
+      }
+    },
+    {
+      "kind": "game",
+      "left": "local-population-delivery",
+      "right": "history-cpu-indexed",
+      "fullStateEqual": true,
+      "leftCounts": {
+        "people": 1774,
+        "households": 218,
+        "events": 45635,
+        "communities": 40
+      },
+      "rightCounts": {
+        "people": 1774,
+        "households": 218,
+        "events": 45635,
+        "communities": 40
+      }
+    },
+    {
+      "kind": "history",
+      "left": "local-population-delivery",
+      "right": "history-cpu-compact",
+      "fullStateEqual": true,
+      "leftCounts": {
+        "people": 1769,
+        "households": 218,
+        "events": 45628,
+        "communities": 40
+      },
+      "rightCounts": {
+        "people": 1769,
+        "households": 218,
+        "events": 45628,
+        "communities": 40
+      }
+    },
+    {
+      "kind": "game",
+      "left": "local-population-delivery",
+      "right": "history-cpu-compact",
+      "fullStateEqual": true,
+      "leftCounts": {
+        "people": 1774,
+        "households": 218,
+        "events": 45635,
+        "communities": 40
+      },
+      "rightCounts": {
+        "people": 1774,
+        "households": 218,
+        "events": 45635,
+        "communities": 40
+      }
+    }
+  ],
+  "affected": {
+    "files": 127,
+    "tests": 1124,
+    "failed": 0
+  },
+  "populationFixAffected": {
+    "files": 132,
+    "tests": 1151,
+    "failed": 0
+  },
+  "build": {
+    "source": "5a75b620b4c45ac03ee297f493492aaa1fe57540",
+    "command": [
+      "flock",
+      "-w",
+      "7200",
+      "/tmp/27agents-gate-2.lock",
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "appCompilationMs": 21262,
+    "saveWorkerCompilationMs": 632,
+    "warnings": 3,
+    "log": "shots/history-cpu-build.log"
+  },
+  "canonical": {
+    "foreignPeople": [],
+    "duplicateResidents": [],
+    "aliasMismatches": [],
+    "perPersonEventIds": 0,
+    "redrawQueues": 0,
+    "preparedPersonRecords": 0,
+    "sharedKnowledge": true
+  }
+}

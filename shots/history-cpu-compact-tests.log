@@ -1,0 +1,7 @@
+
+Test Suites: 4 passed, 4 total
+Tests:       64 passed, 64 total
+Snapshots:   0 total
+Time:        5.749 s
+Ran all test suites within paths "test/nearby_courtship.test.js", "test/scoped_news.test.js", "test/gossip.test.js", "test/gossip_bubbles.test.js".
+Test results written to: shots/history-cpu-compact-tests.json

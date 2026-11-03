@@ -1,0 +1,65 @@
+{
+  "label": "history-cpu-family-window",
+  "demographics": {
+    "people": 1723,
+    "living": 570,
+    "types": {
+      "house_built": 207,
+      "founding": 35,
+      "marriage": 576,
+      "birth": 1483,
+      "harvest": 8418,
+      "quarrel": 3472,
+      "reconciliation": 3386,
+      "visit": 18888,
+      "departure": 630,
+      "world_visit": 331,
+      "romance": 352,
+      "move": 616,
+      "affair": 25,
+      "return": 290,
+      "world_move": 36,
+      "death": 1153,
+      "inheritance": 1143
+    },
+    "statuses": {
+      "general": 21611,
+      "public": 427,
+      "private": 19003
+    },
+    "marriages": {
+      "village": 293,
+      "hex": 260,
+      "adjacent": 23,
+      "distant": 0,
+      "unknown": 0
+    },
+    "travellers": 57,
+    "allMovers": 80,
+    "travellersBeyondAdjacent": 3,
+    "allDisplacedBeyondAdjacent": 3,
+    "bonds": 86603,
+    "crossHexBonds": 13736,
+    "knownAssociations": 1582492,
+    "explicitKnowers": 382772
+  },
+  "memory": {
+    "maps": 43544933,
+    "knowledge": 10940442,
+    "worldHistory": 0,
+    "events": 20987451,
+    "people": 8754105,
+    "preparedMaps": 4807342,
+    "activeEcs": 2394199,
+    "complete": 50590959
+  },
+  "canonical": {
+    "foreignPeople": [],
+    "duplicateResidents": [],
+    "aliasMismatches": [],
+    "perPersonEventIds": 0,
+    "redrawQueues": 0,
+    "preparedPersonRecords": 0,
+    "sharedKnowledge": true
+  }
+}

@@ -1,0 +1,888 @@
+{
+  "label": "history-cpu-contact3",
+  "seed": 13,
+  "node": "v22.23.4",
+  "cpu": "AMD EPYC 9354P 32-Core Processor",
+  "loadBefore": [
+    3.69,
+    3.44,
+    2.96
+  ],
+  "started": "2026-11-03T03:57:15.728Z",
+  "source": {
+    "nearby_courtship": "c702525e2347bff3b2b582ad64986583d196e2aba00303406101f1a1de2f488f",
+    "social": "b60dc7e5962e2aef86a3b1bacac03d432534e172bb22f53f7b28df741b0b9988",
+    "events": "7a5769452dd3f04523c574fcfe634356b92092fb1e06a9afde11aceb8db0c892",
+    "event_knowledge": "40f8bb5e26dd16a046501643e7eec856af35973eca9c7c5f5501ab0c06e201d6",
+    "travel": "26db48cdd557b824518be930462d1220faaac6e48d52b6424a664fa54fc13350",
+    "world_history": "9864b483d8d084d9664e273c32cee95df781bc06b94be406df453f607f3ccb73",
+    "map": "ce765243d29ec55f51024261ed334900e532996dd6a396d08be421cc55b79b8d",
+    "geography": "e862bcf43715c7641e7dc7c48de709eea1cf961b0b1ed3f255490ae777127941",
+    "villages": "6db852f2d72791ba4fbdb1174f4ed29dc3b805015e43f219512dae5af9c0f87d"
+  },
+  "runs": [
+    {
+      "name": "new",
+      "ms": 264588.24394099996,
+      "cpuMs": 265200.24,
+      "memory": {
+        "rss": 1071325184,
+        "heapTotal": 849604608,
+        "heapUsed": 314710696,
+        "external": 4701131,
+        "arrayBuffers": 1007994
+      },
+      "peakRssKiB": 1078952,
+      "stages": [
+        {
+          "label": "Preparing the whole world",
+          "ms": 0.12489099999993414
+        },
+        {
+          "label": "Surveying the world: 1 of 91",
+          "ms": 888.078947
+        },
+        {
+          "label": "Surveying the world: 2 of 91",
+          "ms": 888.0970769999999
+        },
+        {
+          "label": "Surveying the world: 3 of 91",
+          "ms": 888.1079970000001
+        },
+        {
+          "label": "Surveying the world: 4 of 91",
+          "ms": 888.1268370000003
+        },
+        {
+          "label": "Surveying the world: 5 of 91",
+          "ms": 888.132247
+        },
+        {
+          "label": "Surveying the world: 6 of 91",
+          "ms": 888.1379569999999
+        },
+        {
+          "label": "Surveying the world: 7 of 91",
+          "ms": 888.1437770000002
+        },
+        {
+          "label": "Surveying the world: 8 of 91",
+          "ms": 888.1490170000002
+        },
+        {
+          "label": "Surveying the world: 9 of 91",
+          "ms": 1462.2033619999997
+        },
+        {
+          "label": "Surveying the world: 10 of 91",
+          "ms": 1741.9399040000003
+        },
+        {
+          "label": "Surveying the world: 11 of 91",
+          "ms": 1741.9659539999998
+        },
+        {
+          "label": "Surveying the world: 12 of 91",
+          "ms": 1741.9720540000003
+        },
+        {
+          "label": "Surveying the world: 13 of 91",
+          "ms": 1741.9756840000005
+        },
+        {
+          "label": "Surveying the world: 14 of 91",
+          "ms": 2063.226481
+        },
+        {
+          "label": "Surveying the world: 15 of 91",
+          "ms": 2153.8351390000003
+        },
+        {
+          "label": "Surveying the world: 16 of 91",
+          "ms": 2153.863589
+        },
+        {
+          "label": "Surveying the world: 17 of 91",
+          "ms": 2153.8691700000004
+        },
+        {
+          "label": "Surveying the world: 18 of 91",
+          "ms": 2153.8728290000004
+        },
+        {
+          "label": "Surveying the world: 19 of 91",
+          "ms": 2153.8757090000004
+        },
+        {
+          "label": "Surveying the world: 20 of 91",
+          "ms": 2153.88006
+        },
+        {
+          "label": "Surveying the world: 21 of 91",
+          "ms": 2240.8415339999997
+        },
+        {
+          "label": "Surveying the world: 22 of 91",
+          "ms": 2457.060921
+        },
+        {
+          "label": "Surveying the world: 23 of 91",
+          "ms": 2838.8339
+        },
+        {
+          "label": "Surveying the world: 24 of 91",
+          "ms": 2838.8607100000004
+        },
+        {
+          "label": "Surveying the world: 25 of 91",
+          "ms": 2838.8674699999997
+        },
+        {
+          "label": "Surveying the world: 26 of 91",
+          "ms": 3385.4640919999997
+        },
+        {
+          "label": "Surveying the world: 27 of 91",
+          "ms": 3385.506932
+        },
+        {
+          "label": "Surveying the world: 28 of 91",
+          "ms": 3385.5132120000003
+        },
+        {
+          "label": "Surveying the world: 29 of 91",
+          "ms": 3621.1925850000002
+        },
+        {
+          "label": "Surveying the world: 30 of 91",
+          "ms": 3801.6872909999997
+        },
+        {
+          "label": "Surveying the world: 31 of 91",
+          "ms": 3816.4529239999997
+        },
+        {
+          "label": "Surveying the world: 32 of 91",
+          "ms": 3816.4692929999997
+        },
+        {
+          "label": "Surveying the world: 33 of 91",
+          "ms": 3816.494983
+        },
+        {
+          "label": "Surveying the world: 34 of 91",
+          "ms": 3816.502854
+        },
+        {
+          "label": "Surveying the world: 35 of 91",
+          "ms": 3816.507153
+        },
+        {
+          "label": "Surveying the world: 36 of 91",
+          "ms": 3816.634404
+        },
+        {
+          "label": "Surveying the world: 37 of 91",
+          "ms": 3816.6508740000004
+        },
+        {
+          "label": "Surveying the world: 38 of 91",
+          "ms": 3816.6561939999997
+        },
+        {
+          "label": "Surveying the world: 39 of 91",
+          "ms": 3816.674834
+        },
+        {
+          "label": "Surveying the world: 40 of 91",
+          "ms": 3825.774871
+        },
+        {
+          "label": "Surveying the world: 41 of 91",
+          "ms": 4026.5082850000003
+        },
+        {
+          "label": "Surveying the world: 42 of 91",
+          "ms": 4497.221761000001
+        },
+        {
+          "label": "Surveying the world: 43 of 91",
+          "ms": 4924.396659
+        },
+        {
+          "label": "Surveying the world: 44 of 91",
+          "ms": 5189.039768000001
+        },
+        {
+          "label": "Surveying the world: 45 of 91",
+          "ms": 5471.411601
+        },
+        {
+          "label": "Surveying the world: 46 of 91",
+          "ms": 5905.089526
+        },
+        {
+          "label": "Surveying the world: 47 of 91",
+          "ms": 6061.258739999999
+        },
+        {
+          "label": "Surveying the world: 48 of 91",
+          "ms": 6061.283229999999
+        },
+        {
+          "label": "Surveying the world: 49 of 91",
+          "ms": 6061.287329999999
+        },
+        {
+          "label": "Surveying the world: 50 of 91",
+          "ms": 6305.2983
+        },
+        {
+          "label": "Surveying the world: 51 of 91",
+          "ms": 6530.213873999999
+        },
+        {
+          "label": "Surveying the world: 52 of 91",
+          "ms": 6663.049589999999
+        },
+        {
+          "label": "Surveying the world: 53 of 91",
+          "ms": 6663.061969
+        },
+        {
+          "label": "Surveying the world: 54 of 91",
+          "ms": 6663.066048999999
+        },
+        {
+          "label": "Surveying the world: 55 of 91",
+          "ms": 6663.0692
+        },
+        {
+          "label": "Surveying the world: 56 of 91",
+          "ms": 6663.07143
+        },
+        {
+          "label": "Surveying the world: 57 of 91",
+          "ms": 6663.073709999999
+        },
+        {
+          "label": "Surveying the world: 58 of 91",
+          "ms": 7036.864841999999
+        },
+        {
+          "label": "Surveying the world: 59 of 91",
+          "ms": 7036.892711999999
+        },
+        {
+          "label": "Surveying the world: 60 of 91",
+          "ms": 7036.898992
+        },
+        {
+          "label": "Surveying the world: 61 of 91",
+          "ms": 7036.902431999999
+        },
+        {
+          "label": "Surveying the world: 62 of 91",
+          "ms": 7036.905461999999
+        },
+        {
+          "label": "Surveying the world: 63 of 91",
+          "ms": 7036.9095720000005
+        },
+        {
+          "label": "Surveying the world: 64 of 91",
+          "ms": 7036.913801999999
+        },
+        {
+          "label": "Surveying the world: 65 of 91",
+          "ms": 7036.917712
+        },
+        {
+          "label": "Surveying the world: 66 of 91",
+          "ms": 7131.897733
+        },
+        {
+          "label": "Surveying the world: 67 of 91",
+          "ms": 7209.657379999999
+        },
+        {
+          "label": "Surveying the world: 68 of 91",
+          "ms": 7290.468929999999
+        },
+        {
+          "label": "Surveying the world: 69 of 91",
+          "ms": 7365.8723549999995
+        },
+        {
+          "label": "Surveying the world: 70 of 91",
+          "ms": 7393.88312
+        },
+        {
+          "label": "Surveying the world: 71 of 91",
+          "ms": 7481.825155
+        },
+        {
+          "label": "Surveying the world: 72 of 91",
+          "ms": 7565.496976999999
+        },
+        {
+          "label": "Surveying the world: 73 of 91",
+          "ms": 7646.408637999999
+        },
+        {
+          "label": "Surveying the world: 74 of 91",
+          "ms": 7649.20775
+        },
+        {
+          "label": "Surveying the world: 75 of 91",
+          "ms": 7649.224609999999
+        },
+        {
+          "label": "Surveying the world: 76 of 91",
+          "ms": 7649.22752
+        },
+        {
+          "label": "Surveying the world: 77 of 91",
+          "ms": 7659.921098999999
+        },
+        {
+          "label": "Surveying the world: 78 of 91",
+          "ms": 7676.604003
+        },
+        {
+          "label": "Surveying the world: 79 of 91",
+          "ms": 7749.992537
+        },
+        {
+          "label": "Surveying the world: 80 of 91",
+          "ms": 7754.386269999999
+        },
+        {
+          "label": "Surveying the world: 81 of 91",
+          "ms": 7754.399590999999
+        },
+        {
+          "label": "Surveying the world: 82 of 91",
+          "ms": 7754.402461
+        },
+        {
+          "label": "Surveying the world: 83 of 91",
+          "ms": 7754.409061
+        },
+        {
+          "label": "Surveying the world: 84 of 91",
+          "ms": 7754.411881
+        },
+        {
+          "label": "Surveying the world: 85 of 91",
+          "ms": 7754.414261
+        },
+        {
+          "label": "Surveying the world: 86 of 91",
+          "ms": 7814.123851999999
+        },
+        {
+          "label": "Surveying the world: 87 of 91",
+          "ms": 7828.582374
+        },
+        {
+          "label": "Surveying the world: 88 of 91",
+          "ms": 7927.040579
+        },
+        {
+          "label": "Surveying the world: 89 of 91",
+          "ms": 7935.064816
+        },
+        {
+          "label": "Surveying the world: 90 of 91",
+          "ms": 7935.086576
+        },
+        {
+          "label": "Surveying the world: 91 of 91",
+          "ms": 7935.092355999999
+        },
+        {
+          "label": "Forty-five years of world history: year 1",
+          "ms": 8087.399647
+        },
+        {
+          "label": "Forty-five years of world history: year 2",
+          "ms": 8593.719845
+        },
+        {
+          "label": "Forty-five years of world history: year 3",
+          "ms": 8960.43522
+        },
+        {
+          "label": "Forty-five years of world history: year 4",
+          "ms": 9582.369647
+        },
+        {
+          "label": "Forty-five years of world history: year 5",
+          "ms": 10489.138488999999
+        },
+        {
+          "label": "Forty-five years of world history: year 6",
+          "ms": 11510.20304
+        },
+        {
+          "label": "Forty-five years of world history: year 7",
+          "ms": 12906.097843
+        },
+        {
+          "label": "Forty-five years of world history: year 8",
+          "ms": 14340.212720000001
+        },
+        {
+          "label": "Forty-five years of world history: year 9",
+          "ms": 16118.586802
+        },
+        {
+          "label": "Forty-five years of world history: year 10",
+          "ms": 19091.869404
+        },
+        {
+          "label": "Forty-five years of world history: year 11",
+          "ms": 21795.961004
+        },
+        {
+          "label": "Forty-five years of world history: year 12",
+          "ms": 24385.506794
+        },
+        {
+          "label": "Forty-five years of world history: year 13",
+          "ms": 27560.151338
+        },
+        {
+          "label": "Forty-five years of world history: year 14",
+          "ms": 31464.56338
+        },
+        {
+          "label": "Forty-five years of world history: year 15",
+          "ms": 35907.560425
+        },
+        {
+          "label": "Forty-five years of world history: year 16",
+          "ms": 39717.336313
+        },
+        {
+          "label": "Forty-five years of world history: year 17",
+          "ms": 43781.165249
+        },
+        {
+          "label": "Forty-five years of world history: year 18",
+          "ms": 49710.590587
+        },
+        {
+          "label": "Forty-five years of world history: year 19",
+          "ms": 54475.284322
+        },
+        {
+          "label": "Forty-five years of world history: year 20",
+          "ms": 59505.270084
+        },
+        {
+          "label": "Forty-five years of world history: year 21",
+          "ms": 64790.017554000005
+        },
+        {
+          "label": "Forty-five years of world history: year 22",
+          "ms": 70212.39987000001
+        },
+        {
+          "label": "Forty-five years of world history: year 23",
+          "ms": 75521.076586
+        },
+        {
+          "label": "Forty-five years of world history: year 24",
+          "ms": 81164.822328
+        },
+        {
+          "label": "Forty-five years of world history: year 25",
+          "ms": 87061.959926
+        },
+        {
+          "label": "Forty-five years of world history: year 26",
+          "ms": 93030.606893
+        },
+        {
+          "label": "Forty-five years of world history: year 27",
+          "ms": 99084.306521
+        },
+        {
+          "label": "Forty-five years of world history: year 28",
+          "ms": 106505.794557
+        },
+        {
+          "label": "Forty-five years of world history: year 29",
+          "ms": 114184.464052
+        },
+        {
+          "label": "Forty-five years of world history: year 30",
+          "ms": 121635.895148
+        },
+        {
+          "label": "Forty-five years of world history: year 31",
+          "ms": 129260.935221
+        },
+        {
+          "label": "Forty-five years of world history: year 32",
+          "ms": 136988.16093699998
+        },
+        {
+          "label": "Forty-five years of world history: year 33",
+          "ms": 144564.12086999998
+        },
+        {
+          "label": "Forty-five years of world history: year 34",
+          "ms": 152146.96871699998
+        },
+        {
+          "label": "Forty-five years of world history: year 35",
+          "ms": 159573.820238
+        },
+        {
+          "label": "Forty-five years of world history: year 36",
+          "ms": 172541.85627199998
+        },
+        {
+          "label": "Forty-five years of world history: year 37",
+          "ms": 185450.373608
+        },
+        {
+          "label": "Forty-five years of world history: year 38",
+          "ms": 194457.430122
+        },
+        {
+          "label": "Forty-five years of world history: year 39",
+          "ms": 201707.889417
+        },
+        {
+          "label": "Forty-five years of world history: year 40",
+          "ms": 208743.068526
+        },
+        {
+          "label": "Forty-five years of world history: year 41",
+          "ms": 215707.41413299998
+        },
+        {
+          "label": "Forty-five years of world history: year 42",
+          "ms": 222700.698152
+        },
+        {
+          "label": "Forty-five years of world history: year 43",
+          "ms": 231382.52216599998
+        },
+        {
+          "label": "Forty-five years of world history: year 44",
+          "ms": 238349.409747
+        },
+        {
+          "label": "Forty-five years of world history: year 45",
+          "ms": 245735.40140399997
+        },
+        {
+          "label": "Shaping the land",
+          "ms": 251892.652473
+        },
+        {
+          "label": "Finding fertile ground",
+          "ms": 251934.005378
+        },
+        {
+          "label": "Founding villages",
+          "ms": 252130.78859399998
+        },
+        {
+          "label": "Finding paths through the land",
+          "ms": 252717.441203
+        },
+        {
+          "label": "Planting forests",
+          "ms": 254711.826246
+        },
+        {
+          "label": "Building the remembered households",
+          "ms": 255662.298223
+        },
+        {
+          "label": "Ready to arrive",
+          "ms": 257381.691393
+        },
+        {
+          "label": "Preparing nearby lands: Shaping the land",
+          "ms": 257414.526121
+        },
+        {
+          "label": "Preparing nearby lands: Finding fertile ground",
+          "ms": 257433.855687
+        },
+        {
+          "label": "Preparing nearby lands: Founding villages",
+          "ms": 257561.14964599998
+        },
+        {
+          "label": "Preparing nearby lands: Finding paths through the land",
+          "ms": 257804.98812199998
+        },
+        {
+          "label": "Preparing nearby lands: Planting forests",
+          "ms": 261205.085239
+        },
+        {
+          "label": "Preparing nearby lands: Building the remembered households",
+          "ms": 261859.931265
+        },
+        {
+          "label": "Preparing nearby lands: Ready to arrive",
+          "ms": 262388.782914
+        },
+        {
+          "label": "Preparing nearby lands: Shaping the land",
+          "ms": 262397.23443099996
+        },
+        {
+          "label": "Preparing nearby lands: Founding villages",
+          "ms": 262411.750903
+        },
+        {
+          "label": "Preparing nearby lands: Finding paths through the land",
+          "ms": 262411.90002299997
+        },
+        {
+          "label": "Preparing nearby lands: Planting forests",
+          "ms": 262529.484223
+        },
+        {
+          "label": "Preparing nearby lands: Building the remembered households",
+          "ms": 262758.864208
+        },
+        {
+          "label": "Preparing nearby lands: Ready to arrive",
+          "ms": 262790.22137399996
+        },
+        {
+          "label": "Preparing nearby lands: Shaping the land",
+          "ms": 262795.222159
+        },
+        {
+          "label": "Preparing nearby lands: Founding villages",
+          "ms": 262808.20450999995
+        },
+        {
+          "label": "Preparing nearby lands: Finding paths through the land",
+          "ms": 262808.417409
+        },
+        {
+          "label": "Preparing nearby lands: Planting forests",
+          "ms": 263703.60264000006
+        },
+        {
+          "label": "Preparing nearby lands: Building the remembered households",
+          "ms": 264315.704579
+        },
+        {
+          "label": "Preparing nearby lands: Ready to arrive",
+          "ms": 264391.29167299997
+        }
+      ],
+      "functions": {
+        "travel.js:publish": {
+          "calls": 37672,
+          "ms": 12921.627789999886,
+          "cpuMs": 12830.250000000768,
+          "selfMs": 12921.627789999886,
+          "selfCpuMs": 12830.250000000768
+        },
+        "travel.js:reconcileEstates": {
+          "calls": 7750,
+          "ms": 1589.2606290003841,
+          "cpuMs": 1505.2769999999216,
+          "selfMs": 1576.720852000415,
+          "selfCpuMs": 1492.8199999999229
+        },
+        "travel.js:references": {
+          "calls": 15647,
+          "ms": 730.1682820006754,
+          "cpuMs": 744.2209999999806,
+          "selfMs": 730.1682820006754,
+          "selfCpuMs": 744.2209999999806
+        },
+        "social_actions.js:runSocialActions": {
+          "calls": 418961,
+          "ms": 23671.196211999268,
+          "cpuMs": 24368.279999996194,
+          "selfMs": 23671.196211999268,
+          "selfCpuMs": 24368.279999996194
+        },
+        "social_actions.js:runSeasonSocialActions": {
+          "calls": 7707,
+          "ms": 7727.205628999869,
+          "cpuMs": 8057.159000000575,
+          "selfMs": 863.1221179994136,
+          "selfCpuMs": 802.1779999999544
+        },
+        "news.js:listenerNewsScore": {
+          "calls": 228237,
+          "ms": 47754.73535600232,
+          "cpuMs": 47276.17199999996,
+          "selfMs": 47754.73535600232,
+          "selfCpuMs": 47276.17199999996
+        },
+        "news.js:chooseNews": {
+          "calls": 174420,
+          "ms": 87828.52343399927,
+          "cpuMs": 86648.85100000049,
+          "selfMs": 87828.52343399927,
+          "selfCpuMs": 86648.85100000049
+        },
+        "news.js:exchangeNews": {
+          "calls": 87210,
+          "ms": 101191.9754180007,
+          "cpuMs": 99507.12399999906,
+          "selfMs": 13363.451984001427,
+          "selfCpuMs": 12858.273000000054
+        },
+        "social.js:advanceSeasonRules": {
+          "calls": 7707,
+          "ms": 144471.3850319995,
+          "cpuMs": 143254.96500000003,
+          "selfMs": 11704.755803998314,
+          "selfCpuMs": 11620.360999999813
+        },
+        "nearby_courtship.js:createCourtshipIndex": {
+          "calls": 180,
+          "ms": 275.8104199999416,
+          "cpuMs": 285.996,
+          "selfMs": 275.8104199999416,
+          "selfCpuMs": 285.996
+        },
+        "nearby_courtship.js:runNearbyCourtships": {
+          "calls": 180,
+          "ms": 83075.49790099992,
+          "cpuMs": 82451.53300000001,
+          "selfMs": 31814.452028998774,
+          "selfCpuMs": 31743.103999999985
+        },
+        "travel.js:advanceWorldClock": {
+          "calls": 181,
+          "ms": 243533.22753599996,
+          "cpuMs": 242210.2060000001,
+          "selfMs": 11051.319485000284,
+          "selfCpuMs": 11564.550000000118
+        },
+        "world_history.js:generateWorldHistory": {
+          "calls": 1,
+          "ms": 250687.03222700002,
+          "cpuMs": 249310.184,
+          "selfMs": 7155.093332000048,
+          "selfCpuMs": 7101.214999999909
+        },
+        "map.js:generateTerrain": {
+          "calls": 4,
+          "ms": 76.13548299999093,
+          "cpuMs": 95.35600000000001,
+          "selfMs": 76.13548299999093,
+          "selfCpuMs": 95.35600000000001
+        },
+        "map.js:generateEconomicValue": {
+          "calls": 2,
+          "ms": 324.7803759999806,
+          "cpuMs": 318.39,
+          "selfMs": 324.7803759999806,
+          "selfCpuMs": 318.39
+        },
+        "map.js:generateSettlements": {
+          "calls": 4,
+          "ms": 829.1788350000279,
+          "cpuMs": 903.112,
+          "selfMs": 829.1788350000279,
+          "selfCpuMs": 903.112
+        },
+        "geography.js:gradeRoads": {
+          "calls": 58,
+          "ms": 3652.2537489999377,
+          "cpuMs": 4675.615000000001,
+          "selfMs": 3652.2537489999377,
+          "selfCpuMs": 4675.615000000001
+        },
+        "geography.js:buildGeography": {
+          "calls": 4,
+          "ms": 6063.797518000036,
+          "cpuMs": 7135.304,
+          "selfMs": 2411.543769000098,
+          "selfCpuMs": 2459.6889999999994
+        },
+        "map.js:surveyTrees": {
+          "calls": 7,
+          "ms": 1241.9818069999455,
+          "cpuMs": 1346.24,
+          "selfMs": 1241.9818069999455,
+          "selfCpuMs": 1346.24
+        },
+        "map.js:generateTrees": {
+          "calls": 12,
+          "ms": 1130.8976850000909,
+          "cpuMs": 1253.4260000000002,
+          "selfMs": 445.82803100012825,
+          "selfCpuMs": 475.38000000000005
+        },
+        "world_history.js:installStoredHistory": {
+          "calls": 4,
+          "ms": 975.651148999983,
+          "cpuMs": 1125.6019999999999,
+          "selfMs": 975.651148999983,
+          "selfCpuMs": 1125.6019999999999
+        },
+        "villages.js:generateVillageLife": {
+          "calls": 4,
+          "ms": 1201.7095499999705,
+          "cpuMs": 1500.213,
+          "selfMs": 1201.7095499999705,
+          "selfCpuMs": 1500.213
+        },
+        "ecology.js:initializeEcology": {
+          "calls": 4,
+          "ms": 93.17387800003053,
+          "cpuMs": 112.12200000000001,
+          "selfMs": 93.17387800003053,
+          "selfCpuMs": 112.12200000000001
+        },
+        "ecology.js:generateForage": {
+          "calls": 12,
+          "ms": 42.56612399997539,
+          "cpuMs": 53.631,
+          "selfMs": 42.56612399997539,
+          "selfCpuMs": 53.631
+        },
+        "map.js:generateMap": {
+          "calls": 4,
+          "ms": 12452.638371000037,
+          "cpuMs": 14370.435000000001,
+          "selfMs": 1157.835619999969,
+          "selfCpuMs": 1305.0850000000012
+        },
+        "world_history.js:buildHistoryMap": {
+          "calls": 4,
+          "ms": 12456.057593000005,
+          "cpuMs": 14373.828000000001,
+          "selfMs": 3.4192219999677036,
+          "selfCpuMs": 3.393000000000143
+        }
+      }
+    }
+  ],
+  "memoryAfterGc": {
+    "rss": 1066053632,
+    "heapTotal": 728862720,
+    "heapUsed": 249595624,
+    "external": 4701150,
+    "arrayBuffers": 831854
+  },
+  "loadAfter": [
+    4.08,
+    3.59,
+    3.13
+  ]
+}

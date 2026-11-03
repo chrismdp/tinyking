@@ -1,0 +1,18 @@
+{
+  "kind": "history",
+  "left": "local-population-delivery",
+  "right": "history-cpu-indexed",
+  "fullStateEqual": true,
+  "leftCounts": {
+    "people": 1769,
+    "households": 218,
+    "events": 45628,
+    "communities": 40
+  },
+  "rightCounts": {
+    "people": 1769,
+    "households": 218,
+    "events": 45628,
+    "communities": 40
+  }
+}

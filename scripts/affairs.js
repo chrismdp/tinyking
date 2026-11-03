@@ -2,44 +2,50 @@
 // Seeded history + four-week measurement, adapted from the supplied probe.
 require("./game-register");
 const fs=require("fs");
-const { generateMap }=require("../src/game/map");
+const { generateWorldGame }=require("../src/game/world_history");
+const { knowsEvent, personHex }=require("../src/game/event_knowledge");
+const { personComponent }=require("../src/game/residents");
 const { createSimulation }=require("../src/game/simulation");
 const { startIntro }=require("../src/game/intro");
 const { closeChat }=require("../src/game/chat");
 const { closeFamily }=require("../src/game/social_kin");
-const { serialiseGame,restoreGame }=require("../src/game/save_game");
+const { serialiseGame,restoreGame,replaceGame }=require("../src/game/save_game");
 
 function report(s,label) {
-  const affairs=s.events.filter(e=>e.type=="affair"),found=s.events.filter(e=>e.type=="found_out");
-  const knowers=id=>Object.entries(s.knowledge||{}).filter(([,k])=>(k.events||[]).includes(id)).map(([p])=>p);
+  const events=Object.values(s.travel?.events||Object.fromEntries(s.events.map(e=>[e.id,e]))),people=Object.keys(s.travel?.people||s.ecs.personable);
+  // Include active events not yet published at the next world-clock boundary.
+  for(const event of s.events)if(!events.some(e=>e.id===event.id))events.push(event);
+  const affairs=events.filter(e=>e.type=="affair"),found=events.filter(e=>e.type=="found_out");
+  const knowers=id=>{const event=events.find(e=>e.id===id);return people.filter(p=>knowsEvent(s,p,event));};
   const rows=affairs.map(e=>{
     const known=knowers(e.id),outsiders=known.filter(p=>!e.people.includes(p));
     const spouses=e.affected?.map(p=>p.personId)||e.people.map(p=>s.ecs.kinship?.[p]?.spouse).filter(p=>p&&!e.people.includes(p));
     return {id:e.id,people:e.people,day:e.day,knowers:known.length,outsiders:outsiders.length,spouseKnows:spouses.some(sp=>known.includes(sp)),
       kinKnow:outsiders.filter(o=>e.people.some(p=>closeFamily(s,p).includes(o))).length,
-      how:Object.fromEntries(outsiders.map(o=>[o,s.knowledge[o].discoveries?.[e.id]?.kind||"?"]))};
+      how:Object.fromEntries(outsiders.map(o=>[o,s.knowledge[o]?.discoveries?.[e.id]?.kind||"?"]))};
   });
   const route=e=>s.knowledge[e.people[0]]?.discoveries?.[e.causeEventId]?.kind;
-  console.log(label,JSON.stringify({day:s.days,affairs:affairs.length,activeAffairs:affairs.filter(e=>active(s,e)).length,
-    withOutsiders:rows.filter(r=>r.outsiders).length,spouseKnows:rows.filter(r=>r.spouseKnows).length,
-    spousesLearned:found.length,spouseRoutes:Object.fromEntries(["witness","heard"].map(kind=>[kind,found.filter(e=>route(e)==kind).length])),
-    meetings:s.events.filter(e=>e.type=="affair_meeting"&&!e.summary).length,historySightings:s.events.filter(e=>e.type=="affair_meeting"&&e.summary).length,
-    discoveryQuarrels:s.events.filter(e=>e.type=="quarrel"&&e.reason=="affair_discovery").length,
-    foundOut:found.map(e=>({id:e.id,people:e.people,causeEventId:e.causeEventId,route:route(e),knowers:knowers(e.id).length})),rows}));
+  console.log(label,JSON.stringify({seed:+(process.argv[2]||13),day:s.days,affairs:affairs.length,activeAffairs:affairs.filter(e=>active(s,e)).length,
+    withOutsiders:rows.filter(r=>r.outsiders).length,whollySecret:rows.filter(r=>!r.outsiders).length,discoveredAffairs:affairs.filter(e=>found.some(f=>f.causeEventId===e.id)).length,spouseKnows:rows.filter(r=>r.spouseKnows).length,
+    spousesLearned:found.length,spouseRoutes:Object.fromEntries(["witness","heard","general"].map(kind=>[kind,found.filter(e=>route(e)==kind).length])),
+    meetings:events.filter(e=>e.type=="affair_meeting"&&!e.summary).length,historySightings:events.filter(e=>e.type=="affair_meeting"&&e.summary).length,
+    discoveryQuarrels:events.filter(e=>e.type=="quarrel"&&e.reason=="affair_discovery").length,
+    foundOut:found.map(e=>({id:e.id,people:e.people,causeEventId:e.causeEventId,route:route(e),awareness:e.awareness,knowers:knowers(e.id).length,audience:knowers(e.id).map(id=>({id,hex:personHex(s,id),village:personComponent(s,"village",id)?.villageId,dead:!!personComponent(s,"personable",id)?.dead}))})),rows}));
 }
 const active=(s,e)=>e.people.every(p=>!s.ecs.personable[p]?.dead)&&s.ecs.kinship[e.people[0]]?.spouse!=e.people[1];
 (async()=>{
   const seed=+(process.argv[2]||13),days=+(process.argv[3]||28);
   let s;
-  if(process.env.AFFAIRS_RESUME)s=restoreGame(fs.readFileSync(process.env.AFFAIRS_RESUME,"utf8"));
+  if(process.env.AFFAIRS_V8) {s={};replaceGame(s,require("v8").deserialize(fs.readFileSync(process.env.AFFAIRS_V8)));}
+  else if(process.env.AFFAIRS_RESUME)s=restoreGame(fs.readFileSync(process.env.AFFAIRS_RESUME,"utf8"));
   else {
     s={ecs:{nextId:1},space:{},ui:{show:{}},redraws:[],days:.375,game_speed:"normal"};
-    await generateMap(s,seed,async()=>{}).then(r=>{s.map=r.map;s.ui.playerId=r.playerId;});
+    await generateWorldGame(s,seed,async()=>{}).then(r=>{s.map=r.map;s.ui.playerId=r.playerId;});
   }
   report(s,"after-history");
   if(process.env.AFFAIRS_SNAPSHOT)fs.writeFileSync(process.env.AFFAIRS_SNAPSHOT,serialiseGame(s));
   if(process.argv.includes("--history-only"))return;
-  startIntro(s,{skip:true});
+  if(!process.env.AFFAIRS_V8)startIntro(s,{skip:true});
   const sim=createSimulation(s),costs=[],activeCosts=[],start=s.days;
   let progressDay=Math.floor(s.days),affairs=s.events.filter(e=>e.type=="affair");
   for(let i=0;s.days<days+.4;i++) {

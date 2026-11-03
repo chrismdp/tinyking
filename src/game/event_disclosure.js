@@ -1,3 +1,4 @@
+import { eventById } from "game/events";
 import TYPES from "data/event_types.json";
 import { conditions } from "game/social_conditions";
 import { eventParticipants, eventRoles, affectedParties, affectedBindings } from "game/event_roles";
@@ -5,7 +6,7 @@ import { eventParticipants, eventRoles, affectedParties, affectedBindings } from
 export function disclosureEvent(s,event) {
   if(event?.sealed)return event;
   const via=TYPES[event?.type]?.disclosure?.via;
-  return via ? s.events?.find(e=>e.id==event[via]) : event;
+  return via ? eventById(s,event[via]) : event;
 }
 
 // Rules name both ends of a disclosure. An affected audience is exclusive:

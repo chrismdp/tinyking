@@ -54,3 +54,48 @@ it.each(["friend","betrayed kin","lover kin"])("applies %s knock-ons once when f
   learnEvent(s,learner,found);learnEvent(s,learner,event);
   expect(JSON.stringify(s.ecs.relationships)).toBe(before);
 });
+
+it("discovers an affected resident in the third village when news becomes public in the hex",()=>{
+  const {state:s,person:a,sibling:b,parent:spouse,player}=fixture();
+  const extras=newEntities(s,Array.from({length:4},()=>({personable:{age:25},village:{villageId:"second"},kinship:{parents:[],children:[],spouse:null},relationships:{known:{}}})));
+  for(const id of [a,b,player])s.ecs.village[id].villageId="first";
+  s.ecs.village[spouse].villageId="third";s.ecs.village[extras[3]].villageId="third";
+  const event=recordEvent(s,"affair",[a,b]);
+  learnEvent(s,player,event);
+  expect(event.awareness.villages).toEqual(["first"]);
+  expect(knownEvents(s,spouse)).not.toContain(event);
+  for(const id of extras.slice(0,3))learnEvent(s,id,event);
+  expect(event.awareness.hexes).toEqual(["home"]);
+  expect(s.events.filter(e=>e.type==="found_out"&&e.people[0]===spouse)).toHaveLength(1);
+  const before=JSON.stringify(s.ecs.relationships);
+  for(const id of [spouse,...extras])learnEvent(s,id,event);
+  expect(JSON.stringify(s.ecs.relationships)).toBe(before);
+});
+
+it("uses the carried source account for disclosure and discovery when it is absent from local event history",()=>{
+  const {state:s,person:a,sibling:b,parent:spouse,player:friend}=fixture();
+  const source=recordEvent(s,"affair",[a,b]);
+  const meeting=recordEvent(s,"affair_meeting",[a,b],[],{causeEventId:source.id,summary:true});
+  s.ecs.relationships[a].known[friend]={ring:"intimate",goodwill:66};
+  s.travel={events:Object.fromEntries(s.events.map(e=>[e.id,e]))};
+  s.events=s.events.filter(e=>e!==source);
+  const {canDiscloseEvent}=require("game/people");
+  expect(canDiscloseEvent(s,a,friend,meeting)).toBe(true);
+  learnEvent(s,spouse,meeting,"witness");
+  expect(knownEvents(s,spouse)).toContain(source);
+  expect(s.events.filter(e=>e.type==="found_out"&&e.causeEventId===source.id)).toHaveLength(1);
+});
+
+it("carries news to a captured affected party after their household and spouse change",()=>{
+  const {state:s,person:a,sibling:b,parent:spouse,player:teller}=fixture();
+  const event=recordEvent(s,"affair",[a,b]);
+  s.ecs.kinship[a].spouse=null;s.ecs.kinship[spouse].spouse=null;
+  s.ecs.village[spouse].villageId="away";
+  s.ecs.relationships[teller].known[a]={ring:"public",goodwill:0};
+  s.ecs.relationships[spouse].known[teller]={ring:"personal",goodwill:36};
+  learnEvent(s,teller,event,"witness");
+  const {chooseNews,tellNews}=require("game/news");
+  expect(chooseNews(s,teller,spouse)).toBe(event);
+  tellNews(s,teller,spouse,event,"test");
+  expect(s.events.filter(e=>e.type==="found_out"&&e.people[0]===spouse)).toHaveLength(1);
+});

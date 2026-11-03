@@ -503,7 +503,7 @@ export function canDiscloseEvent(state, speaker, viewer, event, families) {
   event=disclosureEvent(state,event);
   const rule=EVENT_TYPES[event?.type]?.disclosure;
   if(!rule || event?.sealed)return false;
-  if(account.awareness && (!knowsEvent(state,speaker,account) || !relevantEvent(state,viewer,account,families)))return false;
+  if(account.awareness && (!knowsEvent(state,speaker,account) || !relevantEvent(state,viewer,event,families)))return false;
   const rank=(from,to)=>Math.max(0,RINGS.indexOf(personComponent(state,"relationships",from)?.known[to]?.ring));
   const trust=rank(speaker,viewer),family=rule.family;
   const route=disclosureRoute(state,event,speaker,viewer);

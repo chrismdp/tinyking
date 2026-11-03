@@ -8,10 +8,11 @@ import { residentPeople, villagePeople } from "game/population_index";
 const indexes=new WeakMap(),scopeCaches=new WeakMap();
 function storyKey(index,event) {
   if(index.storyKeys.has(event))return index.storyKeys.get(event);
-  const signature=[event.type,...event.people,event.villageId,event.hexKey].join(":");
+  const subjects=[...new Set([...event.people,...(event.affected||[]).map(p=>p.personId)])];
+  const signature=[event.type,...subjects,event.villageId,event.hexKey].join(":");
   if(!index.storySignatures.has(signature)) {
     index.storySignatures.set(signature,signature);
-    index.storyRoutes.set(signature,{people:event.people,village:event.villageId,hex:event.hexKey,
+    index.storyRoutes.set(signature,{people:subjects,village:event.villageId,hex:event.hexKey,
       relevance:TYPES[event.type]?.relevance||["affected"]});
   }
   const key=index.storySignatures.get(signature);index.storyKeys.set(event,key);
@@ -59,7 +60,7 @@ function indexEventInto(index,event) {
   const a=event.awareness;if(!a)return;
   if(!index.events.has(event.id)) {
     if(event.type==="death" && index.dead(event.people[0])){index.privateStories.delete(event.people[0]);index.privateCandidates.delete(event.people[0]);}
-    for(const id of event.people)add(index.subjects,id,event);
+    for(const id of new Set([...event.people,...(event.affected||[]).map(p=>p.personId)]))add(index.subjects,id,event);
     const relevance=TYPES[event.type]?.relevance||[];
     if(relevance.includes("village"))add(index.villageNews,event.villageId,event);
     if(relevance.includes("hex"))add(index.hexNews,event.hexKey,event);
@@ -118,7 +119,7 @@ export function knowsEvent(s,id,event) {
 export function relevantEvent(s,id,event,families) {
   if(!event.awareness)return true;
   const relevance=TYPES[event.type]?.relevance || ["affected"];
-  if(event.people.includes(id))return true;
+  if(event.people.includes(id) || event.affected?.some(p=>p.personId===id))return true;
   if(relevance.includes("village") && villageOf(s,id)===event.villageId)return true;
   if(relevance.includes("hex") && personHex(s,id)===event.hexKey)return true;
   if(relevance.includes("kin")) {

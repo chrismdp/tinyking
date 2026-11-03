@@ -3,6 +3,7 @@ import { eventRoles, affectedParties } from "game/event_roles";
 import { conditions } from "game/social_conditions";
 import { hashUnit } from "game/math";
 import { recordEvent } from "game/events";
+import { villagePeople, householdMembers } from "game/population_index";
 import { isResident } from "game/residents";
 
 const indexes=new WeakMap();
@@ -31,6 +32,7 @@ export function recordActivity(s,event,rules,details={}) {
 // Summary seasons have no positions. The eligible audience and weights come
 // from the same activity data; no arriving player is an invented witness.
 export function historySecretActivities(s,ids,season,overrides={}) {
+  const order=new Map(ids.map((id,i)=>[id,i]));
   for(const {event,activityId,rules,people} of activeSecretActivities(s,ids)) {
     const progress=activityProgress(s,event,activityId),rates={...rules.history,...overrides[activityId]};
     if(progress.lastHistorySeason===season)continue;
@@ -40,7 +42,11 @@ export function historySecretActivities(s,ids,season,overrides={}) {
     const homes=new Set(people.map(id=>s.ecs.household?.[id]?.houseId).filter(Boolean));
     const villages=new Set(people.map(id=>s.ecs.village?.[id]?.villageId).filter(v=>v!=null));
     const affected=new Set(affectedParties(s,event).map(p=>p.personId));
-    const pool=ids.filter(id=>!people.includes(id) && !s.ecs.playable?.[id] && !s.ecs.personable[id]?.dead && isResident(s,id) &&
+    const neighbours=new Set([
+      ...(rates.sameHousehold?[...homes].flatMap(h=>householdMembers(s,h)):[]),
+      ...(rates.sameVillage?[...villages].flatMap(v=>villagePeople(s,v)):[])
+    ]);
+    const pool=[...neighbours].filter(id=>order.has(id)).sort((a,b)=>order.get(a)-order.get(b)).filter(id=>!people.includes(id) && !s.ecs.playable?.[id] && !s.ecs.personable[id]?.dead && isResident(s,id) &&
       (rates.sameHousehold && homes.has(s.ecs.household?.[id]?.houseId) || rates.sameVillage && villages.has(s.ecs.village?.[id]?.villageId)))
       .map(id=>({id,weight:affected.has(id)?rates.affectedWeight:homes.has(s.ecs.household?.[id]?.houseId)?rates.housemateWeight:1}));
     let roll=hashUnit(key+":who")*pool.reduce((n,p)=>n+p.weight,0);

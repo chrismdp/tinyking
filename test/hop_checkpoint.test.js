@@ -2,12 +2,18 @@ import { createAutosave, bindAutosave } from "game/autosave";
 import { completeTravel, acceptTravel } from "game/travel";
 import { encodeWorldSave, decodeWorldSave } from "game/hex_storage";
 import { community, attach } from "./support/travel";
+import { attachPeople } from "game/person_storage";
 
-const fixture = () => {
+const fixture = (localPeople = false) => {
   const { s, ids } = community();
   s.travel.wholeWorld = true;
   s.worldHistory = { version: 1 };
   attach(s, community({ namespace: "away-", key: "6,5", player: false }).s);
+  s.travel.localPeople = localPeople;
+  if (localPeople) {
+    for (const map of Object.values(s.travel.maps)) attachPeople(map, s.travel);
+    attachPeople(s, s.travel);
+  }
   let world, releaseWrite;
   let held = false;
   const records = new Map(), frames = [], submitted = [];
@@ -30,8 +36,8 @@ const uniquePlayer = (saved, id) => {
   expect(Object.values(saved.travel.maps).filter(map => map.residents[id]).length + saved.travel.transit.filter(trip => trip.bundle.id === id).length).toBe(1);
 };
 
-it("shows the arrival before copying or committing its checkpoint and survives closing during the write", async () => {
-  const f = fixture(), { s, ids } = f, from = s.travel.active;
+it.each([false, true])("shows the arrival before copying or committing its checkpoint and survives closing during the write (localPeople=%s)", async localPeople => {
+  const f = fixture(localPeople), { s, ids } = f, from = s.travel.active;
   const house = Object.keys(s.ecs.building)[0];
   s.ecs.nameable[house].nickname = "The home left behind";
   expect(acceptTravel(s, s.map.entrances[0].tileIds[0])).toBe(true);

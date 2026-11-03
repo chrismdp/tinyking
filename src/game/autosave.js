@@ -1,4 +1,5 @@
 import { gameData } from "./save_game";
+import { worldSaveData } from "./hex_storage";
 
 export const FIRST_SAVE_DELAY_MS = 30000;
 
@@ -61,7 +62,8 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     const prepared = Object.entries(travel?.preparedMaps || {});
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
-    const saving = client(checkpoint ? "checkpoint" : "save", checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state)).then(result => {
+    const payload = state.travel?.wholeWorld ? worldSaveData(state, checkpoint?.hexes) : checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state);
+    const saving = client(checkpoint ? "checkpoint" : "save", payload).then(result => {
       if(checkpoint && !result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
       return result;
     });
@@ -119,7 +121,7 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
       // A hop holds worldBusy until this atomic world + hex checkpoint commits.
       // Wait for an already submitted autosave before choosing its record pointers.
       if(pending)await pending;
-      const result=await client("checkpoint",{state:gameData(state),hexes});
+      const result=await client("checkpoint",worldSaveData(state,hexes));
       if(!result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");
       state.travel.hexRecords=result.hexRecords;
       status.hasSave=true;status.lastSave={...result,day:state.days};

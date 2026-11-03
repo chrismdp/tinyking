@@ -1,5 +1,5 @@
 /* global it, expect */
-import { encodeWorldSave, decodeWorldSave } from "game/hex_storage";
+import { encodeWorldSave, decodeWorldSave, worldSaveData, encodeSavePacket } from "game/hex_storage";
 import { community, attach } from "./support/travel";
 import { localSnapshot } from "game/travel";
 import { compactMap } from "game/world_history";
@@ -13,6 +13,30 @@ beforeAll(() => {
 });
 const fresh = () => structuredClone(storedFixture);
 const freshAway = () => structuredClone(storedAway);
+it.each([false, true])("copies only the durable manifest and changed hexes, retaining the same reload (localPeople=%s)", async localPeople => {
+  const { s } = fresh(); s.travel.wholeWorld = true;
+  attach(s, freshAway());
+  s.travel.localPeople = localPeople;
+  const expected = await encodeWorldSave(structuredClone(s));
+  const payload = worldSaveData(s);
+  expect(payload.state.ecs).toBeUndefined();
+  expect(payload.state.travel.maps[s.travel.active]).toBeUndefined();
+  expect(payload.state.travel.maps["6,5"].ecs.mappable).toBeUndefined();
+  expect(payload.hexes[s.travel.active].ecs.mappable).toBeDefined();
+  const actual = await encodeSavePacket(structuredClone(payload));
+  const restore = async packet => {
+    const loaded = await decodeWorldSave(structuredClone(packet.world), key => packet.records[key]);
+    // Record keys include the write time; compare the entire restored world.
+    loaded.travel.hexRecords = {};
+    return loaded;
+  };
+  expect(await restore(actual)).toEqual(await restore(expected));
+  s.travel.hexRecords = actual.hexRecords;
+  s.travel.maps["6,5"] = compactMap(s.travel.maps["6,5"]);
+  const next = worldSaveData(s);
+  expect(Object.keys(next.hexes)).toEqual([s.travel.active]);
+  expect(next.state.travel.hexRecords["6,5"]).toBe(actual.hexRecords["6,5"]);
+});
 it("atomically describes changed hex records and a manifest, reloads a journey, and preserves old saves",async()=>{
   const {s,ids}=fresh();s.travel.wholeWorld=true;s.worldHistory={version:1};
   const away=attach(s,freshAway());

@@ -1,12 +1,17 @@
-import ACTIONS from "data/social_actions.json";
+import ACTION_TUNING from "data/social_actions.json";
+import { lifeClockChance } from "game/social_clock";
 import { conditions, pairKey, boundId } from "game/social_conditions";
 import { applySocialEffects } from "game/social_effects";
 import { recordEvent } from "game/events";
 import { hashUnit } from "game/math";
 import { DAYS_IN_SEASON } from "game/time";
 
+// Authored chances retain their former half-life-year units. Convert once,
+// before aggregating completed conversations; custom fixture actions are exact.
+export const SOCIAL_ACTIONS = ACTION_TUNING.map(action => ({ ...action, chance: lifeClockChance(action.chance) }));
+
 // Work only on a supplied encounter pair. No population-wide action scans.
-export function runSocialActions(s,hook,a,b,{conversations=1,actions=ACTIONS,summary=false}={}) {
+export function runSocialActions(s,hook,a,b,{conversations=1,actions=SOCIAL_ACTIONS,summary=false}={}) {
   if(a==b || !s.ecs.personable?.[a] || !s.ecs.personable?.[b] || s.ecs.personable[a].dead || s.ecs.personable[b].dead)return [];
   const fired=[],key=pairKey(a,b);
   for(const action of actions) {

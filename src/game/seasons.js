@@ -5,6 +5,7 @@ import { recordEvent, knownEvents, learnEvent } from "game/events";
 import { eventSentence } from "game/events";
 import { personLabel } from "game/knowledge";
 import { addGoodwill } from "game/people";
+import { lifeClockRate } from "game/social_clock";
 import { isResident } from "game/residents";
 import { squaredDistance } from "game/math";
 import { enqueueTask } from "game/manager";
@@ -78,7 +79,7 @@ export function updateFestival(s) {
     }
     const attendance=active.attended[a+":"+v.id];
     if(attendance && near(s,a,place))for(const id of present)if(!attendance.rewarded.includes(id)) {
-      addGoodwill(s,a,id,2);attendance.rewarded.push(id);
+      addGoodwill(s,a,id,lifeClockRate(2));attendance.rewarded.push(id);
     }
     if(active.kind=="summer") {
       const used=new Set();

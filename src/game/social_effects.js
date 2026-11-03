@@ -3,6 +3,7 @@ import { learnEvent, eventById } from "game/events";
 import { addGoodwill, meet } from "game/people";
 import { conditions, boundId, pairKey } from "game/social_conditions";
 import { DAYS_IN_SEASON } from "game/time";
+import { lifeClockSeasons } from "game/social_clock";
 
 export function eventBindings(event,listener) {
   return {...Object.fromEntries((TYPES[event.type]?.roles||[]).map((role,i)=>[role,event.people[i]])),event,actor:event.people[0],partner:event.people[1],subject:event.people[1],listener};
@@ -21,7 +22,7 @@ export function applySocialEffects(s,effects,bindings,recordEvent) {
         s.social ||= {};s.social.avoidance ||= {};
         const key=pairKey(id(effect.a),id(effect.b));
         if(effect.seasons==0)delete s.social.avoidance[key];
-        else s.social.avoidance[key]=s.days+effect.seasons*DAYS_IN_SEASON;
+        else s.social.avoidance[key]=s.days+lifeClockSeasons(effect.seasons)*DAYS_IN_SEASON;
         break;
       }
       case "reaction": {

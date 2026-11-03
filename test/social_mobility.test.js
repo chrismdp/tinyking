@@ -1,7 +1,8 @@
+import { lifeClockSeasons } from "game/social_clock";
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { DAYS_IN_SEASON } from "game/time";
 import { peopleWorld } from "./support/people";
-import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason } from "game/social";
+import { canCourt, marry, historyStep, eligiblePartners, moveHouse, advanceSeason, SOCIAL_RATES } from "game/social";
 import { meet } from "game/people";
 import { socialHour } from "game/social_visits";
 import { die, repairHouseholds, createPossession } from "game/possessions";
@@ -175,6 +176,9 @@ it("never seizes an empty living owner's estate when a crowded couple needs a ho
 it("forms deterministic cross-community history without a renderer and never manufactures a valid spouse", () => {
   const { state: initial, a, b, kin } = communities();
   initial.opinionThresholds = { hate: -100, love: -99 };
+  // This scenario has one compatible pair; faster bonds must not turn a
+  // different consenting marriage into a failure of cross-community contact.
+  initial.ecs.personality[kin].orientation="opposite";
   const simulate = input => { let s = input; for (let season = 0; season < 20; season++) s = historyStep(s, season); return s; };
   const before = JSON.stringify(initial), s = simulate(initial);
   expect(s).toEqual(simulate(initial)); expect(JSON.stringify(initial)).toBe(before);
@@ -287,21 +291,21 @@ it("builds mutual intimacy from first acquaintance through spaced real cross-com
     if (s.ecs.planner[a].world.social?.stage == "outbound") travelled = true;
     if (!intimacy && canCourt(s, a, b)) {
       intimacy = s.days;
-      // A week without contact must not erase sustained mutual intimacy.
-      quietUntil = Math.floor(s.days) + 7;
+      // Half a life year without contact must preserve sustained intimacy.
+      quietUntil = s.days + lifeClockSeasons(1)*DAYS_IN_SEASON;
     }
   }
   expect(travelled).toBe(true);
   const visits = s.events.filter(e => e.type == "visit" && e.people.includes(a) && e.people.includes(b));
-  expect(visits.length).toBeGreaterThanOrEqual(6);
+  expect(visits.length).toBeGreaterThanOrEqual(3);
   expect(intimacy).toBeGreaterThan(start);
   expect(s.ecs.relationships[a].known[b].goodwill).toBeGreaterThanOrEqual(60);
   expect(s.ecs.relationships[b].known[a].ring).toBe("intimate");
   const wedding = s.events.find(e => e.type == "marriage" && e.people.includes(a) && e.people.includes(b));
   expect(wedding).toBeDefined();
-  expect(wedding.day - intimacy).toBeGreaterThanOrEqual(2*DAYS_IN_SEASON);
+  expect(wedding.day - intimacy).toBeGreaterThanOrEqual(SOCIAL_RATES.courtshipSeasons*DAYS_IN_SEASON);
   const recent = visits.filter(e => e.day <= wedding.day).at(-1);
-  expect(wedding.day - recent.day).toBeLessThanOrEqual(DAYS_IN_SEASON);
+  expect(wedding.day - recent.day).toBeLessThanOrEqual(SOCIAL_RATES.recentContactSeasons*DAYS_IN_SEASON);
   expect(wedding.day).toBeLessThanOrEqual(quietUntil + 2*DAYS_IN_SEASON);
 });
 

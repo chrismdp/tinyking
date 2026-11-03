@@ -67,7 +67,7 @@ Generated history contains only the existing residents. The newly created strang
 
 Everyone ages two life years each season, or eight per game year. Life stages are Child (0–7), Teenager (8–15), Young adult (16–23), Adult (24–39), Middle-aged (40–55) and Old (56+). The player sees stage labels. Young adults can work, marry and form households. Women can bear children as Young adults or Adults. Men can father children through Middle-aged. Old-age death starts at 2% per season and doubles every eight life years, with no fixed age cap. Missed meals never cause starvation deaths.
 
-NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and two seasons of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
+NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and half a season of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
 
 ## Relationships and disclosure
 

@@ -1,4 +1,5 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
+import { lifeClockRate, lifeClockSeasons } from "game/social_clock";
 import { initialiseOrientation, mutuallyOriented } from "game/orientation";
 import { isAdult, isDependent, canSeekPartner, canParentTogether, personSize, LIFE_YEARS_PER_SEASON, LIFE_YEARS_PER_GAME_YEAR, oldAgeDeathChance } from "game/life_stages";
 import { PERSON_COMPONENTS, updateDirectoryPerson, withDetachedPeople } from "game/person_storage";
@@ -27,7 +28,8 @@ export const SOCIAL_RATES = {
   birthPerSeason: 5,
   birthCooldownSeasons: 1,
   travellerShare: 0.05,
-  courtshipSeasons: 2
+  courtshipSeasons: lifeClockSeasons(2),
+  recentContactSeasons: lifeClockSeasons(1)
 };
 const alive = (s, id) => s.ecs.personable[id] && !s.ecs.personable[id].dead;
 const roll = (s, key) => hashUnit(s.peopleSeed + ":social:" + key);
@@ -410,11 +412,11 @@ export function chatTogether(s, a, b, summary = false, conversations = 1) {
   if (summary && hostile) conversations = 1;
   const actions=runSocialActions(s,"contact",a,b,{summary,conversations});
   if(actions.some(a=>a.stop))return true;
-  for (const [from, to] of [[a, b], [b, a]]) addGoodwill(s, from, to, {
+  for (const [from, to] of [[a, b], [b, a]]) addGoodwill(s, from, to, lifeClockRate({
     hate: -0.25,
     like: 1,
     love: 4
-  }[disposition(s, to, from)] * conversations);
+  }[disposition(s, to, from)]) * conversations);
   const visits=[s.ecs.planner?.[a]?.world.social,s.ecs.planner?.[b]?.world.social];
   const exchanged=!summary && visits.some(v=>v?.newsExchanged);
   const spoken=exchanged?[]:exchangeNews(s,a,b);
@@ -460,7 +462,7 @@ function settleAdults(s, summary) {
 function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
   const used = new Set();
   for (const a of roster) {
-    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - DAYS_IN_SEASON)) {
+    for (const b of peopleInRings(s, a, ["intimate"])) if (a < b && !used.has(a) && !used.has(b) && canCourt(s, a, b) && (s.social.contacts?.[a + ":" + b] ?? -Infinity) >= (summary ? s.days : s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON)) {
       if (courtTogether(s, a, b, season, summary)) {
         used.add(a);
         used.add(b);
@@ -472,7 +474,7 @@ function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summa
 export function courtTogether(s, a, b, season, summary = false) {
   const key = [a, b].sort().join(":");
   if (!canCourt(s, a, b)) { delete s.social.courtships[key]; return false; }
-  if((s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-DAYS_IN_SEASON))return false;
+  if((s.social.contacts?.[key] ?? -Infinity) < (summary ? s.days : s.days-SOCIAL_RATES.recentContactSeasons*DAYS_IN_SEASON))return false;
   const started = s.social.courtships[key] ?? season;
   s.social.courtships[key] = started;
   return season - started >= SOCIAL_RATES.courtshipSeasons && marry(s, a, b, summary);
@@ -481,9 +483,9 @@ export function courtTogether(s, a, b, season, summary = false) {
 // Hourly contact can arrive just after a seasonal wedding check. Retry only
 // existing courtships so their original seasonal start and delay stay intact.
 export function retryCourtships(s) {
-  const season = Math.floor(s.days / DAYS_IN_SEASON);
+  const season = s.days / DAYS_IN_SEASON;
   for (const [key, started] of Object.entries(s.social?.courtships || {})) {
-    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - DAYS_IN_SEASON) continue;
+    if (season - started < SOCIAL_RATES.courtshipSeasons || (s.social.contacts?.[key] ?? -Infinity) < s.days - SOCIAL_RATES.recentContactSeasons * DAYS_IN_SEASON) continue;
     const [a,b] = key.split(":");
     marry(s,a,b);
   }

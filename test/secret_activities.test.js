@@ -7,6 +7,7 @@ import { socialHour } from "game/social_visits";
 import { socialise } from "game/tasks";
 import { Task, solve, runTask } from "game/htn";
 import { DAYS_IN_SEASON } from "game/time";
+import { lifeClockSeasons } from "game/social_clock";
 import { historySecretActivities, startSecretActivity } from "game/secret_activities";
 import { indexPeople, nearbyPeople } from "game/people_space";
 
@@ -47,7 +48,7 @@ it.each(["loyalty","spite"])("allows affair gossip to a spouse through %s and re
   expect(s.knowledge[spouse].discoveries[event.id].kind).toBe("heard");
   expect(goodwillTowards(s,spouse,a)).toBeLessThanOrEqual(0);
   expect(goodwillTowards(s,spouse,b)).toBeLessThanOrEqual(-40);
-  expect(s.social.avoidance[[a,spouse].sort().join(":")]).toBe(s.days+DAYS_IN_SEASON);
+  expect(s.social.avoidance[[a,spouse].sort().join(":")]).toBe(s.days+lifeClockSeasons(1)*DAYS_IN_SEASON);
   expect(s.events.filter(e=>e.type=="quarrel"&&e.reason=="affair_discovery")).toHaveLength(1);
   const before=JSON.stringify(s.ecs.relationships);learnEvent(s,spouse,event);learnEvent(s,spouse,found[0]);
   expect(JSON.stringify(s.ecs.relationships)).toBe(before);

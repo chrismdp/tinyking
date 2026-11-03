@@ -1,4 +1,5 @@
 import { isDependent, LIFE_STAGES } from "game/life_stages";
+import { lifeClockRate } from "game/social_clock";
 import { knowsEvent, relevantEvent } from "game/event_knowledge";
 import { disclosureEvent, disclosureRoute } from "game/event_disclosure";
 import EVENT_TYPES from "data/event_types.json";
@@ -38,9 +39,9 @@ export function generatePersonality(generator) {
 export const RINGS = ["public", "social", "personal", "intimate"];
 export const RING_CAPS = { intimate: 2, personal: 6, social: 10 };
 export const GOODWILL_STEPS = [0, 10, 30, 60];
-// A neglected bond loses 1.8 goodwill per seven-day season.
+// Preserve the former 1.8 goodwill loss per half life year.
 // Sparse real visits must be able to accumulate the same contact as history.
-export const DRIFT_PER_HOUR = 0.025 * 3 / DAYS_IN_SEASON;
+export const DRIFT_PER_HOUR = lifeClockRate(0.025 * 3 / DAYS_IN_SEASON);
 const STARTING_BUFFER = 6;
 const DISPOSITION_CAP = { hate: 0, like: 2, love: 3 };
 export const relationshipCap = (state, observer, other) => DISPOSITION_CAP[disposition(state, observer, other)];

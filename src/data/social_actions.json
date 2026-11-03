@@ -196,7 +196,7 @@
     "hooks": [
       "contact"
     ],
-    "chance": 0.07763184,
+    "chance": 0.02,
     "when": {
       "all": [
         {
@@ -301,7 +301,7 @@
         "spouseOf": "actor"
       }
     },
-    "chance": 0.40030464,
+    "chance": 0.12,
     "when": {
       "all": [
         {

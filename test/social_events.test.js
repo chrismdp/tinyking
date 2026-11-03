@@ -6,6 +6,7 @@ import TYPES from "data/event_types.json";
 import { runSeasonSocialActions, runSocialActions } from "game/social_actions";
 import { drift } from "game/people";
 import { DAYS_IN_SEASON } from "game/time";
+import { lifeClockChance } from "game/social_clock";
 
 const P=(test,args)=>({test,args});
 export function fixture() {
@@ -109,7 +110,8 @@ it.each(["spouses","housemates"])("lets unhappy %s quarrel regularly without los
   };
   const {s,goodwill}=simulate(),quarrels=s.events.filter(e=>e.type=="quarrel");
   expect(quarrels.length).toBeGreaterThan(10);
-  expect(quarrels.length).toBeLessThanOrEqual(60);
+  const chance=1-(1-lifeClockChance(.08))**6;
+  expect(Math.abs(quarrels.length-80*chance)).toBeLessThan(3*Math.sqrt(80*chance*(1-chance)));
   expect(Math.min(...goodwill)).toBeGreaterThanOrEqual(-18);
   expect(s.events.filter(e=>e.type=="reconciliation").length).toBeGreaterThanOrEqual(quarrels.length-1);
   expect(simulate().s.events).toEqual(s.events);
@@ -131,12 +133,15 @@ it("shares one seasonal quarrel attempt between household and repeated reversed 
   for(let season=0;season<20;season++){
     s.days=season*DAYS_IN_SEASON;
     runSeasonSocialActions(s,[a,b],true);
-    const attempts=JSON.stringify(s.ecs.relationships[a].actionMoments);
+    // Reconciliation can now happen within a season; quarrel attempts still
+    // belong to the same seasonal bucket across both hooks and pair orders.
+    const quarrelAttempts=()=>JSON.stringify(Object.entries(s.ecs.relationships[a].actionMoments).filter(([id])=>id.startsWith("quarrel:")));
+    const attempts=quarrelAttempts();
     for(let day=0;day<DAYS_IN_SEASON;day++){
       s.days=season*DAYS_IN_SEASON+day;
       runSocialActions(s,"contact",b,a,{summary:true,conversations:6});
     }
-    expect(JSON.stringify(s.ecs.relationships[a].actionMoments)).toBe(attempts);
+    expect(quarrelAttempts()).toBe(attempts);
   }
 });
 it("forms romance only through mutual attraction between unrelated adults; mutual closeness alone fails",()=>{

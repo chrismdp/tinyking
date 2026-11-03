@@ -20,7 +20,7 @@ it("derives founding dates and progress text from the history length", () => {
 });
 
 it("preserves rare social opportunities over four times faster lives", () => {
-  const actions=require("data/social_actions.json");
+  const {SOCIAL_ACTIONS:actions}=require("game/social_actions");
   const activities=require("data/secret_activities.json");
   const types=require("data/event_types.json");
   for(const [id,oldChance] of [["romance",.02],["affair",.12]])

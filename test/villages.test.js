@@ -234,6 +234,15 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
   const family = Object.keys(s.ecs.personable).filter(id => !s.ecs.personable[id].dead && s.ecs.household[id]?.houseId == h.id);
   for (const id of Object.keys(s.ecs.planner)) if (!family.includes(id)) delete s.ecs.planner[id];
   for (const f of h.fields) for (const slot of s.ecs.farmable[f].slots) Object.assign(slot, { state: "empty", content: null, growth: 0 });
+  // One foreign patch is enough to expose an ownership mistake without
+  // constructing two additional households and all their estates.
+  const [foreignHome] = newEntities(s, [{ controllable: {} }]);
+  s.ecs.controllable[foreignHome].controllerId = foreignHome;
+  const [foreignField] = newEntities(s, [{
+    spatial: { ...Hex(-5, -2).toPoint(), immovable: true },
+    farmable: { houseId: foreignHome, slots: [{ state: "empty", content: null, growth: 0 }] },
+    controllable: { controllerId: foreignHome }
+  }]);
   const seen = new Set();
   let stored = false;
   let previous = s.ecs.container[h.storeId].amounts.grain;
@@ -260,6 +269,7 @@ it("lets the family plough, sow, harvest and haul only its own fields into its h
   }
   for (const phase of ["ploughed", "sown", "harvestable", "harvested"]) expect(seen.has(phase)).toBe(true);
   expect(stored).toBe(true);
+  expect(s.ecs.farmable[foreignField].slots).toEqual([{ state: "empty", content: null, growth: 0 }]);
 });
 
 it("keeps household animals inside fenced pens and pastures throughout movement, with paused time still", async () => {

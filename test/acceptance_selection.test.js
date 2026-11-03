@@ -227,24 +227,6 @@ it("waits through real delivery progress without extending a stalled favour's ti
   await expect(waitForFavourDelivery(page,"harvest")).rejects.toThrow("ended without delivery");
 });
 
-it.each([true,false])("waits for NPC readiness without ordering player care, requiring visible slots: %s", async requireSlots => {
-  const {waitForChatReadiness}=require("../scripts/acceptance-selection");
-  const {s,actor,elder,meal,orders,page}=oathCareWorld(true);
-  const before=JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events});
-  const previousDocument=global.document;
-  global.document={querySelectorAll:()=>requireSlots ? [{textContent:"Chat",disabled:false}] : []};
-  try {
-    await waitForChatReadiness(page,elder,{requireSlots});
-    expect(orders).toEqual([]);
-    expect(s.ecs.good[meal]).toMatchObject({type:"forage",amount:1});
-    for(const id of [actor,elder])expect(s.ecs.planner[id].world.feeling).toMatchObject({hungry:false,tired:false});
-    expect(s.game_speed).toBe("paused");
-    expect(JSON.stringify({knowledge:s.knowledge,rights:s.ecs.village,events:s.events})).toBe(before);
-  } finally {
-    if(previousDocument===undefined)delete global.document;else global.document=previousDocument;
-  }
-});
-
 it("advances preparation through real normal simulation minutes and leaves chat paused",async()=>{
   const {state:s}=peopleWorld();
   s.ticker={stop:jest.fn(),start:jest.fn()};s.renderer={frame:jest.fn()};

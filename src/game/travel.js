@@ -875,6 +875,7 @@ export async function completeTravel(s, order) {
     destination: order.destination
   };
   try {
+    if (s.persistence?.waitForCheckpoint && !await s.persistence.waitForCheckpoint()) return;
     await s.ui?.actions?.progress_update?.("One season on the road", 0);
     const j = s.travel,
       from = j.active,
@@ -1296,13 +1297,9 @@ export async function evictAwayMaps(s) {
   if(s.persistence.deferCheckpoint) {
     // Keep the real details available for an immediate return or a retry.
     // The save controller submits after the first arrival frame, or on close.
-    s.persistence.deferCheckpoint(archived).then(result=>{
-      if(!result?.hexRecords)return;
-      for(const [key,map] of Object.entries(archived))if(key!==j.active && j.maps[key]===map)j.maps[key]=compactMap(map);
-    }).catch(()=>{}); // Autosave reports the error and retains the details.
+    s.persistence.deferCheckpoint(archived).catch(()=>{}); // Autosave reports the error and retains the details for retry.
     return;
   }
-  for(const [key,map] of Object.entries(archived))j.maps[key]=compactMap(map);
-  try {await s.persistence.checkpoint(archived);}
-  catch(error){Object.assign(j.maps,archived);throw error;}
+  await s.persistence.checkpoint(archived);
+  if(s.travel===j)for(const [key,map] of Object.entries(archived))if(key!==j.active && j.maps[key]===map)j.maps[key]=compactMap(map);
 }

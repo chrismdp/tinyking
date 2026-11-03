@@ -1,6 +1,7 @@
 import { gameData } from "./save_game";
 import { worldSaveData } from "./hex_storage";
 import { saveMark } from "./save_trace";
+import { compactMap } from "./community_summary";
 
 export const FIRST_SAVE_DELAY_MS = 30000;
 
@@ -43,13 +44,14 @@ export function connectSaveWorker() {
 const afterPaint = fn => requestAnimationFrame(() => setTimeout(fn, 0));
 
 export function createAutosave(state, client, changed = () => {}, afterFrame = afterPaint) {
+  const retained = new WeakMap();
   let requested = false, pending = null, deferred = null, checkpointWrite = null, initial = false, saveAfter = null;
   const status = { ready: false, hasSave: false, error: null, lastSave: null };
-  const flush = (final = false) => {
+  const flush = (final = false, hopBoundary = false) => {
     // The arrival gets a complete rendering opportunity before postMessage's
     // synchronous structured clone. pagehide must submit before the page goes.
     if (deferred && !final) return deferred.promise;
-    if (!requested || pending && !final || state.generating || state.worldBusy || state.transition) return pending;
+    if (!requested || pending && (!final || checkpointWrite || deferred) || state.generating || !hopBoundary && (state.worldBusy || state.transition)) return pending;
     const checkpoint = deferred;
     if (state.ui.show.main_menu || state.ui.show.mapgen || !state.ecs.playable?.[state.ui.playerId]) {
       deferred = null;
@@ -70,11 +72,14 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     const day = state.days;
     const travel = state.travel;
     const prepared = Object.entries(travel?.preparedMaps || {});
+    // Retried saves include the retained details too. Evict only the exact maps
+    // captured by this write, after their record pointers are acknowledged.
+    const archived = travel?.wholeWorld ? [...retained.get(travel) || []].map(key => [key, travel.maps[key]]).filter(([key, map]) => key !== travel.active && map && !map.compact) : [];
     // postMessage takes a consistent structured clone now. JSON and gzip run
     // in the worker while the next simulation/render frame continues.
     const trace = {};
     saveMark(trace, "packetStarted");
-    const payload = state.travel?.wholeWorld ? worldSaveData(state, checkpoint?.hexes) : checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state);
+    const payload = state.travel?.wholeWorld ? worldSaveData(state, Object.fromEntries(archived)) : checkpoint ? { state: gameData(state), hexes: checkpoint.hexes } : gameData(state);
     saveMark(trace, "packetBuilt");
     const saving = client(checkpoint ? "checkpoint" : "save", payload).then(result => {
       if (result?.trace) Object.assign(result.trace, trace);
@@ -87,6 +92,10 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
       if(result.hexRecords && travel && state.travel===travel) {
         travel.hexRecords=result.hexRecords;
         for (const [key, map] of prepared) if (result.hexRecords[key] && travel.preparedMaps?.[key] === map) delete travel.preparedMaps[key];
+        for (const [key, map] of archived) if (result.hexRecords[key] && key !== travel.active && travel.maps[key] === map) {
+          travel.maps[key] = compactMap(map);
+          retained.get(travel).delete(key);
+        }
       }
       status.hasSave = true;
       status.error = null;
@@ -102,6 +111,15 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
   };
   return Object.assign(status, {
     afterCheckpoint() { return deferred?.promise || checkpointWrite; },
+    async waitForCheckpoint() {
+      // Called before a hop mutates the world. Simulation has already set
+      // worldBusy, so this boundary may submit an earlier deferred arrival.
+      if (deferred && pending) await pending;
+      if (deferred) flush(true, true);
+      try { if (checkpointWrite) await checkpointWrite; }
+      catch { return false; } // Keep the arrival and the existing save error.
+      return true;
+    },
     requestInitial() { initial = true; saveAfter = null; requested = true; return flush(); },
     request(final = false) { requested = true; return flush(final); },
     flush,
@@ -114,6 +132,9 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
     async load() { return client("load"); },
     async readHex(key) { return client("hex",key); },
     deferCheckpoint(hexes) {
+      const travel = state.travel;
+      if (!retained.has(travel)) retained.set(travel, new Set());
+      for (const key of Object.keys(hexes)) retained.get(travel).add(key);
       if(deferred) {
         Object.assign(deferred.hexes,hexes);
         return deferred.promise;
@@ -132,8 +153,8 @@ export function createAutosave(state, client, changed = () => {}, afterFrame = a
       return promise;
     },
     async checkpoint(hexes) {
-      // A hop holds worldBusy until this atomic world + hex checkpoint commits.
-      // Wait for an already submitted autosave before choosing its record pointers.
+      // Explicit checkpoint callers wait for an already submitted autosave
+      // before choosing its record pointers. Arrivals use deferCheckpoint.
       if(pending)await pending;
       const result=await client("checkpoint",worldSaveData(state,hexes));
       if(!result?.hexRecords)throw new Error("The save worker must finish updating before a hex can leave memory.");

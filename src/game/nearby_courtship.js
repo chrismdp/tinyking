@@ -6,7 +6,8 @@ import { bindNewsContext } from "game/event_knowledge";
 import { withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { withRelationshipIndex } from "game/people";
 import { withEventIndex } from "game/events";
-import { eligiblePartner, canCourt, chatTogether, courtTogether, courtshipPreference, withSocialIndex } from "game/social";
+import { canCourt, chatTogether, courtTogether, courtshipPreference, withSocialIndex } from "game/social";
+import { relatedPeople } from "game/social_kin";
 import { moveMarriageResidents, publishCommunity } from "game/travel";
 
 const single = (map, id) => {
@@ -21,7 +22,7 @@ const identityQuery = (map, ids) => ({ ecs: map.ecs, peopleDirectory: map.people
 // Rebuilt once per seasonal boundary from each community's owned residents.
 // Queries touch only village buckets in this hex and its six neighbours.
 export function createCourtshipIndex(maps) {
-  const index = { byVillage: new Map(), villagesByHex: new Map(), people: new Map(), courtships: [] };
+  const index = { byVillage: new Map(), villagesByHex: new Map(), people: new Map(), courtships: [], pools: new Map() };
   for (const [key, map] of Object.entries(maps)) {
     const villages = new Set(); index.villagesByHex.set(key, villages);
     for (const pair of Object.keys(map.social?.courtships || {})) index.courtships.push({ map, pair });
@@ -37,13 +38,16 @@ export function createCourtshipIndex(maps) {
   return index;
 }
 export function courtshipCandidates(index, key, id) {
-  const village = index.people.get(id)?.villageId;
-  const hex = Object.fromEntries(key.split(",").map((n, i) => [i ? "y" : "x", Number(n)]));
-  const result = [];
-  for (const nearby of [key, ...neighbours(hex).map(worldKey)]) for (const v of index.villagesByHex.get(nearby) || [])
-    for (const candidate of index.byVillage.get(villageBucket(nearby, v)) || []) if (candidate.id !== id && candidate.key === nearby)
-      result.push({ ...candidate, weight: nearby !== key ? .08 : v !== village ? .35 : 1 });
-  return result;
+  const village = index.people.get(id)?.villageId, bucket = villageBucket(key, village);
+  if (!index.pools.has(bucket)) {
+    const hex = Object.fromEntries(key.split(",").map((n, i) => [i ? "y" : "x", Number(n)]));
+    const result = [];
+    for (const nearby of [key, ...neighbours(hex).map(worldKey)]) for (const v of index.villagesByHex.get(nearby) || [])
+      for (const candidate of index.byVillage.get(villageBucket(nearby, v)) || []) if (candidate.key === nearby)
+        result.push({ ...candidate, weight: nearby !== key ? .08 : v !== village ? .35 : 1 });
+    index.pools.set(bucket, result);
+  }
+  return index.pools.get(bucket).filter(candidate => candidate.id !== id);
 }
 
 export function availableCourtshipCandidates(index, key, id, paired) {
@@ -51,11 +55,12 @@ export function availableCourtshipCandidates(index, key, id, paired) {
   const query = identityQuery(left, [id]);
   // Remote personal components already resolve through the directory. A
   // read-only eligibility check needs no terrain, property or meeting view.
-  return withSocialIndex(query, () => courtshipCandidates(index, key, id).filter(candidate => {
+  return courtshipCandidates(index, key, id).filter(candidate => {
     if (paired.has(candidate.id) || !single(candidate.map, candidate.id)) return false;
-    query.residents[candidate.id] = true;
-    return eligiblePartner(query, id, candidate.id);
-  }));
+    // Both endpoints came from the seasonal eligible-resident buckets. Only
+    // current single status and kinship remain variable during this pass.
+    return !relatedPeople(query, id, candidate.id, false, index.ancestry);
+  });
 }
 
 // A seeded weighted race favours nearby people. Existing closeness strengthens
@@ -91,6 +96,7 @@ export function runNearbyCourtships(s, season) {
   const j = s.travel;
   if (!j?.localPeople || !j.wholeWorld) return;
   const index = createCourtshipIndex(j.maps), paired = new Set(), views = new Map();
+  index.ancestry = new Map(); // Owned for this boundary; caller edits never reuse it.
   const viewFor = (left, right) => {
     if (left === right) return left;
     const key = left.map.worldKey + ":" + right.map.worldKey;
@@ -105,7 +111,7 @@ export function runNearbyCourtships(s, season) {
     const nearby = left && right && courtshipCandidates(index, left.key, a).some(c => c.id === b);
     if (!nearby || !canCourt(identityQuery(left.map, [a, b]), a, b)) delete map.social.courtships[pair];
   }
-  const order = [...index.people.values()].sort((a, b) => hashUnit(j.seed + ":nearby-order:" + season + ":" + a.id) - hashUnit(j.seed + ":nearby-order:" + season + ":" + b.id));
+  const order = [...index.people.values()].map(person => ({ ...person, order: hashUnit(j.seed + ":nearby-order:" + season + ":" + person.id) })).sort((a, b) => a.order - b.order);
   for (const seeker of order) {
     const { id: a, key, map: left } = seeker;
     if (paired.has(a) || !single(left, a)) continue;

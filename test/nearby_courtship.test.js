@@ -385,3 +385,16 @@ it("prefers an eligible peer over a much older romantic acquaintance", () => {
   s.ecs.relationships[a].known[older] = { ring: "intimate", goodwill: 80 };
   expect(compareSocial(s, a, older, peer)).toBeGreaterThan(0);
 });
+
+
+it("queries private news by listener audience without reading unrelated stories", () => {
+  const { s, home, away } = neighbourhood(), left = s.travel.maps["5,5"];
+  const teller = home.ids[0], listener = away.ids[0];
+  const unrelated = recordEvent(left, "harvest", [teller], [], { audienceIds: [teller] });
+  Object.defineProperty(unrelated, "people", { get() { throw new Error("scanned unrelated private story"); } });
+  expect(unheardNews(left, teller, listener)).toEqual([]);
+  const relevant = recordEvent(left, "gift", [listener, teller], [], { audienceIds: [teller] });
+  expect(unheardNews(left, teller, listener)).toEqual([relevant]);
+  learnEvent(left, listener, relevant);
+  expect(unheardNews(left, teller, listener)).toEqual([]);
+});

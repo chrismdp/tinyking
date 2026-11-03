@@ -10,7 +10,13 @@ function storyKey(index,event) {
   if(index.storyKeys.has(event))return index.storyKeys.get(event);
   const signature=[event.type,...event.people,event.villageId,event.hexKey].join(":");
   if(!index.storySignatures.has(signature))index.storySignatures.set(signature,signature);
-  const key=index.storySignatures.get(signature);index.storyKeys.set(event,key);return key;
+  const key=index.storySignatures.get(signature);index.storyKeys.set(event,key);
+  const relevance=TYPES[event.type]?.relevance||["affected"];
+  index.storyRoutes.set(event,[...event.people.map(id=>["subjects",id]),
+    ...(relevance.includes("kin")?event.people.map(id=>["kin",id]):[]),
+    ...(relevance.includes("village")?[["villages",event.villageId]]:[]),
+    ...(relevance.includes("hex")?[["hexes",event.hexKey]]:[])]);
+  return key;
 }
 const add=(map,key,event)=>{if(!map.has(key))map.set(key,new Set());map.get(key).add(event);};
 function indexFor(s) {
@@ -18,19 +24,29 @@ function indexFor(s) {
   let index=indexes.get(source);
   if(!index) {
     const people=s.newsContext?.people || s.travel?.people || s.peopleDirectory,local=s.ecs?.personable||{};
-    index={events:new Map(),private:new Map(),privateStories:new Map(),storyKeys:new WeakMap(),storySignatures:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map(),
+    index={events:new Map(),private:new Map(),privateStories:new Map(),storyKeys:new WeakMap(),storyRoutes:new WeakMap(),privateCandidates:new Map(),storySignatures:new Map(),villages:new Map(),hexes:new Map(),heads:new WeakMap(),subjects:new Map(),villageNews:new Map(),hexNews:new Map(),
       dead:id=>!!(people?.[id]?.personable || local[id])?.dead};indexes.set(source,index);
     for(const event of Array.isArray(source)?source:Object.values(source))indexEventInto(index,event);
   }
   return index;
 }
+// Each teller's private stories are indexed by their declared audience. The
+// index changes only when a story group first appears or its last event leaves.
+function routePrivateGroup(index,id,event,group,adding) {
+  let routes=index.privateCandidates.get(id);
+  if(!routes){if(!adding)return;routes={subjects:new Map(),kin:new Map(),villages:new Map(),hexes:new Map()};index.privateCandidates.set(id,routes);}
+  for(const [table,key] of index.storyRoutes.get(event)) {
+    if(adding)add(routes[table],key,group);
+    else {const bucket=routes[table].get(key);bucket?.delete(group);if(!bucket?.size)routes[table].delete(key);}
+  }
+}
 function privateStory(index,id,event,adding) {
-  if(index.dead(id)){index.privateStories.delete(id);return;}
+  if(index.dead(id)){index.privateStories.delete(id);index.privateCandidates.delete(id);return;}
   let groups=index.privateStories.get(id);
   if(!groups){if(!adding)return;groups=new Map();index.privateStories.set(id,groups);}
   const key=storyKey(index,event);let group=groups.get(key);
-  if(!group){if(!adding)return;groups.set(key,[event]);return;}
-  if(!adding){const at=group.indexOf(event);if(at>=0)group.splice(at,1);if(!group.length)groups.delete(key);return;}
+  if(!group){if(!adding)return;group=[];groups.set(key,group);routePrivateGroup(index,id,event,group,true);}
+  if(!adding){const at=group.indexOf(event);if(at>=0)group.splice(at,1);if(!group.length){groups.delete(key);routePrivateGroup(index,id,event,group,false);}return;}
   let lo=0,hi=group.length;
   while(lo<hi){const mid=(lo+hi)>>>1,other=group[mid];if(other.day>event.day || other.day===event.day && other.id<event.id)lo=mid+1;else hi=mid;}
   group.splice(lo,0,event);
@@ -38,7 +54,7 @@ function privateStory(index,id,event,adding) {
 function indexEventInto(index,event) {
   const a=event.awareness;if(!a)return;
   if(!index.events.has(event.id)) {
-    if(event.type==="death" && index.dead(event.people[0]))index.privateStories.delete(event.people[0]);
+    if(event.type==="death" && index.dead(event.people[0])){index.privateStories.delete(event.people[0]);index.privateCandidates.delete(event.people[0]);}
     for(const id of event.people)add(index.subjects,id,event);
     const relevance=TYPES[event.type]?.relevance||[];
     if(relevance.includes("village"))add(index.villageNews,event.villageId,event);
@@ -123,7 +139,11 @@ export function scopedKnownEvents(s,id) {
 export function unheardNews(s,teller,listener) {
   if(personComponent(s,"personable",teller)?.dead)return [];
   const index=indexFor(s),events=new Set(),scopes=scopesFor(s,teller),heard=scopesFor(s,listener),families=new Map();
-  for(const group of index.privateStories.get(teller)?.values()||[]) {
+  const routes=index.privateCandidates.get(teller),groups=new Set();
+  if(routes)for(const bucket of [routes.subjects.get(listener),routes.villages.get(villageOf(s,listener)),
+    routes.hexes.get(personHex(s,listener)),...closeFamily(s,listener).map(id=>routes.kin.get(id))])
+    for(const group of bucket||[])groups.add(group);
+  for(const group of groups) {
     for(const event of group)if(relevantEvent(s,listener,event,families) && !knowsInScopes(listener,event,heard)){events.add(event);break;}
   }
   const unshared=new Map([...scopes].filter(([key,until])=>!heard.has(key) || heard.get(key)<until));

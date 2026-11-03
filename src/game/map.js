@@ -1,5 +1,5 @@
 import { HISTORY_SEASONS, historyLabel, historyFoundingSeason } from "game/time";
-import { personSize } from "game/life_stages";
+import { personSize, LIFE_STAGES } from "game/life_stages";
 import { installStoredHistory } from "game/world_history";
 import { treeAllowed, reserveBuildingClearance } from "game/tree_clearance";
 import { landFieldFor, mainLandKeys, buildGeography, groundForState, safeTile, naturalGroundFor, settlementSite, suitableHouse } from "game/geography";
@@ -90,6 +90,13 @@ export function generateFamilies({ state, seed, playerStartTile, founding = fals
   }
 
   const inhabit = (home, age, male, familySeed, parents = []) => {
+    // These children were born before generation, when their parents were younger.
+    if (parents.length) {
+      const youngest = Math.max(...parents.map(id => state.ecs.personable[id].age -
+        (state.ecs.nameable[id].male ? LIFE_STAGES.old.from : LIFE_STAGES.middleAged.from) + 1));
+      const oldest = Math.min(...parents.map(id => state.ecs.personable[id].age - LIFE_STAGES.youngAdult.from));
+      age = Math.max(youngest, Math.min(oldest, age));
+    }
     const entrance = state.ecs.building[home.buildingId].entrance;
     const sides = Array.from({ length: 6 }, (v, i) => (entrance + i) % 6);
     const starts = Grid.hexagon({ center: home.spatial, radius: 1 }).neighborsOf(home.spatial, sides);

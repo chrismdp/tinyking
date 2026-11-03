@@ -256,6 +256,8 @@ it("runtime children inherit the established calibration without recalibrating e
     s,
     ids
   } = community();
+  s.ecs.nameable[ids[1]].male = true;
+  s.ecs.nameable[ids[2]].male = false;
   const before = JSON.stringify(ids.map(id => s.ecs.personality[id]));
   s.opinionThresholds = {
     hate: 20,

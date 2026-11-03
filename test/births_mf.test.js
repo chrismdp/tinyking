@@ -1,6 +1,8 @@
-/* global it, expect */
+/* global it, expect, jest */
+import MersenneTwister from "mersenne-twister";
 import { advanceSeason, birth, canCourt, canHaveChild, historyStep, marry, SOCIAL_RATES } from "game/social";
 import { peopleWorld } from "./support/people";
+import { flatVillage } from "./support/village";
 
 const cases = [
   ["two men", true, true, 30, 30, false],
@@ -70,4 +72,40 @@ it.each([true, false])("keeps courtship and marriage for same-sex couples (male=
   expect(s.ecs.kinship[a].spouse).toBe(b);
   expect(s.ecs.kinship[b].spouse).toBe(a);
   expect(birth(s, a, b, 0)).toBeNull();
+});
+
+it.each([true, false])("generates backdated family children within both parents' windows (founding=%s)", founding => {
+  // Fixed draws select the youngest founding adult and both elder parents.
+  const draw = jest.spyOn(MersenneTwister.prototype, "random_int").mockReturnValue(1);
+  let s;
+  try { ({s} = flatVillage(3, { seed: 13, founding })); }
+  finally { draw.mockRestore(); }
+  for (const [id, kin] of Object.entries(s.ecs.kinship)) {
+    const sexes = kin.parents.map(parent => s.ecs.nameable[parent].male);
+    if (sexes.length == 2) expect(sexes.sort()).toEqual([false, true]);
+    for (const parent of kin.parents) {
+      const ageAtBirth = s.ecs.personable[parent].age - s.ecs.personable[id].age;
+      expect(ageAtBirth).toBeGreaterThanOrEqual(16);
+      expect(ageAtBirth).toBeLessThanOrEqual(s.ecs.nameable[parent].male ? 55 : 39);
+    }
+  }
+});
+
+it.each([0, 1])("permits one birth per seasonal transition with cooldown %i", cooldown => {
+  const {s,a,b} = couple(false, true, 28, 28);
+  const rate = SOCIAL_RATES.birthPerSeason, previous = SOCIAL_RATES.birthCooldownSeasons;
+  try {
+    SOCIAL_RATES.birthPerSeason = 5;
+    SOCIAL_RATES.birthCooldownSeasons = cooldown;
+    advanceSeason(s, 0);
+    advanceSeason(s, 0);
+    expect(s.ecs.kinship[a].children).toHaveLength(1);
+    expect(s.ecs.kinship[b].children).toHaveLength(1);
+    advanceSeason(s, 1);
+    expect(s.ecs.kinship[a].children).toHaveLength(2);
+    expect(s.ecs.kinship[b].children).toHaveLength(2);
+  } finally {
+    SOCIAL_RATES.birthPerSeason = rate;
+    SOCIAL_RATES.birthCooldownSeasons = previous;
+  }
 });

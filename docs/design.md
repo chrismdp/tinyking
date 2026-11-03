@@ -67,7 +67,7 @@ Generated history contains only the existing residents. The newly created strang
 
 Everyone ages two life years each season, or eight per game year. Life stages are Child (0–7), Teenager (8–15), Young adult (16–23), Adult (24–39), Middle-aged (40–55) and Old (56+). The player sees stage labels. Young adults can work, marry and form households. Women can bear children as Young adults or Adults. Men can father children through Middle-aged. Old-age death starts at 2% per season and doubles every eight life years, with no fixed age cap. Missed meals never cause starvation deaths.
 
-NPC adults choose visits through the planner. Mutual Intimate relationships, recent conversation, kin exclusions, available housing and half a season of courtship govern automatic NPC marriage. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
+NPC adults choose visits through the planner. Mutual Personal relationships, compatible orientations, willing partners, recent conversation, kin exclusions and available housing govern practical NPC marriage. Practical courtship waits one season. Mutual love and Intimate relationships shorten the wait to half a season. Friendly household heads can also arrange consenting young adults' betrothals. Those weddings wait one season and use the same housing rules. Automatic matchmaking never selects the player. Married player couples can have children through the shared age, residence, demographic and birth-cooldown rules. Marriage is the standing consent for this shared family simulation. Births do not require a separate player order.
 
 ## Relationships and disclosure
 
@@ -79,8 +79,8 @@ Relationships are one-way. Each observer has their own goodwill and limited slot
 | --- | --- | --- | --- |
 | Public | Unlimited | 0 | Basic contact and trade |
 | Social | 10 | 10 | Family disclosure and gossip |
-| Personal | 6 | 30 | Unsolicited physical friend help |
-| Intimate | 2 | 60 | Possible marriage with mutual consent |
+| Personal | 6 | 30 | Friend help and practical marriage with mutual consent |
+| Intimate | 2 | 60 | Faster courtship with mutual love |
 
 Traits and tastes set directional dispositions. Hate permits Public, liking permits Personal, and love permits Intimate. Goodwill never changes those tastes. Ring displacement and drift still apply. A player can feel differently from the person they court.
 
@@ -121,7 +121,7 @@ The gathering changes no household access or legal ownership.
 
 Villagers walk there and remain available for chat. The festival panel offers one Attend action and at most four nearby people, prioritising the player’s family search, friends and known favours. Other people remain clickable in the world. Attendance gives two goodwill
 with villagers present, once per season. Midsummer conversations use the existing
-marriage rules, including consent, kin exclusions, housing and two seasons of courtship.
+marriage rules, including consent, kin exclusions, housing and the love or practical courtship wait.
 The player receives no forced wedding. Authored chat openings live in the generated catalogue.
 
 After festival night, the season-turn page pauses at dawn. It shows known births,
@@ -131,11 +131,11 @@ The player must choose Begin to start the new season.
 
 ## Marriage, ownership and succession
 
-The player deliberately chooses Court or Ask to marry in a person's panel. Each action orders a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat changes the NPC's regard through matching icons. Courtship can build mutual Intimate regard with a compatible person.
+The player deliberately chooses Court or Ask to marry in a person's panel. Each action orders a real visit and half an hour together. Courtship increases mutual regard through the existing disposition rules. Chat changes the NPC's regard through matching icons. Courtship can build mutual Personal or Intimate regard with a compatible person.
 
-Marriage requires two living unmarried adults who both place the other at Intimate. Parents, children, siblings and people with shared grandparents are excluded. Player proposals also reject any recorded direct ancestor or descendant beyond the two generations shown in the tree. NPC cousin compatibility keeps its existing two-generation rule. The existing NPC rules impose no sex restriction, and player marriage uses that same policy. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
+Practical marriage requires two living unmarried adults who both place the other at Personal or closer. Neither can hate the other or hold negative goodwill towards them. Love is optional. Parents, children, siblings and people with shared grandparents are excluded. Player proposals also reject any recorded direct ancestor or descendant beyond the two generations shown in the tree. NPC cousin compatibility keeps its existing two-generation rule. Both orientations must permit the match. Player marriage uses the same compatibility rule. Eligibility and mutual consent are checked again when the timed dialogue finishes. A death, earlier marriage, lost ring or exhausted patience can prevent the wedding.
 
-A successful wedding records marriage, memories and a visible celebration notice. It introduces the spouses through actual dialogue. Their close relatives gain six directional goodwill in each direction, subject to existing dispositions and ring limits. Marriage changes neither traits nor tastes. Mutual NPC courtship still waits two seasons. The deliberate player proposal uses its own timed visit instead of an automatic seasonal wedding.
+A successful wedding records marriage, memories and a visible celebration notice. It introduces the spouses through actual dialogue. Their close relatives gain six directional goodwill in each direction, subject to existing dispositions and ring limits. Marriage changes neither traits nor tastes. NPC love courtship waits half a season. Practical courtship waits one season. Arranged betrothals also wait one season and reward both heads with six goodwill after the wedding. The deliberate player proposal uses its own timed visit instead of an automatic seasonal wedding.
 
 Household formation reuses the NPC function. A couple and dependent children join a family home with room, use an available home, or wait for housing. Homes with a living unrelated owner cannot be taken. Existing buildings, stores, fields, trades, animals and keepsakes survive moves. Marrying an heir gives a future family inheritance path. It does not take a living householder's land.
 

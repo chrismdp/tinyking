@@ -7,6 +7,7 @@ import { courtTogether, marry, canCourt } from "game/social";
 import { knownEvents } from "game/events";
 import { canDiscloseEvent, goodwillTowards } from "game/people";
 import LINES from "data/conversation_lines.json";
+import { seasonLines } from "game/seasons";
 
 function families(key="6,5") {
   const home=community({player:false}),away=community({namespace:"away-",key:"6,5",player:false});
@@ -154,6 +155,7 @@ it("publishes betrothals and refusals as ordinary news with generated conversati
     const event=runSocialActions(v,"arrange",a,b,{summary:true})[0].event;
     expect(knownEvents(v,head).map(e=>e.id)).toContain(event.id);
     expect(canDiscloseEvent(v,head,a,event)).toBe(true);
+    expect(seasonLines(v,Math.floor(v.days/7),head).some(row=>row.eventIds.includes(event.id))).toBe(true);
     for(const family of ["event_news","gossip_tell","overheard_news"])expect(LINES.some(row=>row.family==family&&row.situation=="catalogue_"+event.type)).toBe(true);
   }
 });

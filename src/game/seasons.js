@@ -11,6 +11,7 @@ import { squaredDistance } from "game/math";
 import { enqueueTask } from "game/manager";
 import { pauseWork } from "game/energy";
 import { retryCourtships, chatTogether, canCourt } from "game/social";
+import EVENT_TYPES from "data/event_types.json";
 
 export const FESTIVAL_NAMES={spring:"Seedwake Fair",summer:"Midsummer Gathering",autumn:"Harvest Hearth",winter:"Longest-night Vigil"};
 export const FESTIVAL_MOODS={spring:"Seeds, shared plans and a place in the coming work.",summer:"An evening for courting, promises and weddings.",autumn:"A feast to honour the hands that brought the harvest home.",winter:"Every door is open. We keep the names of those who died this year."};
@@ -131,7 +132,7 @@ export function seasonLines(s, n, actor = s.ui.playerId) {
   const events = knownEvents(s, actor).filter(e => e.day >= start && e.day < end)
     .sort((a,b) => a.day-b.day || a.id.localeCompare(b.id, undefined, {numeric:true}));
   const row = (id, text, section, records) => ({id, text, section, eventIds:records.map(e=>e.id)});
-  const lifeRecords=events.filter(e=>LIFE_EVENTS.has(e.type));
+  const lifeRecords=events.filter(e=>LIFE_EVENTS.has(e.type) || EVENT_TYPES[e.type]?.seasonSection=="life");
   const groups=new Map();
   for(const event of lifeRecords) {
     if(event.people.includes(actor))continue;

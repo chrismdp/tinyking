@@ -94,9 +94,10 @@ it.each([true, false])("generates backdated family children within both parents'
 
 it.each([0, 1])("permits one birth per seasonal transition with cooldown %i", cooldown => {
   const {s,a,b} = couple(false, true, 28, 28);
-  const rate = SOCIAL_RATES.birthPerSeason, previous = SOCIAL_RATES.birthCooldownSeasons;
+  const rate = SOCIAL_RATES.birthPerSeason, previous = SOCIAL_RATES.birthCooldownSeasons, maximum=SOCIAL_RATES.maxBirthChance;
   try {
     SOCIAL_RATES.birthPerSeason = 5;
+    SOCIAL_RATES.maxBirthChance = 1;
     SOCIAL_RATES.birthCooldownSeasons = cooldown;
     advanceSeason(s, 0);
     advanceSeason(s, 0);
@@ -107,6 +108,7 @@ it.each([0, 1])("permits one birth per seasonal transition with cooldown %i", co
     expect(s.ecs.kinship[b].children).toHaveLength(2);
   } finally {
     SOCIAL_RATES.birthPerSeason = rate;
+    SOCIAL_RATES.maxBirthChance = maximum;
     SOCIAL_RATES.birthCooldownSeasons = previous;
   }
 });

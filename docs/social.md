@@ -75,18 +75,37 @@ Automatic family seeking covers Young adults through Middle-aged (16 to 55), the
 age window. Older adults still meet friends and can marry through deliberate
 courtship. Younger widowed adults can seek a new partner.
 Eligibility excludes the player, living spouses, children and close kin.
-Courtship requires mutual attraction and mutual Intimate rings. Parents, siblings
-and people who share grandparents cannot court. Mutual closeness must last half a
-season (one life year) before marriage. Starting automatic courtship and marrying need a conversation
-within the last 1.75 days (half a life year). Once courtship starts, its time remains while both
-people stay Intimate. A missed season of contact does not erase that closeness.
-Historical proposals use that season's completed meeting, so another old bond
-cannot replace the companion whom the person actually chose.
-Losing mutual Intimate clears progress before the next meeting. A distant
-historical bond alone cannot trigger a wedding. Automatic courtship and marriage
-exclude the player. After arrival, the player takes part in shared ageing,
-births and death. [Family and succession](design.md#marriage-ownership-and-succession)
-describes deliberate courtship and control transfer.
+Practical courtship requires mutual Personal rings or closer, compatible orientations,
+and no hate disposition or negative goodwill in either direction. Love is optional.
+Love matches require mutual love and mutual Intimate rings. They take priority over
+practical candidates during visits, nearby meetings and wedding checks.
+Parents, siblings and people who share grandparents cannot court.
+Love courtship waits half a season. Practical courtship waits one season.
+Starting automatic courtship and marrying require a completed conversation within
+1.75 days. Historical proposals require that season's completed meeting.
+Lost Personal consent clears progress. Missed contact alone preserves the start date.
+Automatic courtship and marriage exclude the player.
+
+Each seasonal world boundary also considers family proposals through the nearby
+courtship index. A living household head can arrange a match for a resident child
+who is a Young adult. Both heads need at least ten goodwill towards each other.
+The families can share a village, live elsewhere in the hex, or occupy adjacent hexes.
+Both young people must be single, unrelated, compatible and free of existing courtship.
+They can be strangers. Hate disposition or negative goodwill from either young person
+records a refusal and costs both heads two goodwill. Each head makes at most one
+proposal per season, including refusals.
+
+Acceptance records a public betrothal and an exclusive commitment. It needs no
+relationship ring or invented conversation. The wedding waits one full season and
+uses the existing housing and marriage functions. Consent, orientation, age and kin
+rules still apply at the wedding. Both heads gain six goodwill after the wedding.
+Betrothals and refusals use ordinary family news, disclosure and season accounts.
+The action catalogue declares the conditions, participants and seasonal attempt rules.
+The event catalogue declares commitments, goodwill, relevance and disclosure.
+
+After arrival, the player takes part in shared ageing, births and death.
+[Family and succession](design.md#marriage-ownership-and-succession) describes
+explicit player courtship and control transfer.
 
 A couple and their dependent children use a family house with room for eight residents, then a genuinely available home in either community or an inherited estate they own. An empty home with a living unrelated owner is unavailable. Personal IDs, kin links and possessions survive a move. Move events preserve both home and village identities. A move resets stale plans, farming claims and trade assignments, then sends live movers home through the planner. If neither exists, a rendered world can build a cottage on nearby unused grassland. A summary world can supply plain `houseSites[villageId]` coordinates. The village retains its eight-house limit. If there is no suitable site, marriage waits. Marriage and moves retain both partners' personal belongings.
 
@@ -99,7 +118,12 @@ Detailed preparation surveys enough foundations for the actual grown village.
 Marriage transfers a resident and their carried property once. Original homes,
 uncarried property and living owners retain their existing ownership rules.
 
-Birth probability uses a seasonal base of 0.45 in `SOCIAL_RATES`. Population relative to three people per house scales it by 0.2 to 2. The resulting chance ranges from 9% to 90%. At the reference population, an eligible couple expects one birth every 2.22 seasons, or 4.44 life years. Crowded villages reduce the chance, and sparse villages increase it. Couples wait one season between births. A birth requires a man and a woman. The woman must be a Young adult or Adult (16–39). The man must be a Young adult through Middle-aged (16–55). Same-sex couples can court and marry, but they never have a birth. Generated family children also fit their parents' windows at the time of birth. A household with eight residents waits for room before another birth. Grown children can leave crowded households for ownerless homes or available close-family homes, including a family home in another village. A living owner keeps the estate. Couples take their dependent children with them. A child inherits one parent's trait and the other parent's tastes. Opposed traits stay excluded.
+Birth probability uses a seasonal base of 0.85 in `SOCIAL_RATES`. Population relative
+to three people per house scales it by 0.2 to 2. The chance stops at 0.9, so the
+effective range is 17% to 90%. Every eligible opportunity can fail. At the reference
+population, a couple expects one birth every 1.18 seasons, or 2.35 life years.
+Crowded villages reduce the chance. Couples wait one season between births.
+A birth requires a man and a woman. The woman must be a Young adult or Adult (16–39). The man must be a Young adult through Middle-aged (16–55). Same-sex couples can court and marry, but they never have a birth. Generated family children also fit their parents' windows at the time of birth. A household with eight members waits for room before another birth. Travellers retain a place in their original home during visits. Births and weddings count those places through the small visit ledger, without searching the population. Grown children can leave crowded households for ownerless homes or available close-family homes, including a family home in another village. A living owner keeps the estate. Couples take their dependent children with them. A child inherits one parent's trait and the other parent's tastes. Opposed traits stay excluded.
 
 Everyone gains two life years per season. `lifeYears` stores age divided by eight. The shared life-stage module defines Child (0–7), Teenager (8–15), Young adult (16–23), Adult (24–39), Middle-aged (40–55) and Old (56+). The UI and conversations show these labels instead of exact ages. Teenagers can help at home. Young adults can do adult work. Both dependent stages can play together.
 

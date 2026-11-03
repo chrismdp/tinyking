@@ -27,7 +27,7 @@ it("requires mutual adult consent for deliberate marriage, while NPC matchmaking
   intimate(s,a,b);
   expect(canMarryPlayer(s,a,b)).toBe(true);
   expect(canCourt(s,a,b)).toBe(false);
-  s.ecs.relationships[a].known[b].ring="personal";
+  s.ecs.relationships[a].known[b].ring="social";
   expect(canMarryPlayer(s,a,b)).toBe(false);
   intimate(s,a,b); s.ecs.personable[a].age=12;
   expect(canMarryPlayer(s,a,b)).toBe(false);
@@ -50,7 +50,7 @@ it("courts through a real queued walk and timed conversation, growing both direc
 it.each(["consent","age","married","death"])("revalidates %s after a marriage visit was queued", reason => {
   const {state:s,player,person,sibling,step}=weddingWorld(); intimate(s,player,person);
   enqueueTask(s,{key:"marry"},person);
-  if(reason=="consent")s.ecs.relationships[person].known[player].ring="personal";
+  if(reason=="consent")s.ecs.relationships[person].known[player].ring="social";
   if(reason=="age")s.ecs.personable[player].age=12;
   if(reason=="married"){s.ecs.kinship[person].spouse=sibling;s.ecs.kinship[sibling].spouse=person;}
   if(reason=="death")s.ecs.personable[person].dead=true;
@@ -108,13 +108,14 @@ it("allows a genuine player marriage to produce reciprocal children on actual se
   const count=children.length,nextSeason=Math.floor(s.days/DAYS_IN_SEASON)+1;
   // Force only this cooldown opportunity. The ordinary birth above keeps its
   // real probability; the cooldown assertion must not depend on the next roll.
-  const rate=SOCIAL_RATES.birthPerSeason;
+  const rate=SOCIAL_RATES.birthPerSeason,maximum=SOCIAL_RATES.maxBirthChance;
   try {
     SOCIAL_RATES.birthPerSeason=5;
+    SOCIAL_RATES.maxBirthChance=1;
     advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
     expect(s.ecs.personable[player].lastBirth).toBe(nextSeason);
     advanceSeason(s,nextSeason);expect(s.ecs.kinship[player].children).toHaveLength(count+1);
-  } finally {SOCIAL_RATES.birthPerSeason=rate;}
+  } finally {SOCIAL_RATES.birthPerSeason=rate;SOCIAL_RATES.maxBirthChance=maximum;}
 });
 
 it.each(["spouse","minor"])("continues after a shared lifecycle death as the actual %s with their own identity and estate provenance", async kind => {

@@ -59,13 +59,13 @@ it("chats only when together and changes mutual goodwill by disposition", () => 
   expect(chatTogether(s, a, b)).toBe(false);
 });
 
-it("requires mutual Intimate adults, excludes kin and player, and creates a shared household", () => {
+it("requires mutual Personal adults, excludes kin and player, and creates a shared household", () => {
   const { state: s, player, person: a, sibling: b } = peopleWorld();
   s.ecs.kinship[a].parents = []; s.ecs.kinship[b].parents = [];
   s.ecs.building = { [s.ecs.household[a].houseId]: { rooms: [] } };
   mutual(s, a, b);
   expect(canCourt(s, a, b)).toBe(true);
-  s.ecs.relationships[b].known[a].ring = "personal";
+  s.ecs.relationships[b].known[a].ring = "social";
   expect(canCourt(s, a, b)).toBe(false);
   s.ecs.relationships[b].known[a].ring = "intimate";
   expect(marry(s, a, b)).toBe(true);

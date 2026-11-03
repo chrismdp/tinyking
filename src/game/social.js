@@ -25,7 +25,8 @@ import { hashUnit } from "game/math";
 import { recordEvent, eventById, closeFamily, withEventIndex, invalidateEventIndex } from "game/events";
 import { die, repairHouseholds } from "game/possessions";
 export const SOCIAL_RATES = {
-  birthPerSeason: .45,
+  birthPerSeason: .85,
+  maxBirthChance: .9,
   birthCooldownSeasons: 1,
   travellerShare: 0.05,
   courtshipSeasons: lifeClockSeasons(2),
@@ -488,14 +489,15 @@ function settleAdults(s, summary) {
 
 // Retry mature courtships when fresh contact occurs between seasonal updates.
 function updateCourtships(s, season = Math.floor(s.days / DAYS_IN_SEASON), summary = false, roster = living(s).filter(id=>s.ecs.relationships?.[id] && s.ecs.kinship?.[id] && s.ecs.personality?.[id])) {
-  const used = new Set();
+  const used = new Set(),pairs=[];
   for (const a of roster) {
     const candidates=[...new Set([s.ecs.relationships[a].commitment?.partnerId,...peopleInRings(s,a,["personal","intimate"])].filter(Boolean))];
-    for (const b of candidates.sort((b,c)=>Number(loveMatch(s,a,c))-Number(loveMatch(s,a,b)))) if (a < b && !used.has(a) && !used.has(b)) {
-      if (courtTogether(s, a, b, season, summary)) {
-        used.add(a);
-        used.add(b);
-      }
+    for(const b of candidates)if(a<b)pairs.push([a,b]);
+  }
+  pairs.sort(([a,b],[c,d])=>Number(loveMatch(s,c,d))-Number(loveMatch(s,a,b)));
+  for(const [a,b] of pairs)if(!used.has(a) && !used.has(b)) {
+    if(courtTogether(s,a,b,season,summary)) {
+      used.add(a);used.add(b);
     }
   }
 }
@@ -513,7 +515,9 @@ export function courtTogether(s, a, b, season, summary = false) {
 // existing courtships so their original seasonal start and delay stay intact.
 export function retryCourtships(s) {
   const season = s.days / DAYS_IN_SEASON;
-  for (const [key, started] of Object.entries(s.social?.courtships || {})) {
+  const pending=Object.entries(s.social?.courtships || {});
+  pending.sort(([left],[right])=>Number(loveMatch(s,...right.split(":")))-Number(loveMatch(s,...left.split(":"))));
+  for (const [key, started] of pending) {
     const [a,b] = key.split(":");
     if (season - started < courtshipWait(s,a,b)) continue;
     courtTogether(s,a,b,season);
@@ -635,7 +639,7 @@ function advanceSeasonRules(s, season, summary) {
       const house = ecs.household[a]?.houseId;
       if ((occupants[house] || 0) >= HOUSEHOLD_CAPACITY) continue;
       if (season - Math.max(p.lastBirth ?? -10000, ecs.personable[b].lastBirth ?? -10000) < SOCIAL_RATES.birthCooldownSeasons) continue;
-      if (roll(s, "birth:" + a + ":" + season) < Math.min(1, SOCIAL_RATES.birthPerSeason * fertility)) {
+      if (roll(s, "birth:" + a + ":" + season) < Math.min(SOCIAL_RATES.maxBirthChance, SOCIAL_RATES.birthPerSeason * fertility)) {
         birth(s, a, b, season);
         occupants[house]=(occupants[house]||0)+1;
       }

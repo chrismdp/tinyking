@@ -8,10 +8,9 @@ import { bindNewsContext } from "game/event_knowledge";
 import { withPopulationIndex, refreshPersonIndex } from "game/population_index";
 import { withRelationshipIndex } from "game/people";
 import { withEventIndex } from "game/events";
-import { canCourt, chatTogether, courtTogether, courtshipPreference, attractionRank, withSocialIndex } from "game/social";
+import { canCourt, chatTogether, courtTogether, courtshipPreference, attractionRank, withSocialIndex, clearCourtship } from "game/social";
 import { relatedPeople } from "game/social_kin";
 import { SOCIAL_ACTIONS, runSocialActions, socialActionBindings, socialActionAvailable } from "game/social_actions";
-import { clearCourtship } from "game/social";
 import { moveMarriageResidents, publishCommunity } from "game/travel";
 
 const single = (map, id) => {
@@ -167,18 +166,18 @@ export function runNearbyCourtships(s, season) {
     paired.add(a); paired.add(b);
     view.days = s.days;
     const pair = [a, b].sort().join(":");
-    const started = right.social.courtships[pair];
-    if (started != null) left.social.courtships[pair] = Math.min(left.social.courtships[pair] ?? started, started);
+    const starts=[left.social.courtships[pair],right.social.courtships[pair]].filter(start=>start!=null);
+    if(starts.length)view.social.courtships[pair]=Math.min(...starts);
     const avoidance = [left.social.avoidance?.[pair], right.social.avoidance?.[pair]].filter(until => until != null);
-    if (avoidance.length) left.social.avoidance[pair] = Math.max(...avoidance);
+    if (avoidance.length) view.social.avoidance[pair] = Math.max(...avoidance);
     const married = withPopulationIndex(view, () => withRelationshipIndex(view, () => withSocialIndex(view, () => withEventIndex(view, () => {
       return chatTogether(view, a, b, true, 6) && courtTogether(view, a, b, season, true);
     }))));
-    if (view.social.courtships[pair] != null) right.social.courtships[pair] = view.social.courtships[pair];
-    else delete right.social.courtships[pair];
-    if (left.social.avoidance[pair] != null) right.social.avoidance[pair] = left.social.avoidance[pair];
-    else delete right.social.avoidance[pair];
-    if (left.social.contacts?.[pair] != null) (right.social.contacts ||= {})[pair] = left.social.contacts[pair];
+    for(const field of ["courtships","avoidance","contacts"])for(const map of [left,right]) {
+      const value=view.social[field]?.[pair];
+      if(value!=null)(map.social[field] ||= {})[pair]=value;
+      else if(map.social[field])delete map.social[field][pair];
+    }
     if(view!==left){left.events.push(...view.events); view.events.length = 0;}
     left.ecs.nextId = view.ecs.nextId;
     if (married && left!==right) {

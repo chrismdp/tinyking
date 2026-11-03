@@ -64,3 +64,20 @@ it("lets a love couple wed sooner than a practical couple in live time",()=>{
     expect(s.ecs.kinship[a].spouse).toBe(love?b:null);
   }
 });
+
+it.each(["hourly","seasonal"])("gives a mature love courtship priority at the %s wedding check",mode=>{
+  const {s,a,b:c,c:b}=fixture();
+  for(const id of [b,c])s.ecs.personality[id].opinionThresholds={hate:-100,love:-50};
+  for(const [x,y] of [[a,b],[b,a]])s.ecs.relationships[x].known[y]={ring:"personal",goodwill:40,base:40};
+  for(const [x,y] of [[b,c],[c,b]])s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:80,base:80};
+  // The practical pair sorts first by ID and was inserted first.
+  s.days=7;
+  expect(canCourt(s,a,b)).toBe(true);expect(canCourt(s,b,c)).toBe(true);
+  for(const pair of [[a,b],[b,c]]) {
+    const key=pair.sort().join(":");s.social.courtships[key]=0;s.social.contacts[key]=s.days;
+  }
+  if(mode=="hourly")retryCourtships(s);
+  else advanceSeason(s,1);
+  expect(s.ecs.kinship[b].spouse).toBe(c);
+  expect(s.events.find(e=>e.type=="marriage").kind).toBe("love");
+});

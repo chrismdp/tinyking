@@ -162,9 +162,15 @@ it("courts and marries an adjacent villager without a wanderer trait or a journe
   for (const [from, to] of [[a, b], [b, a]]) s.travel.people[from].relationships.known[to] = { ring: "intimate", goodwill: 80 };
   s.days = 7; runNearbyCourtships(s, 1);
   expect(s.travel.people[a].kinship.spouse).toBeNull();
+  const pair=[a,b].sort().join(":");
+  for(const map of [s.travel.maps["5,5"],s.travel.maps[key]]) {
+    expect(map.social.courtships[pair]).toBe(1);
+    expect(map.social.contacts[pair]).toBe(7);
+  }
   s.days = 14; runNearbyCourtships(s, 2);
   expect(s.travel.people[a].kinship.spouse).toBe(b);
   expect(s.travel.people[b].kinship.spouse).toBe(a);
+  for(const map of [s.travel.maps["5,5"],s.travel.maps[key]])expect(map.social.courtships[pair]).toBeUndefined();
   expect(s.travel.people[a].household.houseId).toBe(s.travel.people[b].household.houseId);
   const residentMaps = [a, b].map(id => Object.keys(s.travel.maps).filter(k => s.travel.maps[k].residents[id]));
   expect(residentMaps[0]).toHaveLength(1);

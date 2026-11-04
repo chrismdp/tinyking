@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+const key=(a,b)=>[a,b].sort().join(":");
 function policy(s,menu,helpful,memory,state) {
   const available=menu.choices.filter(c=>c.available);
   const intervention=available.find(c=>["make_peace","introduce"].includes(c.activity) && !state.completedPairs?.has(key(c.personId,c.otherId)));

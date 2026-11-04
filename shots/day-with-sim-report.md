@@ -65,3 +65,5 @@ The first affected gate ran 143 related files. It retained 1,379 passing tests a
 The failed seasonal tests then exposed an exact boundary: the hourly stamp was `6.999999999999999`, so the local ageing check still saw the previous season. A new regression first failed on that value. Fresh clocks now align with the world hour and hourly stamps use exact hour boundaries. This can alter real seasonal schedules, so the earlier seed-13 games and partial surveys are retained as pre-correction evidence. The final proofs will be repeated on the corrected clock.
 
 A repeated affected gate is justified here because canonical hour dates feed the NPC planner's seeded schedules, weather and season rules throughout the import graph. It remains `--changedSince=a2c0cba`, not a whole-suite command.
+
+A final default-picker regression reproduced an invalid choice: an introduction outranked an available match even when it did not fit the row. The default and research policy now filter by the real conversation preview's fit rule. This fixes the picker rather than granting more patience or accepting an invalid line. The final proof bundle will include it.

@@ -151,3 +151,12 @@ it("checks food offers from one consistent inventory snapshot per choice query, 
   s.ecs.container[store].amounts.grain=100;
   expect(require("game/favours").reasonGone(s,r)).toMatch(/food need is already met/);
 });
+
+it("chooses a line that fits the real conversation row", () => {
+  const w=village(),s=w.state;
+  s.chat={active:{actorId:w.player,npcId:w.person,usedIds:[],row:["work","food","family","season","village","faith"].map(key=>({kind:"topic",key}))}};
+  const unfit={id:"intro",key:"intro",family:"introduction",icons:[{kind:"topic",key:"help"},{kind:"topic",key:"woodland"}]};
+  const fit={id:"work",key:"work",icons:[{kind:"topic",key:"work"}]};
+  expect(require("game/chat").previewLine(s,unfit).fits).toBe(false);
+  expect(require("game/day").sensibleLine(s,[unfit,fit])).toBe("work");
+});

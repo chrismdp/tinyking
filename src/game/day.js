@@ -87,7 +87,7 @@ export function sensibleLine(s, lines) {
       i.kind=="topic"?learned?.topicTastes?.[i.key]:i.kind=="mood"?learned?.moodTastes?.[i.key]:learned?.personReactions?.[i.personId]?.score);
     return (l.answers?.includes(c.expectation)?100:0)+(l.family=="introduction"?20:0)+previewLine(s,l).matches*3+known.reduce((n,v)=>n+(v||0),0)-(l.risk?50:0)-(l.evasive?10:0);
   };
-  return lines.filter(l=>!c.usedIds.includes(l.id)).sort((a,b)=>score(b)-score(a))[0]?.key;
+  return lines.filter(l=>!c.usedIds.includes(l.id) && previewLine(s,l).fits).sort((a,b)=>score(b)-score(a))[0]?.key;
 }
 function factsChanged(before,after,path="") {
   return Object.entries(after || {}).flatMap(([key,value])=>{

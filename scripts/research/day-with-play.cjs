@@ -37,7 +37,7 @@ async function initial(seed) {
 }
 function chooseChat(s,lines,choice,helpful,memory) {
   const c=s.chat.active;
-  lines=lines.filter(l=>!c.usedIds.includes(l.id));
+  lines=lines.filter(l=>!c.usedIds.includes(l.id) && previewLine(s,l).fits);
   if(!lines.length)return null;
   // Subject selection is the same operation offered by the paused chat panel.
   // Keep pending answers first. Accept only genuine spoken offers.

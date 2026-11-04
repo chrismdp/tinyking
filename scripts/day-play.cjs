@@ -42,7 +42,10 @@ const looks=id=>{const p=s.ecs.personable[id],m=s.ecs.nameable[id]?.male,a=Math.
 const nm=id=>{const d=displayName(s,id,s.personName);return !d||/unknown/.test(d)?looks(id):d;};
 const full=id=>s.ecs.nameable?.[id]?name(s.ecs.nameable[id]):id;
 const doing=id=>{const t=s.ecs.planner?.[id]?.task;return t?String(t[0]).replace(/_/g," "):"idle";};
-const ring=r=>({public:"a stranger to you",social:"friendly with you",personal:"close to you",intimate:"very close to you"})[r]||r;
+// The game's own names for each ring.
+const ring=r=>({public:"an acquaintance",social:"a familiar acquaintance",personal:"a friend",intimate:"your closest friend"})[r]||r;
+const ACT={eat:"eating",eat_food:"eating",sleep:"asleep",rest:"resting",walk_to:"walking",socialise:"talking with someone",work:"working",farm:"in the fields",harvest:"harvesting",forage:"gathering food",find_food:"looking for food",cook:"cooking",chop:"chopping wood",cut_tree_down:"felling a tree",haul:"carrying goods",store:"putting goods away",wait_for:"waiting",idle:"idling",get_attention:"waiting to speak to someone",visit:"visiting",pray:"praying"};
+const act=a=>ACT[a]||a.replace(/_/g," ");
 
 function look(){
   menu=slotChoices(s);
@@ -68,12 +71,16 @@ function chatView(lines){
   const c=s.chat.active,out=[`TALKING WITH ${nm(c.npcId)}`];
   for(const t of c.transcript.slice(waiting?.shown||0))out.push(`  ${t.speaker=="player"?"You":nm(c.npcId)}: ${t.text}${t.pops?.length?"  [pops: "+t.pops.map(p=>p.key||p.kind).join(", ")+"]":""}`);
   out.push(`  row: ${c.row.map(i=>i.kind=="person"?"@"+nm(i.personId):i.key||i.kind).join(" | ")}`);
+  out.push("  topics: /focus?f= family | work | news | help | village | season | mood"+(c.focus?"  (now: "+c.focus+")":""));
   lines.forEach((l,i)=>{const p=previewLine(s,l);out.push(`  ${i}. ${l.text}  {${l.icons.map(x=>x.kind=="person"?"@"+nm(x.personId):x.key||x.kind).join(",")}}${p.fits?"":" (won't fit)"}${p.matches?" matches "+p.matches:""}${l.risk?" RISKY":""}`);});
   return out.join("\n");
 }
 function narrate(r){
   const out=[`--- ${r.slot} of day ${r.day}: ${r.choice.activity} ${r.choice.personId?nm(r.choice.personId):""}`];
   for(const c of r.conversations){out.push(`Conversation with ${nm(c.personId)}${c.completed?"":" (cut short)"}:`);for(const t of c.lines)out.push(`  ${t.speaker=="player"?"You":nm(c.personId)}: ${t.text}`);}
+  const sights={};for(const o of r.seen||[])(sights[o.personId] ||= []).push(act(o.activity)+(o.targetId&&s.ecs.nameable?.[o.targetId]&&!s.ecs.personable?.[o.targetId]?" ("+(s.ecs.nameable[o.targetId].nickname||"")+")":o.targetId&&s.ecs.personable?.[o.targetId]?" with "+nm(o.targetId):""));
+  const sightLines=Object.entries(sights).map(([id,a])=>`  ${nm(id)}: ${[...new Set(a)].slice(0,5).join(", then ")}`);
+  if(sightLines.length)out.push("You see:",...sightLines.slice(0,10),sightLines.length>10?`  …and ${sightLines.length-10} others about their day`:"");
   for(const e of r.events)out.push(`* ${eventText(s,e,nm)}`);
   for(const o of r.outcomes)out.push(`> ${o.kind}${o.reason?": "+o.reason:""}${o.lines?": "+JSON.stringify(o.lines).slice(0,400):""}`);
   for(const g of r.regard)out.push(`~ ${nm(g.personId)}: ${g.before.goodwill.toFixed(1)} -> ${g.after.goodwill.toFixed(1)}${g.before.ring!=g.after.ring?" (now "+ring(g.after.ring)+")":""}`);
@@ -103,6 +110,7 @@ http.createServer(async(req,res)=>{
     else if(u.pathname=="/pick"){if(pending)body="Busy";else{look();const a=u.searchParams.get("a"),q=(u.searchParams.get("p")||"").toLowerCase(),pl=(u.searchParams.get("at")||"").toLowerCase();
       const c=menu.numbered.find(c=>c.activity==a&&(!q||c.personId&&(full(c.personId).toLowerCase().includes(q)||nm(c.personId).toLowerCase().includes(q)))&&(!pl||placeName(c.placeId).toLowerCase().includes(pl)));
       if(!c)body="No such choice";else{start(c);body=await report();}}}
+    else if(u.pathname=="/focus"){const w=waiting;if(!w)body="Not talking";else{s.chat.active.focus=u.searchParams.get("f");const {chatChoices}=require("../src/game/chat");w.lines=chatChoices(s);w.shown=Math.max(0,(w.shown||0));body=chatView(w.lines);}}
     else if(u.pathname=="/say"){const w=waiting;if(!w)body="Not talking";else{waiting=null;w.res(n<0?null:w.lines[n].key);await new Promise(r=>setImmediate(r));body=await report();}}
     else if(u.pathname=="/who"){const id=Object.keys(s.ecs.personable).find(id=>full(id).toLowerCase().includes(u.searchParams.get("q").toLowerCase()));
       const k=s.knowledge?.[s.ui.playerId]?.people?.[id];body=[full(id),...biography(s,s.ui.playerId,id,s.personName).map(f=>f.text),JSON.stringify(k||{}).slice(0,1500)].join("\n");}

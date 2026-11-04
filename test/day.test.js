@@ -199,3 +199,12 @@ it("delivers the player's own food to a household whose request they accepted, e
   expect(s.ecs.container[store].amounts.roots||0).toBeGreaterThanOrEqual(1);
   expect(s.ecs.good[roots]?.amount||0).toBe(0);
 });
+
+it("reports what the people around the player were doing during the slot", async () => {
+  const w=village(),s=w.state;
+  s.ecs.spatial[w.person]={...s.ecs.spatial[w.player]};
+  const result=await playSlot(s,slotChoices(s).choices.find(c=>c.activity=="visit"&&c.available&&c.placeId==w.tiles[0])||slotChoices(s).choices.find(c=>c.activity=="visit"&&c.available));
+  expect(result.seen).toEqual(expect.any(Array));
+  expect(result.seen.some(o=>o.personId==w.person&&typeof o.activity=="string"&&o.day>=0.375)).toBe(true);
+  expect(result.seen.every(o=>o.personId!=w.player)).toBe(true);
+});

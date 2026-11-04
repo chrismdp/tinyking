@@ -128,7 +128,22 @@ export async function playSlot(s, requested, hooks={}) {
   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
   const knowledge=structuredClone(s.knowledge?.[actor] || {});
   const regards=()=>Object.fromEntries(Object.keys(s.ecs.personable).map(id=>[id,{ring:s.ecs.relationships?.[id]?.known[actor]?.ring || "public",goodwill:s.ecs.relationships?.[id]?.known[actor]?.goodwill || 0}]));
-  const before=regards(),orders=[],outcomes=[],conversations=[];
+  const before=regards(),orders=[],outcomes=[],conversations=[],seen=[];
+  // Each game hour, note what the people within sight are doing. A change of
+  // activity is a new sighting; repeating the same task is not.
+  let lastLook=-1;
+  const look=()=>{
+    const hour=Math.floor(s.days*24+1e-9);if(hour==lastLook)return;lastLook=hour;
+    const me=s.ecs.spatial[actor];if(!me)return;
+    for(const [id,p] of Object.entries(s.ecs.planner || {})) {
+      const at=s.ecs.spatial[id];
+      if(id==actor || !at || s.ecs.personable?.[id]?.dead || !p.task || (at.x-me.x)**2+(at.y-me.y)**2>300**2)continue;
+      const activity=String(p.task[0]),target=typeof p.task[1]=="string"?p.task[1]:null;
+      const last=seen.findLast(o=>o.personId==id);
+      if(last && last.activity==activity && last.targetId==target)continue;
+      seen.push({day:s.days,personId:id,activity,targetId:target});
+    }
+  };
   const order=(key,target,extra)=>{const j=enqueueTask(s,{key},target,extra);if(j)orders.push(j);return j;};
   setAside(s,actor);
   let bringing=null;
@@ -169,6 +184,7 @@ export async function playSlot(s, requested, hooks={}) {
         const reason=choice.activity=="make_peace" ? makePeace(s,actor,choice.personId,choice.otherId) : introduce(s,actor,choice.personId,choice.otherId);
         outcomes.push({kind:choice.activity,requested:!reason,reason});bringing=null;
       }
+      look();
       sim.tick();if(sim.pending)await sim.pending;
       s.redraws.length=0;
     }
@@ -185,5 +201,5 @@ export async function playSlot(s, requested, hooks={}) {
   for(const j of orders)if(j.progress<1)outcomes.push({kind:"unfinished",task:j.job.key,reason:j.waiting || j.detail || s.ui.talkResult?.message || "The slot ended before the task finished"});
   const after=regards();
   return {day:menu.day,slot:menu.slot,start,end:s.days,choice,events:knownEvents(s,actor).filter(e=>!prior.has(e.id)),
-    facts:factsChanged(knowledge,s.knowledge?.[actor]),regard:Object.keys(after).filter(id=>JSON.stringify(before[id])!=JSON.stringify(after[id])).map(personId=>({personId,before:before[personId],after:after[personId]})),conversations,outcomes};
+    facts:factsChanged(knowledge,s.knowledge?.[actor]),seen,regard:Object.keys(after).filter(id=>JSON.stringify(before[id])!=JSON.stringify(after[id])).map(personId=>({personId,before:before[personId],after:after[personId]})),conversations,outcomes};
 }

@@ -8,7 +8,7 @@ import { Hex } from "game/hex";
 import { giftOptions, addGoodwill, meet } from "game/people";
 import { taskPlace } from "game/task_places";
 import { enqueueTask, playerOrderAllowed, canReachTask } from "game/manager";
-import { recordEvent } from "game/events";
+import { recordEvent, knownEvents, closeFamily } from "game/events";
 import { take, give } from "game/holder";
 import { newEntities } from "game/entities";
 import { containerHasSpace } from "game/container";
@@ -77,6 +77,7 @@ function foodReserve(s, house) {
 }
 export function reasonGone(s, r, food) {
   const ecs = s.ecs;
+  if (ASKS.includes(r.kind)) return askGone(s, r);
   if (!live(s, r.giverId)) return "The requester died";
   if (ecs.household?.[r.giverId]?.houseId != r.householdId) return "The requester moved home";
   const store = householdStore(s, r.householdId);
@@ -155,12 +156,63 @@ export function updateFavours(s) {
     const deficit = residents(s, house).length * 2 - (food.get(house) || 0);
     if (deficit > 0) offer("food", h.storeId, Math.min(3, deficit), "The household has less than two meals each");
   }
+  updateAsks(s);
   // An anonymous overheard need is an observation, never an introduction.
   for (const r of Object.values(s.favours.requests)) if (r.status == "offered" && nearbyRequester(s, r.giverId) && !s.knowledge?.[player]?.people?.[r.giverId]?.conversation) {
     s.knowledge ||= {};
     const k = s.knowledge[player] ||= { people: {}, feelings: {} };
     (k.noticedNeeds ||= {})[r.giverId + ":" + r.kind] = { speakerId: r.giverId, kind: r.kind, householdId: r.householdId, workplace_name: FUEL_TRADES[ecs.workplace?.[r.workplaceId]?.trade], day: s.days };
     s.redraws?.push(r.giverId);
+  }
+}
+// Asks come from a person's own recent life: news their kin elsewhere have not
+// heard, or a quarrel they would mend. Each names an outcome and completes when
+// the simulation records it, however the player brought it about.
+export const ASKS = ["word", "peace"];
+const ASK_DAYS = 7, WORD_EVENTS = ["death", "birth", "marriage"];
+const pairKey = (a, b) => [a, b].sort().join(":");
+function askGone(s, r) {
+  if (!live(s, r.giverId)) return "The one who asked has died";
+  if (!live(s, r.targetId)) return "The one it was for has died";
+  if (s.days - r.createdDay > ASK_DAYS) return "Too late now";
+  if (r.kind == "word" && knownEvents(s, r.targetId).some(e => e.id == r.eventId) && !toldByPlayer(s, r)) return "They have heard already";
+  if (r.kind == "peace" && r.status == "offered" && reconciled(s, r)) return "They have made it up already";
+  return null;
+}
+const toldByPlayer = (s, r) => s.knowledge?.[r.targetId]?.spokenSources?.[r.eventId]?.speakerId == s.ui.playerId;
+const reconciled = (s, r) => (s.events || []).some(e => e.type == "reconciliation" && e.day >= (r.acceptedDay ?? r.createdDay) && pairKey(...e.people) == pairKey(r.giverId, r.targetId));
+function askDone(s, r) {
+  return r.kind == "word" ? toldByPlayer(s, r) : reconciled(s, r);
+}
+function updateAsks(s) {
+  const ecs = s.ecs, player = s.ui.playerId, requests = s.favours.requests;
+  for (const r of Object.values(requests)) if (ASKS.includes(r.kind) && r.status == "accepted" && askDone(s, r)) {
+    r.status = "completed"; r.completedDay = s.days; r.outcome = `Completed · +${r.goodwill} goodwill with the one who asked`;
+    addGoodwill(s, player, r.giverId, r.goodwill);
+    recordEvent(s, "favour", [player, r.giverId], [], { favourId: r.id, kind: r.kind, quantity: 1, goodwill: r.goodwill, place: r.householdId });
+  }
+  const open = (kind, giverId) => Object.values(requests).some(r => r.kind == kind && r.giverId == giverId && ["offered", "accepted"].includes(r.status));
+  const offer = (kind, giverId, targetId, extra) => {
+    const id = (ecs.namespace || "") + "favour-" + ++s.favours.nextId;
+    requests[id] = { id, giverId, householdId: ecs.household?.[giverId]?.houseId, kind, targetId, quantity: 1, progress: 0, delivered: 0, produced: 0,
+      goodwill: kind == "peace" ? 16 : 10, status: "offered", cargo: [], createdDay: s.days, ...extra };
+  };
+  const recent = (s.events || []).filter(e => !e.sealed && s.days - e.day <= ASK_DAYS);
+  for (const giverId of Object.keys(ecs.personable || {})) {
+    if (giverId == player || !live(s, giverId) || !isResident(s, giverId) || !isAdult(ecs.personable[giverId].age)) continue;
+    const village = ecs.village?.[giverId]?.villageId, known = new Set(knownEvents(s, giverId).map(e => e.id));
+    if (!open("word", giverId)) {
+      const news = recent.find(e => WORD_EVENTS.includes(e.type) && known.has(e.id) && (e.people.includes(giverId) || closeFamily(s, giverId).includes(e.people[0])));
+      const kin = news && closeFamily(s, giverId).filter(id => id != player && live(s, id) && !news.people.includes(id) &&
+        ecs.village?.[id]?.villageId != village && !knownEvents(s, id).some(e => e.id == news.id)).sort()[0];
+      if (kin) offer("word", giverId, kin, { eventId: news.id, reason: "Kin elsewhere have not heard" });
+    }
+    if (!open("peace", giverId)) {
+      const quarrel = [...recent].reverse().find(e => e.type == "quarrel" && e.people.includes(giverId) && known.has(e.id));
+      const other = quarrel?.people.find(id => id != giverId);
+      if (other && other != player && live(s, other) && !(s.events || []).some(e => e.type == "reconciliation" && e.day >= quarrel.day && pairKey(...e.people) == pairKey(giverId, other)))
+        offer("peace", giverId, other, { eventId: quarrel.id, reason: "They would mend a quarrel" });
+    }
   }
 }
 export function nearbyRequester(s, id) {
@@ -176,6 +228,7 @@ export function visibleFavours(s, personId) {
 // A met adult can ask for the same real household need in person. The
 // accepted request names that person, and keeps the existing delivery reward.
 export function canRequestForHousehold(s, request, personId) {
+  if (ASKS.includes(request.kind) && personId != request.giverId) return false;
   return live(s, personId) && isAdult(s.ecs.personable[personId].age) &&
     s.ecs.household?.[personId]?.houseId == request.householdId &&
     !!s.knowledge?.[s.ui.playerId]?.people?.[personId]?.conversation;
@@ -190,6 +243,13 @@ export function acceptFavour(s, id, personId) {
   if(personId && personId!=giverId) {
     if(!canRequestForHousehold(s,r,personId))return null;
     giverId=personId;
+  }
+  // An ask names an outcome, not work: the player finds their own way to it.
+  if(ASKS.includes(r.kind)) {
+    if(personId && personId!=r.giverId)return null;
+    meet(s,s.ui.playerId,r.giverId);meet(s,r.giverId,s.ui.playerId);
+    r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;
+    return r;
   }
   const task=enqueueTask(s,{key:"favour"},r.targetId,{favourId:id,forId:giverId,expectedGoodwill:r.goodwill});
   if(!task)return null;
@@ -296,5 +356,5 @@ export function harvestRouteReason(s,r,stage) {
   const approach=harvestApproach(s,r);
   return `The route to the ${stage} is blocked. `+(approach ? `Choose Move to field approach to reach ${approach.label}, then continue the favour.` : "Show field to inspect it. No explored approach is reachable; explore around the field first.");
 }
-export const favourTitle = r => r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";
+export const favourTitle = r => r?.kind == "word" ? "Carry word" : r?.kind == "peace" ? "Help make peace" : r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";
 export const favourQuantity = r => `${r.quantity} ${r.kind == "harvest" ? "crop patches" : r.kind == "wood" ? "log" : "food portions"}`;

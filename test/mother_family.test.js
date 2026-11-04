@@ -125,7 +125,9 @@ it("offers named searches in chat and recognises the player with a real first-me
   expect(chooseLine(s,line.key)).toBe(true);
   expect(s.chat.active.transcript.some(l=>l.family=="maternal_recognition")).toBe(true);
   expect(s.chat.active.transcript.some(l=>l.family=="favour_ask")).toBe(true);
-  expect(s.ecs.relationships[person].known[player]).toMatchObject({ring:"personal",base:36});
+  // One conversation moves a relationship at most one ring (Chris, 4 November
+  // 2026). The kin goodwill stays, so the next conversation reaches Personal.
+  expect(s.ecs.relationships[person].known[player]).toMatchObject({ring:"social",base:36});
   expect(s.knowledge[player].people[person].nameOnly).toBeUndefined();
   expect(s.knowledge[person].people[player].maternalKin).toBeDefined();
   expect(familyGoal(s).met).toContain(person);

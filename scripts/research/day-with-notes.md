@@ -18,7 +18,7 @@ The first implementation exposed two rounding boundaries: noon and the completed
 
 The first seed-13 diagnostic generated its starting graph in 367,886 ms, then did not complete a slot. A regression confirmed that the default picker could repeat fallback lines. It now ends when only spoken lines remain. A live inspector sample in a second slow run found repeated food inventory scans in conversation choices. A small-world regression counted 298 scans for one query. The existing favour code now shares one food snapshot during a synchronous choice calculation and discards it before mutation. The tests also require stable choices and fresh results after food stores change.
 
-Dependency setup ran first: `npm ci` added 1,056 packages and audited 1,057 in three minutes. No dependency file changed. Focused checks passed before the affected gate: 17 fixed-clock tests, then 111 chat, favour, day and intervention tests. Raw failing and passing logs remain in `.cache/day-with/`. The final gate below is authoritative for the frozen runtime.
+Dependency setup ran first: `npm ci` added 1,056 packages and audited 1,057 in three minutes. No dependency file changed. Focused checks passed before the affected gate: 17 fixed-clock tests, then 111 chat, favour, day and intervention tests. Raw failing and passing logs remain in `.cache/day-with/`. The receipts below distinguish the broad affected gate from later targeted rechecks.
 
 A survey pilot also found that a quiet first slot left the helpful policy with an empty target list forever. A failing policy test reproduced this. The corrected policy selects targets when people later become visible. Pilot logs remain separate from final counts. The seed-13 replay already had two remembered targets, so that correction does not alter its decisions.
 
@@ -32,4 +32,20 @@ The final default-picker regression supplied a row with no space for an introduc
 
 The final affected gate passed 143 files and 1,391 tests. The final picker and clock check passed another 23 focused tests, including the newly added fit regression. The production build passed. The affected Jest process reported a worker shutdown warning despite exit 0. Its full output is retained below. No handle audit or whole-suite run was added.
 
-The seed-7 survey found a separate housing error after the first season. An unrelated cross-hex wedding moved a camping player because the transfer sweep treated a non-building household as foreign. A failing small-world regression confirmed the player's removal. The corrected sweep requires the selected home to belong to the destination community. The regression retains a real wedding and checks the camper's residence, position, discovery and usable day menu. Earlier complete games and the partial survey were preserved separately before the final batch was repeated.
+The seed-7 survey found a separate housing error after the first season. An unrelated cross-hex wedding moved a camping player because the transfer sweep treated a non-building household as foreign. A failing small-world regression confirmed the player's removal. The corrected sweep requires the selected home to belong to the destination community. The regression retains a real wedding and checks the camper's residence, position, discovery and usable day menu. Earlier complete games and the partial survey were preserved separately before the final batch was repeated. The fix then passed 98 tests across the five affected marriage, travel and day files. The final browser production build and headless bundle both passed after that correction.
+
+Existing test edits are limited to the clock contract and observing actual execution:
+
+| Existing file | Change and retained evidence |
+| --- | --- |
+| `simulation.test.js` | Two frame units now accumulate without advancing. Another eight advance one minute. Added fresh-hour and exact-season regressions. |
+| `player_day.test.js` | The awake-night sample requests ten frame units and expects sixty game seconds. Chat and pause still stop sleep. |
+| `background_checkpoint.test.js` | Calls one complete tick after arrival. Time must still resume only after the checkpoint. |
+| `fireside.test.js` | Calls one complete tick. The exhausted traveller must still settle a fire without household sleep. |
+| `first_run.test.js` | Calls one complete tick after the arrival handover. Ownership, camp state and resume assertions remain. |
+| `world_journeys.test.js` | Observes actual `leave_edge` calls because a six-minute frame can contain the entire task. Keeps active-hex, seasonal catch-up and recorded-arrival assertions. |
+| `nearby_courtship.test.js` | Adds the camping-player wedding regression. Existing marriage assertions are unchanged. |
+
+The `ask_favour` activity asks about current household help through the existing conversation subject. A spoken offer can authorise real collection, work and delivery. It is not a new command that orders a villager to work for the player. Existing friend help remains automatic and conditional on the player's real field or building work. A later screen should label this activity “Ask about help” to match its actual behaviour.
+
+The auxiliary “unfinished” outcome follows the retained order’s progress. Some rows still have this mark after an actual gift event, with “They accepted your gift” as the last message. Treat that mark as queue progress. The gift and favour counts in the proofs use real completion events and the counts of conversations use the real completed-contact flag.

@@ -58,7 +58,7 @@ it('keeps a journey walking after dusk and uses its camp fire only on exhaustion
   updateJourney(s);expect(s.travel.journey.campId).toBeUndefined();
   s.ecs.personable[p].energy=0;updateJourney(s);
   const camp=s.travel.journey.campId;expect(camp).toBeDefined();expect(s.ecs.camp[camp].journey).toBe(true);
-  const sim=createSimulation(s);sim.step(1,0);
+  const sim=createSimulation(s);sim.tick();
   expect(s.ecs.planner[p].task?.[0]).toBe('settle_fire');expect(s.nightSleep).toBeFalsy();
 });
 

@@ -75,6 +75,6 @@ it("starts a new game from the menu, hands over an owned camp and resumes time",
   expect(JSON.stringify(s.ecs.personable)).toBe(before.people);
   expect(JSON.stringify(s.ecs.planner)).toBe(before.planners);
   expect(JSON.stringify(s.ecs.manager)).toBe(before.managers);
-  sim.step(1, 0);
+  sim.tick();
   expect(s.days).toBeGreaterThan(before.days);
 });

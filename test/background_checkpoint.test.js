@@ -52,7 +52,7 @@ it("resumes the simulation on arrival and evicts only after acknowledgement", as
   expect(s.travel.maps[from].ecs.mappable).toBeDefined();
   const before = s.days;
   s.game_speed = "normal";
-  sim.step(1, 1 / 60);
+  sim.tick();
   expect(s.days).toBeGreaterThan(before);
   await f.release();
   await committed;

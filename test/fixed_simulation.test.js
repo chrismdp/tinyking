@@ -30,3 +30,13 @@ it("records an identical week of real events with the same seed and orders at 10
   expect(fine.days).toBe(coarse.days);
   expect(fine.goods).toEqual(coarse.goods);
 });
+
+it("keeps an explicit headless wall clock at zero without presentation sleep acceleration", () => {
+  const {s,p}=require("./support/economy").economy();
+  s.days=22/24;
+  enqueueTask(s,{key:"rest"},p);
+  const sim=createSimulation(s),start=s.days;
+  for(let n=0;n<30;n++)sim.step(10,0);
+  expect(s.nightSleep).toBeDefined();
+  expect(s.days-start).toBeCloseTo(30/1440,10);
+});

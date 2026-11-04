@@ -1,3 +1,4 @@
+import * as tasks from "game/tasks";
 import { DAYS_IN_SEASON } from "game/time";
 import { community, attach } from "./support/travel";
 import { advanceWorldClock, acceptTravel, completeTravel, initialiseTravel, localSnapshot, departNpc } from "game/travel";
@@ -224,18 +225,19 @@ it("ordinary active seasons catch up off-screen residents exactly once and auton
     love: .5
   };
   const sim = createSimulation(s);
-  let walked = false;
-  for (let i = 0; s.days < 4*DAYS_IN_SEASON+.1 && i < 12000; i++) {
-    sim.step(10*(6), 0);
-    if (sim.pending) await sim.pending;
-    if (s.seasonTurn) {require("game/seasons").finishSeasonTurn(s);s.game_speed="normal";}
-    if (s.ecs.planner[id]?.task?.[0] === "leave_edge") walked = true;
-  }
-  expect(s.days).toBeGreaterThan(4*DAYS_IN_SEASON);
-  expect(walked).toBe(true);
-  expect(s.travel.active).toBe("5,5");
-  for (let season = 1; season <= 4; season++) expect(s.travel.historyCalls.filter(c => c.key === b.s.map.worldKey && c.season === season)).toHaveLength(1);
-  expect(s.travel.maps[b.s.map.worldKey].events.some(e => e.type === "world_visit" && e.people[0] === id)).toBe(true);
+  const leaving = jest.spyOn(tasks,"leave_edge");
+  try {
+    for (let i = 0; s.days < 4*DAYS_IN_SEASON+.1 && i < 12000; i++) {
+      sim.step(10*(6), 0);
+      if (sim.pending) await sim.pending;
+      if (s.seasonTurn) {require("game/seasons").finishSeasonTurn(s);s.game_speed="normal";}
+    }
+    expect(s.days).toBeGreaterThan(4*DAYS_IN_SEASON);
+    expect(leaving.mock.calls.some(([,actor])=>actor==id)).toBe(true);
+    expect(s.travel.active).toBe("5,5");
+    for (let season = 1; season <= 4; season++) expect(s.travel.historyCalls.filter(c => c.key === b.s.map.worldKey && c.season === season)).toHaveLength(1);
+    expect(s.travel.maps[b.s.map.worldKey].events.some(e => e.type === "world_visit" && e.people[0] === id)).toBe(true);
+  } finally { leaving.mockRestore(); }
 });
 it("persists a changed first camp/store/build through a multi-hop loop and several ordinary home seasons", async () => {
   const a = community(),

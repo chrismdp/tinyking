@@ -173,7 +173,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     for (const order of [...orders]) if (order != keep) cancelTask(state,order.id);
   }
   if (!(state.game_speed in SPEED)) state.game_speed = "normal";
-  const clock = state.simulationClock ||= { hour: 0, requestsStarted: false, winter: time.season(state.days) == "winter" };
+  const clock = state.simulationClock ||= { hour: Math.max(0, state.days - Math.floor(state.days / time.HOUR + 1e-9) * time.HOUR), requestsStarted: false, winter: time.season(state.days) == "winter" };
   let savedDay = Math.floor(state.days);
   const dayChanged = () => {
     const day = Math.floor(state.days);
@@ -197,7 +197,8 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
       while (clock.hour + 1e-12 >= time.HOUR) {
         clock.hour -= time.HOUR;
         const end = state.days;
-        state.days = end - clock.hour;
+        // Canonical hour stamps keep a rounded midnight in the new season.
+        state.days = Math.round((end - clock.hour) / time.HOUR) * time.HOUR;
 
         // FIXME: This potentially leads to frame spikes each hour
         for (const id in state.ecs.planner) {
@@ -226,6 +227,15 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     }
   };
 
+  const finishDepartures = () => {
+    for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
+    state.pendingNpcDepartures=[];
+    if(state.pendingPlayerTravel) {
+      const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
+      return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
+    }
+  };
+
   const stepWorld = (frameMod, realSeconds) => {
     if(pending || state.travelError || state.chat?.active || state.seasonTurn) return pending;
     if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
@@ -241,12 +251,8 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     updateOverhearing(state);
     if (state.chat?.active) { if(onHour) onHour(); return; }
     // All edge completions belong to the map where planners just ran.
-    for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
-    state.pendingNpcDepartures=[];
-    if(state.pendingPlayerTravel) {
-      const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
-      return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});
-    }
+    const departure = finishDepartures();
+    if (departure) return departure;
     advanceTime(frameMod);
     if(playerDied(state))return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
     if(state.travel && (state.travel.season < Math.floor(state.days/DAYS_IN_SEASON) || state.travel.transit.some(t=>t.due<=state.days+1e-9))) {
@@ -292,15 +298,25 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     // Exactly one game-time quantum. Fast-forwarding callers use this same
     // transition, without the browser's overnight presentation acceleration.
     tick,
-    step(frameMod) {
+    step(frameMod, realSeconds = frameMod / 60) {
+      if (pending || state.chat?.active || state.seasonTurn || state.travelError) return pending;
+      if (playerDied(state)) return background(async()=>{await resolveSuccession(state);if(onTravel)onTravel();});
+      // Completed input is committed even at zero elapsed time or while paused.
+      // It must not run an extra planner step outside the fixed clock.
+      if (state.pendingPlayerTravel || state.pendingNpcDepartures?.length) {
+        const departure = finishDepartures();
+        if (departure) return departure;
+      }
+      // Arrival is presentation time. It never spends a simulation quantum.
+      if (introActive(state)) { updateIntro(state, realSeconds); return; }
       if (blocked()) return pending;
       clock.frames += frameMod;
       while (clock.frames + 1e-9 >= FIXED_FRAME && !blocked()) {
         clock.frames = Math.max(0, clock.frames - FIXED_FRAME);
         // Fade and acceleration are sampled on the fixed clock too. Render
         // cadence must not decide when sleep starts or how planners are sliced.
-        updateSleep(FIXED_FRAME / 60);
-        const accelerated = state.nightSleep?.fadeSeconds >= .5 && sleepingAtNight();
+        updateSleep(realSeconds > 0 ? FIXED_FRAME / 60 : 0);
+        const accelerated = realSeconds > 0 && state.nightSleep?.fadeSeconds >= .5 && sleepingAtNight();
         const count = accelerated ? 120 : 1;
         for (let n = 0; n < count && !blocked(); n++) {
           tick();

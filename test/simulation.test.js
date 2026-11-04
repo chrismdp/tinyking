@@ -120,3 +120,19 @@ it("drifts relationships once per crossed hour, and leaves them alone while paus
   expect(state.ecs.relationships[1].known[2].goodwill).toBeCloseTo(9);
   expect(state.ecs.relationships[1].known[2].ring).toBe("public");
 });
+
+it("aligns a fresh clock with the world's next hour before its seasonal work", () => {
+  const s=villageState("normal"),hours=[];
+  s.days=time.HOUR-1/1440;
+  createSimulation(s,{onHour:()=>hours.push(s.days)}).tick();
+  expect(hours).toHaveLength(1);
+  expect(hours[0]).toBeCloseTo(time.HOUR,10);
+});
+
+it("stamps a crossed season hour exactly so lifecycle rules run before offscreen catch-up", () => {
+  const s=villageState("normal"),hours=[];
+  s.days=time.DAYS_IN_SEASON-.001;
+  const sim=createSimulation(s,{onHour:()=>hours.push(s.days)});
+  sim.tick();sim.tick();
+  expect(hours[0]).toBe(time.DAYS_IN_SEASON);
+});

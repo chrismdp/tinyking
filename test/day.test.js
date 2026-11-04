@@ -160,3 +160,15 @@ it("chooses a line that fits the real conversation row", () => {
   expect(require("game/chat").previewLine(s,unfit).fits).toBe(false);
   expect(require("game/day").sensibleLine(s,[unfit,fit])).toBe("work");
 });
+
+it("gathers real food near a chosen place, which the player can then give", async () => {
+  const w=village(),s=w.state;
+  const plants=newEntities(s,[1,2,3].map(n=>({spatial:{...s.ecs.spatial[w.tiles[n%w.tiles.length]],immovable:true},
+    forageable:{kind:"roots",biome:"grassland",amount:1,growth:0}})));
+  const gather=slotChoices(s).choices.find(c=>c.activity=="forage"&&c.available);
+  expect(gather).toBeDefined();
+  await playSlot(s,gather);
+  expect(plants.filter(id=>s.ecs.forageable[id].amount==0).length).toBeGreaterThanOrEqual(1);
+  const loose=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=="roots").length;
+  expect(loose+(s.ecs.container[w.camp].amounts.roots||0)).toBeGreaterThanOrEqual(1);
+});

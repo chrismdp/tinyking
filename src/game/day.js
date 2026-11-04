@@ -3,6 +3,7 @@ import { createSimulation } from "game/simulation";
 import { enqueueTask, canReachTask, chatUnavailable, cancelTask } from "game/manager";
 import { giftOptions } from "game/people";
 import { FOODS } from "game/goods";
+import { forageAvailable } from "game/ecology";
 import { knownEvents } from "game/events";
 import { chatChoices, chooseLine, closeChat, previewLine, patience } from "game/chat";
 import { visibleFavours, acceptFavour } from "game/favours";
@@ -20,7 +21,14 @@ const at = (s,p) => p && (s.space[Hex().fromPoint(p)] || []).find(id=>s.ecs.walk
 const samePair = (people,a,b) => people.length==2 && people.includes(a) && people.includes(b);
 const requests = (s,id) => visibleFavours(s,id).filter(r=>["offered","accepted"].includes(r.status) &&
   (r.status=="accepted" || s.knowledge?.[s.ui.playerId]?.offers?.[r.id]?.speakerId==id));
-const availableReason = activity => ({talk:"They can stop and talk",give_food:"You have food to offer",ask_favour:"Ask about help in conversation",work:"They asked for help with this work",make_peace:"They trust you and you heard both sides",introduce:"They trust you and can meet"})[activity];
+// Wild food the player has found, nearest the chosen place first. A morning's
+// gathering visits several plants, as the arrival orders already allow.
+function plantsNear(s,placeId,known) {
+  const at=s.ecs.spatial[placeId];
+  return Object.keys(s.ecs.forageable || {}).filter(id=>forageAvailable(s,s.ecs.forageable[id]) && known.has(Hex().fromPoint(s.ecs.spatial[id]).toString()))
+    .map(id=>({id,d:Math.hypot(s.ecs.spatial[id].x-at.x,s.ecs.spatial[id].y-at.y)})).filter(p=>p.d<400).sort((a,b)=>a.d-b.d||a.id.localeCompare(b.id)).map(p=>p.id);
+}
+const availableReason = activity => ({forage:"Gather wild food nearby",talk:"They can stop and talk",give_food:"You have food to offer",ask_favour:"Ask about help in conversation",work:"They asked for help with this work",make_peace:"They trust you and you heard both sides",introduce:"They trust you and can meet"})[activity];
 
 export function slotChoices(s) {
   const e=s.ecs, actor=s.ui.playerId, clock=currentSlot(s);
@@ -34,6 +42,9 @@ export function slotChoices(s) {
     const c={id:[clock.day,clock.slot,place.id,"visit"].join("/"),placeId:place.id,personId:null,activity:"visit",available:reachable,
       reason:reachable?"Spend this part of the day here and see who you meet":"There is no path there"};
     place.visit=c;choices.push(c);
+    const plants=plantsNear(s,place.id,known);
+    if(plants.length)choices.push({id:[clock.day,clock.slot,place.id,"forage"].join("/"),placeId:place.id,personId:null,activity:"forage",
+      available:reachable,reason:reachable?availableReason("forage"):"There is no path there",plants:plants.slice(0,4)});
   }
   const add=(place,person,activity,reason,extra={})=>{
     const c={id:[clock.day,clock.slot,place.id,person.id,activity,extra.otherId||extra.requestId||""].join("/"),placeId:place.id,personId:person.id,activity,
@@ -108,6 +119,7 @@ export async function playSlot(s, requested, hooks={}) {
   const order=(key,target,extra)=>{const j=enqueueTask(s,{key},target,extra);if(j)orders.push(j);return j;};
   let bringing=null;
   if(choice.activity=="visit")order("move_to_here",choice.placeId);
+  if(choice.activity=="forage")for(const id of choice.plants)order("forage",id);
   if(["talk","ask_favour"].includes(choice.activity))order("chat",choice.personId);
   if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
   if(choice.activity=="work") {

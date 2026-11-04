@@ -16,6 +16,14 @@ const write=(file,data)=>fs.writeFileSync(path.join(OUT,file),JSON.stringify(dat
 const nm=(s,id)=>s.ecs.nameable?.[id]?name(s.ecs.nameable[id]):id;
 const key=(a,b)=>[a,b].sort().join(":");
 const digest=data=>crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
+function sourceHash() {
+  const files=[...fs.readdirSync("src/game").filter(f=>f.endsWith(".js")).map(f=>"src/game/"+f),
+    ...fs.readdirSync("src/data").filter(f=>fs.statSync("src/data/"+f).isFile()).map(f=>"src/data/"+f),
+    "scripts/research/day-with-play.cjs","scripts/research/day-with-policy.cjs","package-lock.json"];
+  const hash=crypto.createHash("sha256");
+  for(const file of files.sort())hash.update(file).update(fs.readFileSync(file));
+  return hash.digest("hex");
+}
 async function initial(seed) {
   const file=path.join(OUT,`initial-${seed}.bin`);
   if(!fs.existsSync(file)) {
@@ -68,6 +76,7 @@ async function run(seed,label,memory) {
   const at=Date.now(),s=await initial(seed),start=s.events.length,helpful=label!="baseline",days=[],stats={make_peace:{available:0,attempts:0,requests:0,successes:0},introduce:{available:0,attempts:0,requests:0,successes:0}},state={visits:{}};
   console.log(`PLAY ${seed} ${label} at ${s.days}`);
   const effects=[];
+  const frozenHash=sourceHash();
   const availablePairs={make_peace:new Set(),introduce:new Set()};
   const initialPeople=Object.keys(s.residents||{}).map(id=>({id,name:nm(s,id),age:s.ecs.personable[id]?.age,house:s.ecs.household[id]?.houseId}));
   let slots=0;
@@ -111,7 +120,8 @@ async function run(seed,label,memory) {
   const targets=[...new Set(knownEvents(s,s.ui.playerId).filter(e=>e.type=="quarrel").flatMap(e=>e.people))];
   // Record only replay knowledge the baseline player actually learned.
   const notes={targets,people:learned.people,feelings:learned.feelings,needs:learned.heardNeeds,observations:learned.observations};
-  const result={seed,label,policyTargets:state.targets,start:.375,end:s.days,slots,stats,effects,availablePairs:Object.fromEntries(Object.entries(availablePairs).map(([k,v])=>[k,[...v]])),memory,notes,days,events,
+  if(sourceHash()!=frozenHash)throw new Error("The game source changed during this proof");
+  const result={seed,label,startedMs:at,sourceHash:frozenHash,policyTargets:state.targets,start:.375,end:s.days,slots,stats,effects,availablePairs:Object.fromEntries(Object.entries(availablePairs).map(([k,v])=>[k,[...v]])),memory,notes,days,events,
     initialPeople,finalPeople:initialPeople.map(p=>({...p,age:s.ecs.personable[p.id]?.age,dead:s.ecs.personable[p.id]?.dead,house:s.ecs.household[p.id]?.houseId})),
     courtships:s.social.courtships,requests:s.favours?.requests,hash:digest(events),ms:Date.now()-at};
   write(`${seed}-${label}.json`,result);console.log("DONE "+JSON.stringify({seed,label,ms:result.ms,end:result.end,stats,hash:result.hash}));return result;

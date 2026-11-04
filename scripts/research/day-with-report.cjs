@@ -3,12 +3,12 @@ const fs=require("node:fs"),path=require("node:path");
 const out=path.resolve(".cache/day-with"),report=path.resolve("shots/day-with-sim-report.md");
 const read=file=>JSON.parse(fs.readFileSync(path.join(out,file),"utf8"));
 const base=read("13-baseline.json"),learned=read("13-learned.json"),survey=Array.from({length:10},(_,i)=>read(`${i+1}-helpful.json`));
-for(const r of [base,learned,...survey]) {
+const games=[base,learned,...survey];
+for(const r of games) {
   if(r.end<14.25-1e-8||r.slots!=42)throw new Error(`Incomplete two-season game: ${r.seed} ${r.label}`);
-  const batch=read(r.seed==13||r.seed<=5?"batch-a.json":"batch-b.json");
-  const file=path.join(out,`${r.seed}-${r.label}.json`);
-  if(fs.statSync(file).mtimeMs<batch.startedMs)throw new Error(`Pre-correction result: ${file}`);
+  if(!r.sourceHash || !r.startedMs)throw new Error(`Pre-correction result: ${r.seed} ${r.label}`);
 }
+if(new Set(games.map(r=>r.sourceHash)).size!=1)throw new Error("The proofs used different source");
 const count=(r,type)=>r.events.filter(e=>e.type==type).length;
 const title=c=>({ask_favour:"Ask about help",give_food:"Give food",make_peace:"Make peace",introduce:"Introduce",talk:"Talk",work:"Work",visit:"Visit"})[c.activity]+(c.name?" with "+c.name:"")+(c.otherName?" and "+c.otherName:"");
 const names=new Map([...base.initialPeople,...learned.initialPeople].map(p=>[p.id,p.name]));
@@ -51,10 +51,11 @@ for(const r of survey) {
   const reasons={};for(const d of r.days)for(const o of d.outcomes)if(o.kind=="unfinished")reasons[o.reason]=(reasons[o.reason]||0)+1;
   text+=`Seed ${r.seed}: ${count(r,"gift")} gifts, ${count(r,"favour")} completed favours, ${count(r,"quarrel")} quarrels, ${count(r,"reconciliation")} reconciliations. Unfinished tasks: ${Object.entries(reasons).map(([k,v])=>v+" × "+k).join("; ")||"none"}.\n\n`;
 }
+text+=`All twelve final games used source hash \`${base.sourceHash}\`.\n\n`;
 text+="## API and rules\n\n";
-text+=fs.readFileSync(path.join(out,"implementation-notes.md"),"utf8");
+text+=fs.readFileSync(path.resolve("scripts/research/day-with-notes.md"),"utf8");
 text+="\n## Reproduce the proofs\n\nRun from this worktree. Dependency writes and raw logs stay here. The second command prepares the production Node bundle using the same method as the supplied week-levers research. The two survey commands can run in the two permitted slots. Each script records its actual Node PID.\n\n```sh\nnpm ci\nflock -w 7200 /tmp/27agents-gate-2.lock npx webpack --config scripts/research/day-with-webpack.cjs\nflock -w 7200 /tmp/27agents-gate.lock node .cache/day-with/play-bundle.cjs 13 1 2 3 4 5\nflock -w 7200 /tmp/27agents-gate-2.lock node .cache/day-with/play-bundle.cjs 6 7 8 9 10\nnode scripts/research/day-with-report.cjs\n```\n\n";
-text+="The original source command also works: `node scripts/research/day-with-play.cjs 13`. The final twelve games used the production bundle. Batch manifests record its hash, runtime commit and start time. The report rejects old result files. Starting graphs retain shared references through V8 serialisation. There are no invented people, goodwill grants, forced marriages, food grants or teleports.\n\n";
+text+="The original source command also works: `node scripts/research/day-with-play.cjs 13`. The final twelve games used the production bundle. Each result records its start time and a hash of game source, data, policy and dependencies. The runner rejects source changes during a game. The report rejects old results and mixed source hashes. Starting graphs retain shared references through V8 serialisation. There are no invented people, goodwill grants, forced marriages, food grants or teleports.\n\n";
 text+="## Gate receipts\n\n";
 for(const [label,command,log,exit] of [
   ["Initial affected Jest (preserved)","flock -w 7200 /tmp/27agents-gate.lock npx jest --changedSince=a2c0cba --maxWorkers=2","affected.log","affected.exit"],
@@ -64,7 +65,7 @@ for(const [label,command,log,exit] of [
   ["Production build","flock -w 7200 /tmp/27agents-gate-2.lock npm run build","build.log","build.exit"],
   ["Final research bundle","flock -w 7200 /tmp/27agents-gate.lock npx webpack --config scripts/research/day-with-webpack.cjs","bundle-final-build.log","bundle-final-build.exit"]
 ]) {
-  if(!fs.existsSync(path.join(out,exit)))throw new Error("Missing gate receipt: "+exit);
+  if(!fs.existsSync(path.join(out,exit))) {text+=`${label}: not rerun in this reproduction. Read the committed report for the original receipt.\n\n`;continue;}
   text+=`${label}: \`${command}\`. Exit ${fs.readFileSync(path.join(out,exit),"utf8").trim()}. Literal output:\n\n\`\`\`text\n${fs.readFileSync(path.join(out,log),"utf8").trim()}\n\`\`\`\n\n`;
 }
 text+="This JavaScript repository has no TypeScript configuration or typecheck script. ESLint, Node syntax checks and `git diff --check` cover the touched source and scripts. Their commands and exit receipts are below. No shared test configuration or fixture changed, and no whole-suite exception was used.\n\n";

@@ -35,6 +35,8 @@ export const SPEED = {
   normal: 360
 };
 
+// A minute of game time, shared by the browser and headless day runner.
+export const FIXED_FRAME = 10;
 const SECONDS_PER_FRAME = 1 / 60;
 const DAYS = 86400;
 
@@ -277,29 +279,35 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
       if (onSleep) onSleep();
     }
   };
+  const blocked = () => pending || state.chat?.active || state.seasonTurn || state.travelError || state.game_speed == "paused";
+  const tick = () => {
+    if (state.nightSleep && !sleepingAtNight()) updateSleep(0);
+    const result = stepWorld(FIXED_FRAME, FIXED_FRAME / 60);
+    updateSleep(0);
+    return result;
+  };
+  clock.frames ||= 0;
   return {
     get pending() { return pending; },
-    step(frameMod, realSeconds = frameMod / 60) {
-      if (state.nightSleep && !sleepingAtNight()) updateSleep(0);
-      if (pending || state.chat?.active || state.seasonTurn || state.game_speed == "paused") return stepWorld(frameMod,realSeconds);
-      updateSleep(realSeconds);
-      if (state.nightSleep?.fadeSeconds >= .5 && sleepingAtNight()) {
-        // Twelve game hours per real second, sampled at most a minute at a time.
-        // Every sample runs the same planners, hourly needs, weather and festivals.
-        let remaining = frameMod * 120;
-        while (remaining > 1e-9 && state.nightSleep && !pending && !state.chat?.active && !state.seasonTurn && state.game_speed != "paused") {
-          const untilDawn = (state.nightSleep.dawn - state.days) / deltaTime(1,SPEED.normal);
-          const slice = Math.min(10,remaining,untilDawn);
-          if (slice <= 1e-9) { updateSleep(0); break; }
-          stepWorld(slice,0);
-          remaining -= slice;
-          updateSleep(0);
+    // Exactly one game-time quantum. Fast-forwarding callers use this same
+    // transition, without the browser's overnight presentation acceleration.
+    tick,
+    step(frameMod) {
+      if (blocked()) return pending;
+      clock.frames += frameMod;
+      while (clock.frames + 1e-9 >= FIXED_FRAME && !blocked()) {
+        clock.frames = Math.max(0, clock.frames - FIXED_FRAME);
+        // Fade and acceleration are sampled on the fixed clock too. Render
+        // cadence must not decide when sleep starts or how planners are sliced.
+        updateSleep(FIXED_FRAME / 60);
+        const accelerated = state.nightSleep?.fadeSeconds >= .5 && sleepingAtNight();
+        const count = accelerated ? 120 : 1;
+        for (let n = 0; n < count && !blocked(); n++) {
+          tick();
+          if (accelerated && !state.nightSleep) break;
         }
-        return pending;
       }
-      const result = stepWorld(frameMod,realSeconds);
-      updateSleep(0);
-      return result;
+      return pending;
     }
   };
 }

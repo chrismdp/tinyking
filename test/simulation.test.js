@@ -11,10 +11,13 @@ const villageState = (game_speed) => ({
 });
 
 describe("simulation step", () => {
-  it("advances game time by the frame multiplier at the chosen speed", () => {
+  it("accumulates frames and advances only complete game minutes", () => {
     const state = villageState("normal");
     createSimulation(state).step(2);
-    expect(state.days).toBeCloseTo(0.375 + 2 * (1 / 60) * SPEED.normal / 86400, 12);
+    expect(state.days).toBe(0.375);
+    const sim = createSimulation(state);
+    sim.step(8);
+    expect(state.days).toBeCloseTo(0.375 + 1 / 1440, 12);
     expect(deltaTime(10, SPEED.normal)).toBeCloseTo(1 / 1440, 12);
   });
 

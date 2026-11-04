@@ -32,7 +32,7 @@ it.each([false,true])('runs the real night in small steps, fades and wakes at da
 });
 it('keeps an awake night at normal speed and respects chat and pause during sleep',()=>{
  const {s,p}=economy();s.days=22/24;s.game_speed='normal';const sim=createSimulation(s);
- sim.step(1);expect(s.days-22/24).toBeCloseTo(6/86400);expect(s.nightSleep).toBeFalsy();
+ sim.step(10);expect(s.days-22/24).toBeCloseTo(60/86400);expect(s.nightSleep).toBeFalsy();
  enqueueTask(s,{key:'rest'},p);for(let i=0;i<100&&!s.nightSleep;i++)sim.step(1);
  const day=s.days;s.chat={active:{}};sim.step(600);expect(s.days).toBe(day);
  delete s.chat;s.game_speed='paused';sim.step(600);expect(s.days).toBe(day);

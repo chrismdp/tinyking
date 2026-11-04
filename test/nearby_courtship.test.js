@@ -6,7 +6,7 @@ import { bindNewsContext } from "game/event_knowledge";
 import { createCourtshipIndex, courtshipCandidates, availableCourtshipCandidates, chooseCourtshipCandidate, courtshipState, runNearbyCourtships } from "game/nearby_courtship";
 import { personHex, promoteKnowledge, unheardNews, indexEventKnowledge } from "game/event_knowledge";
 import { recordEvent, knownEvents, learnEvent } from "game/events";
-import { advanceWorldClock } from "game/travel";
+import { advanceWorldClock, publishCommunity } from "game/travel";
 import { courtTogether } from "game/social";
 import { buildHistoryMap, summarySeason } from "game/world_history";
 import { replacementHouseSite } from "game/geography";
@@ -432,4 +432,26 @@ it("keeps people past the family age window out of automatic courtship buckets",
   const index=createCourtshipIndex(s.travel.maps);
   expect(index.people.has(b)).toBe(false);
   expect(courtshipCandidates(index,"5,5",a).map(c=>c.id)).not.toContain(b);
+});
+
+
+it("keeps an unrelated camping player in the live hex when neighbours marry across its boundary", () => {
+  const {s,home,away,key}=neighbourhood(),a=home.ids[0],b=away.ids[0],camper=home.ids[2];
+  for(const map of Object.values(s.travel.maps))for(const id of Object.keys(map.residents))if(![a,b,camper].includes(id))map.ecs.personable[id].age=10;
+  const [camp]=newEntities(s,[{spatial:{x:400,y:0},camp:{},sleepable:{capacity:1,occupiers:[]},controllable:{controllerId:camper}}]);
+  s.ecs.household[camper].houseId=camp;s.ui.playerId=camper;
+  s.ecs.playable ||= {};s.ecs.playable[camper]={known:[{x:6,y:6}],arrivedAt:0};
+  const known=structuredClone(s.ecs.playable[camper].known),point={...s.ecs.spatial[camper]};
+  s.ecs.manager[camper].ordered=true;s.ecs.planner[camper].world.ordered=true;
+  publishCommunity(s,s.travel);
+  for(const [from,to] of [[a,b],[b,a]])s.travel.people[from].relationships.known[to]={ring:"intimate",goodwill:80};
+  s.days=7;runNearbyCourtships(s,1);
+  s.days=14;runNearbyCourtships(s,2);
+  expect(s.travel.people[a].kinship.spouse).toBe(b);
+  expect(s.residents[camper]).toBe(true);
+  expect(s.travel.maps[key].residents[camper]).toBeFalsy();
+  expect(s.ecs.playable[camper].known).toEqual(known);
+  expect(s.ecs.spatial[camper]).toEqual(point);
+  expect(require("game/day").slotChoices(s).choices.some(c=>c.available)).toBe(true);
+  expect(Object.values(s.travel.events).some(e=>e.type=="world_move"&&e.people.includes(camper))).toBe(false);
 });

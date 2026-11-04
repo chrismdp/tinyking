@@ -172,3 +172,30 @@ it("gathers real food near a chosen place, which the player can then give", asyn
   const loose=Object.keys(s.ecs.good).filter(id=>s.ecs.good[id].type=="roots").length;
   expect(loose+(s.ecs.container[w.camp].amounts.roots||0)).toBeGreaterThanOrEqual(1);
 });
+
+it("delivers the player's own food to a household whose request they accepted, even while the asker rests", async () => {
+  const w=village(),s=w.state;
+  const [house,store,roots]=newEntities(s,[
+    {spatial:{...s.ecs.spatial[w.tiles[3]]},building:{rooms:[]},household:{fields:[]},controllable:{controllerId:w.person}},
+    {spatial:{...s.ecs.spatial[w.tiles[3]]},container:{amounts:{grain:0},capacity:100},controllable:{controllerId:w.person}},
+    {spatial:{...s.ecs.spatial[w.camp]},good:{type:"roots",amount:1},haulable:{},controllable:{controllerId:w.player}}
+  ]);
+  s.ecs.household[house].storeId=store;s.ecs.household[w.person].houseId=house;
+  s.ecs.container[w.camp].amounts.grain=0;
+  const favours=require("game/favours");
+  favours.updateFavours(s);
+  const r=Object.values(s.favours.requests).find(r=>r.kind=="food");
+  // Initial fixture: the household asked in person and the player said yes earlier.
+  s.knowledge ||= {};s.knowledge[w.player]={people:{[w.person]:{conversation:{day:s.days}}},favours:[r.id],offers:{[r.id]:{speakerId:w.person,day:s.days}}};
+  expect(favours.acceptFavour(s,r.id,w.person)).toBeTruthy();
+  // The promise outlasts the night: evening sets the work aside, not the request.
+  s.days=0.75;
+  await playSlot(s,slotChoices(s).choices.find(c=>c.activity=="visit"&&c.available));
+  expect(r.status).toBe("accepted");
+  s.ecs.planner[w.person].world.feeling.tired=true;
+  const deliver=choice(s,"work",w.person);
+  expect(deliver).toBeDefined();
+  await playSlot(s,deliver);
+  expect(s.ecs.container[store].amounts.roots||0).toBeGreaterThanOrEqual(1);
+  expect(s.ecs.good[roots]?.amount||0).toBe(0);
+});

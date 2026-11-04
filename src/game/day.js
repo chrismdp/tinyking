@@ -6,7 +6,7 @@ import { FOODS } from "game/goods";
 import { forageAvailable } from "game/ecology";
 import { knownEvents } from "game/events";
 import { chatChoices, chooseLine, closeChat, previewLine, patience } from "game/chat";
-import { visibleFavours, acceptFavour } from "game/favours";
+import { visibleFavours, acceptFavour, favourSource } from "game/favours";
 import { finishSeasonTurn } from "game/seasons";
 import { peaceUnavailable, introduceUnavailable, makePeace, introduce } from "game/social_interventions";
 
@@ -68,8 +68,11 @@ export function slotChoices(s) {
       const gift=gifts.find(g=>e.haulable?.[g.sourceId]?.heldBy==actor || canReachTask(s,actor,g.sourceId));
       const need=e.planner[id].world.feeling;
       add(place,person,"give_food",route || (!gift ? "You have no food that you can give" : need.hungry || need.tired ? "They must finish their meal or rest before taking a gift" : null),{gift});
-      const work=requests(s,id).find(r=>r.kind!="food");
-      add(place,person,"work",route || (!work ? "Ask them about help first. There is no offered work you can take" : null),{requestId:work?.id});
+      // Food is delivered to the household store, so a resting asker does not block it.
+      const food=requests(s,id).find(r=>r.kind=="food"&&r.status=="accepted");
+      const work=requests(s,id).find(r=>r.kind!="food") || food;
+      add(place,person,"work",route || (!work ? "Ask them about help first. There is no offered work you can take" :
+        work.kind=="food" && !favourSource(s,work) ? "Needs your food · gather some first" : null),{requestId:work?.id});
     }
   }
   // These are deliberate pair choices. Hidden people and unheard quarrels do
@@ -108,6 +111,16 @@ function factsChanged(before,after,path="") {
   });
 }
 
+// Work is set aside between slots and overnight. A favour's promise stands, and
+// its work is taken up again by choosing to work for that household.
+function setAside(s,actor) {
+  for(const j of [...s.ecs.manager[actor].jobs]) {
+    const r=j.favourId && s.favours?.requests?.[j.favourId], kept=r?.status=="accepted";
+    cancelTask(s,j.id);
+    if(kept) {r.status="accepted";delete r.outcome;}
+  }
+}
+
 export async function playSlot(s, requested, hooks={}) {
   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
   if(!choice)throw new Error("This choice is not in the current slot");
@@ -117,6 +130,7 @@ export async function playSlot(s, requested, hooks={}) {
   const regards=()=>Object.fromEntries(Object.keys(s.ecs.personable).map(id=>[id,{ring:s.ecs.relationships?.[id]?.known[actor]?.ring || "public",goodwill:s.ecs.relationships?.[id]?.known[actor]?.goodwill || 0}]));
   const before=regards(),orders=[],outcomes=[],conversations=[];
   const order=(key,target,extra)=>{const j=enqueueTask(s,{key},target,extra);if(j)orders.push(j);return j;};
+  setAside(s,actor);
   let bringing=null;
   if(choice.activity=="visit")order("move_to_here",choice.placeId);
   if(choice.activity=="forage")for(const id of choice.plants)order("forage",id);
@@ -124,7 +138,8 @@ export async function playSlot(s, requested, hooks={}) {
   if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
   if(choice.activity=="work") {
     const r=s.favours.requests[choice.requestId];
-    const j=r.status=="accepted" ? s.ecs.manager[actor].jobs.find(j=>j.favourId==r.id) : acceptFavour(s,r.id,choice.personId);
+    // An accepted favour whose work was set aside at nightfall is taken up again.
+    const j=r.status=="accepted" ? s.ecs.manager[actor].jobs.find(j=>j.favourId==r.id) || enqueueTask(s,{key:"favour"},r.targetId,{favourId:r.id,forId:choice.personId,expectedGoodwill:r.goodwill}) : acceptFavour(s,r.id,choice.personId);
     if(j && !orders.includes(j))orders.push(j);
   }
   if(["make_peace","introduce"].includes(choice.activity))bringing=order("move_to_here",choice.placeId);
@@ -163,7 +178,7 @@ export async function playSlot(s, requested, hooks={}) {
   if(menu.slot=="evening") {
     await advance(Math.floor(start)+21/24);
     // Let unfinished real work remain unfinished, and release its real claims.
-    for(const j of [...s.ecs.manager[actor].jobs])cancelTask(s,j.id);
+    setAside(s,actor);
     order("rest",actor);
   }
   await advance(menu.endsAt);

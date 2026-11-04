@@ -6,17 +6,19 @@ const base=read("13-baseline.json"),learned=read("13-learned.json"),survey=Array
 const games=[base,learned,...survey];
 for(const r of games) {
   if(r.end<14.25-1e-8||r.slots!=42)throw new Error(`Incomplete two-season game: ${r.seed} ${r.label}`);
-  if(!r.sourceHash || !r.startedMs)throw new Error(`Pre-correction result: ${r.seed} ${r.label}`);
+  if(!r.sourceHash || !r.startedMs || !r.nextSlotChoices)throw new Error(`Pre-correction result: ${r.seed} ${r.label}`);
 }
 if(new Set(games.map(r=>r.sourceHash)).size!=1)throw new Error("The proofs used different source");
 const count=(r,type)=>r.events.filter(e=>e.type==type).length;
 const title=c=>({ask_favour:"Ask about help",give_food:"Give food",make_peace:"Make peace",introduce:"Introduce",talk:"Talk",work:"Work",visit:"Visit"})[c.activity]+(c.name?" with "+c.name:"")+(c.otherName?" and "+c.otherName:"");
 const names=new Map([...base.initialPeople,...learned.initialPeople].map(p=>[p.id,p.name]));
+for(const r of [base,learned])for(const e of r.events)for(const [i,id] of e.people.entries())if(e.names?.[i])names.set(id,e.names[i]);
 const pair=e=>[...e.people].sort().join(":");
 const eventKey=e=>e.type+"|"+pair(e)+(e.courting?"|courting":"");
 const multiset=events=>{const m=new Map();for(const e of events)m.set(eventKey(e),(m.get(eventKey(e))||0)+1);return m;};
 const differences=(a,b)=>{const x=multiset(a),y=multiset(b);let n=0;for(const k of new Set([...x.keys(),...y.keys()]))n+=Math.abs((x.get(k)||0)-(y.get(k)||0));return n;};
 const changed=base.hash!=learned.hash,successes=learned.effects.filter(e=>e.success);
+const choicesUsed=r=>r.days.reduce((m,d)=>(m[d.choice.activity]=(m[d.choice.activity]||0)+1,m),{});
 let text="# The day spent with people: simulation report\n\n";
 text+=successes.length ? `The second seed-13 game achieved ${successes.length} chosen social outcome(s). ` : "The simulation and day layer work, but the chosen social outcome in seed 13 is not proved. ";
 text+=`Both games used the same generated starting state and played 42 choices through two calendar seasons. Their event records ${changed?"differ":"are identical"}. `;
@@ -29,6 +31,7 @@ text+=`The first player learned quarrels involving: ${(base.notes.targets||[]).m
 text+="| Measure | Baseline | Learned replay |\n| --- | ---: | ---: |\n";
 for(const type of ["visit","gift","favour","quarrel","reconciliation","marriage","move","birth","death"])text+=`| ${type} | ${count(base,type)} | ${count(learned,type)} |\n`;
 text+=`| Final day value | ${base.end.toFixed(6)} | ${learned.end.toFixed(6)} |\n\n`;
+text+=`Baseline choices: ${JSON.stringify(choicesUsed(base))}. Replay choices: ${JSON.stringify(choicesUsed(learned))}. These counts distinguish selected activity from completed work.\n\n`;
 text+="The event totals above are community observations. A slot returns only events the player knows. The raw logs keep those two sets separate. Differences below count event kinds and people, including repeated events. They exclude simple time and event-ID changes. Changes can spread through needs and meeting schedules, so a different event is not automatically the intended outcome.\n\n";
 text+="| Day | Baseline choices | Learned choices | Different community records | Chosen social result |\n| --- | --- | --- | ---: | --- |\n";
 for(let day=1;day<=15;day++) {
@@ -40,7 +43,7 @@ for(let day=1;day<=15;day++) {
 text+="\n";
 if(!learned.effects.length)text+="No peace or introduction was selected in the replay because the policy did not reach an available choice. A changed schedule alone does not satisfy the chosen-outcome test.\n\n";
 for(const e of learned.effects)text+=`Day ${e.day}, ${e.slot}: ${e.names.join(" / ")}. ${e.requested?"The request created real visit plans.":"The request did not create a visit: "+e.reason+"."} ${e.contact?"The pair completed contact.":"The pair did not complete contact during the slot."} ${e.reconciliation.length?"The existing reconciliation action ran.":"No reconciliation followed during the slot."} ${e.newCourtship?"The contact started a courtship.":"No new courtship started during the slot."}\n\n`;
-text+="## Seeds 1 to 10\n\nAvailability counts distinct pairs per slot, so one pair counts again if it remains available in another slot. The table also gives slots with any opportunity. Success requires real reconciliation for peace or completed contact for introduction. Starting a courtship and marrying are separate results. Every seed played 42 choices and ended at the next dawn after two seasons.\n\n";
+text+="## Seeds 1 to 10\n\nAvailability counts distinct pairs per slot, so one pair counts again if it remains available in another slot. The table also gives slots with any opportunity. Success requires real reconciliation for peace or completed contact for introduction during the requested slot. Later consequences remain in the event timeline. Starting a courtship and marrying are separate results. Every seed played 42 choices and ended at the next dawn after two seasons.\n\n";
 text+="| Seed | Peace: pair opportunities / slots | Peace: requests / successes | Introduction: pair opportunities / slots | Introduction: requests / successes | What completed interventions changed |\n| --- | ---: | ---: | ---: | ---: | --- |\n";
 for(const r of survey) {
   const a=r.stats.make_peace,b=r.stats.introduce,e=r.effects.filter(e=>e.success);
@@ -63,7 +66,8 @@ for(const [label,command,log,exit] of [
   ["Exact season boundary recheck","flock -w 7200 /tmp/27agents-gate-2.lock npx jest --runTestsByPath test/simulation.test.js test/succession.test.js test/travel_review.test.js --runInBand","season-clock-green.log","season-clock-green.exit"],
   ["Final affected Jest","flock -w 7200 /tmp/27agents-gate-2.lock npx jest --changedSince=a2c0cba --maxWorkers=2","affected-final.log","affected-final.exit"],
   ["Production build","flock -w 7200 /tmp/27agents-gate-2.lock npm run build","build.log","build.exit"],
-  ["Final research bundle","flock -w 7200 /tmp/27agents-gate.lock npx webpack --config scripts/research/day-with-webpack.cjs","bundle-final-build.log","bundle-final-build.exit"]
+  ["Final picker and clock checks","flock -w 7200 /tmp/27agents-gate.lock npx jest --runTestsByPath test/day.test.js test/fixed_simulation.test.js test/simulation.test.js test/day_policy.test.js --runInBand","day-final.log","day-final.exit"],
+  ["Final research bundle","flock -w 7200 /tmp/27agents-gate.lock npx webpack --config scripts/research/day-with-webpack.cjs","bundle-proof-build.log","bundle-proof-build.exit"]
 ]) {
   if(!fs.existsSync(path.join(out,exit))) {text+=`${label}: not rerun in this reproduction. Read the committed report for the original receipt.\n\n`;continue;}
   text+=`${label}: \`${command}\`. Exit ${fs.readFileSync(path.join(out,exit),"utf8").trim()}. Literal output:\n\n\`\`\`text\n${fs.readFileSync(path.join(out,log),"utf8").trim()}\n\`\`\`\n\n`;

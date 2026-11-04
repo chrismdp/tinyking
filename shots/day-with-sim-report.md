@@ -67,3 +67,20 @@ The failed seasonal tests then exposed an exact boundary: the hourly stamp was `
 A repeated affected gate is justified here because canonical hour dates feed the NPC planner's seeded schedules, weather and season rules throughout the import graph. It remains `--changedSince=a2c0cba`, not a whole-suite command.
 
 A final default-picker regression reproduced an invalid choice: an introduction outranked an available match even when it did not fit the row. The default and research policy now filter by the real conversation preview's fit rule. This fixes the picker rather than granting more patience or accepting an invalid line. The final proof bundle will include it.
+
+<!-- LIVE PROOFS -->
+
+## Final proof progress
+
+2/12 complete. A: CHOOSE 13 learned D12 morning ask_favour Ralph Thuson. B:     at async Object.S [as main] (/home/cp/code/tk-daywith/.cache/day-with/play-bundle.cjs:2:536267).
+
+| Seed | Policy | Peace successes | Introduction successes |
+| --- | --- | ---: | ---: |
+| 13 | baseline | 0 | 0 |
+| 6 | helpful | 0 | 0 |
+
+<!-- END LIVE PROOFS -->
+
+The seed-7 survey stopped after its first season with no discovered places in the menu. A small-world regression reproduced the underlying housing error: an unrelated cross-hex wedding transferred a camping player out of the live hex. The transfer code treated every non-building household as foreign, including a local camp. The fix requires the selected house to exist in the destination community. The regression checks the actual wedding, the camper's residence, position, discovery and a usable next-slot menu.
+
+The three completed runs from the previous candidate, the stopped seed-1 run and the failed seed-7 run are preserved separately. The complete proof batch will use the repaired transfer rule. No discovery, food, trust or character position was granted to recover the failed game.

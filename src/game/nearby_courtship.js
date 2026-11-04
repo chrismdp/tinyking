@@ -196,7 +196,11 @@ export function runNearbyCourtships(s, season) {
           else if (map.ecs[component]) delete map.ecs[component][id];
         }
         const house = map.ecs.household[id]?.houseId;
-        if (house && !map.ecs.building?.[house] && !map.ecs.shelter?.[house]) moves.push({ id, from: map, to: map === left ? right : left });
+        const destination = map === left ? right : left;
+        // A local camp is not a foreign marital home. Transfer only people
+        // whose selected house actually belongs to the other community.
+        if (house && !map.ecs.building?.[house] && !map.ecs.shelter?.[house] &&
+          (destination.ecs.building?.[house] || destination.ecs.shelter?.[house])) moves.push({ id, from: map, to: destination });
         refreshPersonIndex(map, id);
       }
       moveMarriageResidents(s, moves);

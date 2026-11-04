@@ -89,7 +89,11 @@ async function run(seed,label,memory) {
       for(const pair of pairs)availablePairs[activity].add(pair);
     }
     const choice=policy(s,menu,helpful,memory,state);
-    if(!choice) {write(`${seed}-${label}-blocked.json`,{day:s.days,menu});throw new Error(`No available choice for seed ${seed} day ${s.days}`);}
+    if(!choice) {
+      write(`${seed}-${label}-blocked.json`,{day:s.days,actorId:s.ui.playerId,active:s.travel.active,known:s.ecs.playable?.[s.ui.playerId]?.known,menu});
+      fs.writeFileSync(path.join(OUT,`${seed}-${label}-blocked.bin`),v8.serialize(gameData(s)));
+      throw new Error(`No available choice for seed ${seed} day ${s.days}`);
+    }
     if(stats[choice.activity])stats[choice.activity].attempts++;
     state.visits[choice.personId]=(state.visits[choice.personId]||0)+1;
     console.log(`CHOOSE ${seed} ${label} D${menu.day} ${menu.slot} ${choice.activity} ${nm(s,choice.personId)}`);
@@ -115,13 +119,19 @@ async function run(seed,label,memory) {
     slots++;
     if(result.end<=result.start)throw new Error("A slot did not advance");
   }
+  const nextMenu=slotChoices(s);
+  if(!nextMenu.choices.some(c=>c.available)) {
+    write(`${seed}-${label}-blocked.json`,{day:s.days,actorId:s.ui.playerId,active:s.travel.active,menu:nextMenu});
+    fs.writeFileSync(path.join(OUT,`${seed}-${label}-blocked.bin`),v8.serialize(gameData(s)));
+    throw new Error(`The next day has no available choice for seed ${seed}`);
+  }
   const events=s.events.slice(start).map(e=>({...e,names:e.people.map(id=>nm(s,id))}));
   const learned=s.knowledge[s.ui.playerId];
   const targets=[...new Set(knownEvents(s,s.ui.playerId).filter(e=>e.type=="quarrel").flatMap(e=>e.people))];
   // Record only replay knowledge the baseline player actually learned.
   const notes={targets,people:learned.people,feelings:learned.feelings,needs:learned.heardNeeds,observations:learned.observations};
   if(sourceHash()!=frozenHash)throw new Error("The game source changed during this proof");
-  const result={seed,label,startedMs:at,sourceHash:frozenHash,policyTargets:state.targets,start:.375,end:s.days,slots,stats,effects,availablePairs:Object.fromEntries(Object.entries(availablePairs).map(([k,v])=>[k,[...v]])),memory,notes,days,events,
+  const result={seed,label,startedMs:at,sourceHash:frozenHash,actorId:s.ui.playerId,nextSlotChoices:nextMenu.choices.filter(c=>c.available).length,policyTargets:state.targets,start:.375,end:s.days,slots,stats,effects,availablePairs:Object.fromEntries(Object.entries(availablePairs).map(([k,v])=>[k,[...v]])),memory,notes,days,events,
     initialPeople,finalPeople:initialPeople.map(p=>({...p,age:s.ecs.personable[p.id]?.age,dead:s.ecs.personable[p.id]?.dead,house:s.ecs.household[p.id]?.houseId})),
     courtships:s.social.courtships,requests:s.favours?.requests,hash:digest(events),ms:Date.now()-at};
   write(`${seed}-${label}.json`,result);console.log("DONE "+JSON.stringify({seed,label,ms:result.ms,end:result.end,stats,hash:result.hash}));return result;

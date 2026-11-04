@@ -42,7 +42,7 @@ export function relevantVisit(s,speaker,viewer,e) {
 export function relativeDate(s,e,exact=false) {
   const day=e.day, st=season(day),sy=year(day);
   if(exact)return `the ${st} of year ${sy}`;
-  if(Math.floor(s.days)==Math.floor(day))return `earlier this ${st}`;
+  if(Math.floor(s.days)==Math.floor(day))return "earlier today";
   if(Math.floor(s.days)-Math.floor(day)==1)return "yesterday";
   const ago=Math.floor(s.days/DAYS_IN_SEASON)-Math.floor(day/DAYS_IN_SEASON);
   if(ago==0)return `earlier this ${st}`;

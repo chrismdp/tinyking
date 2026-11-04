@@ -149,8 +149,16 @@ export async function playSlot(s, requested, hooks={}) {
   let bringing=null;
   if(choice.activity=="visit")order("move_to_here",choice.placeId);
   if(choice.activity=="forage")for(const id of choice.plants)order("forage",id);
-  if(["talk","ask_favour"].includes(choice.activity))order("chat",choice.personId);
-  if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
+  // Going to a place costs only the walk. Arrive first, so the time allowed to
+  // catch someone starts at the place, not wherever the player woke.
+  const me=s.ecs.spatial[actor],there=s.ecs.spatial[choice.placeId];
+  const walkFirst=["talk","ask_favour","give_food"].includes(choice.activity) && me && there && Hex().fromPoint(me).toString()!=Hex().fromPoint(there).toString() ? order("move_to_here",choice.placeId) : null;
+  const meet=()=>{
+    if(["talk","ask_favour"].includes(choice.activity))order("chat",choice.personId);
+    if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
+  };
+  let meeting=walkFirst;
+  if(!walkFirst)meet();
   if(choice.activity=="work") {
     const r=s.favours.requests[choice.requestId];
     // An accepted favour whose work was set aside at nightfall is taken up again.
@@ -180,6 +188,7 @@ export async function playSlot(s, requested, hooks={}) {
       if(s.travelError)throw new Error(s.travelError);
       if(s.ecs.personable[actor]?.dead) {outcomes.push({kind:"death",personId:actor});break;}
       s.game_speed="normal";
+      if(meeting && (meeting.progress>=1 || !s.ecs.manager[actor].jobs.includes(meeting))) {meeting=null;meet();}
       if(bringing && bringing.progress>=1) {
         const reason=choice.activity=="make_peace" ? makePeace(s,actor,choice.personId,choice.otherId) : introduce(s,actor,choice.personId,choice.otherId);
         outcomes.push({kind:choice.activity,requested:!reason,reason});bringing=null;

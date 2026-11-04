@@ -208,3 +208,14 @@ it("reports what the people around the player were doing during the slot", async
   expect(result.seen.some(o=>o.personId==w.person&&typeof o.activity=="string"&&o.day>=0.375)).toBe(true);
   expect(result.seen.every(o=>o.personId!=w.player)).toBe(true);
 });
+
+it("walks to a distant place first, so a long walk does not use up the time allowed to reach someone", async () => {
+  const w=village(),s=w.state;
+  for(const id of w.tiles)s.ecs.walkable[id].speed=0.15;
+  s.ecs.planner[w.person].task=["wait_for",1];s.ecs.planner[w.person].plan=[];
+  const talk=choice(s,"talk",w.person);
+  expect(talk).toBeDefined();
+  const result=await playSlot(s,talk);
+  expect(result.outcomes.some(o=>/within an hour/.test(o.reason||""))).toBe(false);
+  expect(result.conversations.some(c=>c.personId==w.person)).toBe(true);
+});

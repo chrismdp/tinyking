@@ -29,3 +29,27 @@ Ran all test suites within paths "test/fixed_simulation.test.js", "test/simulati
 `npx eslint src/game/simulation.js` exited 0 with no output. Two old assertions now allow partial minutes to accumulate. Other assertions remain intact. This JavaScript repository has no typecheck command or TypeScript configuration.
 
 `npm ci` exited 0: added 1,056 packages and audited 1,057 in three minutes. No package file changed.
+
+## Day layer in progress
+
+`slotChoices(game)` returns the current day, slot, end time, discovered places, people present or walking there, and activity choices. Every activity includes an availability reason. It reads discovery and spoken offers without granting knowledge.
+
+`playSlot(game, choice, hooks)` validates the current choice, queues real orders and runs fixed simulation steps. `hooks.chooseLine(game, lines, choice)` selects a real authored line. The default uses visible matches and learned tastes. Results include newly known events, learned facts, directional regard changes, conversations and unfinished tasks. Evening ends with a real rest order through dawn. Native seasonal transitions continue.
+
+The social-rule tests first failed because the intervention module did not exist. The day tests first failed because the day module did not exist. The first implemented pass exposed a floating-point slot boundary and a half-hour contact boundary. Both now allow the existing small clock tolerance. Tests then passed: 17 tests across two files. Additional harvest and season tests are running.
+
+The first seed-13 batch is a diagnostic run. The final batch will use the frozen source after fixes demonstrated by tests or this run.
+
+## Rules added
+
+Making peace requires Personal trust from both people towards the helper, within each person's fixed disposition cap. The helper must know the quarrel and must complete a conversation with each party after it. A successful request expires avoidance and creates ordinary visit plans. The request records no reconciliation. The next real contact uses the existing `reconcile` action and its seasonal attempt record.
+
+Introducing two people requires the same trust, existing partner eligibility, compatible orientation, willingness, free time, satisfied needs and routes. It creates the same visit plans as autonomous visits. A completed half-hour contact calls the existing `courtTogether` clock with fractional season time. The existing consent, waiting period and housing checks still control marriage.
+
+A discovered place also permits a visit when nobody can stop. This runs a real movement order and discovers ground through normal walking. A regression first failed for this case before that option was added. It prevents a quiet or tired village from blocking the calendar.
+
+Harvest evidence initially expected both grains in the pantry. The real favour gives one grain to the helper as gleaning. The corrected assertion accounts for both real grains and their owners.
+
+The first seed-13 diagnostic generated its starting state in 367,886 ms, then failed to finish its first slot. I stopped only its saved Node PID. Its log and the unchanged generated state remain cached. A regression confirmed that the default line picker repeated already-spoken fallback lines. The default and research policies now end when no fresh line remains. This uses the actual conversation's spoken IDs, with no arbitrary turn limit. The corrected batch reuses the same starting graph.
+
+A live sample identified the second delay: `chatChoices` repeatedly called `reasonGone` and `householdFood`. The new small-world regression counted 298 full inventory scans for one choice query. `withFavourQuery` now shares one read snapshot within that synchronous query and discards it before speech or delivery. The regression also checks repeated choices and changed stores. Affected chat, favour, day and intervention tests pass: 111 tests in four files. The stopped slow run is retained separately. This correction changes query cost, not the food or conversation rules.

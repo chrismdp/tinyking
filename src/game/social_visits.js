@@ -87,15 +87,42 @@ function runSocialHour(s) {
     });
     if (!b) continue;
     used.add(a); used.add(b);
-    const positions = conversationPositions(s, a, b);
-    if (!positions) continue;
-    for (const [id, partnerId] of [[a, b], [b, a]]) {
-      const p = s.ecs.planner[id];
-      p.world.social = { partnerId, visitor: id == a, homeId: s.ecs.household[id]?.houseId, stage: "outbound", expires: Math.floor(s.days) + 21 / 24 };
-      p.world.places.socialDestination = positions[id];
-      p.task = null; p.plan = null;
-    }
+    planVisit(s, a, b);
   }
+}
+
+// Player introductions and ordinary visits share the same destinations and HTN
+// plans. An invitation cannot interrupt needs, paid work or another encounter.
+export function visitUnavailable(s, a, b, { ignoreAvoidance = false } = {}) {
+  const hour = (s.days % 1) * 24;
+  if (hour < 9 || hour >= 21) return "They meet between nine in the morning and nine at night";
+  for (const id of [a, b]) {
+    const person = s.ecs.personable?.[id], p = s.ecs.planner?.[id];
+    if (!person || person.dead || !isAdult(person.age) || !p) return "They cannot visit here";
+    if (person.hunger > .9 || p.world.feeling.hungry) return "They need a meal first";
+    if (person.tiredness > .9 || p.world.feeling.tired) return "They need rest first";
+    if (!idle(p, false)) return "They are busy with work or company";
+  }
+  if (!ignoreAvoidance && s.social?.avoidance?.[[a,b].sort().join(":")] > s.days) return "They are avoiding each other after a quarrel";
+  const positions = conversationPositions(s, a, b);
+  if (!positions) return "There is no route for them to meet";
+  for (const id of [a,b]) {
+    const route = path(s, navAt(s,s.ecs.spatial[id]), navAt(s,positions[id]));
+    const hours = route.reduce((n,tile) => n + 1/(s.ecs.walkable[tile.id].speed || 1), 0)/(10*LOCOMOTION_RATIO);
+    if (hours + .5 >= 21-hour) return "There is not time to arrive and talk before night";
+  }
+  return null;
+}
+export function planVisit(s, a, b) {
+  const positions = conversationPositions(s, a, b);
+  if (!positions) return false;
+  for (const [id, partnerId] of [[a,b],[b,a]]) {
+    const p = s.ecs.planner[id];
+    p.world.social = { partnerId, visitor:id==a, homeId:s.ecs.household[id]?.houseId, stage:"outbound", expires:Math.floor(s.days)+21/24 };
+    p.world.places.socialDestination = positions[id];
+    p.task = null; p.plan = null;
+  }
+  return true;
 }
 
 function startChildPlay(s, ids, hour) {

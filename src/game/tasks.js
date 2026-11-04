@@ -22,7 +22,7 @@ import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
 import { openChat } from "game/chat";
 import { snapshotActivity } from "game/chat_facts";
-import { chatTogether, canCourt } from "game/social";
+import { chatTogether, canCourt, courtTogether } from "game/social";
 import { beginSocialSpeech } from "game/news";
 import { campfireVisitValid } from "game/campfire_visits";
 import { Hex, Grid, HEX_SIZE, TRIANGLES, triangleCenters, TRIANGLE_INTERIOR_RADIUS } from "game/map";
@@ -1179,7 +1179,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
     beginSocialSpeech(state,actorId,partnerId);
   }
   const conversations = Math.max(v.conversations || 0, other.conversations || 0);
-  if (state.days - v.started < (conversations + 1) * 0.5 / 24) return Task.CONTINUE;
+  if (state.days - v.started < (conversations + 1) * 0.5 / 24 - 1e-9) return Task.CONTINUE;
   if (!patienceLeft(state, actorId, partnerId) || !patienceLeft(state, partnerId, actorId)) return Task.FINISH;
   if (!chatTogether(state, actorId, partnerId)) return Task.FINISH;
   if (!conversations) {
@@ -1193,6 +1193,7 @@ export function socialise(state, actorId, world, dt, firstRun, partnerId) {
   }
   v.conversations = other.conversations = conversations + 1;
   v.courting = other.courting = canCourt(state, actorId, partnerId);
+  if (v.courting) courtTogether(state, actorId, partnerId, state.days / time.DAYS_IN_SEASON);
   // Close partners can spend longer together, within their actual daily patience.
   if (v.conversations < (v.courting ? 5 : 3)) return Task.CONTINUE;
   return Task.FINISH;

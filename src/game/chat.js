@@ -10,7 +10,7 @@ import LINES from "data/conversation_lines.json";
 import { addGoodwill, meet, disposition, RINGS, completeConversation, goodwillTowards } from "game/people";
 import { learnEvent, recordEvent } from "game/events";
 import { recogniseConversation } from "game/guidance";
-import { acceptFavour } from "game/favours";
+import { acceptFavour, withFavourQuery } from "game/favours";
 import { hashUnit } from "game/math";
 import { patience, chatRecord } from "game/chat_patience";
 import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
@@ -65,6 +65,9 @@ function bindingOrder(bindings) {
   keys.forEach(visit);return out;
 }
 export function lineCandidates(s,c,family,speaker) {
+  return withFavourQuery(s,()=>queryLineCandidates(s,c,family,speaker));
+}
+function queryLineCandidates(s,c,family,speaker) {
   const pair=chatRecord(s,c.actorId,c.npcId),result=[];
   for(const row of LINES) {
     if(row.family!=family||speaker&&row.speaker!=speaker||c.usedIds.includes(row.id)&&!row.answers?.includes(c.expectation)&&!row.situation.startsWith("fallback_")&&family!="referral_reply")continue;
@@ -144,6 +147,9 @@ function pickNpc(s,c,family,realOnly=false) {
   return rows[0];
 }
 export function chatChoices(s) {
+  return withFavourQuery(s,()=>queryChatChoices(s));
+}
+function queryChatChoices(s) {
   const c=s.chat?.active;if(!c||c.endReason)return [];
   c.phase="player_turn";
   const families=[...new Set(LINES.filter(l=>l.speaker=="player"&&l.family!="leave_taking").map(l=>l.family))];

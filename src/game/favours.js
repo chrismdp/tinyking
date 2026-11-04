@@ -62,7 +62,19 @@ export function householdFood(s) {
   }
   return totals;
 }
-function foodReserve(s, house) { return householdFood(s).get(house) || 0; }
+// A synchronous choice query reads one inventory snapshot. Discard it before
+// speech, deliveries or any other mutation can make a later query stale.
+const foodQueries = new WeakMap();
+export function withFavourQuery(s, query) {
+  if (foodQueries.has(s)) return query();
+  foodQueries.set(s, {});
+  try { return query(); } finally { foodQueries.delete(s); }
+}
+function foodReserve(s, house) {
+  const query = foodQueries.get(s);
+  const food = query ? (query.food ||= householdFood(s)) : householdFood(s);
+  return food.get(house) || 0;
+}
 export function reasonGone(s, r, food) {
   const ecs = s.ecs;
   if (!live(s, r.giverId)) return "The requester died";

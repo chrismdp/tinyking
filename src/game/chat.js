@@ -68,8 +68,10 @@ export function lineCandidates(s,c,family,speaker) {
   return withFavourQuery(s,()=>queryLineCandidates(s,c,family,speaker));
 }
 function queryLineCandidates(s,c,family,speaker) {
-  const pair=chatRecord(s,c.actorId,c.npcId),result=[];
+  const pair=chatRecord(s,c.actorId,c.npcId),result=[],trust=Math.max(0,RINGS.indexOf(s.ecs.relationships?.[c.npcId]?.known[c.actorId]?.ring));
   for(const row of LINES) {
+    // A question they have no more to say about waits until they trust you more.
+    if(row.speaker=="player"&&pair.exhausted?.[row.family+":"+row.situation]>=trust)continue;
     if(row.family!=family||speaker&&row.speaker!=speaker||c.usedIds.includes(row.id)&&!row.answers?.includes(c.expectation)&&!row.situation.startsWith("fallback_")&&family!="referral_reply")continue;
     if(!row.tags.require.every(t=>c.tags.includes(t))||row.tags.forbid.some(t=>c.tags.includes(t)))continue;
     let bound=[baseBindings(s,c)];
@@ -366,13 +368,18 @@ export function reply(s,requested) {
   if(!line&&(requested=="need_news" || requested=="introduction_reply" && c.knewBefore && c.completed))line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
-  if(line){speakLine(s,line);
+  if(line){speakLine(s,line);noteExhausted(s,c,line);
     if(requested=="maternal_recognition"&&firstFamilyRequest(s,c.actorId,c.npcId)) {
       const offer=pickNpc(s,c,"favour_ask",true);if(offer)speakLine(s,offer);
     }
     if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)endChat(s,c.closeReason||"no_news");}
   else endChat(s,c.closeReason||"no_news");
   c.phase="player_turn";
+}
+export function noteExhausted(s,c,line) {
+  if(!line?.exhausts||!c.question)return;
+  const pair=chatRecord(s,c.actorId,c.npcId);
+  (pair.exhausted ||= {})[c.question.family+":"+c.question.situation]=Math.max(0,RINGS.indexOf(s.ecs.relationships?.[c.npcId]?.known[c.actorId]?.ring));
 }
 export function chooseLine(s,key) {
   const c=s.chat?.active;if(!c||c.endReason)return false;
@@ -429,7 +436,8 @@ export function openChat(s,actor,npc,options={}) {
   const knewBefore=!!e.relationships[npc]?.known[actor],pair=chatRecord(s,actor,npc);
   const c=s.chat.active={actorId:actor,npcId:npc,encounter:++pair.encounters,knewBefore,phase:"opening",tags:[],row:[],usedIds:[],transcript:[],
     initiatedBy:options.initiatedBy,context:options.context,required:options.required,
-    taskId:!options.initiatedBy&&e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary"};
+    taskId:!options.initiatedBy&&e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary",
+    startRanks:{[npc]:Math.max(0,RINGS.indexOf(e.relationships?.[npc]?.known[actor]?.ring)),[actor]:Math.max(0,RINGS.indexOf(e.relationships?.[actor]?.known[npc]?.ring))}};
   meet(s,actor,npc);meet(s,npc,actor);s.game_speed="paused";
   if(e.planner[npc])e.planner[npc].world.capturedBy=actor;
   if((!options.openingFamily || options.openingFamily=="greeting") && s.ecs.planner?.[npc]?.world.festivalPlace)options={...options,openingFamily:"festival"};

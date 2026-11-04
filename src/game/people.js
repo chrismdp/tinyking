@@ -207,7 +207,11 @@ export function addGoodwill(state, from, to, amount, introduce = true) {
     if ((bond.goodwill || 0) != (bond.base || 0)) cached.active.add(from);
     else cached.active.delete(from);
   }
-  const eligible = Math.min(goodwillRank(bond.goodwill), DISPOSITION_CAP[disposition(state, to, from)]);
+  // One conversation moves a relationship at most one ring, however much
+  // goodwill it earns. The goodwill stays and counts in the next conversation.
+  const talk = state.chat?.active, inTalk = talk && [talk.actorId, talk.npcId].includes(from) && [talk.actorId, talk.npcId].includes(to);
+  const limit = inTalk ? (talk.startRanks?.[to] ?? 0) + 1 : RINGS.length - 1;
+  const eligible = Math.min(goodwillRank(bond.goodwill), DISPOSITION_CAP[disposition(state, to, from)], limit);
   const rank = amount > 0 ? eligible : Math.min(RINGS.indexOf(bond.ring), eligible);
   moveTo(list, from, rank);
 }

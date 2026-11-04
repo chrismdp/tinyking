@@ -89511,6 +89511,7 @@
    "remove": []
   },
   "text": "There's no more to tell of my family.",
+  "exhausts": true,
   "facts": [
    {
     "ref": "player_knowledge",
@@ -135330,6 +135331,7 @@
    "remove": []
   },
   "text": "I've nothing more to tell you about our grain.",
+  "exhausts": true,
   "facts": [],
   "icons": [
    {
@@ -135389,6 +135391,7 @@
    "remove": []
   },
   "text": "I've nothing more to tell you about the village.",
+  "exhausts": true,
   "facts": [],
   "icons": [
    {
@@ -136038,6 +136041,7 @@
    "remove": []
   },
   "text": "I've nothing more to tell you about my parents.",
+  "exhausts": true,
   "facts": [],
   "icons": [
    {
@@ -136097,6 +136101,7 @@
    "remove": []
   },
   "text": "I've no more to tell you about living here.",
+  "exhausts": true,
   "facts": [],
   "icons": [
    {

@@ -142,6 +142,10 @@ export function scheduleNeighbourDetails(s, schedule = afterPaint) {
 export function applyPreparedDetail(s, key, detail, summary) {
   if(s.travel.localPeople)hydratePeople(detail,s.travel);
   const origin = s.worldHistory?.detailOrigins?.[key], ecs = { ...summary.ecs };
+  // An unopened summary has logical household positions, not coordinates in
+  // this terrain. Keep the positions just constructed for its actual people.
+  // Later arrivals missing from that detail use restoreDetails' home/pass rule.
+  ecs.spatial=Object.fromEntries(Object.entries(summary.ecs.spatial || {}).filter(([id])=>!summary.residents[id]));
   ecs.household = Object.fromEntries(Object.entries(summary.ecs.household).map(([id, h]) => [id, {
     ...h, trade: h.trade ?? detail.ecs.household[id]?.trade,
     workplaceId: h.workplaceId ?? detail.ecs.household[id]?.workplaceId

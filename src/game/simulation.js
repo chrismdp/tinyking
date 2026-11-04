@@ -164,7 +164,7 @@ function updatePlannerFrame(state, frameMod) {
 
 // NOTE: The game itself, one frame at a time. Knows nothing about rendering:
 // it changes ECS state and lists changed entities in state.redraws.
-export function createSimulation(state, { onHour, onDay, onTravel, onError, onSleep } = {}) {
+export function createSimulation(state, { onHour, onDay, onTravel, onError, onSleep, clockUntil = Infinity } = {}) {
   let pending = null;
   // Old saves may contain several orders. Keep the active one and cancel the rest.
   const orders = state.ecs.manager?.[state.ui?.playerId]?.jobs;
@@ -190,6 +190,9 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
   const advanceTime = frameMod => {
     if (SPEED[state.game_speed]) {
       let toAdd = deltaTime(frameMod, SPEED[state.game_speed]);
+      // The day layer fits the walk to a pass into its departure part. Tasks
+      // still follow their real paths; only this caller's calendar is bounded.
+      toAdd=Math.min(toAdd,Math.max(0,clockUntil-state.days));
       const turn=seasonTurnAt(state,state.days+toAdd);
       if(turn!=null)toAdd=Math.max(0,turn-state.days);
       state.days += toAdd;
@@ -230,6 +233,9 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
   const finishDepartures = () => {
     for(const {id,intent} of state.pendingNpcDepartures||[])departNpc(state,id,intent);
     state.pendingNpcDepartures=[];
+    const road=state.travel?.dayJourney;
+    if(road?.order && !road.onRoad && state.travel.transit.some(t=>t.bundle.id==road.companionId && t.to==road.to))
+      return background(()=>completeTravel(state,road.order));
     if(state.pendingPlayerTravel) {
       const order=state.pendingPlayerTravel;delete state.pendingPlayerTravel;
       return background(async()=>{await completeTravel(state,order);if(playerDied(state))await resolveSuccession(state);if(onTravel)onTravel();});

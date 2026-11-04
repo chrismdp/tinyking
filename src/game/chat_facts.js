@@ -108,6 +108,7 @@ export function baseBindings(s,c) {
     context:{salute:tod=="morning"?"Morning":tod=="afternoon"?"Afternoon":"Evening",time_of_day:tod,season:season(s.days),weather_phrase:({clear:"this fine weather",cloudy:"this grey weather",rain:"this rain",snow:"this snow",storm:"this wind"})[localWeather(s)?.type],world_key:currentReach(s),encounter_number:c.encounter,game_hour:Math.floor(s.days*24)}};
 }
 const requests=(s,n)=>Object.values(s.favours?.requests||{}).filter(r=>r.householdId==s.ecs.household?.[n]?.houseId);
+const OWN_NEWS=["quarrel","reconciliation","marriage","birth","death","move","inheritance"];
 export function newsEvents(s,c,visits=false) {
   return knownEvents(s,c.npcId).filter(e=>visits?relevantVisit(s,c.npcId,c.actorId,e):!VISITS.includes(e.type)&&!heard(s,c.actorId,e)&&canDiscloseEvent(s,c.npcId,c.actorId,e)&&
     (c.subjectId?e.people.includes(c.subjectId):e.villageId==s.ecs.village?.[c.npcId]?.villageId)).sort((a,b)=>b.day-a.day||a.id.localeCompare(b.id));
@@ -167,6 +168,11 @@ export function sourceValues(s,c,b,d) {
   case "village_founding_event":return events("founding").filter(x=>x.villageId==ref(d.village)?.id);
   case "current_subject_known_to_player":return knows(s,p,c.subjectId)?[personFact(s,c.subjectId)].filter(Boolean):[];
   case "npc_bond_with_subject": {const bond=e.relationships[n]?.known[c.subjectId];return bond?[{...bond,dislikes:disposition(s,n,c.subjectId)=="hate"||bond.goodwill<0}]:[];}
+  // Their own life lately: events they took part in, or a birth or death in
+  // their close family, from the past seven days. Each is told once.
+  case "npc_own_recent_event":return knownEvents(s,n).filter(x=>!x.sealed&&x.day>=s.days-7&&OWN_NEWS.includes(x.type)&&
+    (x.type=="death"?closeFamily(s,n).includes(x.people[0]):x.type=="birth"?x.people.slice(1).includes(n):x.type=="inheritance"?x.people[1]==n:x.people.includes(n)))
+    .sort((a,b)=>b.day-a.day||a.id.localeCompare(b.id)).map(x=>eventFact(s,x));
   case "npc_known_unheard_event_for_question":return newsEvents(s,c).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));

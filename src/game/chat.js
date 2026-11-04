@@ -172,7 +172,7 @@ function queryChatChoices(s) {
   if(c.closingReply) return withAnswers(all.filter(l=>(c.closingReply=="offer"?["favour_accept","favour_decline"]:["referral_reply"]).includes(l.family)));
   if(c.focus=="tell")return withAnswers(all.filter(l=>l.family=="gossip_tell"&&l.situation.startsWith("catalogue_")).sort((a,b)=>b.b.event.day-a.b.event.day||a.useKey.localeCompare(b.useKey)),false);
   if (c.focus) {
-    const focus={family:["maternal_introduction","maternal_search","family_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["mood_talk","mood_reply"]}[c.focus];
+    const focus={family:["maternal_introduction","maternal_search","family_question","own_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["own_question","mood_talk","mood_reply"]}[c.focus];
     all=all.filter(l=>focus.includes(l.family)||l.family=="customs_question"||c.focus=="season"&&l.family=="lands_question"&&l.situation=="country");
   }
   // Practical lines remain reachable; the list otherwise favours a visible
@@ -367,7 +367,7 @@ export function reply(s,requested) {
   if(c.finishAfterReply&&["open","practical"].includes(requested))line=pickNpc(s,c,"answer_acknowledged");
   if(!line&&(requested=="need_news" || requested=="introduction_reply" && c.knewBefore && c.completed))line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
-  if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
+  if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["own_news","visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
   if(line){speakLine(s,line);noteExhausted(s,c,line);
     if(requested=="maternal_recognition"&&firstFamilyRequest(s,c.actorId,c.npcId)) {
       const offer=pickNpc(s,c,"favour_ask",true);if(offer)speakLine(s,offer);

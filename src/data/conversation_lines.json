@@ -159168,5 +159168,2742 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "npc.own_news.quarrel.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_quarrel",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "quarrel"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "There's been a falling-out at home. It'll mend, or it won't.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quarrel.guarded.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_quarrel",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "quarrel"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Don't ask me about the family today. Not today.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quarrel.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_quarrel",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "quarrel"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} and I had words, {event.when}. I said things I'd take back.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quarrel.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_quarrel",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "quarrel"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "I've fallen out with {other.first_name}. We're not speaking, and I don't know how to start again.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.reconciliation.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_reconciliation",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "reconciliation"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Things are better at home than they were.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.reconciliation.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_reconciliation",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "reconciliation"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} and I have made it up. I'm glad of it.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.reconciliation.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_reconciliation",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "reconciliation"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "We've patched it up, {other.first_name} and me. Took long enough.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.marriage.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_marriage",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "marriage"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "There's been a wedding in our house.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.marriage.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_marriage",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "marriage"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "I'm married now, to {other.first_name}. Still getting used to saying it.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.marriage.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_marriage",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_other_participant",
+    "event": "event",
+    "person": "npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "marriage"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} and I are wed. The house feels different already.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.birth.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_birth",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "birth"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "There's a new baby in the house. You'll hear it before you see it.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.birth.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_birth",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "birth"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "We've a new little one, {other.first_name}. Nobody's slept since.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.birth.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_birth",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "birth"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} was born to us {event.when}. Small as a loaf, and twice as loud.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.death.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_death",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "death"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "We've had a death in the family. I'd rather not speak of it.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.death.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_death",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "death"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "We lost {other.first_name} {event.when}. The house is quiet without them.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.death.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_death",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "death"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} is gone. I keep setting a place at the table.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.move.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_move",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "move"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "We've moved house. Still finding where everything is.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.move.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_move",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "move"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "I've moved house, {event.when}. Still finding where everything is.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.move.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_move",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "move"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "New roof over my head since {event.when}. It doesn't feel like mine yet.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.inheritance.guarded.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "guarded_inheritance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "inheritance"
+     }
+    },
+    {
+     "test": "ring_is",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "public"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Things have come to me I'd sooner not have had.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "guarded"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.inheritance.told.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_inheritance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "inheritance"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "It all came to me when {other.first_name} died. I'd rather have them back.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.inheritance.told.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "told_inheritance",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "npc_own_recent_event"
+   },
+   "other": {
+    "source": "event_person",
+    "event": "event",
+    "index": 0
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "event_type_is",
+     "args": {
+      "event": "event",
+      "type": "inheritance"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "{other.first_name} left me what they had. I can't bring myself to use it.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people",
+     "day"
+    ],
+    "tense": "past"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "event",
+    "ref": "event"
+   }
+  ],
+  "use_key": "own_news:{npc.id}:{player.id}:{event.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "Something of their own life lately"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [
+    "event.people"
+   ],
+   "events": [
+    "event"
+   ],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quiet.base.01",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "fallback_quiet",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [
+    "asked:own"
+   ],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Well enough. Nothing much to tell.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "content"
+   }
+  ],
+  "use_key": "own_quiet:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quiet.base.02",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "fallback_quiet",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [
+    "asked:own"
+   ],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Middling. Same as ever, which is no bad thing.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "content"
+   }
+  ],
+  "use_key": "own_quiet:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.own_news.quiet.base.03",
+  "speaker": "npc",
+  "family": "own_news",
+  "situation": "fallback_quiet",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [
+    "asked:own"
+   ],
+   "forbid": [],
+   "add": [],
+   "remove": [
+    "asked:own"
+   ]
+  },
+  "text": "Can't complain. Nobody would listen if I did.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "mood",
+    "key": "content"
+   }
+  ],
+  "use_key": "own_quiet:{npc.id}:{player.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "That something has happened to them, not what"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.own_question.general.base.01",
+  "speaker": "player",
+  "family": "own_question",
+  "situation": "general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:own"
+   ],
+   "remove": []
+  },
+  "text": "How are you keeping?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "They may not want to say, if they hardly know you."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "own_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.own_question.general.base.02",
+  "speaker": "player",
+  "family": "own_question",
+  "situation": "general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:own"
+   ],
+   "remove": []
+  },
+  "text": "How are things at home?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "They may not want to say, if they hardly know you."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "own_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.own_question.general.base.03",
+  "speaker": "player",
+  "family": "own_question",
+  "situation": "general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:own"
+   ],
+   "remove": []
+  },
+  "text": "How have you been, truly?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "They may not want to say, if they hardly know you."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "own_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.own_question.general.base.04",
+  "speaker": "player",
+  "family": "own_question",
+  "situation": "general",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "knows_identity",
+     "args": {
+      "viewer": "player",
+      "person": "npc"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [
+    "asked:own"
+   ],
+   "remove": []
+  },
+  "text": "All well with you and yours?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "They may not want to say, if they hardly know you."
+   ],
+   "reveals": [
+    "Nothing beyond the question"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "own_news"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
  }
 ]

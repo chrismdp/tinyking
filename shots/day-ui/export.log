@@ -1,0 +1,237 @@
+seed 13: 48152115 save bytes, 4554903 gzip bytes; player and clock round trip passed
+{
+  "days": 0.375,
+  "player": "terrain5_3-person-3904",
+  "walkable": 1519,
+  "villages": {
+    "w5_3-village-1": {
+      "id": "w5_3-village-1",
+      "name": "Reedbrook",
+      "kind": "villages",
+      "worldKey": "5,3",
+      "houses": [
+        "w5_3-home-1",
+        "w5_3-home-6",
+        "w5_3-home-11"
+      ],
+      "centre": {
+        "x": 24,
+        "y": 6
+      },
+      "sharedPlaces": [
+        "terrain5_3-3906",
+        "terrain5_3-3907"
+      ],
+      "origin": {
+        "day": -336,
+        "people": [
+          "w5_3-person-3",
+          "w5_3-person-4"
+        ],
+        "houseId": "w5_3-home-1",
+        "reason": "cultivable household land",
+        "centreHex": "22,6"
+      }
+    },
+    "w5_3-village-2": {
+      "id": "w5_3-village-2",
+      "name": "Reedford",
+      "kind": "villages",
+      "worldKey": "5,3",
+      "houses": [
+        "w5_3-home-16",
+        "w5_3-home-21",
+        "w5_3-home-26",
+        "w5_3-home-31",
+        "w5_3-social-62",
+        "w5_3-social-82",
+        "w5_3-social-99"
+      ],
+      "centre": {
+        "x": 27,
+        "y": 13
+      },
+      "sharedPlaces": [
+        "terrain5_3-3932",
+        "terrain5_3-3933",
+        "terrain5_3-3934",
+        "terrain5_3-3935"
+      ],
+      "origin": {
+        "day": -336,
+        "people": [
+          "w5_3-person-18",
+          "w5_3-person-19"
+        ],
+        "houseId": "w5_3-home-16",
+        "reason": "cultivable household land",
+        "centreHex": "31,13"
+      }
+    }
+  },
+  "knowledge": {
+    "people": {
+      "terrain5_3-backstory-4146": {
+        "traits": [],
+        "nameOnly": true
+      },
+      "w5_3-social-74": {
+        "traits": [],
+        "nameOnly": true
+      },
+      "terrain5_3-person-4147": {
+        "traits": [],
+        "nameOnly": true
+      }
+    },
+    "feelings": {},
+    "maternalFamily": {
+      "motherId": "terrain5_3-backstory-4146",
+      "origin": "this region",
+      "met": []
+    },
+    "peopleGoals": {
+      "villageId": "w5_3-village-1",
+      "earned": {}
+    }
+  },
+  "home": {
+    "id": "terrain5_3-person-3904",
+    "houseId": "terrain5_3-4151"
+  }
+}
+seed 7: 30594521 save bytes, 2715788 gzip bytes; player and clock round trip passed
+{
+  "days": 0.375,
+  "player": "terrain5_5-person-2288",
+  "walkable": 1519,
+  "villages": {
+    "w5_5-village-1": {
+      "id": "w5_5-village-1",
+      "name": "Ashbrook",
+      "kind": "villages",
+      "worldKey": "5,5",
+      "houses": [
+        "w5_5-home-1",
+        "w5_5-home-6",
+        "w5_5-home-11",
+        "w5_5-home-16",
+        "w5_5-social-120",
+        "w5_5-social-156"
+      ],
+      "centre": {
+        "x": 21,
+        "y": 5
+      },
+      "sharedPlaces": [
+        "terrain5_5-2290",
+        "terrain5_5-2291",
+        "terrain5_5-2292",
+        "terrain5_5-2293"
+      ],
+      "origin": {
+        "day": -336,
+        "people": [
+          "w5_5-person-3",
+          "w5_5-person-4"
+        ],
+        "houseId": "w5_5-home-1",
+        "reason": "cultivable household land",
+        "centreHex": "24,7"
+      }
+    },
+    "w5_5-village-2": {
+      "id": "w5_5-village-2",
+      "name": "Thornford",
+      "kind": "villages",
+      "worldKey": "5,5",
+      "houses": [
+        "w5_5-home-21",
+        "w5_5-home-26",
+        "w5_5-home-31",
+        "w5_5-home-36"
+      ],
+      "centre": {
+        "x": 26,
+        "y": 24
+      },
+      "sharedPlaces": [
+        "terrain5_5-2332",
+        "terrain5_5-2333"
+      ],
+      "origin": {
+        "day": -336,
+        "people": [
+          "w5_5-person-23",
+          "w5_5-person-24"
+        ],
+        "houseId": "w5_5-home-21",
+        "reason": "cultivable household land",
+        "centreHex": "25,26"
+      }
+    },
+    "w5_5-village-3": {
+      "id": "w5_5-village-3",
+      "name": "Ashcombe",
+      "kind": "villages",
+      "worldKey": "5,5",
+      "houses": [
+        "w5_5-home-41",
+        "w5_5-home-46",
+        "w5_5-home-51",
+        "w5_5-social-114",
+        "w5_5-social-134"
+      ],
+      "centre": {
+        "x": 26,
+        "y": 33
+      },
+      "sharedPlaces": [
+        "terrain5_5-2366",
+        "terrain5_5-2367",
+        "terrain5_5-2368",
+        "terrain5_5-2369"
+      ],
+      "origin": {
+        "day": -336,
+        "people": [
+          "w5_5-person-43",
+          "w5_5-person-44"
+        ],
+        "houseId": "w5_5-home-41",
+        "reason": "cultivable household land",
+        "centreHex": "27,32"
+      }
+    }
+  },
+  "knowledge": {
+    "people": {
+      "terrain5_5-backstory-2518": {
+        "traits": [],
+        "nameOnly": true
+      },
+      "w5_5-social-98": {
+        "traits": [],
+        "nameOnly": true
+      },
+      "w5_5-social-107": {
+        "traits": [],
+        "nameOnly": true
+      }
+    },
+    "feelings": {},
+    "maternalFamily": {
+      "motherId": "terrain5_5-backstory-2518",
+      "origin": "this region",
+      "met": []
+    },
+    "peopleGoals": {
+      "villageId": "w5_5-village-1",
+      "earned": {}
+    }
+  },
+  "home": {
+    "id": "terrain5_5-person-2288",
+    "houseId": "terrain5_5-2522"
+  }
+}

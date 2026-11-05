@@ -9,6 +9,7 @@ import { createRoot } from "react-dom/client";
 import { I18n } from "react-polyglot";
 import { BrowserRouter as Router } from "react-router-dom";
 
+import { DayGame } from "components/day/day_game";
 import { World } from "components/world";
 import messages from "data/messages.json";
 
@@ -24,7 +25,7 @@ const locale = window.locale || "en";
 createRoot(document.getElementById("root")).render(
   (<Router>
     <I18n locale={locale} messages={messages}>
-      <World/>
+      {new URLSearchParams(window.location.search).get("mode")==="day" ? <DayGame/> : <World/>}
     </I18n>
   </Router>));
 

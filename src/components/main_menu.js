@@ -15,6 +15,7 @@ export function MainMenu({ show }) {
         <div className="strapline">The kingdom builder that&rsquo;s all about the people.<br/>Placeholder art, alpha gameplay, open development.</div>
       </div>
       <menu className={show ? "" : "hiding"}>
+        <li><a href="/?mode=day">A day with people</a></li>
         {state.persistence?.hasSave && <li><button disabled={!!state.generating} onClick={state.ui.actions.continue_game}>Continue</button></li>}
         <li>{(state.renderer || state.persistence?.ready && (state.persistence.hasSave || state.persistence.error)) && <a onClick={state.ui.actions.custom_game}>Start new game</a>}</li>
         {state.persistence?.error && <li className="save-message" role="alert">{state.persistence.error}</li>}

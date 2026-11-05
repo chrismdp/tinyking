@@ -1,0 +1,33 @@
+FAIL test/day_view.test.js
+  ● Test suite failed to run
+
+    Configuration error:
+
+    Could not locate module game/day_view mapped as:
+    /home/cp/code/tk-dayui/src/game/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/game\/(.*)/": "/home/cp/code/tk-dayui/src/game/$1"
+      },
+      "resolver": undefined
+    }
+
+      1 | import { peopleWorld } from "./support/people";
+      2 | import { Hex } from "game/hex";
+    > 3 | import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords } from "game/day_view";
+        | ^
+      4 |
+      5 | it("reveals the valley ground without introducing any people", () => {
+      6 |   const {state:s,player,tiles}=peopleWorld();
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1322:17)
+      at Object.<anonymous> (test/day_view.test.js:3:1)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        4.843 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

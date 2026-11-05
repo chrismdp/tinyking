@@ -1,0 +1,7 @@
+
+Test Suites: 4 passed, 4 total
+Tests:       46 passed, 46 total
+Snapshots:   0 total
+Time:        17.228 s
+Ran all test suites within paths "test/day_view.test.js", "test/day.test.js", "test/day_travel.test.js", "test/asks.test.js".
+exit=0

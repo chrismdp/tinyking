@@ -119,13 +119,14 @@ async function finishChatPanel(page, person, { acceptFavourId, onOpen, maxLines=
   try {
     const selected=[];
     for(let turn=0;selected.length<maxLines && turn<maxLines*2;turn++) {
+      await page.waitForFunction(()=>document.querySelector(".chat-choices") || window.tinyking.chat?.active?.endReason);
       const state=await chatState(page,person);
       if(state.active.endReason)break;
-      const choices=await page.locator(".chat-choices > button").evaluateAll(buttons=>buttons.map(b=>{
+      const choices=await page.locator(".chat-choice").evaluateAll(buttons=>buttons.map(b=>{
         const icons=[...b.querySelectorAll(".choice-icons .chat-icon")];
         const matches=icons.filter(i=>i.dataset.matches=="true");
         const score=matches.reduce((sum,i)=>sum+([...i.querySelectorAll("small")].map(e=>e.textContent).filter(t=>/^[+-]?\d+(\.\d+)?$/.test(t)).map(Number).at(-1)||0),0);
-        return {id:b.dataset.lineId,family:b.dataset.family,disabled:b.disabled,matches:matches.length,score};
+        return {id:b.dataset.lineId,family:b.dataset.family,disabled:b.getAttribute("aria-disabled")=="true",matches:matches.length,score};
       }));
       const request=acceptFavourId && await page.evaluate(id=>{
         const s=window.tinyking,r=s.favours.requests[id];
@@ -138,14 +139,14 @@ async function finishChatPanel(page, person, { acceptFavourId, onOpen, maxLines=
       // When seeking a request, ask through the actual Help subject after the
       // introduction. The offer must be spoken before its acceptance can appear.
       if(acceptFavourId && !accept && line.family!="introduction" && state.active.focus!="help") {
-        const details=page.locator(".chat-scroll details");
+        const details=page.locator(".chat-panel .chat-extras");
         if(await details.getAttribute("open")===null)await details.locator("summary").click({noWaitAfter:true});
         await page.getByRole("button",{name:"Help",exact:true}).click({noWaitAfter:true});
         continue;
       }
       const spokenLine=acceptFavourId && !accept && line.family!="introduction"
         ? eligible.find(c=>!c.disabled && ["need_question","help_offer"].includes(c.family)) || line : line;
-      await page.locator(`.chat-choices > button[data-line-id="${spokenLine.id}"]`).click({noWaitAfter:true});
+      await page.locator(`.chat-choice[data-line-id="${spokenLine.id}"] .chat-choice-text`).click({noWaitAfter:true});
       selected.push(spokenLine);
       console.log("CHAT line "+spokenLine.id);
       await page.waitForFunction(({count})=>window.tinyking.chat.active.transcript.length>count,{count:state.active.transcript.length});

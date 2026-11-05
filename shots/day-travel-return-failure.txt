@@ -1,0 +1,12 @@
+ERROR
+TypeError: Cannot read properties of undefined (reading 'filter')
+    at closestNavPointTo (/home/cp/code/tk-daytravel/src/game/tasks.js:124:71)
+    at Object.walk_to (/home/cp/code/tk-daytravel/src/game/tasks.js:181:49)
+    at Object.runTask (/home/cp/code/tk-daytravel/src/game/htn.js:92:31)
+    at updatePlannerFrame (/home/cp/code/tk-daytravel/src/game/simulation.js:160:13)
+    at /home/cp/code/tk-daytravel/src/game/simulation.js:56:109
+    at withGardenHelpIndex (/home/cp/code/tk-daytravel/src/game/household_routines.js:25:12)
+    at /home/cp/code/tk-daytravel/src/game/simulation.js:56:95
+    at withFenceCache (/home/cp/code/tk-daytravel/src/game/fences.js:24:12)
+    at updatePlanners (/home/cp/code/tk-daytravel/src/game/simulation.js:56:37)
+    at stepWorld (/home/cp/code/tk-daytravel/src/game/simulation.js:295:5)

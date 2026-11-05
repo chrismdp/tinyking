@@ -1,0 +1,7148 @@
+[
+  {
+    "action": "alone-1",
+    "day": 1,
+    "slot": "morning",
+    "start": 0.375,
+    "end": 0.5,
+    "choice": {
+      "id": "1/morning/travel/6,3/alone",
+      "activity": "travel",
+      "placeId": "terrain5_3-1515",
+      "personId": null,
+      "destination": "6,3",
+      "available": true,
+      "reason": "One day on the road",
+      "label": "Travel to The region to the east"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 0.37569444444444444,
+        "personId": "terrain5_3-person-3904",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-1515"
+      },
+      {
+        "day": 0.49930555555555556,
+        "personId": "terrain5_3-person-3904",
+        "activity": "leave_edge",
+        "targetId": "terrain5_3-1515"
+      }
+    ],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "5,3",
+      "to": "6,3",
+      "part": 1,
+      "companionId": null,
+      "weather": {
+        "type": "rain",
+        "pressure": 994.5662742339391,
+        "wind": {
+          "x": 0.8099789147933625,
+          "y": 0.5864589990699837,
+          "direction": 0.6266801659533364,
+          "strength": 0.5858739666500311
+        },
+        "moisture": 0.9234475306731296,
+        "change": 1.3425397156713643
+      },
+      "camp": false,
+      "lines": [
+        "You follow the road towards the next pass.",
+        "The weather is rain."
+      ],
+      "arrived": false
+    }
+  },
+  {
+    "action": "alone-2",
+    "day": 1,
+    "slot": "afternoon",
+    "start": 0.5,
+    "end": 0.75,
+    "choice": {
+      "id": "1/afternoon/road",
+      "activity": "continue_travel",
+      "personId": null,
+      "available": true,
+      "label": "Continue travelling",
+      "reason": "Spend this part of the day on the road"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "5,3",
+      "to": "6,3",
+      "part": 2,
+      "companionId": null,
+      "weather": {
+        "type": "rain",
+        "pressure": 994.6127281060802,
+        "wind": {
+          "x": 0.8088324883312814,
+          "y": 0.5880391192937997,
+          "direction": 0.6286323633729202,
+          "strength": 0.5859518181078774
+        },
+        "moisture": 0.8834330705222255,
+        "change": 4.308204715467696
+      },
+      "camp": false,
+      "lines": [
+        "You follow the road towards the next pass.",
+        "The weather is rain."
+      ],
+      "arrived": false
+    }
+  },
+  {
+    "action": "alone-3",
+    "day": 1,
+    "slot": "evening",
+    "start": 0.75,
+    "end": 1.25,
+    "choice": {
+      "id": "1/evening/road",
+      "activity": "continue_travel",
+      "personId": null,
+      "available": true,
+      "label": "Continue travelling",
+      "reason": "Spend this part of the day on the road"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "5,3",
+      "to": "6,3",
+      "part": 3,
+      "companionId": null,
+      "weather": {
+        "type": "cloudy",
+        "pressure": 1016.8910599560105,
+        "wind": {
+          "x": -0.18673197485505533,
+          "y": 0.9824108965024416,
+          "direction": 1.7586308789156917,
+          "strength": 0.6922519180857295
+        },
+        "moisture": 0.7589385460686625,
+        "change": 11.04563099888685
+      },
+      "camp": true,
+      "lines": [
+        "At dusk you make camp beside the road.",
+        "The weather is cloudy.",
+        "You reach the next valley's pass."
+      ],
+      "arrived": true
+    }
+  },
+  {
+    "action": "alone-4",
+    "day": 2,
+    "slot": "morning",
+    "start": 1.25,
+    "end": 1.5,
+    "choice": {
+      "id": "2/morning/travel/5,3/alone",
+      "activity": "travel",
+      "placeId": "terrain6_3-18",
+      "personId": null,
+      "destination": "5,3",
+      "available": true,
+      "reason": "One day on the road",
+      "label": "Travel to The region to the west"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 1.2506944444444446,
+        "personId": "terrain5_3-person-3904",
+        "activity": "walk_to",
+        "targetId": "terrain6_3-18"
+      },
+      {
+        "day": 1.2618055555555574,
+        "personId": "terrain5_3-person-3904",
+        "activity": "leave_edge",
+        "targetId": "terrain6_3-18"
+      }
+    ],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "6,3",
+      "to": "5,3",
+      "part": 1,
+      "companionId": null,
+      "weather": {
+        "type": "clear",
+        "pressure": 1019.83733352622,
+        "wind": {
+          "x": -0.1714293740885016,
+          "y": 0.9851964117370834,
+          "direction": 1.7430766652435805,
+          "strength": 0.5340898854206753
+        },
+        "moisture": 0.9,
+        "change": 6.106733013568373
+      },
+      "camp": false,
+      "lines": [
+        "You follow the road towards the next pass.",
+        "The weather is clear."
+      ],
+      "arrived": false
+    }
+  },
+  {
+    "action": "alone-5",
+    "day": 2,
+    "slot": "afternoon",
+    "start": 1.5,
+    "end": 1.75,
+    "choice": {
+      "id": "2/afternoon/road",
+      "activity": "continue_travel",
+      "personId": null,
+      "available": true,
+      "label": "Continue travelling",
+      "reason": "Spend this part of the day on the road"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "6,3",
+      "to": "5,3",
+      "part": 2,
+      "companionId": null,
+      "weather": {
+        "type": "rain",
+        "pressure": 996.9533597350623,
+        "wind": {
+          "x": -0.9938949405886769,
+          "y": -0.11033062617528515,
+          "direction": -3.031036952671377,
+          "strength": 0.34488687036266424
+        },
+        "moisture": 0.9220382992620613,
+        "change": 16.05112899399478
+      },
+      "camp": false,
+      "lines": [
+        "You follow the road towards the next pass.",
+        "The weather is rain."
+      ],
+      "arrived": false
+    }
+  },
+  {
+    "action": "alone-6",
+    "day": 2,
+    "slot": "evening",
+    "start": 1.75,
+    "end": 2.25,
+    "choice": {
+      "id": "2/evening/road",
+      "activity": "continue_travel",
+      "personId": null,
+      "available": true,
+      "label": "Continue travelling",
+      "reason": "Spend this part of the day on the road"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [],
+    "conversations": [],
+    "outcomes": [],
+    "regard": [],
+    "road": {
+      "from": "6,3",
+      "to": "5,3",
+      "part": 3,
+      "companionId": null,
+      "weather": {
+        "type": "rain",
+        "pressure": 986.9108304906192,
+        "wind": {
+          "x": 0.06544425064642485,
+          "y": -0.9978562271476428,
+          "direction": -1.505305270140139,
+          "strength": 0.5703611946887053
+        },
+        "moisture": 0.9341676573920346,
+        "change": 1.078709011213391
+      },
+      "camp": true,
+      "lines": [
+        "At dusk you make camp beside the road.",
+        "The weather is rain.",
+        "You reach the next valley's pass."
+      ],
+      "arrived": true
+    }
+  },
+  {
+    "action": "wait-01",
+    "day": 3,
+    "slot": "morning",
+    "start": 2.25,
+    "end": 2.500000000000039,
+    "choice": {
+      "id": "3/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-58:food.speakerId",
+        "value": "w5_3-social-58"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-58:food.kind",
+        "value": "food"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-58:food.householdId",
+        "value": "w5_3-social-62"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-58:food.day",
+        "value": 2.333333333333333
+      }
+    ],
+    "seen": [
+      {
+        "day": 2.3333333333333464,
+        "personId": "w5_3-social-58",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.3333333333333464,
+        "personId": "w5_3-social-77",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.3333333333333464,
+        "personId": "w6_3-social-82",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.3333333333333464,
+        "personId": "w5_3-social-88",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.3333333333333464,
+        "personId": "w6_3-social-87",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.3333333333333464,
+        "personId": "w6_3-social-116",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.458333333333366,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "meet"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-02",
+    "day": 3,
+    "slot": "afternoon",
+    "start": 2.500000000000039,
+    "end": 2.750000000000078,
+    "choice": {
+      "id": "3/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 2.500000000000039,
+        "personId": "w6_3-social-108",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 2.5416666666667123,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-6"
+      },
+      {
+        "day": 2.5416666666667123,
+        "personId": "w5_3-social-86",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 2.5833333333333854,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 2.5833333333333854,
+        "personId": "w5_3-social-86",
+        "activity": "socialise",
+        "targetId": "w5_3-social-90"
+      },
+      {
+        "day": 2.6250000000000586,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-6"
+      },
+      {
+        "day": 2.666666666666732,
+        "personId": "terrain5_3-person-4147",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-03",
+    "day": 3,
+    "slot": "evening",
+    "start": 2.750000000000078,
+    "end": 3.2500000000001563,
+    "choice": {
+      "id": "3/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.speakerId",
+        "value": "w5_3-social-74"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.kind",
+        "value": "food"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.householdId",
+        "value": "w5_3-home-11"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 2.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 2.750000000000078,
+        "personId": "terrain5_3-person-4147",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-04",
+    "day": 4,
+    "slot": "morning",
+    "start": 3.2500000000001563,
+    "end": 3.5000000000001954,
+    "choice": {
+      "id": "4/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 3.375
+      }
+    ],
+    "seen": [
+      {
+        "day": 3.2916666666668295,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.2916666666668295,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.2916666666668295,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.2916666666668295,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.2916666666668295,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.2916666666668295,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 3.3333333333335027,
+        "personId": "terrain5_3-person-4147",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w5_3-social-66",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 3.375000000000176,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 3.416666666666849,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 3.416666666666849,
+        "personId": "w5_3-social-76",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 3.458333333333522,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 3.458333333333522,
+        "personId": "w5_3-social-91",
+        "activity": "socialise",
+        "targetId": "terrain5_3-person-4147"
+      },
+      {
+        "day": 3.458333333333522,
+        "personId": "terrain5_3-person-4147",
+        "activity": "socialise",
+        "targetId": "w5_3-social-91"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-05",
+    "day": 4,
+    "slot": "afternoon",
+    "start": 3.5000000000001954,
+    "end": 3.7500000000002345,
+    "choice": {
+      "id": "4/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "w5_3-event-1136",
+        "type": "return",
+        "people": [
+          "w5_3-social-92"
+        ],
+        "day": -7,
+        "season": -1,
+        "villageId": "w5_3-village-2",
+        "place": "w5_3-social-82",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-49",
+            "w5_3-social-65",
+            "w5_3-social-69",
+            "w5_3-social-73",
+            "w5_3-social-88",
+            "w5_3-social-90",
+            "w5_3-social-93",
+            "w5_3-social-94",
+            "w5_3-social-95",
+            "w5_3-social-98",
+            "w5_3-social-102",
+            "w5_3-social-92",
+            "w5_3-social-91",
+            "w5_3-social-76",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fromWorld": "6,2",
+        "toWorld": "5,3"
+      }
+    ],
+    "facts": [
+      {
+        "fact": "people.w5_3-social-92.traits",
+        "value": []
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 3.75
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1136.speakerId",
+        "value": "w5_3-social-73"
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1136.day",
+        "value": 3.6055555555557675
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1136.lineId",
+        "value": "npc.overheard_news.catalogue_return.base.01"
+      }
+    ],
+    "seen": [
+      {
+        "day": 3.5000000000001954,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 3.5000000000001954,
+        "personId": "terrain5_3-person-4147",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 3.5416666666668686,
+        "personId": "w5_3-social-76",
+        "activity": "socialise",
+        "targetId": "w5_3-social-73"
+      },
+      {
+        "day": 3.5416666666668686,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 3.5416666666668686,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 3.5833333333335418,
+        "personId": "w5_3-social-73",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 3.625000000000215,
+        "personId": "w5_3-social-73",
+        "activity": "socialise",
+        "targetId": "w5_3-social-76"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-06",
+    "day": 4,
+    "slot": "evening",
+    "start": 3.7500000000002345,
+    "end": 4.250000000000153,
+    "choice": {
+      "id": "4/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 3.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 3.7500000000002345,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 3.7500000000002345,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 3.7500000000002345,
+        "personId": "w5_3-social-79",
+        "activity": "socialise",
+        "targetId": "w5_3-social-76"
+      },
+      {
+        "day": 3.7500000000002345,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 3.7500000000002345,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 3.7916666666669077,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 3.7916666666669077,
+        "personId": "w5_3-social-76",
+        "activity": "socialise",
+        "targetId": "w5_3-social-79"
+      },
+      {
+        "day": 3.7916666666669077,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w6_3-social-89"
+      },
+      {
+        "day": 3.833333333333581,
+        "personId": "w5_3-social-93",
+        "activity": "socialise",
+        "targetId": "terrain5_3-person-4147"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-07",
+    "day": 5,
+    "slot": "morning",
+    "start": 4.250000000000153,
+    "end": 4.500000000000032,
+    "choice": {
+      "id": "5/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 4.5
+      }
+    ],
+    "seen": [
+      {
+        "day": 4.291666666666799,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.291666666666799,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 4.333333333333446,
+        "personId": "w5_3-social-66",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 4.333333333333446,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 4.375000000000092,
+        "personId": "w5_3-social-76",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 4.416666666666739,
+        "personId": "w5_3-social-66",
+        "activity": "socialise",
+        "targetId": "w5_3-social-91"
+      },
+      {
+        "day": 4.416666666666739,
+        "personId": "w5_3-social-76",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 4.416666666666739,
+        "personId": "w5_3-social-79",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 4.416666666666739,
+        "personId": "w5_3-social-91",
+        "activity": "socialise",
+        "targetId": "w5_3-social-66"
+      },
+      {
+        "day": 4.458333333333385,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 4.458333333333385,
+        "personId": "w5_3-social-79",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 4.458333333333385,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-08",
+    "day": 5,
+    "slot": "afternoon",
+    "start": 4.500000000000032,
+    "end": 4.749999999999911,
+    "choice": {
+      "id": "5/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 4.583333333333333
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-49:food.speakerId",
+        "value": "w5_3-social-49"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-49:food.kind",
+        "value": "food"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-49:food.householdId",
+        "value": "w5_3-home-31"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-49:food.day",
+        "value": 4.583333333333333
+      }
+    ],
+    "seen": [
+      {
+        "day": 4.500000000000032,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 4.500000000000032,
+        "personId": "w5_3-social-74",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 4.500000000000032,
+        "personId": "w6_3-social-89",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 4.5416666666666785,
+        "personId": "w5_3-social-74",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 4.5416666666666785,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 4.583333333333325,
+        "personId": "w5_3-social-49",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 4.583333333333325,
+        "personId": "w5_3-social-79",
+        "activity": "socialise",
+        "targetId": "w6_3-social-89"
+      },
+      {
+        "day": 4.583333333333325,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "w5_3-social-79"
+      },
+      {
+        "day": 4.624999999999972,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-11"
+      },
+      {
+        "day": 4.624999999999972,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 4.708333333333265,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-6"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-09",
+    "day": 5,
+    "slot": "evening",
+    "start": 4.749999999999911,
+    "end": 5.24999999999967,
+    "choice": {
+      "id": "5/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 4.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 4.749999999999911,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 4.749999999999911,
+        "personId": "w5_3-social-94",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 4.791666666666558,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 4.791666666666558,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 4.791666666666558,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "terrain5_3-person-4147"
+      },
+      {
+        "day": 4.833333333333204,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 4.833333333333204,
+        "personId": "w5_3-social-94",
+        "activity": "walk_to",
+        "targetId": "w5_3-social-62"
+      },
+      {
+        "day": 4.874999999999851,
+        "personId": "w5_3-social-74",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-10",
+    "day": 6,
+    "slot": "morning",
+    "start": 5.24999999999967,
+    "end": 5.499999999999549,
+    "choice": {
+      "id": "6/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 5.458333333333333
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.speakerId",
+        "value": "w5_3-social-66"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.kind",
+        "value": "food"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.householdId",
+        "value": "w5_3-home-6"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 5.458333333333333
+      }
+    ],
+    "seen": [
+      {
+        "day": 5.291666666666316,
+        "personId": "w5_3-social-66",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 5.291666666666316,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 5.291666666666316,
+        "personId": "w5_3-social-76",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 5.291666666666316,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 5.291666666666316,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 5.291666666666316,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 5.333333333332963,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 5.333333333332963,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 5.416666666666256,
+        "personId": "w5_3-social-66",
+        "activity": "socialise",
+        "targetId": "w5_3-social-91"
+      },
+      {
+        "day": 5.458333333332902,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-6"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-11",
+    "day": 6,
+    "slot": "afternoon",
+    "start": 5.499999999999549,
+    "end": 5.749999999999428,
+    "choice": {
+      "id": "6/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 5.499999999999549,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 5.499999999999549,
+        "personId": "w5_3-social-91",
+        "activity": "socialise",
+        "targetId": "terrain5_3-person-4147"
+      },
+      {
+        "day": 5.499999999999549,
+        "personId": "terrain5_3-person-4147",
+        "activity": "socialise",
+        "targetId": "w5_3-social-91"
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-12",
+    "day": 6,
+    "slot": "evening",
+    "start": 5.749999999999428,
+    "end": 6.249999999999186,
+    "choice": {
+      "id": "6/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 5.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 5.7916666666660745,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 5.7916666666660745,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 5.833333333332721,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-11"
+      },
+      {
+        "day": 5.833333333332721,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 5.874999999999368,
+        "personId": "w5_3-social-79",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-13",
+    "day": 7,
+    "slot": "morning",
+    "start": 6.249999999999186,
+    "end": 6.499999999999066,
+    "choice": {
+      "id": "7/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 6.5
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 6.333333333333333
+      }
+    ],
+    "seen": [
+      {
+        "day": 6.291666666665833,
+        "personId": "w5_3-social-66",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 6.291666666665833,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.3333333333324795,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 6.3333333333324795,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-14",
+    "day": 7,
+    "slot": "afternoon",
+    "start": 6.499999999999066,
+    "end": 6.749999999998945,
+    "choice": {
+      "id": "7/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1367",
+        "type": "festival",
+        "people": [
+          "terrain5_3-person-3904",
+          "w5_3-social-66"
+        ],
+        "day": 6.75,
+        "season": 0,
+        "villageId": "w5_3-village-1",
+        "place": "terrain5_3-4151",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "kind": "spring",
+        "title": "Seedwake Fair",
+        "audienceIds": [
+          "terrain5_3-person-3904",
+          "w5_3-social-66"
+        ],
+        "honouredEvents": [],
+        "remembered": []
+      }
+    ],
+    "facts": [],
+    "seen": [
+      {
+        "day": 6.499999999999066,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 6.499999999999066,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 6.499999999999066,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "w5_3-social-79"
+      },
+      {
+        "day": 6.499999999999066,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 6.666666666665652,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 6.708333333332298,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-15",
+    "day": 7,
+    "slot": "evening",
+    "start": 6.749999999998945,
+    "end": 7.25,
+    "choice": {
+      "id": "7/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 6.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 6.791666666665591,
+        "personId": "w5_3-social-66",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 6.791666666665591,
+        "personId": "w5_3-social-79",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 6.791666666665591,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": null
+      },
+      {
+        "day": 6.791666666665591,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": null
+      },
+      {
+        "day": 6.833333333332238,
+        "personId": "w5_3-social-91",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 6.833333333332238,
+        "personId": "terrain5_3-person-4147",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 6.8749999999988844,
+        "personId": "w5_3-social-76",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 6.8749999999988844,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 8
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.4857142857142875
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.614285714285716
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.52857142857143
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.6142857142857
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.52857142857141
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.52857142857141
+        }
+      },
+      {
+        "personId": "terrain5_3-social-4303",
+        "after": {
+          "ring": "public",
+          "goodwill": 0
+        }
+      },
+      {
+        "personId": "terrain5_3-social-4304",
+        "after": {
+          "ring": "public",
+          "goodwill": 0
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": [
+      {
+        "kind": "season",
+        "season": 0,
+        "lines": [
+          {
+            "id": "terrain5_3-event-1185",
+            "text": "William Clebasi left for another region \u00b7 one day on the road.",
+            "section": "life",
+            "eventIds": [
+              "terrain5_3-event-1185"
+            ]
+          },
+          {
+            "id": "terrain6_3-event-1087",
+            "text": "William Clebasi arrived in another region.",
+            "section": "life",
+            "eventIds": [
+              "terrain6_3-event-1087"
+            ]
+          },
+          {
+            "id": "terrain6_3-event-1088",
+            "text": "William Clebasi left for another region \u00b7 one day on the road.",
+            "section": "life",
+            "eventIds": [
+              "terrain6_3-event-1088"
+            ]
+          },
+          {
+            "id": "terrain5_3-event-1186",
+            "text": "William Clebasi arrived in another region.",
+            "section": "life",
+            "eventIds": [
+              "terrain5_3-event-1186"
+            ]
+          },
+          {
+            "id": "your-season",
+            "text": "You attended the Seedwake Fair.",
+            "section": "player",
+            "eventIds": [
+              "terrain5_3-event-1367"
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "unfinished",
+        "task": "rest",
+        "reason": "The slot ended before the task finished"
+      }
+    ]
+  },
+  {
+    "action": "wait-16",
+    "day": 8,
+    "slot": "morning",
+    "start": 7.25,
+    "end": 7.499999999999879,
+    "choice": {
+      "id": "8/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 7.458333333333333
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 7.5
+      }
+    ],
+    "seen": [
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 7.2916666666666465,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.333333333333293,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 7.37499999999994,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.37499999999994,
+        "personId": "w5_3-social-97",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.416666666666586,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.458333333333233,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 7.458333333333233,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.4857142857142875
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.228571428571431
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.614285714285716
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.357142857142859
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.52857142857143
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.271428571428574
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.6142857142857
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.357142857142833
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.52857142857141
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.271428571428544
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.52857142857141
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.271428571428544
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-17",
+    "day": 8,
+    "slot": "afternoon",
+    "start": 7.499999999999879,
+    "end": 7.749999999999758,
+    "choice": {
+      "id": "8/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 7.499999999999879,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "w5_3-social-96",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "w5_3-social-97",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 7.499999999999879,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.541666666666526,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 7.541666666666526,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 7.624999999999819,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 7.666666666666465,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 7.708333333333112,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 7.708333333333112,
+        "personId": "w5_3-social-97",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 7.708333333333112,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.228571428571431
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.971428571428575
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.357142857142859
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.100000000000003
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.271428571428574
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.014285714285718
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.357142857142833
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.099999999999966
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.271428571428544
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.014285714285677
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.271428571428544
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.014285714285677
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-18",
+    "day": 8,
+    "slot": "evening",
+    "start": 7.749999999999758,
+    "end": 8.249999999999837,
+    "choice": {
+      "id": "8/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [],
+    "seen": [
+      {
+        "day": 7.749999999999758,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-97"
+      },
+      {
+        "day": 7.749999999999758,
+        "personId": "w5_3-social-97",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 7.749999999999758,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.791666666666405,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-1"
+      },
+      {
+        "day": 7.791666666666405,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.8333333333330515,
+        "personId": "w5_3-social-96",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 7.874999999999698,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 7.874999999999698,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.971428571428575
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.457142857142863
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.100000000000003
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.585714285714291
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 7.014285714285718
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.500000000000005
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.099999999999966
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.585714285714232
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.014285714285677
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.499999999999943
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 23.014285714285677
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.499999999999943
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-19",
+    "day": 9,
+    "slot": "morning",
+    "start": 8.249999999999837,
+    "end": 8.500000000000036,
+    "choice": {
+      "id": "9/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 8.5
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 8.5
+      }
+    ],
+    "seen": [
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 8.291666666666536,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 8.333333333333236,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.333333333333236,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.333333333333236,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.374999999999936,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.457142857142863
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.200000000000006
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.585714285714291
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.3285714285714345
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.500000000000005
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.242857142857149
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.585714285714232
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.328571428571365
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.499999999999943
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.242857142857076
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.499999999999943
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.242857142857076
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-20",
+    "day": 9,
+    "slot": "afternoon",
+    "start": 8.500000000000036,
+    "end": 8.750000000000234,
+    "choice": {
+      "id": "9/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 8.625
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 8.541666666666666
+      }
+    ],
+    "seen": [
+      {
+        "day": 8.500000000000036,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.500000000000036,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.500000000000036,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.500000000000036,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 8.500000000000036,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 8.500000000000036,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.541666666666735,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.541666666666735,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.583333333333435,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 8.583333333333435,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 8.625000000000135,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.625000000000135,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.708333333333535,
+        "personId": "w5_3-social-93",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.200000000000006
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.94285714285715
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.3285714285714345
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 6.071428571428578
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.242857142857149
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.985714285714293
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.328571428571365
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 22.0714285714285
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.242857142857076
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.98571428571421
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.242857142857076
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.98571428571421
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-21",
+    "day": 9,
+    "slot": "evening",
+    "start": 8.750000000000234,
+    "end": 9.250000000000632,
+    "choice": {
+      "id": "9/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 8.875
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 8.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 8.750000000000234,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.750000000000234,
+        "personId": "w5_3-social-93",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.750000000000234,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.791666666666934,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.791666666666934,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.791666666666934,
+        "personId": "w5_3-social-93",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.791666666666934,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.833333333333634,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.833333333333634,
+        "personId": "w5_3-social-96",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 8.875000000000334,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.875000000000334,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.875000000000334,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 8.875000000000334,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "meet"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.94285714285715
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.428571428571438
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 6.071428571428578
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.557142857142866
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.985714285714293
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.47142857142858
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 22.0714285714285
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.557142857142765
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.98571428571421
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.471428571428476
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.98571428571421
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.471428571428476
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-22",
+    "day": 10,
+    "slot": "morning",
+    "start": 9.250000000000632,
+    "end": 9.500000000000831,
+    "choice": {
+      "id": "10/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 9.5
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 9.416666666666666
+      }
+    ],
+    "seen": [
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-74",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-79",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w6_3-social-89",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.291666666667332,
+        "personId": "terrain5_3-social-4303",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.333333333334032,
+        "personId": "w5_3-social-74",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 9.333333333334032,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.375000000000732,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.375000000000732,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "sleep"
+      },
+      {
+        "day": 9.375000000000732,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.375000000000732,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 9.375000000000732,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.416666666667432,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.416666666667432,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.458333333334132,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.428571428571438
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.1714285714285815
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.557142857142866
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.30000000000001
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.47142857142858
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.214285714285724
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.557142857142765
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.299999999999898
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.471428571428476
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.21428571428561
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.471428571428476
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.21428571428561
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-23",
+    "day": 10,
+    "slot": "afternoon",
+    "start": 9.500000000000831,
+    "end": 9.75000000000103,
+    "choice": {
+      "id": "10/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 9.625
+      }
+    ],
+    "seen": [
+      {
+        "day": 9.500000000000831,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.500000000000831,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 9.500000000000831,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.500000000000831,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.500000000000831,
+        "personId": "terrain5_3-social-4303",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 9.541666666667531,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-80"
+      },
+      {
+        "day": 9.541666666667531,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 9.583333333334231,
+        "personId": "w5_3-social-80",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 9.583333333334231,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 9.583333333334231,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.62500000000093,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-6"
+      },
+      {
+        "day": 9.70833333333433,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 9.70833333333433,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.1714285714285815
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.914285714285725
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.30000000000001
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 5.042857142857153
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.214285714285724
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.957142857142868
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.299999999999898
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 21.04285714285703
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.21428571428561
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.957142857142742
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.21428571428561
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.957142857142742
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-24",
+    "day": 10,
+    "slot": "evening",
+    "start": 9.75000000000103,
+    "end": 10.250000000001428,
+    "choice": {
+      "id": "10/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 9.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 9.75000000000103,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.79166666666773,
+        "personId": "w5_3-social-66",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.79166666666773,
+        "personId": "w5_3-social-96",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.83333333333443,
+        "personId": "w5_3-social-79",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.83333333333443,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 9.87500000000113,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "meet"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.914285714285725
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.400000000000013
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 5.042857142857153
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.528571428571441
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.957142857142868
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.4428571428571555
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 21.04285714285703
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.528571428571297
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.957142857142742
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.442857142857008
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.957142857142742
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.442857142857008
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-25",
+    "day": 11,
+    "slot": "morning",
+    "start": 10.250000000001428,
+    "end": 10.500000000001627,
+    "choice": {
+      "id": "11/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 10.458333333333332
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 10.375
+      }
+    ],
+    "seen": [
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-74",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-76",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-79",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-94",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.291666666668128,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.333333333334828,
+        "personId": "w5_3-social-74",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 10.333333333334828,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.333333333334828,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.333333333334828,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.375000000001528,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.375000000001528,
+        "personId": "w5_3-social-79",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 10.375000000001528,
+        "personId": "terrain5_3-social-4303",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w5_3-social-74",
+        "activity": "socialise",
+        "targetId": "w6_3-social-89"
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "w5_3-social-74"
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w5_3-social-91",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w5_3-social-94",
+        "activity": "forage",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.416666666668227,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 10.458333333334927,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 10.458333333334927,
+        "personId": "w5_3-social-74",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.458333333334927,
+        "personId": "w5_3-social-91",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 10.458333333334927,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 10.458333333334927,
+        "personId": "terrain5_3-person-4147",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.400000000000013
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.142857142857157
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.528571428571441
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.271428571428585
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.4428571428571555
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.185714285714299
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.528571428571297
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.27142857142843
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.442857142857008
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.18571428571414
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.442857142857008
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.18571428571414
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-26",
+    "day": 11,
+    "slot": "afternoon",
+    "start": 10.500000000001627,
+    "end": 10.750000000001826,
+    "choice": {
+      "id": "11/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "w5_3-event-1053",
+        "type": "departure",
+        "people": [
+          "w5_3-social-92"
+        ],
+        "day": -42,
+        "season": -6,
+        "villageId": "w5_3-village-2",
+        "place": "w5_3-social-82",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-55",
+            "w5_3-social-58",
+            "w6_3-social-51",
+            "w5_3-social-65",
+            "w5_3-social-69",
+            "w5_3-social-73",
+            "w6_3-social-80",
+            "w6_3-social-82",
+            "w5_3-social-90",
+            "w6_3-social-81",
+            "w5_3-social-92",
+            "w5_3-social-95",
+            "w5_3-social-102",
+            "w6_3-social-107",
+            "w5_3-social-71",
+            "w5_3-social-97",
+            "w5_3-social-94",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fromWorld": "5,3",
+        "toWorld": "6,2",
+        "reason": "seeking company"
+      },
+      {
+        "id": "terrain5_3-event-1432",
+        "type": "quarrel",
+        "people": [
+          "w6_3-social-81",
+          "w5_3-social-94"
+        ],
+        "day": 10.718750000001801,
+        "season": 1,
+        "villageId": "w5_3-village-2",
+        "place": "w5_3-home-31",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w6_3-social-81",
+            "w5_3-social-94",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "summary": false
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 10.625
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.speakerId",
+        "value": "w5_3-social-65"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.kind",
+        "value": "food"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.householdId",
+        "value": "w5_3-social-82"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.day",
+        "value": 10.625
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1053.speakerId",
+        "value": "w6_3-social-81"
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1053.day",
+        "value": 10.697916666668451
+      },
+      {
+        "fact": "spokenSources.w5_3-event-1053.lineId",
+        "value": "npc.overheard_news.catalogue_departure.base.01"
+      },
+      {
+        "fact": "reactions.terrain5_3-event-1432",
+        "value": "quarrel"
+      }
+    ],
+    "seen": [
+      {
+        "day": 10.500000000001627,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 10.500000000001627,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 10.500000000001627,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.500000000001627,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-80"
+      },
+      {
+        "day": 10.500000000001627,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 10.541666666668327,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.541666666668327,
+        "personId": "w5_3-social-80",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 10.541666666668327,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.583333333335027,
+        "personId": "w5_3-social-66",
+        "activity": "eat",
+        "targetId": "forage"
+      },
+      {
+        "day": 10.583333333335027,
+        "personId": "w5_3-social-80",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 10.583333333335027,
+        "personId": "w5_3-social-91",
+        "activity": "socialise",
+        "targetId": "w5_3-social-94"
+      },
+      {
+        "day": 10.583333333335027,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "w5_3-social-91"
+      },
+      {
+        "day": 10.625000000001727,
+        "personId": "w5_3-social-65",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.625000000001727,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 10.625000000001727,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.625000000001727,
+        "personId": "w5_3-social-80",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-16"
+      },
+      {
+        "day": 10.625000000001727,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.666666666668426,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 10.666666666668426,
+        "personId": "w5_3-social-79",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.666666666668426,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.666666666668426,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "w6_3-social-81"
+      },
+      {
+        "day": 10.666666666668426,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-1"
+      },
+      {
+        "day": 10.708333333335126,
+        "personId": "w6_3-social-81",
+        "activity": "socialise",
+        "targetId": "w5_3-social-94"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.142857142857157
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.8857142857143003
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.271428571428585
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 4.0142857142857284
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.185714285714299
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.928571428571443
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.27142857142843
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 20.014285714285563
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.18571428571414
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.928571428571274
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.18571428571414
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.928571428571274
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-27",
+    "day": 11,
+    "slot": "evening",
+    "start": 10.750000000001826,
+    "end": 11.250000000002224,
+    "choice": {
+      "id": "11/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 10.875
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 10.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 10.750000000001826,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.750000000001826,
+        "personId": "w6_3-social-81",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-31"
+      },
+      {
+        "day": 10.750000000001826,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-97"
+      },
+      {
+        "day": 10.750000000001826,
+        "personId": "w6_3-social-108",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.750000000001826,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.750000000001826,
+        "personId": "terrain5_3-social-4304",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.791666666668526,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 10.791666666668526,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "w5_3-social-88"
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "w5_3-social-66",
+        "activity": "socialise",
+        "targetId": "w6_3-social-89"
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "w5_3-social-88",
+        "activity": "socialise",
+        "targetId": "w5_3-social-94"
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "w5_3-social-66"
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.833333333335226,
+        "personId": "terrain5_3-person-4147",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 10.875000000001926,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.875000000001926,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 10.875000000001926,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.8857142857143003
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.371428571428588
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 4.0142857142857284
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.500000000000016
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.928571428571443
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.4142857142857306
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 20.014285714285563
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.49999999999983
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.928571428571274
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.41428571428554
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.928571428571274
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.41428571428554
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-28",
+    "day": 12,
+    "slot": "morning",
+    "start": 11.250000000002224,
+    "end": 11.500000000002423,
+    "choice": {
+      "id": "12/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 11.5
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 11.375
+      }
+    ],
+    "seen": [
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-94",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 11.291666666668924,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.375000000002323,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "container_with grain"
+      },
+      {
+        "day": 11.416666666669023,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 11.416666666669023,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "w5_3-social-97"
+      },
+      {
+        "day": 11.416666666669023,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 11.416666666669023,
+        "personId": "w5_3-social-97",
+        "activity": "socialise",
+        "targetId": "w5_3-social-94"
+      },
+      {
+        "day": 11.458333333335723,
+        "personId": "w5_3-social-97",
+        "activity": "tend_garden",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 11.458333333335723,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.371428571428588
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.1142857142857316
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.500000000000016
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.2428571428571598
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.4142857142857306
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 3.1571428571428743
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.49999999999983
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.242857142856963
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.41428571428554
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.157142857142674
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.41428571428554
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 19.157142857142674
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-29",
+    "day": 12,
+    "slot": "afternoon",
+    "start": 11.500000000002423,
+    "end": 11.750000000002622,
+    "choice": {
+      "id": "12/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 11.708333333333332
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.day",
+        "value": 11.666666666666666
+      }
+    ],
+    "seen": [
+      {
+        "day": 11.500000000002423,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 11.500000000002423,
+        "personId": "w5_3-social-74",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 11.500000000002423,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-74"
+      },
+      {
+        "day": 11.500000000002423,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.541666666669123,
+        "personId": "w5_3-social-65",
+        "activity": "socialise",
+        "targetId": "w5_3-social-97"
+      },
+      {
+        "day": 11.541666666669123,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 11.583333333335823,
+        "personId": "w5_3-social-74",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.666666666669222,
+        "personId": "w5_3-social-65",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 11.708333333335922,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-1"
+      },
+      {
+        "day": 11.708333333335922,
+        "personId": "w6_3-social-107",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.1142857142857316
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.8571428571428754
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.2428571428571598
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.9857142857143035
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 3.1571428571428743
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.900000000000018
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.242857142856963
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.985714285714096
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.157142857142674
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.899999999999807
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 19.157142857142674
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.899999999999807
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-30",
+    "day": 12,
+    "slot": "evening",
+    "start": 11.750000000002622,
+    "end": 12.25000000000302,
+    "choice": {
+      "id": "12/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-65:food.day",
+        "value": 11.791666666666666
+      }
+    ],
+    "seen": [
+      {
+        "day": 11.750000000002622,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 11.750000000002622,
+        "personId": "w6_3-social-107",
+        "activity": "walk_to",
+        "targetId": "forage_plant"
+      },
+      {
+        "day": 11.750000000002622,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.791666666669322,
+        "personId": "w5_3-social-65",
+        "activity": "walk_to",
+        "targetId": "w5_3-social-82"
+      },
+      {
+        "day": 11.791666666669322,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "w5_3-home-11"
+      },
+      {
+        "day": 11.791666666669322,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 11.875000000002721,
+        "personId": "w5_3-social-76",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.8571428571428754
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.342857142857163
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.9857142857143035
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.471428571428591
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.900000000000018
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.3857142857143057
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.985714285714096
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.471428571428362
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.899999999999807
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.385714285714073
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.899999999999807
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.385714285714073
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-31",
+    "day": 13,
+    "slot": "morning",
+    "start": 12.25000000000302,
+    "end": 12.500000000003219,
+    "choice": {
+      "id": "13/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1476",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.317361111114185,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3908",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1477",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.32500000000308,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303",
+            "w5_3-social-94"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3908",
+        "quantity": 6
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 12.291666666666666
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:food.day",
+        "value": 12.458333333333332
+      }
+    ],
+    "seen": [
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-74",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-94",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.29166666666972,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.33333333333642,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 12.33333333333642,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "subtask_slot"
+      },
+      {
+        "day": 12.37500000000312,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 12.37500000000312,
+        "personId": "terrain5_3-social-4303",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.416666666669819,
+        "personId": "w5_3-social-91",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.416666666669819,
+        "personId": "w5_3-social-94",
+        "activity": "socialise",
+        "targetId": "w5_3-social-97"
+      },
+      {
+        "day": 12.416666666669819,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 12.416666666669819,
+        "personId": "w5_3-social-97",
+        "activity": "socialise",
+        "targetId": "w5_3-social-94"
+      },
+      {
+        "day": 12.416666666669819,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 12.458333333336519,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 12.458333333336519,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.342857142857163
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.0857142857143067
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.471428571428591
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.214285714285735
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.3857142857143057
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 2.1285714285714494
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.471428571428362
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.214285714285495
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.385714285714073
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.128571428571206
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.385714285714073
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 18.128571428571206
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-32",
+    "day": 13,
+    "slot": "afternoon",
+    "start": 12.500000000003219,
+    "end": 12.750000000003418,
+    "choice": {
+      "id": "13/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1501",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.712500000003388,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-74",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1502",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.718055555558948,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1504",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.724305555558953,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1508",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.734027777781183,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-74",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1511",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.739583333336743,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1512",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.745138888892303,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 12.75
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.speakerId",
+        "value": "w5_3-social-96"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.kind",
+        "value": "harvest"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.householdId",
+        "value": "w5_3-home-1"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.day",
+        "value": 12.75
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.speakerId",
+        "value": "w5_3-social-74"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.kind",
+        "value": "harvest"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.householdId",
+        "value": "w5_3-home-11"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.day",
+        "value": 12.75
+      }
+    ],
+    "seen": [
+      {
+        "day": 12.500000000003219,
+        "personId": "w5_3-social-66",
+        "activity": "trade_work",
+        "targetId": "terrain5_3-3921"
+      },
+      {
+        "day": 12.500000000003219,
+        "personId": "w6_3-social-89",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.500000000003219,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 12.500000000003219,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 12.500000000003219,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.541666666669919,
+        "personId": "w5_3-social-97",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 12.583333333336618,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 12.583333333336618,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-74"
+      },
+      {
+        "day": 12.583333333336618,
+        "personId": "terrain5_3-person-4147",
+        "activity": "socialise",
+        "targetId": "w6_3-social-89"
+      },
+      {
+        "day": 12.625000000003318,
+        "personId": "w6_3-social-89",
+        "activity": "socialise",
+        "targetId": "terrain5_3-person-4147"
+      },
+      {
+        "day": 12.666666666670018,
+        "personId": "w5_3-social-74",
+        "activity": "walk_to",
+        "targetId": "socialDestination"
+      },
+      {
+        "day": 12.708333333336718,
+        "personId": "w5_3-social-74",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 12.708333333336718,
+        "personId": "w5_3-social-97",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3922"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.0857142857143067
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.8285714285714496
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.214285714285735
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.9571428571428784
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 2.1285714285714494
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.8714285714285925
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.214285714285495
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.957142857142628
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.128571428571206
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.87142857142834
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 18.128571428571206
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.87142857142834
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-33",
+    "day": 13,
+    "slot": "evening",
+    "start": 12.750000000003418,
+    "end": 13.250000000003816,
+    "choice": {
+      "id": "13/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1516",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.753472222225643,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1517",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.761805555558983,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-74",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1518",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 12.767361111114543,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-74",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 12.875
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.day",
+        "value": 12.875
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.day",
+        "value": 12.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 12.750000000003418,
+        "personId": "w5_3-social-74",
+        "activity": "socialise",
+        "targetId": "w5_3-social-96"
+      },
+      {
+        "day": 12.750000000003418,
+        "personId": "w5_3-social-96",
+        "activity": "socialise",
+        "targetId": "w5_3-social-74"
+      },
+      {
+        "day": 12.750000000003418,
+        "personId": "w5_3-social-97",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3922"
+      },
+      {
+        "day": 12.750000000003418,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.791666666670118,
+        "personId": "w5_3-social-74",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.791666666670118,
+        "personId": "w5_3-social-97",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.833333333336817,
+        "personId": "w5_3-social-96",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 12.875000000003517,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "meet"
+      },
+      {
+        "day": 12.875000000003517,
+        "personId": "w5_3-social-79",
+        "activity": "wait_for",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.8285714285714496
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.3142857142857345
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.9571428571428784
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.4428571428571633
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.8714285714285925
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.3571428571428774
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.957142857142628
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.442857142856894
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.87142857142834
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.357142857142605
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.87142857142834
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.357142857142605
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-34",
+    "day": 14,
+    "slot": "morning",
+    "start": 13.250000000003816,
+    "end": 13.500000000004015,
+    "choice": {
+      "id": "14/morning/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1571",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.409722222226165,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w5_3-social-97",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1576",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.415277777781725,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1579",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.42152777778173,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1582",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.43125000000396,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1585",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.43680555555952,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1588",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.44236111111508,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1591",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.45069444444842,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1595",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.45902777778176,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w5_3-social-97",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1597",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.46458333333732,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1601",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.472222222226215,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1603",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.477777777781775,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1606",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.48402777778178,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1610",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.49375000000401,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1612",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.49930555555957,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-74:food.day",
+        "value": 13.375
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.day",
+        "value": 13.5
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-74:harvest.day",
+        "value": 13.375
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.speakerId",
+        "value": "w5_3-social-66"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.kind",
+        "value": "harvest"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.householdId",
+        "value": "w5_3-home-6"
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.day",
+        "value": 13.5
+      }
+    ],
+    "seen": [
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-74",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-76",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-79",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-91",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-94",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-96",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "w5_3-social-97",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 13.291666666670515,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 13.333333333337215,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.333333333337215,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.333333333337215,
+        "personId": "w5_3-social-96",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 13.333333333337215,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.375000000003915,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.375000000003915,
+        "personId": "w5_3-social-97",
+        "activity": "tend_garden",
+        "targetId": "terrain5_3-3908"
+      },
+      {
+        "day": 13.375000000003915,
+        "personId": "terrain5_3-social-4303",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 13.416666666670615,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "subtask_slot"
+      },
+      {
+        "day": 13.416666666670615,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.416666666670615,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.416666666670615,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.416666666670615,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 13.458333333337315,
+        "personId": "w5_3-social-76",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3925"
+      },
+      {
+        "day": 13.458333333337315,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.458333333337315,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.458333333337315,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.3142857142857345
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.057142857142877
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.4428571428571633
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.1857142857143057
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.3571428571428774
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 1.1000000000000199
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.442857142856894
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.185714285714027
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.357142857142605
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.09999999999974
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.357142857142605
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 17.09999999999974
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-35",
+    "day": 14,
+    "slot": "afternoon",
+    "start": 13.500000000004015,
+    "end": 13.750000000004214,
+    "choice": {
+      "id": "14/afternoon/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [
+      {
+        "id": "terrain5_3-event-1614",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.50486111111513,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1615",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.51319444444847,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1616",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.52013888889292,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w6_3-social-89",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1617",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.52569444444848,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-66",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1618",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-76"
+        ],
+        "day": 13.534722222226264,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-11",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "terrain5_3-person-3904"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3925",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1633",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.706250000004179,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1636",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.711805555559739,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1637",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.718055555559744,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1640",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 13.720138888893079,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3923",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1643",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 13.725694444448639,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-79",
+            "w5_3-social-94",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3923",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1644",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.727777777781974,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-79",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1646",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 13.731250000004199,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3923",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1648",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.733333333337534,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-person-4147",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1651",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-96"
+        ],
+        "day": 13.738888888893094,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-79",
+            "w6_3-social-89",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3922",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1652",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 13.740277777781984,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-76",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3923",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1656",
+        "type": "harvest",
+        "people": [
+          "w5_3-social-97"
+        ],
+        "day": 13.745833333337544,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "w5_3-home-1",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "private",
+          "knowers": [
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "terrain5_3-person-3904",
+            "terrain5_3-social-4303"
+          ],
+          "villages": [],
+          "hexes": []
+        },
+        "fieldId": "terrain5_3-3923",
+        "quantity": 6
+      },
+      {
+        "id": "terrain5_3-event-1659",
+        "type": "festival",
+        "people": [
+          "terrain5_3-person-3904",
+          "w5_3-social-76",
+          "w5_3-social-79",
+          "w6_3-social-89",
+          "w5_3-social-96",
+          "w5_3-social-97",
+          "terrain5_3-person-4147",
+          "terrain5_3-social-4303"
+        ],
+        "day": 13.75,
+        "season": 1,
+        "villageId": "w5_3-village-1",
+        "place": "terrain5_3-4151",
+        "items": [],
+        "hexKey": "5,3",
+        "awareness": {
+          "status": "general",
+          "knowers": [
+            "terrain5_3-person-3904"
+          ],
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "hexes": [],
+          "since": {
+            "v:w5_3-village-1": 13.75
+          }
+        },
+        "kind": "summer",
+        "title": "Midsummer Gathering",
+        "audienceIds": [
+          "terrain5_3-person-3904",
+          "w5_3-social-76",
+          "w5_3-social-79",
+          "w6_3-social-89",
+          "w5_3-social-96",
+          "w5_3-social-97",
+          "terrain5_3-person-4147",
+          "terrain5_3-social-4303"
+        ],
+        "honouredEvents": [],
+        "remembered": []
+      }
+    ],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-96:harvest.day",
+        "value": 13.708333333333332
+      },
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.day",
+        "value": 13.708333333333332
+      }
+    ],
+    "seen": [
+      {
+        "day": 13.500000000004015,
+        "personId": "w5_3-social-66",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "subtask_slot"
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "w6_3-social-89",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "w5_3-social-96",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "terrain5_3-person-4147",
+        "activity": "sleep",
+        "targetId": null
+      },
+      {
+        "day": 13.500000000004015,
+        "personId": "terrain5_3-social-4303",
+        "activity": "wait_for",
+        "targetId": null
+      },
+      {
+        "day": 13.541666666670714,
+        "personId": "w5_3-social-76",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3925"
+      },
+      {
+        "day": 13.541666666670714,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.583333333337414,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.583333333337414,
+        "personId": "w5_3-social-79",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.583333333337414,
+        "personId": "w5_3-social-94",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.625000000004114,
+        "personId": "w6_3-social-89",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 13.625000000004114,
+        "personId": "w5_3-social-94",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.666666666670814,
+        "personId": "w5_3-social-76",
+        "activity": "eat",
+        "targetId": "grain"
+      },
+      {
+        "day": 13.666666666670814,
+        "personId": "w6_3-social-89",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.708333333337514,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": "container_with_space"
+      },
+      {
+        "day": 13.708333333337514,
+        "personId": "w5_3-social-76",
+        "activity": "walk_to",
+        "targetId": "haulable_with grain"
+      },
+      {
+        "day": 13.708333333337514,
+        "personId": "w5_3-social-96",
+        "activity": "perform_subtask_in_slot",
+        "targetId": "terrain5_3-3922"
+      },
+      {
+        "day": 13.708333333337514,
+        "personId": "w5_3-social-97",
+        "activity": "walk_to",
+        "targetId": "terrain5_3-3923"
+      },
+      {
+        "day": 13.708333333337514,
+        "personId": "terrain5_3-person-4147",
+        "activity": "eat",
+        "targetId": "grain"
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.057142857142877
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 0.8000000000000199
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.1857142857143057
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8.928571428571448
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 1.1000000000000199
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8.842857142857163
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.185714285714027
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24.92857142857116
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.09999999999974
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 16.84285714285687
+        }
+      },
+      {
+        "personId": "w5_3-social-96",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24
+        }
+      },
+      {
+        "personId": "w5_3-social-97",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 17.09999999999974
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24.84285714285687
+        }
+      },
+      {
+        "personId": "terrain5_3-social-4303",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": []
+  },
+  {
+    "action": "wait-36",
+    "day": 14,
+    "slot": "evening",
+    "start": 13.750000000004214,
+    "end": 14.25,
+    "choice": {
+      "id": "14/evening/terrain5_3-744/visit",
+      "placeId": "terrain5_3-744",
+      "personId": null,
+      "activity": "visit",
+      "available": true,
+      "reason": "Spend this part of the day here and see who you meet"
+    },
+    "events": [],
+    "facts": [
+      {
+        "fact": "noticedNeeds.w5_3-social-66:harvest.day",
+        "value": 13.875
+      }
+    ],
+    "seen": [
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-66",
+        "activity": "walk_to",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-74",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-76",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-79",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w6_3-social-89",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-91",
+        "activity": "walk_to",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-94",
+        "activity": "walk_to",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-96",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "w5_3-social-97",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "terrain5_3-person-4147",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.791666666670913,
+        "personId": "terrain5_3-social-4303",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.833333333337613,
+        "personId": "w5_3-social-66",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.833333333337613,
+        "personId": "w5_3-social-91",
+        "activity": "festival_wait",
+        "targetId": null
+      },
+      {
+        "day": 13.833333333337613,
+        "personId": "w5_3-social-94",
+        "activity": "festival_wait",
+        "targetId": null
+      }
+    ],
+    "regard": [
+      {
+        "personId": "w5_3-social-66",
+        "before": {
+          "ring": "public",
+          "goodwill": 0.8000000000000199
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8.32857142857145
+        }
+      },
+      {
+        "personId": "w5_3-social-74",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.571428571428573
+        }
+      },
+      {
+        "personId": "w5_3-social-76",
+        "before": {
+          "ring": "public",
+          "goodwill": 8.928571428571448
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8.457142857142879
+        }
+      },
+      {
+        "personId": "w5_3-social-79",
+        "before": {
+          "ring": "public",
+          "goodwill": 8.842857142857163
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 8.371428571428593
+        }
+      },
+      {
+        "personId": "w6_3-social-89",
+        "before": {
+          "ring": "social",
+          "goodwill": 24.92857142857116
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24.45714285714257
+        }
+      },
+      {
+        "personId": "w5_3-social-91",
+        "before": {
+          "ring": "social",
+          "goodwill": 16.84285714285687
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24.371428571428282
+        }
+      },
+      {
+        "personId": "w5_3-social-94",
+        "before": {
+          "ring": "public",
+          "goodwill": 0
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.571428571428573
+        }
+      },
+      {
+        "personId": "w5_3-social-96",
+        "before": {
+          "ring": "social",
+          "goodwill": 24
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 23.52857142857141
+        }
+      },
+      {
+        "personId": "w5_3-social-97",
+        "before": {
+          "ring": "public",
+          "goodwill": 8
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.52857142857143
+        }
+      },
+      {
+        "personId": "terrain5_3-person-4147",
+        "before": {
+          "ring": "social",
+          "goodwill": 24.84285714285687
+        },
+        "after": {
+          "ring": "social",
+          "goodwill": 24.371428571428282
+        }
+      },
+      {
+        "personId": "terrain5_3-social-4303",
+        "before": {
+          "ring": "public",
+          "goodwill": 8
+        },
+        "after": {
+          "ring": "public",
+          "goodwill": 7.52857142857143
+        }
+      },
+      {
+        "personId": "terrain5_3-social-5574",
+        "after": {
+          "ring": "public",
+          "goodwill": 0
+        }
+      },
+      {
+        "personId": "terrain5_3-social-5575",
+        "after": {
+          "ring": "public",
+          "goodwill": 0
+        }
+      },
+      {
+        "personId": "w5_3-social-89",
+        "after": {
+          "ring": "public",
+          "goodwill": 0
+        }
+      }
+    ],
+    "conversations": [],
+    "outcomes": [
+      {
+        "kind": "season",
+        "season": 1,
+        "lines": [
+          {
+            "id": "terrain5_3-event-1432",
+            "text": "a woman quarrelled with a woman.",
+            "section": "life",
+            "eventIds": [
+              "terrain5_3-event-1432"
+            ]
+          },
+          {
+            "id": "harvest",
+            "text": "The harvest came in: 246 grain over 41 loads.",
+            "section": "work",
+            "eventIds": [
+              "terrain5_3-event-1476",
+              "terrain5_3-event-1477",
+              "terrain5_3-event-1501",
+              "terrain5_3-event-1502",
+              "terrain5_3-event-1504",
+              "terrain5_3-event-1508",
+              "terrain5_3-event-1511",
+              "terrain5_3-event-1512",
+              "terrain5_3-event-1516",
+              "terrain5_3-event-1517",
+              "terrain5_3-event-1518",
+              "terrain5_3-event-1571",
+              "terrain5_3-event-1576",
+              "terrain5_3-event-1579",
+              "terrain5_3-event-1582",
+              "terrain5_3-event-1585",
+              "terrain5_3-event-1588",
+              "terrain5_3-event-1591",
+              "terrain5_3-event-1595",
+              "terrain5_3-event-1597",
+              "terrain5_3-event-1601",
+              "terrain5_3-event-1603",
+              "terrain5_3-event-1606",
+              "terrain5_3-event-1610",
+              "terrain5_3-event-1612",
+              "terrain5_3-event-1614",
+              "terrain5_3-event-1615",
+              "terrain5_3-event-1616",
+              "terrain5_3-event-1617",
+              "terrain5_3-event-1618",
+              "terrain5_3-event-1633",
+              "terrain5_3-event-1636",
+              "terrain5_3-event-1637",
+              "terrain5_3-event-1640",
+              "terrain5_3-event-1643",
+              "terrain5_3-event-1644",
+              "terrain5_3-event-1646",
+              "terrain5_3-event-1648",
+              "terrain5_3-event-1651",
+              "terrain5_3-event-1652",
+              "terrain5_3-event-1656"
+            ]
+          },
+          {
+            "id": "your-season",
+            "text": "You attended the Midsummer Gathering.",
+            "section": "player",
+            "eventIds": [
+              "terrain5_3-event-1659"
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "unfinished",
+        "task": "rest",
+        "reason": "The slot ended before the task finished"
+      }
+    ]
+  }
+]

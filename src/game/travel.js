@@ -605,6 +605,7 @@ export function planJourney(s, destination) {
 export function updateJourney(s) {
   const journey = s.travel?.journey;
   if (!journey || s.transition || introActive(s)) return;
+  if (s.travel.dayJourney?.order) return; // Waiting at the pass for the same-way traveller.
   if (journey.actorId != s.ui.playerId || s.ecs.personable[s.ui.playerId]?.dead) { s.travel.journey = null; return; }
   const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "travel");
   if (journey.orderId && !job) { stopJourney(s); return; }
@@ -868,7 +869,95 @@ function settleRoadEstate(s, trip) {
   reconcileEstates(s, j);
   delete j.visits[id];
 }
+
+// The day layer selects an already planned NPC journey. It never asks the
+// population rules to invent a traveller or change somebody's destination.
+export function dayCompanions(s, destination) {
+  return Object.keys(s.ecs.planner || {}).filter(id => id != s.ui.playerId && s.residents[id] &&
+    !s.ecs.personable[id]?.dead && (s.ecs.planner[id].world.worldJourney?.to == destination ||
+      s.pendingNpcDepartures?.some(d => d.id == id && d.intent.to == destination)));
+}
+export function acceptDayTravel(s, tileId, companionId, arrival) {
+  const d = destinationFor(s, tileId);
+  if (!d || companionId && !dayCompanions(s, d.key).includes(companionId) || !acceptTravel(s, tileId)) return false;
+  s.travel.dayJourney = { from:s.travel.active, to:d.key, side:d.side, companionId, arrival, departure:s.days, parts:0 };
+  return true;
+}
+function beginDayRoad(s, order) {
+  const j=s.travel, road=j.dayJourney, id=s.ui.playerId;
+  road.order=order;
+  if (road.companionId && !j.transit.some(t=>t.bundle.id==road.companionId && t.from==road.from && t.to==road.to)) return;
+  recordEvent(s,"departure",[id],[],{fromWorld:road.from,toWorld:road.to,reason:"one day on the road"});
+  cancelLocalTasksForTravel(s);
+  s.map={...s.map,homeId:s.ecs.household[id]?.houseId || s.map.homeId};
+  const bundle=takeTraveller(s,id);bundle.from=road.from;
+  j.transit.push({bundle,from:road.from,to:road.to,side:road.side,due:road.arrival,player:true,
+    dayTravel:true,agedSeason:Math.floor(s.days/DAYS_IN_SEASON)});
+  road.onRoad=true;j.journey=null;
+  j.maps[road.from]=localSnapshot(s);publish(s,j);
+}
+// A small chat context projects the actual transit bundles. No village runs
+// detailed planners while the player is off-map. Cargo and identity still use
+// the same take/put functions as every other journey.
+export function dayRoadState(s) {
+  const j=s.travel, road=j.dayJourney, state=emptyWorld();
+  state.ecs=Object.fromEntries([...IDENTITY,"holder","spatial","planner","manager","good","possession","mappable"].map(k=>[k,{}]));
+  Object.assign(state.ecs,{nextId:1,namespace:"road-"+s.ui.playerId+"-"});
+  Object.assign(state,{days:s.days,residents:{},knowledge:{},events:[],villages:{},social:{courtships:{},avoidance:{}},
+    ui:{playerId:s.ui.playerId,show:{}},world:s.world,map:{worldKey:road.from,seed:j.seed},
+    peopleSeed:s.peopleSeed,opinionThresholds:s.opinionThresholds,newsModel:s.newsModel,game_speed:"normal"});
+  state.eventIds=j.roadEventIds ||= {next:0};
+  Object.defineProperty(state,"travel",{value:j});
+  for (const trip of j.transit.filter(t=>t.dayTravel && (t.player || t.bundle.id==road.companionId)))
+    putTraveller(state,trip.bundle,{x:0,y:0},j);
+  references(state,j);
+  updateWeather(state,0,j.seed);
+  return state;
+}
+export function saveDayRoad(s, state) {
+  const j=s.travel;
+  publish(state,j);
+  for (const trip of j.transit.filter(t=>t.dayTravel && state.residents[t.bundle.id]))
+    trip.bundle={...trip.bundle,...takeTraveller(state,trip.bundle.id)};
+  if(state.chat?.history?.length) {
+    s.chat ||= {version:1,pairs:{},history:[]};s.chat.history ||= [];
+    s.chat.history.push(...state.chat.history);
+  }
+}
+export async function advanceDayRoad(s, until) {
+  const j=s.travel, road=j.dayJourney;
+  s.days=until;j.days=until;
+  // Road residents age only at real calendar boundaries, once per season.
+  for (const trip of j.transit.filter(t=>t.dayTravel)) {
+    const target=Math.floor(until/DAYS_IN_SEASON);
+    while(trip.agedSeason<target)ageTraveller(s,trip.bundle,++trip.agedSeason);
+  }
+  await advanceWorldClock(s,{travelling:true});
+  // The away step replaces snapshots. Keep the inactive source projection in
+  // sync so the next road part cannot overwrite its seasonal changes.
+  const source=j.maps[road.from];
+  for(const field of LOCAL_FIELDS)if(field!="days") {
+    delete s[field];if(source[field]!==undefined)s[field]=source[field];
+  }
+  road.parts++;
+  if(road.parts<3)return false;
+  const trip=j.transit.find(t=>t.player && t.dayTravel);
+  if(trip.bundle.entities[trip.bundle.id].personable.dead) {
+    settleRoadEstate(s,trip);activateResidentMap(s,road.from);
+  } else {
+    await ensureMap(s,road.to);
+    await receiveNpcs(s,j);
+    enterMap(s,road.to,trip.bundle,(road.side+3)%6);
+  }
+  j.transit=j.transit.filter(t=>t!=trip);
+  j.lastJourney={from:road.from,to:road.to,departure:road.departure,arrival:s.days,side:road.side};
+  delete j.dayJourney;
+  if(s.simulationClock){s.simulationClock.hour=0;s.simulationClock.winter=season(s.days)=="winter";}
+  await evictAwayMaps(s);
+  return true;
+}
 export async function completeTravel(s, order) {
+  if(s.travel?.dayJourney)return beginDayRoad(s,order);
   if (s.transition) return;
   s.transition = {
     label: "One season on the road…",
@@ -1015,13 +1104,15 @@ export function departNpc(s, id, intent, j = s.travel) {
   const bundle = takeTraveller(s, id);
   repairHouseholds(s);
   bundle.from = from;
-  const due = s.days + DAYS_IN_SEASON;
+  const road=j.dayJourney, together=road?.companionId==id && road.from==from && road.to==intent.to;
+  const due = together ? road.arrival : s.days + DAYS_IN_SEASON;
   j.transit.push({
     bundle,
     from,
     to: intent.to,
     side: intent.side,
     due,
+    ...(together ? {dayTravel:true,agedSeason:Math.floor(s.days/DAYS_IN_SEASON)} : {}),
     returning: !!intent.returning,
     home: home || {
       home: from,

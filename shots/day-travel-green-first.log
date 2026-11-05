@@ -1,0 +1,37 @@
+FAIL test/day_travel.test.js
+  ● Test suite failed to run
+
+    ReferenceError: John is not defined
+
+    > 1 | John
+        | ^
+      2 | William
+      3 | Thomas
+      4 | Robert
+
+      at Object.<anonymous> (src/data/male_names.csv:1:1)
+      at Object.<anonymous> (src/game/name.js:3:1)
+      at Object.<anonymous> (src/game/day.js:13:1)
+      at Object.<anonymous> (test/day_travel.test.js:2:1)
+
+FAIL test/day.test.js
+  ● Test suite failed to run
+
+    ReferenceError: John is not defined
+
+    > 1 | John
+        | ^
+      2 | William
+      3 | Thomas
+      4 | Robert
+
+      at Object.<anonymous> (src/data/male_names.csv:1:1)
+      at Object.<anonymous> (src/game/name.js:3:1)
+      at Object.<anonymous> (src/game/day.js:13:1)
+      at Object.<anonymous> (test/day.test.js:4:1)
+
+Test Suites: 2 failed, 2 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.358 s, estimated 7 s
+Ran all test suites matching test/day_travel.test.js|test/day.test.js.

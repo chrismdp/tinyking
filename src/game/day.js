@@ -5,7 +5,12 @@ import { giftOptions } from "game/people";
 import { FOODS } from "game/goods";
 import { forageAvailable } from "game/ecology";
 import { knownEvents } from "game/events";
-import { chatChoices, chooseLine, closeChat, previewLine, patience } from "game/chat";
+import { chatChoices, chooseLine, closeChat, openChat, previewLine, patience } from "game/chat";
+import { recoverSlots } from "game/chat_patience";
+import { acceptDayTravel, dayCompanions, dayRoadState, saveDayRoad, advanceDayRoad, destinationFor } from "game/travel";
+import { skipIntro } from "game/intro";
+import { localWeather } from "game/weather";
+import { displayName } from "game/knowledge";
 import { visibleFavours, acceptFavour, favourSource } from "game/favours";
 import { finishSeasonTurn } from "game/seasons";
 import { peaceUnavailable, introduceUnavailable, makePeace, introduce } from "game/social_interventions";
@@ -32,6 +37,8 @@ const availableReason = activity => ({forage:"Gather wild food nearby",talk:"The
 
 export function slotChoices(s) {
   const e=s.ecs, actor=s.ui.playerId, clock=currentSlot(s);
+  if(s.travel?.dayJourney)return {...clock,places:[],choices:[{id:[clock.day,clock.slot,"road"].join("/"),activity:"continue_travel",
+    personId:s.travel.dayJourney.companionId || null,available:true,label:"Continue travelling",reason:"Spend this part of the day on the road"}]};
   const known=new Set((e.playable?.[actor]?.known || []).map(h=>Hex(h).toString()));
   const places=Object.keys(e.walkable || {}).filter(id=>known.has(Hex().fromPoint(e.spatial[id]).toString())).map(id=>({
     id, name:e.nameable?.[id]?.nickname || (s.space[Hex().fromPoint(e.spatial[id])] || []).map(x=>e.nameable?.[x]?.nickname).find(Boolean) || e.mappable?.[id]?.terrain || "Open ground", people:[]
@@ -87,6 +94,14 @@ export function slotChoices(s) {
       (!e.kinship?.[other]?.spouse || !e.personable[e.kinship[other].spouse] || e.personable[e.kinship[other].spouse].dead))
       add(place,person,"introduce",introduceUnavailable(s,actor,person.id,other),{otherId:other});
   }
+  if(s.travel && !s.intro?.active)for(const entry of Object.values(s.map.entrances || {})) {
+    const tile=entry.tileIds[0],d=destinationFor(s,tile);
+    if(!d || d.blocked)continue;
+    const reason=clock.slot=="evening" ? "You cannot set out at nightfall" : !canReachTask(s,actor,tile) ? "There is no path to the pass" : null;
+    for(const personId of [null,...dayCompanions(s,d.key)])choices.push({id:[clock.day,clock.slot,"travel",d.key,personId || "alone"].join("/"),
+      activity:"travel",placeId:tile,personId,destination:d.key,available:!reason,reason:reason || "One day on the road",
+      label:personId ? "Travel with "+(e.nameable[personId]?.nickname || displayName(s,personId,s.personName))+" to "+d.name : "Travel to "+d.name});
+  }
   return {...clock,places,choices};
 }
 
@@ -121,10 +136,68 @@ function setAside(s,actor) {
   }
 }
 
+async function handleConversation(s, choice, hooks, conversations) {
+  const c=s.chat?.active;if(!c)return;
+  if(choice.activity=="ask_favour" && c.npcId==choice.personId)c.focus="help";
+  while(s.chat?.active && !c.endReason) {
+    const lines=chatChoices(s);if(!lines.length)break;
+    const selected=hooks.chooseLine ? await hooks.chooseLine(s,lines,choice) : sensibleLine(s,lines);
+    if(selected==null)break;
+    if(!chooseLine(s,typeof selected=="string"?selected:selected.key))throw new Error("chooseLine must select an offered conversation line");
+  }
+  conversations.push({personId:c.npcId,completed:!!c.completed,lines:structuredClone(c.transcript)});
+  if(closeChat(s)===false)throw new Error("The conversation needs an answer before it can close");
+}
+
+async function playTravelSlot(s, menu, choice, hooks) {
+  const start=s.days,actor=s.ui.playerId,seen=[],conversations=[],outcomes=[];
+  if(choice.activity=="travel") {
+    const arrival=Math.floor(start)+1+(menu.slot=="morning" ? .25 : .5);
+    if(!acceptDayTravel(s,choice.placeId,choice.personId,arrival))throw new Error("The journey is no longer available");
+  }
+  const journey=s.travel.dayJourney;
+  if(!journey.onRoad) {
+    const sim=createSimulation(s,{clockUntil:menu.endsAt-1/1440,onError:error=>{throw error;}});
+    while(!journey.onRoad) {
+      await handleConversation(s,choice,hooks,conversations);
+      if(s.travelError)throw new Error(s.travelError);
+      if(s.travel.journey?.paused || s.ecs.personable[actor]?.dead || !s.travel.journey)
+        throw new Error("The journey to the pass was interrupted");
+      const p=s.ecs.planner[actor];
+      if(p?.task && seen.at(-1)?.activity!=p.task[0])seen.push({day:s.days,personId:actor,activity:p.task[0],targetId:p.task[1]});
+      s.game_speed="normal";sim.tick();if(sim.pending)await sim.pending;
+      s.redraws.length=0;
+    }
+  }
+  const road=dayRoadState(s),prior=new Set(knownEvents(road,actor).map(e=>e.id));
+  const knowledge=structuredClone(road.knowledge?.[actor] || {});
+  const regard=()=>Object.fromEntries(Object.entries(road.ecs.relationships || {}).map(([id,r])=>[id,{ring:r.known[actor]?.ring || "public",goodwill:r.known[actor]?.goodwill || 0}]));
+  const before=regard(),weather=structuredClone(localWeather(road));
+  const camp=menu.slot=="evening";
+  const lines=[camp ? "At dusk you make camp beside the road." : "You follow the road towards the next pass.",
+    "The weather is "+weather.type+"."];
+  if(journey.companionId) {
+    // Company on the road is a promised encounter. The chat system's required
+    // encounter rule retains answerable lines even when ordinary patience is low.
+    openChat(road,actor,journey.companionId,{required:true});
+    await handleConversation(road,choice,hooks,conversations);
+  }
+  const facts=factsChanged(knowledge,road.knowledge?.[actor]);
+  const after=regard(),events=knownEvents(road,actor).filter(e=>!prior.has(e.id));
+  recoverSlots(road,(menu.endsAt-road.days)*24);
+  saveDayRoad(s,road);
+  const arrived=await advanceDayRoad(s,menu.endsAt);
+  if(arrived) {skipIntro(s);lines.push("You reach the next valley's pass.");}
+  return {day:menu.day,slot:menu.slot,start,end:s.days,choice,events,facts,seen,conversations,outcomes,
+    regard:Object.keys(after).filter(id=>JSON.stringify(before[id])!=JSON.stringify(after[id])).map(personId=>({personId,before:before[personId],after:after[personId]})),
+    road:{from:journey.from,to:journey.to,part:journey.parts,companionId:journey.companionId,weather,camp,lines,arrived}};
+}
+
 export async function playSlot(s, requested, hooks={}) {
   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
   if(!choice)throw new Error("This choice is not in the current slot");
   if(!choice.available)throw new Error(choice.reason);
+  if(["travel","continue_travel"].includes(choice.activity))return playTravelSlot(s,menu,choice,hooks);
   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
   const knowledge=structuredClone(s.knowledge?.[actor] || {});
   const regards=()=>Object.fromEntries(Object.keys(s.ecs.personable).map(id=>[id,{ring:s.ecs.relationships?.[id]?.known[actor]?.ring || "public",goodwill:s.ecs.relationships?.[id]?.known[actor]?.goodwill || 0}]));
@@ -167,20 +240,7 @@ export async function playSlot(s, requested, hooks={}) {
   }
   if(["make_peace","introduce"].includes(choice.activity))bringing=order("move_to_here",choice.placeId);
   const sim=createSimulation(s,{onError:error=>{throw error;}});
-  const handleChat=async()=>{
-    const c=s.chat?.active;if(!c)return;
-    // Help is a normal subject in the paused conversation, rather than a
-    // synthetic request or a reward for opening the panel.
-    if(choice.activity=="ask_favour" && c.npcId==choice.personId)c.focus="help";
-    while(s.chat?.active && !c.endReason) {
-      const lines=chatChoices(s);if(!lines.length)break;
-      const selected=hooks.chooseLine ? await hooks.chooseLine(s,lines,choice) : sensibleLine(s,lines);
-      if(selected==null)break;
-      if(!chooseLine(s,typeof selected=="string"?selected:selected.key))throw new Error("chooseLine must select an offered conversation line");
-    }
-    conversations.push({personId:c.npcId,completed:!!c.completed,lines:structuredClone(c.transcript)});
-    if(closeChat(s)===false)throw new Error("The conversation needs an answer before it can close");
-  };
+  const handleChat=()=>handleConversation(s,choice,hooks,conversations);
   const advance=async until=>{
     while(s.days < until-1e-9) {
       await handleChat();

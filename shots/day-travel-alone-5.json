@@ -1,0 +1,44 @@
+{
+  "day": 2,
+  "slot": "afternoon",
+  "start": 1.5,
+  "end": 1.75,
+  "choice": {
+    "id": "2/afternoon/road",
+    "activity": "continue_travel",
+    "personId": null,
+    "available": true,
+    "label": "Continue travelling",
+    "reason": "Spend this part of the day on the road"
+  },
+  "events": [],
+  "facts": [],
+  "seen": [],
+  "conversations": [],
+  "outcomes": [],
+  "regard": [],
+  "road": {
+    "from": "6,3",
+    "to": "5,3",
+    "part": 2,
+    "companionId": null,
+    "weather": {
+      "type": "rain",
+      "pressure": 996.9533597350623,
+      "wind": {
+        "x": -0.9938949405886769,
+        "y": -0.11033062617528515,
+        "direction": -3.031036952671377,
+        "strength": 0.34488687036266424
+      },
+      "moisture": 0.9220382992620613,
+      "change": 16.05112899399478
+    },
+    "camp": false,
+    "lines": [
+      "You follow the road towards the next pass.",
+      "The weather is rain."
+    ],
+    "arrived": false
+  }
+}

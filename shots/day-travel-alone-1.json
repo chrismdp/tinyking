@@ -1,0 +1,59 @@
+{
+  "day": 1,
+  "slot": "morning",
+  "start": 0.375,
+  "end": 0.5,
+  "choice": {
+    "id": "1/morning/travel/6,3/alone",
+    "activity": "travel",
+    "placeId": "terrain5_3-1515",
+    "personId": null,
+    "destination": "6,3",
+    "available": true,
+    "reason": "One day on the road",
+    "label": "Travel to The region to the east"
+  },
+  "events": [],
+  "facts": [],
+  "seen": [
+    {
+      "day": 0.37569444444444444,
+      "personId": "terrain5_3-person-3904",
+      "activity": "walk_to",
+      "targetId": "terrain5_3-1515"
+    },
+    {
+      "day": 0.49930555555555556,
+      "personId": "terrain5_3-person-3904",
+      "activity": "leave_edge",
+      "targetId": "terrain5_3-1515"
+    }
+  ],
+  "conversations": [],
+  "outcomes": [],
+  "regard": [],
+  "road": {
+    "from": "5,3",
+    "to": "6,3",
+    "part": 1,
+    "companionId": null,
+    "weather": {
+      "type": "rain",
+      "pressure": 994.5662742339391,
+      "wind": {
+        "x": 0.8099789147933625,
+        "y": 0.5864589990699837,
+        "direction": 0.6266801659533364,
+        "strength": 0.5858739666500311
+      },
+      "moisture": 0.9234475306731296,
+      "change": 1.3425397156713643
+    },
+    "camp": false,
+    "lines": [
+      "You follow the road towards the next pass.",
+      "The weather is rain."
+    ],
+    "arrived": false
+  }
+}

@@ -1,0 +1,29 @@
+FAIL test/mother_family.test.js (12.496 s)
+  ● offers named searches in chat and recognises the player with a real first-meeting favour, reciprocal knowledge and Personal kin warmth only once
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "base": 36,
+    -   "ring": "personal",
+    +   "ring": "social",
+      }
+
+      126 |   expect(s.chat.active.transcript.some(l=>l.family=="maternal_recognition")).toBe(true);
+      127 |   expect(s.chat.active.transcript.some(l=>l.family=="favour_ask")).toBe(true);
+    > 128 |   expect(s.ecs.relationships[person].known[player]).toMatchObject({ring:"personal",base:36});
+          |                                                     ^
+      129 |   expect(s.knowledge[player].people[person].nameOnly).toBeUndefined();
+      130 |   expect(s.knowledge[person].people[player].maternalKin).toBeDefined();
+      131 |   expect(familyGoal(s).met).toContain(person);
+
+      at Object.<anonymous> (test/mother_family.test.js:128:53)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 15 skipped, 16 total
+Snapshots:   0 total
+Time:        13.459 s
+Ran all test suites matching test/mother_family.test.js with tests matching "offers named searches".

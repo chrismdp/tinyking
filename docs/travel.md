@@ -1,5 +1,25 @@
 # Travel and persistent communities
 
+## Day game
+
+In the day game, each hop to a neighbouring land hex takes three parts of the
+day. Set out in the morning or afternoon and arrive at the pass at the start of
+that same part tomorrow. Evening departures remain listed with the reason
+"You cannot set out at nightfall". A return trip takes six parts, or two days.
+
+The approach uses the existing walk and edge-crossing tasks within the departure
+part. Each road part returns its weather and an account of the journey; at dusk
+the travellers make camp. A companion choice uses a real person's existing
+same-way departure or return home. Each road part offers a real conversation.
+
+The calendar controls seasonal updates. A hop which crosses no season boundary
+adds no seasonal ageing. A crossed boundary runs the existing world step for
+every community. Saved valley detail remains available on return.
+
+The walk-around game's seasonal travel is described below.
+
+## Walk-around game
+
 Click any walkable boundary tile. Its popup names the adjacent **Reach x, y**,
 biome and selected side, and describes the journey and cancellation policy. Press
 **Travel** explicitly, or **Stay here** to close it. Ordinary tile orders remain

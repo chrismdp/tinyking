@@ -1,0 +1,73 @@
+FAIL test/day_travel.test.js
+  ● spends three road parts after setting out at 0.25 and arrives in the same part next day
+
+    expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 180
+    Received: 208
+
+    Expected precision:    8
+    Expected difference: < 0.000000005
+    Received difference:   28
+
+      50 |   expect(currentSlot(s).slot).toBe(part);
+      51 |   expect(s.travel.active).toBe(next);
+    > 52 |   expect(s.ecs.spatial[ids[0]].x).toBeCloseTo(s.map.entrances[3].campPoint.x,8);
+         |                                   ^
+      53 | });
+      54 |
+      55 | it("keeps home detail and returns in six parts and two days without a season of ageing",async()=>{
+
+      at test/day_travel.test.js:52:35
+
+  ● spends three road parts after setting out at 0.5 and arrives in the same part next day
+
+    expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 180
+    Received: 208
+
+    Expected precision:    8
+    Expected difference: < 0.000000005
+    Received difference:   28
+
+      50 |   expect(currentSlot(s).slot).toBe(part);
+      51 |   expect(s.travel.active).toBe(next);
+    > 52 |   expect(s.ecs.spatial[ids[0]].x).toBeCloseTo(s.map.entrances[3].campPoint.x,8);
+         |                                   ^
+      53 | });
+      54 |
+      55 | it("keeps home detail and returns in six parts and two days without a season of ageing",async()=>{
+
+      at test/day_travel.test.js:52:35
+
+  ● steps every community once when the road crosses a season boundary
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+    -   27,
+    +   25,
+        27,
+        27,
+      ]
+
+      70 |   await hop(s,next);
+      71 |   expect(s.days).toBeCloseTo(7.5,8);expect(s.travel.season).toBe(1);
+    > 72 |   expect([s.ecs.personable[ids[0]].age,s.travel.maps["5,5"].ecs.personable[ids[1]].age,s.ecs.personable[away.ids[1]].age]).toEqual(ages.map(a=>a+2));
+         |                                                                                                                            ^
+      73 |   expect(s.travel.historyCalls).toEqual(expect.arrayContaining([{key:"5,5",season:1,kind:"away"},{key:next,season:1,kind:"away"}]));
+      74 | });
+      75 |
+
+      at Object.<anonymous> (test/day_travel.test.js:72:124)
+
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       3 failed, 20 passed, 23 total
+Snapshots:   0 total
+Time:        5.897 s
+Ran all test suites matching test/day_travel.test.js|test/day.test.js.

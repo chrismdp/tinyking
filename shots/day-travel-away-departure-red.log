@@ -1,0 +1,24 @@
+FAIL test/day_travel.test.js
+  ● records a genuine departure from an away valley without a renderer queue
+
+    TypeError: Cannot read properties of undefined (reading 'push')
+
+      39 |   walk.trackReserved=true;
+      40 |   if (state.ecs.mappable?.[id]?.route?.length) walk.routeWear=Math.min(FULL_TRACK,walk.routeWear+amount);
+    > 41 |   state.redraws.push(id);
+         |                 ^
+      42 |   return true;
+      43 | }
+      44 |
+
+      at recordRoadUse (src/game/road_wear.js:41:17)
+      at applyLeg (src/game/settlement_routes.js:90:18)
+      at recordJourney (src/game/settlement_routes.js:123:5)
+      at departNpc (src/game/travel.js:1103:41)
+      at Object.<anonymous> (test/day_travel.test.js:94:12)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 12 skipped, 13 total
+Snapshots:   0 total
+Time:        1.66 s, estimated 5 s
+Ran all test suites matching test/day_travel.test.js with tests matching "without a renderer queue".

@@ -1,0 +1,12 @@
+ERROR
+TypeError: Cannot read properties of undefined (reading 'push')
+    at recordRoadUse (/home/cp/code/tk-daytravel/src/game/road_wear.js:51:17)
+    at applyLeg (/home/cp/code/tk-daytravel/src/game/settlement_routes.js:126:34)
+    at recordJourney (/home/cp/code/tk-daytravel/src/game/settlement_routes.js:180:5)
+    at departNpc (/home/cp/code/tk-daytravel/src/game/travel.js:1426:67)
+    at /home/cp/code/tk-daytravel/src/game/travel.js:1704:18
+    at finishTransition (/home/cp/code/tk-daytravel/src/game/history_scope.js:12:14)
+    at withEventIndex (/home/cp/code/tk-daytravel/src/game/events.js:94:46)
+    at /home/cp/code/tk-daytravel/src/game/travel.js:1682:74
+    at finishTransition (/home/cp/code/tk-daytravel/src/game/history_scope.js:12:14)
+    at withSocialIndex (/home/cp/code/tk-daytravel/src/game/social.js:105:46)

@@ -1,0 +1,45 @@
+{
+  "day": 1,
+  "slot": "evening",
+  "start": 0.75,
+  "end": 1.25,
+  "choice": {
+    "id": "1/evening/road",
+    "activity": "continue_travel",
+    "personId": null,
+    "available": true,
+    "label": "Continue travelling",
+    "reason": "Spend this part of the day on the road"
+  },
+  "events": [],
+  "facts": [],
+  "seen": [],
+  "conversations": [],
+  "outcomes": [],
+  "regard": [],
+  "road": {
+    "from": "5,3",
+    "to": "6,3",
+    "part": 3,
+    "companionId": null,
+    "weather": {
+      "type": "cloudy",
+      "pressure": 1016.8910599560105,
+      "wind": {
+        "x": -0.18673197485505533,
+        "y": 0.9824108965024416,
+        "direction": 1.7586308789156917,
+        "strength": 0.6922519180857295
+      },
+      "moisture": 0.7589385460686625,
+      "change": 11.04563099888685
+    },
+    "camp": true,
+    "lines": [
+      "At dusk you make camp beside the road.",
+      "The weather is cloudy.",
+      "You reach the next valley's pass."
+    ],
+    "arrived": true
+  }
+}

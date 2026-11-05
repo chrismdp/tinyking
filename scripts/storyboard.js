@@ -1,4 +1,10 @@
 /* eslint-disable no-undef */
+// The day game has its own controls; keep the existing 3D scenarios intact.
+if (process.argv[2]?.includes("mode=day")) {
+  const result = require("node:child_process").spawnSync(process.execPath,
+    [__dirname + "/day-ui-play.cjs", ...process.argv.slice(2)], { stdio: "inherit" });
+  process.exit(result.status ?? 1);
+}
 // Standard play review. Actions use the same UI commands as a player; state is
 // read for frame metadata. No relationships, clock or simulation results are set.
 const fs = require("fs");

@@ -2,19 +2,21 @@ import React from "react";
 import PropTypes from "prop-types";
 import { personComponent } from "game/residents";
 import { WorldHex } from "game/hex";
-import { hexName } from "game/travel_geometry";
 import { portraitKey, describePerson, familyTree, personSheet, knownPeople, asksJournal, doing, actionWords } from "game/day_view";
+import manOther from "../../assets/day/man-other.jpg";
+import olderOther from "../../assets/day/older-man-other.webp";
+import childOther from "../../assets/day/child-other.webp";
 import man from "../../assets/day/man.jpg";
 import older from "../../assets/day/older-man.webp";
 import child from "../../assets/day/child.webp";
 import woman from "../../assets/day/woman.webp";
-const portraits={man,"older-man":older,child,woman};
+const portraits={"man-0":man,"man-1":manOther,"older-man-0":older,"older-man-1":olderOther,"child-0":child,"child-1":childOther,"woman-0":woman,"woman-1":woman};
 export function faceSource(s,id) {
   const n=personComponent(s,"nameable",id),p=personComponent(s,"personable",id);
-  const key=portraitKey(id,n?.male,p?.age||30).replace(/-\d+$/,"");
+  const key=portraitKey(id,n?.male,p?.age||30);
   return portraits[key];
 }
-export function Face({game,id,unknown=false}) {return <img className={"day-face"+(unknown?" unknown":"")} src={unknown?woman:faceSource(game,id)} alt=""/>;}
+export function Face({game,id,unknown=false}) {const group=unknown?"woman":portraitKey(id,personComponent(game,"nameable",id)?.male,personComponent(game,"personable",id)?.age||30).replace(/-\d+$/,"");return <span aria-hidden="true" className={"day-face day-art-"+group+(unknown?" unknown":"")} style={{backgroundImage:`url(${unknown?woman:faceSource(game,id)})`}}/>;}
 Face.propTypes={game:PropTypes.object,id:PropTypes.string,unknown:PropTypes.bool};
 export function DayReference({game:s,places,tab,setTab,person,onPerson,onPlace,onTravel,menu,disabled}) {
   const [world,setWorld]=React.useState(false),[root,setRoot]=React.useState(s.ui.playerId);

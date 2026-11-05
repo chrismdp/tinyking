@@ -1,0 +1,57 @@
+FAIL test/day_view.test.js
+  ● names a numerical season boundary and keeps the actual change lines
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "summer"
+    Received string:    "You spent the evening with the people here. The season turns to 1. Two children were born. The night passes. You wake to another morning."
+
+      92 |   const result={slot:"evening",choice:{},outcomes:[{kind:"season",season:1,lines:[{text:"Two children were born."}]}]};
+      93 |   const text=narrateSlot(s,result).map(x=>x.text).join(" ");
+    > 94 |   expect(text).toContain("summer");
+         |                ^
+      95 |   expect(text).toContain("Two children were born.");
+      96 |   expect(text).not.toContain("to 1");
+      97 | });
+
+      at Object.<anonymous> (test/day_view.test.js:94:16)
+
+  ● keeps distinct requests in their own spoken words
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "The children need supper."
+    Received: "The oven needs a log."
+
+      103 |   s.chat={active:{npcId:person,transcript:[{speaker:"npc",family:"favour_ask",situation:"food",text:"The children need supper."},{speaker:"npc",family:"favour_ask",situation:"wood_oven",text:"The oven needs a log."}]}};
+      104 |   rememberAsks(s);
+    > 105 |   expect(asksJournal(s).find(a=>a.id==="food").words).toBe("The children need supper.");
+          |                                                       ^
+      106 |   expect(asksJournal(s).find(a=>a.id==="wood").words).toBe("The oven needs a log.");
+      107 | });
+      108 |
+
+      at Object.<anonymous> (test/day_view.test.js:105:55)
+
+  ● keeps the actual gathering ground as a separate named map place
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      114 |   const choices=[tiles[3],tiles[1]].map(placeId=>({id:placeId,placeId,activity:"forage",available:true}));
+      115 |   const groups=valleyPlaces(s,{places,choices});
+    > 116 |   expect(groups.some(g=>g.id===tiles[1]&&g.kind==="woods")).toBe(true);
+          |                                                             ^
+      117 | });
+      118 |
+
+      at Object.<anonymous> (test/day_view.test.js:116:61)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 9 passed, 12 total
+Snapshots:   0 total
+Time:        1.149 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

@@ -1,4 +1,10 @@
 /* eslint-disable no-undef */
+// The day game has its own controls; keep the existing 3D scenarios intact.
+if (process.argv[2]?.includes("mode=day")) {
+  const result = require("node:child_process").spawnSync(process.execPath,
+    [__dirname + "/day-ui-play.cjs", ...process.argv.slice(2), "--mechanical"], { stdio: "inherit" });
+  process.exit(result.status ?? 1);
+}
 // Plays the running dev build in headless Chromium and checks it, all
 // through the UI (mouse, wheel and keys), reading game state through the
 // dev-only window.tinyking:

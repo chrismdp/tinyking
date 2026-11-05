@@ -4,7 +4,7 @@ import { replaceGame, decompressGame } from "game/save_game";
 import { slotChoices, playSlot } from "game/day";
 import { skipIntro } from "game/intro";
 import { day_of_season, season } from "game/time";
-import { revealValley, personName, describePerson, valleyPlaces, doing, actionWords, narrateSlot, rememberAsks, houseStanding, knownPeople } from "game/day_view";
+import { revealValley, personName, describePerson, valleyPlaces, doing, actionWords, narrateSlot, rememberAsks, foodSupplies, houseStanding } from "game/day_view";
 import { DayConversation } from "./day_conversation";
 import { DayReference, Face } from "./day_reference";
 import seed13 from "../../assets/day/seed-13.json.gz";
@@ -42,15 +42,18 @@ export function DayGame() {
   const play=async choice=>{
     if(busy||!choice?.available)return;
     setBusy(true);setError("");setPhoneTab("Story");
-    main.current?.scrollIntoView({behavior:"smooth",block:"start"});
+    main.current?.closest(".day-game")?.scrollTo({top:0,behavior:"smooth"});
     await new Promise(r=>setTimeout(r,40));
     try {
-      const r=await playSlot(game.current,choice,{chooseLine:(s,lines)=>{
+      const suppliesBefore=foodSupplies(game.current);
+      const r=await playSlot(game.current,choice,{chooseLine:s=>{
+        s.dayBook ||= game.current.dayBook ||= {askWords:{}};
         rememberAsks(s);setChat({game:s,c:s.chat.active,choice,done:false});
         setPerson(s.chat.active.npcId);
         redraw();
         return new Promise(resolve=>{resolver.current=resolve;});
       }});
+      r.supplies={before:suppliesBefore,after:foodSupplies(game.current)};
       const story={...r,prose:narrateSlot(game.current,r)};
       setResult(story);setHistory(old=>[...old,story]);
       setChat(old=>old?{...old,done:true}:null);refresh(game.current);
@@ -58,17 +61,17 @@ export function DayGame() {
     finally {setBusy(false);resolver.current=null;}
   };
   const say=key=>{const resolve=resolver.current;if(resolve){resolver.current=null;resolve(key);}};
-  const showPerson=id=>{setPerson(id);setTab("People");setPhoneTab("People");};
+  const showPerson=id=>{main.current?.closest(".day-game")?.scrollTo({top:0});setPerson(id);setTab("People");setPhoneTab("People");};
   if(!menu)return <div className="day-game day-loading"><div className="day-brand">TinyKing</div><h1>A day with people</h1><p>{load?"Opening the valley and its history…":"Your story is waiting."}</p>{error&&<p role="alert">{error}</p>}{!load&&<button onClick={()=>start(seed).catch(e=>setError(e.message))}>Try again</button>}</div>;
   const s=game.current,p=places.find(g=>g.id===selected)||places[0],standing=houseStanding(s),dead=s.ecs.personable[s.ui.playerId]?.dead;
   const right=<DayReference game={chat?.game||s} places={places} tab={tab} setTab={t=>{setTab(t);setPhoneTab(t);}} person={person} onPerson={showPerson} onTravel={play} menu={menu} onPlace={g=>play(g.choices.find(c=>c.placeId===g.id&&c.activity==="visit")||g.choices.find(c=>c.activity==="visit"))} disabled={busy||!!chat} revision={revision}/>;
   return <div className="day-game">
     <header className="day-topbar"><a className="day-brand" href="/">TinyKing</a><span className="day-when">{cap(season(s.days))} · day {day_of_season(s.days)+1}</span><div className="day-pills">{["morning","afternoon","evening"].map(t=><span key={t} className={"day-pill "+(menu.slot===t?"now":"")}>{cap(t)}</span>)}</div><div className="day-house">Your house: <span>{standing.house}</span><small>{standing.standing}</small></div></header>
-    <nav className="day-phone-tabs" aria-label="Day views">{["Story","Map","Family","People","Asks"].map(t=><button key={t} className={phoneTab===t?"on":""} onClick={()=>{setPhoneTab(t);if(t!=="Story")setTab(t);}}>{t}</button>)}</nav>
+    <nav className="day-phone-tabs" aria-label="Day views">{["Story","Map","Family","People","Asks"].map(t=><button key={t} className={phoneTab===t?"on":""} onClick={()=>{main.current?.closest(".day-game")?.scrollTo({top:0});setPhoneTab(t);if(t!=="Story")setTab(t);}}>{t}</button>)}</nav>
     <div className="day-panes">
       <main className={"day-stage "+(phoneTab!=="Story"?"phone-hidden":"")} ref={main}>
         {error&&<p className="day-error" role="alert">{error}</p>}
-        {chat?<DayConversation game={chat.game} conversation={chat.c} done={chat.done} onSay={say} onContinue={()=>setChat(null)} redraw={redraw}/>:
+        {chat?<DayConversation game={chat.game} conversation={chat.c} done={chat.done} onSay={say} onContinue={()=>{setChat(null);main.current?.closest(".day-game")?.scrollTo({top:0});}} redraw={redraw}/>:
           <>
             <div className="day-scenehead"><div className="day-label reed">{result?cap(result.slot)+" · day "+result.day:"Your mother's last wish"}</div><h1>{result?(result.road?"On the road":result.choice.personId?"Time with "+describePerson(s,result.choice.personId):"The day in the valley"):"A stranger in "+(Object.values(s.villages||{})[0]?.name||"the valley")}</h1></div>
             {!result?<div className="day-log"><p>Your mother has died. Before she died, she asked you to find her family. You have come to the valley where they live.</p><p className="day-narration">There is a camp for you here, and a village full of lives already under way. Who will you spend the morning with?</p><div className="day-learn"><span>Each part of the day</span>Choose a person or a place. Take your time when you talk. Two matching icons clear space in the row.</div></div>:
@@ -76,7 +79,7 @@ export function DayGame() {
                 {result.prose.some(x=>x.kind==="sighting")&&<details className="day-sightings" open><summary>People you saw</summary>{result.prose.filter(x=>x.kind==="sighting").map((line,i)=><p key={i}>{line.text}</p>)}</details>}
                 {result.conversations.map((c,i)=><details className="day-transcript" key={i}><summary>What you said with {describePerson(s,c.personId)}</summary>{c.lines.map((l,j)=><p key={j}><span>{l.speaker==="player"?"You":describePerson(s,c.personId)}:</span> {l.text}</p>)}</details>)}
               </div>}
-            {busy?<p className="day-working" role="status">{menu.slot==="evening"?"The evening passes, then the valley sleeps…":"The day goes on around you…"}</p>:dead?<p>Your life here has ended. You can play this week again.</p>:<section className="day-next" aria-label="Choose how to spend the next part of the day"><div className="day-label">Spend the {menu.slot}</div>
+            {busy?<p className="day-working" role="status">{menu.slot==="evening"?"The evening passes, then the valley sleeps…":"The day goes on around you…"}</p>:dead?<p>Your life here has ended. You can play this week again.</p>:<section className="day-next" aria-label="Choose how to spend the next part of the day"><div className="day-label">Spend the {menu.slot}</div><p className="day-note">{Object.keys(foodSupplies(s)).length?"Food you can offer: "+Object.entries(foodSupplies(s)).map(([type,amount])=>amount+" "+type).join(", "):"You have no food to offer yet. You can gather some nearby."}</p>
               {s.travel?.dayJourney?<><p className="day-log">The next valley lies ahead. {s.travel.dayJourney.companionId?"You have company on the road.":"You are travelling alone."}</p><Choice game={s} choice={menu.choices[0]} onPlay={play}/></>:
                 <><label className="day-place-select">Where will you go?<select aria-label="Choose a place" value={p?.id||""} onChange={e=>setSelected(e.target.value)}>{places.map(g=><option key={g.id} value={g.id}>{g.name}{g.here?" · you are here":""}</option>)}</select></label>
                   {p&&<><h2>{p.name}</h2><p className="day-note">{p.here?"You are here. ":""}{p.people.length?"These people are here or on their way. Choose how to spend time with them.":"No one is here at the moment. You can spend time here, or choose another place."}</p>

@@ -1,0 +1,6 @@
+Test Suites: 1 passed, 1 total
+Tests:       12 passed, 12 total
+Snapshots:   0 total
+Time:        0.983 s, estimated 1 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=0

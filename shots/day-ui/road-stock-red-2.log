@@ -1,0 +1,27 @@
+FAIL test/day_view.test.js
+  ● reads supplies while the player is on the road outside the local ECS
+
+    thrown: "Called topController on 7 which isn't a controllable entity"
+
+      at _getError (node_modules/jest-circus/build/jestAdapterInit.js:1985:12)
+          at Array.map (<anonymous>)
+
+    Cause:
+        thrown: "Called topController on 7 which isn't a controllable entity"
+
+          125 | });
+          126 |
+        > 127 | it("reads supplies while the player is on the road outside the local ECS", () => {
+              | ^
+          128 |   const {state:s,player,tiles}=peopleWorld();
+          129 |   delete s.ecs.controllable[player];
+          130 |   s.ecs.container={[tiles[3]]:{amounts:{roots:2}}};
+
+          at Object.<anonymous> (test/day_view.test.js:127:1)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 13 passed, 14 total
+Snapshots:   0 total
+Time:        1.365 s, estimated 2 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

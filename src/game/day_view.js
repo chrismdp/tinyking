@@ -4,10 +4,12 @@ import { Hex } from "./hex";
 import { name, familyName } from "./name";
 import { displayName } from "./knowledge";
 import { personComponent } from "./residents";
-import { knownFamilyTree } from "./people";
+import { FOODS } from "./goods";
+import { knownFamilyTree, giftOptions } from "./people";
 import { knownEvents, eventText } from "./events";
 import { visibleFavours, favourTitle } from "./favours";
 import { biography } from "./biography";
+import { season, DAYS_IN_SEASON } from "./time";
 import { membership } from "./village_customs";
 
 const cap = text => text ? text[0].toUpperCase() + text.slice(1) : "";
@@ -78,7 +80,9 @@ export function valleyPlaces(s,menu) {
   for(const village of Object.values(s.villages||{})) {
     const home=groups.find(g=>g.name.endsWith(", "+village.name));
     if(!home)continue;
-    const forage=menu.choices.filter(c=>c.activity==="forage").sort((a,b)=>distance(s.ecs.spatial[a.placeId],home.point)-distance(s.ecs.spatial[b.placeId],home.point))[0];
+    const field=(village.houses||[]).flatMap(id=>s.ecs.household?.[id]?.fields||[]).map(id=>menu.places.find(p=>hexOf(s,p.id)===hexOf(s,id))).find(Boolean);
+    if(field && !groups.some(g=>g.id===field.id))groups.push({id:field.id,name:"The strips, "+village.name,people:[],choices:[],point:s.ecs.spatial[field.id],kind:"field"});
+    const forage=menu.choices.filter(c=>c.activity==="forage" && (s.space[hexOf(s,c.placeId)]||[]).some(id=>s.ecs.forageable?.[id])).sort((a,b)=>distance(s.ecs.spatial[a.placeId],home.point)-distance(s.ecs.spatial[b.placeId],home.point))[0];
     if(forage && !groups.some(g=>g.id===forage.placeId))groups.push({id:forage.placeId,name:"The gathering ground, "+village.name,people:[],choices:[],point:s.ecs.spatial[forage.placeId],kind:"woods"});
   }
   if(!groups.length && menu.places.length)groups.push({...menu.places[0],name:"The open country",people:[],choices:[],point:s.ecs.spatial[menu.places[0].id],kind:"country"});
@@ -111,10 +115,20 @@ export function actionWords(s,c) {
   const who=c.personId?describePerson(s,c.personId):"",other=c.otherId?describePerson(s,c.otherId):"";
   return {talk:"Spend time with "+who,ask_favour:"Ask "+who+" about help",give_food:"Offer food to "+who,work:"Help "+who,make_peace:"Bring "+who+" and "+other+" together",introduce:"Introduce "+who+" to "+other,forage:"Gather wild food",visit:"Spend this "+(c.id.split("/")[1]||"part of the day")+" here",travel:c.label,continue_travel:"Continue along the road"}[c.activity]||c.label;
 }
+export function foodSupplies(s) {
+  if(!s.ecs.controllable?.[s.ui.playerId])return {};
+  const supplies={};
+  for(const item of giftOptions(s,s.ui.playerId))if(FOODS.includes(item.type))supplies[item.type]=(supplies[item.type]||0)+item.amount;
+  return supplies;
+}
 export function narrateSlot(s,r) {
   const out=[],add=(kind,text)=>{if(text)out.push({kind,text});},who=id=>describePerson(s,id);
   if(r.road)r.road.lines.forEach(line=>add("narration",line));
   else add("narration",r.choice.placeId?"You spent the "+r.slot+" at "+placeName(s,r.choice.placeId).replace(/^The /,"the ")+".":"You spent the "+r.slot+" with the people here.");
+  if(r.supplies && r.choice.activity==="forage") {
+    const gained=Object.entries(r.supplies.after).filter(([type,amount])=>amount>(r.supplies.before[type]||0)).map(([type])=>type);
+    add("supplies",gained.length?"You have "+gained.join(" and ")+" to offer now.":"You have no extra food left to offer after the day's gathering.");
+  }
   const sights={};
   for(const o of r.seen||[]) {
     if(o.personId===s.ui.playerId)continue;
@@ -138,7 +152,7 @@ export function narrateSlot(s,r) {
   for(const o of r.outcomes||[]) {
     if(o.kind==="unfinished")add("unfinished",o.reason);
     if(o.reason && o.kind!=="unfinished")add("unfinished",o.reason);
-    if(o.kind==="season") {add("season","The season turns to "+o.season+".");for(const line of o.lines||[])add("season",typeof line==="string"?line:line.text);}
+    if(o.kind==="season") {add("season","The season turns to "+(typeof o.season==="number"?season(o.season*DAYS_IN_SEASON):o.season)+".");for(const line of o.lines||[])add("season",typeof line==="string"?line:line.text);}
   }
   if(r.slot==="evening")add("overnight",r.road&&!r.road.arrived?"You sleep beside the road. Morning finds you still on the journey.":s.ui.dayMessage||"The night passes. You wake to another morning.");
   return out;
@@ -148,14 +162,15 @@ export function rememberAsks(s) {
   s.dayBook ||= {askWords:{}};s.dayBook.askWords ||= {};
   const offers=s.knowledge?.[s.ui.playerId]?.offers||{};
   for(const [id,offer] of Object.entries(offers))if(offer.speakerId===c.npcId && offer.day>=Math.floor(s.days)) {
-    const spoken=[...c.transcript].reverse().find(l=>l.speaker==="npc"&&l.family==="favour_ask");
+    const request=s.favours?.requests?.[id];
+    const spoken=[...c.transcript].reverse().find(l=>l.speaker==="npc"&&l.family==="favour_ask" && (!l.situation || l.situation.startsWith(request?.kind)));
     if(spoken && !s.dayBook.askWords[id])s.dayBook.askWords[id]={text:spoken.text,speakerId:c.npcId};
   }
 }
 export function asksJournal(s) {
   return visibleFavours(s).map(r=>{
     const remembered=s.dayBook?.askWords?.[r.id];
-    const related=knownEvents(s,s.ui.playerId).filter(e=>(e.id===r.eventId||e.people?.includes(r.targetId)||e.people?.includes(r.giverId)) && e.day>= (r.createdDay??0));
+    const related=knownEvents(s,s.ui.playerId).filter(e=>e.id===r.eventId || ((e.people?.includes(r.targetId)||e.people?.includes(r.giverId)) && e.day>= (r.createdDay??0)));
     const completed={peace:"You kept your promise. They made peace.",word:"You kept your promise. The news reached them.",visit:"You kept your promise. You spent time together.",find:"You kept your promise. You found news of them."}[r.kind]||"You kept your promise. The household received your help.";
     return {id:r.id,giverId:remembered?.speakerId||r.giverId,title:favourTitle(r),status:r.status,
       words:remembered?.text||null,context:r.reason,

@@ -1,0 +1,24 @@
+FAIL test/day_view.test.js
+  ● reports gathered supplies from the actual before and after stock
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      120 |   const {state:s}=peopleWorld();
+      121 |   const result={slot:"afternoon",choice:{activity:"forage"},supplies:{before:{roots:0},after:{roots:2}},outcomes:[]};
+    > 122 |   expect(narrateSlot(s,result).some(p=>p.text.includes("roots")&&p.kind==="supplies")).toBe(true);
+          |                                                                                        ^
+      123 |   result.supplies.after.roots=0;
+      124 |   expect(narrateSlot(s,result).some(p=>p.kind==="supplies"&&p.text.includes("no extra food"))).toBe(true);
+      125 | });
+
+      at Object.<anonymous> (test/day_view.test.js:122:88)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 12 passed, 13 total
+Snapshots:   0 total
+Time:        1.057 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

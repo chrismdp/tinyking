@@ -2,7 +2,7 @@ jest.mock("../src/data/male_names.csv",()=>[["John"],["William"]]);
 jest.mock("../src/data/female_names.csv",()=>[["Agnes"],["Mary"]]);
 import { peopleWorld } from "./support/people";
 import { Hex } from "game/hex";
-import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords } from "game/day_view";
+import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords, valleyPlaces, foodSupplies } from "game/day_view";
 
 it("reveals the valley ground without introducing any people", () => {
   const {state:s,player,tiles}=peopleWorld();
@@ -85,4 +85,48 @@ it("records an ask in the actual spoken words and uses only learned relevant new
 it("uses words for closeness, including a falling relationship", () => {
   expect(relationshipWords("personal")).toContain("friend");
   expect(relationshipWords("social")).toContain("acquaintance");
+});
+
+it("names a numerical season boundary and keeps the actual change lines", () => {
+  const {state:s}=peopleWorld();
+  const result={slot:"evening",choice:{},outcomes:[{kind:"season",season:1,lines:[{text:"Two children were born."}]}]};
+  const text=narrateSlot(s,result).map(x=>x.text).join(" ");
+  expect(text).toContain("summer");
+  expect(text).toContain("Two children were born.");
+  expect(text).not.toContain("to 1");
+});
+
+it("keeps distinct requests in their own spoken words", () => {
+  const {state:s,player,person}=peopleWorld();
+  s.favours={requests:{food:{id:"food",kind:"food",giverId:person,status:"offered"},wood:{id:"wood",kind:"wood",giverId:person,status:"offered"}}};
+  s.knowledge={[player]:{people:{},favours:["food","wood"],offers:{food:{speakerId:person,day:s.days},wood:{speakerId:person,day:s.days}}}};
+  s.chat={active:{npcId:person,transcript:[{speaker:"npc",family:"favour_ask",situation:"food",text:"The children need supper."},{speaker:"npc",family:"favour_ask",situation:"wood_oven",text:"The oven needs a log."}]}};
+  rememberAsks(s);
+  expect(asksJournal(s).find(a=>a.id==="food").words).toBe("The children need supper.");
+  expect(asksJournal(s).find(a=>a.id==="wood").words).toBe("The oven needs a log.");
+});
+
+it("keeps the actual gathering ground as a separate named map place", () => {
+  const {state:s,tiles}=peopleWorld();
+  s.villages.village.houses=[tiles[3]];
+  s.ecs.forageable={[tiles[1]]:{}};
+  const places=[tiles[1],tiles[3]].map(id=>({id,people:[]}));
+  const choices=[tiles[3],tiles[1]].map(placeId=>({id:placeId,placeId,activity:"forage",available:true}));
+  const groups=valleyPlaces(s,{places,choices});
+  expect(groups.some(g=>g.id===tiles[1]&&g.kind==="woods")).toBe(true);
+});
+
+it("reports gathered supplies from the actual before and after stock", () => {
+  const {state:s}=peopleWorld();
+  const result={slot:"afternoon",choice:{activity:"forage"},supplies:{before:{roots:0},after:{roots:2}},outcomes:[]};
+  expect(narrateSlot(s,result).some(p=>p.text.includes("roots")&&p.kind==="supplies")).toBe(true);
+  result.supplies.after.roots=0;
+  expect(narrateSlot(s,result).some(p=>p.kind==="supplies"&&p.text.includes("no extra food"))).toBe(true);
+});
+
+it("reads supplies while the player is on the road outside the local ECS", () => {
+  const {state:s,player,tiles}=peopleWorld();
+  delete s.ecs.controllable[player];
+  s.ecs.container={[tiles[3]]:{amounts:{roots:2}}};
+  expect(foodSupplies(s)).toEqual({});
 });

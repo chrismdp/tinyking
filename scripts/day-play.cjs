@@ -89,7 +89,7 @@ function narrate(r){
   if(sightLines.length)out.push("You see:",...sightLines.slice(0,10),sightLines.length>10?`  …and ${sightLines.length-10} others about their day`:"");
   for(const e of r.events)out.push(`* ${eventText(s,e,nm)}`);
   for(const o of r.outcomes)out.push(`> ${o.kind}${o.reason?": "+o.reason:""}${o.lines?": "+JSON.stringify(o.lines).slice(0,400):""}`);
-  for(const g of r.regard)out.push(`~ ${nm(g.personId)}: ${g.before.goodwill.toFixed(1)} -> ${g.after.goodwill.toFixed(1)}${g.before.ring!=g.after.ring?" (now "+ring(g.after.ring)+")":""}`);
+  for(const g of r.regard)out.push(`~ ${nm(g.personId)}: ${g.before?g.before.goodwill.toFixed(1):"new arrival"} -> ${g.after.goodwill.toFixed(1)}${g.before&&g.before.ring!=g.after.ring?" (now "+ring(g.after.ring)+")":""}`);
   const facts=r.facts.filter(f=>!/^(events|spokenSources|chats)/.test(f.fact)).slice(0,25);
   if(facts.length)out.push("Learned: "+facts.map(f=>f.fact.replace(/^people\.\w+-person-(\d+)\./,(m)=>nm(m.split(".")[1])+".")+"="+JSON.stringify(f.value).slice(0,60)).join("; "));
   return out.join("\n");

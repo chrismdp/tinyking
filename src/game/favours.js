@@ -1,4 +1,4 @@
-import { isAdult } from "game/life_stages";
+import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { householdMembers } from "game/population_index";
 import { harvestFits } from "game/farming";
 import { FOODS } from "game/goods";
@@ -168,21 +168,29 @@ export function updateFavours(s) {
 // Asks come from a person's own recent life: news their kin elsewhere have not
 // heard, or a quarrel they would mend. Each names an outcome and completes when
 // the simulation records it, however the player brought it about.
-export const ASKS = ["word", "peace"];
-const ASK_DAYS = 7, WORD_EVENTS = ["death", "birth", "marriage"];
+export const ASKS = ["word", "peace", "visit", "find"];
+const ASK_DAYS = 7, FIND_DAYS = 21, WORD_EVENTS = ["death", "birth", "marriage"];
 const pairKey = (a, b) => [a, b].sort().join(":");
 function askGone(s, r) {
   if (!live(s, r.giverId)) return "The one who asked has died";
   if (!live(s, r.targetId)) return "The one it was for has died";
-  if (s.days - r.createdDay > ASK_DAYS) return "Too late now";
+  if (s.days - r.createdDay > (r.kind == "find" ? FIND_DAYS : ASK_DAYS)) return "Too late now";
   if (r.kind == "word" && knownEvents(s, r.targetId).some(e => e.id == r.eventId) && !toldByPlayer(s, r)) return "They have heard already";
   if (r.kind == "peace" && r.status == "offered" && reconciled(s, r)) return "They have made it up already";
   return null;
 }
 const toldByPlayer = (s, r) => s.knowledge?.[r.targetId]?.spokenSources?.[r.eventId]?.speakerId == s.ui.playerId;
 const reconciled = (s, r) => (s.events || []).some(e => e.type == "reconciliation" && e.day >= (r.acceptedDay ?? r.createdDay) && pairKey(...e.people) == pairKey(r.giverId, r.targetId));
+// A visit counts once the player has talked with them since saying yes.
+const talkedSince = (s, r) => (s.knowledge?.[s.ui.playerId]?.people?.[r.targetId]?.conversation?.day ?? -Infinity) >= r.acceptedDay;
+// News of someone who left: anything the player has learned that happened to
+// them after they went, or a conversation with them.
+const newsSince = (s, r) => {
+  const left = (s.events || []).find(e => e.id == r.eventId);
+  return talkedSince(s, r) || knownEvents(s, s.ui.playerId).some(e => e.id != r.eventId && e.people.includes(r.targetId) && e.day > (left?.day ?? r.createdDay));
+};
 function askDone(s, r) {
-  return r.kind == "word" ? toldByPlayer(s, r) : reconciled(s, r);
+  return r.kind == "word" ? toldByPlayer(s, r) : r.kind == "peace" ? reconciled(s, r) : r.kind == "visit" ? talkedSince(s, r) : newsSince(s, r);
 }
 function updateAsks(s) {
   const ecs = s.ecs, player = s.ui.playerId, requests = s.favours.requests;
@@ -195,7 +203,7 @@ function updateAsks(s) {
   const offer = (kind, giverId, targetId, extra) => {
     const id = (ecs.namespace || "") + "favour-" + ++s.favours.nextId;
     requests[id] = { id, giverId, householdId: ecs.household?.[giverId]?.houseId, kind, targetId, quantity: 1, progress: 0, delivered: 0, produced: 0,
-      goodwill: kind == "peace" ? 16 : 10, status: "offered", cargo: [], createdDay: s.days, ...extra };
+      goodwill: kind == "peace" ? 16 : kind == "visit" ? 6 : 10, status: "offered", cargo: [], createdDay: s.days, ...extra };
   };
   const recent = (s.events || []).filter(e => !e.sealed && s.days - e.day <= ASK_DAYS);
   for (const giverId of Object.keys(ecs.personable || {})) {
@@ -206,6 +214,19 @@ function updateAsks(s) {
       const kin = news && closeFamily(s, giverId).filter(id => id != player && live(s, id) && !news.people.includes(id) &&
         ecs.village?.[id]?.villageId != village && !knownEvents(s, id).some(e => e.id == news.id)).sort()[0];
       if (kin) offer("word", giverId, kin, { eventId: news.id, reason: "Kin elsewhere have not heard" });
+    }
+    const kin = closeFamily(s, giverId).filter(id => id != player && live(s, id));
+    if (!open("visit", giverId)) {
+      const alone = kin.filter(id => ecs.personable[id].age >= LIFE_STAGES.old.from && ecs.household?.[id]?.houseId != ecs.household?.[giverId]?.houseId &&
+        !live(s, ecs.kinship?.[id]?.spouse)).sort()[0];
+      if (alone) offer("visit", giverId, alone, { reason: "An old relative living alone" });
+    }
+    if (!open("find", giverId)) {
+      // Someone away is no longer a resident here, so look among all close kin who are still alive.
+      const away = closeFamily(s, giverId).filter(id => id != player && ecs.personable?.[id] && !ecs.personable[id].dead);
+      const left = (s.events || []).filter(e => e.type == "departure" && known.has(e.id) && away.includes(e.people[0]) && ecs.village?.[e.people[0]]?.villageId != village &&
+        !(s.events || []).some(x => x.type == "return" && x.people[0] == e.people[0] && x.day >= e.day)).sort((a, b) => b.day - a.day)[0];
+      if (left) offer("find", giverId, left.people[0], { eventId: left.id, reason: "Kin who went away" });
     }
     if (!open("peace", giverId)) {
       const quarrel = [...recent].reverse().find(e => e.type == "quarrel" && e.people.includes(giverId) && known.has(e.id));
@@ -356,5 +377,5 @@ export function harvestRouteReason(s,r,stage) {
   const approach=harvestApproach(s,r);
   return `The route to the ${stage} is blocked. `+(approach ? `Choose Move to field approach to reach ${approach.label}, then continue the favour.` : "Show field to inspect it. No explored approach is reachable; explore around the field first.");
 }
-export const favourTitle = r => r?.kind == "word" ? "Carry word" : r?.kind == "peace" ? "Help make peace" : r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";
+export const favourTitle = r => r?.kind == "visit" ? "Look in on them" : r?.kind == "find" ? "Find out how they fare" : r?.kind == "word" ? "Carry word" : r?.kind == "peace" ? "Help make peace" : r?.kind == "harvest" ? "Help with the harvest" : r?.kind == "wood" ? "Deliver wood" : "Deliver food";
 export const favourQuantity = r => `${r.quantity} ${r.kind == "harvest" ? "crop patches" : r.kind == "wood" ? "log" : "food portions"}`;

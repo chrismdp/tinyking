@@ -374,7 +374,7 @@ export function reply(s,requested) {
     }
     // Someone who has just told you of their own trouble may ask for your help with it.
     if(line.family=="own_news"&&line.situation.startsWith("told_")) {
-      const ask=pickNpc(s,c,"favour_ask",true);if(ask&&["word","peace"].includes(ask.b?.request?.kind))speakLine(s,ask);
+      const ask=pickNpc(s,c,"favour_ask",true);if(ask&&["word","peace","visit","find"].includes(ask.b?.request?.kind))speakLine(s,ask);
     }
     if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)endChat(s,c.closeReason||"no_news");}
   else endChat(s,c.closeReason||"no_news");

@@ -107,3 +107,57 @@ it("asks for help straight after telling someone they trust about the quarrel, a
   expect(chooseLine(s,yes.key)).toBe(true);
   expect(Object.values(s.favours.requests).find(r=>r.kind=="peace"&&r.giverId==person).status).toBe("accepted");
 });
+
+it("asks the player to look in on an old relative in another house, and completes when they talk", () => {
+  const {s,player,person,parent}=family();
+  s.ecs.personable[parent].age=74;
+  s.ecs.household[parent]={...s.ecs.household[parent],houseId:"another-house"};
+  updateFavours(s);
+  const r=offered(s,"visit",person);
+  expect(r).toMatchObject({targetId:parent});
+  expect(accept(s,r,person,player)).toBeTruthy();
+  s.ecs.spatial[player]={...s.ecs.spatial[parent]};
+  expect(openChat(s,player,parent,{required:true})).toBeTruthy();
+  const line=chatChoices(s).find(l=>l.speaker=="player"&&l.family!="leave_taking");
+  expect(chooseLine(s,line.key)).toBe(true);
+  closeChat(s,{interrupted:true});
+  updateFavours(s);
+  expect(r.status).toBe("completed");
+});
+
+it("asks the player to find out how a relative who left is faring, and completes on news of them since", () => {
+  const {s,player,person,sibling}=family();
+  s.days=10;
+  const left=recordEvent(s,"departure",[sibling],[],{toWorld:"the Eastern Marches",audienceIds:[person,sibling]});
+  s.ecs.village[sibling]={villageId:"away"};
+  learnEvent(s,person,left);
+  s.days=12;
+  updateFavours(s);
+  const r=offered(s,"find",person);
+  expect(r).toMatchObject({targetId:sibling,eventId:left.id});
+  expect(accept(s,r,person,player)).toBeTruthy();
+  learnEvent(s,player,left);
+  updateFavours(s);
+  expect(r.status).toBe("accepted");
+  const since=recordEvent(s,"marriage",[sibling,parentless(s)],[],{audienceIds:[sibling]});
+  learnEvent(s,player,since);
+  updateFavours(s);
+  expect(r.status).toBe("completed");
+});
+const parentless=s=>Object.keys(s.ecs.personable).find(id=>!s.ecs.kinship[id]?.parents?.length&&id!=s.ui.playerId);
+
+it("makes the ask when a player they know offers help", () => {
+  const {s,player,person,parent}=family();
+  s.ecs.personable[parent].age=74;
+  s.ecs.household[parent]={...s.ecs.household[parent],houseId:"another-house"};
+  updateFavours(s);
+  s.ecs.relationships[person].known[player]={ring:"social",goodwill:15,base:0};
+  s.ecs.spatial[player]={...s.ecs.spatial[person]};
+  expect(openChat(s,player,person,{required:true})).toBeTruthy();
+  s.chat.active.focus="help";
+  const offer=chatChoices(s).find(l=>l.family=="need_question");
+  expect(offer).toBeDefined();
+  expect(chooseLine(s,offer.key)).toBe(true);
+  const asked=s.chat.active.transcript.find(l=>l.family=="favour_ask");
+  expect(asked?.text).toContain("Gillian");
+});

@@ -268,6 +268,9 @@ it("names a real open request in a help answer and makes its giver the next conv
   s.ecs.household[parent].houseId=house;s.ecs.controllable[house]={controllerId:parent};
   s.ecs.relationships[n].known[parent]={ring:"social",goodwill:16,base:16};
   s.ecs.relationships[n].known[p]={ring:"social",goodwill:16,base:16};
+  // Keep the parent short of old age, so the person has no ask of their own to
+  // offer first and the answer points to the household elsewhere.
+  s.ecs.personable[parent].age=50;
   updateFavours(s);openChat(s,p,n);
   chooseLine(s,chatChoices(s).find(l=>l.family=="need_question").key);
   const r=Object.values(s.favours.requests).find(r=>r.status=="offered");

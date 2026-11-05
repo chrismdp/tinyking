@@ -132,7 +132,8 @@ export function sourceValues(s,c,b,d) {
   const e=s.ecs,p=c.actorId,n=c.npcId,ref=x=>x?.split(".").reduce((v,k)=>v?.[k],b),person=x=>ref(x)?.id;
   const events=(type,id)=>knownEvents(s,n,id).filter(x=>x.type==type&&canDiscloseEvent(s,n,p,x)).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   const request=r=>r?{...r,house_direction:localDirection(e.spatial[n],e.spatial[r.householdId]),quantity_words:words(r.quantity),unit:r.kind=="wood"?"log":r.kind=="harvest"?(r.quantity==1?"patch":"patches"):(r.quantity==1?"portion":"portions"),workplace_name:FUEL_TRADES[e.workplace?.[r.workplaceId]?.trade],
-    target_first_name:personFact(s,r.targetId)?.first_name,target_village_name:s.villages?.[e.village?.[r.targetId]?.villageId]?.name}:null;
+    target_first_name:personFact(s,r.targetId)?.first_name,target_village_name:s.villages?.[e.village?.[r.targetId]?.villageId]?.name,
+    left_for:r.kind=="find"?eventFact(s,eventById(s,r.eventId))?.far_country_words||"the far lands":undefined}:null;
   const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
   case "customs_chat": {

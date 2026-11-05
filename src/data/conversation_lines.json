@@ -163109,5 +163109,1209 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "npc.favour_ask.visit.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "visit",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "live_request_for_npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "can_request_for_household",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_reason_still_holds",
+     "args": {
+      "request": "request"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "visit"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "player_declined_offer_without_reoffer",
+     "args": {
+      "request": "request"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_asked"
+   ],
+   "add": [
+    "favour_asked"
+   ],
+   "remove": []
+  },
+  "text": "{request.target_first_name} lives alone now. I don't get over as often as I should. Would you look in on them?",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId",
+     "reason",
+     "goodwill"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "home",
+    "fields": [
+     "residents",
+     "food_portions"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "ask_favour:{npc.id}:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "The topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "A real household need and the request itself"
+   ],
+   "commitment": "None yet. You can accept or decline."
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_pending_offer",
+    "request": "request",
+    "requester": "npc"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "favour_choice"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [
+    "request"
+   ],
+   "facts": [
+    {
+     "ref": "request",
+     "fields": [
+      "kind",
+      "reason"
+     ]
+    }
+   ]
+  },
+  "expects": "offer",
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_ask.visit.base.02",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "visit",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "live_request_for_npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "can_request_for_household",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_reason_still_holds",
+     "args": {
+      "request": "request"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "visit"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "player_declined_offer_without_reoffer",
+     "args": {
+      "request": "request"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_asked"
+   ],
+   "add": [
+    "favour_asked"
+   ],
+   "remove": []
+  },
+  "text": "Would you call on {request.target_first_name} for me? They'd never say they were lonely.",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId",
+     "reason",
+     "goodwill"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "home",
+    "fields": [
+     "residents",
+     "food_portions"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "ask_favour:{npc.id}:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "The topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "A real household need and the request itself"
+   ],
+   "commitment": "None yet. You can accept or decline."
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_pending_offer",
+    "request": "request",
+    "requester": "npc"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "favour_choice"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [
+    "request"
+   ],
+   "facts": [
+    {
+     "ref": "request",
+     "fields": [
+      "kind",
+      "reason"
+     ]
+    }
+   ]
+  },
+  "expects": "offer",
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_ask.find.base.01",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "find",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "live_request_for_npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "can_request_for_household",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_reason_still_holds",
+     "args": {
+      "request": "request"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "find"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "player_declined_offer_without_reoffer",
+     "args": {
+      "request": "request"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_asked"
+   ],
+   "add": [
+    "favour_asked"
+   ],
+   "remove": []
+  },
+  "text": "{request.target_first_name} went off to {request.left_for} and we've heard nothing since. Would you find out how they fare?",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId",
+     "reason",
+     "goodwill"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "home",
+    "fields": [
+     "residents",
+     "food_portions"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "ask_favour:{npc.id}:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "The topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "A real household need and the request itself"
+   ],
+   "commitment": "None yet. You can accept or decline."
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_pending_offer",
+    "request": "request",
+    "requester": "npc"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "favour_choice"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [
+    "request"
+   ],
+   "facts": [
+    {
+     "ref": "request",
+     "fields": [
+      "kind",
+      "reason"
+     ]
+    }
+   ]
+  },
+  "expects": "offer",
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_ask.find.base.02",
+  "speaker": "npc",
+  "family": "favour_ask",
+  "situation": "find",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "live_request_for_npc_household"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "npc"
+     }
+    },
+    {
+     "test": "can_request_for_household",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_reason_still_holds",
+     "args": {
+      "request": "request"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "find"
+     }
+    },
+    {
+     "test": "ring_at_least",
+     "args": {
+      "person": "npc",
+      "towards": "player",
+      "ring": "social"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "player_declined_offer_without_reoffer",
+     "args": {
+      "request": "request"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_asked"
+   ],
+   "add": [
+    "favour_asked"
+   ],
+   "remove": []
+  },
+  "text": "Not a word from {request.target_first_name} since they left for {request.left_for}. If you hear anything, anything at all, will you tell me?",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId",
+     "reason",
+     "goodwill"
+    ],
+    "tense": "present"
+   },
+   {
+    "ref": "home",
+    "fields": [
+     "residents",
+     "food_portions"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "ask_favour:{npc.id}:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "The topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "A real household need and the request itself"
+   ],
+   "commitment": "None yet. You can accept or decline."
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_pending_offer",
+    "request": "request",
+    "requester": "npc"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "favour_choice"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [
+    "request"
+   ],
+   "facts": [
+    {
+     "ref": "request",
+     "fields": [
+      "kind",
+      "reason"
+     ]
+    }
+   ]
+  },
+  "expects": "offer",
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.favour_accept.visit.base.01",
+  "speaker": "player",
+  "family": "favour_accept",
+  "situation": "visit",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "player_heard_live_offer_from_npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "player"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_heard_from",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "visit"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_resolved"
+   ],
+   "add": [
+    "favour_resolved"
+   ],
+   "remove": []
+  },
+  "text": "I'll call on them.",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "accept_favour:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Three icons: more chances to match, but more slots.",
+    "Help, the topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Your acceptance, if the game accepts it"
+   ],
+   "commitment": "Promises the outcome, not a route. Goodwill comes when it happens."
+  },
+  "resolve": {
+   "rule": "accept_and_authorise_favour",
+   "args": {
+    "actor": "player",
+    "requester": "npc",
+    "request": "request"
+   },
+   "success_reply": "favour_accepted",
+   "failure_reply": "favour_unavailable"
+  },
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "offer"
+  ],
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.favour_accept.visit.base.02",
+  "speaker": "player",
+  "family": "favour_accept",
+  "situation": "visit",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "player_heard_live_offer_from_npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "player"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_heard_from",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "visit"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_resolved"
+   ],
+   "add": [
+    "favour_resolved"
+   ],
+   "remove": []
+  },
+  "text": "I'll sit with them a while.",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "accept_favour:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Three icons: more chances to match, but more slots.",
+    "Help, the topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Your acceptance, if the game accepts it"
+   ],
+   "commitment": "Promises the outcome, not a route. Goodwill comes when it happens."
+  },
+  "resolve": {
+   "rule": "accept_and_authorise_favour",
+   "args": {
+    "actor": "player",
+    "requester": "npc",
+    "request": "request"
+   },
+   "success_reply": "favour_accepted",
+   "failure_reply": "favour_unavailable"
+  },
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "offer"
+  ],
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.favour_accept.find.base.01",
+  "speaker": "player",
+  "family": "favour_accept",
+  "situation": "find",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "player_heard_live_offer_from_npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "player"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_heard_from",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "find"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_resolved"
+   ],
+   "add": [
+    "favour_resolved"
+   ],
+   "remove": []
+  },
+  "text": "I'll ask around.",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "accept_favour:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Three icons: more chances to match, but more slots.",
+    "Help, the topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Your acceptance, if the game accepts it"
+   ],
+   "commitment": "Promises the outcome, not a route. Goodwill comes when it happens."
+  },
+  "resolve": {
+   "rule": "accept_and_authorise_favour",
+   "args": {
+    "actor": "player",
+    "requester": "npc",
+    "request": "request"
+   },
+   "success_reply": "favour_accepted",
+   "failure_reply": "favour_unavailable"
+  },
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "offer"
+  ],
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.favour_accept.find.base.02",
+  "speaker": "player",
+  "family": "favour_accept",
+  "situation": "find",
+  "weight": 1,
+  "bindings": {
+   "request": {
+    "source": "player_heard_live_offer_from_npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "is_adult",
+     "args": {
+      "person": "player"
+     }
+    },
+    {
+     "test": "completed_contact_exists",
+     "args": {
+      "actor": "player",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_heard_from",
+     "args": {
+      "request": "request",
+      "person": "npc"
+     }
+    },
+    {
+     "test": "request_status_is",
+     "args": {
+      "request": "request",
+      "status": "offered"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "find"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [
+    "favour_resolved"
+   ],
+   "add": [
+    "favour_resolved"
+   ],
+   "remove": []
+  },
+  "text": "I'll find out what I can.",
+  "facts": [
+   {
+    "ref": "request",
+    "fields": [
+     "id",
+     "kind",
+     "quantity",
+     "status",
+     "householdId"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   },
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "accept_favour:{player.id}:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Three icons: more chances to match, but more slots.",
+    "Help, the topic or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Your acceptance, if the game accepts it"
+   ],
+   "commitment": "Promises the outcome, not a route. Goodwill comes when it happens."
+  },
+  "resolve": {
+   "rule": "accept_and_authorise_favour",
+   "args": {
+    "actor": "player",
+    "requester": "npc",
+    "request": "request"
+   },
+   "success_reply": "favour_accepted",
+   "failure_reply": "favour_unavailable"
+  },
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "offer"
+  ],
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
  }
 ]

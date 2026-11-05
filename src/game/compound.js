@@ -332,20 +332,9 @@ export const find_food = () => [
       [ "eat", good ]
     ]
   ]),
-  ...FOODS.map(good => [
-    world => !world.holding[good],
-    () => [ [ "make_meal_space" ], [ "pick_up", good, true ], [ "find_food" ] ]
-  ]),
   [
     always,
-    () => [
-      [ "make_meal_space" ],
-      [ "move_to_place", "forage_plant", "forage_plant" ],
-      [ "set_label", "foraging" ],
-      [ "forage", "forage_plant" ],
-      [ "forget_place", "forage_plant" ],
-      [ "find_food" ]
-    ]
+    () => [["set_label", "eating"], ["recover_meal"], ["eat", "meal"]]
   ]
 ];
 

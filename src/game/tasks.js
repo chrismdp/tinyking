@@ -33,6 +33,7 @@ import * as time from "game/time";
 import { replan, Task } from "game/htn";
 import { removeFromSpace, newEntities, deleteEntity, entitiesInSameLocation } from "game/entities";
 import { topController, householdAccess } from "game/playable";
+import { foodHouse, mealAccess } from "game/household_food";
 import { promisedGift, canReachTask, jobQueueFor, firstFreeJob, cancelLocalTasksForTravel } from "game/manager";
 import { containerHasSpace, containerItemCount } from "game/container";
 import { forageAvailable } from "game/ecology";
@@ -653,12 +654,14 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
       forageAvailable(state, state.ecs.forageable[id]) && reached.has(closestNavPointTo(state, state.ecs.spatial[id])));
     available.sort(closestSpatialTo(state, actorId));
     found_place = available.find(value=>{const id=typeof value=="object"?value.id:value;return !world.failedWalkTargets?.[id] && canReachTask(state,actorId,id);});
-  } else if (filter == "container_with") {
+  } else if (filter == "container_with" || filter == "meal_container_with") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
     const available_in_realm = Object.keys(state.ecs.container || {}).filter(id =>
-      householdAccess(state.ecs, actorId, id) &&
-      state.ecs.container[id].amounts[filterParam] >= 1);
+      state.ecs.container[id].amounts[filterParam] >= 1 &&
+      (filter == "meal_container_with" ? mealAccess(state,actorId,id) : householdAccess(state.ecs, actorId, id)));
     available_in_realm.sort(closestSpatialTo(state, actorId));
+    if (filter == "meal_container_with") available_in_realm.sort((a,b) =>
+      Number(foodHouse(state,b) == state.ecs.household?.[actorId]?.houseId) - Number(foodHouse(state,a) == state.ecs.household?.[actorId]?.houseId));
     found_place = available_in_realm.find(id=>!world.failedWalkTargets?.[id] && canReachTask(state,actorId,id));
   } else if (filter == "container_with_space") {
     if (!filterParam) { throw "For this filter of " + filter + " we need a filterParam"; }
@@ -786,9 +789,8 @@ export function sleep(state, actorId, world, dt, firstRun) {
     return Task.FINISH;
   }
   enterHome(state, actorId, world.places.sleep);
-  person.tiredness -= dt * SLEEP_REPLENISH;
-  if (world.journeyCamp) person.tiredness = Math.max(.1, person.tiredness);
-  return (person.tiredness >= 0.1 || time.time(world.days) == "night") ? Task.CONTINUE : Task.FINISH;
+  person.tiredness = Math.max(.1, person.tiredness - dt * SLEEP_REPLENISH);
+  return (person.tiredness > 0.1 || nightTime(state.days)) ? Task.CONTINUE : Task.FINISH;
 }
 
 export function settle_fire(state,actorId,world) {
@@ -847,7 +849,7 @@ export function make_meal_space(state, actorId, world) {
   return Task.FINISH;
 }
 
-// Player care must exhaust real sources before failing an order. The old HTN
+// Care must exhaust real sources before failing an order. The old HTN
 // search aborted at each missing food type and could defer Find food on gruel
 // before ever trying roots. Keep the chosen source and timed meal across frames.
 export function recover_meal(state, actorId, world, dt, firstRun) {
@@ -872,7 +874,9 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
     // Cache rejection only for this search. A failed earlier work journey must
     // not suppress a reachable meal after cancellation or a changed approach.
     const lookup={...world,places:{},no_place_for:{},failedWalkTargets:search.rejected};
-    for(const [kind,filter] of [["container","container_with"],["stockpile","stockpile_slot_with"],["loose","haulable_with_good"]]) {
+    const sources=[["container","container_with"],["stockpile","stockpile_slot_with"],["loose","haulable_with_good"],
+      ...(!world.ordered ? [["container","meal_container_with"]] : [])];
+    for(const [kind,filter] of sources) {
       for(const type of FOODS)if(find_place(state,actorId,lookup,0,true,"meal",filter,type)!=Task.ABORT){search.source=lookup.places.meal;search.kind=kind;search.type=type;break;}
       if(search.source)break;
     }
@@ -889,6 +893,9 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
     search.phase="collect";search.beginCollect=true;
   }
   const collect={container:pick_up_from_container,stockpile:pick_up_from_stockpile,loose:pick_up_entity_with_good,forage};
+  // Other relatives can finish collecting while this person is walking.
+  // Recheck the donor's reserve before taking this particular portion.
+  if(search.kind=="container" && !world.ordered && !mealAccess(state,actorId,search.source))return reject();
   const result=collect[search.kind](state,actorId,world,dt,search.beginCollect,"mealSource",search.type);search.beginCollect=false;
   if(result==Task.ABORT)return reject();
   if(result==Task.CONTINUE)return result;

@@ -92,7 +92,9 @@ function updatePlannerFrame(state, frameMod) {
     // Update sensors
     if (state.ecs.personable[id]) {
       const person = state.ecs.personable[id];
-      if ((id != state.ui.playerId || !planner.world.ordered) && !planner.world.festivalPlace && !planner.world.feeling.tired && person.tiredness > 0.9) {
+      const hour=time.hour_of_day(state.days);
+      const bedtime=id != state.ui.playerId && planner.world.nightHome && (hour>=22 || hour<6);
+      if ((id != state.ui.playerId || !planner.world.ordered) && !planner.world.festivalPlace && !planner.world.feeling.tired && (person.tiredness > 0.9 || bedtime)) {
         planner.world.feeling.tired = true;
         if(planner.task?.[0] != "leave_edge") htn.replan(planner);
       }
@@ -117,9 +119,9 @@ function updatePlannerFrame(state, frameMod) {
     // Re-plan
     if (!planner.plan) {
       if (planner.task) {
-        // A player's meal has already consumed real food. A new need must not apply
+        // A meal has already consumed real food. A new need must not apply
         // its predicted fed/rested effect before the timed care finishes.
-        if (planner.id == state.ui.playerId && ["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
+        if (["eat", "sleep", "recover_meal"].includes(planner.task[0])) {
           htn.runTask(state, planner, deltaTime(frameMod, SPEED[state.game_speed]), false);
           if (planner.task) continue;
         } else htn.finishTask(planner, planner.task);

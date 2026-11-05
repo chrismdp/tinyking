@@ -42,3 +42,64 @@ EXIT_STATUS=1
 ```
 
 The five failures prove inaccessible inherited stores, absent kin sharing, the offscreen permission mismatch, the missed first night and interrupted villager meals. Additional two-hour regressions for grain, roots and reachable forage already passed on the old rules. They constrain the replacement search but are not evidence of a two-hour failure in the old search. Full failure output is in `shots/day-food-red.log`.
+
+## Fixes under test
+
+- Added a food-only permission. Residents keep their own supplies. A vacant estate feeds its owner's household. An occupied home protects two meals per resident before sharing with the owner's household or close kin.
+- Reused the existing complete meal-search task for villagers. The task checks all food kinds, keeps its walking and collection progress, and tries another real source after a route or access failure.
+- Rechecked sharing permission on collection. A walking relative cannot take the portion that another relative already used.
+- Applied the same permission to offscreen meals. Food remains physically in its original store until consumed.
+- Sent villagers home to sleep at 22:00 even when they have not reached exhaustion. Kept timed meals and sleep running through new need signals.
+
+The first implementation run found two failures because the new lower bound on tiredness also made the old sleep-completion comparison always true. Changed that comparison to finish rested sleep after dawn. This was an implementation failure, retained in `shots/day-food-green.log` (exit 1, 2 failed and 42 passed).
+
+## Seed 13: where the food goes before the fix
+
+There are ten houses and nine occupied households. Six occupied households are strictly empty at 18:00 on day 3. A seventh holds one portion for four people. This explains the brief's seven hungry households without counting the vacant cottage as a family.
+
+| Household | House ID | People | Arrival | Day 1, 18:00 | Day 2, 18:00 | Day 3, 18:00 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Empty cottage, Reedbrook | `w5_3-home-1` | 0 | 51 | 51 | 51 | 51 |
+| Seesi, Reedbrook | `w5_3-home-6` | 2 | 9 | 9 | 7 | 5 |
+| Jobari, Reedbrook | `w5_3-home-11` | 5 | 0 | 0 | 0 | 0 |
+| Frifoblo by the barn, Reedford | `w5_3-home-16` | 5 | 0 | 0 | 0 | 0 |
+| Frifoblo, one resident, Reedford | `w5_3-home-21` | 1 | 27 | 27 | 26 | 25 |
+| Bobarin by the brook, Reedford | `w5_3-home-26` | 4 | 0 | 0 | 0 | 0 |
+| Frifoblo by the lane, Reedford | `w5_3-home-31` | 7 | 0 | 0 | 0 | 0 |
+| Bobarin by the orchard, Reedford | `w5_3-social-62` | 7 | 0 | 0 | 0 | 0 |
+| Thuson, Reedford | `w5_3-social-82` | 7 | 0 | 0 | 0 | 0 |
+| Frifoblo, four residents, Reedford | `w5_3-social-99` | 4 | 9 | 9 | 5 | 1 |
+
+The Jobari house contains Andrew Jobari, who owns Matthew Frifoblo's house and its 27 grain. Mabel Frifoblo is Matthew's sister. Neither ownership nor kinship permits them to eat that food under the old meal rule. Matthew eats one portion each day while their household forages.
+
+The barn house belongs to Hugh Seesi, who lives in Reedbrook. Hugh's son Henry lives in the barn house. Emmeline Frifoblo is Matthew's sister. This family has two links to food, but the old rules admit neither. Its new crops cannot mature during the first week.
+
+The brook house has no close-kin link to the three occupied stocked homes. Its four residents depend on public forage until their fields mature. This is a real shortage, not an inheritance fault.
+
+The lane house contains Felice and William Frifoblo, close kin of Ralph Frifoblo in the four-person house. The orchard house contains his sister Alice. Ralph's household starts with nine portions for four. At most one portion is surplus above its two-meal reserve. Kin sharing can help briefly, but cannot make this family a lasting food source.
+
+The Thuson house contains Margaret Seesi, Hugh's sister. Hugh's vacant inherited cottage holds 51 portions. The old rules stop Margaret's family using that surplus.
+
+The four-person Frifoblo house uses eight of its own nine portions by the third evening. It genuinely needs another food source. The two Seesis use four of their nine while their inherited cottage stays untouched. Matthew uses two of his 27 while Andrew's household stays empty.
+
+| Sample time | Stored portions left | Wild portions left | Meals eaten since arrival | Portions collected from stores | Portions foraged | Greatest field growth, days |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Arrival, day 1 at 09:00 | 96 | 159 | 0 | 0 | 0 | 0 |
+| Day 1 at 18:00 | 96 | 159 | 0 | 0 | 0 | 0.375 |
+| Day 2 at 18:00 | 89 | 138 | 28 | 7 | 21 | 1.375 |
+| Day 3 at 18:00 | 82 | 112 | 61 | 14 | 47 | 2.375 |
+
+At the third evening, all 61 consumed portions are accounted for: 14 from stores and 47 from wild plants. No food is carried at those snapshots. No live harvest occurs in the first week. Field growth remains below the existing 10.5-day requirement. New villagers first need a meal around day 2 at 07:00. Their late sleep takes priority then. Hugh Jobari arrives with existing hunger and tiredness, so his first search starts on day 1.
+
+The inherited-surplus regression first failed with exit 1 (`shots/day-food-kin-red.log`: 1 failed, 6 passed). Extended the food permission to the heir's close kin while protecting two meals for each member of the heir's household. The focused run then passed:
+
+```
+Test Suites: 3 passed, 3 total
+Tests:       45 passed, 45 total
+Snapshots:   0 total
+Time:        6.905 s, estimated 7 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js.
+EXIT_STATUS=0
+```
+
+`npx eslint src/game/household_food.js src/game/compound.js src/game/needs.js src/game/simulation.js src/game/tasks.js scripts/day-food.cjs` produced no diagnostics and exited 0. This repository has plain JavaScript and no configured typecheck command. ESLint parses the changed runtime files and the replay driver.

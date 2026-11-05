@@ -5,6 +5,7 @@ import { isResident } from "game/residents";
 import { householdAccess } from "game/playable";
 import { consumeStored } from "game/settlement_growth";
 import { FOODS } from "game/goods";
+import { mealAccess, foodHouse } from "game/household_food";
 
 // Resident needs share the hourly clock. Missed meals never cause death.
 export function updateNeeds(state, elapsed = HOUR) {
@@ -23,18 +24,17 @@ export function advanceOffscreenNeeds(state, end) {
   if (!state.map || state.generatingHistory) return; // no physiology in prehistory or on the road
   const now = state.days, from = state.needsUpdatedAt ?? state.environmentUpdatedAt ?? end - DAYS_IN_SEASON;
   const stores = Object.keys(state.ecs.container || {});
-  const supplies = new Map(Object.keys(state.residents || state.ecs.personable).map(id => [id,
-    stores.filter(store => state.ecs.controllable?.[store] && householdAccess(state.ecs, id, store))]));
   for (let at = from + HOUR; at <= end + 1e-9; at += HOUR) {
     state.days = at;
     for (const [id, person] of residentPeople(state).map(id=>[id,state.ecs.personable[id]])) {
       if (person.dead || !isResident(state, id)) continue;
       if (person.hunger > .9) {
         const house = state.ecs.household?.[id]?.houseId;
-        const store = supplies.get(id)?.find(store => FOODS.some(type => state.ecs.container[store].amounts[type] >= 1));
+        const store = stores.find(store => state.ecs.controllable?.[store] && householdAccess(state.ecs,id,store) && FOODS.some(type => state.ecs.container[store].amounts[type] >= 1)) ||
+          stores.find(store => FOODS.some(type => state.ecs.container[store].amounts[type] >= 1) && mealAccess(state,id,store));
         if (store) {
           const type = FOODS.find(type => state.ecs.container[store].amounts[type] >= 1);
-          consumeStored(state, house, type, 1, store);
+          consumeStored(state, foodHouse(state,store) || house, type, 1, store);
           const ledger = state.ecs.household?.[house]?.livelihood;
           if (ledger) ledger.foodConsumed++;
           person.hunger = 0;

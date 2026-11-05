@@ -64,6 +64,22 @@ it("does not grant a non-heir access to a vacant stranger's store", () => {
   expect(s.ecs.personable[b].hunger).toBeGreaterThan(1.2);
 });
 
+it("lets an heir's close kin share the inherited surplus while preserving the heir household's meals", () => {
+  const {s,house,store,a,b,c}=family();
+  const [cottage]=newEntities(s,[{spatial:{...s.ecs.spatial[house]},building:{rooms:[store]},household:{storeId:store},controllable:{controllerId:a}}]);
+  s.ecs.interior[store].buildingId=cottage;s.ecs.controllable[store].controllerId=cottage;
+  delete s.ecs.household[house].storeId;
+  advance(s,3);
+  expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+  expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
+  expect(s.ecs.container[store].amounts.grain).toBe(10);
+  s.ecs.container[store].amounts.grain=2;
+  s.ecs.personable[b].hunger=1.2;
+  advance(s,3);
+  expect(s.ecs.container[store].amounts.grain).toBe(2);
+  expect(s.ecs.personable[b].hunger).toBeGreaterThan(1.2);
+});
+
 it("uses the same inherited-store permission for real offscreen meals", () => {
   const {s,store,a,b}=family();die(s,a);
   s.needsUpdatedAt=s.days;

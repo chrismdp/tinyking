@@ -15,14 +15,14 @@ s.personName = id => s.ecs.nameable[id] ? name(s.ecs.nameable[id]) : id;
 const people = () => Object.keys(s.ecs.planner).filter(id => id != s.ui.playerId && s.ecs.personable[id] && !s.ecs.personable[id].dead && (!s.residents || s.residents[id]));
 const rows = [], hourly = [], slots = [], transfers = [];
 const tasks = require("../src/game/tasks");
-for (const key of ["pick_up_from_container", "forage", "eat", "perform_subtask_in_slot"]) {
+for (const key of ["pick_up_from_container", "forage", "recover_meal", "eat", "perform_subtask_in_slot"]) {
   const run = tasks[key];
   tasks[key] = function(state, id, world, dt, first, ...args) {
     if (state != s) return run(state,id,world,dt,first,...args);
     const before = JSON.stringify(s.ecs.holder[id]?.held.map(x => [x,s.ecs.good[x]]));
     const result = run(state,id,world,dt,first,...args);
     const after = JSON.stringify(s.ecs.holder[id]?.held.map(x => [x,s.ecs.good[x]]));
-    if (before != after) transfers.push({day:s.days, id, task:key, args, before:JSON.parse(before || "null"), after:JSON.parse(after || "null")});
+    if (before != after) transfers.push({day:s.days, id, task:key, args, source:world.mealSearch?.source || world.places?.[args[0]], before:JSON.parse(before || "null"), after:JSON.parse(after || "null")});
     return result;
   };
 }

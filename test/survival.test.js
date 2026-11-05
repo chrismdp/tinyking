@@ -295,3 +295,19 @@ it("does not use a stranger's private reserve when its own food runs out", () =>
   expect(s.ecs.container[store].amounts.grain).toBe(3);
   expect(s.ecs.personable[a].hunger).toBeGreaterThan(1.4);
 });
+
+it.each(["grain", "roots"])("eats available %s within two hours without waiting through absent foods", type => {
+  const {state:s,villager:a}=hungryVillage();
+  const [store]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},controllable:{controllerId:a},container:{capacity:30,amounts:{[type]:3}}}]);
+  advance(s,HOUR*2);
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.15);
+  expect(s.ecs.container[store].amounts[type]).toBe(2);
+});
+
+it("finds and eats reachable wild roots within two hours when all stores are empty", () => {
+  const {state:s,villager:a}=hungryVillage();
+  const [plant]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},forageable:{kind:"roots",biome:"grassland",amount:1,growth:0}}]);
+  advance(s,HOUR*2);
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.15);
+  expect(s.ecs.forageable[plant].amount).toBe(0);
+});

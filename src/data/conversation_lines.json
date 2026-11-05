@@ -162333,7 +162333,7 @@
    ],
    "remove": []
   },
-  "text": "I want to make it up with {request.target_first_name}. I don't know how to start. Would you help us find our way back?",
+  "text": "I want to make it up with {request.target_first_name}. Would you help us find our way back?",
   "facts": [
    {
     "ref": "request",
@@ -162503,7 +162503,7 @@
    ],
    "remove": []
   },
-  "text": "I'd mend it with {request.target_first_name}, if they'd let me. Will you help?",
+  "text": "I'd mend things with {request.target_first_name} tomorrow, if I knew how. Will you help?",
   "facts": [
    {
     "ref": "request",

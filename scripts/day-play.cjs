@@ -20,7 +20,8 @@ const hexOf=id=>Hex().fromPoint(s.ecs.spatial[id]).toString();
 // design starts from a named village, and the uncle's family can point the way.
 function revealVillages(){
   const known=s.ecs.playable[s.ui.playerId].known,have=new Set(known.map(h=>Hex(h).toString()));
-  for(const v of Object.values(s.villages||{}))for(const id of [...v.houses,...v.sharedPlaces]){const h=Hex().fromPoint(s.ecs.spatial[id]);if(!have.has(h.toString())){known.push(h);have.add(h.toString());}}
+  // The valley map shows every place in the valley, visited or not.
+  for(const id of Object.keys(s.ecs.walkable||{})){const h=Hex().fromPoint(s.ecs.spatial[id]);if(!have.has(h.toString())){known.push(h);have.add(h.toString());}}
 }
 let placeNames={};
 function namePlaces(){
@@ -47,9 +48,14 @@ const ring=r=>({public:"an acquaintance",social:"a familiar acquaintance",person
 const ACT={eat:"eating",eat_food:"eating",sleep:"asleep",rest:"resting",walk_to:"walking",socialise:"talking with someone",work:"working",farm:"in the fields",harvest:"harvesting",forage:"gathering food",find_food:"looking for food",cook:"cooking",chop:"chopping wood",cut_tree_down:"felling a tree",haul:"carrying goods",store:"putting goods away",wait_for:"waiting",idle:"idling",get_attention:"waiting to speak to someone",visit:"visiting",pray:"praying"};
 const act=a=>ACT[a]||a.replace(/_/g," ");
 
+function asks(){
+  const {visibleFavours,favourTitle}=require("../src/game/favours");
+  return visibleFavours(s).filter(r=>["offered","accepted","completed","expired"].includes(r.status)).map(r=>`  [${r.status}] ${favourTitle(r)} for ${nm(r.giverId)}${r.targetId&&s.ecs.personable?.[r.targetId]?" ("+nm(r.targetId)+")":""}${r.outcome?" · "+r.outcome:""}`);
+}
 function look(){
   menu=slotChoices(s);
   const out=[`DAY ${menu.day}, ${menu.slot.toUpperCase()} (season ${s.season??"?"})`,""];
+  const j=asks();if(j.length)out.push("Asks:",...j,"");
   const avail=menu.choices.filter(c=>c.available);
   menu.numbered=avail;
   for(const place of menu.places){

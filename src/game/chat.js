@@ -370,7 +370,10 @@ export function reply(s,requested) {
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["own_news","visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
   if(line){speakLine(s,line);noteExhausted(s,c,line);
     if(requested=="maternal_recognition"&&firstFamilyRequest(s,c.actorId,c.npcId)) {
-      const offer=pickNpc(s,c,"favour_ask",true);if(offer)speakLine(s,offer);
+      const offer=pickNpc(s,c,"favour_ask",true);
+      // An ask that grows out of their own trouble comes after they tell it.
+      if(offer&&["word","peace","visit","find"].includes(offer.b?.request?.kind)){const own=pickNpc(s,c,"own_news");if(own)speakLine(s,own);}
+      if(offer)speakLine(s,offer);
     }
     // Someone who has just told you of their own trouble may ask for your help with it.
     if(line.family=="own_news"&&line.situation.startsWith("told_")) {

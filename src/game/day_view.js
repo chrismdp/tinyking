@@ -230,7 +230,7 @@ const cubeRound=(q,r)=>{let x=q,z=r,y=-x-z,rx=Math.round(x),ry=Math.round(y),rz=
   if(dx>dy&&dx>dz)rx=-ry-rz;else if(dy<=dz)rz=-rx-ry;return {q:rx,r:rz};};
 const NEIGHBOURS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 const centre=(q,r)=>({x:SQRT3*(q+r/2),y:1.5*r});
-export function valleyLayout(places,{columns=6}={}) {
+export function valleyLayout(places,{columns=5}={}) {
   const pts=places.filter(p=>p.point);
   if(!pts.length)return {cells:[],ground:[]};
   const xs=pts.map(p=>p.point.x),ys=pts.map(p=>p.point.y),minX=Math.min(...xs),minY=Math.min(...ys);

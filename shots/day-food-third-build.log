@@ -1,0 +1,57 @@
+
+> tinyking@1.0.0 build
+> webpack --config webpack.prod.js
+
+app:
+  assets by path *.js 3.55 MiB
+    asset app.edcd27fe2dec3c5ca917.js 2.61 MiB [emitted] [immutable] [minimized] [big] (name: app) 1 related asset
+    asset vendors.67f5ab9c200a0caba974.js 962 KiB [emitted] [immutable] [minimized] [big] (name: vendors) (id hint: vendor) 2 related assets
+    asset runtime.42ef496b93112205a055.js 1.58 KiB [emitted] [immutable] [minimized] (name: runtime) 1 related asset
+  asset index.html 479 bytes [emitted] [minimized]
+  asset COMMITHASH 40 bytes [emitted]
+  asset LASTCOMMITDATETIME 25 bytes [emitted]
+  asset VERSION 19 bytes [emitted]
+  Entrypoint app [big] 3.55 MiB (7.57 MiB) = runtime.42ef496b93112205a055.js 1.58 KiB vendors.67f5ab9c200a0caba974.js 962 KiB app.edcd27fe2dec3c5ca917.js 2.61 MiB 3 auxiliary assets
+  orphan modules 467 KiB [orphan] 134 modules
+  runtime modules 3.9 KiB 9 modules
+  javascript modules 5.24 MiB
+    modules by path ./node_modules/ 3.82 MiB 123 modules
+    modules by path ./src/ 1.42 MiB
+      modules by path ./src/game/*.js 913 KiB 93 modules
+      modules by path ./src/components/*.js 79.5 KiB 6 modules
+      modules by path ./src/data/ 1.16 KiB 2 modules
+      ./src/index.js + 65 modules 330 KiB [built] [code generated]
+      ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs/index.js!./src/style.scss 128 KiB [built] [code generated]
+  json modules 1.8 MiB
+    ./src/data/event_types.json 16.4 KiB [built] [code generated]
+    ./src/data/crops.json 80 bytes [built] [code generated]
+    ./src/data/secret_activities.json 1.01 KiB [built] [code generated]
+    ./src/data/conversation_lines.json 1.78 MiB [built] [code generated]
+
+  WARNING in asset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+  This can impact web performance.
+  Assets: 
+    app.edcd27fe2dec3c5ca917.js (2.61 MiB)
+      Largest modules: ./src/data/conversation_lines.json (1.78 MiB), ./src/index.js + 65 modules (330 KiB), ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs/index.js!./src/style.scss (128 KiB)
+    vendors.67f5ab9c200a0caba974.js (962 KiB)
+      Largest modules: ./node_modules/three/build/three.core.js (1.39 MiB), ./node_modules/@fortawesome/free-solid-svg-icons/index.es.js (696 KiB), ./node_modules/three/build/three.module.js (647 KiB)
+
+  WARNING in entrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (244 KiB). This can impact web performance.
+  Entrypoints:
+    app (3.55 MiB)
+        runtime.42ef496b93112205a055.js
+        vendors.67f5ab9c200a0caba974.js
+        app.edcd27fe2dec3c5ca917.js
+
+  WARNING in webpack performance recommendations: 
+  You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+  For more info visit https://webpack.js.org/guides/code-splitting/
+
+  app (webpack 5.112.2) compiled with 3 warnings in 19424 ms
+
+save-worker:
+  asset save-worker.js 11.7 KiB [emitted] [minimized] (name: main) 1 related asset
+  orphan modules 57.5 KiB [orphan] 13 modules
+  ./src/game/save_worker.js + 11 modules 60 KiB [built] [code generated]
+  save-worker (webpack 5.112.2) compiled successfully in 745 ms
+EXIT_STATUS=0

@@ -1,0 +1,6442 @@
+{
+  "runtimeCommit": "09589b1e441c3056e8eb53320b2d0956043ee9ad",
+  "base": "379c911",
+  "inputHashes": {
+    "7": "9a4d66847581e18e7ea139d09bd5cbbe5b5bed171866deb616711655a6e2b2f8",
+    "13": "fc0abab01d4a93ffd47b472005a7a1f7e12df273b3b2d32bff20b9c850ceb638"
+  },
+  "runs": {
+    "before-13": {
+      "daily": [
+        {
+          "day": 1,
+          "emptyHouseholds": 6,
+          "households": 9,
+          "hungry": 1,
+          "peakHungry": 1,
+          "daytimeAsleep": 0,
+          "hungryAt18": 1,
+          "hungryHours": 3,
+          "maxHungerAt18": 0.9648938200878661
+        },
+        {
+          "day": 2,
+          "emptyHouseholds": 6,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 41,
+          "daytimeAsleep": 41,
+          "hungryAt18": 19,
+          "hungryHours": 485,
+          "maxHungerAt18": 1.3750000000000002
+        },
+        {
+          "day": 3,
+          "emptyHouseholds": 6,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 19,
+          "daytimeAsleep": 1,
+          "hungryAt18": 16,
+          "hungryHours": 217,
+          "maxHungerAt18": 1.083333333333333
+        },
+        {
+          "day": 4,
+          "emptyHouseholds": 7,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 18,
+          "daytimeAsleep": 21,
+          "hungryAt18": 17,
+          "hungryHours": 245,
+          "maxHungerAt18": 2.0833333333333344
+        },
+        {
+          "day": 5,
+          "emptyHouseholds": 7,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 20,
+          "daytimeAsleep": 35,
+          "hungryAt18": 18,
+          "hungryHours": 286,
+          "maxHungerAt18": 1.875000000000001
+        },
+        {
+          "day": 6,
+          "emptyHouseholds": 8,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 23,
+          "daytimeAsleep": 31,
+          "hungryAt18": 22,
+          "hungryHours": 331,
+          "maxHungerAt18": 1.9166666666666679
+        },
+        {
+          "day": 7,
+          "emptyHouseholds": 8,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 30,
+          "daytimeAsleep": 26,
+          "hungryAt18": 25,
+          "hungryHours": 538,
+          "maxHungerAt18": 2.0000000000000013
+        }
+      ],
+      "initial": [
+        {
+          "house": "w5_3-home-1",
+          "owner": "w5_3-social-66",
+          "residents": [],
+          "food": 51
+        },
+        {
+          "house": "w5_3-home-6",
+          "owner": "w5_3-social-66",
+          "residents": [
+            "w5_3-social-66",
+            "w5_3-social-91"
+          ],
+          "food": 9
+        },
+        {
+          "house": "w5_3-home-11",
+          "owner": "w5_3-social-74",
+          "residents": [
+            "w5_3-social-74",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w6_3-social-89",
+            "terrain5_3-person-4147"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-16",
+          "owner": "w5_3-social-66",
+          "residents": [
+            "w5_3-social-78",
+            "w5_3-social-80",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "w5_3-social-98"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-21",
+          "owner": "w5_3-social-79",
+          "residents": [
+            "w5_3-social-61"
+          ],
+          "food": 27
+        },
+        {
+          "house": "w5_3-home-26",
+          "owner": "w5_3-social-55",
+          "residents": [
+            "w5_3-social-55",
+            "w5_3-social-68",
+            "w5_3-social-72",
+            "w5_3-social-93"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-31",
+          "owner": "w5_3-social-61",
+          "residents": [
+            "w5_3-social-49",
+            "w5_3-social-60",
+            "w5_3-social-70",
+            "w5_3-social-77",
+            "w6_3-social-71",
+            "w5_3-social-81",
+            "w6_3-social-81"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-62",
+          "owner": "w5_3-social-58",
+          "residents": [
+            "w5_3-social-58",
+            "w5_3-social-73",
+            "w5_3-social-85",
+            "w6_3-social-82",
+            "w5_3-social-88",
+            "w5_3-social-94",
+            "w5_3-social-103"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-82",
+          "owner": "w5_3-social-65",
+          "residents": [
+            "w5_3-social-65",
+            "w5_3-social-69",
+            "w5_3-social-90",
+            "w5_3-social-95",
+            "w6_3-social-107",
+            "w6_3-social-108",
+            "w5_3-social-104"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-99",
+          "owner": "w5_3-social-86",
+          "residents": [
+            "w5_3-social-86",
+            "w6_3-social-87",
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "food": 9
+        }
+      ],
+      "evenings": [
+        {
+          "at": 0.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 9
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 27
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 9
+            }
+          ],
+          "wild": 159
+        },
+        {
+          "at": 1.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 26
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 5
+            }
+          ],
+          "wild": 138
+        },
+        {
+          "at": 2.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 5
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 25
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 1
+            }
+          ],
+          "wild": 112
+        },
+        {
+          "at": 3.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 24
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 79
+        },
+        {
+          "at": 4.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 23
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 50
+        },
+        {
+          "at": 5.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 22
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 21
+        },
+        {
+          "at": 6.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 51
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 21
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 0
+        }
+      ],
+      "slots": [
+        {
+          "day": 1,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 0.375,
+          "end": 0.49999999999999956,
+          "outcomes": [
+            {
+              "kind": "unfinished",
+              "task": "move_to_here",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        },
+        {
+          "day": 1,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 0.49999999999999956,
+          "end": 0.7499999999999987,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 0.7499999999999987,
+          "end": 1.2500000000000369,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 1.2500000000000369,
+          "end": 1.500000000000076,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 1.500000000000076,
+          "end": 1.750000000000115,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 1.750000000000115,
+          "end": 2.250000000000193,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 2.250000000000193,
+          "end": 2.5000000000002323,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 2.5000000000002323,
+          "end": 2.7500000000002713,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 2.7500000000002713,
+          "end": 3.2500000000003495,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 3.2500000000003495,
+          "end": 3.5000000000003886,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 3.5000000000003886,
+          "end": 3.7500000000004277,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 3.7500000000004277,
+          "end": 4.2500000000003455,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 4.2500000000003455,
+          "end": 4.500000000000225,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 4.500000000000225,
+          "end": 4.750000000000104,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 4.750000000000104,
+          "end": 5.249999999999862,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 5.249999999999862,
+          "end": 5.4999999999997415,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 5.4999999999997415,
+          "end": 5.749999999999621,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 5.749999999999621,
+          "end": 6.249999999999379,
+          "outcomes": [
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 6.249999999999379,
+          "end": 6.499999999999258,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 6.499999999999258,
+          "end": 6.749999999999138,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 6.749999999999138,
+          "end": 7.25,
+          "outcomes": [
+            {
+              "kind": "season",
+              "season": 0,
+              "lines": []
+            },
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        }
+      ]
+    },
+    "after-13": {
+      "daily": [
+        {
+          "day": 1,
+          "emptyHouseholds": 0,
+          "households": 9,
+          "hungry": 1,
+          "peakHungry": 1,
+          "daytimeAsleep": 0,
+          "hungryAt18": 1,
+          "hungryHours": 3,
+          "maxHungerAt18": 0.9648938200878661
+        },
+        {
+          "day": 2,
+          "emptyHouseholds": 0,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 41,
+          "daytimeAsleep": 0,
+          "hungryAt18": 1,
+          "hungryHours": 88,
+          "maxHungerAt18": 0.9583333333333329
+        },
+        {
+          "day": 3,
+          "emptyHouseholds": 4,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 41,
+          "daytimeAsleep": 0,
+          "hungryAt18": 0,
+          "hungryHours": 84,
+          "maxHungerAt18": 0.45833333333333337
+        },
+        {
+          "day": 4,
+          "emptyHouseholds": 9,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 41,
+          "daytimeAsleep": 0,
+          "hungryAt18": 0,
+          "hungryHours": 189,
+          "maxHungerAt18": 0.45833333333333337
+        },
+        {
+          "day": 5,
+          "emptyHouseholds": 9,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 35,
+          "daytimeAsleep": 0,
+          "hungryAt18": 3,
+          "hungryHours": 253,
+          "maxHungerAt18": 1.4583333333333337
+        },
+        {
+          "day": 6,
+          "emptyHouseholds": 9,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 23,
+          "daytimeAsleep": 0,
+          "hungryAt18": 7,
+          "hungryHours": 202,
+          "maxHungerAt18": 1.1666666666666665
+        },
+        {
+          "day": 7,
+          "emptyHouseholds": 9,
+          "households": 9,
+          "hungry": 42,
+          "peakHungry": 22,
+          "daytimeAsleep": 0,
+          "hungryAt18": 14,
+          "hungryHours": 265,
+          "maxHungerAt18": 1.1666666666666665
+        }
+      ],
+      "initial": [
+        {
+          "house": "w5_3-home-1",
+          "owner": "w5_3-social-66",
+          "residents": [],
+          "food": 51
+        },
+        {
+          "house": "w5_3-home-6",
+          "owner": "w5_3-social-66",
+          "residents": [
+            "w5_3-social-66",
+            "w5_3-social-91"
+          ],
+          "food": 9
+        },
+        {
+          "house": "w5_3-home-11",
+          "owner": "w5_3-social-74",
+          "residents": [
+            "w5_3-social-74",
+            "w5_3-social-76",
+            "w5_3-social-79",
+            "w6_3-social-89",
+            "terrain5_3-person-4147"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-16",
+          "owner": "w5_3-social-66",
+          "residents": [
+            "w5_3-social-78",
+            "w5_3-social-80",
+            "w5_3-social-96",
+            "w5_3-social-97",
+            "w5_3-social-98"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-21",
+          "owner": "w5_3-social-79",
+          "residents": [
+            "w5_3-social-61"
+          ],
+          "food": 27
+        },
+        {
+          "house": "w5_3-home-26",
+          "owner": "w5_3-social-55",
+          "residents": [
+            "w5_3-social-55",
+            "w5_3-social-68",
+            "w5_3-social-72",
+            "w5_3-social-93"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-home-31",
+          "owner": "w5_3-social-61",
+          "residents": [
+            "w5_3-social-49",
+            "w5_3-social-60",
+            "w5_3-social-70",
+            "w5_3-social-77",
+            "w6_3-social-71",
+            "w5_3-social-81",
+            "w6_3-social-81"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-62",
+          "owner": "w5_3-social-58",
+          "residents": [
+            "w5_3-social-58",
+            "w5_3-social-73",
+            "w5_3-social-85",
+            "w6_3-social-82",
+            "w5_3-social-88",
+            "w5_3-social-94",
+            "w5_3-social-103"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-82",
+          "owner": "w5_3-social-65",
+          "residents": [
+            "w5_3-social-65",
+            "w5_3-social-69",
+            "w5_3-social-90",
+            "w5_3-social-95",
+            "w6_3-social-107",
+            "w6_3-social-108",
+            "w5_3-social-104"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_3-social-99",
+          "owner": "w5_3-social-86",
+          "residents": [
+            "w5_3-social-86",
+            "w6_3-social-87",
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "food": 9
+        }
+      ],
+      "evenings": [
+        {
+          "at": 0.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 5
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 9
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 8
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 12
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 11
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 13
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 14
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 16
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 9
+            }
+          ],
+          "wild": 159
+        },
+        {
+          "at": 1.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 9
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 15
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 9
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 4
+            }
+          ],
+          "wild": 159
+        },
+        {
+          "at": 2.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 159
+        },
+        {
+          "at": 3.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 135
+        },
+        {
+          "at": 4.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 95
+        },
+        {
+          "at": 5.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 54
+        },
+        {
+          "at": 6.75,
+          "households": [
+            {
+              "house": "w5_3-home-1",
+              "owner": "w5_3-social-66",
+              "residents": [],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-6",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-66",
+                "w5_3-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-11",
+              "owner": "w5_3-social-74",
+              "residents": [
+                "w5_3-social-74",
+                "w5_3-social-76",
+                "w5_3-social-79",
+                "w6_3-social-89",
+                "terrain5_3-person-4147"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-16",
+              "owner": "w5_3-social-66",
+              "residents": [
+                "w5_3-social-78",
+                "w5_3-social-80",
+                "w5_3-social-96",
+                "w5_3-social-97",
+                "w5_3-social-98"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-21",
+              "owner": "w5_3-social-79",
+              "residents": [
+                "w5_3-social-61"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-26",
+              "owner": "w5_3-social-55",
+              "residents": [
+                "w5_3-social-55",
+                "w5_3-social-68",
+                "w5_3-social-72",
+                "w5_3-social-93"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-home-31",
+              "owner": "w5_3-social-61",
+              "residents": [
+                "w5_3-social-49",
+                "w5_3-social-60",
+                "w5_3-social-70",
+                "w5_3-social-77",
+                "w6_3-social-71",
+                "w5_3-social-81",
+                "w6_3-social-81"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-62",
+              "owner": "w5_3-social-58",
+              "residents": [
+                "w5_3-social-58",
+                "w5_3-social-73",
+                "w5_3-social-85",
+                "w6_3-social-82",
+                "w5_3-social-88",
+                "w5_3-social-94",
+                "w5_3-social-103"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-82",
+              "owner": "w5_3-social-65",
+              "residents": [
+                "w5_3-social-65",
+                "w5_3-social-69",
+                "w5_3-social-90",
+                "w5_3-social-95",
+                "w6_3-social-107",
+                "w6_3-social-108",
+                "w5_3-social-104"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_3-social-99",
+              "owner": "w5_3-social-86",
+              "residents": [
+                "w5_3-social-86",
+                "w6_3-social-87",
+                "w5_3-social-102",
+                "w6_3-social-116"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 21
+        }
+      ],
+      "slots": [
+        {
+          "day": 1,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 0.375,
+          "end": 0.49999999999999956,
+          "outcomes": [
+            {
+              "kind": "unfinished",
+              "task": "move_to_here",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        },
+        {
+          "day": 1,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 0.49999999999999956,
+          "end": 0.7499999999999987,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 0.7499999999999987,
+          "end": 1.2500000000000369,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 1.2500000000000369,
+          "end": 1.500000000000076,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 1.500000000000076,
+          "end": 1.750000000000115,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 1.750000000000115,
+          "end": 2.250000000000193,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 2.250000000000193,
+          "end": 2.5000000000002323,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 2.5000000000002323,
+          "end": 2.7500000000002713,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 2.7500000000002713,
+          "end": 3.2500000000003495,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 3.2500000000003495,
+          "end": 3.5000000000003886,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 3.5000000000003886,
+          "end": 3.7500000000004277,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 3.7500000000004277,
+          "end": 4.2500000000003455,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 4.2500000000003455,
+          "end": 4.500000000000225,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 4.500000000000225,
+          "end": 4.750000000000104,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 4.750000000000104,
+          "end": 5.249999999999862,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 5.249999999999862,
+          "end": 5.4999999999997415,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 5.4999999999997415,
+          "end": 5.749999999999621,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 5.749999999999621,
+          "end": 6.249999999999379,
+          "outcomes": [
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "slot": "morning",
+          "place": "terrain5_3-79",
+          "start": 6.249999999999379,
+          "end": 6.499999999999258,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "afternoon",
+          "place": "terrain5_3-79",
+          "start": 6.499999999999258,
+          "end": 6.749999999999138,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "evening",
+          "place": "terrain5_3-79",
+          "start": 6.749999999999138,
+          "end": 7.25,
+          "outcomes": [
+            {
+              "kind": "season",
+              "season": 0,
+              "lines": []
+            },
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        }
+      ]
+    },
+    "before-7": {
+      "daily": [
+        {
+          "day": 1,
+          "emptyHouseholds": 10,
+          "households": 13,
+          "hungry": 0,
+          "peakHungry": 0,
+          "daytimeAsleep": 0,
+          "hungryAt18": 0,
+          "hungryHours": 0,
+          "maxHungerAt18": 0.375
+        },
+        {
+          "day": 2,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 60,
+          "daytimeAsleep": 60,
+          "hungryAt18": 40,
+          "hungryHours": 835,
+          "maxHungerAt18": 1.3750000000000002
+        },
+        {
+          "day": 3,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 28,
+          "daytimeAsleep": 0,
+          "hungryAt18": 18,
+          "hungryHours": 533,
+          "maxHungerAt18": 2.375
+        },
+        {
+          "day": 4,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 41,
+          "daytimeAsleep": 31,
+          "hungryAt18": 36,
+          "hungryHours": 617,
+          "maxHungerAt18": 2.125000000000001
+        },
+        {
+          "day": 5,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 57,
+          "daytimeAsleep": 40,
+          "hungryAt18": 53,
+          "hungryHours": 1020,
+          "maxHungerAt18": 3.083333333333331
+        },
+        {
+          "day": 6,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 59,
+          "daytimeAsleep": 42,
+          "hungryAt18": 57,
+          "hungryHours": 1375,
+          "maxHungerAt18": 4.083333333333328
+        },
+        {
+          "day": 7,
+          "emptyHouseholds": 11,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 59,
+          "daytimeAsleep": 38,
+          "hungryAt18": 57,
+          "hungryHours": 1375,
+          "maxHungerAt18": 5.083333333333335
+        }
+      ],
+      "initial": [
+        {
+          "house": "w5_5-home-1",
+          "owner": "w6_4-social-84",
+          "residents": [
+            "w5_4-social-52",
+            "w5_5-social-102",
+            "w5_5-social-123",
+            "w5_4-social-69",
+            "w6_5-social-91"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-6",
+          "owner": "w6_5-social-99",
+          "residents": [
+            "w5_5-social-104",
+            "w5_5-social-107",
+            "w5_5-social-141",
+            "w5_5-social-152",
+            "w6_4-social-93",
+            "w5_5-social-162",
+            "w5_5-social-164",
+            "w5_5-social-167"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-11",
+          "owner": "w6_4-social-84",
+          "residents": [
+            "w5_5-social-105",
+            "w5_4-social-68",
+            "w5_5-social-150",
+            "w6_5-social-95"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-16",
+          "owner": "w6_4-social-81",
+          "residents": [
+            "w5_5-social-98",
+            "w5_5-social-110",
+            "w5_5-social-142",
+            "w5_4-social-87"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-social-120",
+          "owner": "w5_5-social-126",
+          "residents": [
+            "w5_5-social-126",
+            "w5_5-social-137",
+            "w5_5-social-138",
+            "w6_5-social-90",
+            "w5_5-social-149",
+            "w5_5-social-166"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-social-156",
+          "owner": "w5_5-social-112",
+          "residents": [
+            "w5_5-social-112",
+            "w5_5-social-139"
+          ],
+          "food": 42
+        },
+        {
+          "house": "w5_5-home-21",
+          "owner": "w5_5-social-100",
+          "residents": [
+            "w5_5-social-100",
+            "w5_5-social-103",
+            "w5_5-social-111",
+            "w5_5-social-124"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-26",
+          "owner": "w5_5-social-128",
+          "residents": [
+            "w5_5-social-117",
+            "w5_5-social-127",
+            "w5_5-social-128",
+            "w5_4-social-91"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-31",
+          "owner": "w5_5-social-87",
+          "residents": [
+            "w5_5-social-87"
+          ],
+          "food": 15
+        },
+        {
+          "house": "w5_5-home-36",
+          "owner": "w6_4-social-72",
+          "residents": [],
+          "food": 18
+        },
+        {
+          "house": "w5_5-home-41",
+          "owner": "w6_5-social-99",
+          "residents": [
+            "w5_5-social-92",
+            "w5_5-social-94",
+            "w5_5-social-119",
+            "w6_5-social-80",
+            "w5_5-social-160"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-46",
+          "owner": "w5_5-social-98",
+          "residents": [
+            "w5_5-social-133",
+            "w5_5-social-145",
+            "w5_5-social-147",
+            "w6_5-social-75",
+            "w5_5-social-163",
+            "w5_5-social-165"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-51",
+          "owner": "w5_4-social-68",
+          "residents": [
+            "w5_5-social-91",
+            "w5_5-social-125",
+            "w5_4-social-83"
+          ],
+          "food": 3
+        },
+        {
+          "house": "w5_5-social-114",
+          "owner": "w6_4-social-75",
+          "residents": [],
+          "food": 168
+        },
+        {
+          "house": "w5_5-social-134",
+          "owner": "w5_5-social-108",
+          "residents": [
+            "w5_5-social-108",
+            "w6_5-social-78",
+            "w5_5-social-140",
+            "w5_5-social-143",
+            "w5_5-social-144",
+            "w5_5-social-146",
+            "w5_5-social-151",
+            "w5_5-social-161"
+          ],
+          "food": 0
+        }
+      ],
+      "evenings": [
+        {
+          "at": 0.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 42
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 15
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 113
+        },
+        {
+          "at": 1.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 40
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 14
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 96
+        },
+        {
+          "at": 2.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 38
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 13
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 43
+        },
+        {
+          "at": 3.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 36
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 12
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 19
+        },
+        {
+          "at": 4.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 34
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 11
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 9
+        },
+        {
+          "at": 5.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 32
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 10
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 9
+        },
+        {
+          "at": 6.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 30
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 9
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 18
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 168
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 9
+        }
+      ],
+      "slots": [
+        {
+          "day": 1,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 0.375,
+          "end": 0.49999999999999956,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 0.49999999999999956,
+          "end": 0.7499999999999987,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 0.7499999999999987,
+          "end": 1.2500000000000369,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 1.2500000000000369,
+          "end": 1.500000000000076,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 1.500000000000076,
+          "end": 1.750000000000115,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 1.750000000000115,
+          "end": 2.250000000000193,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 2.250000000000193,
+          "end": 2.5000000000002323,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 2.5000000000002323,
+          "end": 2.7500000000002713,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 2.7500000000002713,
+          "end": 3.2500000000003495,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 3.2500000000003495,
+          "end": 3.5000000000003886,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 3.5000000000003886,
+          "end": 3.7500000000004277,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 3.7500000000004277,
+          "end": 4.2500000000003455,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 4.2500000000003455,
+          "end": 4.500000000000225,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 4.500000000000225,
+          "end": 4.750000000000104,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 4.750000000000104,
+          "end": 5.249999999999862,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 5.249999999999862,
+          "end": 5.4999999999997415,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 5.4999999999997415,
+          "end": 5.749999999999621,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 5.749999999999621,
+          "end": 6.249999999999379,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 6.249999999999379,
+          "end": 6.499999999999258,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 6.499999999999258,
+          "end": 6.749999999999138,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 6.749999999999138,
+          "end": 7.25,
+          "outcomes": [
+            {
+              "kind": "season",
+              "season": 0,
+              "lines": []
+            },
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        }
+      ]
+    },
+    "after-7": {
+      "daily": [
+        {
+          "day": 1,
+          "emptyHouseholds": 1,
+          "households": 13,
+          "hungry": 0,
+          "peakHungry": 0,
+          "daytimeAsleep": 0,
+          "hungryAt18": 0,
+          "hungryHours": 0,
+          "maxHungerAt18": 0.375
+        },
+        {
+          "day": 2,
+          "emptyHouseholds": 0,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 60,
+          "daytimeAsleep": 0,
+          "hungryAt18": 1,
+          "hungryHours": 166,
+          "maxHungerAt18": 1.3750000000000002
+        },
+        {
+          "day": 3,
+          "emptyHouseholds": 1,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 52,
+          "daytimeAsleep": 0,
+          "hungryAt18": 1,
+          "hungryHours": 146,
+          "maxHungerAt18": 0.9583333333333329
+        },
+        {
+          "day": 4,
+          "emptyHouseholds": 6,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 51,
+          "daytimeAsleep": 0,
+          "hungryAt18": 3,
+          "hungryHours": 254,
+          "maxHungerAt18": 1.4583333333333337
+        },
+        {
+          "day": 5,
+          "emptyHouseholds": 3,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 40,
+          "daytimeAsleep": 0,
+          "hungryAt18": 7,
+          "hungryHours": 254,
+          "maxHungerAt18": 1.4583333333333337
+        },
+        {
+          "day": 6,
+          "emptyHouseholds": 7,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 35,
+          "daytimeAsleep": 1,
+          "hungryAt18": 10,
+          "hungryHours": 291,
+          "maxHungerAt18": 1.2916666666666667
+        },
+        {
+          "day": 7,
+          "emptyHouseholds": 13,
+          "households": 13,
+          "hungry": 60,
+          "peakHungry": 27,
+          "daytimeAsleep": 2,
+          "hungryAt18": 15,
+          "hungryHours": 386,
+          "maxHungerAt18": 1.4583333333333337
+        }
+      ],
+      "initial": [
+        {
+          "house": "w5_5-home-1",
+          "owner": "w6_4-social-84",
+          "residents": [
+            "w5_4-social-52",
+            "w5_5-social-102",
+            "w5_5-social-123",
+            "w5_4-social-69",
+            "w6_5-social-91"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-6",
+          "owner": "w6_5-social-99",
+          "residents": [
+            "w5_5-social-104",
+            "w5_5-social-107",
+            "w5_5-social-141",
+            "w5_5-social-152",
+            "w6_4-social-93",
+            "w5_5-social-162",
+            "w5_5-social-164",
+            "w5_5-social-167"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-11",
+          "owner": "w6_4-social-84",
+          "residents": [
+            "w5_5-social-105",
+            "w5_4-social-68",
+            "w5_5-social-150",
+            "w6_5-social-95"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-16",
+          "owner": "w6_4-social-81",
+          "residents": [
+            "w5_5-social-98",
+            "w5_5-social-110",
+            "w5_5-social-142",
+            "w5_4-social-87"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-social-120",
+          "owner": "w5_5-social-126",
+          "residents": [
+            "w5_5-social-126",
+            "w5_5-social-137",
+            "w5_5-social-138",
+            "w6_5-social-90",
+            "w5_5-social-149",
+            "w5_5-social-166"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-social-156",
+          "owner": "w5_5-social-112",
+          "residents": [
+            "w5_5-social-112",
+            "w5_5-social-139"
+          ],
+          "food": 42
+        },
+        {
+          "house": "w5_5-home-21",
+          "owner": "w5_5-social-100",
+          "residents": [
+            "w5_5-social-100",
+            "w5_5-social-103",
+            "w5_5-social-111",
+            "w5_5-social-124"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-26",
+          "owner": "w5_5-social-128",
+          "residents": [
+            "w5_5-social-117",
+            "w5_5-social-127",
+            "w5_5-social-128",
+            "w5_4-social-91"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-31",
+          "owner": "w5_5-social-87",
+          "residents": [
+            "w5_5-social-87"
+          ],
+          "food": 15
+        },
+        {
+          "house": "w5_5-home-36",
+          "owner": "w6_4-social-72",
+          "residents": [],
+          "food": 18
+        },
+        {
+          "house": "w5_5-home-41",
+          "owner": "w6_5-social-99",
+          "residents": [
+            "w5_5-social-92",
+            "w5_5-social-94",
+            "w5_5-social-119",
+            "w6_5-social-80",
+            "w5_5-social-160"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-46",
+          "owner": "w5_5-social-98",
+          "residents": [
+            "w5_5-social-133",
+            "w5_5-social-145",
+            "w5_5-social-147",
+            "w6_5-social-75",
+            "w5_5-social-163",
+            "w5_5-social-165"
+          ],
+          "food": 0
+        },
+        {
+          "house": "w5_5-home-51",
+          "owner": "w5_4-social-68",
+          "residents": [
+            "w5_5-social-91",
+            "w5_5-social-125",
+            "w5_4-social-83"
+          ],
+          "food": 3
+        },
+        {
+          "house": "w5_5-social-114",
+          "owner": "w6_4-social-75",
+          "residents": [],
+          "food": 168
+        },
+        {
+          "house": "w5_5-social-134",
+          "owner": "w5_5-social-108",
+          "residents": [
+            "w5_5-social-108",
+            "w6_5-social-78",
+            "w5_5-social-140",
+            "w5_5-social-143",
+            "w5_5-social-144",
+            "w5_5-social-146",
+            "w5_5-social-151",
+            "w5_5-social-161"
+          ],
+          "food": 0
+        }
+      ],
+      "evenings": [
+        {
+          "at": 0.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 12
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 10
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 10
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 10
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 10
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 5
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 154
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 4
+            }
+          ],
+          "wild": 113
+        },
+        {
+          "at": 1.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 8
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 8
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 132
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 5
+            }
+          ],
+          "wild": 108
+        },
+        {
+          "at": 2.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 5
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 96
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 6
+            }
+          ],
+          "wild": 99
+        },
+        {
+          "at": 3.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 62
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 7
+            }
+          ],
+          "wild": 80
+        },
+        {
+          "at": 4.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 6
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 24
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 1
+            }
+          ],
+          "wild": 59
+        },
+        {
+          "at": 5.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 1
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 2
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 4
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 3
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 5
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 42
+        },
+        {
+          "at": 6.75,
+          "households": [
+            {
+              "house": "w5_5-home-1",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_4-social-52",
+                "w5_5-social-102",
+                "w5_5-social-123",
+                "w5_4-social-69",
+                "w6_5-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-6",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-104",
+                "w5_5-social-107",
+                "w5_5-social-141",
+                "w5_5-social-152",
+                "w6_4-social-93",
+                "w5_5-social-162",
+                "w5_5-social-164",
+                "w5_5-social-167"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-11",
+              "owner": "w6_4-social-84",
+              "residents": [
+                "w5_5-social-105",
+                "w5_4-social-68",
+                "w5_5-social-150",
+                "w6_5-social-95"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-16",
+              "owner": "w6_4-social-81",
+              "residents": [
+                "w5_5-social-98",
+                "w5_5-social-110",
+                "w5_5-social-142",
+                "w5_4-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-120",
+              "owner": "w5_5-social-126",
+              "residents": [
+                "w5_5-social-126",
+                "w5_5-social-137",
+                "w5_5-social-138",
+                "w6_5-social-90",
+                "w5_5-social-149",
+                "w5_5-social-166"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-156",
+              "owner": "w5_5-social-112",
+              "residents": [
+                "w5_5-social-112",
+                "w5_5-social-139"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-21",
+              "owner": "w5_5-social-100",
+              "residents": [
+                "w5_5-social-100",
+                "w5_5-social-103",
+                "w5_5-social-111",
+                "w5_5-social-124"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-26",
+              "owner": "w5_5-social-128",
+              "residents": [
+                "w5_5-social-117",
+                "w5_5-social-127",
+                "w5_5-social-128",
+                "w5_4-social-91"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-31",
+              "owner": "w5_5-social-87",
+              "residents": [
+                "w5_5-social-87"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-36",
+              "owner": "w6_4-social-72",
+              "residents": [],
+              "food": 7
+            },
+            {
+              "house": "w5_5-home-41",
+              "owner": "w6_5-social-99",
+              "residents": [
+                "w5_5-social-92",
+                "w5_5-social-94",
+                "w5_5-social-119",
+                "w6_5-social-80",
+                "w5_5-social-160"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-46",
+              "owner": "w5_5-social-98",
+              "residents": [
+                "w5_5-social-133",
+                "w5_5-social-145",
+                "w5_5-social-147",
+                "w6_5-social-75",
+                "w5_5-social-163",
+                "w5_5-social-165"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-home-51",
+              "owner": "w5_4-social-68",
+              "residents": [
+                "w5_5-social-91",
+                "w5_5-social-125",
+                "w5_4-social-83"
+              ],
+              "food": 0
+            },
+            {
+              "house": "w5_5-social-114",
+              "owner": "w6_4-social-75",
+              "residents": [],
+              "food": 5
+            },
+            {
+              "house": "w5_5-social-134",
+              "owner": "w5_5-social-108",
+              "residents": [
+                "w5_5-social-108",
+                "w6_5-social-78",
+                "w5_5-social-140",
+                "w5_5-social-143",
+                "w5_5-social-144",
+                "w5_5-social-146",
+                "w5_5-social-151",
+                "w5_5-social-161"
+              ],
+              "food": 0
+            }
+          ],
+          "wild": 10
+        }
+      ],
+      "slots": [
+        {
+          "day": 1,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 0.375,
+          "end": 0.49999999999999956,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 0.49999999999999956,
+          "end": 0.7499999999999987,
+          "outcomes": []
+        },
+        {
+          "day": 1,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 0.7499999999999987,
+          "end": 1.2500000000000369,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 1.2500000000000369,
+          "end": 1.500000000000076,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 1.500000000000076,
+          "end": 1.750000000000115,
+          "outcomes": []
+        },
+        {
+          "day": 2,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 1.750000000000115,
+          "end": 2.250000000000193,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 2.250000000000193,
+          "end": 2.5000000000002323,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 2.5000000000002323,
+          "end": 2.7500000000002713,
+          "outcomes": []
+        },
+        {
+          "day": 3,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 2.7500000000002713,
+          "end": 3.2500000000003495,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 3.2500000000003495,
+          "end": 3.5000000000003886,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 3.5000000000003886,
+          "end": 3.7500000000004277,
+          "outcomes": []
+        },
+        {
+          "day": 4,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 3.7500000000004277,
+          "end": 4.2500000000003455,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 4.2500000000003455,
+          "end": 4.500000000000225,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 4.500000000000225,
+          "end": 4.750000000000104,
+          "outcomes": []
+        },
+        {
+          "day": 5,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 4.750000000000104,
+          "end": 5.249999999999862,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 5.249999999999862,
+          "end": 5.4999999999997415,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 5.4999999999997415,
+          "end": 5.749999999999621,
+          "outcomes": []
+        },
+        {
+          "day": 6,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 5.749999999999621,
+          "end": 6.249999999999379,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "morning",
+          "place": "terrain5_5-1",
+          "start": 6.249999999999379,
+          "end": 6.499999999999258,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "afternoon",
+          "place": "terrain5_5-1",
+          "start": 6.499999999999258,
+          "end": 6.749999999999138,
+          "outcomes": []
+        },
+        {
+          "day": 7,
+          "slot": "evening",
+          "place": "terrain5_5-1",
+          "start": 6.749999999999138,
+          "end": 7.25,
+          "outcomes": [
+            {
+              "kind": "season",
+              "season": 0,
+              "lines": []
+            },
+            {
+              "kind": "unfinished",
+              "task": "rest",
+              "reason": "The slot ended before the task finished"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "intermediate": {
+    "first-13": [
+      {
+        "day": 1,
+        "emptyHouseholds": 6,
+        "households": 9,
+        "hungry": 1,
+        "peakHungry": 1,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 3,
+        "maxHungerAt18": 0.9648938200878661
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 6,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 5,
+        "hungryHours": 201,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 6,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 3,
+        "hungryHours": 120,
+        "maxHungerAt18": 0.9999999999999996
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 8,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 3,
+        "hungryHours": 160,
+        "maxHungerAt18": 0.9999999999999996
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 8,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 21,
+        "daytimeAsleep": 0,
+        "hungryAt18": 3,
+        "hungryHours": 170,
+        "maxHungerAt18": 0.9583333333333329
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 19,
+        "daytimeAsleep": 0,
+        "hungryAt18": 4,
+        "hungryHours": 176,
+        "maxHungerAt18": 1.1249999999999998
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 20,
+        "daytimeAsleep": 1,
+        "hungryAt18": 10,
+        "hungryHours": 273,
+        "maxHungerAt18": 1.2083333333333333
+      }
+    ],
+    "first-7": [
+      {
+        "day": 1,
+        "emptyHouseholds": 10,
+        "households": 13,
+        "hungry": 0,
+        "peakHungry": 0,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 0,
+        "maxHungerAt18": 0.375
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 11,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 12,
+        "hungryHours": 382,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 11,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 40,
+        "daytimeAsleep": 8,
+        "hungryAt18": 14,
+        "hungryHours": 409,
+        "maxHungerAt18": 2.375
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 11,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 24,
+        "hungryHours": 398,
+        "maxHungerAt18": 1.25
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 11,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 51,
+        "daytimeAsleep": 5,
+        "hungryAt18": 48,
+        "hungryHours": 900,
+        "maxHungerAt18": 2.2500000000000004
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 57,
+        "daytimeAsleep": 0,
+        "hungryAt18": 57,
+        "hungryHours": 1304,
+        "maxHungerAt18": 3.249999999999997
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 13,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 58,
+        "hungryHours": 1393,
+        "maxHungerAt18": 4.249999999999996
+      }
+    ],
+    "second-13": [
+      {
+        "day": 1,
+        "emptyHouseholds": 5,
+        "households": 9,
+        "hungry": 1,
+        "peakHungry": 1,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 2,
+        "maxHungerAt18": 0.9648938200878661
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 2,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 156,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 4,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 107,
+        "maxHungerAt18": 0.9999999999999996
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 6,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 27,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 141,
+        "maxHungerAt18": 0.9999999999999996
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 8,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 24,
+        "daytimeAsleep": 0,
+        "hungryAt18": 2,
+        "hungryHours": 151,
+        "maxHungerAt18": 1.0416666666666663
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 28,
+        "daytimeAsleep": 0,
+        "hungryAt18": 4,
+        "hungryHours": 254,
+        "maxHungerAt18": 1.416666666666667
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 20,
+        "hungryHours": 323,
+        "maxHungerAt18": 1.2083333333333333
+      }
+    ],
+    "second-7": [
+      {
+        "day": 1,
+        "emptyHouseholds": 10,
+        "households": 13,
+        "hungry": 0,
+        "peakHungry": 0,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 0,
+        "maxHungerAt18": 0.375
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 4,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 9,
+        "hungryHours": 328,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 10,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 42,
+        "daytimeAsleep": 2,
+        "hungryAt18": 2,
+        "hungryHours": 245,
+        "maxHungerAt18": 1.0416666666666663
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 37,
+        "daytimeAsleep": 0,
+        "hungryAt18": 12,
+        "hungryHours": 408,
+        "maxHungerAt18": 1.9166666666666679
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 48,
+        "daytimeAsleep": 1,
+        "hungryAt18": 46,
+        "hungryHours": 684,
+        "maxHungerAt18": 2.458333333333333
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 56,
+        "daytimeAsleep": 2,
+        "hungryAt18": 56,
+        "hungryHours": 1277,
+        "maxHungerAt18": 3.4583333333333295
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 59,
+        "daytimeAsleep": 0,
+        "hungryAt18": 56,
+        "hungryHours": 1355,
+        "maxHungerAt18": 4.45833333333333
+      }
+    ],
+    "third-13": [
+      {
+        "day": 1,
+        "emptyHouseholds": 2,
+        "households": 9,
+        "hungry": 1,
+        "peakHungry": 1,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 2,
+        "maxHungerAt18": 0.9648938200878661
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 2,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 87,
+        "maxHungerAt18": 0.45833333333333337
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 4,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 4,
+        "hungryHours": 163,
+        "maxHungerAt18": 1.416666666666667
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 5,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 32,
+        "daytimeAsleep": 0,
+        "hungryAt18": 4,
+        "hungryHours": 162,
+        "maxHungerAt18": 0.9999999999999996
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 8,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 25,
+        "daytimeAsleep": 0,
+        "hungryAt18": 10,
+        "hungryHours": 229,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 8,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 26,
+        "daytimeAsleep": 0,
+        "hungryAt18": 14,
+        "hungryHours": 321,
+        "maxHungerAt18": 2.4166666666666665
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 23,
+        "daytimeAsleep": 0,
+        "hungryAt18": 22,
+        "hungryHours": 306,
+        "maxHungerAt18": 3.416666666666663
+      }
+    ],
+    "third-7": [
+      {
+        "day": 1,
+        "emptyHouseholds": 2,
+        "households": 13,
+        "hungry": 0,
+        "peakHungry": 0,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 0,
+        "maxHungerAt18": 0.375
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 5,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 7,
+        "hungryHours": 198,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 10,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 51,
+        "daytimeAsleep": 0,
+        "hungryAt18": 14,
+        "hungryHours": 281,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 36,
+        "daytimeAsleep": 0,
+        "hungryAt18": 29,
+        "hungryHours": 466,
+        "maxHungerAt18": 2.4166666666666665
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 44,
+        "daytimeAsleep": 0,
+        "hungryAt18": 42,
+        "hungryHours": 706,
+        "maxHungerAt18": 3.416666666666663
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 56,
+        "daytimeAsleep": 0,
+        "hungryAt18": 56,
+        "hungryHours": 1243,
+        "maxHungerAt18": 4.416666666666663
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 12,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 56,
+        "hungryHours": 1356,
+        "maxHungerAt18": 5.4166666666666705
+      }
+    ],
+    "fourth-13": [
+      {
+        "day": 1,
+        "emptyHouseholds": 0,
+        "households": 9,
+        "hungry": 1,
+        "peakHungry": 1,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 2,
+        "maxHungerAt18": 0.9648938200878661
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 0,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 2,
+        "hungryHours": 105,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 4,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 38,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 91,
+        "maxHungerAt18": 0.45833333333333337
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 39,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 179,
+        "maxHungerAt18": 0.45833333333333337
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 34,
+        "daytimeAsleep": 0,
+        "hungryAt18": 14,
+        "hungryHours": 356,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 26,
+        "daytimeAsleep": 0,
+        "hungryAt18": 26,
+        "hungryHours": 317,
+        "maxHungerAt18": 2.458333333333333
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 26,
+        "daytimeAsleep": 0,
+        "hungryAt18": 21,
+        "hungryHours": 357,
+        "maxHungerAt18": 3.4583333333333295
+      }
+    ],
+    "fourth-7": [
+      {
+        "day": 1,
+        "emptyHouseholds": 2,
+        "households": 13,
+        "hungry": 0,
+        "peakHungry": 0,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 0,
+        "maxHungerAt18": 0.375
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 4,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 6,
+        "hungryHours": 228,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 7,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 46,
+        "daytimeAsleep": 0,
+        "hungryAt18": 8,
+        "hungryHours": 211,
+        "maxHungerAt18": 1.416666666666667
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 6,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 42,
+        "daytimeAsleep": 0,
+        "hungryAt18": 21,
+        "hungryHours": 484,
+        "maxHungerAt18": 1.9583333333333346
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 9,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 29,
+        "daytimeAsleep": 0,
+        "hungryAt18": 22,
+        "hungryHours": 411,
+        "maxHungerAt18": 2.458333333333333
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 9,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 37,
+        "daytimeAsleep": 1,
+        "hungryAt18": 37,
+        "hungryHours": 726,
+        "maxHungerAt18": 3.4583333333333295
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 6,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 48,
+        "daytimeAsleep": 6,
+        "hungryAt18": 33,
+        "hungryHours": 873,
+        "maxHungerAt18": 4.45833333333333
+      }
+    ],
+    "fifth-13": [
+      {
+        "day": 1,
+        "emptyHouseholds": 0,
+        "households": 9,
+        "hungry": 1,
+        "peakHungry": 1,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 3,
+        "maxHungerAt18": 0.9648938200878661
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 0,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 88,
+        "maxHungerAt18": 0.9583333333333329
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 4,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 84,
+        "maxHungerAt18": 0.45833333333333337
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 41,
+        "daytimeAsleep": 0,
+        "hungryAt18": 2,
+        "hungryHours": 211,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 35,
+        "daytimeAsleep": 0,
+        "hungryAt18": 16,
+        "hungryHours": 360,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 21,
+        "daytimeAsleep": 0,
+        "hungryAt18": 19,
+        "hungryHours": 279,
+        "maxHungerAt18": 2.458333333333333
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 9,
+        "households": 9,
+        "hungry": 42,
+        "peakHungry": 23,
+        "daytimeAsleep": 0,
+        "hungryAt18": 21,
+        "hungryHours": 292,
+        "maxHungerAt18": 2.0833333333333344
+      }
+    ],
+    "fifth-7": [
+      {
+        "day": 1,
+        "emptyHouseholds": 1,
+        "households": 13,
+        "hungry": 0,
+        "peakHungry": 0,
+        "daytimeAsleep": 0,
+        "hungryAt18": 0,
+        "hungryHours": 0,
+        "maxHungerAt18": 0.375
+      },
+      {
+        "day": 2,
+        "emptyHouseholds": 1,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 60,
+        "daytimeAsleep": 0,
+        "hungryAt18": 4,
+        "hungryHours": 196,
+        "maxHungerAt18": 1.3750000000000002
+      },
+      {
+        "day": 3,
+        "emptyHouseholds": 3,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 54,
+        "daytimeAsleep": 0,
+        "hungryAt18": 1,
+        "hungryHours": 170,
+        "maxHungerAt18": 1.416666666666667
+      },
+      {
+        "day": 4,
+        "emptyHouseholds": 4,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 54,
+        "daytimeAsleep": 0,
+        "hungryAt18": 8,
+        "hungryHours": 351,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 5,
+        "emptyHouseholds": 5,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 40,
+        "daytimeAsleep": 0,
+        "hungryAt18": 11,
+        "hungryHours": 286,
+        "maxHungerAt18": 1.416666666666667
+      },
+      {
+        "day": 6,
+        "emptyHouseholds": 5,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 29,
+        "daytimeAsleep": 0,
+        "hungryAt18": 14,
+        "hungryHours": 287,
+        "maxHungerAt18": 1.4583333333333337
+      },
+      {
+        "day": 7,
+        "emptyHouseholds": 13,
+        "households": 13,
+        "hungry": 60,
+        "peakHungry": 29,
+        "daytimeAsleep": 0,
+        "hungryAt18": 18,
+        "hungryHours": 413,
+        "maxHungerAt18": 1.9166666666666679
+      }
+    ]
+  }
+}

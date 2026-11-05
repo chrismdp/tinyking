@@ -1,0 +1,24 @@
+FAIL test/household_food.test.js
+  ● restocks a low household from reachable kin before its residents are hungry
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 4
+    Received: undefined
+
+      172 |   s.ecs.household[other].storeId=pantry;
+      173 |   advance(s,4);
+    > 174 |   expect(s.ecs.container[pantry].amounts.grain).toBe(4);
+          |                                                 ^
+      175 |   expect(s.ecs.container[store].amounts.grain).toBe(8);
+      176 |   expect(s.ecs.holder[b].held).toEqual([]);
+      177 | });
+
+      at Object.<anonymous> (test/household_food.test.js:174:49)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 11 passed, 12 total
+Snapshots:   0 total
+Time:        2.982 s, estimated 3 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

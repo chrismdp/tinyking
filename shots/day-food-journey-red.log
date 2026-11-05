@@ -1,0 +1,24 @@
+FAIL test/survival.test.js
+  ● finishes a resident's reachable meal collection after four hours of real travel or work
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 2
+    Received: 3
+
+      328 |   world.mealSearch={started:s.days-5*HOUR,rejected:{},source:plant,kind:"forage",type:"roots",phase:"collect",beginCollect:false};
+      329 |   let result=recover_meal(s,a,world,HOUR/10,false);
+    > 330 |   expect(result).toBe(Task.CONTINUE);
+          |                  ^
+      331 |   for(let n=0;n<5 && result==Task.CONTINUE;n++)result=recover_meal(s,a,world,HOUR/10,false);
+      332 |   expect(result).toBe(Task.FINISH);
+      333 |   expect(s.ecs.forageable[plant].amount).toBe(0);
+
+      at Object.<anonymous> (test/survival.test.js:330:18)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 25 skipped, 26 total
+Snapshots:   0 total
+Time:        1.059 s, estimated 2 s
+Ran all test suites matching test/survival.test.js with tests matching "after four hours".
+EXIT_STATUS=1

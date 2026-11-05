@@ -1,0 +1,24 @@
+FAIL test/household_food.test.js (5.06 s)
+  ● shares a second meal with hungry kin while retaining the donor's next meal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      196 |   const {s,store,b}=family();
+      197 |   s.ecs.container[store].amounts.grain=2;
+    > 198 |   expect(mealAccess(s,b,store)).toBe(true);
+          |                                 ^
+      199 |   s.ecs.container[store].amounts.grain=1;
+      200 |   expect(mealAccess(s,b,store)).toBe(false);
+      201 | });
+
+      at Object.<anonymous> (test/household_food.test.js:198:33)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 13 passed, 14 total
+Snapshots:   0 total
+Time:        5.335 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

@@ -6,6 +6,7 @@ import { playerDay, daylight } from "game/energy";
 import { updateOverhearing } from "game/chat_bubbles";
 import { updateCampfireVisits } from "game/campfire_visits";
 import { updateNeeds } from "game/needs";
+import { updateHouseholdFood } from "game/household_food";
 import { updateCustoms } from "game/village_customs";
 import { actualHome, nightTime, validateHome, leaveHome } from "game/home";
 import { updateEnvironment } from "game/environment";
@@ -224,6 +225,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
         socialHour(state);
         updateFestival(state);
         updateFavours(state);
+        updateHouseholdFood(state);
         if (onHour) {
           onHour();
         }
@@ -250,7 +252,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     const arriving = introActive(state);
     updateIntro(state, realSeconds);
     if (arriving) return;
-    if (!clock.requestsStarted) { updateFavours(state); clock.requestsStarted = true; }
+    if (!clock.requestsStarted) { updateFavours(state); updateHouseholdFood(state); clock.requestsStarted = true; }
     playerDay(state);
     updateCustoms(state);
     updateJourney(state);

@@ -163,3 +163,15 @@ it("brings a spare real portion home from kin so that another housemate can eat"
   expect(s.ecs.holder[b].held).toEqual([]);
   expect(s.ecs.personable[a].hunger).toBeLessThan(.9);
 });
+
+it("restocks a low household from reachable kin before its residents are hungry", () => {
+  const {s,other,store,b,c}=family();
+  s.ui.playerId=c;s.ecs.playable[c]={known:[]};s.ecs.planner[c].world.ordered=true;s.ecs.manager[c].ordered=true;
+  s.ecs.personable[b].hunger=s.ecs.personable[c].hunger=0;
+  const [pantry]=newEntities(s,[{spatial:{...s.ecs.spatial[other]},interior:{buildingId:other},container:{capacity:20,amounts:{}},controllable:{controllerId:other}}]);
+  s.ecs.household[other].storeId=pantry;
+  advance(s,4);
+  expect(s.ecs.container[pantry].amounts.grain).toBe(4);
+  expect(s.ecs.container[store].amounts.grain).toBe(8);
+  expect(s.ecs.holder[b].held).toEqual([]);
+});

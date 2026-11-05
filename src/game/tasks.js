@@ -1,5 +1,5 @@
 import { isAdult, canHelpAtHome } from "game/life_stages";
-import { refreshPersonIndex } from "game/population_index";
+import { refreshPersonIndex, householdMembers } from "game/population_index";
 import { meetInSecret } from "game/secret_activities";
 import { spendEnergy, eatOwnedFood } from "game/energy";
 import { FIELD_STATES, ownsField, harvestFits } from "game/farming";
@@ -16,7 +16,7 @@ import { designationPlants } from "game/designation";
 import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
-import { FUEL_TRADES, FUEL_HOURS, harvestRouteReason, fuelReady, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
+import { FUEL_TRADES, FUEL_HOURS, harvestRouteReason, fuelReady, householdFood, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -47,6 +47,13 @@ import { CHAT_APPROACH_JOBS, chatIntentUnavailable, chatUnfriendly, completeChat
 import { TALK_MINUTES } from "game/player";
 
 export const GLEANING_SHARE = 0.05;
+
+function foodArrived(state, house, actorId) {
+  for(const id of new Set([actorId,...(house ? householdMembers(state,house) : [])])) {
+    const world=state.ecs.planner?.[id]?.world;
+    if(world)delete world.no_place_for.meal;
+  }
+}
 
 // NOTE: no in-game action, as these are _entirely in the mind_.
 export function set_label() {}
@@ -498,6 +505,7 @@ export function perform_subtask_in_slot(state, actorId, world, dt, firstRun, tar
         ...(farm.houseId ? { household: { houseId: farm.houseId } } : {}),
         controllable: { controllerId: topController(state.ecs, assisting ? targetId : actorId) }
       })));
+      foodArrived(state,farm.houseId,actorId);
       state.redraws.push(...goods);
       if (order?.job?.key == "harvest_field") order.gathered = [...(order.gathered || []), ...goods];
       if (farm.houseId) recordProduction(state,farm.houseId,actorId,slot.content,goods.length);
@@ -546,6 +554,8 @@ export function drop_entity_into_stockpile_slot(state, actorId, world, dt, first
   state.ecs.spatial[droppedId].x = world.places[place].x;
   state.ecs.spatial[droppedId].y = world.places[place].y;
   space.push(droppedId);
+  world.holding[type]=state.ecs.holder[actorId].held.some(id=>state.ecs.good[id]?.type==type);
+  if(FOODS.includes(type))foodArrived(state,foodHouse(state,stockpileId),actorId);
 
   state.redraws.push(actorId);
   state.redraws.push(stockpileId);
@@ -576,6 +586,8 @@ export function drop_entity_into_container(state, actorId, world, dt, firstRun, 
   } else {
     state.ecs.container[containerId].amounts[type] = 1;
   }
+  world.holding[type]=state.ecs.holder[actorId].held.some(id=>state.ecs.good[id]?.type==type);
+  if(FOODS.includes(type))foodArrived(state,foodHouse(state,containerId),actorId);
 
   state.redraws.push(actorId);
   state.redraws.push(containerId);
@@ -862,6 +874,7 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
   const search=world.mealSearch;
   const unavailable=reason=>{
     world.mealFailure=reason;
+    if(!world.ordered)world.no_place_for.meal=state.days+FIND_PLACE_DELAY;
     const order=jobQueueFor(ecs,actorId).find(j=>j.job.key=="find_food");
     if(order){order.waiting=order.detail=reason;order.failed=true;}
     return Task.ABORT;
@@ -912,6 +925,20 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
 }
 
 export function meal_unavailable() { return Task.ABORT; }
+
+export function collect_household_food(state, actorId, world, dt, firstRun, offer) {
+  delete world.foodForHome;
+  const e=state.ecs, home=e.household?.[actorId]?.houseId;
+  const members=householdMembers(state,home).filter(id=>!e.personable[id].dead);
+  if((householdFood(state).get(home) || 0)>=members.length*2)return Task.ABORT;
+  world.places.householdFood=offer.source;
+  let collected=false;
+  while(e.holder[actorId].held.length<e.holder[actorId].capacity && e.container[offer.source]?.amounts[offer.type]>=1 && mealAccess(state,actorId,offer.source)) {
+    if(pick_up_from_container(state,actorId,world,dt,true,"householdFood",offer.type)==Task.ABORT)break;
+    collected=true;
+  }
+  return collected ? Task.FINISH : Task.ABORT;
+}
 
 export function eat(state, actorId, world, dt, firstRun, thing) {
   if(thing=="meal")thing=world.mealType;

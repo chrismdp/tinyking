@@ -126,3 +126,24 @@ EXIT_STATUS=0
 ```
 
 The final ESLint command also includes `src/game/primitive.js`. It produced no diagnostics and exited 0. The first candidate's seven-day results remain in `shots/day-food-first-after-13.json` and `shots/day-food-first-after-7.json`. These are intermediate evidence, not the final comparison.
+
+## Completing household collection
+
+The second candidate (`dd27dbb`) also completed both weeks. It improved early food access but still left later shortages. The remaining work was to collect household supplies before hunger started. Added an hourly choice of one adult collector for a low household. This uses the existing threshold of two meals per resident. The collector walks to a permitted store, fills available hands with real portions and uses the existing storage plan to bring them home. Each collection rechecks the donor's reserve. Food requests still expire only when their real outcome occurs.
+
+The new regression failed first: 1 failed, 11 passed, exit 1 (`shots/day-food-restock-red.log`). Its first implementation found another existing fault: storing the first of two grain portions cleared the planner's holding flag, leaving the second portion in a working hand. Both container and stockpile storage now retain the flag while a matching good remains held.
+
+The complete meal task also needed the existing four-hour failed-search cooldown. Without it, a hungry villager with a ripe field kept repeating the failed search instead of returning to harvest work. A regression first failed with its crop still ripe after five hours (`shots/day-food-ripe-red.log`, exit 1). The corrected test checks the actual six-grain harvest event and subsequent meal. It permits the villager to plough the harvested patch afterwards.
+
+A failed meal search now lets ordinary work proceed during its existing four-hour cooldown. Actual harvests and food deliveries clear that stale failure for the household. The ripe-field regression retains its five-hour limit. The first storage fix run passed 61 tests but still caught the stale failed-search delay. Clearing that delay on real food arrival resolved it.
+
+```
+Test Suites: 4 passed, 4 total
+Tests:       62 passed, 62 total
+Snapshots:   0 total
+Time:        5.212 s, estimated 6 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=0
+```
+
+The second candidate's results remain in `shots/day-food-second-after-13.json` and `shots/day-food-second-after-7.json`. Both completed with exit 0. The final comparison uses the version with household collection and correct storage flags. No crop age, crop yield, initial stock, forage density or need rate changes were made.

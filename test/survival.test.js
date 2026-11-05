@@ -311,3 +311,11 @@ it("finds and eats reachable wild roots within two hours when all stores are emp
   expect(s.ecs.personable[a].hunger).toBeLessThan(.15);
   expect(s.ecs.forageable[plant].amount).toBe(0);
 });
+
+it("harvests its own ripe crop after an empty meal search instead of searching forever", () => {
+  const {state:s,villager:a}=hungryVillage();
+  const [field]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},farmable:{slots:[{state:"harvestable",content:"grain",amount:6}]},controllable:{controllerId:a}}]);
+  advance(s,HOUR*5);
+  expect(s.events).toEqual(expect.arrayContaining([expect.objectContaining({type:"harvest",fieldId:field,quantity:6})]));
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.4);
+});

@@ -71,6 +71,7 @@ export const person = () => [
     world => world.moveHome,
     house => [["walk_to", house], ["arrive_home"]]
   ],
+  [world => world.foodForHome, offer => [["set_label"], ["walk_to",offer.source], ["collect_household_food",offer], ["store_held"]]],
   [
     world => world.social,
     () => [["social_visit"]]

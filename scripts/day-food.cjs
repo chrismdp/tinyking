@@ -46,7 +46,10 @@ function sample() {
   if (day > 7) return;
   const ids = people(), hungry = ids.filter(id=>s.ecs.personable[id].hunger > .9), asleep = ids.filter(id=>s.ecs.planner[id].task?.[0] == "sleep");
   hourly.push({day,hour,hungry,asleep,food:Object.fromEntries(householdFood(s))});
-  if (hour == 18) rows.push(snapshot());
+  if (hour == 18) {
+    const row=snapshot();rows.push(row);
+    console.log(JSON.stringify({seed,day,emptyHouseholds:row.households.filter(h=>h.residents.length && h.food<1).length,hungry:hungry.length}));
+  }
 }
 const create = simulation.createSimulation;
 simulation.createSimulation = (state, options = {}) => create(state,{...options,onHour(){options.onHour?.();sample();}});

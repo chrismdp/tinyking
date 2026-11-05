@@ -1,0 +1,92 @@
+FAIL test/household_food.test.js
+  ● lets an heir and their household eat a vacant inherited home's store without taking its fields or beds
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.2
+    Received:   1.3250000000000002
+
+      34 |   expect(householdAccess(s.ecs,b,house)).toBe(false);
+      35 |   advance(s,3);
+    > 36 |   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+         |                                      ^
+      37 |   expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
+      38 |   expect(s.ecs.container[store].amounts.grain).toBe(10);
+      39 |   expect(s.ecs.household[b].houseId).toBe(other);
+
+      at Object.<anonymous> (test/household_food.test.js:36:38)
+
+  ● lets hungry kin take real surplus while keeping two meals for each donor resident
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.2
+    Received:   1.3250000000000002
+
+      45 |   const {s,store,b,c}=family();
+      46 |   advance(s,3);
+    > 47 |   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+         |                                      ^
+      48 |   expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
+      49 |   expect(s.ecs.container[store].amounts.grain).toBe(10);
+      50 |   s.ecs.container[store].amounts.grain=2;
+
+      at Object.<anonymous> (test/household_food.test.js:47:38)
+
+  ● uses the same inherited-store permission for real offscreen meals
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.1
+    Received:   1.2416666666666667
+
+      69 |   s.needsUpdatedAt=s.days;
+      70 |   advanceOffscreenNeeds(s,s.days+HOUR);
+    > 71 |   expect(s.ecs.personable[b].hunger).toBeLessThan(.1);
+         |                                      ^
+      72 |   expect(s.ecs.container[store].amounts.grain).toBe(10);
+      73 |   // Stocks stay at their physical household until somebody collects a meal.
+      74 |   expect(householdFood(s).get(s.ecs.interior[store].buildingId)).toBe(10);
+
+      at Object.<anonymous> (test/household_food.test.js:71:38)
+
+  ● sleeps at home on the first night and stays awake from nine to five the next day
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 3
+    Received: 0
+
+      88 |   }});
+      89 |   for(let n=0;n<32*60;n++)sim.tick();
+    > 90 |   expect(nightAsleep.size).toBe(3);
+         |                            ^
+      91 |   expect(daytimeAsleep.size).toBe(0);
+      92 | });
+      93 |
+
+      at Object.<anonymous> (test/household_food.test.js:90:28)
+
+  ● finishes a real villager meal before a new tiredness signal can apply its fed effect
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "eat"
+    Received: undefined
+
+      101 |   s.ecs.personable[a].tiredness=1;
+      102 |   sim.tick();
+    > 103 |   expect(s.ecs.planner[a].task?.[0]).toBe("eat");
+          |                                      ^
+      104 |   expect(s.ecs.personable[a].hunger).toBeGreaterThan(.9);
+      105 |   for(let n=0;n<35;n++)sim.tick();
+      106 |   expect(s.ecs.personable[a].hunger).toBeLessThan(.1);
+
+      at Object.<anonymous> (test/household_food.test.js:103:38)
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       5 failed, 25 passed, 30 total
+Snapshots:   0 total
+Time:        7.144 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js.
+EXIT_STATUS=1

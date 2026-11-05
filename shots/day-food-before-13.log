@@ -1,0 +1,23 @@
+seed 13: day 1 morning complete
+seed 13: day 1 afternoon complete
+seed 13: day 1 evening complete
+seed 13: day 2 morning complete
+seed 13: day 2 afternoon complete
+seed 13: day 2 evening complete
+seed 13: day 3 morning complete
+seed 13: day 3 afternoon complete
+seed 13: day 3 evening complete
+seed 13: day 4 morning complete
+seed 13: day 4 afternoon complete
+seed 13: day 4 evening complete
+seed 13: day 5 morning complete
+seed 13: day 5 afternoon complete
+seed 13: day 5 evening complete
+seed 13: day 6 morning complete
+seed 13: day 6 afternoon complete
+seed 13: day 6 evening complete
+seed 13: day 7 morning complete
+seed 13: day 7 afternoon complete
+seed 13: day 7 evening complete
+[{"day":1,"emptyHouseholds":6,"households":9,"hungry":1,"peakHungry":1,"daytimeAsleep":0},{"day":2,"emptyHouseholds":6,"households":9,"hungry":42,"peakHungry":41,"daytimeAsleep":41},{"day":3,"emptyHouseholds":6,"households":9,"hungry":42,"peakHungry":19,"daytimeAsleep":1},{"day":4,"emptyHouseholds":7,"households":9,"hungry":42,"peakHungry":18,"daytimeAsleep":21},{"day":5,"emptyHouseholds":7,"households":9,"hungry":42,"peakHungry":20,"daytimeAsleep":35},{"day":6,"emptyHouseholds":8,"households":9,"hungry":42,"peakHungry":23,"daytimeAsleep":31},{"day":7,"emptyHouseholds":8,"households":9,"hungry":42,"peakHungry":30,"daytimeAsleep":26}]
+EXIT_STATUS=0

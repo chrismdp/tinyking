@@ -1,0 +1,24 @@
+FAIL test/household_food.test.js
+  ● lets an heir's close kin share the inherited surplus while preserving the heir household's meals
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.2
+    Received:   1.3250000000000002
+
+      71 |   delete s.ecs.household[house].storeId;
+      72 |   advance(s,3);
+    > 73 |   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+         |                                      ^
+      74 |   expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
+      75 |   expect(s.ecs.container[store].amounts.grain).toBe(10);
+      76 |   s.ecs.container[store].amounts.grain=2;
+
+      at Object.<anonymous> (test/household_food.test.js:73:38)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 6 passed, 7 total
+Snapshots:   0 total
+Time:        2.377 s, estimated 3 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

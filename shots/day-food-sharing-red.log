@@ -1,0 +1,75 @@
+FAIL test/household_food.test.js
+  ● does not treat homeless people as the beneficiaries of an ownerless cottage
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+      129 |   s.ecs.household[house]={storeId:store};
+      130 |   s.ecs.controllable[house].controllerId=house;
+    > 131 |   expect(mealAccess(s,b,store)).toBe(false);
+          |                                 ^
+      132 | });
+      133 |
+      134 | it("lets local kin collect from an absent heir's real local store while protecting the heir's household", () => {
+
+      at Object.<anonymous> (test/household_food.test.js:131:33)
+
+  ● lets local kin collect from an absent heir's real local store while protecting the heir's household
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      137 |   s.residents[a]=false;
+      138 |   s.travel={maps:{remote:{ecs:{personable:{[a]:s.ecs.personable[a]},household:{[a]:{houseId:"remote-home"}},controllable:{"remote-home":{controllerId:a}}},residents:{[a]:true}}}};
+    > 139 |   expect(mealAccess(s,b,store)).toBe(true);
+          |                                 ^
+      140 |   s.ecs.container[store].amounts.grain=2;
+      141 |   expect(mealAccess(s,b,store)).toBe(false);
+      142 |   expect(s.ecs.controllable[house].controllerId).toBe(a);
+
+      at Object.<anonymous> (test/household_food.test.js:139:33)
+
+  ● recognises cousins through the existing kin rule when sharing food
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      149 |   s.ecs.kinship["parent-a"]={parents:["grandparent"],children:[a],spouse:null};
+      150 |   s.ecs.kinship["parent-b"]={parents:["grandparent"],children:[b],spouse:null};
+    > 151 |   expect(mealAccess(s,b,store)).toBe(true);
+          |                                 ^
+      152 | });
+      153 |
+      154 | it("brings a spare real portion home from kin so that another housemate can eat", () => {
+
+      at Object.<anonymous> (test/household_food.test.js:151:33)
+
+  ● brings a spare real portion home from kin so that another housemate can eat
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10
+    Received: 11
+
+      159 |   advance(s,3);
+      160 |   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+    > 161 |   expect(s.ecs.container[store].amounts.grain).toBe(10);
+          |                                                ^
+      162 |   expect(s.ecs.container[pantry].amounts.grain).toBe(1);
+      163 |   expect(s.ecs.holder[b].held).toEqual([]);
+      164 |   expect(s.ecs.personable[a].hunger).toBeLessThan(.9);
+
+      at Object.<anonymous> (test/household_food.test.js:161:48)
+
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 7 passed, 11 total
+Snapshots:   0 total
+Time:        4.674 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

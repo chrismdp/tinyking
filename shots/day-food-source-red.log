@@ -1,0 +1,40 @@
+FAIL test/household_food.test.js
+  ● shares a second meal with hungry kin while retaining the donor's next meal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      196 |   const {s,store,b}=family();
+      197 |   s.ecs.container[store].amounts.grain=2;
+    > 198 |   expect(mealAccess(s,b,store)).toBe(true);
+          |                                 ^
+      199 |   s.ecs.container[store].amounts.grain=1;
+      200 |   expect(mealAccess(s,b,store)).toBe(false);
+      201 | });
+
+      at Object.<anonymous> (test/household_food.test.js:198:33)
+
+  ● collects from a reachable stocked estate before shuffling a neighbour's small reserve
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "135"
+    Received: "133"
+
+      209 |   s.ecs.household[estate].storeId=bank;s.ecs.household[other].storeId=pantry;
+      210 |   updateHouseholdFood(s);
+    > 211 |   expect(s.ecs.planner[b].world.foodForHome.source).toBe(bank);
+          |                                                     ^
+      212 | });
+      213 |
+
+      at Object.<anonymous> (test/household_food.test.js:211:53)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 13 passed, 15 total
+Snapshots:   0 total
+Time:        3.035 s, estimated 6 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

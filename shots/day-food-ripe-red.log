@@ -1,0 +1,24 @@
+FAIL test/survival.test.js
+  ● harvests its own ripe crop after an empty meal search instead of searching forever
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "harvested"
+    Received: "harvestable"
+
+      317 |   const [field]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},farmable:{slots:[{state:"harvestable",content:"grain",amount:6}]},controllable:{controllerId:a}}]);
+      318 |   advance(s,HOUR*5);
+    > 319 |   expect(s.ecs.farmable[field].slots[0].state).toBe("harvested");
+          |                                                ^
+      320 |   expect(s.ecs.personable[a].hunger).toBeLessThan(.4);
+      321 | });
+      322 |
+
+      at Object.<anonymous> (test/survival.test.js:319:48)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 24 skipped, 25 total
+Snapshots:   0 total
+Time:        1.643 s, estimated 4 s
+Ran all test suites matching test/survival.test.js with tests matching "harvests its own ripe crop".
+EXIT_STATUS=1

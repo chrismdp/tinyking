@@ -1,0 +1,181 @@
+FAIL test/play_session_feedback.test.js
+  ● walks home physically at night, hides only after arrival and lights actual occupancy; player stays put
+
+    TypeError: Cannot convert undefined or null to object
+        at Function.keys (<anonymous>)
+
+      647 |
+      648 |   if (filter == "allows_sleep") {
+    > 649 |     const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
+          |                                       ^
+      650 |       householdAccess(state.ecs, actorId, id) &&
+      651 |       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
+      652 |     const home = actualHome(state, actorId);
+
+      at Object.find_place (src/game/tasks.js:649:39)
+      at Object.runTask (src/game/htn.js:77:31)
+      at updatePlannerFrame (src/game/simulation.js:156:13)
+      at src/game/simulation.js:54:71
+      at withGardenHelpIndex (src/game/household_routines.js:13:16)
+      at src/game/simulation.js:54:57
+      at withFenceCache (src/game/fences.js:9:16)
+      at updatePlanners (src/game/simulation.js:54:24)
+      at stepWorld (src/game/simulation.js:260:5)
+      at tick (src/game/simulation.js:301:20)
+      at Object.step (src/game/simulation.js:332:11)
+      at step (test/support/people.js:46:68)
+      at Object.<anonymous> (test/play_session_feedback.test.js:48:3)
+
+{"childExtras":false,"before":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]},"after":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]}}
+{"childExtras":true,"before":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]},"after":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]}}
+FAIL test/htn.test.js
+  ● HTN planning › allows planned world to persist after descent into compound task
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 25
+    + Received  +  3
+
+      Array [
+        Array [
+    -     "make_meal_space",
+    -   ],
+    -   Array [
+    -     "find_place",
+    -     "container_with gruel",
+    -     "container_with",
+    -     "gruel",
+    -   ],
+    -   Array [
+    -     "walk_to",
+    -     "container_with gruel",
+    -   ],
+    -   Array [
+    -     "pick_up_from_container",
+    -     "container_with gruel",
+    -     "gruel",
+    -   ],
+    -   Array [
+    -     "forget_place",
+    -     "container_with gruel",
+    -   ],
+    -   Array [
+          "set_label",
+    +     "eating",
+        ],
+        Array [
+    -     "set_label",
+    -     "eating",
+    +     "recover_meal",
+        ],
+        Array [
+          "eat",
+    -     "gruel",
+    +     "meal",
+        ],
+      ]
+
+      88 |     // NOTE: picking up stored gruel happens inside the first find_food descent;
+      89 |     // the second find_food must see that held gruel and eat it at the pickup place.
+    > 90 |     expect(plan).toEqual([
+         |                  ^
+      91 |       ["make_meal_space"],
+      92 |       ["find_place", "container_with gruel", "container_with", "gruel"],
+      93 |       ["walk_to", "container_with gruel"],
+
+      at Object.<anonymous> (test/htn.test.js:90:18)
+
+
+Summary of all failing tests
+FAIL test/play_session_feedback.test.js
+  ● walks home physically at night, hides only after arrival and lights actual occupancy; player stays put
+
+    TypeError: Cannot convert undefined or null to object
+        at Function.keys (<anonymous>)
+
+      647 |
+      648 |   if (filter == "allows_sleep") {
+    > 649 |     const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
+          |                                       ^
+      650 |       householdAccess(state.ecs, actorId, id) &&
+      651 |       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
+      652 |     const home = actualHome(state, actorId);
+
+      at Object.find_place (src/game/tasks.js:649:39)
+      at Object.runTask (src/game/htn.js:77:31)
+      at updatePlannerFrame (src/game/simulation.js:156:13)
+      at src/game/simulation.js:54:71
+      at withGardenHelpIndex (src/game/household_routines.js:13:16)
+      at src/game/simulation.js:54:57
+      at withFenceCache (src/game/fences.js:9:16)
+      at updatePlanners (src/game/simulation.js:54:24)
+      at stepWorld (src/game/simulation.js:260:5)
+      at tick (src/game/simulation.js:301:20)
+      at Object.step (src/game/simulation.js:332:11)
+      at step (test/support/people.js:46:68)
+      at Object.<anonymous> (test/play_session_feedback.test.js:48:3)
+
+FAIL test/htn.test.js
+  ● HTN planning › allows planned world to persist after descent into compound task
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 25
+    + Received  +  3
+
+      Array [
+        Array [
+    -     "make_meal_space",
+    -   ],
+    -   Array [
+    -     "find_place",
+    -     "container_with gruel",
+    -     "container_with",
+    -     "gruel",
+    -   ],
+    -   Array [
+    -     "walk_to",
+    -     "container_with gruel",
+    -   ],
+    -   Array [
+    -     "pick_up_from_container",
+    -     "container_with gruel",
+    -     "gruel",
+    -   ],
+    -   Array [
+    -     "forget_place",
+    -     "container_with gruel",
+    -   ],
+    -   Array [
+          "set_label",
+    +     "eating",
+        ],
+        Array [
+    -     "set_label",
+    -     "eating",
+    +     "recover_meal",
+        ],
+        Array [
+          "eat",
+    -     "gruel",
+    +     "meal",
+        ],
+      ]
+
+      88 |     // NOTE: picking up stored gruel happens inside the first find_food descent;
+      89 |     // the second find_food must see that held gruel and eat it at the pickup place.
+    > 90 |     expect(plan).toEqual([
+         |                  ^
+      91 |       ["make_meal_space"],
+      92 |       ["find_place", "container_with gruel", "container_with", "gruel"],
+      93 |       ["walk_to", "container_with gruel"],
+
+      at Object.<anonymous> (test/htn.test.js:90:18)
+
+
+Test Suites: 2 failed, 145 passed, 147 total
+Tests:       2 failed, 1444 passed, 1446 total
+Snapshots:   1 passed, 1 total
+Time:        173.16 s
+Ran all test suites related to changed files.
+EXIT_STATUS=1

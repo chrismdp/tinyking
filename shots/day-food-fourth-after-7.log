@@ -1,0 +1,30 @@
+seed 7: day 1 morning complete
+{"seed":"7","day":1,"emptyHouseholds":2,"hungry":0}
+seed 7: day 1 afternoon complete
+seed 7: day 1 evening complete
+seed 7: day 2 morning complete
+{"seed":"7","day":2,"emptyHouseholds":4,"hungry":6}
+seed 7: day 2 afternoon complete
+seed 7: day 2 evening complete
+seed 7: day 3 morning complete
+{"seed":"7","day":3,"emptyHouseholds":7,"hungry":8}
+seed 7: day 3 afternoon complete
+seed 7: day 3 evening complete
+seed 7: day 4 morning complete
+{"seed":"7","day":4,"emptyHouseholds":6,"hungry":21}
+seed 7: day 4 afternoon complete
+seed 7: day 4 evening complete
+seed 7: day 5 morning complete
+{"seed":"7","day":5,"emptyHouseholds":9,"hungry":22}
+seed 7: day 5 afternoon complete
+seed 7: day 5 evening complete
+seed 7: day 6 morning complete
+{"seed":"7","day":6,"emptyHouseholds":9,"hungry":37}
+seed 7: day 6 afternoon complete
+seed 7: day 6 evening complete
+seed 7: day 7 morning complete
+{"seed":"7","day":7,"emptyHouseholds":6,"hungry":33}
+seed 7: day 7 afternoon complete
+seed 7: day 7 evening complete
+[{"day":1,"emptyHouseholds":2,"households":13,"hungry":0,"peakHungry":0,"daytimeAsleep":0},{"day":2,"emptyHouseholds":4,"households":13,"hungry":60,"peakHungry":60,"daytimeAsleep":0},{"day":3,"emptyHouseholds":7,"households":13,"hungry":60,"peakHungry":46,"daytimeAsleep":0},{"day":4,"emptyHouseholds":6,"households":13,"hungry":60,"peakHungry":42,"daytimeAsleep":0},{"day":5,"emptyHouseholds":9,"households":13,"hungry":60,"peakHungry":29,"daytimeAsleep":0},{"day":6,"emptyHouseholds":9,"households":13,"hungry":60,"peakHungry":37,"daytimeAsleep":1},{"day":7,"emptyHouseholds":6,"households":13,"hungry":60,"peakHungry":48,"daytimeAsleep":6}]
+EXIT_STATUS=0

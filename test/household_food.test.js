@@ -171,7 +171,23 @@ it("restocks a low household from reachable kin before its residents are hungry"
   const [pantry]=newEntities(s,[{spatial:{...s.ecs.spatial[other]},interior:{buildingId:other},container:{capacity:20,amounts:{}},controllable:{controllerId:other}}]);
   s.ecs.household[other].storeId=pantry;
   advance(s,4);
-  expect(s.ecs.container[pantry].amounts.grain).toBe(4);
-  expect(s.ecs.container[store].amounts.grain).toBe(8);
+  expect(s.ecs.container[pantry].amounts.grain).toBe(6);
+  expect(s.ecs.container[store].amounts.grain).toBe(6);
   expect(s.ecs.holder[b].held).toEqual([]);
+});
+
+it("passes real surplus through a kin household instead of stranding it behind that household's reserve", () => {
+  const {s,house,other,store,a,b,c}=family();
+  s.ui.playerId=a;s.ecs.playable[a]={known:[]};s.ecs.planner[a].world.ordered=true;s.ecs.manager[a].ordered=true;
+  for(const id of [b,c])s.ecs.personable[id].hunger=0;
+  s.ecs.container[store].amounts.grain=20;
+  const [third]=newEntities(s,[{spatial:{...s.ecs.spatial[house]},building:{rooms:[]},household:{},controllable:{controllerId:c},village:{villageId:"v"}}]);
+  const [pantry,nextPantry]=newEntities(s,[other,third].map(home=>({spatial:{...s.ecs.spatial[home]},interior:{buildingId:home},container:{capacity:30,amounts:{}},controllable:{controllerId:home}})));
+  s.ecs.household[other].storeId=pantry;s.ecs.household[third].storeId=nextPantry;s.ecs.household[c].houseId=third;
+  s.ecs.kinship[b].spouse=c;s.ecs.kinship[c].spouse=b;
+  expect(mealAccess(s,c,store)).toBe(false);
+  advance(s,4);
+  expect(s.ecs.container[nextPantry].amounts.grain).toBeGreaterThanOrEqual(2);
+  expect(s.ecs.container[pantry].amounts.grain).toBeGreaterThanOrEqual(2);
+  expect(Object.values(s.ecs.container).reduce((n,box)=>n+(box.amounts.grain || 0),0)).toBe(20);
 });

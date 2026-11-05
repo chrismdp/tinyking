@@ -930,7 +930,7 @@ export function collect_household_food(state, actorId, world, dt, firstRun, offe
   delete world.foodForHome;
   const e=state.ecs, home=e.household?.[actorId]?.houseId;
   const members=householdMembers(state,home).filter(id=>!e.personable[id].dead);
-  if((householdFood(state).get(home) || 0)>=members.length*2)return Task.ABORT;
+  if((householdFood(state).get(home) || 0)>=members.length*2+1)return Task.ABORT;
   world.places.householdFood=offer.source;
   let collected=false;
   while(e.holder[actorId].held.length<e.holder[actorId].capacity && e.container[offer.source]?.amounts[offer.type]>=1 && mealAccess(state,actorId,offer.source)) {

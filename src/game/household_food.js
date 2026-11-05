@@ -36,8 +36,8 @@ export function mealAccess(s, actor, source, food) {
     beneficiaries.some(kin => relatedPeople(s,id,kin)));
 }
 
-// The existing two-meal shortage also gives the household's adult a real
-// collection job. Plan once per hour, alongside the ordinary food requests.
+// Keep two meals each and one shareable portion, as in the existing surplus
+// rule. Available adults collect real food through the ordinary carrying plan.
 export function updateHouseholdFood(s) {
   const e=s.ecs;
   if (!e.personable?.[s.ui?.playerId]) return;
@@ -46,13 +46,14 @@ export function updateHouseholdFood(s) {
     if (!h.storeId || !e.container?.[h.storeId]) continue;
     const members=residents(s,house), workers=members.filter(id=>id!=s.ui.playerId && isAdult(e.personable[id].age) && e.planner?.[id]);
     for (const id of workers) delete e.planner[id].world.foodForHome;
-    if (hour<6 || hour>=18 || !containerHasSpace(e.container[h.storeId]) || (food.get(house) || 0)>=members.length*2) continue;
-    const worker=workers.find(id=>id==e.controllable[house]?.controllerId) || workers.sort()[0];
-    if (!worker || !e.spatial[worker]) continue;
-    const point=e.spatial[worker];
-    const sources=Object.keys(e.container).filter(id=>e.spatial[id] && foodHouse(s,id)!=house && FOODS.some(type=>e.container[id].amounts[type]>=1) && mealAccess(s,worker,id,food));
-    sources.sort((a,b)=>Math.hypot(e.spatial[a].x-point.x,e.spatial[a].y-point.y)-Math.hypot(e.spatial[b].x-point.x,e.spatial[b].y-point.y));
-    const source=sources.find(id=>canReachTask(s,worker,id));
-    if (source) e.planner[worker].world.foodForHome={source,type:FOODS.find(type=>e.container[source].amounts[type]>=1)};
+    if (hour<6 || hour>=18 || !containerHasSpace(e.container[h.storeId]) || (food.get(house) || 0)>=members.length*2+1) continue;
+    for(const worker of workers.sort()) {
+      if (!e.spatial[worker]) continue;
+      const point=e.spatial[worker];
+      const sources=Object.keys(e.container).filter(id=>e.spatial[id] && foodHouse(s,id)!=house && FOODS.some(type=>e.container[id].amounts[type]>=1) && mealAccess(s,worker,id,food));
+      sources.sort((a,b)=>Math.hypot(e.spatial[a].x-point.x,e.spatial[a].y-point.y)-Math.hypot(e.spatial[b].x-point.x,e.spatial[b].y-point.y));
+      const source=sources.find(id=>canReachTask(s,worker,id));
+      if (source) e.planner[worker].world.foodForHome={source,type:FOODS.find(type=>e.container[source].amounts[type]>=1)};
+    }
   }
 }

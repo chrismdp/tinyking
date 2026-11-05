@@ -147,3 +147,20 @@ EXIT_STATUS=0
 ```
 
 The second candidate's results remain in `shots/day-food-second-after-13.json` and `shots/day-food-second-after-7.json`. Both completed with exit 0. The final comparison uses the version with household collection and correct storage flags. No crop age, crop yield, initial stock, forage density or need rate changes were made.
+
+The third candidate (`86a1a7e`) completed both weeks and its production build passed. It still left food behind a replenishment rule. A household stopped collecting at exactly two meals each, while kin could only draw stock above that amount. A household between a rich relative and hungry kin therefore blocked the flow. A new three-household regression proved this: the last household received no grain, although the first still held a surplus.
+
+Households now collect two meals each plus one shareable portion, using the existing surplus convention. Available adults can collect. Each person still uses their actual hands, walking route and store capacity. Collection rechecks the home's current total, including carried food. The restock test now expects six portions for two residents: the five-portion target reached through real two-hand loads. All twelve starting portions remain accounted for.
+
+The chain regression failed first (1 failed, 12 passed, exit 1). Then:
+
+```
+Test Suites: 4 passed, 4 total
+Tests:       63 passed, 63 total
+Snapshots:   0 total
+Time:        5.197 s, estimated 7 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=0
+```
+
+The third candidate's complete results remain in `shots/day-food-third-after-13.json` and `shots/day-food-third-after-7.json`. The earlier successful build is preserved in `shots/day-food-first-build.log`. The affected-gate waiter (PID 2566409) had not started and was cancelled before this source correction. The final gates below cover the corrected candidate.

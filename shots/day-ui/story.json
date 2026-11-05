@@ -1,0 +1,949 @@
+{
+  "url": "http://127.0.0.1:8127/?mode=day",
+  "mode": "two-day play",
+  "assistance": "Clicks choose visible places, people and lines. Policy favours direct answers, family introductions, accepting an ask, then visible matching icons. No state or outcomes are set.",
+  "checks": [
+    {
+      "name": "seed 13 starts from saved history",
+      "ok": true,
+      "detail": {
+        "milliseconds": 10599
+      }
+    },
+    {
+      "name": "desktop plays two full real days",
+      "ok": true,
+      "detail": {
+        "day": 2.250000000000193
+      }
+    },
+    {
+      "name": "desktop fits the viewport",
+      "ok": true,
+      "detail": {
+        "width": 1280
+      }
+    },
+    {
+      "name": "seed 13 starts from saved history",
+      "ok": true,
+      "detail": {
+        "milliseconds": 8280
+      }
+    },
+    {
+      "name": "phone plays two full real days",
+      "ok": true,
+      "detail": {
+        "day": 2.250000000000193
+      }
+    },
+    {
+      "name": "phone fits the viewport",
+      "ok": true,
+      "detail": {
+        "width": 390
+      }
+    },
+    {
+      "name": "three real road parts reach a new valley",
+      "ok": true,
+      "detail": {
+        "before": "5,3",
+        "after": "6,3"
+      }
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "frames": [
+    {
+      "file": "desktop-arrival.png",
+      "day": 0.375,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "desktop-day1-morning-talk.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "desktop-day1-morning-reply-preview.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "desktop-day1-morning-matching-pair.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 0
+    },
+    {
+      "file": "desktop-day1-morning-talk-end.png",
+      "day": 0.49999999999999956,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day1-morning-result.png",
+      "day": 0.49999999999999956,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day1-afternoon-result.png",
+      "day": 0.7499999999999987,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day1-evening-result.png",
+      "day": 1.2500000000000369,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day2-morning-result.png",
+      "day": 1.500000000000076,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day2-afternoon-result.png",
+      "day": 1.750000000000115,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day2-evening-talk.png",
+      "day": 1.7923611111112328,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day2-evening-reply-preview.png",
+      "day": 1.7923611111112328,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "desktop-day2-evening-talk-end.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-day2-evening-result.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-family.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-people.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-asks.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-map.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "desktop-world-map.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-arrival.png",
+      "day": 0.375,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "phone-day1-morning-talk.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "phone-day1-morning-reply-preview.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "phone-day1-morning-matching-pair.png",
+      "day": 0.411111111111111,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 0
+    },
+    {
+      "file": "phone-day1-morning-talk-end.png",
+      "day": 0.49999999999999956,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day1-morning-result.png",
+      "day": 0.49999999999999956,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day1-afternoon-result.png",
+      "day": 0.7499999999999987,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day1-evening-result.png",
+      "day": 1.2500000000000369,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day2-morning-result.png",
+      "day": 1.500000000000076,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day2-afternoon-result.png",
+      "day": 1.750000000000115,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day2-evening-talk.png",
+      "day": 1.7923611111112328,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day2-evening-reply-preview.png",
+      "day": 1.7923611111112328,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 1
+    },
+    {
+      "file": "phone-day2-evening-talk-end.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-day2-evening-result.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-family.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-people.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-asks.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-map.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-world-map.png",
+      "day": 2.250000000000193,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "accepted"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-road-part1.png",
+      "day": 2.5,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "road": {
+        "part": 1,
+        "from": "5,3",
+        "to": "6,3",
+        "companion": null
+      },
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "cancelled",
+          "outcome": "Cancelled · work already done stays done; no goodwill"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-road-part2-result.png",
+      "day": 2.75,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "road": {
+        "part": 2,
+        "from": "5,3",
+        "to": "6,3",
+        "companion": null
+      },
+      "asks": [
+        {
+          "id": "terrain5_3-favour-1",
+          "kind": "food",
+          "status": "cancelled",
+          "outcome": "Cancelled · work already done stays done; no goodwill"
+        }
+      ],
+      "chats": 2
+    },
+    {
+      "file": "phone-road-part3-result.png",
+      "day": 3.25,
+      "player": "terrain5_3-person-3904",
+      "region": "6,3",
+      "asks": [],
+      "chats": 0
+    },
+    {
+      "file": "phone-arrived-valley.png",
+      "day": 3.25,
+      "player": "terrain5_3-person-3904",
+      "region": "6,3",
+      "asks": [],
+      "chats": 0
+    }
+  ],
+  "actions": [
+    {
+      "action": "spend",
+      "activity": "talk",
+      "text": "Spend time with a man in his fifties",
+      "width": 1280
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "I am Dionisia Jobari's child.",
+      "family": "maternal_introduction",
+      "matches": 0
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "I'll find three portions for you.",
+      "family": "favour_accept",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Is it always this wet here?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Rain. Well, it would.",
+      "family": "season_talk",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Do you know my uncle, Hugh Jobari?",
+      "family": "maternal_search",
+      "matches": 0
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Which roads lead out of here?",
+      "family": "lands_question",
+      "matches": 0
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Need any help?",
+      "family": "help_offer",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "I've seen Reedford. Do you know it?",
+      "family": "lands_question",
+      "matches": 0
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 1280
+    },
+    {
+      "action": "spend",
+      "activity": "work",
+      "text": "Help Geoffrey Jobari",
+      "width": 1280
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 1280
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 1280
+    },
+    {
+      "action": "spend",
+      "activity": "talk",
+      "text": "Spend time with a man in his twenties",
+      "width": 1280
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Where are the passes?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "What lies round about here?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "What's Reedford like?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "What's the country like further off?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "I see. Thank you for telling me.",
+      "family": "direct_answer",
+      "matches": 0
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Do you know my uncle, Hugh Jobari?",
+      "family": "maternal_search",
+      "matches": 0
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "Keeping busy, Simon?",
+      "family": "work_question",
+      "matches": 1
+    },
+    {
+      "width": 1280,
+      "action": "say",
+      "text": "How's the field doing?",
+      "family": "work_question",
+      "matches": 1
+    },
+    {
+      "action": "observed asks after two days",
+      "width": 1280,
+      "asks": [
+        {
+          "kind": "food",
+          "status": "accepted"
+        }
+      ]
+    },
+    {
+      "action": "spend",
+      "activity": "talk",
+      "text": "Spend time with a man in his fifties",
+      "width": 390
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "I am Dionisia Jobari's child.",
+      "family": "maternal_introduction",
+      "matches": 0
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "I'll find three portions for you.",
+      "family": "favour_accept",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Is it always this wet here?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Rain. Well, it would.",
+      "family": "season_talk",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Do you know my uncle, Hugh Jobari?",
+      "family": "maternal_search",
+      "matches": 0
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Which roads lead out of here?",
+      "family": "lands_question",
+      "matches": 0
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Need any help?",
+      "family": "help_offer",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "I've seen Reedford. Do you know it?",
+      "family": "lands_question",
+      "matches": 0
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 390
+    },
+    {
+      "action": "spend",
+      "activity": "work",
+      "text": "Help Geoffrey Jobari",
+      "width": 390
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 390
+    },
+    {
+      "action": "spend",
+      "activity": "forage",
+      "text": "Gather wild food",
+      "width": 390
+    },
+    {
+      "action": "spend",
+      "activity": "talk",
+      "text": "Spend time with a man in his twenties",
+      "width": 390
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Where are the passes?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "What lies round about here?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "What's Reedford like?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "What's the country like further off?",
+      "family": "lands_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "I see. Thank you for telling me.",
+      "family": "direct_answer",
+      "matches": 0
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Do you know my uncle, Hugh Jobari?",
+      "family": "maternal_search",
+      "matches": 0
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "Keeping busy, Simon?",
+      "family": "work_question",
+      "matches": 1
+    },
+    {
+      "width": 390,
+      "action": "say",
+      "text": "How's the field doing?",
+      "family": "work_question",
+      "matches": 1
+    },
+    {
+      "action": "observed asks after two days",
+      "width": 390,
+      "asks": [
+        {
+          "kind": "food",
+          "status": "accepted"
+        }
+      ]
+    },
+    {
+      "action": "spend",
+      "activity": "continue_travel",
+      "text": "Continue along the road",
+      "width": 390
+    },
+    {
+      "action": "spend",
+      "activity": "continue_travel",
+      "text": "Continue along the road",
+      "width": 390
+    }
+  ],
+  "errors": []
+}

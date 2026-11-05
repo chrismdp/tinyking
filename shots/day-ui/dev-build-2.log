@@ -1,0 +1,49 @@
+assets by info 27.1 MiB [immutable]
+  assets by chunk 7.27 MiB (auxiliary name: app)
+    assets by path *.webp 241 KiB 5 assets
+    assets by path *.gz 6.93 MiB 2 assets
+    assets by path *.jpg 105 KiB 2 assets
+  assets by path *.js 19.8 MiB
+    asset vendors.0b2f89714e75655bdae0.js 11.9 MiB [emitted] [immutable] (name: vendors) (id hint: vendor)
+    asset app.f5d1e277e13f221a51f7.js 7.88 MiB [emitted] [immutable] (name: app)
+    asset runtime.1367ea738246dde694e0.js 15.1 KiB [emitted] [immutable] (name: runtime)
+asset index.html 533 bytes [emitted]
+asset COMMITHASH 40 bytes [emitted]
+asset LASTCOMMITDATETIME 25 bytes [emitted]
+asset VERSION 19 bytes [emitted]
+Entrypoint app 19.8 MiB (7.27 MiB) = runtime.1367ea738246dde694e0.js 15.1 KiB vendors.0b2f89714e75655bdae0.js 11.9 MiB app.f5d1e277e13f221a51f7.js 7.88 MiB 9 auxiliary assets
+runtime modules 3.31 KiB 10 modules
+orphan modules 443 bytes [orphan] 1 module
+javascript modules 5.98 MiB
+  modules by path ./node_modules/ 4.44 MiB 185 modules
+  modules by path ./src/ 1.54 MiB 180 modules
+asset modules 7.27 MiB (asset) 378 bytes (javascript)
+  modules by path ./src/assets/day/*.webp 241 KiB (asset) 210 bytes (javascript) 5 modules
+  modules by path ./src/assets/day/*.gz 6.93 MiB (asset) 84 bytes (javascript) 2 modules
+  modules by path ./src/assets/day/*.jpg 105 KiB (asset) 84 bytes (javascript) 2 modules
+json modules 1.81 MiB
+  ./src/data/messages.json 5.08 KiB [built] [code generated]
+  ./src/data/event_types.json 16.4 KiB [built] [code generated]
+  ./src/data/secret_activities.json 1.01 KiB [built] [code generated]
+  + 5 modules
+webpack 5.112.2 compiled successfully in 27057 ms
+
+save-worker:
+  asset save-worker.js 209 KiB [emitted] (name: main)
+  runtime modules 614 bytes 3 modules
+  javascript modules 45 KiB
+    ./src/game/save_worker.js 3.89 KiB [built] [code generated]
+    ./src/game/save_game.js 5.29 KiB [built] [code generated]
+    ./src/game/hex_storage.js 4.81 KiB [built] [code generated]
+    ./src/game/save_trace.js 353 bytes [built] [code generated]
+    ./src/game/person_storage.js 4.41 KiB [built] [code generated]
+    ./src/game/event_knowledge.js 13.8 KiB [built] [code generated]
+    ./src/game/orientation.js 1.82 KiB [built] [code generated]
+    ./src/game/community_summary.js 2.74 KiB [built] [code generated]
+    ./src/game/residents.js 997 bytes [built] [code generated]
+    ./src/game/social_kin.js 2 KiB [built] [code generated]
+    ./src/game/population_index.js 3.98 KiB [built] [code generated]
+    + 2 modules
+  ./src/data/event_types.json 16.4 KiB [built] [code generated]
+  save-worker (webpack 5.112.2) compiled successfully in 14692 ms
+exit=0

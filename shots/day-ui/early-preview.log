@@ -1,0 +1,11 @@
+page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8127/?mode=day
+Call log:
+[2m  - navigating to "http://127.0.0.1:8127/?mode=day", waiting until "load"[22m
+
+    at /home/cp/code/tk-dayui/scripts/day-ui-preview.cjs:7:37 {
+  log: [
+    '  - navigating to "http://127.0.0.1:8127/?mode=day", waiting until "load"'
+  ],
+  name: 'Error'
+}
+exit=1

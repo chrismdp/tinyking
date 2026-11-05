@@ -1,0 +1,9 @@
+
+> tinyking@1.0.0 playtest
+> node scripts/playtest.js http://127.0.0.1:8127/?mode=day shots/day-ui --menu-only
+
+PASS main menu is available before world generation {"milliseconds":602}
+FRAME final-menu-entry.png 0.375
+PASS main menu opens the saved day game {"milliseconds":11734}
+PASS no browser errors []
+exit=0

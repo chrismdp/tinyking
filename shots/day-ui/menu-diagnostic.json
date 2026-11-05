@@ -1,0 +1,90 @@
+{
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "text": "12am, Day 1 Of Spring, Year 1\nWelcome to\nTiny King\nThe kingdom builder that’s all about the people.\nPlaceholder art, alpha gameplay, open development.\nA day with people\nStart new game\nTechnical Demo 0.18.5-462-gcfc117e\n© 2026 chrismdp ltd. A Chris Parsons project.",
+  "html": "<div id=\"game\"><div id=\"world\"><canvas data-engine=\"three.js r186\" width=\"1280\" height=\"900\" style=\"display: block; width: 1280px; height: 900px;\"></canvas></div><div id=\"ui\"><div id=\"sleep-fade\" class=\"\" aria-hidden=\"true\"></div><div id=\"clock\">12am, day 1 of spring, year 1</div><div id=\"main-menu\" class=\"\"><div class=\"header\"><div class=\"small\">Welcome to</div><div class=\"main\">Tiny King</div><div class=\"strapline\">The kingdom builder that’s all about the people.<br>Placeholder art, alpha gameplay, open development.</div></div><menu class=\"\"><li><a href=\"/?mode=day\">A day with people</a></li><li><a>Start new game</a></li><div class=\"social\"><a href=\"https://discord.gg/ZgXcVyn\" target=\"_blank\" rel=\"noreferrer\"><img src=\"https://img.shields.io/discord/731912590489288795?color=417154&amp;label=discord\"></a><a href=\"https://github.com/chrismdp/tinyking/\" target=\"_blank\" rel=\"noreferrer\"><img src=\"https://img.shields.io/github/stars/chrismdp/tinyking?color=417154&amp;label=github&amp;logo=github1\"></a></div><div class=\"disclaimer\">Technical Demo 0.18.5-462-gcfc117e<br>© 2026 chrismdp ltd. A <a href=\"https://www.chrismdp.com\" target=\"_blank\" rel=\"noreferrer\">Chris Parsons</a> project.</div></menu></div></div><div class=\"popper\" style=\"visibility: hidden;\"><button aria-label=\"Close menu\" class=\"close\"><svg aria-hidden=\"true\" focusable=\"false\" data-prefix=\"fas\" data-icon=\"times\" class=\"svg-inline--fa fa-times fa-w-11 \" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 352 512\"><path fill=\"currentColor\" d=\"M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg></button><div class=\"arrow\"></div></div></div>",
+  "links": [
+    {
+      "text": "A day with people",
+      "href": "/?mode=day",
+      "rect": {
+        "x": 530.953125,
+        "y": 649.5625,
+        "width": 218.09375,
+        "height": 49.21875,
+        "top": 649.5625,
+        "right": 749.046875,
+        "bottom": 698.78125,
+        "left": 530.953125
+      },
+      "visibility": "visible",
+      "display": "inline-block"
+    },
+    {
+      "text": "Start new game",
+      "href": null,
+      "rect": {
+        "x": 541.953125,
+        "y": 698.78125,
+        "width": 196.078125,
+        "height": 49.21875,
+        "top": 698.78125,
+        "right": 738.03125,
+        "bottom": 748,
+        "left": 541.953125
+      },
+      "visibility": "visible",
+      "display": "inline-block"
+    },
+    {
+      "text": "",
+      "href": "https://discord.gg/ZgXcVyn",
+      "rect": {
+        "x": 514.578125,
+        "y": 758,
+        "width": 150.390625,
+        "height": 62,
+        "top": 758,
+        "right": 664.96875,
+        "bottom": 820,
+        "left": 514.578125
+      },
+      "visibility": "visible",
+      "display": "inline"
+    },
+    {
+      "text": "",
+      "href": "https://github.com/chrismdp/tinyking/",
+      "rect": {
+        "x": 664.96875,
+        "y": 758,
+        "width": 100.4375,
+        "height": 62,
+        "top": 758,
+        "right": 765.40625,
+        "bottom": 820,
+        "left": 664.96875
+      },
+      "visibility": "visible",
+      "display": "inline"
+    },
+    {
+      "text": "Chris Parsons",
+      "href": "https://www.chrismdp.com",
+      "rect": {
+        "x": 642.9375,
+        "y": 845,
+        "width": 63.625,
+        "height": 15,
+        "top": 845,
+        "right": 706.5625,
+        "bottom": 860,
+        "left": 642.9375
+      },
+      "visibility": "visible",
+      "display": "inline"
+    }
+  ],
+  "worker": "activated"
+}

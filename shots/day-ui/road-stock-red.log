@@ -1,0 +1,21 @@
+FAIL test/day_view.test.js
+  ● reads supplies while the player is on the road outside the local ECS
+
+    TypeError: Cannot set properties of undefined (setting '4')
+
+      128 |   const {state:s,player,tiles}=peopleWorld();
+      129 |   delete s.ecs.controllable[player];
+    > 130 |   s.ecs.container[tiles[3]]={amounts:{roots:2}};
+          |                            ^
+      131 |   expect(foodSupplies(s)).toEqual({});
+      132 | });
+      133 |
+
+      at Object.<anonymous> (test/day_view.test.js:130:28)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 13 passed, 14 total
+Snapshots:   0 total
+Time:        1.926 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

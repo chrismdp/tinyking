@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8127/?mode=day",
+  "mode": "mechanical",
+  "assistance": "Clicks choose visible places, people and lines. Policy favours direct answers, family introductions, accepting an ask, then visible matching icons. No state or outcomes are set.",
+  "checks": [
+    {
+      "name": "main menu is available before world generation",
+      "ok": true,
+      "detail": {
+        "milliseconds": 602
+      }
+    },
+    {
+      "name": "main menu opens the saved day game",
+      "ok": true,
+      "detail": {
+        "milliseconds": 11734
+      }
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "frames": [
+    {
+      "file": "final-menu-entry.png",
+      "day": 0.375,
+      "player": "terrain5_3-person-3904",
+      "region": "5,3",
+      "asks": [],
+      "chats": 0
+    }
+  ],
+  "actions": [],
+  "errors": []
+}

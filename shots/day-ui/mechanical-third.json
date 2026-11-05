@@ -1,0 +1,17 @@
+{
+  "url": "http://127.0.0.1:8127/?mode=day",
+  "mode": "mechanical",
+  "assistance": "Clicks choose visible places, people and lines. Policy favours direct answers, family introductions, accepting an ask, then visible matching icons. No state or outcomes are set.",
+  "checks": [
+    {
+      "name": "browser observation completed",
+      "ok": false,
+      "detail": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'A day with people', exact: true }) to be visible\u001b[22m\n"
+    }
+  ],
+  "frames": [],
+  "actions": [],
+  "errors": [
+    "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'A day with people', exact: true }) to be visible\u001b[22m\n\n    at /home/cp/code/tk-dayui/scripts/day-ui-play.cjs:75:74"
+  ]
+}

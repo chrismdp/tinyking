@@ -1,0 +1,54 @@
+
+> tinyking@1.0.0 storyboard
+> node scripts/storyboard.js http://127.0.0.1:8127/?mode=day shots/day-ui
+
+PASS seed 13 starts from saved history {"milliseconds":10599}
+FRAME desktop-arrival.png 0.375
+FRAME desktop-day1-morning-talk.png 0.411111111111111
+FRAME desktop-day1-morning-reply-preview.png 0.411111111111111
+FRAME desktop-day1-morning-matching-pair.png 0.411111111111111
+FRAME desktop-day1-morning-talk-end.png 0.49999999999999956
+FRAME desktop-day1-morning-result.png 0.49999999999999956
+FRAME desktop-day1-afternoon-result.png 0.7499999999999987
+FRAME desktop-day1-evening-result.png 1.2500000000000369
+FRAME desktop-day2-morning-result.png 1.500000000000076
+FRAME desktop-day2-afternoon-result.png 1.750000000000115
+FRAME desktop-day2-evening-talk.png 1.7923611111112328
+FRAME desktop-day2-evening-reply-preview.png 1.7923611111112328
+FRAME desktop-day2-evening-talk-end.png 2.250000000000193
+FRAME desktop-day2-evening-result.png 2.250000000000193
+PASS desktop plays two full real days {"day":2.250000000000193}
+FRAME desktop-family.png 2.250000000000193
+FRAME desktop-people.png 2.250000000000193
+FRAME desktop-asks.png 2.250000000000193
+FRAME desktop-map.png 2.250000000000193
+FRAME desktop-world-map.png 2.250000000000193
+PASS desktop fits the viewport {"width":1280}
+PASS seed 13 starts from saved history {"milliseconds":8280}
+FRAME phone-arrival.png 0.375
+FRAME phone-day1-morning-talk.png 0.411111111111111
+FRAME phone-day1-morning-reply-preview.png 0.411111111111111
+FRAME phone-day1-morning-matching-pair.png 0.411111111111111
+FRAME phone-day1-morning-talk-end.png 0.49999999999999956
+FRAME phone-day1-morning-result.png 0.49999999999999956
+FRAME phone-day1-afternoon-result.png 0.7499999999999987
+FRAME phone-day1-evening-result.png 1.2500000000000369
+FRAME phone-day2-morning-result.png 1.500000000000076
+FRAME phone-day2-afternoon-result.png 1.750000000000115
+FRAME phone-day2-evening-talk.png 1.7923611111112328
+FRAME phone-day2-evening-reply-preview.png 1.7923611111112328
+FRAME phone-day2-evening-talk-end.png 2.250000000000193
+FRAME phone-day2-evening-result.png 2.250000000000193
+PASS phone plays two full real days {"day":2.250000000000193}
+FRAME phone-family.png 2.250000000000193
+FRAME phone-people.png 2.250000000000193
+FRAME phone-asks.png 2.250000000000193
+FRAME phone-map.png 2.250000000000193
+FRAME phone-world-map.png 2.250000000000193
+PASS phone fits the viewport {"width":390}
+FRAME phone-road-part1.png 2.5
+FRAME phone-road-part2-result.png 2.75
+FRAME phone-road-part3-result.png 3.25
+PASS three real road parts reach a new valley {"before":"5,3","after":"6,3"}
+FRAME phone-arrived-valley.png 3.25
+PASS no browser errors []

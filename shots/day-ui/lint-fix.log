@@ -1,0 +1,6 @@
+
+/home/cp/code/tk-dayui/scripts/day-ui-preview.cjs
+  2:29  warning  'path' is assigned a value but never used  no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+

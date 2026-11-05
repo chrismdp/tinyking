@@ -1,0 +1,16 @@
+
+/home/cp/code/tk-dayui/scripts/day-ui-preview.cjs
+   2:29  warning  'path' is assigned a value but never used     no-unused-vars
+   6:1   warning  Expected indentation of 4 spaces but found 2  indent
+   7:1   warning  Expected indentation of 4 spaces but found 2  indent
+   8:1   warning  Expected indentation of 4 spaces but found 2  indent
+   9:1   warning  Expected indentation of 4 spaces but found 2  indent
+  10:1   warning  Expected indentation of 4 spaces but found 2  indent
+  11:1   warning  Expected indentation of 4 spaces but found 2  indent
+  12:1   warning  Expected indentation of 4 spaces but found 2  indent
+  13:1   warning  Expected indentation of 4 spaces but found 2  indent
+  14:1   warning  Expected indentation of 4 spaces but found 2  indent
+
+✖ 10 problems (0 errors, 10 warnings)
+  0 errors and 9 warnings potentially fixable with the `--fix` option.
+

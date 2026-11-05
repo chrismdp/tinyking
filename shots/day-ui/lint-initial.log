@@ -1,0 +1,10 @@
+
+/home/cp/code/tk-dayui/src/components/day/day_game.js
+   7:128  warning  'knownPeople' is defined but never used  no-unused-vars
+  48:65   warning  'lines' is defined but never used        no-unused-vars
+
+/home/cp/code/tk-dayui/src/components/day/day_reference.js
+  5:10  warning  'hexName' is defined but never used  no-unused-vars
+
+✖ 3 problems (0 errors, 3 warnings)
+

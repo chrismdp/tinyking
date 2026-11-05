@@ -22,7 +22,7 @@ function decayTile(state, id) {
     walk.worn[key]=after;
   }
   walk.wearUpdatedAt = state.days;
-  if (changed) state.redraws.push(id);
+  if (changed) state.redraws?.push(id);
 }
 
 // Elapsed game time only. Repeating an update on the same day is harmless.
@@ -38,7 +38,7 @@ export function recordRoadUse(state, id, entrance, exit, amount = 1) {
   walk.worn[key]=Math.min(FULL_TRACK,(walk.worn[key] || 0)+amount);
   walk.trackReserved=true;
   if (state.ecs.mappable?.[id]?.route?.length) walk.routeWear=Math.min(FULL_TRACK,walk.routeWear+amount);
-  state.redraws.push(id);
+  state.redraws?.push(id);
   return true;
 }
 

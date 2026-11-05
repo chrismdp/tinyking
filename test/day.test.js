@@ -227,3 +227,20 @@ it("says why the people it saw were resting or looking for food", async () => {
   const result=await playSlot(s,slotChoices(s).choices.find(c=>c.activity=="visit"&&c.available));
   expect(result.seen.some(o=>o.personId==w.person&&o.hungry===true)).toBe(true);
 });
+
+it("lets an early-morning choice bring a quarrelling pair together once the day's visiting hours begin", async () => {
+  const w=village(),s=w.state,{HOUR}=require("game/time");
+  const {completeConversation}=require("game/people"),{recordEvent,learnEvent}=require("game/events");
+  s.social={courtships:{},avoidance:{},contacts:{}};
+  for(const id of [w.person,w.parent]) {
+    s.ecs.relationships[id].known[w.player]={ring:"personal",goodwill:40};
+    s.ecs.planner[id].task=["wait_for",HOUR];s.ecs.planner[id].plan=[];
+  }
+  const e=recordEvent(s,"quarrel",[w.person,w.parent]);learnEvent(s,w.player,e);
+  s.days+=HOUR;completeConversation(s,w.player,w.person);completeConversation(s,w.player,w.parent);
+  s.days=1.25;
+  const peace=slotChoices(s).choices.find(c=>c.activity=="make_peace");
+  expect(peace).toMatchObject({available:true});
+  const result=await playSlot(s,peace);
+  expect(result.outcomes.find(o=>o.kind=="make_peace")).toMatchObject({requested:true});
+});

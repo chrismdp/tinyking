@@ -85,15 +85,18 @@ export function slotChoices(s) {
   }
   // These are deliberate pair choices. Hidden people and unheard quarrels do
   // not become visible just because their records exist in the simulation.
+  // A pair can be brought together later in this part of the day: an early
+  // morning choice is judged at nine, when visiting begins.
+  const hourNow=(s.days%1)*24,meetAt=clock.slot=="morning"&&hourNow<9?9:undefined;
   const ids=[...new Set(people.map(x=>x.person.id))],quarrels=knownEvents(s,actor).filter(e=>e.type=="quarrel");
   for(const {place,person} of people)for(const other of ids)if(person.id<other) {
-    if(quarrels.some(e=>samePair(e.people,person.id,other)))add(place,person,"make_peace",peaceUnavailable(s,actor,person.id,other),{otherId:other});
+    if(quarrels.some(e=>samePair(e.people,person.id,other)))add(place,person,"make_peace",peaceUnavailable(s,actor,person.id,other,{at:meetAt}),{otherId:other});
     // Only known single adult prospects enter the list. The real eligibility
     // and consent checks still supply the reason if an introduction is blocked.
     if(e.personable[person.id].age>=16 && e.personable[other].age>=16 &&
       (!e.kinship?.[person.id]?.spouse || !e.personable[e.kinship[person.id].spouse] || e.personable[e.kinship[person.id].spouse].dead) &&
       (!e.kinship?.[other]?.spouse || !e.personable[e.kinship[other].spouse] || e.personable[e.kinship[other].spouse].dead))
-      add(place,person,"introduce",introduceUnavailable(s,actor,person.id,other),{otherId:other});
+      add(place,person,"introduce",introduceUnavailable(s,actor,person.id,other,{at:meetAt}),{otherId:other});
   }
   if(s.travel && !s.intro?.active)for(const entry of Object.values(s.map.entrances || {})) {
     const tile=entry.tileIds[0],d=destinationFor(s,tile);
@@ -232,7 +235,7 @@ export async function playSlot(s, requested, hooks={}) {
     if(["talk","ask_favour"].includes(choice.activity))order("chat",choice.personId);
     if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
   };
-  let meeting=walkFirst,retries=0;
+  let meeting=walkFirst,retries=0,askedHour=-1,lastReason=null;
   if(!walkFirst)meet();
   if(choice.activity=="work") {
     const r=s.favours.requests[choice.requestId];
@@ -255,9 +258,12 @@ export async function playSlot(s, requested, hooks={}) {
       // gives up before any conversation, set off after them again.
       if(["talk","ask_favour"].includes(choice.activity) && !meeting && !s.chat?.active && !conversations.length && retries<4 &&
         !s.ecs.manager[actor].jobs.some(j=>j.job.key=="chat") && s.days<menu.endsAt-1/24) {retries++;order("chat",choice.personId);}
-      if(bringing && bringing.progress>=1) {
+      // Wait for a free moment: if they are busy, ask again every ten minutes of the slot.
+      if(bringing && bringing.progress>=1 && (s.days%1)*24>=9 && Math.floor(s.days*144+1e-9)!=askedHour) {
+        askedHour=Math.floor(s.days*144+1e-9);
         const reason=choice.activity=="make_peace" ? makePeace(s,actor,choice.personId,choice.otherId) : introduce(s,actor,choice.personId,choice.otherId);
-        outcomes.push({kind:choice.activity,requested:!reason,reason});bringing=null;
+        lastReason=reason;
+        if(!reason || s.days>=menu.endsAt-1/24){outcomes.push({kind:choice.activity,requested:!reason,reason});bringing=null;}
       }
       look();
       sim.tick();if(sim.pending)await sim.pending;
@@ -273,6 +279,7 @@ export async function playSlot(s, requested, hooks={}) {
     order("rest",actor);
   }
   await advance(menu.endsAt);
+  if(bringing)outcomes.push({kind:choice.activity,requested:false,reason:lastReason||"They did not meet before the slot ended"});
   for(const j of orders)if(j.progress<1)outcomes.push({kind:"unfinished",task:j.job.key,reason:j.waiting || j.detail || s.ui.talkResult?.message || "The slot ended before the task finished"});
   const after=regards();
   return {day:menu.day,slot:menu.slot,start,end:s.days,choice,events:knownEvents(s,actor).filter(e=>!prior.has(e.id)),

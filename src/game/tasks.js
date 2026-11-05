@@ -899,6 +899,14 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
   const result=collect[search.kind](state,actorId,world,dt,search.beginCollect,"mealSource",search.type);search.beginCollect=false;
   if(result==Task.ABORT)return reject();
   if(result==Task.CONTINUE)return result;
+  if(!world.ordered && search.kind=="container") {
+    const home=ecs.household?.[actorId]?.houseId, pantry=ecs.household?.[home]?.storeId;
+    if(foodHouse(state,search.source)!=home && pantry && containerHasSpace(ecs.container[pantry]) && mealAccess(state,actorId,search.source)) {
+      // Use the other working hand to bring a real spare portion home. The
+      // normal store-held plan delivers it after this person's timed meal.
+      pick_up_from_container(state,actorId,world,dt,true,"mealSource",search.type);
+    }
+  }
   world.mealType=search.type;world.holding[search.type]=true;delete world.mealFailure;
   return Task.FINISH;
 }
@@ -922,6 +930,7 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
 
   world.mealRemaining -= dt;
   if (world.mealRemaining > 1e-12) return Task.CONTINUE;
+  world.mealHeld=state.ecs.holder[actorId].held.some(id=>state.ecs.good[id]?.type==thing && householdAccess(state.ecs,actorId,id));
   delete world.mealFailure;
   state.ecs.personable[actorId].hunger = 0;
   state.ecs.personable[actorId].starving = false;

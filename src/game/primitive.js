@@ -110,7 +110,11 @@ export function eat(world, expected, thing) {
     return nothing;
   }
   world.holding[thing] = false;
-  if(!expected && thing=="meal"){world.holding[world.mealType]=false;delete world.mealType;}
+  if(!expected) {
+    world.holding[thing=="meal" ? world.mealType : thing]=!!world.mealHeld;
+    delete world.mealHeld;
+    if(thing=="meal")delete world.mealType;
+  }
   world.feeling.hungry = false;
 }
 

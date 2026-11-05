@@ -6,6 +6,7 @@ import { die, repairHouseholds } from "game/possessions";
 import { advanceOffscreenNeeds } from "game/needs";
 import { HOUR } from "game/time";
 import { householdFood } from "game/favours";
+import { mealAccess } from "game/household_food";
 
 function family() {
   const {s,house,ids:[a,b,c]}=community({player:false});
@@ -120,4 +121,45 @@ it("finishes a real villager meal before a new tiredness signal can apply its fe
   expect(s.ecs.personable[a].hunger).toBeGreaterThan(.9);
   for(let n=0;n<35;n++)sim.tick();
   expect(s.ecs.personable[a].hunger).toBeLessThan(.1);
+});
+
+it("does not treat homeless people as the beneficiaries of an ownerless cottage", () => {
+  const {s,house,store,a,b}=family();
+  s.ecs.household[a].houseId=undefined;
+  s.ecs.household[house]={storeId:store};
+  s.ecs.controllable[house].controllerId=house;
+  expect(mealAccess(s,b,store)).toBe(false);
+});
+
+it("lets local kin collect from an absent heir's real local store while protecting the heir's household", () => {
+  const {s,house,store,a,b}=family();
+  s.ecs.household[a].houseId="remote-home";
+  s.residents[a]=false;
+  s.travel={maps:{remote:{ecs:{personable:{[a]:s.ecs.personable[a]},household:{[a]:{houseId:"remote-home"}},controllable:{"remote-home":{controllerId:a}}},residents:{[a]:true}}}};
+  expect(mealAccess(s,b,store)).toBe(true);
+  s.ecs.container[store].amounts.grain=2;
+  expect(mealAccess(s,b,store)).toBe(false);
+  expect(s.ecs.controllable[house].controllerId).toBe(a);
+});
+
+it("recognises cousins through the existing kin rule when sharing food", () => {
+  const {s,store,a,b}=family();
+  s.ecs.kinship[a]={parents:["parent-a"],children:[],spouse:null};
+  s.ecs.kinship[b]={parents:["parent-b"],children:[],spouse:null};
+  s.ecs.kinship["parent-a"]={parents:["grandparent"],children:[a],spouse:null};
+  s.ecs.kinship["parent-b"]={parents:["grandparent"],children:[b],spouse:null};
+  expect(mealAccess(s,b,store)).toBe(true);
+});
+
+it("brings a spare real portion home from kin so that another housemate can eat", () => {
+  const {s,other,store,a,b,c}=family();
+  delete s.ecs.planner[c];
+  const [pantry]=newEntities(s,[{spatial:{...s.ecs.spatial[other]},interior:{buildingId:other},container:{capacity:20,amounts:{}},controllable:{controllerId:other}}]);
+  s.ecs.household[other].storeId=pantry;
+  advance(s,3);
+  expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
+  expect(s.ecs.container[store].amounts.grain).toBe(10);
+  expect(s.ecs.container[pantry].amounts.grain).toBe(1);
+  expect(s.ecs.holder[b].held).toEqual([]);
+  expect(s.ecs.personable[a].hunger).toBeLessThan(.9);
 });

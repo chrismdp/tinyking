@@ -103,3 +103,26 @@ EXIT_STATUS=0
 ```
 
 `npx eslint src/game/household_food.js src/game/compound.js src/game/needs.js src/game/simulation.js src/game/tasks.js scripts/day-food.cjs` produced no diagnostics and exited 0. This repository has plain JavaScript and no configured typecheck command. ESLint parses the changed runtime files and the replay driver.
+
+## Absent heirs found in seed 7
+
+Seed 7 starts with 246 stored portions and 113 wild portions. Two vacant houses hold 18 and 168 of the stored portions. Their owners are `w6_4-social-72` and `w6_4-social-75`, who live in neighbouring places. A food permission that only reads local residents cannot recognise those heirs' households. Added regressions for this case and for an ownerless cottage. An absent household must not become the set of all homeless people through an undefined house ID.
+
+The first after-replays use commit `e126c8e`. They finish their full seven days before the absent-heir correction. Their raw results remain separate from the final comparison. The queued affected gate and build had not started, so I cancelled only my two lock waiters, PIDs 2530117 and 2530125, recorded in `.cache/day-food-pids.txt`. No test or build was killed. The final gates will run on the corrected source.
+
+The first correction removed most daytime sleep, but seed 7 still exhausted its local food. Its vacant stores have local cousins rather than close kin. The existing `relatedPeople` rule recognises those cousins. Sharing now uses that rule as well as close family, and reads an absent heir's actual household through `homeState` and `personComponent`. It protects that household's two meals per person. An ownerless cottage has no beneficiaries.
+
+A villager also brings one spare portion home from a shared store when a hand and pantry space are available. Both portions leave the real source. The normal meal consumes one and the existing storage plan carries the other home. This lets food pass between kin households. The planner retains its knowledge of the spare portion after eating, so the good does not get stuck in a working hand.
+
+The absent-heir tests failed first (2 failed, 7 passed, exit 1). The complete sharing regressions then failed first (4 failed, 7 passed, exit 1). After the fixes:
+
+```
+Test Suites: 3 passed, 3 total
+Tests:       49 passed, 49 total
+Snapshots:   0 total
+Time:        6.968 s, estimated 9 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js.
+EXIT_STATUS=0
+```
+
+The final ESLint command also includes `src/game/primitive.js`. It produced no diagnostics and exited 0. The first candidate's seven-day results remain in `shots/day-food-first-after-13.json` and `shots/day-food-first-after-7.json`. These are intermediate evidence, not the final comparison.

@@ -1,7 +1,7 @@
 import { householdMembers } from "game/population_index";
-import { isResident } from "game/residents";
+import { isResident, homeState, personComponent } from "game/residents";
 import { householdAccess } from "game/playable";
-import { closeFamily } from "game/social_kin";
+import { closeFamily, relatedPeople } from "game/social_kin";
 import { householdFood } from "game/favours";
 
 export const foodHouse = (s, source) => s.ecs.interior?.[source]?.buildingId ||
@@ -24,7 +24,9 @@ export function mealAccess(s, actor, source) {
   const owned=family.includes(owner);
   if (!members.length && owned) return true;
   // An inherited larder can still feed the heir's children after they move.
-  const beneficiaries=members.length ? members : residents(s,e.household?.[owner]?.houseId);
+  const ownerHome=personComponent(s,"household",owner)?.houseId;
+  const beneficiaries=members.length ? members : ownerHome ? residents(homeState(s,owner),ownerHome) : [];
   if (!beneficiaries.length || (householdFood(s).get(house) || 0) <= beneficiaries.length*2) return false;
-  return owned || family.some(id => closeFamily(s,id).some(kin => beneficiaries.includes(kin)));
+  return owned || family.some(id => closeFamily(s,id).some(kin => beneficiaries.includes(kin)) ||
+    beneficiaries.some(kin => relatedPeople(s,id,kin)));
 }

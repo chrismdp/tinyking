@@ -11,7 +11,7 @@ import { acceptDayTravel, dayCompanions, dayRoadState, saveDayRoad, advanceDayRo
 import { skipIntro } from "game/intro";
 import { localWeather } from "game/weather";
 import { displayName } from "game/knowledge";
-import { visibleFavours, acceptFavour, favourSource } from "game/favours";
+import { visibleFavours, acceptFavour, favourSource, ASKS } from "game/favours";
 import { finishSeasonTurn } from "game/seasons";
 import { peaceUnavailable, introduceUnavailable, makePeace, introduce } from "game/social_interventions";
 
@@ -24,7 +24,8 @@ export function currentSlot(s) {
 }
 const at = (s,p) => p && (s.space[Hex().fromPoint(p)] || []).find(id=>s.ecs.walkable?.[id]);
 const samePair = (people,a,b) => people.length==2 && people.includes(a) && people.includes(b);
-const requests = (s,id) => visibleFavours(s,id).filter(r=>["offered","accepted"].includes(r.status) &&
+// Asks name an outcome, not work, so they are never offered as labour.
+const requests = (s,id) => visibleFavours(s,id).filter(r=>!ASKS.includes(r.kind) && ["offered","accepted"].includes(r.status) &&
   (r.status=="accepted" || s.knowledge?.[s.ui.playerId]?.offers?.[r.id]?.speakerId==id));
 // Wild food the player has found, nearest the chosen place first. A morning's
 // gathering visits several plants, as the arrival orders already allow.
@@ -213,8 +214,9 @@ export async function playSlot(s, requested, hooks={}) {
       if(id==actor || !at || s.ecs.personable?.[id]?.dead || !p.task || (at.x-me.x)**2+(at.y-me.y)**2>300**2)continue;
       const activity=String(p.task[0]),target=typeof p.task[1]=="string"?p.task[1]:null;
       const last=seen.findLast(o=>o.personId==id);
-      if(last && last.activity==activity && last.targetId==target)continue;
-      seen.push({day:s.days,personId:id,activity,targetId:target});
+      if(last && last.activity==activity && last.targetId==target && last.hungry==!!p.world?.feeling?.hungry)continue;
+      const feeling=p.world?.feeling||{};
+      seen.push({day:s.days,personId:id,activity,targetId:target,hungry:!!feeling.hungry,tired:!!feeling.tired});
     }
   };
   const order=(key,target,extra)=>{const j=enqueueTask(s,{key},target,extra);if(j)orders.push(j);return j;};
@@ -230,7 +232,7 @@ export async function playSlot(s, requested, hooks={}) {
     if(["talk","ask_favour"].includes(choice.activity))order("chat",choice.personId);
     if(choice.activity=="give_food")order("give_gift",choice.personId,{gift:choice.gift});
   };
-  let meeting=walkFirst;
+  let meeting=walkFirst,retries=0;
   if(!walkFirst)meet();
   if(choice.activity=="work") {
     const r=s.favours.requests[choice.requestId];
@@ -249,6 +251,10 @@ export async function playSlot(s, requested, hooks={}) {
       if(s.ecs.personable[actor]?.dead) {outcomes.push({kind:"death",personId:actor});break;}
       s.game_speed="normal";
       if(meeting && (meeting.progress>=1 || !s.ecs.manager[actor].jobs.includes(meeting))) {meeting=null;meet();}
+      // Spending time with someone means keeping after them: when an approach
+      // gives up before any conversation, set off after them again.
+      if(["talk","ask_favour"].includes(choice.activity) && !meeting && !s.chat?.active && !conversations.length && retries<4 &&
+        !s.ecs.manager[actor].jobs.some(j=>j.job.key=="chat") && s.days<menu.endsAt-1/24) {retries++;order("chat",choice.personId);}
       if(bringing && bringing.progress>=1) {
         const reason=choice.activity=="make_peace" ? makePeace(s,actor,choice.personId,choice.otherId) : introduce(s,actor,choice.personId,choice.otherId);
         outcomes.push({kind:choice.activity,requested:!reason,reason});bringing=null;

@@ -219,3 +219,11 @@ it("walks to a distant place first, so a long walk does not use up the time allo
   expect(result.outcomes.some(o=>/within an hour/.test(o.reason||""))).toBe(false);
   expect(result.conversations.some(c=>c.personId==w.person)).toBe(true);
 });
+
+it("says why the people it saw were resting or looking for food", async () => {
+  const w=village(),s=w.state;
+  s.ecs.spatial[w.person]={...s.ecs.spatial[w.player]};
+  s.ecs.planner[w.person].world.feeling.hungry=true;
+  const result=await playSlot(s,slotChoices(s).choices.find(c=>c.activity=="visit"&&c.available));
+  expect(result.seen.some(o=>o.personId==w.person&&o.hungry===true)).toBe(true);
+});

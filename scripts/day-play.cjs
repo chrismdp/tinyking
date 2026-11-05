@@ -90,7 +90,7 @@ function narrate(r){
   const out=[`--- ${r.slot} of day ${r.day}: ${r.choice.activity} ${r.choice.personId?nm(r.choice.personId):""}`,`${date(r.start)} → ${date(r.end)}`];
   if(r.road)out.push(...r.road.lines,`Road part ${r.road.part}/3: ${r.road.from} → ${r.road.to}${r.road.arrived?"; arrived":""}`);
   for(const c of r.conversations){out.push(`Conversation with ${nm(c.personId)}${c.completed?"":" (cut short)"}:`);for(const t of c.lines)out.push(`  ${t.speaker=="player"?"You":nm(c.personId)}: ${t.text}`);}
-  const sights={};for(const o of r.seen||[])(sights[o.personId] ||= []).push(act(o.activity)+(o.targetId&&s.ecs.nameable?.[o.targetId]&&!s.ecs.personable?.[o.targetId]?" ("+(s.ecs.nameable[o.targetId].nickname||"")+")":o.targetId&&s.ecs.personable?.[o.targetId]?" with "+nm(o.targetId):""));
+  const sights={};for(const o of r.seen||[])(sights[o.personId] ||= []).push((o.hungry?"hungry, ":o.tired?"weary, ":"")+act(o.activity)+(o.targetId&&s.ecs.nameable?.[o.targetId]&&!s.ecs.personable?.[o.targetId]?" ("+(s.ecs.nameable[o.targetId].nickname||"")+")":o.targetId&&s.ecs.personable?.[o.targetId]?" with "+nm(o.targetId):""));
   const sightLines=Object.entries(sights).map(([id,a])=>`  ${nm(id)}: ${[...new Set(a)].slice(0,5).join(", then ")}`);
   if(sightLines.length)out.push("You see:",...sightLines.slice(0,10),sightLines.length>10?`  …and ${sightLines.length-10} others about their day`:"");
   for(const e of r.events)out.push(`* ${eventText(s,e,nm)}`);

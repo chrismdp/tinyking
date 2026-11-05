@@ -161,3 +161,17 @@ it("makes the ask when a player they know offers help", () => {
   const asked=s.chat.active.transcript.find(l=>l.family=="favour_ask");
   expect(asked?.text).toContain("Gillian");
 });
+
+it("never offers an ask as work, so it cannot be finished by labour", () => {
+  const {s,player,person,sibling}=family();
+  s.ecs.village[sibling]=s.ecs.village[person];
+  recordEvent(s,"quarrel",[person,sibling],[],{audienceIds:[person,sibling]});
+  updateFavours(s);
+  const r=offered(s,"peace",person);
+  expect(accept(s,r,person,player)).toBeTruthy();
+  const {Hex}=require("game/hex");
+  s.ecs.playable[player].known=Object.keys(s.ecs.walkable).map(id=>Hex().fromPoint(s.ecs.spatial[id]));
+  const choices=require("game/day").slotChoices(s).choices;
+  expect(choices.some(c=>c.personId==person)).toBe(true);
+  expect(choices.filter(c=>c.activity=="work"&&c.requestId==r.id)).toEqual([]);
+});

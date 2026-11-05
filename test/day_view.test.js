@@ -147,3 +147,23 @@ it("records a partial delivery without presenting a list of steps", () => {
   expect(asksJournal(s)[0].outcome).toMatch(/brought|delivered/i);
   expect(asksJournal(s)[0].outcome).not.toContain("1/3");
 });
+
+it("sums up what someone likes to talk about in one sentence, and leaves out what they do not mind", () => {
+  const {state:s,person}=peopleWorld();
+  const base=`people.${person}.topicTastes.`;
+  const r={slot:"morning",choice:{activity:"talk",personId:person},conversations:[],events:[],seen:[],regard:[],outcomes:[],
+    facts:[{fact:base+"season",value:1},{fact:base+"help",value:-1},{fact:base+"village",value:-2},{fact:base+"food",value:0}]};
+  const learned=narrateSlot(s,r).filter(p=>p.kind==="learned").map(p=>p.text);
+  expect(learned).toHaveLength(1);
+  expect(learned[0]).toMatch(/ enjoys talk of the season, but not of help or the village\.$/);
+});
+
+it("says plainly when the part of the day ran out, and whether a pair met", () => {
+  const {state:s,person,parent}=peopleWorld();
+  const r={slot:"morning",choice:{activity:"make_peace",personId:person,otherId:parent},conversations:[],facts:[],events:[],seen:[],regard:[],
+    outcomes:[{kind:"unfinished",reason:"The slot ended before the task finished"},{kind:"make_peace",requested:false,reason:"They need a meal first"}]};
+  const prose=narrateSlot(s,r).map(p=>p.text).join(" ");
+  expect(prose).not.toContain("slot");
+  expect(prose).toContain("The morning ran out before you were done.");
+  expect(prose).toMatch(/did not come together: they need a meal first\./);
+});

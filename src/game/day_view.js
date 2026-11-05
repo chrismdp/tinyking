@@ -135,7 +135,7 @@ export function foodSupplies(s) {
 export function narrateSlot(s,r) {
   const out=[],add=(kind,text)=>{if(text)out.push({kind,text});},who=id=>describePerson(s,id);
   if(r.road)r.road.lines.forEach(line=>add("narration",line));
-  else add("narration",r.choice.placeId?"You spent the "+r.slot+" at "+placeName(s,r.choice.placeId).replace(/^The /,"the ")+".":"You spent the "+r.slot+" with the people here.");
+  else add("narration",r.choice.placeId?"You spent the "+r.slot+" at "+placeName(s,r.choice.placeId).replace(/^(The|Open) /,m=>m.toLowerCase())+".":"You spent the "+r.slot+" with the people here.");
   if(r.supplies && r.choice.activity==="forage") {
     const gained=Object.entries(r.supplies.after).filter(([type,amount])=>amount>(r.supplies.before[type]||0)).map(([type])=>type);
     add("supplies",gained.length?"You have "+gained.join(" and ")+" to offer now.":"You have no extra food left to offer after the day's gathering.");
@@ -152,17 +152,32 @@ export function narrateSlot(s,r) {
     else if(g.after.goodwill!==g.before?.goodwill)add("reaction",cap(who(g.personId))+(g.after.goodwill>(g.before?.goodwill||0)?" warmed to you.":" feels less at ease with you."));
   }
   for(const e of r.events||[])add("news",eventText(s,e,who));
+  const tastes={};
   for(const f of r.facts||[]) {
     const m=f.fact.match(/^people\.(.+)\.(traits|trade|topicTastes\.[^.]+|moodTastes\.[^.]+)$/);
     if(!m)continue;
     const p=cap(who(m[1]));
     if(m[2]==="traits" && f.value.length)add("learned",p+" seems "+f.value.join(" and ")+".");
     if(m[2]==="trade")add("learned",p+" works as a "+f.value+".");
-    if(m[2].includes("Tastes."))add("learned",p+(f.value>0?" enjoys ":f.value<0?" dislikes ":" has no strong feelings about ")+m[2].split(".")[1]+" talk.");
+    if(m[2].includes("Tastes.") && f.value) {const t=(tastes[m[1]] ||= {likes:[],dislikes:[]});(f.value>0?t.likes:t.dislikes).push(m[2].split(".")[1]);}
   }
+  // One sentence per person for what they like to talk about; indifference is left out.
+  const topic=k=>({season:"the season",village:"the village",family:"family",work:"work",harvest:"the harvest",food:"food",faith:"faith",gossip:"gossip",help:"help",woodland:"the woods"})[k]||k;
+  const list=a=>a.map(topic).reduce((s,x,i,all)=>i==0?x:s+(i==all.length-1?" or ":", ")+x,"");
+  const listAnd=a=>list(a).replace(/ or ([^ ]+)$/," and $1");
+  for(const [id,t] of Object.entries(tastes)) {
+    const p=cap(who(id));
+    if(t.likes.length)add("learned",p+" enjoys talk of "+listAnd(t.likes)+(t.dislikes.length?", but not of "+list(t.dislikes):"")+".");
+    else if(t.dislikes.length)add("learned",p+" would rather not talk of "+list(t.dislikes)+".");
+  }
+  const plain=reason=>reason==="The slot ended before the task finished"?"The "+r.slot+" ran out before you were done.":reason;
   for(const o of r.outcomes||[]) {
-    if(o.kind==="unfinished")add("unfinished",o.reason);
-    if(o.reason && o.kind!=="unfinished")add("unfinished",o.reason);
+    if(o.kind==="unfinished")add("unfinished",plain(o.reason));
+    if(["make_peace","introduce"].includes(o.kind)) {
+      const pair=cap(who(r.choice.personId))+" and "+who(r.choice.otherId);
+      add("news",o.requested?pair+" agreed to meet.":pair+" did not come together: "+(o.reason||"").replace(/^./,c=>c.toLowerCase()).replace(/\.?$/,"."));
+    }
+    else if(o.reason && o.kind!=="unfinished")add("unfinished",o.reason);
     if(o.kind==="season") {add("season","The season turns to "+(typeof o.season==="number"?season(o.season*DAYS_IN_SEASON):o.season)+".");for(const line of o.lines||[])add("season",typeof line==="string"?line:line.text);}
   }
   if(r.slot==="evening")add("overnight",r.road&&!r.road.arrived?"You sleep beside the road. Morning finds you still on the journey.":s.ui.dayMessage||"The night passes. You wake to another morning.");

@@ -11,6 +11,7 @@ import { addGoodwill, meet, disposition, RINGS, completeConversation, goodwillTo
 import { learnEvent, recordEvent } from "game/events";
 import { recogniseConversation } from "game/guidance";
 import { acceptFavour, withFavourQuery } from "game/favours";
+import { makePeace, introduce } from "game/social_interventions";
 import { hashUnit } from "game/math";
 import { patience, chatRecord } from "game/chat_patience";
 import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
@@ -149,7 +150,11 @@ function pickNpc(s,c,family,realOnly=false) {
   return rows[0];
 }
 export function chatChoices(s) {
-  return withFavourQuery(s,()=>queryChatChoices(s));
+  const choices=withFavourQuery(s,()=>queryChatChoices(s));
+  for(const line of choices)if(line.effects.some(e=>e.op=="arrange_meeting")) {
+    (s.chat.active.offeredMeetings ||= {})[line.key]=line;
+  }
+  return choices;
 }
 function queryChatChoices(s) {
   const c=s.chat?.active;if(!c||c.endReason)return [];
@@ -172,13 +177,13 @@ function queryChatChoices(s) {
   if(c.closingReply) return withAnswers(all.filter(l=>(c.closingReply=="offer"?["favour_accept","favour_decline"]:["referral_reply"]).includes(l.family)));
   if(c.focus=="tell")return withAnswers(all.filter(l=>l.family=="gossip_tell"&&l.situation.startsWith("catalogue_")).sort((a,b)=>b.b.event.day-a.b.event.day||a.useKey.localeCompare(b.useKey)),false);
   if (c.focus) {
-    const focus={family:["maternal_introduction","maternal_search","family_question","own_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["own_question","mood_talk","mood_reply"]}[c.focus];
+    const focus={family:["make_peace","introduce","maternal_introduction","maternal_search","family_question","own_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["introduce","gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["own_question","mood_talk","mood_reply"]}[c.focus];
     all=all.filter(l=>focus.includes(l.family)||l.family=="customs_question"||c.focus=="season"&&l.family=="lands_question"&&l.situation=="country");
   }
   // Practical lines remain reachable; the list otherwise favours a visible
   // match and distinct purposes, without looking up hidden taste scores.
   all.sort((a,b)=>{
-    const rank=l=>!previewLine(s,l).fits?-20:l.family=="customs_question"?110:l.family=="favour_accept"?100:l.family=="favour_decline"?90:c.focus=="family"&&l.family=="family_question"&&l.situation=="general"?80:["season_talk","lands_question","need_question"].includes(l.family)?70+previewLine(s,l).matches:l.family=="introduction"?60:previewLine(s,l).matches*4;
+    const rank=l=>!previewLine(s,l).fits?-20:l.family=="customs_question"?110:l.family=="favour_accept"?100:l.family=="favour_decline"?90:["make_peace","introduce"].includes(l.family)?85:c.focus=="family"&&l.family=="family_question"&&l.situation=="general"?80:["season_talk","lands_question","need_question"].includes(l.family)?70+previewLine(s,l).matches:l.family=="introduction"?60:previewLine(s,l).matches*4;
     return rank(b)-rank(a)||hashUnit(c.encounter+":"+c.transcript.length+":"+a.useKey)-hashUnit(c.encounter+":"+c.transcript.length+":"+b.useKey);
   });
   const result=[],used=new Set();
@@ -231,11 +236,24 @@ function effects(s,c,line) {
   for(const key of line.disclosure?.requests||[]) {
     const id=b[key]?.id;if(!id)continue;const k=knowledge(s,viewer);k.favours ||= [];if(!k.favours.includes(id))k.favours.push(id);
     (k.offers ||= {})[id]={speakerId:c.npcId,day:s.days};
+    // Keep this exact request binding, even if another ask uses the same words.
+    if(line.family=="favour_ask") {
+      s.dayBook ||= {};s.dayBook.askWords ||= {};
+      s.dayBook.askWords[id] ||= {text:line.text,speakerId:c.npcId,targetName:b[key].target_first_name};
+    }
   }
   for(const fact of line.disclosure?.facts||[])if(fact.ref=="job"&&b.job?.trade){learnIdentity(s,viewer,c.npcId);knowledge(s,viewer).people[c.npcId].trade=b.job.trade;}
   for(const op of line.effects||[]) {
     const k=knowledge(s,ref(op.viewer)||c.actorId);
     switch(op.op) {
+    case "arrange_meeting": {
+      const run=op.kind=="make_peace"?makePeace:introduce;
+      const reason=run(s,c.actorId,c.npcId,ref(op.other),{whenFree:true});
+      c.meetingResult={kind:op.kind,reason,value:reason?"meeting_unavailable":"meeting_queued"};
+      if(reason)c.reply="meeting_reply";
+      else c.meetingQueued=true;
+      break;
+    }
     case "begin_woodland_warning": {
       const incident=s.customs?.incidents.find(i=>i.id==c.context?.incidentId);
       if(incident)incident.status="chat";stopForbiddenCutting(s,c.actorId);break;
@@ -318,7 +336,7 @@ export function speakLine(s,line) {
   }
   c.lastPops=[...(c.lastPops||[]),...pops];
   c.usedIds.push(line.id);
-  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,icons:line.icons,pops,presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
+  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
   c.transcript.push(spoken);
   if(!risk) {
     for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
@@ -352,8 +370,10 @@ export function speakLine(s,line) {
   const grievances=c.row.filter(i=>i.kind=="grievance");
   c.row=[...grievances,...c.row.filter(i=>i.kind!="grievance")].slice(0,Math.max(0,p.max-p.resting));
   spoken.presentation.after=snapshot();
+  if(c.meetingQueued) {endChat(s,"meeting_queued");closeChat(s);return true;}
   const awaitsAnswer=line.speaker=="player"&&(line.resolve||line.effects?.some(e=>e.op=="set_reply_purpose"));
-  if(c.phase!="opening" && c.row.length+p.resting>=p.max) {
+  const meetingRefusal=line.family=="meeting_reply" || line.effects?.some(e=>e.op=="arrange_meeting")&&c.meetingResult?.reason;
+  if(!meetingRefusal && c.phase!="opening" && c.row.length+p.resting>=p.max) {
     c.closeReason="row_full";
     if(c.expectation||c.closingReply)c.closeAfterReply=true;
     else if(awaitsAnswer)c.finishAfterReply=true;
@@ -390,7 +410,8 @@ export function noteExhausted(s,c,line) {
 }
 export function chooseLine(s,key) {
   const c=s.chat?.active;if(!c||c.endReason)return false;
-  const line=chatChoices(s).find(l=>l.key==key);if(!line)return false;
+  const offered=c.offeredMeetings?.[key];
+  const line=chatChoices(s).find(l=>l.key==key)||offered;if(!line)return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
   if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}

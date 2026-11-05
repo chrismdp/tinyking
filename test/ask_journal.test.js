@@ -1,0 +1,35 @@
+import { completeConversation } from "game/people";
+import { peopleWorld } from "./support/people";
+import { openChat, lineCandidates, speakLine, closeChat } from "game/chat";
+import { asksJournal } from "game/day_view";
+import { recordEvent, learnEvent } from "game/events";
+import { serialiseGame, restoreGame } from "game/save_game";
+jest.mock("game/name",()=>({name:n=>n?.nickname||"?",firstName:n=>n?.nickname?.split(" ")[0]||"?",familyName:n=>n?.nickname?.split(" ")[1]||"?"}));
+it.each(["peace","word","visit","find"])("keeps the actual %s ask at speech time, through chat close and save",kind=>{
+  const w=peopleWorld(),s=w.state;
+  s.weather={"0,0":{type:"clear"}};s.ecs.spatial[w.player]={...s.ecs.spatial[w.person],x:s.ecs.spatial[w.person].x-45};
+  s.ecs.relationships[w.person].known[w.player]={ring:"intimate",goodwill:70};
+  s.knowledge={[w.player]:{people:{[w.parent]:{traits:[]}}}};
+  s.newsModel=true;
+  const event=recordEvent(s,kind=="find"?"departure":kind=="word"?"death":"quarrel",kind=="word"?[w.sibling]:[w.person,w.parent],[],{audienceIds:[w.person]});
+  const r={id:"ask",kind,giverId:w.person,targetId:w.parent,householdId:w.tiles[3],status:"offered",createdDay:s.days,eventId:event.id};
+  s.favours={requests:{ask:r}};
+  completeConversation(s,w.player,w.person);
+  openChat(s,w.player,w.person);s.chat.active.row=[];s.chat.active.phase="reply";
+  const row=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+  expect(row).toBeDefined();speakLine(s,row);
+  expect(asksJournal(s)[0]).toMatchObject({words:row.text,targetId:w.parent,status:"offered"});
+  closeChat(s);
+  const restored=restoreGame(serialiseGame(s));
+  expect(asksJournal(restored)[0].words).toBe(row.text);
+});
+it("only shows learned related events",()=>{
+  const w=peopleWorld(),s=w.state;
+  const r={id:"ask",kind:"peace",giverId:w.person,targetId:w.parent,status:"accepted",createdDay:s.days};
+  s.newsModel=true;s.favours={requests:{ask:r}};s.knowledge={[w.player]:{people:{[w.person]:{},[w.parent]:{}},favours:[r.id]}};
+  const known=recordEvent(s,"quarrel",[w.person,w.parent]);learnEvent(s,w.player,known);
+  recordEvent(s,"quarrel",[w.person,w.sibling],[],{audienceIds:[w.person,w.sibling]});
+  const journal=asksJournal(s)[0];
+  expect(journal.targetId).toBe(w.parent);expect(journal.learned).toHaveLength(1);
+  r.status="completed";expect(asksJournal(s)[0].status).toBe("completed");
+});

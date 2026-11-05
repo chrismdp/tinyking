@@ -164313,5 +164313,1103 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "player.make_peace.pair.01",
+  "speaker": "player",
+  "family": "make_peace",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "make_peace",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Come with me. {other.first_name} wants to make it right.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "make_peace:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "make_peace",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.make_peace.pair.02",
+  "speaker": "player",
+  "family": "make_peace",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "make_peace",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "You and {other.first_name} have both had your say. Come and talk together.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "make_peace:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "make_peace",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.make_peace.pair.03",
+  "speaker": "player",
+  "family": "make_peace",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "make_peace",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Let me bring you and {other.first_name} together. You've both trusted me with this.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "make_peace:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "make_peace",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.introduce.pair.01",
+  "speaker": "player",
+  "family": "introduce",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "introduce",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "There's someone you should meet: {other.first_name}.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "introduce:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "introduce",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.introduce.pair.02",
+  "speaker": "player",
+  "family": "introduce",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "introduce",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Come and meet {other.first_name}. I think you'd get on.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "introduce:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "introduce",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.introduce.pair.03",
+  "speaker": "player",
+  "family": "introduce",
+  "situation": "pair",
+  "weight": 1,
+  "bindings": {
+   "other": {
+    "source": "player_known_local_person"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "meeting_available",
+     "args": {
+      "kind": "introduce",
+      "other": "other"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know someone who might suit you. Shall we find {other.first_name}?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "other"
+   }
+  ],
+  "use_key": "introduce:{npc.id}:{other.id}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "arrange_meeting",
+    "kind": "introduce",
+    "other": "other"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.trust",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "trust",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "Both people must trust you at Personal closeness"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We don't both know you well enough to put this in your hands.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:trust",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.quarrel",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "quarrel",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "There is no unresolved quarrel that you know about"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "There's no quarrel left for you to settle between us.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:quarrel",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.sides",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "sides",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "Complete a conversation with each person since the quarrel"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Speak with each of us first. You haven't heard us both out yet.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:sides",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.season",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "season",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They have already reconciled this season"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We've already tried making it up this season. Give us time.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:season",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.single",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "single",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They must be unrelated single adults free to court"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We aren't both free to court. There are family ties to think of.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:single",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.willing",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "willing",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They are not willing, compatible partners"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I don't think we'd suit each other. Let it be.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:willing",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.avoidance",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "avoidance",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They are avoiding each other after a quarrel"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We're keeping apart after what happened. I won't go with you.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:avoidance",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.hours",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "hours",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They meet between nine in the morning and nine at night"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "It's too late for a visit today. Ask me another morning.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:hours",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.night",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "night",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "There is not time to arrive and talk before night"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We won't have time to get there and talk before night.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:night",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.route",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "route",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "There is no route for them to meet"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I can't find a way for us to meet here.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:route",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.meeting_reply.here",
+  "speaker": "npc",
+  "family": "meeting_reply",
+  "situation": "here",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_meeting_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_reason_in",
+     "args": {
+      "result": "result",
+      "reasons": [
+       "They cannot visit here"
+      ]
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "We can't both come here for a visit.",
+  "facts": [],
+  "icons": [],
+  "use_key": "meeting_reply:{npc.id}:{context.encounter_number}:here",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
  }
 ]

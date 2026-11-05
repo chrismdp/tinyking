@@ -17,6 +17,7 @@ import { isResident } from "game/residents";
 import { updateFavours, fuelReady, requestForTask } from "game/favours";
 import { friendWork, friendEligible, friendWorkWanted, releaseFriendWork } from "game/friend_help";
 import { socialHour } from "game/social_visits";
+import { updateSocialInterventions } from "game/social_interventions";
 import { resolveSuccession } from "game/succession";
 import * as htn from "game/htn";
 import { introActive, updateIntro } from "game/intro";
@@ -257,6 +258,7 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     updateCustoms(state);
     updateJourney(state);
     updateCampfireVisits(state);
+    updateSocialInterventions(state);
     updatePlanners(state, frameMod);
     updateOverhearing(state);
     if (state.chat?.active) { if(onHour) onHour(); return; }

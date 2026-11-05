@@ -3,6 +3,7 @@ import { eventById } from "game/events";
 import { knowsEvent } from "game/event_knowledge";
 import { householdMembers } from "game/population_index";
 import { condition } from "game/social_conditions";
+import { peaceUnavailable, introduceUnavailable } from "game/social_interventions";
 import { personComponent } from "game/residents";
 import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 /* global require */
@@ -136,6 +137,9 @@ export function sourceValues(s,c,b,d) {
     left_for:r.kind=="find"?eventFact(s,eventById(s,r.eventId))?.far_country_words||"the far lands":undefined}:null;
   const place=id=>{const v=placeFact(s,n,id);return v&&{...v,house_count_words:words(v.house_count)};};
   switch(d.source) {
+  case "player_known_local_person":return [...new Set([...Object.keys(s.knowledge?.[p]?.people||{}),...Object.keys(e.relationships?.[p]?.known||{})])]
+    .filter(id=>id!=p&&id!=n&&living(s,id)&&e.planner?.[id]&&knows(s,p,id)).map(id=>personFact(s,id)).filter(Boolean);
+  case "pending_meeting_result":return c.meetingResult?[c.meetingResult]:[];
   case "customs_chat": {
     const context=c.context;if(!context)return [];
     const i=s.customs?.incidents.find(i=>i.id==context.incidentId);
@@ -223,6 +227,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const lands=()=>landsFact(s,c.npcId),told=f=>landsTold(s,viewer||c.actorId,id(a.speaker)||c.npcId,f);
   const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
+  case "meeting_available":return !(a.kind=="make_peace"?peaceUnavailable:introduceUnavailable)(s,c.actorId,c.npcId,id(a.other),{whenFree:true});
   case "family_search_answer":return b.relative?.answer==a.value;
   case "festival_active":return !!s.ecs.planner?.[c.npcId]?.world.festivalPlace;
   case "mood_in_row":return c.row.some(i=>i.kind=="mood"&&i.key==a.key);

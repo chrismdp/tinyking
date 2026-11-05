@@ -189,16 +189,16 @@ export function rememberAsks(s) {
   const offers=s.knowledge?.[s.ui.playerId]?.offers||{};
   for(const [id,offer] of Object.entries(offers))if(offer.speakerId===c.npcId && offer.day>=Math.floor(s.days)) {
     const request=s.favours?.requests?.[id];
-    const spoken=[...c.transcript].reverse().find(l=>l.speaker==="npc"&&l.family==="favour_ask" && (!l.situation || l.situation.startsWith(request?.kind)));
+    const spoken=[...c.transcript].reverse().find(l=>l.speaker==="npc"&&l.family==="favour_ask" && (l.requestIds?l.requestIds.includes(id):(!l.situation || l.situation.startsWith(request?.kind))));
     if(spoken && !s.dayBook.askWords[id])s.dayBook.askWords[id]={text:spoken.text,speakerId:c.npcId};
   }
 }
-export function asksJournal(s) {
-  return visibleFavours(s).map(r=>{
+export function asksJournal(s, requests=visibleFavours(s)) {
+  return requests.map(r=>{
     const remembered=s.dayBook?.askWords?.[r.id];
     const related=knownEvents(s,s.ui.playerId).filter(e=>e.id===r.eventId || ((e.people?.includes(r.targetId)||e.people?.includes(r.giverId)) && e.day>= (r.createdDay??0)));
     const completed={peace:"You kept your promise. They made peace.",word:"You kept your promise. The news reached them.",visit:"You kept your promise. You spent time together.",find:"You kept your promise. You found news of them."}[r.kind]||"You kept your promise. The household received your help.";
-    return {id:r.id,giverId:remembered?.speakerId||r.giverId,title:favourTitle(r),status:r.status,
+    return {id:r.id,giverId:remembered?.speakerId||r.giverId,targetId:r.targetId,targetName:remembered?.targetName||describePerson(s,r.targetId),title:favourTitle(r),status:r.status,
       words:remembered?.text||null,context:r.reason,
       learned:related.map(e=>eventText(s,e,id=>describePerson(s,id))),
       outcome:r.status==="completed"?completed:r.status==="accepted"?(r.progress>0?"You have delivered some of what they asked for. Your promise is still open.":"You promised to help."):r.status==="offered"?"They are waiting for your answer.":r.outcome?.split(" · ")[0]||"The ask has come to an end."};

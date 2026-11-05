@@ -85,11 +85,11 @@ export function pick_up_from_stockpile(world, expected, place, thing) {
 }
 
 export function drop_entity_into_stockpile_slot(world, expected, place, thing) {
-  world.holding[thing] = false;
+  if(expected)world.holding[thing] = false;
 }
 
 export function drop_entity_into_container(world, expected, place, thing) {
-  world.holding[thing] = false;
+  if(expected)world.holding[thing] = false;
 }
 
 export function pick_up_from_container(world, expected, place, thing) {
@@ -110,7 +110,11 @@ export function eat(world, expected, thing) {
     return nothing;
   }
   world.holding[thing] = false;
-  if(!expected && thing=="meal"){world.holding[world.mealType]=false;delete world.mealType;}
+  if(!expected) {
+    world.holding[thing=="meal" ? world.mealType : thing]=!!world.mealHeld;
+    delete world.mealHeld;
+    if(thing=="meal")delete world.mealType;
+  }
   world.feeling.hungry = false;
 }
 
@@ -172,10 +176,16 @@ export function customs_visit() {}
 
 export function make_meal_space() {}
 
+export function collect_household_food(world, expected, offer) {
+  world.holding[offer.type]=true;
+  delete world.foodForHome;
+}
+
 export function work_field() {}
 export function household_fuel() {}
 
 export function recover_meal(world, expected) {
+  if(!world.ordered && world.no_place_for.meal>world.days)return nothing;
   world.holding.meal=true;
   if(!expected)delete world.mealSearch;
 }

@@ -1,0 +1,43 @@
+FAIL test/household_food.test.js
+  ● restocks a low household from reachable kin before its residents are hungry
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 4
+    Received: 3
+
+      172 |   s.ecs.household[other].storeId=pantry;
+      173 |   advance(s,4);
+    > 174 |   expect(s.ecs.container[pantry].amounts.grain).toBe(4);
+          |                                                 ^
+      175 |   expect(s.ecs.container[store].amounts.grain).toBe(8);
+      176 |   expect(s.ecs.holder[b].held).toEqual([]);
+      177 | });
+
+      at Object.<anonymous> (test/household_food.test.js:174:49)
+
+FAIL test/survival.test.js
+  ● harvests its own ripe crop after an empty meal search instead of searching forever
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "harvested"
+    Received: "ploughed"
+
+      317 |   const [field]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},farmable:{slots:[{state:"harvestable",content:"grain",amount:6}]},controllable:{controllerId:a}}]);
+      318 |   advance(s,HOUR*5);
+    > 319 |   expect(s.ecs.farmable[field].slots[0].state).toBe("harvested");
+          |                                                ^
+      320 |   expect(s.ecs.personable[a].hunger).toBeLessThan(.4);
+      321 | });
+      322 |
+
+      at Object.<anonymous> (test/survival.test.js:319:48)
+
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       2 failed, 49 passed, 51 total
+Snapshots:   0 total
+Time:        5.684 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js.
+EXIT_STATUS=1

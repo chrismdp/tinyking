@@ -71,6 +71,7 @@ export const person = () => [
     world => world.moveHome,
     house => [["walk_to", house], ["arrive_home"]]
   ],
+  [world => world.foodForHome, offer => [["set_label"], ["walk_to",offer.source], ["collect_household_food",offer], ["store_held"]]],
   [
     world => world.social,
     () => [["social_visit"]]
@@ -332,20 +333,9 @@ export const find_food = () => [
       [ "eat", good ]
     ]
   ]),
-  ...FOODS.map(good => [
-    world => !world.holding[good],
-    () => [ [ "make_meal_space" ], [ "pick_up", good, true ], [ "find_food" ] ]
-  ]),
   [
     always,
-    () => [
-      [ "make_meal_space" ],
-      [ "move_to_place", "forage_plant", "forage_plant" ],
-      [ "set_label", "foraging" ],
-      [ "forage", "forage_plant" ],
-      [ "forget_place", "forage_plant" ],
-      [ "find_food" ]
-    ]
+    () => [["set_label", "eating"], ["recover_meal"], ["eat", "meal"]]
   ]
 ];
 

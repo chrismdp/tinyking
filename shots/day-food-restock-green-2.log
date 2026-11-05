@@ -1,0 +1,24 @@
+FAIL test/survival.test.js
+  ● harvests its own ripe crop after an empty meal search instead of searching forever
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.4
+    Received:   1.6083333333333336
+
+      318 |   advance(s,HOUR*5);
+      319 |   expect(s.events).toEqual(expect.arrayContaining([expect.objectContaining({type:"harvest",fieldId:field,quantity:6})]));
+    > 320 |   expect(s.ecs.personable[a].hunger).toBeLessThan(.4);
+          |                                      ^
+      321 | });
+      322 |
+
+      at Object.<anonymous> (test/survival.test.js:320:38)
+
+
+Test Suites: 1 failed, 3 passed, 4 total
+Tests:       1 failed, 61 passed, 62 total
+Snapshots:   0 total
+Time:        7.316 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=1

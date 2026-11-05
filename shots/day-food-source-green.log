@@ -1,0 +1,7 @@
+
+Test Suites: 4 passed, 4 total
+Tests:       65 passed, 65 total
+Snapshots:   0 total
+Time:        5.644 s, estimated 6 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=0

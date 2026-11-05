@@ -1,0 +1,25 @@
+FAIL test/household_food.test.js
+  ● passes real surplus through a kin household instead of stranding it behind that household's reserve
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Matcher error: received value must be a number or bigint
+
+    Received has value: undefined
+
+      188 |   expect(mealAccess(s,c,store)).toBe(false);
+      189 |   advance(s,4);
+    > 190 |   expect(s.ecs.container[nextPantry].amounts.grain).toBeGreaterThanOrEqual(2);
+          |                                                     ^
+      191 |   expect(s.ecs.container[pantry].amounts.grain).toBeGreaterThanOrEqual(2);
+      192 |   expect(Object.values(s.ecs.container).reduce((n,box)=>n+(box.amounts.grain || 0),0)).toBe(20);
+      193 | });
+
+      at Object.<anonymous> (test/household_food.test.js:190:53)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 12 passed, 13 total
+Snapshots:   0 total
+Time:        3.12 s
+Ran all test suites matching test/household_food.test.js.
+EXIT_STATUS=1

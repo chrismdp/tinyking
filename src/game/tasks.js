@@ -646,7 +646,7 @@ export function find_place(state, actorId, world, dt, firstRun, type, filter, fi
   let found_place;
 
   if (filter == "allows_sleep") {
-    const available_in_realm = Object.keys(state.ecs.sleepable).filter(id =>
+    const available_in_realm = Object.keys(state.ecs.sleepable || {}).filter(id =>
       householdAccess(state.ecs, actorId, id) &&
       state.ecs.sleepable[id].occupiers.length < state.ecs.sleepable[id].capacity);
     const home = actualHome(state, actorId);

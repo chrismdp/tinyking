@@ -194,3 +194,12 @@ EXIT_STATUS=0
 ```
 
 The final affected gate and replays use this correction. The fifth candidate's complete run files are retained separately. Its successful production build remains in `shots/day-food-third-build.log`.
+
+## Affected gate correction
+
+`flock -w 7200 /tmp/27agents-gate.lock npx jest --changedSince=379c911 --runInBand` finished with 145 files passing and two failing. The full output appears below.
+
+- `test/play_session_feedback.test.js` exposed a home without any bed component table. The new bedtime path reached an old assumption in `find_place`: `Object.keys(ecs.sleepable)` threw instead of finding no bed. An absent table now means no available beds. Neither saved world can enter this case: both have persistent bed tables. Their completed and running replay evidence remains applicable.
+- `test/htn.test.js` still required the removed sequence of separate food searches. Updated that one existing test to require the complete recovery task, its planned held meal and the final fed state. It still checks state passing through compound planning, and now also checks that the input holding map stays unchanged. No existing assertion about gameplay was removed to hide a failure.
+
+The repository policy retains the 145 passing files. The retry uses `--onlyFailures` with the same affected selection. A focused rerun covers the changed meal, bed and storage behaviour. The missing-table correction does not alter any saved-world transition with an existing bed table. The final production build includes it.

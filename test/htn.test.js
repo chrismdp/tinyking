@@ -79,26 +79,21 @@ describe("HTN planning", () => {
     const rep = {
       places: { grain: 1 },
       no_place_for: {},
-      feeling: {},
+      feeling: {hungry:true},
       holding: {}
     };
 
     const [plan, world] = sut.solve(rep, [], [["find_food"]]);
 
-    // NOTE: picking up stored gruel happens inside the first find_food descent;
-    // the second find_food must see that held gruel and eat it at the pickup place.
+    // The planned meal from recovery must persist into the eating primitive.
     expect(plan).toEqual([
-      ["make_meal_space"],
-      ["find_place", "container_with gruel", "container_with", "gruel"],
-      ["walk_to", "container_with gruel"],
-      ["pick_up_from_container", "container_with gruel", "gruel"],
-      ["forget_place", "container_with gruel"],
-      ["set_label"],
       ["set_label", "eating"],
-      ["eat", "gruel"]
+      ["recover_meal"],
+      ["eat", "meal"]
     ]);
-    expect(world.holding.gruel).toEqual(false);
+    expect(world.holding.meal).toEqual(false);
     expect(world.feeling.hungry).toEqual(false);
+    expect(rep.holding).toEqual({});
   });
 
   it("plans a separate slot for each subtask it creates", () => {

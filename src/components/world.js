@@ -388,11 +388,9 @@ export function World() {
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }
 
-    (async () => {
-      // NOTE: ?seed=1234 in the address plays that seed, to look at a world again
-      await state.persistence.inspect();
-      if (!state.persistence.hasSave && !state.persistence.error) await state.ui.actions.generate_map(initialSeed);
-    })();
+    // Keep the menu available without generating a world. custom_game starts
+    // legacy generation only after the player chooses Start new game.
+    state.persistence.inspect();
     return () => {
       unbindAutosave();
       unbindContext();

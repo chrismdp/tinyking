@@ -1,0 +1,7 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       17 passed, 17 total
+Snapshots:   0 total
+Time:        1.456 s
+Ran all test suites within paths "test/first_run.test.js", "test/autosave.test.js".
+exit=0

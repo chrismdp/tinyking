@@ -17,7 +17,7 @@ export function MainMenu({ show }) {
       <menu className={show ? "" : "hiding"}>
         <li><a href="/?mode=day">A day with people</a></li>
         {state.persistence?.hasSave && <li><button disabled={!!state.generating} onClick={state.ui.actions.continue_game}>Continue</button></li>}
-        <li>{(state.renderer || state.persistence?.ready && (state.persistence.hasSave || state.persistence.error)) && <a onClick={state.ui.actions.custom_game}>Start new game</a>}</li>
+        <li>{(state.renderer || state.persistence?.ready) && <a onClick={state.ui.actions.custom_game}>Start new game</a>}</li>
         {state.persistence?.error && <li className="save-message" role="alert">{state.persistence.error}</li>}
         <div className="social">
           <a href="https://discord.gg/ZgXcVyn" target="_blank" rel="noreferrer"><img src="https://img.shields.io/discord/731912590489288795?color=417154&label=discord"/></a>

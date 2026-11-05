@@ -83,7 +83,7 @@ function check(name,ok,detail){report.checks.push({name,ok:!!ok,detail});write()
       await page.getByRole("combobox",{name:"World seed",exact:true}).selectOption("7");await page.getByRole("heading",{name:"A stranger in Ashbrook",exact:true}).waitFor({timeout:60000});await frame("mechanical-seed7");
       check("seed picker loads the distinct seed 7 valley",await page.getByRole("heading",{name:"A stranger in Ashbrook",exact:true}).isVisible());
       await tab("Family");await frame("mechanical-seed7-family");
-      await page.goto(new URL("/",url).href);await page.getByRole("link",{name:"A day with people",exact:true}).waitFor({timeout:60000});await page.getByRole("link",{name:"A day with people",exact:true}).click();await page.getByRole("heading",{name:"A stranger in Reedbrook",exact:true}).waitFor({timeout:60000});
+      await page.goto(new URL("/",url).href);await page.getByRole("link",{name:"A day with people",exact:true}).waitFor({timeout:60000});await page.screenshot({path:path.join(out,"main-menu.png")});await page.getByRole("link",{name:"A day with people",exact:true}).click();await page.getByRole("heading",{name:"A stranger in Reedbrook",exact:true}).waitFor({timeout:60000});
       check("main menu opens the quick day game",true);
     }else{
       for(const width of [1280,390]){

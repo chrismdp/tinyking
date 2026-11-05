@@ -68,3 +68,9 @@ Both desktop and phone runs reached day 3 morning (`days = 2.250000000000193`). 
 After that frozen pass, two failing tests reproduced the reference findings (exit 1). The final affected gate now passes 16 tests (exit 0, 0.808 seconds). The tree uses learned names and hides unlearned relatives as Unknown. The person sheet explains that a name alone is not acquaintance. The ask journal reports a recorded partial delivery in prose. Ambient stranger descriptions and simulation rules are unchanged.
 
 A second production build is required for these demonstrated reference corrections. This is the final candidate build, not a repeat of a passing unchanged-runtime check.
+
+## Menu startup finding
+
+The first short mechanical pass passed the family labels, replay and seed picker. It then failed to find the main-menu entry within 60 seconds (exit 1). The old World component automatically generated a world on a fresh visit. Its loading screen hid the whole menu. This was an application defect in the requested entry path.
+
+The menu now opens after its save inspection. Legacy generation starts when the player chooses Start new game. That action already owns character creation and generation. The day entry can therefore load its saved world immediately. This changes startup timing, not simulation rules. The failed browser output is retained as `mechanical-first.log` and `mechanical-first.json`. A final production build and focused menu recheck are necessary for this demonstrated fix.

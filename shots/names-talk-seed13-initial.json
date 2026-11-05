@@ -1,0 +1,68 @@
+{
+  "seed": 13,
+  "ms": 125515,
+  "worldPeople": 1410,
+  "livingPeople": 721,
+  "deadPeople": 689,
+  "uniqueNames": 1410,
+  "duplicates": [],
+  "startingValley": "5,3",
+  "valleyPeople": 83,
+  "valleyChanges": [
+    {
+      "id": "w5_3-social-41",
+      "before": "Ralph Thuson",
+      "after": "Peter Thuson",
+      "dead": true
+    },
+    {
+      "id": "w5_3-social-45",
+      "before": "Reynold Jobari",
+      "after": "Nicholas Jobari",
+      "dead": true
+    },
+    {
+      "id": "w5_3-social-52",
+      "before": "Reynold Thubaho",
+      "after": "Henry Thubaho",
+      "dead": true
+    },
+    {
+      "id": "w5_3-social-65",
+      "before": "Ralph Thuson",
+      "after": "Adam Thuson",
+      "dead": false
+    },
+    {
+      "id": "w5_3-social-68",
+      "before": "Edgar Thuson",
+      "after": "William Thuson",
+      "dead": false
+    },
+    {
+      "id": "w6_3-social-82",
+      "before": "Juliana Thuho",
+      "after": "Joan Thuho",
+      "dead": false
+    },
+    {
+      "id": "w6_3-social-89",
+      "before": "Agnes Friforrin",
+      "after": "Joan Friforrin",
+      "dead": false
+    },
+    {
+      "id": "w5_3-social-93",
+      "before": "Christina Thuson",
+      "after": "Mabel Thuson",
+      "dead": false
+    },
+    {
+      "id": "terrain5_3-person-4147",
+      "before": "Hugh Seesi",
+      "after": "Humphrey Seesi",
+      "dead": false
+    }
+  ],
+  "nameHash": "03b5afc390d3e93ecbd36bb902de89def4f5e885840dcde56f54f41e6d60bd39"
+}

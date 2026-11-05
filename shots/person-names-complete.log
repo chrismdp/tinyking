@@ -1,0 +1,23 @@
+FAIL test/person_names.test.js (25.097 s)
+  ● gives generated village families and their player distinct names
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 30
+    Received:   23
+
+      94 | it("gives generated village families and their player distinct names",()=>{
+      95 |   const {s}=flatVillage(8,{seed:13,founding:false});
+    > 96 |   expect(allNames(s).length).toBeGreaterThan(30);
+         |                              ^
+      97 |   expect(new Set(allNames(s)).size).toBe(allNames(s).length);
+      98 | });
+      99 |
+
+      at Object.<anonymous> (test/person_names.test.js:96:30)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 10 passed, 11 total
+Snapshots:   0 total
+Time:        25.44 s
+Ran all test suites matching test/person_names.test.js.

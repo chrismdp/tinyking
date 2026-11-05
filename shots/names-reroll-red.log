@@ -1,0 +1,22 @@
+FAIL test/person_names.test.js
+  ● keeps a free name responsive to the person's name seed and sex
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "Dionisia Seesi"
+    Received: "William Friho"
+
+      109 |   const s=world(),[id]=newEntities(s,[person()]),n=s.ecs.nameable[id];
+      110 |   n.seed=29;n.male=false;n.familySeed=31;
+    > 111 |   expect(name(n)).toBe(name({...identity,seed:29,male:false,familySeed:31}));
+          |                   ^
+      112 | });
+      113 |
+
+      at Object.<anonymous> (test/person_names.test.js:111:19)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 11 skipped, 12 total
+Snapshots:   0 total
+Time:        1.816 s, estimated 26 s
+Ran all test suites matching test/person_names.test.js with tests matching "responsive".

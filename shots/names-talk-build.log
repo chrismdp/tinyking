@@ -1,0 +1,64 @@
+
+> tinyking@1.0.0 build
+> webpack --config webpack.prod.js
+
+app:
+  assets by info 10.9 MiB [immutable]
+    assets by chunk 7.27 MiB (auxiliary name: app)
+      assets by path *.webp 241 KiB 5 assets
+      assets by status 6.93 MiB [big] 2 assets
+      assets by path *.jpg 105 KiB 2 assets
+    assets by path *.js 3.66 MiB
+      asset app.63274a7e422da3c82830.js 2.72 MiB [emitted] [immutable] [minimized] [big] (name: app) 1 related asset
+      asset vendors.67f5ab9c200a0caba974.js 962 KiB [emitted] [immutable] [minimized] [big] (name: vendors) (id hint: vendor) 2 related assets
+      asset runtime.f25bbccb9cd57926708e.js 1.59 KiB [emitted] [immutable] [minimized] (name: runtime) 1 related asset
+  asset index.html 479 bytes [emitted] [minimized]
+  asset COMMITHASH 40 bytes [emitted]
+  asset LASTCOMMITDATETIME 25 bytes [emitted]
+  asset VERSION 19 bytes [emitted]
+  Entrypoint app [big] 3.66 MiB (15 MiB) = runtime.f25bbccb9cd57926708e.js 1.59 KiB vendors.67f5ab9c200a0caba974.js 962 KiB app.63274a7e422da3c82830.js 2.72 MiB 12 auxiliary assets
+  orphan modules 520 KiB [orphan] 138 modules
+  runtime modules 3.93 KiB 10 modules
+  javascript modules 5.38 MiB
+    modules by path ./node_modules/ 3.82 MiB 123 modules
+    modules by path ./src/ 1.55 MiB 107 modules
+  asset modules 7.27 MiB (asset) 378 bytes (javascript)
+    modules by path ./src/assets/day/*.webp 241 KiB (asset) 210 bytes (javascript) 5 modules
+    modules by path ./src/assets/day/*.gz 6.93 MiB (asset) 84 bytes (javascript) 2 modules
+    modules by path ./src/assets/day/*.jpg 105 KiB (asset) 84 bytes (javascript) 2 modules
+  json modules 1.81 MiB
+    ./src/data/event_types.json 16.4 KiB [built] [code generated]
+    ./src/data/secret_activities.json 1.01 KiB [built] [code generated]
+    ./src/data/conversation_lines.json 1.79 MiB [built] [code generated]
+    ./src/data/crops.json 80 bytes [built] [code generated]
+
+  WARNING in asset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+  This can impact web performance.
+  Assets: 
+    de6b6855a07c5b580ba7.gz (4.34 MiB)
+    960cba74c132368dc2dd.gz (2.59 MiB)
+    app.63274a7e422da3c82830.js (2.72 MiB)
+      Largest modules: ./src/assets/day/seed-13.json.gz (4.34 MiB), ./src/assets/day/seed-7.json.gz (2.59 MiB), ./src/data/conversation_lines.json (1.79 MiB)
+    vendors.67f5ab9c200a0caba974.js (962 KiB)
+      Largest modules: ./node_modules/three/build/three.core.js (1.39 MiB), ./node_modules/@fortawesome/free-solid-svg-icons/index.es.js (696 KiB), ./node_modules/three/build/three.module.js (647 KiB)
+
+  WARNING in entrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (244 KiB). This can impact web performance.
+  Entrypoints:
+    app (3.66 MiB)
+        runtime.f25bbccb9cd57926708e.js
+        vendors.67f5ab9c200a0caba974.js
+        app.63274a7e422da3c82830.js
+
+  WARNING in webpack performance recommendations: 
+  You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+  For more info visit https://webpack.js.org/guides/code-splitting/
+
+  app (webpack 5.112.2) compiled with 3 warnings in 49324 ms
+
+save-worker:
+  asset save-worker.js 11.7 KiB [emitted] [minimized] (name: main) 1 related asset
+  orphan modules 57.5 KiB [orphan] 13 modules
+  ./src/game/save_worker.js + 11 modules 60 KiB [built] [code generated]
+  save-worker (webpack 5.112.2) compiled successfully in 1048 ms
+
+EXIT_STATUS=0

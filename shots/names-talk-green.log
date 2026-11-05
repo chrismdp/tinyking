@@ -1,0 +1,84 @@
+FAIL test/chat_own_question.test.js
+  ● asks about the listener and uses their real proud reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+  ● asks about the listener and uses their real humble reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+  ● asks about the listener and uses their real generous reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       3 failed, 15 passed, 18 total
+Snapshots:   0 total
+Time:        19.155 s, estimated 24 s
+Ran all test suites matching test/person_names.test.js|test/chat_own_question.test.js.

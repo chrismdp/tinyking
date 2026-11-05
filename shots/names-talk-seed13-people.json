@@ -1,0 +1,8462 @@
+[
+  {
+    "id": "w5_3-person-3",
+    "name": "Thomas Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-4",
+    "name": "Christina Myrarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-8",
+    "name": "Stephen Seesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-9",
+    "name": "Margery Dooho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-13",
+    "name": "Reynold Jobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-14",
+    "name": "Petronilla Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-18",
+    "name": "Reynold Thubaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-19",
+    "name": "Ellen Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-23",
+    "name": "Alan Bobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-24",
+    "name": "Clarice Bobison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-28",
+    "name": "Edgar Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-29",
+    "name": "Maud Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-33",
+    "name": "Gregory Frifoblo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-person-34",
+    "name": "Mabel Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-3",
+    "name": "Hugh Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-4",
+    "name": "Margery Thubilho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-8",
+    "name": "Simon Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-9",
+    "name": "Hilda Thufobrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-13",
+    "name": "Robert Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-14",
+    "name": "Cecily Seebilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-18",
+    "name": "Ambrose Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-19",
+    "name": "Gillian Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-23",
+    "name": "Andrew Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-24",
+    "name": "Matilda Cleho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-28",
+    "name": "Nicholas Thubasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-29",
+    "name": "Aethelflaed Doobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-33",
+    "name": "Walter Thuforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-34",
+    "name": "Beatrice Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-38",
+    "name": "Gilbert Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-person-39",
+    "name": "Isabel Mybirin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-3",
+    "name": "Philip Yabaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-4",
+    "name": "Edith Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-8",
+    "name": "Alfred Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-9",
+    "name": "Sabina Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-13",
+    "name": "Ralph Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-14",
+    "name": "Emma Yasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-18",
+    "name": "Stephen Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-19",
+    "name": "Maud Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-23",
+    "name": "Walter Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-24",
+    "name": "Isabel Clekeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-28",
+    "name": "Nicholas Bokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-29",
+    "name": "Rose Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-33",
+    "name": "Simon Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-person-34",
+    "name": "Isabel Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-3",
+    "name": "Peter Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-4",
+    "name": "Marion Borasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-8",
+    "name": "Richard Clesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-9",
+    "name": "Cecily Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-13",
+    "name": "Thomas Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-14",
+    "name": "Margery Dooforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-18",
+    "name": "Henry Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-19",
+    "name": "Isabel Thufobri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-23",
+    "name": "Baldwin Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-24",
+    "name": "Katherine Thukerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-28",
+    "name": "William Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-29",
+    "name": "Etheldreda Doorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-33",
+    "name": "Matthew Joboho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-person-34",
+    "name": "Joan Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-3",
+    "name": "Geoffrey Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-4",
+    "name": "Audrey Thuto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-8",
+    "name": "Geoffrey Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-9",
+    "name": "Edith Clekeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-13",
+    "name": "Simon Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-14",
+    "name": "Agnes Dooketo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-18",
+    "name": "Wulfstan Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-19",
+    "name": "Rose Doorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-23",
+    "name": "Richard Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-24",
+    "name": "Edith Clebilho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-28",
+    "name": "William Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-29",
+    "name": "Frideswide Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-33",
+    "name": "Nicholas Yabiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-34",
+    "name": "Gunnilda Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-38",
+    "name": "Walter Clekeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-39",
+    "name": "Anabel Myson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-43",
+    "name": "Humphrey Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-44",
+    "name": "Clarice Dookerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-48",
+    "name": "Alfred Jowarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-person-49",
+    "name": "Avice Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-3",
+    "name": "Geoffrey Bobilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-4",
+    "name": "Christina Bokeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-8",
+    "name": "Robert Boho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-9",
+    "name": "Isabel Thuwalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-13",
+    "name": "Oswald Myrarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-14",
+    "name": "Mabel Myrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-18",
+    "name": "Geoffrey Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-19",
+    "name": "Dionisia Mybason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-23",
+    "name": "Peter Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-24",
+    "name": "Katherine Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-28",
+    "name": "Alfred Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-29",
+    "name": "Margery Doolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-33",
+    "name": "Walter Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-34",
+    "name": "Hilda Frilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-38",
+    "name": "Osbert Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-39",
+    "name": "Matilda Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-43",
+    "name": "Godfrey Doolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-44",
+    "name": "Sabina Yarato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-48",
+    "name": "Luke Seefobson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-49",
+    "name": "Cecily Seeto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-53",
+    "name": "Humphrey Frisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-person-54",
+    "name": "Dionisia Dooson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-3",
+    "name": "Philip Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-4",
+    "name": "Christina Myho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-8",
+    "name": "Godfrey Joto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-9",
+    "name": "Agnes Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-13",
+    "name": "Godfrey Mysi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-14",
+    "name": "Lucy Myborun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-18",
+    "name": "William Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-19",
+    "name": "Margaret Friwarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-23",
+    "name": "Robert Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-24",
+    "name": "Avice Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-28",
+    "name": "Simon Bobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-person-29",
+    "name": "Dionisia Jobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-3",
+    "name": "Hugh Seebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-4",
+    "name": "Edith Yabilto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-8",
+    "name": "Cuthbert Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-9",
+    "name": "Joan Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-13",
+    "name": "Roger Jorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-14",
+    "name": "Maud Dooto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-18",
+    "name": "John Myrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-19",
+    "name": "Hawise Doorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-23",
+    "name": "Godfrey Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-24",
+    "name": "Dionisia Fribaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-28",
+    "name": "Ambrose Clewari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-29",
+    "name": "Joan Friforto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-33",
+    "name": "Edward Yabilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-34",
+    "name": "Margaret Friwason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-38",
+    "name": "Osbert Boboson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-39",
+    "name": "Petronilla Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-43",
+    "name": "Stephen Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-person-44",
+    "name": "Katherine Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-3",
+    "name": "Edmund Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-4",
+    "name": "Clarice Doorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-8",
+    "name": "Peter Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-9",
+    "name": "Lettice Jolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-13",
+    "name": "Ralph Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-14",
+    "name": "Beatrice Myfobto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-18",
+    "name": "Richard Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-19",
+    "name": "Maud Thulo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-23",
+    "name": "Ralph Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-24",
+    "name": "Petronilla Clebilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-28",
+    "name": "Henry Thuforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-29",
+    "name": "Juliana Cleri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-33",
+    "name": "Robert Josi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-34",
+    "name": "Avice Jokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-38",
+    "name": "Edward Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-39",
+    "name": "Winifred Mybilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-43",
+    "name": "Miles Bokerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-44",
+    "name": "Aldith Friho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-48",
+    "name": "Gilbert Jolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-person-49",
+    "name": "Etheldreda Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-3",
+    "name": "Roger Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-4",
+    "name": "Felice Dooho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-8",
+    "name": "William Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-9",
+    "name": "Matilda Seeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-13",
+    "name": "Henry Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-14",
+    "name": "Isabel Doowason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-18",
+    "name": "Adam Friforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-19",
+    "name": "Juliana Thuforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-23",
+    "name": "Andrew Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-24",
+    "name": "Beatrice Clebori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-28",
+    "name": "Wulfstan Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-29",
+    "name": "Beatrice Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-33",
+    "name": "Hugh Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-34",
+    "name": "Idonea Myho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-38",
+    "name": "Baldwin Joho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-39",
+    "name": "Margaret Jobilsi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-43",
+    "name": "Robert Bolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-person-44",
+    "name": "Edith Doobison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-3",
+    "name": "Matthew Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-4",
+    "name": "Mabel Yafobsi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-8",
+    "name": "Geoffrey Dooson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-9",
+    "name": "Sybil Myrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-13",
+    "name": "Alan Thuforson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-14",
+    "name": "Edith Fribalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-18",
+    "name": "Henry Mywarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-19",
+    "name": "Agnes Bobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-23",
+    "name": "William Yason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-24",
+    "name": "Agnes Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-28",
+    "name": "Edgar Yararun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-29",
+    "name": "Sabina Jobirin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-33",
+    "name": "Ralph Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-person-34",
+    "name": "Christina Joto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-3",
+    "name": "Gilbert Clerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-4",
+    "name": "Amice Jobilson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-8",
+    "name": "Thomas Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-9",
+    "name": "Edith Seeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-13",
+    "name": "Roger Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-14",
+    "name": "Avice Yakeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-18",
+    "name": "Walter Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-19",
+    "name": "Hilda Jobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-23",
+    "name": "Alfred Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-24",
+    "name": "Matilda Friho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-28",
+    "name": "John Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-29",
+    "name": "Lucy Yato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-33",
+    "name": "Edgar Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-person-34",
+    "name": "Katherine Doorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-3",
+    "name": "Daniel Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-4",
+    "name": "Cecily Frikelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-8",
+    "name": "Miles Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-9",
+    "name": "Felice Myson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-13",
+    "name": "Baldwin Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-14",
+    "name": "Margaret Bobilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-18",
+    "name": "Cuthbert Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-19",
+    "name": "Mabel Seeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-23",
+    "name": "Laurence Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-24",
+    "name": "Joan Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-28",
+    "name": "Peter Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-person-29",
+    "name": "Frideswide Clelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-3",
+    "name": "Simon Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-4",
+    "name": "Matilda Seerasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-8",
+    "name": "Edgar Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-9",
+    "name": "Juliana Clekerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-13",
+    "name": "Adam Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-14",
+    "name": " Yararin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-18",
+    "name": "Elias Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-19",
+    "name": "Maud Yato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-23",
+    "name": "Adam Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-24",
+    "name": "Winifred Thufobho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-28",
+    "name": "Gilbert Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-29",
+    "name": "Sabina Doolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-33",
+    "name": "Edward Friralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-34",
+    "name": "Petronilla Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-38",
+    "name": "Hugh Friketo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-person-39",
+    "name": "Cecily Thufobrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-3",
+    "name": "Peter Frilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-4",
+    "name": "Christina Yabaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-8",
+    "name": "Walter Myri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-9",
+    "name": "Juliana Dooboho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-13",
+    "name": "Edward Seebiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-14",
+    "name": "Dionisia Myrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-18",
+    "name": "Thomas Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-19",
+    "name": "Edith Bobasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-23",
+    "name": "Ralph Bobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-24",
+    "name": "Hawise Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-28",
+    "name": "Henry Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-29",
+    "name": "Edith Thufobrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-33",
+    "name": "Walter Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-34",
+    "name": "Dionisia Jowarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-38",
+    "name": "Edgar Yakelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-person-39",
+    "name": "Beatrice Thubilsi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-36",
+    "name": "Matilda Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-37",
+    "name": "Philip Seesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-38",
+    "name": "Avice Jobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-39",
+    "name": "Rose Thubaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-40",
+    "name": "Idonea Bobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-41",
+    "name": "Peter Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-42",
+    "name": "Eadgifu Frifoblo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-41",
+    "name": "Maud Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-42",
+    "name": "Etheldreda Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-43",
+    "name": "Emma Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-44",
+    "name": "Hawise Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-45",
+    "name": "William Thubasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-46",
+    "name": "Edward Thuforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-36",
+    "name": "Godfrey Yabaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-37",
+    "name": "Denis Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-38",
+    "name": "Godfrey Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-39",
+    "name": "Margaret Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-40",
+    "name": "Luke Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-41",
+    "name": "Ralph Bokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-42",
+    "name": "Roger Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-36",
+    "name": "Dionisia Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-37",
+    "name": "Nicholas Clesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-38",
+    "name": "Felice Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-39",
+    "name": "Reynold Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-40",
+    "name": "Andrew Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-41",
+    "name": "Hawise Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-51",
+    "name": "Wulfrun Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-52",
+    "name": "Dionisia Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-53",
+    "name": "Adam Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-54",
+    "name": "Thomas Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-55",
+    "name": "William Yabiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-56",
+    "name": "John Clekeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-57",
+    "name": "Joan Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-58",
+    "name": "Stephen Jowarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-56",
+    "name": "Peter Bobilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-57",
+    "name": "Frideswide Boho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-58",
+    "name": "Margery Myrarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-59",
+    "name": "Isabel Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-60",
+    "name": "Edith Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-61",
+    "name": "Oswald Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-62",
+    "name": "Amice Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-63",
+    "name": "Geoffrey Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-64",
+    "name": "Petronilla Doolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-65",
+    "name": "Henry Frisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-31",
+    "name": "Miles Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-32",
+    "name": "Margery Joto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-33",
+    "name": "Andrew Mysi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-34",
+    "name": "Walter Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-35",
+    "name": "Hugh Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-36",
+    "name": "Gilbert Bobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-46",
+    "name": "Juliana Seebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-47",
+    "name": "Aveline Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-48",
+    "name": "Philip Jorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-49",
+    "name": "Alice Myrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-50",
+    "name": "Henry Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-51",
+    "name": "Stephen Clewari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-52",
+    "name": "Margaret Yabilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-53",
+    "name": "Mabel Boboson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-54",
+    "name": "Gunnilda Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-51",
+    "name": "Godfrey Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-52",
+    "name": "Hugh Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-53",
+    "name": "Hugh Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-54",
+    "name": "Edward Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-55",
+    "name": "Beatrice Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-56",
+    "name": "Matilda Josi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-57",
+    "name": "Mabel Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-58",
+    "name": "Idonea Bokerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-59",
+    "name": "William Jolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-46",
+    "name": "Gunnilda Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-47",
+    "name": "Matilda Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-48",
+    "name": "Gilbert Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-49",
+    "name": "Edith Friforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-50",
+    "name": "Richard Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-51",
+    "name": "Godwin Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-52",
+    "name": "Osbert Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-53",
+    "name": "Daniel Bolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-36",
+    "name": "Nicholas Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-37",
+    "name": "William Dooson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-38",
+    "name": "Luke Thuforson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-39",
+    "name": "Mabel Mywarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-40",
+    "name": "Isabel Yason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-41",
+    "name": "Peter Yararun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-42",
+    "name": "David Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-36",
+    "name": "Denis Clerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-37",
+    "name": "Mabel Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-38",
+    "name": "Humphrey Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-39",
+    "name": "Alfred Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-40",
+    "name": "Katherine Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-41",
+    "name": "Juliana Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-42",
+    "name": "Edith Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-31",
+    "name": "Edith Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-32",
+    "name": "Joan Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-33",
+    "name": "Robert Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-34",
+    "name": "Anabel Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-35",
+    "name": "Edmund Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-41",
+    "name": "Nicholas Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-42",
+    "name": "Joan Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-43",
+    "name": "Elias Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-44",
+    "name": "Geoffrey Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-45",
+    "name": "Lucy Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-46",
+    "name": "Wulfstan Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-47",
+    "name": "Henry Friralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-48",
+    "name": "Hawise Friketo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-41",
+    "name": "Stephen Myri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-42",
+    "name": "Geoffrey Seebiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-43",
+    "name": "Miles Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-44",
+    "name": "Edith Bobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-45",
+    "name": "Philip Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-46",
+    "name": "Marion Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-47",
+    "name": "Emma Yakelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-43",
+    "name": "Clarice Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-44",
+    "name": "Matilda Seesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-45",
+    "name": "Nicholas Jobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-46",
+    "name": "Gillian Thubaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-47",
+    "name": "Ralph Bobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-48",
+    "name": "Gilbert Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-49",
+    "name": "Simon Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-47",
+    "name": "Cuthbert Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-48",
+    "name": "Peter Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-49",
+    "name": "Matthew Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-50",
+    "name": "Juliana Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-51",
+    "name": "Juliana Thuforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-52",
+    "name": "Thomas Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-43",
+    "name": "Mabel Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-44",
+    "name": "Nicholas Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-45",
+    "name": "Alan Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-46",
+    "name": "Gregory Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-47",
+    "name": "Beatrice Bokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-48",
+    "name": "Henry Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-42",
+    "name": "Katherine Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-43",
+    "name": "Matilda Clesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-44",
+    "name": "Walter Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-45",
+    "name": "Adam Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-46",
+    "name": "Godwin Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-47",
+    "name": "Laurence Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-48",
+    "name": "Matilda Joboho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-59",
+    "name": "Edmund Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-60",
+    "name": "Walter Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-61",
+    "name": "Laurence Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-62",
+    "name": "Edith Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-63",
+    "name": "Wilfred Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-64",
+    "name": "Walter Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-65",
+    "name": "Avice Yabiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-66",
+    "name": "Oswald Clekeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-67",
+    "name": "Maud Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-68",
+    "name": "Lettice Jowarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-66",
+    "name": "Benedict Bobilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-67",
+    "name": "Stephen Boho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-68",
+    "name": "Juliana Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-69",
+    "name": "Clarice Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-70",
+    "name": "Robert Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-71",
+    "name": "Henry Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-72",
+    "name": "Beatrice Seefobson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-73",
+    "name": "Sabina Frisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-37",
+    "name": "Hugh Joto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-38",
+    "name": "William Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-39",
+    "name": "Margery Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-40",
+    "name": "Emma Bobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-55",
+    "name": "Gillian Seebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-56",
+    "name": "Ellen Jorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-57",
+    "name": "Richard Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-58",
+    "name": "Gunnilda Clewari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-59",
+    "name": "Winifred Boboson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-60",
+    "name": "Mabel Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-60",
+    "name": "Richard Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-61",
+    "name": "Sabina Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-62",
+    "name": "Lucy Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-63",
+    "name": "Beatrice Thuforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-64",
+    "name": "Aldith Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-65",
+    "name": "Philip Bokerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-54",
+    "name": "Avice Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-55",
+    "name": "Osbert Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-56",
+    "name": "Hugh Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-57",
+    "name": "Humphrey Friforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-58",
+    "name": "Clarice Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-59",
+    "name": "Joan Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-60",
+    "name": "Adam Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-61",
+    "name": "Beatrice Joho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-62",
+    "name": "Philip Bolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-43",
+    "name": "Reynold Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-44",
+    "name": "Edmund Thuforson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-45",
+    "name": "Margery Mywarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-46",
+    "name": "Stephen Yararun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-47",
+    "name": "Lettice Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-43",
+    "name": "Matilda Clerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-44",
+    "name": "Margery Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-45",
+    "name": "William Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-46",
+    "name": "Roger Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-47",
+    "name": "Thomas Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-48",
+    "name": "Margery Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-36",
+    "name": "Miles Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-37",
+    "name": "Cecily Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-38",
+    "name": "Stephen Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-39",
+    "name": "Walter Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-40",
+    "name": "Alan Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-41",
+    "name": "Adam Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-49",
+    "name": "Alan Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-50",
+    "name": "Isabel Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-51",
+    "name": "Margaret Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-52",
+    "name": "Agnes Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-53",
+    "name": "Alan Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-54",
+    "name": "William Friralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-55",
+    "name": "Sabina Friketo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-48",
+    "name": "Beatrice Frilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-49",
+    "name": "Lettice Seebiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-50",
+    "name": "Oswald Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-51",
+    "name": "Gunnilda Bobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-52",
+    "name": "Felice Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-53",
+    "name": "Henry Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-54",
+    "name": "Margaret Yakelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-50",
+    "name": "Henry Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-51",
+    "name": "Laurence Jobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-52",
+    "name": "Henry Thubaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-53",
+    "name": "Ellen Bobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-53",
+    "name": "Roger Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-54",
+    "name": "William Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-55",
+    "name": "Baldwin Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-56",
+    "name": "Margery Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-57",
+    "name": "Baldwin Thubasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-58",
+    "name": "Edwin Thuforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-49",
+    "name": "Rose Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-50",
+    "name": "Walter Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-51",
+    "name": "Joan Bokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-52",
+    "name": "Edmund Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-49",
+    "name": "Edgar Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-50",
+    "name": "Edward Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-51",
+    "name": "Emma Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-52",
+    "name": "Edwin Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-53",
+    "name": "Alan Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-54",
+    "name": "Dionisia Joboho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-69",
+    "name": "Thomas Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-70",
+    "name": "Hawise Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-71",
+    "name": "Agnes Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-72",
+    "name": "William Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-73",
+    "name": "Nicholas Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-74",
+    "name": "Wulfstan Yabiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-75",
+    "name": "Petronilla Doori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-76",
+    "name": "Edward Jowarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-74",
+    "name": "Thomas Bobilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-75",
+    "name": "Matthew Boho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-76",
+    "name": "Margaret Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-77",
+    "name": "Juliana Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-78",
+    "name": "Wulfrun Thurun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-79",
+    "name": "Katherine Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-80",
+    "name": "Margaret Doolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-81",
+    "name": "Godfrey Seefobson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-41",
+    "name": "Mabel Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-42",
+    "name": "Robert Mysi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-43",
+    "name": "Emma Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-44",
+    "name": "Peter Bobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-61",
+    "name": "Matilda Seebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-62",
+    "name": "Winifred Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-63",
+    "name": "Godgifu Jorun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-64",
+    "name": "Gilbert Myrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-65",
+    "name": "Sybil Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-66",
+    "name": "Ralph Boboson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-67",
+    "name": "Ralph Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-66",
+    "name": "Dionisia Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-67",
+    "name": "Stephen Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-68",
+    "name": "Margaret Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-69",
+    "name": "Mabel Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-70",
+    "name": "Peter Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-71",
+    "name": "Philip Thuforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-72",
+    "name": "William Josi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-73",
+    "name": "Stephen Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-74",
+    "name": "Emma Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-63",
+    "name": "Reynold Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-64",
+    "name": "Margery Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-65",
+    "name": "Emmeline Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-66",
+    "name": "Edwin Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-67",
+    "name": "Agnes Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-68",
+    "name": "Agnes Bolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-48",
+    "name": "Walter Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-49",
+    "name": "Ralph Dooson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-50",
+    "name": "Rose Thuforson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-51",
+    "name": "Alice Mywarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-52",
+    "name": "Edmund Yararun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-53",
+    "name": "Christina Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-49",
+    "name": "Edmund Clerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-50",
+    "name": "Ralph Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-51",
+    "name": "Clarice Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-52",
+    "name": "Laurence Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-53",
+    "name": "Stephen Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-54",
+    "name": "Anabel Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-42",
+    "name": "Maud Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-43",
+    "name": "Hugh Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-44",
+    "name": "Alfred Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-45",
+    "name": "Clarice Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-46",
+    "name": "Walter Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-47",
+    "name": "Aveline Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-56",
+    "name": "Edward Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-57",
+    "name": "Robert Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-58",
+    "name": "Sabina Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-59",
+    "name": "Margaret Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-55",
+    "name": "William Frilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-56",
+    "name": "Ralph Seebiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-57",
+    "name": "Winifred Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-58",
+    "name": "Henry Bobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-59",
+    "name": "Sybil Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-54",
+    "name": "Amice Seesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-55",
+    "name": "Isabel Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-56",
+    "name": "Katherine Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-59",
+    "name": "Emma Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-60",
+    "name": "Richard Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-61",
+    "name": "Idonea Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-62",
+    "name": "Maud Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-63",
+    "name": "Baldwin Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-53",
+    "name": "William Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-54",
+    "name": "Gilbert Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-55",
+    "name": "Andrew Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-56",
+    "name": "Philip Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-77",
+    "name": "Petronilla Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-78",
+    "name": "Andrew Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-79",
+    "name": "Wilfred Cleson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-80",
+    "name": "Martin Jowarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-82",
+    "name": "Avice Bobilrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-83",
+    "name": "Alan Myrarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-84",
+    "name": "Isabel Myraho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-85",
+    "name": "Margaret Seeforri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-86",
+    "name": "Margery Frisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-45",
+    "name": "Roger Doosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-46",
+    "name": "Wulfstan Mysi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-68",
+    "name": "Gunnilda Myrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-69",
+    "name": "Hawise Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-70",
+    "name": "Agnes Clewari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-71",
+    "name": "Andrew Yabilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-72",
+    "name": "Ellen Boboson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-75",
+    "name": "Agnes Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-76",
+    "name": "Emma Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-77",
+    "name": "Beatrice Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-78",
+    "name": "Laurence Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-79",
+    "name": "Oswald Josi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-80",
+    "name": "William Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-69",
+    "name": "Matilda Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-70",
+    "name": "Alfred Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-71",
+    "name": "Winifred Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-72",
+    "name": "Oswald Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-54",
+    "name": "Lucy Dooson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-55",
+    "name": "Peter Mywarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-56",
+    "name": "Edgar Yason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-57",
+    "name": "Rose Thuson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-55",
+    "name": "Etheldreda Frito",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-56",
+    "name": "Sybil Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-57",
+    "name": "Felice Mylo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-58",
+    "name": "Edward Joson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-59",
+    "name": "Alan Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-48",
+    "name": "Katherine Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-49",
+    "name": "Winifred Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-50",
+    "name": "Denis Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-60",
+    "name": "Roger Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-61",
+    "name": "Robert Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-62",
+    "name": "Robert Friralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-60",
+    "name": "Isabel Myri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-61",
+    "name": "Isabel Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-57",
+    "name": "Edmund Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-58",
+    "name": "Elias Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-64",
+    "name": "Cecily Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-65",
+    "name": "Henry Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-66",
+    "name": "Margaret Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-67",
+    "name": "Matilda Thubasi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-68",
+    "name": "Rose Yaho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-55",
+    "name": "Aldith Seeri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-56",
+    "name": "Isabel Bokerin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-57",
+    "name": "Aldith Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-57",
+    "name": "Joan Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-81",
+    "name": "Richard Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-82",
+    "name": "Robert Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-83",
+    "name": "Edward Clekeho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-87",
+    "name": "Simon Myrarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-88",
+    "name": "Christina Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-89",
+    "name": "Emma Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-90",
+    "name": "Richard Frisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-47",
+    "name": "Juliana Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-48",
+    "name": "Clarice Bobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-81",
+    "name": "Lucy Yabilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-82",
+    "name": "Alice Frirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-83",
+    "name": "Roger Thuforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-73",
+    "name": "Walter Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-74",
+    "name": "Mabel Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-75",
+    "name": "Gunnilda Joho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-58",
+    "name": "Baldwin Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-59",
+    "name": "Baldwin Yason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-51",
+    "name": "Katherine Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-52",
+    "name": "Emmeline Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-53",
+    "name": "Edward Jorin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-63",
+    "name": "Alice Doobosi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-64",
+    "name": "Cuthbert Boto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-65",
+    "name": "Matilda Jokeson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-66",
+    "name": "Wulfrun Friralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-67",
+    "name": "Anabel Friketo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-62",
+    "name": "Edmund Myri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-63",
+    "name": "Mabel Bobari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-64",
+    "name": "Maud Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-65",
+    "name": "Christina Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-66",
+    "name": "Edward Yakelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-69",
+    "name": "Edward Yaforlo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-58",
+    "name": "Denis Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-58",
+    "name": "Edith Bobolo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-84",
+    "name": "Edith Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-85",
+    "name": "Hawise Yabiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-86",
+    "name": "Clarice Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-91",
+    "name": "Christina Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-92",
+    "name": "Hilda Doolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-49",
+    "name": "Avice Joto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-73",
+    "name": "Constance Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-74",
+    "name": "Juliana Myrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-84",
+    "name": "Edmund Yalo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-85",
+    "name": "Isabel Josi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-76",
+    "name": "Henry Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-77",
+    "name": "Elizabeth Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-78",
+    "name": "Juliana Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-79",
+    "name": "Stephen Joho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-60",
+    "name": "Oswald Dooson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-60",
+    "name": "Katherine Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-54",
+    "name": "Cecily Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-68",
+    "name": "Thomas Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-69",
+    "name": "Roger Jokeson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-67",
+    "name": "Idonea Myri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-68",
+    "name": "Joan Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-69",
+    "name": "Alan Yakelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-59",
+    "name": "Peter Bobarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-70",
+    "name": "Philip Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-59",
+    "name": "Matilda Seeri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-87",
+    "name": "Andrew Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-88",
+    "name": "Peter Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-93",
+    "name": "Alice Seeforri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-75",
+    "name": "Sarah Myrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-80",
+    "name": "Alan Joho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-61",
+    "name": "Henry Doorato",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-55",
+    "name": "Christina Thuralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-56",
+    "name": "Sybil Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-70",
+    "name": "Thomas Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-76",
+    "name": "Walter Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-81",
+    "name": "Isabel Yarun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-61",
+    "name": "Philip Jorin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-57",
+    "name": "Robert Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-58",
+    "name": "Simon Thuralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-86",
+    "name": "Ellen Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-62",
+    "name": "Walter Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-60",
+    "name": "Dionisia Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-59",
+    "name": "Hilda Friri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-60",
+    "name": "Hugh Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-92",
+    "name": "Richard Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-94",
+    "name": "Thomas Seelo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-95",
+    "name": "William Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-77",
+    "name": "Edith Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-82",
+    "name": "Richard Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-59",
+    "name": "Anabel Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-60",
+    "name": "Godgifu Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-60",
+    "name": "Felice Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-71",
+    "name": "Nicholas Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-61",
+    "name": "Geoffrey Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-61",
+    "name": "Juliana Yaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-93",
+    "name": "Isabel Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-96",
+    "name": "Winifred Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-50",
+    "name": "Adam Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-51",
+    "name": "Peter Seerun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-78",
+    "name": "Geoffrey Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-79",
+    "name": "Lucy Yabilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-87",
+    "name": "Beatrice Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-83",
+    "name": "Hugh Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-62",
+    "name": "Denis Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-63",
+    "name": "Richard Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-61",
+    "name": "Baldwin Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-71",
+    "name": "John Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-61",
+    "name": "Matthew Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-72",
+    "name": "Gregory Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-73",
+    "name": "Henry Thuforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-62",
+    "name": "Eadgifu Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-63",
+    "name": "Alan Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-62",
+    "name": "Mabel Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-100",
+    "name": "Emma Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-101",
+    "name": "Edmund Seebison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-102",
+    "name": "Sybil Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-103",
+    "name": "Alice Clewari",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-104",
+    "name": "William Clekeho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-97",
+    "name": "Gillian Bobilrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-98",
+    "name": "Emma Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-55",
+    "name": "Richard Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-56",
+    "name": "Hawise Mysi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-57",
+    "name": "Avice Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-80",
+    "name": "Petronilla Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-81",
+    "name": "Matilda Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-91",
+    "name": "Osbert Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-84",
+    "name": "Gillian Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-85",
+    "name": "Audrey Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-86",
+    "name": "Margaret Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-63",
+    "name": "Margery Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-64",
+    "name": "Robert Fririn",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-65",
+    "name": "Joan Joson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-62",
+    "name": "Baldwin Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-73",
+    "name": "Edith Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-74",
+    "name": "Ellen Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-75",
+    "name": "Margaret Friralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-76",
+    "name": "Dionisia Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-65",
+    "name": "Adam Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-74",
+    "name": "Gillian Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-64",
+    "name": "Aldith Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-105",
+    "name": "Aethelflaed Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-106",
+    "name": "Sabina Borun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-99",
+    "name": "Godwin Boho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-58",
+    "name": "Idonea Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-59",
+    "name": "Edmund Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-92",
+    "name": "Geoffrey Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-93",
+    "name": "Avice Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-94",
+    "name": "Dionisia Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-87",
+    "name": "Henry Fribillo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-64",
+    "name": "Hugh Doobisi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-66",
+    "name": "Reynold Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-63",
+    "name": "Roger Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-77",
+    "name": "Cecily Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-78",
+    "name": "Matilda Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-79",
+    "name": "Matilda Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-72",
+    "name": "Reynold Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-73",
+    "name": "Amice Bobiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-74",
+    "name": "Edgar Bobari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-66",
+    "name": "Hugh Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-67",
+    "name": "Wilfred Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-68",
+    "name": "William Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-75",
+    "name": "Juliana Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-76",
+    "name": "Audrey Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-77",
+    "name": "Stephen Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-65",
+    "name": "Edgar Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-107",
+    "name": "Denis Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-108",
+    "name": "Avice Thusi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-109",
+    "name": "Edith Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-110",
+    "name": "Beatrice Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-111",
+    "name": "Aldith Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-100",
+    "name": "Adam Boho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-101",
+    "name": "Mary Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-102",
+    "name": "Eadgifu Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-60",
+    "name": "Edith Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-61",
+    "name": "Peter Friboto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-85",
+    "name": "Denis Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-86",
+    "name": "Agnes Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-87",
+    "name": "Hawise Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-88",
+    "name": "Hugh Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-89",
+    "name": "Wilfred Yabilo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-90",
+    "name": "Etheldreda Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-95",
+    "name": "Eadgifu Myto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-96",
+    "name": "Katherine Myto",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-97",
+    "name": "Cuthbert Josi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-98",
+    "name": "Matilda Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-99",
+    "name": "Elias Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-100",
+    "name": "Walter Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-101",
+    "name": "John Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-88",
+    "name": "Katherine Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-89",
+    "name": "Simon Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-90",
+    "name": "Eadgifu Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-65",
+    "name": "Avice Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-70",
+    "name": "Audrey Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-71",
+    "name": "Baldwin Thurason",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-72",
+    "name": "Thomas Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-64",
+    "name": "Humphrey Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-80",
+    "name": "Hawise Doobilrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-81",
+    "name": "Richard Friralo",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-82",
+    "name": "Osbert Clebirun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-83",
+    "name": "Cecily Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-75",
+    "name": "Andrew Seebiho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-76",
+    "name": "Reynold Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-77",
+    "name": "Matthew Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-69",
+    "name": "Margaret Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-70",
+    "name": "Sybil Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-78",
+    "name": "Rose Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-79",
+    "name": "Edward Thubasi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-66",
+    "name": "Godwin Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-63",
+    "name": "Maud Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-112",
+    "name": "Matthew Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-113",
+    "name": "Richard Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-114",
+    "name": "Katherine Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-115",
+    "name": "Denis Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-116",
+    "name": "Matthew Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-117",
+    "name": "Robert Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-118",
+    "name": "Clarice Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-119",
+    "name": "Godwin Clekeho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-103",
+    "name": "Gillian Seelo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-104",
+    "name": "Rose Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-105",
+    "name": "Hilda Thurun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-106",
+    "name": "Ellen Seefobson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-62",
+    "name": "Frideswide Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-63",
+    "name": "Matilda Friboto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-102",
+    "name": "Ellen Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-103",
+    "name": "Margaret Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-91",
+    "name": "Rose Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-92",
+    "name": "Elias Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-66",
+    "name": "Edward Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-73",
+    "name": "Adam Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-74",
+    "name": "Daniel Mylo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-75",
+    "name": "Eadgifu Joson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-68",
+    "name": "Wulfrun Boson",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-69",
+    "name": "Christina Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-84",
+    "name": "Agnes Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-85",
+    "name": "Isabel Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-78",
+    "name": "William Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-79",
+    "name": "Mabel Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-80",
+    "name": "Eadgifu Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-71",
+    "name": "Agnes Friforrin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-72",
+    "name": "Alan Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-73",
+    "name": "Richard Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-80",
+    "name": "Lettice Seesi",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-81",
+    "name": "Gunnilda Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-67",
+    "name": "Felice Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-68",
+    "name": "Avice Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-64",
+    "name": "Hilda Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-120",
+    "name": "Wilfred Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-121",
+    "name": "Godwin Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-122",
+    "name": "Agnes Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-123",
+    "name": "Richard Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-124",
+    "name": "Mabel Yarin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-125",
+    "name": "Agnes Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-107",
+    "name": "Henry Bobilrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-108",
+    "name": "Laurence Boho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-109",
+    "name": "Hawise Thurun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-110",
+    "name": "Dionisia Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-64",
+    "name": "Philip Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-65",
+    "name": "Christina Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-91",
+    "name": "Avice Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-92",
+    "name": "Rose Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-93",
+    "name": "Aethelflaed Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-94",
+    "name": "Joan Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-104",
+    "name": "Petronilla Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-105",
+    "name": "Rose Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-106",
+    "name": "Richard Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-107",
+    "name": "Rose Josi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-93",
+    "name": "Juliana Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-94",
+    "name": "Katherine Frison",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-95",
+    "name": "Lucy Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-76",
+    "name": "John Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-77",
+    "name": "John Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-78",
+    "name": "Juliana Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-79",
+    "name": "Gunnilda Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-80",
+    "name": "Elias Joson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-70",
+    "name": "Henry Thuralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-71",
+    "name": "Ellen Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-86",
+    "name": "Clarice Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-87",
+    "name": "Wulfrun Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-81",
+    "name": "Henry Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-82",
+    "name": "Joan Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-83",
+    "name": "Godgifu Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-84",
+    "name": "Laurence Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-69",
+    "name": "Hilda Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-70",
+    "name": "Stephen Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-71",
+    "name": "John Bokerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-68",
+    "name": "Philip Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-126",
+    "name": "Alice Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-127",
+    "name": "Baldwin Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-128",
+    "name": "Maud Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-129",
+    "name": "Gilbert Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-130",
+    "name": "Henry Jowarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-111",
+    "name": "Mabel Seelo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-112",
+    "name": "Mabel Seefobson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-66",
+    "name": "Ambrose Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-67",
+    "name": "Juliana Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-95",
+    "name": "Aveline Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-96",
+    "name": "Hugh Yabilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-97",
+    "name": "Cecily Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-108",
+    "name": "Idonea Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-109",
+    "name": "Ellen Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-110",
+    "name": "Cecily Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-96",
+    "name": "Edmund Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-97",
+    "name": "Simon Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-67",
+    "name": "Lettice Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-81",
+    "name": "Baldwin Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-82",
+    "name": "Geoffrey Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-82",
+    "name": "Wilfred Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-83",
+    "name": "Isabel Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-74",
+    "name": "Geoffrey Jobari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-75",
+    "name": "Roger Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-76",
+    "name": "Mabel Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-77",
+    "name": "Alan Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-85",
+    "name": "William Thuho",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-72",
+    "name": "Margaret Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-69",
+    "name": "John Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-70",
+    "name": "Frideswide Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-71",
+    "name": "Winifred Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-131",
+    "name": "Emma Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-132",
+    "name": "Hugh Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-133",
+    "name": "Adam Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-134",
+    "name": "Adam Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-113",
+    "name": "Cecily Seeforri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-114",
+    "name": "Agnes Thurun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-115",
+    "name": "Margaret Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-116",
+    "name": "Walter Seefobson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-68",
+    "name": "Ralph Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-98",
+    "name": "Laurence Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-99",
+    "name": "Edward Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-100",
+    "name": "Gunnilda Boboson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-101",
+    "name": "Peter Borin",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-111",
+    "name": "Hilda Myto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-112",
+    "name": "Andrew Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-113",
+    "name": "Hugh Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-98",
+    "name": "Bartholomew Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-99",
+    "name": "Gilbert Thuri",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-100",
+    "name": "Denis Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-101",
+    "name": "Adam Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-74",
+    "name": "Gillian Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-75",
+    "name": "Agnes Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-76",
+    "name": "Lucy Yararun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-77",
+    "name": "Emma Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-83",
+    "name": "Ellen Mylo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-88",
+    "name": "Edmund Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-89",
+    "name": "Alan Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-84",
+    "name": "Ralph Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-85",
+    "name": "Hawise Jori",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-86",
+    "name": "Dionisia Joforrun",
+    "dead": true,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-87",
+    "name": "Osbert Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-78",
+    "name": "Emmeline Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-86",
+    "name": "Ellen Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-73",
+    "name": "Simon Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-74",
+    "name": "Nicholas Seeri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-72",
+    "name": "Simon Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-135",
+    "name": "Sybil Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-136",
+    "name": "Peter Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-117",
+    "name": "Andrew Seefobson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-69",
+    "name": "Ralph Friboto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-102",
+    "name": "Wulfrun Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-103",
+    "name": "Audrey Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-104",
+    "name": "Beatrice Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-105",
+    "name": "Petronilla Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-106",
+    "name": "Wulfstan Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-107",
+    "name": "Edith Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-114",
+    "name": "Edwin Myto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-78",
+    "name": "Constance Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-79",
+    "name": "Amice Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-80",
+    "name": "Emmeline Yararun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-84",
+    "name": "Peter Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-85",
+    "name": "Bartholomew Mylo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-72",
+    "name": "William Thuralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-73",
+    "name": "Bartholomew Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-90",
+    "name": "Stephen Friralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-91",
+    "name": "Dionisia Jokeson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-92",
+    "name": "Walter Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-93",
+    "name": "Clarice Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-88",
+    "name": "Wulfstan Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-79",
+    "name": "Andrew Jobari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-87",
+    "name": "Etheldreda Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-88",
+    "name": "Nicholas Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-89",
+    "name": "Joan Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-75",
+    "name": "Juliana Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-76",
+    "name": "Isabel Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-77",
+    "name": "Nicholas Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-78",
+    "name": "Denis Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-137",
+    "name": "William Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-138",
+    "name": "Edmund Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-139",
+    "name": "Andrew Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-140",
+    "name": "Mabel Jowarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-118",
+    "name": "Sabina Thurun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-70",
+    "name": "Clarice Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-115",
+    "name": "Isabel Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-102",
+    "name": "Simon Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-103",
+    "name": "Lucy Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-104",
+    "name": "Richard Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-105",
+    "name": "Isabel Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-84",
+    "name": "Robert Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-85",
+    "name": "Matilda Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-74",
+    "name": "Agnes Thuralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-75",
+    "name": "Matilda Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-94",
+    "name": "Richard Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-80",
+    "name": "Andrew Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-90",
+    "name": "Anabel Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-91",
+    "name": "Peter Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-76",
+    "name": "Isabel Seeri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-77",
+    "name": "Reynold Bokerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-79",
+    "name": "Cecily Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-80",
+    "name": "Henry Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-141",
+    "name": "Robert Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-142",
+    "name": "Wulfrun Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-74",
+    "name": "Cecily Bobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-108",
+    "name": "Nicholas Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-119",
+    "name": "Avice Yabilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-86",
+    "name": "Katherine Yararun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-79",
+    "name": "Margaret Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-80",
+    "name": "Gilbert Thuralo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-81",
+    "name": "Beatrice Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-98",
+    "name": "David Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-81",
+    "name": "Edith Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-82",
+    "name": "William Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-81",
+    "name": "Gilbert Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-82",
+    "name": "Margery Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-146",
+    "name": "Richard Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-147",
+    "name": "Laurence Jowarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-106",
+    "name": "Felice Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-107",
+    "name": "Margaret Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-86",
+    "name": "Edwin Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-85",
+    "name": "Thomas Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-86",
+    "name": "Agnes Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-87",
+    "name": "Isabel Jorin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-88",
+    "name": "Maud Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-81",
+    "name": "William Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-99",
+    "name": "Emma Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-100",
+    "name": "Laurence Thubasi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-83",
+    "name": "Cuthbert Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-84",
+    "name": "Hugh Seeri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-85",
+    "name": "Gunnilda Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-83",
+    "name": "Christina Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-148",
+    "name": "Oswald Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-75",
+    "name": "Cecily Yaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-120",
+    "name": "Edmund Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-87",
+    "name": "Aveline Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-89",
+    "name": "Avice Jorin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-90",
+    "name": "Ralph Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-92",
+    "name": "Nicholas Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-101",
+    "name": "Laurence Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-86",
+    "name": "Constance Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-87",
+    "name": "Osbert Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-84",
+    "name": "Petronilla Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-149",
+    "name": "Etheldreda Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-76",
+    "name": "Gunnilda Yaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-121",
+    "name": "Etheldreda Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-114",
+    "name": "Lucy Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-87",
+    "name": "Petronilla Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-88",
+    "name": "Osbert Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-89",
+    "name": "Matilda Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-91",
+    "name": "Alice Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-85",
+    "name": "Alice Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-102",
+    "name": "Geoffrey Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-88",
+    "name": "Martin Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-89",
+    "name": "Luke Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-85",
+    "name": "Juliana Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-150",
+    "name": "Philip Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-122",
+    "name": "Mabel Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-115",
+    "name": "Matthew Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-88",
+    "name": "Simon Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-89",
+    "name": "Laurence Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-92",
+    "name": "Simon Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-93",
+    "name": "Edwin Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-94",
+    "name": "Reynold Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-103",
+    "name": "Etheldreda Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-90",
+    "name": "Aethelflaed Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-86",
+    "name": "Robert Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-151",
+    "name": "Hugh Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-152",
+    "name": "Joan Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-153",
+    "name": "Emmeline Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-123",
+    "name": "Idonea Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-116",
+    "name": "Katherine Borun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-90",
+    "name": "Lettice Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-90",
+    "name": "Frideswide Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-95",
+    "name": "Humphrey Bobari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-86",
+    "name": "Ralph Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-87",
+    "name": "Frideswide Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-104",
+    "name": "Hugh Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-122",
+    "name": "Thomas Boho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-123",
+    "name": "Christina Seelo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-109",
+    "name": "Stephen Yabilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-124",
+    "name": "Hugh Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-125",
+    "name": "Laurence Yabilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-126",
+    "name": "Robert Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-117",
+    "name": "Ralph Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-91",
+    "name": "Stephen Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-99",
+    "name": "Richard Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-88",
+    "name": "Humphrey Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-105",
+    "name": "Edith Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-106",
+    "name": "Wulfrun Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-107",
+    "name": "Roger Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-91",
+    "name": "Cuthbert Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-87",
+    "name": "Edith Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-154",
+    "name": "Laurence Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-155",
+    "name": "Idonea Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-156",
+    "name": "Beatrice Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-157",
+    "name": "Leonard Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-77",
+    "name": "Idonea Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-110",
+    "name": "Katherine Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-111",
+    "name": "Christina Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-127",
+    "name": "Felice Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-128",
+    "name": "Sabina Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-129",
+    "name": "Ellen Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-92",
+    "name": "Maud Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-94",
+    "name": "Lettice Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-95",
+    "name": "Christina Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-96",
+    "name": "Isabel Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-95",
+    "name": "Andrew Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-100",
+    "name": "Joan Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-108",
+    "name": "Richard Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-109",
+    "name": "Katherine Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-92",
+    "name": "Adam Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-124",
+    "name": "Matthew Thurun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-112",
+    "name": "Ambrose Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-113",
+    "name": "Lettice Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-114",
+    "name": "Peter Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-115",
+    "name": "Edgar Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-130",
+    "name": "Martin Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-118",
+    "name": "David Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-119",
+    "name": "Nicholas Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-93",
+    "name": "Luke Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-97",
+    "name": "Felice Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-98",
+    "name": "Joan Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-99",
+    "name": "Petronilla Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-96",
+    "name": "Edgar Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-104",
+    "name": "Mabel Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-105",
+    "name": "Emmeline Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-106",
+    "name": "Edward Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-107",
+    "name": "Denis Bobari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-108",
+    "name": "Lucy Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-89",
+    "name": "Denis Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-110",
+    "name": "Idonea Yaforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-111",
+    "name": "Felice Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-93",
+    "name": "Matilda Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-94",
+    "name": "Stephen Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-95",
+    "name": "Laurence Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-158",
+    "name": "Martin Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-159",
+    "name": "Henry Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-160",
+    "name": "Adam Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-128",
+    "name": "Rose Boho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-78",
+    "name": "Nicholas Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-131",
+    "name": "Mabel Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-120",
+    "name": "Ellen Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-94",
+    "name": "Christina Bolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-100",
+    "name": "Edith Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-97",
+    "name": "Lucy Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-98",
+    "name": "Beatrice Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-109",
+    "name": "Matilda Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-110",
+    "name": "Sabina Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-90",
+    "name": "Edwin Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-112",
+    "name": "Amice Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-96",
+    "name": "Geoffrey Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-88",
+    "name": "Nicholas Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-164",
+    "name": "Oswald Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-165",
+    "name": "Wulfrun Doori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-129",
+    "name": "William Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-130",
+    "name": "Benedict Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-116",
+    "name": "Avice Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-117",
+    "name": "John Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-132",
+    "name": "Reynold Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-133",
+    "name": "Sybil Thuforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-95",
+    "name": "Walter Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-96",
+    "name": "Alan Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-101",
+    "name": "Beatrice Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-102",
+    "name": "Hugh Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-99",
+    "name": "Benedict Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-100",
+    "name": "Rose Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-111",
+    "name": "Geoffrey Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-113",
+    "name": "John Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-114",
+    "name": "Simon Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-100",
+    "name": "Sarah Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-89",
+    "name": "Thomas Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-166",
+    "name": "Ralph Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-167",
+    "name": "Felice Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-168",
+    "name": "Ralph Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-169",
+    "name": "Alan Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-170",
+    "name": "Ellen Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-131",
+    "name": "Denis Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-132",
+    "name": "Sabina Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-133",
+    "name": "Henry Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-118",
+    "name": "Hugh Jorun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-119",
+    "name": "Nicholas Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-120",
+    "name": "Cecily Boboson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-134",
+    "name": "Ellen Josi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-121",
+    "name": "Stephen Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-97",
+    "name": "Roger Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-103",
+    "name": "Winifred Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-112",
+    "name": "Maud Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-113",
+    "name": "Adam Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-91",
+    "name": "Simon Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-92",
+    "name": "Maud Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-93",
+    "name": "Mabel Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-94",
+    "name": "Cecily Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-90",
+    "name": "Constance Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-91",
+    "name": "Godwin Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-171",
+    "name": "Margery Seebison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-172",
+    "name": "Gilbert Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-173",
+    "name": "Geoffrey Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-134",
+    "name": "Edward Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-121",
+    "name": "Peter Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-122",
+    "name": "Edmund Boboson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-135",
+    "name": "Simon Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-136",
+    "name": "William Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-137",
+    "name": "Maud Josi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-122",
+    "name": "Marion Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-93",
+    "name": "Adam Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-114",
+    "name": "Edith Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-115",
+    "name": "Edmund Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-95",
+    "name": "Aldith Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-115",
+    "name": "Alice Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-101",
+    "name": "Thomas Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-92",
+    "name": "Walter Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-93",
+    "name": "Andrew Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-135",
+    "name": "Henry Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-136",
+    "name": "Reynold Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-79",
+    "name": "Lucy Friboto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-123",
+    "name": "Christina Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-138",
+    "name": "Oswald Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-139",
+    "name": "Avice Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-104",
+    "name": "Lucy Fririn",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-101",
+    "name": "Adam Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-96",
+    "name": "Henry Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-97",
+    "name": "Gunnilda Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-116",
+    "name": "Luke Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-102",
+    "name": "Mabel Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-94",
+    "name": "Humphrey Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-174",
+    "name": "Godgifu Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-80",
+    "name": "Nicholas Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-81",
+    "name": "Geoffrey Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-124",
+    "name": "Ralph Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-125",
+    "name": "Avice Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-140",
+    "name": "Matilda Boto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-98",
+    "name": "Maud Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-105",
+    "name": "Matthew Bobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-94",
+    "name": "Alfred Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-102",
+    "name": "William Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-119",
+    "name": "Cuthbert Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-98",
+    "name": "Stephen Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-117",
+    "name": "Matilda Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-118",
+    "name": "Edmund Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-95",
+    "name": "Joan Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-137",
+    "name": "Ellen Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-126",
+    "name": "Aldith Boboson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-126",
+    "name": "Margaret Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-99",
+    "name": "Ellen Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-106",
+    "name": "Emma Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-95",
+    "name": "Richard Jorin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-103",
+    "name": "Thomas Clebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-102",
+    "name": "Isabel Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-106",
+    "name": "Ambrose Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-107",
+    "name": "Constance Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-96",
+    "name": "Idonea Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-175",
+    "name": "Matthew Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-127",
+    "name": "Henry Yarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-141",
+    "name": "Gunnilda Jolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-127",
+    "name": "Petronilla Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-110",
+    "name": "Alan Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-111",
+    "name": "Thomas Friboto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-112",
+    "name": "Edwin Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-96",
+    "name": "Lettice Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-97",
+    "name": "Aveline Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-98",
+    "name": "Idonea Jorin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-119",
+    "name": "Gregory Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-108",
+    "name": "Gilbert Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-138",
+    "name": "Simon Yalo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-142",
+    "name": "Juliana Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-128",
+    "name": "Matthew Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-129",
+    "name": "Rose Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-130",
+    "name": "Ralph Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-113",
+    "name": "Edmund Bobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-104",
+    "name": "Emmeline Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-120",
+    "name": "Laurence Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-120",
+    "name": "Reynold Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-109",
+    "name": "Ralph Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-97",
+    "name": "Edwin Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-176",
+    "name": "Constance Thusi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-82",
+    "name": "Reynold Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-128",
+    "name": "Petronilla Yabilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-143",
+    "name": "Aethelflaed Joho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-131",
+    "name": "William Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-132",
+    "name": "Godwin Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-114",
+    "name": "Geoffrey Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-115",
+    "name": "Godwin Friboto",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-99",
+    "name": "Geoffrey Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-100",
+    "name": "Edmund Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-101",
+    "name": "Stephen Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-110",
+    "name": "Joan Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-98",
+    "name": "Godfrey Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-139",
+    "name": "Miles Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-144",
+    "name": "Luke Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-145",
+    "name": "Felice Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-133",
+    "name": "Matilda Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-134",
+    "name": "John Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-103",
+    "name": "Cuthbert Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-116",
+    "name": "Wulfstan Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-102",
+    "name": "Peter Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_6-social-103",
+    "name": "Agnes Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-121",
+    "name": "Denis Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-122",
+    "name": "Nicholas Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-121",
+    "name": "Clarice Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-111",
+    "name": "Idonea Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-112",
+    "name": "Alan Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-129",
+    "name": "Agnes Yabilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-135",
+    "name": "Peter Doobisi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-136",
+    "name": "Edith Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-104",
+    "name": "Alfred Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-117",
+    "name": "Rose Thurason",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-105",
+    "name": "Etheldreda Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-106",
+    "name": "Henry Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-123",
+    "name": "Margaret Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-122",
+    "name": "Edith Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-113",
+    "name": "Felice Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-99",
+    "name": "Beatrice Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-100",
+    "name": "Audrey Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-140",
+    "name": "Beatrice Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-141",
+    "name": "Katherine Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-83",
+    "name": "Maud Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-84",
+    "name": "Gilbert Mysi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-146",
+    "name": "Petronilla Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-147",
+    "name": "David Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-137",
+    "name": "Philip Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-105",
+    "name": "Sybil Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-106",
+    "name": "Emma Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-124",
+    "name": "Hugh Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-125",
+    "name": "Sabina Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-123",
+    "name": "Petronilla Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-124",
+    "name": "Roger Thuforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-114",
+    "name": "Sabina Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-177",
+    "name": "John Cleson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-178",
+    "name": "Joan Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-142",
+    "name": "Cecily Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-85",
+    "name": "Hawise Doosi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-130",
+    "name": "Ellen Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-138",
+    "name": "Hilda Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-139",
+    "name": "Adam Fribillo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-107",
+    "name": "Eadgifu Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-121",
+    "name": "Robert Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-122",
+    "name": "Nicholas Joson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-107",
+    "name": "Margery Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-126",
+    "name": "Wulfstan Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-127",
+    "name": "Wilfred Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-103",
+    "name": "Petronilla Frifoblo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-125",
+    "name": "Stephen Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-115",
+    "name": "Isabel Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_8-social-101",
+    "name": "John Seerun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-179",
+    "name": "Katherine Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-143",
+    "name": "Edith Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-144",
+    "name": "Roger Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-148",
+    "name": "Lettice Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-140",
+    "name": "Richard Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-108",
+    "name": "Gilbert Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-128",
+    "name": "Lucy Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-129",
+    "name": "Andrew Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-130",
+    "name": "Miles Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-131",
+    "name": "Edith Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-126",
+    "name": "Humphrey Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-127",
+    "name": "Andrew Bobarin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-116",
+    "name": "Robert Borin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-180",
+    "name": "Baldwin Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_9-social-145",
+    "name": "Ellen Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-86",
+    "name": "Audrey Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-149",
+    "name": "Alan Frirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-123",
+    "name": "Cecily Clerin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-109",
+    "name": "Eadgifu Doobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_4-social-110",
+    "name": "Edward Frilo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-132",
+    "name": "Edith Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-133",
+    "name": "Roger Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_3-social-104",
+    "name": "Beatrice Thuson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-128",
+    "name": "Sarah Friforrin",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-117",
+    "name": "Marion Thuri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-118",
+    "name": "Emmeline Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-181",
+    "name": "William Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-182",
+    "name": "Reynold Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-183",
+    "name": "Rose Boboson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-87",
+    "name": "Isabel Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-131",
+    "name": "Gunnilda Boson",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-150",
+    "name": "Ralph Friforlo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-141",
+    "name": "Juliana Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-142",
+    "name": "William Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-108",
+    "name": "Frideswide Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_10-social-124",
+    "name": "Christina Bobilrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-134",
+    "name": "Thomas Seebiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-135",
+    "name": "Joan Jori",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-136",
+    "name": "Cuthbert Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w6_3-social-129",
+    "name": "Wilfred Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-119",
+    "name": "Lettice Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-120",
+    "name": "Matilda Yabaho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w7_8-social-121",
+    "name": "Aveline Thuho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-184",
+    "name": "Emma Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-185",
+    "name": "Rose Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_2-social-186",
+    "name": "Juliana Clewari",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-88",
+    "name": "Avice Bobolo",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w5_9-social-89",
+    "name": "Wulfstan Friri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w8_1-social-132",
+    "name": "Andrew Seebirun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w9_3-social-151",
+    "name": "Lettice Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_4-social-143",
+    "name": "Alan Frison",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w10_5-social-109",
+    "name": "Godgifu Yarun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-137",
+    "name": "Peter Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-138",
+    "name": "William Bobiho",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-139",
+    "name": "Margery Myri",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "w1_3-social-140",
+    "name": "Hugh Joforrun",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "terrain5_3-person-3904",
+    "name": "William Clebasi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "terrain5_3-backstory-4146",
+    "name": "Dionisia Seesi",
+    "dead": false,
+    "offMap": true
+  },
+  {
+    "id": "terrain5_3-person-4147",
+    "name": "Humphrey Seesi",
+    "dead": false,
+    "offMap": false
+  },
+  {
+    "id": "terrain5_3-backstory-4148",
+    "name": "Matthew Dookerin",
+    "dead": true,
+    "offMap": true
+  },
+  {
+    "id": "terrain5_3-backstory-4149",
+    "name": "Frideswide Joforson",
+    "dead": false,
+    "offMap": true
+  },
+  {
+    "id": "terrain5_3-backstory-4150",
+    "name": "Peter Friketo",
+    "dead": false,
+    "offMap": true
+  }
+]

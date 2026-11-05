@@ -1,0 +1,11 @@
+
+/home/cp/code/tk-names/test/first_run.test.js
+  9:1  error  'beforeEach' is not defined  no-undef
+
+/home/cp/code/tk-names/test/mother_family.test.js
+  2:11  error  'jest' is already defined as a built-in global variable    no-redeclare
+  2:17  error  'it' is already defined as a built-in global variable      no-redeclare
+  2:21  error  'expect' is already defined as a built-in global variable  no-redeclare
+
+✖ 4 problems (4 errors, 0 warnings)
+

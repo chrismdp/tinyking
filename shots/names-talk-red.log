@@ -1,0 +1,251 @@
+FAIL test/person_names.test.js (21.032 s)
+  ● gives repeated seeded people distinct first names, preserving the family and deterministic replay
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 4
+    Received: 1
+
+      17 |   const create=()=>{const s=world();newEntities(s,Array.from({length:4},()=>person()));return s;};
+      18 |   const s=create(),names=allNames(s);
+    > 19 |   expect(new Set(names).size).toBe(4);
+         |                               ^
+      20 |   expect(names[0]).toBe(name(identity));
+      21 |   expect(names).toEqual(allNames(create()));
+      22 |   for(const n of Object.values(s.ecs.nameable))expect(familyName(n)).toBe(familyName(identity));
+
+      at Object.<anonymous> (test/person_names.test.js:19:31)
+
+  ● reserves dead and remote names from peopleDirectory, including after a save
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "William Friho"
+
+      29 |   s=restoreGame(serialiseGame(s));
+      30 |   const [id]=newEntities(s,[person()]);
+    > 31 |   expect(name(s.ecs.nameable[id])).not.toBe(name(identity));
+         |                                        ^
+      32 |   expect(familyName(s.ecs.nameable[id])).toBe(familyName(identity));
+      33 | });
+      34 |
+
+      at test/person_names.test.js:31:40
+
+  ● reserves dead and remote names from travel, including after a save
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "William Friho"
+
+      29 |   s=restoreGame(serialiseGame(s));
+      30 |   const [id]=newEntities(s,[person()]);
+    > 31 |   expect(name(s.ecs.nameable[id])).not.toBe(name(identity));
+         |                                        ^
+      32 |   expect(familyName(s.ecs.nameable[id])).toBe(familyName(identity));
+      33 | });
+      34 |
+
+      at test/person_names.test.js:31:40
+
+  ● reserves dead and remote names from newsContext, including after a save
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "William Friho"
+
+      29 |   s=restoreGame(serialiseGame(s));
+      30 |   const [id]=newEntities(s,[person()]);
+    > 31 |   expect(name(s.ecs.nameable[id])).not.toBe(name(identity));
+         |                                        ^
+      32 |   expect(familyName(s.ecs.nameable[id])).toBe(familyName(identity));
+      33 | });
+      34 |
+
+      at test/person_names.test.js:31:40
+
+  ● keeps allocating names when one family has used every ordinary first name
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 60
+    Received: 1
+
+      36 |   const s=world();
+      37 |   newEntities(s,Array.from({length:60},()=>person()));
+    > 38 |   expect(new Set(allNames(s)).size).toBe(60);
+         |                                     ^
+      39 |   expect(allNames(s).every(n=>n.endsWith(" "+familyName(identity)))).toBe(true);
+      40 | });
+      41 |
+
+      at Object.<anonymous> (test/person_names.test.js:38:37)
+
+  ● reserves a remembered name before a seasonal birth
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "Rose Friho"
+
+      52 |   s.peopleDirectory={ancestor:{...person(n),personable:{dead:true}}};
+      53 |   const born=birth(s,a,b,0);
+    > 54 |   expect(name(s.ecs.nameable[born])).not.toBe(name(n));
+         |                                          ^
+      55 |   expect(familyName(s.ecs.nameable[born])).toBe(familyName(n));
+      56 | });
+      57 |
+
+      at Object.<anonymous> (test/person_names.test.js:54:42)
+
+  ● reserves remembered names for off-map maternal references and their arriving siblings
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 12
+    Received: 8
+
+      68 |   s.peopleDirectory=Object.fromEntries(Object.entries(base.state.peopleDirectory).map(([id,p])=>["old-"+id,{...p,personable:{dead:true,offMap:true}}]));
+      69 |   seedMotherFamily(s,player,13);
+    > 70 |   expect(new Set(allNames(s)).size).toBe(allNames(s).length);
+         |                                     ^
+      71 | });
+      72 |
+      73 | it("reserves remembered names for a succession stranger",async()=>{
+
+      at Object.<anonymous> (test/person_names.test.js:70:37)
+
+  ● reserves remembered names for a succession stranger
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "Emma Dooforrun"
+
+      77 |   s.travel.people.remembered={...person(n),personable:{dead:true,offMap:true}};
+      78 |   await resolveSuccession(s);
+    > 79 |   expect(name(s.ecs.nameable[s.ui.playerId])).not.toBe(name(n));
+         |                                                   ^
+      80 | });
+      81 |
+      82 | it("keeps names unique across founding communities and their remembered history",async()=>{
+
+      at Object.<anonymous> (test/person_names.test.js:79:51)
+
+  ● keeps names unique across founding communities and their remembered history
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 245
+    Received: 228
+
+      86 |   const names=Object.values(s.travel.people).map(p=>name(p.nameable));
+      87 |   expect(names.length).toBeGreaterThan(50);
+    > 88 |   expect(new Set(names).size).toBe(names.length);
+         |                               ^
+      89 |   expect(Object.values(s.travel.people).some(p=>p.personable.dead)).toBe(true);
+      90 | },30000);
+      91 |
+
+      at Object.<anonymous> (test/person_names.test.js:88:31)
+
+FAIL test/chat_own_question.test.js
+  ● asks about the listener and uses their real proud reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+  ● asks about the listener and uses their real humble reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+  ● asks about the listener and uses their real generous reaction
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Array [
+        Object {
+    -     "kind": "person",
+    -     "personId": "8",
+    +     "key": "family",
+    +     "kind": "topic",
+        },
+      ]
+
+      16 |   const questions=lineCandidates(s,c,"own_question","player");
+      17 |   expect(questions).toHaveLength(4);
+    > 18 |   for(const q of questions)expect(q.icons).toEqual([{kind:"person",personId:n}]);
+         |                                            ^
+      19 |   c.row=[{kind:"person",personId:n}];
+      20 |   const before=s.ecs.relationships[n].known[p].goodwill;
+      21 |   expect(speakLine(s,questions[0])).toBe(true);
+
+      at test/chat_own_question.test.js:18:44
+
+  ● always offers the eligible keeping question under family alongside required answers
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      34 |     const choices=chatChoices(s);
+      35 |     expect(choices.length).toBeLessThanOrEqual(4);
+    > 36 |     expect(choices.filter(l=>l.family=="own_question")).toHaveLength(1);
+         |                                                         ^
+      37 |     if(expectation)expect(choices[0].answers).toContain(expectation);
+      38 |     const direct=lineCandidates(s,c,"evasion","player").filter(l=>l.answers?.includes(expectation));
+      39 |     for(const evasive of direct)expect(choices.some(l=>l.useKey==evasive.useKey)).toBe(true);
+
+      at test/chat_own_question.test.js:36:57
+
+Test Suites: 2 failed, 2 total
+Tests:       13 failed, 5 passed, 18 total
+Snapshots:   0 total
+Time:        23.556 s
+Ran all test suites matching test/person_names.test.js|test/chat_own_question.test.js.

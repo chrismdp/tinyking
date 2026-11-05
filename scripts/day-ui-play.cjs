@@ -69,7 +69,17 @@ function check(name,ok,detail){report.checks.push({name,ok:!!ok,detail});write()
       if(await page.locator(".day-conversation").count())await finishTalk(label);
       await waitFinished();await frame(label+"-result");return true;
     };
-    if(mechanical){
+    if(mechanical && process.argv.includes("--menu-only")) {
+      const started=Date.now();
+      await page.goto(new URL("/",url).href);
+      await page.getByRole("link",{name:"A day with people",exact:true}).waitFor({timeout:15000});
+      await page.screenshot({path:path.join(out,"main-menu.png")});
+      check("main menu is available before world generation",true,{milliseconds:Date.now()-started});
+      await page.getByRole("link",{name:"A day with people",exact:true}).click();
+      await page.getByRole("heading",{name:"A stranger in Reedbrook",exact:true}).waitFor({timeout:60000});
+      await frame("final-menu-entry");
+      check("main menu opens the saved day game",true,{milliseconds:Date.now()-started});
+    } else if(mechanical){
       await goto();await frame("mechanical-seed13");
       await tab("Family");await frame("final-family-desktop");
       check("family tree names the learned mother",await page.locator(".day-kin").filter({hasText:"Dionisia Jobari"}).count()>0);

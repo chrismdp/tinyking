@@ -1,0 +1,6 @@
+
+> tinyking@1.0.0 playtest
+> node scripts/playtest.js http://127.0.0.1:8127/?mode=day shots/day-ui --menu-only
+
+FAIL browser observation completed "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'A day with people', exact: true }) to be visible\u001b[22m\n"
+exit=1

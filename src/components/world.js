@@ -388,8 +388,9 @@ export function World() {
       window.tinykingGeography = { habitatAt, localHabitat, climateAt, updateRoadWear, recordRoadUse, Hex, path, walk_to, updateEnvironment, advanceEnvironment, canPlaceField, reserveFieldPlot, reserveRoad, growingAt, frozenAt };
     }
 
-    // Keep the menu available without generating a world. custom_game starts
-    // legacy generation only after the player chooses Start new game.
+    // Paint the menu before the asynchronous save inspection. custom_game
+    // starts legacy generation only after the player chooses Start new game.
+    renderUI();
     state.persistence.inspect();
     return () => {
       unbindAutosave();

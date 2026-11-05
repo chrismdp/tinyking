@@ -17,6 +17,7 @@ import { consumeTimber } from "game/settlement_growth";
 import { amountOf, TIMBER } from "game/goods";
 import { recordJourney, routeTile } from "game/settlement_routes";
 import { entityId, isResident } from "game/residents";
+import { uniquePersonName } from "game/name";
 import { Hex } from "game/hex";
 // No map, renderer, DOM or pathfinding imports: also runs on an unvisited world hex.
 import MersenneTwister from "mersenne-twister";
@@ -43,6 +44,7 @@ const distance = (s, a, b) => {
 };
 const add = (s, components) => {
   const id = entityId(s.ecs, "social-");
+  if (components.personable && components.nameable?.type == "person") components.nameable = uniquePersonName(s, components.nameable);
   if (components.personable) initialiseOrientation(components, id);
   for (const [key, value] of Object.entries(components)) (s.ecs[key] ||= {})[id] = {
     ...value,

@@ -1,6 +1,6 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { householdMembers, withPopulationIndex } from "game/population_index";
-import { attachPeople } from "game/person_storage";
+import { attachPeople, PERSON_COMPONENTS } from "game/person_storage";
 import { captureDetailOrigins, prepareNeighbourDetails, releaseHistoryWorkspace } from "game/hex_detail";
 import { compactMap, SUMMARY_COMPONENTS } from "game/community_summary";
 export { compactMap } from "game/community_summary";
@@ -51,8 +51,9 @@ export function summarySeason(map,season,buildHomes=true) {
   })));}
   finally {if(!buildHomes){if(sites)Object.defineProperty(map,"houseSites",sites);else delete map.houseSites;}}
 }
-function foundingMap(world,hex,contents,seed) {
+function foundingMap(world,hex,contents,seed,people) {
   const key=worldKey(hex),s={newsModel:1,compact:true,ecs:{nextId:1,namespace:"w"+hex.x+"_"+hex.y+"-"},space:{},redraws:[],ui:{show:{}},days:-HISTORY_SEASONS*DAYS_IN_SEASON,peopleSeed:seed,opinionThresholds:{hate:-.8,love:.8},villages:{},events:[],knowledge:{},social:{lastSeason:(-HISTORY_SEASONS - 1),courtships:{},avoidance:{}},residents:{},world:{...world,home:hex}};
+  Object.defineProperty(s,"peopleDirectory",{value:people,writable:true,configurable:true});
   const generator=new MersenneTwister(seed),entrances={};
   for(const [side,n] of neighbours(hex).entries())if(world.hexes.some(h=>!h.ocean&&worldKey(h)===worldKey(n))) {
     const route=world.landSeed ? routeCrossing({...world,home:hex},side) : {hexes:[{x:22,y:2},{x:22,y:3},{x:22,y:4}]};
@@ -83,17 +84,20 @@ function foundingMap(world,hex,contents,seed) {
   return compactMap(s);
 }
 export async function generateWorldHistory(s,seed,progress=async()=>{},world=generateWorld(seed)) {
-  const contents={},maps={};
+  const contents={},maps={},people={};
   for(const [index,hex] of world.hexes.entries()) {
     const key=worldKey(hex);contents[key]=rollHexContents(seed,hex,key===worldKey(world.home));
-    if(!hex.ocean)maps[key]=foundingMap(world,hex,contents[key],Math.floor(hashUnit(seed+":hex:"+key)*4294967296));
+    if(!hex.ocean) {
+      const map=maps[key]=foundingMap(world,hex,contents[key],Math.floor(hashUnit(seed+":hex:"+key)*4294967296),people);
+      for(const id of Object.keys(map.residents))people[id]=Object.fromEntries(PERSON_COMPONENTS.filter(key=>map.ecs[key]?.[id]).map(key=>[key,map.ecs[key][id]]));
+    }
     await progress("Surveying the world: "+(index+1)+" of "+world.hexes.length,.08*(index+1)/world.hexes.length);
   }
   s.world=world;s.worldHistory={version:1,contents};
   Object.assign(s,maps[worldKey(world.home)]);s.world=world;
   initialiseTravel(s,seed);s.travel.maps=maps;s.travel.wholeWorld=true;s.travel.localPeople=true;s.travel.season=-HISTORY_SEASONS;
+  s.travel.people=people;
   for(const map of Object.values(maps)) {
-    for(const id of Object.keys(map.residents))s.travel.people[id]=Object.fromEntries(["personable","personality","kinship","relationships","nameable","controllable","household","village","playable"].filter(key=>map.ecs[key]?.[id]).map(key=>[key,map.ecs[key][id]]));
     Object.assign(s.travel.knowledge,map.knowledge);
   }
   await advanceHistorySeasons(s,(-HISTORY_SEASONS + 1),0,progress);

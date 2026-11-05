@@ -13,6 +13,7 @@ import { recordEvent } from "game/events";
 import { updateFavours, reasonGone } from "game/favours";
 import { Hex } from "game/hex";
 import { localDirection } from "game/chat_lands";
+import { uniquePersonName } from "game/name";
 
 const kin=(s,id)=>personComponent(s,"kinship",id);
 const alive=(s,id)=>personComponent(s,"personable",id)&&!personComponent(s,"personable",id).dead;
@@ -71,6 +72,7 @@ export function seedMotherFamily(s,actor,seed) {
     const id=entityId(e,"backstory-"),p=generatePerson({male,age:personAge,familySeed,generator:g,days:s.days});
     const r={};
     for(const key of ["nameable","personable","personality","kinship"])r[key]={...p[key],id};
+    r.nameable=uniquePersonName(s,r.nameable);
     Object.assign(r.personable,{offMap:true,...extra});
     r.household={id,houseId:null};r.village={id,villageId:null};r.relationships={id,known:{}};
     (s.peopleDirectory ||= {})[id]=r;

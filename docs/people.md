@@ -19,6 +19,12 @@ The temporary `traits` component keeps its existing meaning.
 
 ## Generation
 
+Full names are unique across the world, including dead people and off-map
+references. Creation keeps a free generated name, or uses the person's seed to
+choose another first name when it is taken. Family names stay the same. If a
+family remembers every ordinary first name, creation uses compound first names.
+The chosen names stay in the person's record through saves and travel.
+
 The map targets one village per 140 tiles, or 11 on a radius-22 map, where terrain permits.
 Each village has 3–8 houses within three hexes of its centre.
 Centres are at least seven hexes apart. Houses are at least two hexes apart.

@@ -3,10 +3,14 @@ import { refreshPersonIndex } from "game/population_index";
 import { entityId } from "game/residents";
 import { initialiseOrientation } from "game/orientation";
 import { Hex } from "game/map";
+import { uniquePersonName } from "game/name";
 
 export function newEntities(state, entities, prefix = "") {
   return entities.map(entity => {
     const id = entityId(state.ecs, prefix);
+    if (entity.personable && entity.nameable?.type == "person") {
+      entity = { ...entity, nameable: uniquePersonName(state, entity.nameable) };
+    }
     if (entity.personable) initialiseOrientation(entity, id);
     for (const name in entity) {
       if (!state.ecs[name]) {

@@ -42,3 +42,25 @@ export const name = nameable => {
   return "UNKNOWN NAME TYPE";
 };
 
+// Allocate at creation, so references, saves and travel keep the same identity.
+export function uniquePersonName(state, nameable) {
+  const taken = new Set();
+  for (const [id, n] of Object.entries(state.ecs.nameable || {})) {
+    if (n.type == "person" || state.ecs.personable?.[id]) taken.add(name(n));
+  }
+  for (const directory of new Set([state.peopleDirectory, state.travel?.people, state.newsContext?.people])) {
+    for (const person of Object.values(directory || {})) if (person.nameable) taken.add(name(person.nameable));
+  }
+  const surname = familyName(nameable), generator = new MersenneTwister(nameable.seed);
+  const names = [...new Set((nameable.male ? male_names : female_names).map(String).filter(Boolean))];
+  const original = String(firstName(nameable));
+  let first = original;
+  const free = names.filter(n => !taken.has(n + " " + surname));
+  while (taken.has(first + " " + surname)) {
+    // A long-lived family can remember every single name in the catalogue.
+    // Compound first names leave the family name intact even then.
+    first = free.length ? free[bias(generator, free.length)] : first + " " + names[bias(generator, names.length)];
+  }
+  return first == original ? { ...nameable } : { ...nameable, firstName: first };
+}
+

@@ -12,9 +12,15 @@ import { containerHasSpace } from "game/container";
 export const foodHouse = (s, source) => s.ecs.interior?.[source]?.buildingId ||
   Object.keys(s.ecs.household || {}).find(house => s.ecs.household[house].storeId == source);
 const residents = (s, house) => householdMembers(s, house).filter(id => isResident(s,id) && !s.ecs.personable[id]?.dead);
+function beneficiaries(s,house) {
+  const members=residents(s,house);
+  if(members.length)return members;
+  const owner=s.ecs.controllable[house]?.controllerId, home=personComponent(s,"household",owner)?.houseId;
+  return home ? residents(homeState(s,owner),home) : [];
+}
 
 // Food permission does not grant another home's fields, beds or working access.
-// A vacant estate feeds its owner's household. Occupied homes keep two meals
+// A vacant estate feeds its owner's household. Occupied homes keep their next meal
 // each before sharing with the owner's household or the residents' close kin.
 export function mealAccess(s, actor, source, food) {
   const e=s.ecs;
@@ -29,11 +35,10 @@ export function mealAccess(s, actor, source, food) {
   const owned=family.includes(owner);
   if (!members.length && owned) return true;
   // An inherited larder can still feed the heir's children after they move.
-  const ownerHome=personComponent(s,"household",owner)?.houseId;
-  const beneficiaries=members.length ? members : ownerHome ? residents(homeState(s,owner),ownerHome) : [];
-  if (!beneficiaries.length || ((food || householdFood(s)).get(house) || 0) <= beneficiaries.length*2) return false;
-  return owned || family.some(id => closeFamily(s,id).some(kin => beneficiaries.includes(kin)) ||
-    beneficiaries.some(kin => relatedPeople(s,id,kin)));
+  const people=beneficiaries(s,house);
+  if (!people.length || ((food || householdFood(s)).get(house) || 0) <= people.length) return false;
+  return owned || family.some(id => closeFamily(s,id).some(kin => people.includes(kin)) ||
+    people.some(kin => relatedPeople(s,id,kin)));
 }
 
 // Keep two meals each and one shareable portion, as in the existing surplus
@@ -51,7 +56,10 @@ export function updateHouseholdFood(s) {
       if (!e.spatial[worker]) continue;
       const point=e.spatial[worker];
       const sources=Object.keys(e.container).filter(id=>e.spatial[id] && foodHouse(s,id)!=house && FOODS.some(type=>e.container[id].amounts[type]>=1) && mealAccess(s,worker,id,food));
-      sources.sort((a,b)=>Math.hypot(e.spatial[a].x-point.x,e.spatial[a].y-point.y)-Math.hypot(e.spatial[b].x-point.x,e.spatial[b].y-point.y));
+      const owned=id=>members.includes(e.controllable[foodHouse(s,id)]?.controllerId);
+      const surplus=id=>(food.get(foodHouse(s,id)) || 0)-beneficiaries(s,foodHouse(s,id)).length;
+      sources.sort((a,b)=>Number(owned(b))-Number(owned(a)) || surplus(b)-surplus(a) ||
+        Math.hypot(e.spatial[a].x-point.x,e.spatial[a].y-point.y)-Math.hypot(e.spatial[b].x-point.x,e.spatial[b].y-point.y));
       const source=sources.find(id=>canReachTask(s,worker,id));
       if (source) e.planner[worker].world.foodForHome={source,type:FOODS.find(type=>e.container[source].amounts[type]>=1)};
     }

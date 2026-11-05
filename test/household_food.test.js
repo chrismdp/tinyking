@@ -6,7 +6,7 @@ import { die, repairHouseholds } from "game/possessions";
 import { advanceOffscreenNeeds } from "game/needs";
 import { HOUR } from "game/time";
 import { householdFood } from "game/favours";
-import { mealAccess } from "game/household_food";
+import { mealAccess, updateHouseholdFood } from "game/household_food";
 
 function family() {
   const {s,house,ids:[a,b,c]}=community({player:false});
@@ -42,16 +42,16 @@ it("lets an heir and their household eat a vacant inherited home's store without
   expect(s.ecs.controllable[other].controllerId).toBe(b);
 });
 
-it("lets hungry kin take real surplus while keeping two meals for each donor resident", () => {
+it("lets hungry kin take real surplus while keeping the next meal for each donor resident", () => {
   const {s,store,b,c}=family();
   advance(s,3);
   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
   expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
   expect(s.ecs.container[store].amounts.grain).toBe(10);
-  s.ecs.container[store].amounts.grain=2;
+  s.ecs.container[store].amounts.grain=1;
   s.ecs.personable[b].hunger=1.2;
   advance(s,3);
-  expect(s.ecs.container[store].amounts.grain).toBe(2);
+  expect(s.ecs.container[store].amounts.grain).toBe(1);
   expect(s.ecs.personable[b].hunger).toBeGreaterThan(1.2);
 });
 
@@ -74,10 +74,10 @@ it("lets an heir's close kin share the inherited surplus while preserving the he
   expect(s.ecs.personable[b].hunger).toBeLessThan(.2);
   expect(s.ecs.personable[c].hunger).toBeLessThan(.2);
   expect(s.ecs.container[store].amounts.grain).toBe(10);
-  s.ecs.container[store].amounts.grain=2;
+  s.ecs.container[store].amounts.grain=1;
   s.ecs.personable[b].hunger=1.2;
   advance(s,3);
-  expect(s.ecs.container[store].amounts.grain).toBe(2);
+  expect(s.ecs.container[store].amounts.grain).toBe(1);
   expect(s.ecs.personable[b].hunger).toBeGreaterThan(1.2);
 });
 
@@ -137,7 +137,7 @@ it("lets local kin collect from an absent heir's real local store while protecti
   s.residents[a]=false;
   s.travel={maps:{remote:{ecs:{personable:{[a]:s.ecs.personable[a]},household:{[a]:{houseId:"remote-home"}},controllable:{"remote-home":{controllerId:a}}},residents:{[a]:true}}}};
   expect(mealAccess(s,b,store)).toBe(true);
-  s.ecs.container[store].amounts.grain=2;
+  s.ecs.container[store].amounts.grain=1;
   expect(mealAccess(s,b,store)).toBe(false);
   expect(s.ecs.controllable[house].controllerId).toBe(a);
 });
@@ -190,4 +190,23 @@ it("passes real surplus through a kin household instead of stranding it behind t
   expect(s.ecs.container[nextPantry].amounts.grain).toBeGreaterThanOrEqual(2);
   expect(s.ecs.container[pantry].amounts.grain).toBeGreaterThanOrEqual(2);
   expect(Object.values(s.ecs.container).reduce((n,box)=>n+(box.amounts.grain || 0),0)).toBe(20);
+});
+
+it("shares a second meal with hungry kin while retaining the donor's next meal", () => {
+  const {s,store,b}=family();
+  s.ecs.container[store].amounts.grain=2;
+  expect(mealAccess(s,b,store)).toBe(true);
+  s.ecs.container[store].amounts.grain=1;
+  expect(mealAccess(s,b,store)).toBe(false);
+});
+
+it("collects from a reachable stocked estate before shuffling a neighbour's small reserve", () => {
+  const {s,house,other,a,b,c}=family();s.ui.playerId=c;
+  const point={...s.ecs.spatial[house],x:s.ecs.spatial[house].x+180};
+  const [estate]=newEntities(s,[{spatial:point,building:{rooms:[]},household:{},controllable:{controllerId:a}}]);
+  const [bank,pantry]=newEntities(s,[{spatial:point,interior:{buildingId:estate},container:{capacity:100,amounts:{grain:30}},controllable:{controllerId:estate}},
+    {spatial:{...s.ecs.spatial[other]},interior:{buildingId:other},container:{capacity:30,amounts:{}},controllable:{controllerId:other}}]);
+  s.ecs.household[estate].storeId=bank;s.ecs.household[other].storeId=pantry;
+  updateHouseholdFood(s);
+  expect(s.ecs.planner[b].world.foodForHome.source).toBe(bank);
 });

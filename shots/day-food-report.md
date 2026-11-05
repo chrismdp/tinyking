@@ -164,3 +164,18 @@ EXIT_STATUS=0
 ```
 
 The third candidate's complete results remain in `shots/day-food-third-after-13.json` and `shots/day-food-third-after-7.json`. The earlier successful build is preserved in `shots/day-food-first-build.log`. The affected-gate waiter (PID 2566409) had not started and was cancelled before this source correction. The final gates below cover the corrected candidate.
+
+The fourth candidate (`4a1d85f`) completed both weeks. Its day-7 seed 7 trace still showed 48 portions in the vacant estate while 33 people were hungry. Keeping two meals per donor resident blocked too much food in the connecting households. Kin now keep each donor's next meal. The existing two-meal threshold still controls food requests, and the collection target retains a shareable portion. The protection regressions now put the donor on its last portion, rather than its last two portions.
+
+Collectors also preferred nearby small reserves to the much larger estate. They now use their own inherited estates first, then the greatest reachable kin surplus, then distance. A new regression first selected the small neighbour's store instead of the stocked estate. Both the next-meal and source-choice regressions failed before the correction (2 failed, 13 passed, exit 1).
+
+```
+Test Suites: 4 passed, 4 total
+Tests:       65 passed, 65 total
+Snapshots:   0 total
+Time:        5.644 s, estimated 6 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=0
+```
+
+The fourth complete comparison remains in `shots/day-food-fourth-after-13.json` and `shots/day-food-fourth-after-7.json`. Its successful build remains in `shots/day-food-second-build.log`. The last queued affected-gate waiter, PID 2576148, was cancelled before it started. A duplicated earlier red-run waiter, PID 2551308, was also cancelled before it started. All stopped PIDs were my own saved lock waiters. No running replay, test, build or server was stopped.

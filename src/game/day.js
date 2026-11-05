@@ -88,15 +88,18 @@ export function slotChoices(s) {
   // A pair can be brought together later in this part of the day: an early
   // morning choice is judged at nine, when visiting begins.
   const hourNow=(s.days%1)*24,meetAt=clock.slot=="morning"&&hourNow<9?9:undefined;
+  // Hunger, rest and work pass within a part of the day. The meeting waits for them.
+  const passing=["They need a meal first","They need rest first","They are busy with work or company"];
+  const pairReason=r=>passing.includes(r)?null:r;
   const ids=[...new Set(people.map(x=>x.person.id))],quarrels=knownEvents(s,actor).filter(e=>e.type=="quarrel");
   for(const {place,person} of people)for(const other of ids)if(person.id<other) {
-    if(quarrels.some(e=>samePair(e.people,person.id,other)))add(place,person,"make_peace",peaceUnavailable(s,actor,person.id,other,{at:meetAt}),{otherId:other});
+    if(quarrels.some(e=>samePair(e.people,person.id,other)))add(place,person,"make_peace",pairReason(peaceUnavailable(s,actor,person.id,other,{at:meetAt})),{otherId:other});
     // Only known single adult prospects enter the list. The real eligibility
     // and consent checks still supply the reason if an introduction is blocked.
     if(e.personable[person.id].age>=16 && e.personable[other].age>=16 &&
       (!e.kinship?.[person.id]?.spouse || !e.personable[e.kinship[person.id].spouse] || e.personable[e.kinship[person.id].spouse].dead) &&
       (!e.kinship?.[other]?.spouse || !e.personable[e.kinship[other].spouse] || e.personable[e.kinship[other].spouse].dead))
-      add(place,person,"introduce",introduceUnavailable(s,actor,person.id,other,{at:meetAt}),{otherId:other});
+      add(place,person,"introduce",pairReason(introduceUnavailable(s,actor,person.id,other,{at:meetAt})),{otherId:other});
   }
   if(s.travel && !s.intro?.active)for(const entry of Object.values(s.map.entrances || {})) {
     const tile=entry.tileIds[0],d=destinationFor(s,tile);

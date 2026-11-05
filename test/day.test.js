@@ -244,3 +244,15 @@ it("lets an early-morning choice bring a quarrelling pair together once the day'
   const result=await playSlot(s,peace);
   expect(result.outcomes.find(o=>o.kind=="make_peace")).toMatchObject({requested:true});
 });
+
+it("offers bringing a pair together while one is still in bed, because rest passes within the slot", () => {
+  const w=village(),s=w.state,{HOUR}=require("game/time");
+  const {completeConversation}=require("game/people"),{recordEvent,learnEvent}=require("game/events");
+  s.social={courtships:{},avoidance:{},contacts:{}};
+  for(const id of [w.person,w.parent])s.ecs.relationships[id].known[w.player]={ring:"personal",goodwill:40};
+  const e=recordEvent(s,"quarrel",[w.person,w.parent]);learnEvent(s,w.player,e);
+  s.days+=HOUR;completeConversation(s,w.player,w.person);completeConversation(s,w.player,w.parent);
+  s.days=1.25;
+  s.ecs.planner[w.parent].world.feeling.tired=true;
+  expect(slotChoices(s).choices.find(c=>c.activity=="make_peace")).toMatchObject({available:true});
+});

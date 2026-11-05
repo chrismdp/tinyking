@@ -53,3 +53,7 @@ Darkness and zero energy pause physical favours without discarding delivered goo
 or completed work. Villagers still eat from household larders, but never starve
 to death. Requests expire when their actual need ends. There is no fixed three-day
 deadline. The seven-day calendar does not introduce one.
+
+## Personal asks in the journal
+
+People can ask you to carry word, help make peace, look in on someone or find out how someone fares. The favours panel keeps the exact words spoken, who the ask concerns, its status, its outcome and related events you know. These asks have no delivery quantity or household store. Accepting one records a promise. The existing simulation completes it when its named outcome happens.

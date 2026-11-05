@@ -5,12 +5,29 @@ import { GameState } from "components/contexts";
 import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { taskPlace } from "game/task_places";
-import { harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
+import { ASKS, harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
+import { asksJournal, knownPersonName } from "game/day_view";
 import { harvestCounts } from "game/harvest_task";
 import { patience } from "game/chat_patience";
 
+function AskCard({ request: r }) {
+  const s=React.useContext(GameState),entry=asksJournal(s,[r])[0],giver=knownPersonName(s,entry.giverId);
+  return <article className={"favour-request " + entry.status} data-favour-id={r.id}>
+    <strong>{giver}</strong><h4>{entry.title}</h4>
+    {entry.words && <blockquote>{entry.words}</blockquote>}
+    <p>About {entry.targetName}</p>
+    {!entry.words && <p>{entry.context}</p>}
+    <p role="status">{entry.outcome}</p>
+    {!!entry.learned.length && <div><strong>What you learned</strong>{entry.learned.map((text,i)=><p key={i}>{text}</p>)}</div>}
+    <div className="request-bottom"><strong className="request-state">{entry.status[0].toUpperCase()+entry.status.slice(1)}</strong></div>
+    {r.status=="offered"&&s.ecs.planner?.[entry.giverId]&&<button disabled={patience(s,s.ui.playerId,entry.giverId).free<patience(s,s.ui.playerId,entry.giverId).minimum} onClick={()=>s.ui.actions.talk_to(entry.giverId,"chat")}>Chat with {giver}</button>}
+  </article>;
+}
+AskCard.propTypes={request:PropTypes.object.isRequired};
+
 export function RequestCard({ request: r, personId }) {
   const s = React.useContext(GameState);
+  if(ASKS.includes(r.kind))return <AskCard request={r}/>;
   const giverId = r.status == "offered" && personId && canRequestForHousehold(s, r, personId) ? personId : r.giverId;
   const giver = displayName(s, giverId, id => name(s.ecs.nameable[id]));
   const approach=r.kind=="harvest" && r.status=="accepted" && harvestApproach(s,r);
@@ -41,7 +58,7 @@ RequestCard.propTypes = { request: PropTypes.object.isRequired, personId: PropTy
 
 function Requests({ requests, personId }) {
   return <div className="request-content">{requests.length ? requests.map(r => <RequestCard key={r.id} request={r} personId={personId}/>) : <p className="request-note">No requests just now. Meet people nearby.</p>}
-    <p className="request-note">Accepting a spoken chat offer starts that favour in place of your current order. Goodwill comes when the work is done.</p></div>;
+    <p className="request-note">Answer requests in Chat. A delivery starts when you agree. Other promises stay here as events unfold.</p></div>;
 }
 Requests.propTypes = { requests: PropTypes.array.isRequired, personId: PropTypes.string };
 export function RequestList() {

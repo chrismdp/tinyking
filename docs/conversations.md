@@ -86,3 +86,9 @@ Romance and affair accounts, Tell cards and overheard lines come from the shared
 An affair initially belongs to its participants and actual witnesses. Secret meetings can expose it later. The first spouse discovery records `found_out`, with losses of goodwill towards both lovers, a quarrel and one season of avoidance. This news uses ordinary Personal disclosure without family exclusions. Learning it also teaches the affair and applies the declared family and friend reactions once. Hearing known news, reloading or merging traveller knowledge does not repeat a reaction. Nothing in this system ends a marriage or changes a household.
 
 Secret activity accounts inherit the disclosure policy of their source event. The event catalogue declares affected people and the rules for who can tell them. Poaching uses the same machinery, with the woodland owner as the affected person.
+
+## Bring people together
+
+Family offers a line to make peace when both people trust you and you completed a conversation with each since their known quarrel. Family and News offer introductions between willing, compatible single adults you know. These lines use the shared social rules.
+
+Saying the line checks the rule again. A refusal gives the person's reason and keeps the conversation open. An agreed meeting closes Chat and lets the world resume. Meals, rest, work and an early hour can delay the meeting within that day. The pair use their ordinary visit plans when both are free. Speech itself records no reconciliation or courtship. Their actual meeting produces those results.

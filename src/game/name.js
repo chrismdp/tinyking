@@ -1,7 +1,7 @@
 import MersenneTwister from "mersenne-twister";
 
-import male_names from "data/male_names.csv";
-import female_names from "data/female_names.csv";
+import male_names from "data/male_names.json";
+import female_names from "data/female_names.json";
 
 function bias(g, n) {
   return Math.min(n - 1, Math.abs((g.random_int() % n) + (g.random_int() % n) - n));

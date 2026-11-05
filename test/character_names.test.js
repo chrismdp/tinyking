@@ -1,6 +1,6 @@
 import { firstName, familyName, name } from "game/name";
-jest.mock("data/male_names.csv", () => ["Will", "Will", "Will"], { virtual: true });
-jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: true });
+jest.mock("data/male_names.json", () => ["Will", "Will", "Will"], { virtual: true });
+jest.mock("data/female_names.json", () => ["Rose", "Rose", "Rose"], { virtual: true });
 it("uses typed first and family names everywhere a person is named", () => {
   const person = { type: "person", male: true, seed: 13, familySeed: 13, firstName: "Mira", familyName: "Alder" };
   expect(firstName(person)).toBe("Mira");

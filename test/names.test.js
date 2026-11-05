@@ -1,6 +1,6 @@
 import { firstName, name } from "game/name";
-jest.mock("data/male_names.csv",()=>require("fs").readFileSync(require("path").join(__dirname,"../src/data/male_names.csv"),"utf8").trim().split("\n").map(n=>[n]),{virtual:true});
-jest.mock("data/female_names.csv",()=>require("fs").readFileSync(require("path").join(__dirname,"../src/data/female_names.csv"),"utf8").trim().split("\n").map(n=>[n]),{virtual:true});
+jest.mock("data/male_names.json",()=>jest.requireActual("data/male_names.json").filter(n=>n[0]),{virtual:true});
+jest.mock("data/female_names.json",()=>jest.requireActual("data/female_names.json").filter(n=>n[0]),{virtual:true});
 it("keeps rural period names defined throughout seeded weighted selection",()=>{
   for(let seed=0;seed<3000;seed++)for(const male of [true,false]) {
     const n={type:"person",seed,familySeed:seed,male};

@@ -4,8 +4,8 @@ import { INTRO_TIMING } from "game/intro";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
 import { startIntro } from "game/intro";
 jest.mock("game/intro", () => ({ ...jest.requireActual("game/intro"), startIntro: jest.fn() }));
-jest.mock("data/male_names.csv", () => ["Will", "Will", "Will"], { virtual: true });
-jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: true });
+jest.mock("data/male_names.json", () => ["Will", "Will", "Will"], { virtual: true });
+jest.mock("data/female_names.json", () => ["Rose", "Rose", "Rose"], { virtual: true });
 beforeEach(() => startIntro.mockReset());
 const world = () => ({ ecs: { personable: { p: {} } }, ui: { playerId: "p", show: { main_menu: true } }, game_speed: "paused" });
 it("closing character creation cancels to the menu without arrival", () => {

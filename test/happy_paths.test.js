@@ -9,8 +9,8 @@ import { newEntities } from "game/entities";
 import { peopleWorld } from "./support/people";
 import { community, attach } from "./support/travel";
 
-jest.mock("data/male_names.csv", () => ["Will", "Will", "Will"], { virtual: true });
-jest.mock("data/female_names.csv", () => ["Rose", "Rose", "Rose"], { virtual: true });
+jest.mock("data/male_names.json", () => ["Will", "Will", "Will"], { virtual: true });
+jest.mock("data/female_names.json", () => ["Rose", "Rose", "Rose"], { virtual: true });
 
 // Two core journeys use the real planner and simulation on declared communities.
 // Arrival, seasonal boundaries and travel handover have focused domain tests.

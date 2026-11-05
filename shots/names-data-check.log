@@ -1,0 +1,6 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       3 passed, 3 total
+Snapshots:   0 total
+Time:        2.43 s
+Ran all test suites matching test/names.test.js|test/character_names.test.js.

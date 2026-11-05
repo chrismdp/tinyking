@@ -1,7 +1,7 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 /* global jest, it, expect, require */
-jest.mock("../src/data/male_names.csv",()=>["William","John"]);
-jest.mock("../src/data/female_names.csv",()=>["Agnes","Mary"]);
+jest.mock("../src/data/male_names.json",()=>["William","John"]);
+jest.mock("../src/data/female_names.json",()=>["Agnes","Mary"]);
 
 import { peopleWorld } from "./support/people";
 import { seedMotherFamily, familyGoal, familySearchFacts, recogniseMaternalKin } from "game/mother_family";

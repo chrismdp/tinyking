@@ -1,5 +1,5 @@
-jest.mock("../src/data/male_names.csv",()=>[["John"],["William"]]);
-jest.mock("../src/data/female_names.csv",()=>[["Agnes"],["Mary"]]);
+jest.mock("../src/data/male_names.json",()=>[["John"],["William"]]);
+jest.mock("../src/data/female_names.json",()=>[["Agnes"],["Mary"]]);
 import { peopleWorld } from "./support/people";
 import { Hex } from "game/hex";
 import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords, valleyPlaces, foodSupplies, valleyLayout } from "game/day_view";

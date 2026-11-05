@@ -48,3 +48,23 @@ The final affected Jest gate passed: `flock -w 7200 /tmp/27agents-gate-2.lock np
 The stock regression also exposed a road concern: the travelling player leaves the local ECS (the simulation's collection of entities). The first fixture attempt lacked its container table (exit 1). After fixing the fixture, the red run reproduced the real missing-controller exception (exit 1). The presentation now reads an empty local stock while the player is in transit. That does not change carried items or travel rules.
 
 The standard storyboard and playtest commands now dispatch to the day controls when the URL contains `mode=day`. Their original 3D scenarios remain intact. The day driver uses visible buttons, required answers and icon matches. It reads state only for receipts. It does not set the clock, relationships, food or outcomes.
+
+## Production build
+
+`flock -w 7200 /tmp/27agents-gate-2.lock npm run build` passed, exit 0, on runtime candidate `c5462a8`. The app compiled in 25.354 seconds and the save worker in 0.833 seconds. Webpack reported three size warnings. The entry bundle totals 3.64 MiB; the pre-generated world files are additional downloads. The full literal build output is `day-ui/production-build.log`. No deployment ran.
+
+The production browser story began from seed 13 in 10.599 seconds on this shared headless machine. Its first real conversation recognised the player as Dionisia's child and offered a three-portion food ask. The player accepted through an offered line. Browser source is frozen during this pass.
+
+## Findings from the two-day desktop play
+
+The desktop run reached day 3 morning through six real UI choices. The player introduced himself, promised Geoffrey three food portions, gathered food three times, delivered once, then spoke to Simon when Geoffrey was no longer in the selected place. The food ask remained accepted. This does not prove a completed promise. No peace or introduction outcome was attempted.
+
+The reference screenshots exposed a confusing family label: the tree called the player's named mother “a woman in her fifties”. Ambient descriptions correctly hide a stranger's identity, but the family and person sheets need to distinguish a known name from a face not yet recognised. I will fix that reference label after the frozen browser pass, test it, and recheck those panels. The two-day simulation evidence remains valid because this correction changes reference labels only.
+
+The ask journal also needs to state the partial food already delivered, rather than saying only that the player promised to help. That will use the real request's recorded progress, without a checklist.
+
+Both desktop and phone runs reached day 3 morning (`days = 2.250000000000193`). Both viewport-fit assertions passed. The phone then travelled three real road parts (`2.5`, `2.75`, `3.25`) and arrived from region `5,3` in `6,3`. Those coordinates are receipts only; the screen uses place and direction words. All browser assertions passed and `story.json` records no errors. The tool session returned 143 before its shell wrote an exit receipt. The browser child's exit code is unknown. This run is retained as evidence, not reported as a clean command exit.
+
+After that frozen pass, two failing tests reproduced the reference findings (exit 1). The final affected gate now passes 16 tests (exit 0, 0.808 seconds). The tree uses learned names and hides unlearned relatives as Unknown. The person sheet explains that a name alone is not acquaintance. The ask journal reports a recorded partial delivery in prose. Ambient stranger descriptions and simulation rules are unchanged.
+
+A second production build is required for these demonstrated reference corrections. This is the final candidate build, not a repeat of a passing unchanged-runtime check.

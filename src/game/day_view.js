@@ -99,9 +99,20 @@ export function valleyPlaces(s,menu) {
 }
 const distance=(a,b)=>!a||!b?Infinity:(a.x-b.x)**2+(a.y-b.y)**2;
 export const relationshipWords=ring=>({public:"an acquaintance",social:"a familiar acquaintance",personal:"a friend",intimate:"one of your closest friends"})[ring]||"a stranger";
+// A name heard in a story belongs in the journal even when the player would
+// not yet recognise that person's face in the lane.
+export function knownPersonName(s,id) {
+  if(id===s.ui.playerId)return "You";
+  if(s.knowledge?.[s.ui.playerId]?.people?.[id]?.nameOnly)return personName(s,id);
+  const named=displayName(s,id,x=>personName(s,x));
+  return named==="an unknown person"?"Unknown":named;
+}
 export function familyTree(s,root=s.ui.playerId) {
   const tree=knownFamilyTree(s,s.ui.playerId,root);
-  return {rootId:tree.rootId,nodes:Object.values(tree.nodes).map(n=>({...n,name:n.unknown?"Unknown":n.id===s.ui.playerId?"You":describePerson(s,n.id),dead:!n.unknown&&!!personComponent(s,"personable",n.id)?.dead}))};
+  return {rootId:tree.rootId,nodes:Object.values(tree.nodes).map(n=>{
+    const label=n.unknown?"Unknown":knownPersonName(s,n.id),unknown=n.unknown||label==="Unknown";
+    return {...n,name:label,unknown,age:unknown?undefined:n.age,dead:!unknown&&!!personComponent(s,"personable",n.id)?.dead};
+  })};
 }
 function hash(id) {let n=2166136261;for(const ch of String(id)){n^=ch.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;}
 export function portraitKey(id,male,age) {
@@ -175,7 +186,7 @@ export function asksJournal(s) {
     return {id:r.id,giverId:remembered?.speakerId||r.giverId,title:favourTitle(r),status:r.status,
       words:remembered?.text||null,context:r.reason,
       learned:related.map(e=>eventText(s,e,id=>describePerson(s,id))),
-      outcome:r.status==="completed"?completed:r.status==="accepted"?"You promised to help.":r.status==="offered"?"They are waiting for your answer.":r.outcome?.split(" · ")[0]||"The ask has come to an end."};
+      outcome:r.status==="completed"?completed:r.status==="accepted"?(r.progress>0?"You have delivered some of what they asked for. Your promise is still open.":"You promised to help."):r.status==="offered"?"They are waiting for your answer.":r.outcome?.split(" · ")[0]||"The ask has come to an end."};
   });
 }
 export function knownPeople(s) {
@@ -186,7 +197,7 @@ export function personSheet(s,id) {
   const conversations=[...(s.chat?.history||[]).filter(c=>c.npcId===id),...(s.chat?.active?.npcId===id?[{lines:s.chat.active.transcript}]:[])];
   const said=conversations.flatMap(c=>c.lines.filter(l=>l.speaker==="npc").map(l=>l.text));
   const aboutYou=conversations.flatMap(c=>c.lines.filter(l=>l.speaker==="player").map(l=>l.text));
-  return {id,name:describePerson(s,id),traits:learned.traits||[],trade:learned.trade,closeness:relationshipWords(ring),
+  return {id,name:knownPersonName(s,id)==="Unknown"?describePerson(s,id):knownPersonName(s,id),traits:learned.traits||[],trade:learned.trade,closeness:learned.nameOnly?"You know their name. You have not met.":relationshipWords(ring),
     story:biography(s,s.ui.playerId,id,x=>personName(s,x)).map(f=>f.text),said:[...new Set(said)],aboutYou:[...new Set(aboutYou)]};
 }
 export function houseStanding(s) {

@@ -1,0 +1,41 @@
+FAIL test/day_view.test.js
+  ● names a learned mother in the tree and keeps unlearned relatives unknown
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "Edith Miller"
+    Received: "a woman in her sixties"
+
+      137 |   s.knowledge={[player]:{people:{[parent]:{nameOnly:true,traits:[]}}}};
+      138 |   const tree=familyTree(s,player);
+    > 139 |   expect(tree.nodes.find(n=>n.id===parent).name).toBe("Edith Miller");
+          |                                                  ^
+      140 |   expect(tree.nodes.some(n=>n.unknown)).toBe(true);
+      141 | });
+      142 |
+
+      at Object.<anonymous> (test/day_view.test.js:139:50)
+
+  ● records a partial delivery without presenting a list of steps
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /brought|delivered/i
+    Received string:  "You promised to help."
+
+      145 |   s.favours={requests:{food:{id:"food",kind:"food",giverId:person,status:"accepted",progress:1,quantity:3}}};
+      146 |   s.knowledge={[player]:{people:{},favours:["food"]}};
+    > 147 |   expect(asksJournal(s)[0].outcome).toMatch(/brought|delivered/i);
+          |                                     ^
+      148 |   expect(asksJournal(s)[0].outcome).not.toContain("1/3");
+      149 | });
+      150 |
+
+      at Object.<anonymous> (test/day_view.test.js:147:37)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 14 passed, 16 total
+Snapshots:   0 total
+Time:        2.106 s
+Ran all test suites within paths "test/day_view.test.js".
+exit=1

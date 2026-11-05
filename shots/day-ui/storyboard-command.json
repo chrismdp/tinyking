@@ -1,0 +1,6 @@
+{
+  "command": "flock -w 7200 /tmp/27agents-gate.lock node scripts/day-ui-serve.cjs npm run storyboard -- http://127.0.0.1:8127/?mode=day shots/day-ui",
+  "tool_session_exit_code": 143,
+  "browser_child_exit_code": null,
+  "note": "The retained story.json contains both two-day runs, the three-part hop, and passing browser assertions with no errors. The tool returned exit 143 before the shell wrote an exit receipt. No child exit code is inferred."
+}

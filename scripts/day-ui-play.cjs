@@ -8,7 +8,7 @@ const write=()=>fs.writeFileSync(path.join(out,mechanical?"mechanical.json":"sto
 function check(name,ok,detail){report.checks.push({name,ok:!!ok,detail});write();console.log((ok?"PASS ":"FAIL ")+name+(detail?" "+JSON.stringify(detail):""));}
 (async()=>{
   fs.mkdirSync(out,{recursive:true});
-  const browser=await chromium.launch({executablePath:process.env.CHROME||"/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome",args:["--no-sandbox"]});
+  const browser=await chromium.launch({executablePath:process.env.CHROME||"/home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome",args:["--no-sandbox","--use-gl=swiftshader","--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
   try {
     const page=await browser.newPage({viewport:{width:1280,height:900}});
     page.on("pageerror",e=>{report.errors.push(e.message);write();});
@@ -71,6 +71,13 @@ function check(name,ok,detail){report.checks.push({name,ok:!!ok,detail});write()
     };
     if(mechanical){
       await goto();await frame("mechanical-seed13");
+      await tab("Family");await frame("final-family-desktop");
+      check("family tree names the learned mother",await page.locator(".day-kin").filter({hasText:"Dionisia Jobari"}).count()>0);
+      check("family tree keeps unlearned relatives unknown",await page.locator(".day-kin").filter({hasText:"Unknown"}).count()>0);
+      await page.setViewportSize({width:390,height:844});await frame("final-family-phone");
+      await tab("People");await page.getByRole("combobox",{name:"Known person",exact:true}).selectOption({label:"Dionisia Jobari"});await frame("final-mother-phone");
+      check("person sheet distinguishes a name from acquaintance",await page.getByText("You know their name. You have not met.",{exact:true}).isVisible());
+      await page.setViewportSize({width:1280,height:900});
       await page.getByRole("button",{name:"Play this week again",exact:true}).click();await page.getByRole("heading",{name:"A stranger in Reedbrook",exact:true}).waitFor({timeout:60000});
       check("replay returns seed 13 to its initial morning",Math.abs(await page.evaluate(()=>window.tinyking.days)-.375)<1e-6);
       await page.getByRole("combobox",{name:"World seed",exact:true}).selectOption("7");await page.getByRole("heading",{name:"A stranger in Ashbrook",exact:true}).waitFor({timeout:60000});await frame("mechanical-seed7");
@@ -86,7 +93,7 @@ function check(name,ok,detail){report.checks.push({name,ok:!!ok,detail});write()
         await spend("talk",prefix+"-day1-morning");
         await spend("forage",prefix+"-day1-afternoon")||await spend("visit",prefix+"-day1-afternoon");
         await spend("work",prefix+"-day1-evening","Geoffrey")||await spend("talk",prefix+"-day1-evening")||await spend("visit",prefix+"-day1-evening");
-        await spend("talk",prefix+"-day2-morning","Geoffrey")||await spend("talk",prefix+"-day2-morning")||await spend("visit",prefix+"-day2-morning");
+        await spend("forage",prefix+"-day2-morning")||await spend("talk",prefix+"-day2-morning","Geoffrey")||await spend("visit",prefix+"-day2-morning");
         await spend("forage",prefix+"-day2-afternoon")||await spend("visit",prefix+"-day2-afternoon");
         await spend("work",prefix+"-day2-evening","Geoffrey")||await spend("talk",prefix+"-day2-evening")||await spend("visit",prefix+"-day2-evening");
         const day=await page.evaluate(()=>window.tinyking.days);check(prefix+" plays two full real days",day>=2.25,{day});

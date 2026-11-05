@@ -130,3 +130,20 @@ it("reads supplies while the player is on the road outside the local ECS", () =>
   s.ecs.container={[tiles[3]]:{amounts:{roots:2}}};
   expect(foodSupplies(s)).toEqual({});
 });
+
+it("names a learned mother in the tree and keeps unlearned relatives unknown", () => {
+  const {state:s,player,parent}=peopleWorld();
+  s.ecs.kinship[player].parents=[parent];
+  s.knowledge={[player]:{people:{[parent]:{nameOnly:true,traits:[]}}}};
+  const tree=familyTree(s,player);
+  expect(tree.nodes.find(n=>n.id===parent).name).toBe("Edith Miller");
+  expect(tree.nodes.some(n=>n.unknown)).toBe(true);
+});
+
+it("records a partial delivery without presenting a list of steps", () => {
+  const {state:s,player,person}=peopleWorld();
+  s.favours={requests:{food:{id:"food",kind:"food",giverId:person,status:"accepted",progress:1,quantity:3}}};
+  s.knowledge={[player]:{people:{},favours:["food"]}};
+  expect(asksJournal(s)[0].outcome).toMatch(/brought|delivered/i);
+  expect(asksJournal(s)[0].outcome).not.toContain("1/3");
+});

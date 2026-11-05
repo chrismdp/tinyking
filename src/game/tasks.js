@@ -879,7 +879,7 @@ export function recover_meal(state, actorId, world, dt, firstRun) {
     if(order){order.waiting=order.detail=reason;order.failed=true;}
     return Task.ABORT;
   };
-  if(state.days-search.started>4/24)return unavailable("Food recovery could not reach a meal within four hours. Select nearby Wild roots and choose Forage, or Move here onto clear ground to try another route.");
+  if(world.ordered && state.days-search.started>4/24)return unavailable("Food recovery could not reach a meal within four hours. Select nearby Wild roots and choose Forage, or Move here onto clear ground to try another route.");
   if(!search.source) {
     const held=ecs.holder[actorId].held.find(id=>FOODS.includes(ecs.good[id]?.type) && householdAccess(ecs,actorId,id));
     if(held){world.mealType=ecs.good[held].type;delete world.mealFailure;return Task.FINISH;}

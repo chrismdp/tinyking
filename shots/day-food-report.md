@@ -179,3 +179,18 @@ EXIT_STATUS=0
 ```
 
 The fourth complete comparison remains in `shots/day-food-fourth-after-13.json` and `shots/day-food-fourth-after-7.json`. Its successful build remains in `shots/day-food-second-build.log`. The last queued affected-gate waiter, PID 2576148, was cancelled before it started. A duplicated earlier red-run waiter, PID 2551308, was also cancelled before it started. All stopped PIDs were my own saved lock waiters. No running replay, test, build or server was stopped.
+
+The fifth candidate (`64afa2d`) completed seed 7 with 18 hungry at 18:00 on day 7, compared with 57 before. Its largest evening hunger value fell from 5.08 to 1.92 days. Only the two absent heirs' next meals remained in vacant stores: seven and five portions. The remaining wild plants and collection journeys still matter. These results do not promise a full pantry in every home.
+
+A final regression found that reusing the player's meal task also copied its four-hour order limit onto villagers. That was a new limit on the old NPC rules. A resident with a valid ongoing collection now finishes it. The existing player-order limit stays in place. This regression failed first (`shots/day-food-journey-red.log`, exit 1), then:
+
+```
+Test Suites: 4 passed, 4 total
+Tests:       66 passed, 66 total
+Snapshots:   0 total
+Time:        6.909 s
+Ran all test suites matching test/household_food.test.js|test/survival.test.js|test/tiredness.test.js|test/tasks.test.js.
+EXIT_STATUS=0
+```
+
+The final affected gate and replays use this correction. The fifth candidate's complete run files are retained separately. Its successful production build remains in `shots/day-food-third-build.log`.

@@ -1,7 +1,7 @@
 import { rowOfTiles } from "./support/world";
 import { newEntities } from "game/entities";
 import { createSimulation } from "game/simulation";
-import { eat, perform_subtask_in_slot, walk_to, chop_tree, pick_up_from_stockpile, find_place } from "game/tasks";
+import { eat, perform_subtask_in_slot, walk_to, chop_tree, pick_up_from_stockpile, find_place, recover_meal } from "game/tasks";
 import { give } from "game/holder";
 import { TRIANGLES, Hex, Grid, ALL_SIDES } from "game/map";
 import { addBidirectionalLink } from "game/pathfinding";
@@ -318,4 +318,18 @@ it("harvests its own ripe crop after an empty meal search instead of searching f
   advance(s,HOUR*5);
   expect(s.events).toEqual(expect.arrayContaining([expect.objectContaining({type:"harvest",fieldId:field,quantity:6})]));
   expect(s.ecs.personable[a].hunger).toBeLessThan(.4);
+});
+
+it("finishes a resident's reachable meal collection after four hours of real travel or work", () => {
+  const {state:s,villager:a}=hungryVillage();
+  const [plant]=newEntities(s,[{spatial:{...s.ecs.spatial[a]},forageable:{kind:"roots",biome:"grassland",amount:1,growth:0}}]);
+  const world=s.ecs.planner[a].world;
+  world.workRemaining=HOUR/4;
+  world.mealSearch={started:s.days-5*HOUR,rejected:{},source:plant,kind:"forage",type:"roots",phase:"collect",beginCollect:false};
+  let result=recover_meal(s,a,world,HOUR/10,false);
+  expect(result).toBe(Task.CONTINUE);
+  for(let n=0;n<5 && result==Task.CONTINUE;n++)result=recover_meal(s,a,world,HOUR/10,false);
+  expect(result).toBe(Task.FINISH);
+  expect(s.ecs.forageable[plant].amount).toBe(0);
+  expect(s.ecs.holder[a].held).toHaveLength(1);
 });

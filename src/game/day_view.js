@@ -220,3 +220,40 @@ export function houseStanding(s) {
   const built=!!s.ecs.building?.[house],villageId=s.ecs.village?.[actor]?.villageId,member=membership(s,actor,villageId),village=s.villages?.[villageId];
   return {house:built?placeName(s,house):"a camp, for now",standing:member==="oath"?"Sworn to "+(village?.name||"the village"):member?"Part of "+(village?.name||"a household"):"A stranger in the valley"};
 }
+
+// The valley map keeps real geography: each place sits on a coarse hex grid at
+// its true position. A place whose hex is taken moves to the nearest free hex.
+// Ground hexes ring the places so the valley's shape shows.
+const SQRT3=Math.sqrt(3);
+const cubeRound=(q,r)=>{let x=q,z=r,y=-x-z,rx=Math.round(x),ry=Math.round(y),rz=Math.round(z);
+  const dx=Math.abs(rx-x),dy=Math.abs(ry-y),dz=Math.abs(rz-z);
+  if(dx>dy&&dx>dz)rx=-ry-rz;else if(dy<=dz)rz=-rx-ry;return {q:rx,r:rz};};
+const NEIGHBOURS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+const centre=(q,r)=>({x:SQRT3*(q+r/2),y:1.5*r});
+export function valleyLayout(places,{columns=6}={}) {
+  const pts=places.filter(p=>p.point);
+  if(!pts.length)return {cells:[],ground:[]};
+  const xs=pts.map(p=>p.point.x),ys=pts.map(p=>p.point.y),minX=Math.min(...xs),minY=Math.min(...ys);
+  const span=Math.max(Math.max(...xs)-minX,(Math.max(...ys)-minY)*SQRT3/1.5,1);
+  const size=span/(columns*SQRT3);
+  const taken=new Map(),cells=[];
+  for(const place of pts) {
+    const px=(place.point.x-minX)/size,py=(place.point.y-minY)/size;
+    const fq=(SQRT3/3*px-py/3),fr=2/3*py;
+    let best=cubeRound(fq,fr);
+    for(let ring=0;taken.has(best.q+","+best.r);ring++) {
+      // Search outward, taking the free hex nearest the true position.
+      const seen=new Set(),frontier=[...taken.keys()].map(k=>k.split(",").map(Number)).filter(([q,r])=>Math.max(Math.abs(q-best.q),Math.abs(r-best.r),Math.abs(q+r-best.q-best.r))<=ring+1);
+      const options=[];
+      for(const [q,r] of frontier)for(const [dq,dr] of NEIGHBOURS){const k=(q+dq)+","+(r+dr);if(!taken.has(k)&&!seen.has(k)){seen.add(k);options.push({q:q+dq,r:r+dr});}}
+      const target=centre(fq,fr);
+      options.sort((a,b)=>{const ca=centre(a.q,a.r),cb=centre(b.q,b.r);return Math.hypot(ca.x-target.x,ca.y-target.y)-Math.hypot(cb.x-target.x,cb.y-target.y)||a.q-b.q||a.r-b.r;});
+      if(options.length){best=options[0];break;}
+    }
+    taken.set(best.q+","+best.r,place);
+    cells.push({q:best.q,r:best.r,...centre(best.q,best.r),place});
+  }
+  const ground=[],seen=new Set(taken.keys());
+  for(const c of cells)for(const [dq,dr] of NEIGHBOURS){const q=c.q+dq,r=c.r+dr,k=q+","+r;if(!seen.has(k)){seen.add(k);ground.push({q,r,...centre(q,r)});}}
+  return {cells,ground};
+}

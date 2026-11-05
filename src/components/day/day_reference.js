@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { personComponent } from "game/residents";
 import { WorldHex } from "game/hex";
+import { valleyLayout } from "game/day_view";
 import { portraitKey, knownPersonName, describePerson, familyTree, personSheet, knownPeople, asksJournal, doing, actionWords } from "game/day_view";
 import manOther from "../../assets/day/man-other.jpg";
 import olderOther from "../../assets/day/older-man-other.webp";
@@ -34,11 +35,17 @@ export function DayReference({game:s,places,tab,setTab,person,onPerson,onPlace,o
 DayReference.propTypes={game:PropTypes.object,places:PropTypes.array,tab:PropTypes.string,setTab:PropTypes.func,person:PropTypes.string,onPerson:PropTypes.func,onPlace:PropTypes.func,onTravel:PropTypes.func,menu:PropTypes.object,disabled:PropTypes.bool,revision:PropTypes.number};
 function shortName(name) {return name.split(",")[0].replace(/^The |^An /,"").replace(" house","").replace("Your ","Your ");}
 function ValleyMap({game:s,places,onPlace,disabled}) {
-  const sorted=[...places].sort((a,b)=>a.point.y-b.point.y||a.point.x-b.point.x),cols=4,rows=Math.ceil(sorted.length/cols),height=rows*78+20;
-  return <svg className="day-valley-map" viewBox={`0 0 394 ${height}`} role="group" aria-label="Valley hex map">
-    {sorted.map((g,i)=>{const row=Math.floor(i/cols),col=i%cols,x=45+col*93+(row%2?12:0),y=50+row*78;
+  // Places sit where they really are in the valley; plain ground fills around them.
+  const {cells,ground}=valleyLayout(places),all=[...cells,...ground];
+  if(!all.length)return null;
+  const minX=Math.min(...all.map(c=>c.x)),maxX=Math.max(...all.map(c=>c.x)),minY=Math.min(...all.map(c=>c.y)),maxY=Math.max(...all.map(c=>c.y));
+  const k=Math.min(394/(maxX-minX+1.9),62/1.0),width=394,height=Math.ceil((maxY-minY+2.1)*k);
+  const pos=c=>({x:(c.x-minX+0.95)*k,y:(c.y-minY+1.05)*k}),scale=k/54;
+  return <svg className="day-valley-map" viewBox={`0 0 ${width} ${height}`} role="group" aria-label="Valley hex map">
+    {ground.map(c=>{const {x,y}=pos(c);return <g key={"ground"+c.q+","+c.r} className="day-map-ground" transform={`translate(${x},${y}) scale(${scale})`}><polygon points="0,-52 45,-26 45,26 0,52 -45,26 -45,-26"/></g>;})}
+    {cells.map(cell=>{const g=cell.place,{x,y}=pos(cell);
       const words=shortName(g.name).split(" "),lines=[];for(const word of words){if(!lines.length||lines.at(-1).length+word.length>12)lines.push(word);else lines[lines.length-1]+=" "+word;}
-      return <g key={g.id} role="button" tabIndex={disabled?-1:0} aria-disabled={disabled} aria-label={"Go to "+g.name+(g.here?", you are here":"")} onClick={()=>{if(!disabled)onPlace(g);}} onKeyDown={e=>{if(!disabled&&["Enter"," "].includes(e.key)){e.preventDefault();onPlace(g);}}} className={"day-map-hex "+(g.here?"here":"")} transform={`translate(${x},${y})`}><title>{g.name}{g.people.length?": "+g.people.map(p=>describePerson(s,p.id)).join(", "):""}</title><polygon points="0,-47 42,-24 42,24 0,47 -42,24 -42,-24"/>{lines.slice(0,3).map((l,j)=><text key={j} textAnchor="middle" y={-14+j*12}>{l}</text>)}{g.people.slice(0,3).map((p,j)=><image key={p.id} href={faceSource(s,p.id)} x={-11*g.people.slice(0,3).length+22*j} y={22} width="19" height="19" preserveAspectRatio="xMidYMid slice"/>)}{g.here&&<text className="day-here-label" textAnchor="middle" y="-29">YOU</text>}</g>;
+      return <g key={g.id} role="button" tabIndex={disabled?-1:0} aria-disabled={disabled} aria-label={"Go to "+g.name+(g.here?", you are here":"")} onClick={()=>{if(!disabled)onPlace(g);}} onKeyDown={e=>{if(!disabled&&["Enter"," "].includes(e.key)){e.preventDefault();onPlace(g);}}} className={"day-map-hex "+(g.here?"here":"")} transform={`translate(${x},${y}) scale(${scale})`}><title>{g.name}{g.people.length?": "+g.people.map(p=>describePerson(s,p.id)).join(", "):""}</title><polygon points="0,-47 42,-24 42,24 0,47 -42,24 -42,-24"/>{lines.slice(0,3).map((l,j)=><text key={j} textAnchor="middle" y={-14+j*12}>{l}</text>)}{g.people.slice(0,3).map((p,j)=><image key={p.id} href={faceSource(s,p.id)} x={-11*g.people.slice(0,3).length+22*j} y={22} width="19" height="19" preserveAspectRatio="xMidYMid slice"/>)}{g.here&&<text className="day-here-label" textAnchor="middle" y="-29">YOU</text>}</g>;
     })}
   </svg>;
 }

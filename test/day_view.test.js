@@ -2,7 +2,7 @@ jest.mock("../src/data/male_names.csv",()=>[["John"],["William"]]);
 jest.mock("../src/data/female_names.csv",()=>[["Agnes"],["Mary"]]);
 import { peopleWorld } from "./support/people";
 import { Hex } from "game/hex";
-import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords, valleyPlaces, foodSupplies } from "game/day_view";
+import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords, valleyPlaces, foodSupplies, valleyLayout } from "game/day_view";
 
 it("reveals the valley ground without introducing any people", () => {
   const {state:s,player,tiles}=peopleWorld();
@@ -177,4 +177,21 @@ it("tells the time running out once, and says who it saw was hungry or weary", (
   expect(prose.filter(t=>t.includes("ran out"))).toHaveLength(1);
   expect(prose.join(" ")).toMatch(/was hungry and asleep/);
   expect(prose.join(" ")).toMatch(/was weary and walking/);
+});
+
+it("lays the valley's places out where they really are, one place to a hex", () => {
+  const places=[{id:"west",point:{x:0,y:500}},{id:"east",point:{x:3000,y:500}},{id:"north",point:{x:1500,y:0}},{id:"south",point:{x:1500,y:1000}},
+    {id:"twin-a",point:{x:1500,y:500}},{id:"twin-b",point:{x:1510,y:505}}];
+  const {cells,ground}=valleyLayout(places);
+  const at=id=>cells.find(c=>c.place.id===id);
+  expect(new Set(cells.map(c=>c.q+","+c.r)).size).toBe(places.length);
+  expect(at("west").x).toBeLessThan(at("twin-a").x);
+  expect(at("east").x).toBeGreaterThan(at("twin-a").x);
+  expect(at("north").y).toBeLessThan(at("twin-a").y);
+  expect(at("south").y).toBeGreaterThan(at("twin-a").y);
+  // Places that share a spot sit in neighbouring hexes, not across the map.
+  expect(Math.hypot(at("twin-a").x-at("twin-b").x,at("twin-a").y-at("twin-b").y)).toBeLessThan(2.1);
+  expect(ground.length).toBeGreaterThan(0);
+  expect(ground.every(g=>!cells.some(c=>c.q===g.q&&c.r===g.r))).toBe(true);
+  expect(valleyLayout(places)).toEqual(valleyLayout(places));
 });

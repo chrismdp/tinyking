@@ -161642,8 +161642,8 @@
   "facts": [],
   "icons": [
    {
-    "kind": "topic",
-    "key": "family"
+    "kind": "person",
+    "ref": "npc"
    }
   ],
   "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
@@ -161719,8 +161719,8 @@
   "facts": [],
   "icons": [
    {
-    "kind": "topic",
-    "key": "family"
+    "kind": "person",
+    "ref": "npc"
    }
   ],
   "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
@@ -161796,8 +161796,8 @@
   "facts": [],
   "icons": [
    {
-    "kind": "topic",
-    "key": "family"
+    "kind": "person",
+    "ref": "npc"
    }
   ],
   "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",
@@ -161873,8 +161873,8 @@
   "facts": [],
   "icons": [
    {
-    "kind": "topic",
-    "key": "family"
+    "kind": "person",
+    "ref": "npc"
    }
   ],
   "use_key": "ask_own:{player.id}:{npc.id}:{context.encounter_number}",

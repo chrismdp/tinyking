@@ -169,6 +169,8 @@ function queryChatChoices(s) {
     if(evasion&&!mandatory.includes(evasion))mandatory.push(evasion);
     const oath=available.find(l=>l.family=="customs_question"&&previewLine(s,l).fits);
     if(oath&&!mandatory.includes(oath))mandatory.push(oath);
+    const own=["family","mood"].includes(c.focus)&&available.find(l=>l.family=="own_question");
+    if(own)mandatory.push(own);
     if(["warning","oath","leave"].includes(c.expectation))return mandatory;
     const combined=[...mandatory,...result.filter(l=>!mandatory.some(x=>x.useKey==l.useKey))];
     let searches=0;

@@ -4,6 +4,10 @@ Choose Chat in a person's panel, or use the next-step hint. Your character walks
 
 Each spoken line adds topic, person or mood icons. Two identical live icons pop. Every pop changes the NPC's regard for you, whichever person completes the pair. Topic scores come from the NPC's existing traits and tastes. A neutral pair costs 0.25 goodwill. Each person icon uses that person's stable identity. Each choice marks the icons that match the row before you choose it.
 
+The keeping question uses the listener's portrait. Its pair uses their real
+reaction to talking about themselves. Family and Moods always include an
+eligible keeping question alongside required answers in the four choices.
+
 The panel shows the remaining patience slots. The NPC's actual ring and goodwill set the maximum, from six to twelve when rested. Surviving icons spend slots when the chat closes. Slots recover over game hours, faster with closer relationships. Unmatched icons stay until a matching line removes the pair. The panel labels occupied and resting slots. A full row ends the chat after any pending answer.
 
 The person sheet starts with unknown topic and mood tastes. A pop reveals only the tested taste. Pops do not change the player's regard in version one. The reaction text states the NPC's name and the signed change.

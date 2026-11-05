@@ -1,0 +1,20 @@
+FAIL test/day_travel.test.js
+  ● includes the real walk to a distant pass within the chosen departure part
+
+    The travellers did not reach the pass in this part of the day
+
+      167 |       s.redraws.length=0;
+      168 |     }
+    > 169 |     if(!journey.onRoad)throw new Error("The travellers did not reach the pass in this part of the day");
+          |                              ^
+      170 |   }
+      171 |   const road=dayRoadState(s),prior=new Set(knownEvents(road,actor).map(e=>e.id));
+      172 |   const knowledge=structuredClone(road.knowledge?.[actor] || {});
+
+      at playTravelSlot (src/game/day.js:169:30)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 9 skipped, 10 total
+Snapshots:   0 total
+Time:        1.045 s, estimated 4 s
+Ran all test suites matching test/day_travel.test.js with tests matching "distant pass".

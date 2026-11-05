@@ -1,0 +1,6 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       27 passed, 27 total
+Snapshots:   0 total
+Time:        7.965 s
+Ran all test suites matching test/day_travel.test.js|test/day.test.js.

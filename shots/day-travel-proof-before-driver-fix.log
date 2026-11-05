@@ -1,0 +1,55 @@
+alone-1 1 morning 0.375 -> 0.5 road 1 chats 0
+alone-2 1 afternoon 0.5 -> 0.75 road 2 chats 0
+alone-3 1 evening 0.75 -> 1.25 road 3 chats 0
+alone-4 2 morning 1.25 -> 1.5 road 1 chats 0
+alone-5 2 afternoon 1.5 -> 1.75 road 2 chats 0
+alone-6 2 evening 1.75 -> 2.25 road 3 chats 0
+wait-01 3 morning 2.25 -> 2.500000000000039 road None chats 0
+wait-02 3 afternoon 2.500000000000039 -> 2.750000000000078 road None chats 0
+wait-03 3 evening 2.750000000000078 -> 3.2500000000001563 road None chats 0
+wait-04 4 morning 3.2500000000001563 -> 3.5000000000001954 road None chats 0
+wait-05 4 afternoon 3.5000000000001954 -> 3.7500000000002345 road None chats 0
+wait-06 4 evening 3.7500000000002345 -> 4.250000000000153 road None chats 0
+wait-07 5 morning 4.250000000000153 -> 4.500000000000032 road None chats 0
+wait-08 5 afternoon 4.500000000000032 -> 4.749999999999911 road None chats 0
+wait-09 5 evening 4.749999999999911 -> 5.24999999999967 road None chats 0
+wait-10 6 morning 5.24999999999967 -> 5.499999999999549 road None chats 0
+wait-11 6 afternoon 5.499999999999549 -> 5.749999999999428 road None chats 0
+wait-12 6 evening 5.749999999999428 -> 6.249999999999186 road None chats 0
+wait-13 7 morning 6.249999999999186 -> 6.499999999999066 road None chats 0
+wait-14 7 afternoon 6.499999999999066 -> 6.749999999998945 road None chats 0
+Traceback (most recent call last):
+  File "/home/cp/code/tk-daytravel/.cache/play/day-travel-proof.py", line 35, in <module>
+    spend('/pick?a=visit&at='+urllib.parse.quote('village green'),f'wait-{len(checks):02d}')
+  File "/home/cp/code/tk-daytravel/.cache/play/day-travel-proof.py", line 10, in spend
+    text=get(path); (root/f'day-travel-{label}.txt').write_text(text)
+         ^^^^^^^^^
+  File "/home/cp/code/tk-daytravel/.cache/play/day-travel-proof.py", line 4, in get
+    return urllib.request.urlopen(urllib.request.Request(base+path,data=body.encode() if body else None),timeout=120).read().decode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 515, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 532, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1373, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1348, in do_open
+    r = h.getresponse()
+        ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1457, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response

@@ -1,0 +1,326 @@
+[
+  {
+    "status": {
+      "date": "6am, day 3 of spring, year 1",
+      "days": 2.25,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 3 of spring, year 1",
+      "days": 2.500000000000039,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 3 of spring, year 1",
+      "days": 2.750000000000078,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 4 of spring, year 1",
+      "days": 3.2500000000001563,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 4 of spring, year 1",
+      "days": 3.5000000000001954,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 4 of spring, year 1",
+      "days": 3.7500000000002345,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 5 of spring, year 1",
+      "days": 4.250000000000153,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 5 of spring, year 1",
+      "days": 4.500000000000032,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5pm, day 5 of spring, year 1",
+      "days": 4.749999999999911,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5am, day 6 of spring, year 1",
+      "days": 5.24999999999967,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "11am, day 6 of spring, year 1",
+      "days": 5.499999999999549,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5pm, day 6 of spring, year 1",
+      "days": 5.749999999999428,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5am, day 7 of spring, year 1",
+      "days": 6.249999999999186,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "11am, day 7 of spring, year 1",
+      "days": 6.499999999999066,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5pm, day 7 of spring, year 1",
+      "days": 6.749999999998945,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 1 of summer, year 1",
+      "days": 7.25,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "11am, day 1 of summer, year 1",
+      "days": 7.499999999999879,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5pm, day 1 of summer, year 1",
+      "days": 7.749999999999758,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "5am, day 2 of summer, year 1",
+      "days": 8.249999999999837,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 2 of summer, year 1",
+      "days": 8.500000000000036,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 2 of summer, year 1",
+      "days": 8.750000000000234,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 3 of summer, year 1",
+      "days": 9.250000000000632,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 3 of summer, year 1",
+      "days": 9.500000000000831,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 3 of summer, year 1",
+      "days": 9.75000000000103,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 4 of summer, year 1",
+      "days": 10.250000000001428,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 4 of summer, year 1",
+      "days": 10.500000000001627,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 4 of summer, year 1",
+      "days": 10.750000000001826,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 5 of summer, year 1",
+      "days": 11.250000000002224,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 5 of summer, year 1",
+      "days": 11.500000000002423,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 5 of summer, year 1",
+      "days": 11.750000000002622,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 6 of summer, year 1",
+      "days": 12.25000000000302,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 6 of summer, year 1",
+      "days": 12.500000000003219,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 6 of summer, year 1",
+      "days": 12.750000000003418,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6am, day 7 of summer, year 1",
+      "days": 13.250000000003816,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "12pm, day 7 of summer, year 1",
+      "days": 13.500000000004015,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  },
+  {
+    "status": {
+      "date": "6pm, day 7 of summer, year 1",
+      "days": 13.750000000004214,
+      "active": "5,3",
+      "departures": []
+    },
+    "companions": []
+  }
+]

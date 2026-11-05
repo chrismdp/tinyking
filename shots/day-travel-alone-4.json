@@ -1,0 +1,59 @@
+{
+  "day": 2,
+  "slot": "morning",
+  "start": 1.25,
+  "end": 1.5,
+  "choice": {
+    "id": "2/morning/travel/5,3/alone",
+    "activity": "travel",
+    "placeId": "terrain6_3-18",
+    "personId": null,
+    "destination": "5,3",
+    "available": true,
+    "reason": "One day on the road",
+    "label": "Travel to The region to the west"
+  },
+  "events": [],
+  "facts": [],
+  "seen": [
+    {
+      "day": 1.2506944444444446,
+      "personId": "terrain5_3-person-3904",
+      "activity": "walk_to",
+      "targetId": "terrain6_3-18"
+    },
+    {
+      "day": 1.2618055555555574,
+      "personId": "terrain5_3-person-3904",
+      "activity": "leave_edge",
+      "targetId": "terrain6_3-18"
+    }
+  ],
+  "conversations": [],
+  "outcomes": [],
+  "regard": [],
+  "road": {
+    "from": "6,3",
+    "to": "5,3",
+    "part": 1,
+    "companionId": null,
+    "weather": {
+      "type": "clear",
+      "pressure": 1019.83733352622,
+      "wind": {
+        "x": -0.1714293740885016,
+        "y": 0.9851964117370834,
+        "direction": 1.7430766652435805,
+        "strength": 0.5340898854206753
+      },
+      "moisture": 0.9,
+      "change": 6.106733013568373
+    },
+    "camp": false,
+    "lines": [
+      "You follow the road towards the next pass.",
+      "The weather is clear."
+    ],
+    "arrived": false
+  }
+}

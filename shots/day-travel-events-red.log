@@ -1,0 +1,22 @@
+FAIL test/day_travel.test.js
+  ● keeps distinct real event identities across road parts and later journeys (canonical people true)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 6
+    Received: 1
+
+      138 |   await journey(next);await journey("5,5");
+      139 |   expect(eventIds).toHaveLength(6);
+    > 140 |   expect(new Set(eventIds).size).toBe(6);
+          |                                  ^
+      141 | });
+      142 |
+
+      at test/day_travel.test.js:140:34
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 9 skipped, 1 passed, 11 total
+Snapshots:   0 total
+Time:        1.785 s
+Ran all test suites matching test/day_travel.test.js with tests matching "event identities".

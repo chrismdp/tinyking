@@ -1,0 +1,124 @@
+FAIL test/day_travel.test.js (6.27 s)
+  ● offers exactly the neighbouring land passes and lists nightfall as unavailable
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 4
+    Received length: 0
+    Received array:  []
+
+      28 |   delete s.map.entrances[2];
+      29 |   const choices=slotChoices(s).choices.filter(c=>c.activity=="travel");
+    > 30 |   expect(choices).toHaveLength(4);
+         |                   ^
+      31 |   expect(choices.every(c=>c.available && c.label.startsWith("Travel to "))).toBe(true);
+      32 |   expect(travel(s,next)).toBeDefined();
+      33 |   s.days=.5;expect(travel(s,next).available).toBe(true);
+
+      at Object.<anonymous> (test/day_travel.test.js:30:19)
+
+  ● spends three road parts after setting out at 0.25 and arrives in the same part next day
+
+    This choice is not in the current slot
+
+      124 | export async function playSlot(s, requested, hooks={}) {
+      125 |   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
+    > 126 |   if(!choice)throw new Error("This choice is not in the current slot");
+          |                    ^
+      127 |   if(!choice.available)throw new Error(choice.reason);
+      128 |   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
+      129 |   const knowledge=structuredClone(s.knowledge?.[actor] || {});
+
+      at playSlot (src/game/day.js:126:20)
+      at hop (test/day_travel.test.js:18:32)
+      at test/day_travel.test.js:42:23
+
+  ● spends three road parts after setting out at 0.5 and arrives in the same part next day
+
+    This choice is not in the current slot
+
+      124 | export async function playSlot(s, requested, hooks={}) {
+      125 |   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
+    > 126 |   if(!choice)throw new Error("This choice is not in the current slot");
+          |                    ^
+      127 |   if(!choice.available)throw new Error(choice.reason);
+      128 |   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
+      129 |   const knowledge=structuredClone(s.knowledge?.[actor] || {});
+
+      at playSlot (src/game/day.js:126:20)
+      at hop (test/day_travel.test.js:18:32)
+      at test/day_travel.test.js:42:23
+
+  ● keeps home detail and returns in six parts and two days without a season of ageing
+
+    This choice is not in the current slot
+
+      124 | export async function playSlot(s, requested, hooks={}) {
+      125 |   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
+    > 126 |   if(!choice)throw new Error("This choice is not in the current slot");
+          |                    ^
+      127 |   if(!choice.available)throw new Error(choice.reason);
+      128 |   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
+      129 |   const knowledge=structuredClone(s.knowledge?.[actor] || {});
+
+      at playSlot (src/game/day.js:126:20)
+      at hop (test/day_travel.test.js:18:32)
+      at Object.<anonymous> (test/day_travel.test.js:59:27)
+
+  ● steps every community once when the road crosses a season boundary
+
+    This choice is not in the current slot
+
+      124 | export async function playSlot(s, requested, hooks={}) {
+      125 |   const menu=slotChoices(s),choice=menu.choices.find(c=>c.id==(typeof requested=="string"?requested:requested?.id));
+    > 126 |   if(!choice)throw new Error("This choice is not in the current slot");
+          |                    ^
+      127 |   if(!choice.available)throw new Error(choice.reason);
+      128 |   const actor=s.ui.playerId,start=s.days,prior=new Set(knownEvents(s,actor).map(e=>e.id));
+      129 |   const knowledge=structuredClone(s.knowledge?.[actor] || {});
+
+      at playSlot (src/game/day.js:126:20)
+      at hop (test/day_travel.test.js:18:32)
+      at Object.<anonymous> (test/day_travel.test.js:70:9)
+
+  ● offers only a real same-way departure (returning false) and shares three real chats and arrival
+
+    expect(received).toMatchObject(expected)
+
+    Matcher error: received value must be a non-null object
+
+    Received has value: undefined
+
+      81 |   const another=ids[2];
+      82 |   s.ecs.planner[another].world.worldJourney={to:worldKey(neighbours(s.world.home)[1]),side:1,tileId:s.map.entrances[1].tileIds[0]};
+    > 83 |   expect(travel(s,next,companion)).toMatchObject({available:true,label:expect.stringContaining("Travel with Person 1")});
+         |                                    ^
+      84 |   expect(travel(s,next,another)).toBeUndefined();
+      85 |   let calls=0;
+      86 |   const results=await hop(s,next,companion,{chooseLine:(game,lines)=>{calls++;return sensibleLine(game,lines);}});
+
+      at test/day_travel.test.js:83:36
+
+  ● offers only a real same-way departure (returning true) and shares three real chats and arrival
+
+    expect(received).toMatchObject(expected)
+
+    Matcher error: received value must be a non-null object
+
+    Received has value: undefined
+
+      81 |   const another=ids[2];
+      82 |   s.ecs.planner[another].world.worldJourney={to:worldKey(neighbours(s.world.home)[1]),side:1,tileId:s.map.entrances[1].tileIds[0]};
+    > 83 |   expect(travel(s,next,companion)).toMatchObject({available:true,label:expect.stringContaining("Travel with Person 1")});
+         |                                    ^
+      84 |   expect(travel(s,next,another)).toBeUndefined();
+      85 |   let calls=0;
+      86 |   const results=await hop(s,next,companion,{chooseLine:(game,lines)=>{calls++;return sensibleLine(game,lines);}});
+
+      at test/day_travel.test.js:83:36
+
+Test Suites: 1 failed, 1 total
+Tests:       7 failed, 7 total
+Snapshots:   0 total
+Time:        6.55 s
+Ran all test suites matching test/day_travel.test.js.

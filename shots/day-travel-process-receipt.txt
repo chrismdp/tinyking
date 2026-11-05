@@ -1,0 +1,6 @@
+Stopped owned proof server PID 2377743
+Verified cwd: /home/cp/code/tk-daytravel
+Verified command: node scripts/day-play.cjs 13 8795
+Port: 8795
+Proof server held /tmp/27agents-gate.lock
+No other processes were stopped.

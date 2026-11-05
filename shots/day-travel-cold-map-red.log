@@ -1,0 +1,31 @@
+FAIL test/day_travel.test.js
+  ● opens a new valley with its people on detailed ground before the return walk
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+        "id": "away-person-130",
+    -   "x": 540,
+    -   "y": 623.5382907247957,
+    +   "x": -10000,
+    +   "y": -10000,
+      }
+
+      84 |   const expected={...detail.ecs.spatial[npc]};
+      85 |   const opened=applyPreparedDetail(s,next,detail,summary);
+    > 86 |   expect(opened.ecs.spatial[npc]).toEqual(expected);
+         |                                   ^
+      87 |   expect(opened.space[Hex().fromPoint(opened.ecs.spatial[npc])]).toBeDefined();
+      88 | });
+      89 |
+
+      at Object.<anonymous> (test/day_travel.test.js:86:35)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 11 skipped, 12 total
+Snapshots:   0 total
+Time:        1.131 s, estimated 5 s
+Ran all test suites matching test/day_travel.test.js with tests matching "opens a new valley".

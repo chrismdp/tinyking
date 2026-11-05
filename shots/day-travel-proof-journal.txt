@@ -1,0 +1,714 @@
+--- morning of day 1: travel 
+9am, day 1 of spring, year 1 → 12pm, day 1 of spring, year 1
+You follow the road towards the next pass.
+The weather is rain.
+Road part 1/3: 5,3 → 6,3
+You see:
+  William Clebasi: walking (Map tile), then leave edge (Map tile)
+
+
+--- afternoon of day 1: continue_travel 
+12pm, day 1 of spring, year 1 → 6pm, day 1 of spring, year 1
+You follow the road towards the next pass.
+The weather is rain.
+Road part 2/3: 5,3 → 6,3
+
+--- evening of day 1: continue_travel 
+6pm, day 1 of spring, year 1 → 6am, day 2 of spring, year 1
+At dusk you make camp beside the road.
+The weather is cloudy.
+You reach the next valley's pass.
+Road part 3/3: 5,3 → 6,3; arrived
+
+--- morning of day 2: travel 
+6am, day 2 of spring, year 1 → 12pm, day 2 of spring, year 1
+You follow the road towards the next pass.
+The weather is clear.
+Road part 1/3: 6,3 → 5,3
+You see:
+  William Clebasi: walking (Map tile), then leave edge (Map tile)
+
+
+--- afternoon of day 2: continue_travel 
+12pm, day 2 of spring, year 1 → 6pm, day 2 of spring, year 1
+You follow the road towards the next pass.
+The weather is rain.
+Road part 2/3: 6,3 → 5,3
+
+--- evening of day 2: continue_travel 
+6pm, day 2 of spring, year 1 → 6am, day 3 of spring, year 1
+At dusk you make camp beside the road.
+The weather is rain.
+You reach the next valley's pass.
+Road part 3/3: 6,3 → 5,3; arrived
+
+--- morning of day 3: visit 
+6am, day 3 of spring, year 1 → 12pm, day 3 of spring, year 1
+You see:
+  a man in his old age: waiting
+  a man in his fifties: waiting
+  a woman in her sixties: waiting
+  a man in his thirties: waiting
+  a woman in her fifties: waiting
+  a man in his twenties: waiting
+  a woman in her fifties: walking
+
+Learned: noticedNeeds.w5_3-social-58:food.speakerId="w5_3-social-58"; noticedNeeds.w5_3-social-58:food.kind="food"; noticedNeeds.w5_3-social-58:food.householdId="w5_3-social-62"; noticedNeeds.w5_3-social-58:food.day=2.333333333333333
+
+--- afternoon of day 3: visit 
+12pm, day 3 of spring, year 1 → 6pm, day 3 of spring, year 1
+You see:
+  a man in his thirties: waiting
+  a man in his sixties: walking (Family cottage), then trade work (Forge)
+  a man in his forties: walking, then talking with someone with a man in his thirties
+  a man in his twenties: walking (Family cottage)
+  a man in his fifties: waiting
+
+
+--- evening of day 3: visit 
+6pm, day 3 of spring, year 1 → 6am, day 4 of spring, year 1
+You see:
+  a man in his fifties: waiting
+
+Learned: noticedNeeds.w5_3-social-74:food.speakerId="w5_3-social-74"; noticedNeeds.w5_3-social-74:food.kind="food"; noticedNeeds.w5_3-social-74:food.householdId="w5_3-home-11"; noticedNeeds.w5_3-social-74:food.day=2.875
+
+--- morning of day 4: visit 
+6am, day 4 of spring, year 1 → 12pm, day 4 of spring, year 1
+You see:
+  a man in his sixties: asleep, then eating, then trade work (Forge)
+  a man in his fifties: asleep, then walking
+  a woman in her fifties: asleep, then walking, then eating
+  a man in his fifties: asleep, then walking
+  a woman in her fifties: asleep, then walking
+  a man in his twenties: asleep, then eating, then talking with someone with a man in his fifties
+  a man in his fifties: waiting, then talking with someone with a man in his twenties
+
+Learned: noticedNeeds.w5_3-social-74:food.day=3.375
+
+--- afternoon of day 4: visit 
+12pm, day 4 of spring, year 1 → 6pm, day 4 of spring, year 1
+You see:
+  a man in his sixties: trade work (Forge)
+  a man in his fifties: waiting
+  a woman in her fifties: talking with someone with a man in his sixties
+  a man in his fifties: walking
+  a man in his twenties: walking
+  a man in his sixties: walking, then talking with someone with a woman in her fifties
+
+* Maud Thuson returned home from another region
+Learned: people.w5_3-social-92.traits=[]; noticedNeeds.w5_3-social-74:food.day=3.75
+
+--- evening of day 4: visit 
+6pm, day 4 of spring, year 1 → 6am, day 5 of spring, year 1
+You see:
+  a man in his fifties: walking
+  a woman in her fifties: walking, then talking with someone with a man in his fifties
+  a man in his fifties: talking with someone with a woman in her fifties
+  a woman in her fifties: talking with someone with a man in his twenties
+  a man in his twenties: walking, then talking with someone with a woman in her fifties
+  a man in his sixties: waiting
+  a woman in her twenties: talking with someone with a man in his fifties
+
+Learned: noticedNeeds.w5_3-social-74:food.day=3.875
+
+--- morning of day 5: visit 
+6am, day 5 of spring, year 1 → 12pm, day 5 of spring, year 1
+You see:
+  a man in his sixties: asleep, then eating, then talking with someone with a man in his twenties, then trade work (Forge)
+  a man in his fifties: asleep
+  a woman in her fifties: asleep, then gathering food, then eating
+  a man in his fifties: asleep, then gathering food, then eating
+  a woman in her fifties: asleep, then walking
+  a man in his twenties: asleep, then eating, then talking with someone with a man in his sixties
+  a man in his fifties: asleep
+
+Learned: noticedNeeds.w5_3-social-74:food.day=4.5
+
+--- afternoon of day 5: visit 
+12pm, day 5 of spring, year 1 → 5pm, day 5 of spring, year 1
+You see:
+  a man in his sixties: trade work (Forge)
+  a man in his fifties: gathering food, then eating
+  a woman in her fifties: eating, then talking with someone with a man in his fifties, then walking
+  a man in his fifties: walking
+  a man in his old age: walking
+  a man in his fifties: talking with someone with a woman in her fifties, then walking (Family cottage)
+  a man in his twenties: walking (Family cottage)
+
+Learned: noticedNeeds.w5_3-social-74:food.day=4.583333333333333; noticedNeeds.w5_3-social-49:food.speakerId="w5_3-social-49"; noticedNeeds.w5_3-social-49:food.kind="food"; noticedNeeds.w5_3-social-49:food.householdId="w5_3-home-31"; noticedNeeds.w5_3-social-49:food.day=4.583333333333333
+
+--- evening of day 5: visit 
+5pm, day 5 of spring, year 1 → 5am, day 6 of spring, year 1
+You see:
+  a man in his twenties: walking, then waiting
+  a woman in her twenties: walking, then talking with someone with a man in his fifties, then walking (Family cottage)
+  a man in his sixties: waiting
+  a woman in her fifties: waiting
+  a man in his fifties: waiting
+
+Learned: noticedNeeds.w5_3-social-74:food.day=4.875
+
+--- morning of day 6: visit 
+5am, day 6 of spring, year 1 → 11am, day 6 of spring, year 1
+You see:
+  a man in his sixties: eating, then waiting, then talking with someone with a man in his twenties, then walking (Family cottage)
+  a man in his fifties: asleep
+  a woman in her fifties: waiting
+  a woman in her fifties: asleep
+  a man in his twenties: eating, then walking
+  a man in his fifties: asleep
+
+Learned: noticedNeeds.w5_3-social-74:food.day=5.458333333333333; noticedNeeds.w5_3-social-66:food.speakerId="w5_3-social-66"; noticedNeeds.w5_3-social-66:food.kind="food"; noticedNeeds.w5_3-social-66:food.householdId="w5_3-home-6"; noticedNeeds.w5_3-social-66:food.day=5.458333333333333
+
+--- afternoon of day 6: visit 
+11am, day 6 of spring, year 1 → 5pm, day 6 of spring, year 1
+You see:
+  a man in his sixties: trade work (Forge)
+  a man in his twenties: talking with someone with a man in his fifties
+  a man in his fifties: talking with someone with a man in his twenties
+
+
+--- evening of day 6: visit 
+5pm, day 6 of spring, year 1 → 5am, day 7 of spring, year 1
+You see:
+  a man in his sixties: waiting
+  a man in his twenties: walking, then waiting
+  a man in his fifties: walking (Family cottage), then waiting
+
+Learned: noticedNeeds.w5_3-social-66:food.day=5.875
+
+--- morning of day 7: visit 
+5am, day 7 of spring, year 1 → 11am, day 7 of spring, year 1
+You see:
+  a man in his sixties: eating, then waiting
+  a man in his fifties: asleep
+  a woman in her fifties: asleep
+  a man in his fifties: asleep
+  a woman in her fifties: asleep
+  a man in his twenties: eating, then waiting
+  a man in his fifties: asleep
+
+Learned: noticedNeeds.w5_3-social-74:food.day=6.5; noticedNeeds.w5_3-social-66:food.day=6.333333333333333
+
+--- afternoon of day 7: visit 
+11am, day 7 of spring, year 1 → 5pm, day 7 of spring, year 1
+You see:
+  a man in his fifties: walking
+  a man in his fifties: walking
+  a woman in her fifties: talking with someone with a man in his fifties
+  a man in his fifties: asleep
+  a man in his sixties: trade work (Forge)
+  a man in his twenties: waiting
+
+* William Clebasi attended the Seedwake Fair
+~ a man in his sixties: 0.0 -> 8.0
+
+--- evening of day 7: visit 
+5pm, day 7 of spring, year 1 → 6am, day 1 of summer, year 1
+You see:
+  a man in his sixties: festival wait
+  a man in his fifties: festival wait
+  a man in his thirties: walking, then festival wait
+  a man in his fifties: walking, then festival wait
+  a woman in her sixties: festival wait
+  a woman in her fifties: walking
+
+> season: [{"id":"terrain5_3-event-1185","text":"William Clebasi left for another region · one day on the road.","section":"life","eventIds":["terrain5_3-event-1185"]},{"id":"terrain6_3-event-1087","text":"William Clebasi arrived in another region.","section":"life","eventIds":["terrain6_3-event-1087"]},{"id":"terrain6_3-event-1088","text":"William Clebasi left for another region · one day on the road.","se
+> unfinished: The slot ended before the task finished
+~ a man in his sixties: 8.0 -> 7.5
+~ a woman in her sixties: 0.0 -> 7.6
+~ a man in his fifties: 0.0 -> 7.5
+~ a woman in her fifties: 0.0 -> 23.6 (now a familiar acquaintance)
+~ a man in his thirties: 0.0 -> 23.5 (now a familiar acquaintance)
+~ a man in his fifties: 0.0 -> 23.5 (now a familiar acquaintance)
+~ a girl: new arrival -> 0.0
+~ a girl: new arrival -> 0.0
+Learned: noticedNeeds.w5_3-social-66:food.day=6.875
+
+--- morning of day 8: visit 
+6am, day 1 of summer, year 1 → 11am, day 1 of summer, year 1
+You see:
+  a man in his sixties: asleep
+  a man in his sixties: asleep, then walking
+  a woman in her sixties: asleep
+  a man in his fifties: asleep
+  a woman in her fifties: asleep
+  a man in his thirties: eating, then walking, then asleep
+  a man in his twenties: asleep, then walking
+  a woman in her twenties: eating, then asleep
+  a girl: waiting
+  a man in his fifties: asleep
+
+~ a man in his sixties: 7.5 -> 7.2
+~ a woman in her sixties: 7.6 -> 7.4
+~ a man in his fifties: 7.5 -> 7.3
+~ a woman in her fifties: 23.6 -> 23.4
+~ a man in his thirties: 23.5 -> 23.3
+~ a man in his fifties: 23.5 -> 23.3
+Learned: noticedNeeds.w5_3-social-74:food.day=7.458333333333333; noticedNeeds.w5_3-social-66:food.day=7.5
+
+--- afternoon of day 8: visit 
+11am, day 1 of summer, year 1 → 5pm, day 1 of summer, year 1
+You see:
+  a man in his sixties: walking
+  a woman in her fifties: asleep, then walking
+  a man in his thirties: asleep, then walking
+  a man in his twenties: waiting, then eating, then walking
+  a woman in her twenties: asleep, then walking (Kitchen garden), then talking with someone with a man in his twenties
+  a man in his fifties: asleep, then walking
+  a girl: waiting
+
+~ a man in his sixties: 7.2 -> 7.0
+~ a woman in her sixties: 7.4 -> 7.1
+~ a man in his fifties: 7.3 -> 7.0
+~ a woman in her fifties: 23.4 -> 23.1
+~ a man in his thirties: 23.3 -> 23.0
+~ a man in his fifties: 23.3 -> 23.0
+
+--- evening of day 8: visit 
+5pm, day 1 of summer, year 1 → 5am, day 2 of summer, year 1
+You see:
+  a man in his twenties: talking with someone with a woman in her twenties, then walking (Family cottage), then waiting
+  a woman in her twenties: talking with someone with a man in his twenties, then waiting
+  a girl: waiting
+  a woman in her fifties: walking
+  a man in his thirties: walking
+
+~ a man in his sixties: 7.0 -> 6.5
+~ a woman in her sixties: 7.1 -> 6.6
+~ a man in his fifties: 7.0 -> 6.5
+~ a woman in her fifties: 23.1 -> 22.6
+~ a man in his thirties: 23.0 -> 22.5
+~ a man in his fifties: 23.0 -> 22.5
+
+--- morning of day 9: visit 
+5am, day 2 of summer, year 1 → 12pm, day 2 of summer, year 1
+You see:
+  a man in his sixties: waiting, then asleep
+  a man in his sixties: asleep
+  a woman in her sixties: asleep
+  a man in his fifties: asleep
+  a woman in her fifties: waiting, then asleep
+  a man in his thirties: waiting
+  a man in his twenties: asleep
+  a woman in her twenties: eating, then waiting
+  a girl: eating, then waiting
+
+~ a man in his sixties: 6.5 -> 6.2
+~ a woman in her sixties: 6.6 -> 6.3
+~ a man in his fifties: 6.5 -> 6.2
+~ a woman in her fifties: 22.6 -> 22.3
+~ a man in his thirties: 22.5 -> 22.2
+~ a man in his fifties: 22.5 -> 22.2
+Learned: noticedNeeds.w5_3-social-74:food.day=8.5; noticedNeeds.w5_3-social-66:food.day=8.5
+
+--- afternoon of day 9: visit 
+12pm, day 2 of summer, year 1 → 6pm, day 2 of summer, year 1
+You see:
+  a man in his sixties: asleep, then trade work (Forge)
+  a man in his sixties: asleep, then walking
+  a man in his fifties: asleep, then walking
+  a woman in her fifties: asleep
+  a man in his twenties: eating, then walking
+  a girl: waiting
+  a woman in her twenties: walking (Kitchen garden), then waiting
+  a woman in her thirties: waiting
+
+~ a man in his sixties: 6.2 -> 5.9
+~ a woman in her sixties: 6.3 -> 6.1
+~ a man in his fifties: 6.2 -> 6.0
+~ a woman in her fifties: 22.3 -> 22.1
+~ a man in his thirties: 22.2 -> 22.0
+~ a man in his fifties: 22.2 -> 22.0
+Learned: noticedNeeds.w5_3-social-74:food.day=8.625; noticedNeeds.w5_3-social-66:food.day=8.541666666666666
+
+--- evening of day 9: visit 
+6pm, day 2 of summer, year 1 → 6am, day 3 of summer, year 1
+You see:
+  a woman in her fifties: waiting
+  a woman in her thirties: waiting, then walking
+  a girl: waiting
+  a man in his sixties: waiting
+  a man in his thirties: walking, then waiting
+  a man in his twenties: walking, then waiting
+  a man in his sixties: walking
+  a woman in her sixties: walking
+  a man in his fifties: walking
+  a woman in her twenties: walking
+
+~ a man in his sixties: 5.9 -> 5.4
+~ a woman in her sixties: 6.1 -> 5.6
+~ a man in his fifties: 6.0 -> 5.5
+~ a woman in her fifties: 22.1 -> 21.6
+~ a man in his thirties: 22.0 -> 21.5
+~ a man in his fifties: 22.0 -> 21.5
+Learned: noticedNeeds.w5_3-social-74:food.day=8.875; noticedNeeds.w5_3-social-66:food.day=8.875
+
+--- morning of day 10: visit 
+6am, day 3 of summer, year 1 → 12pm, day 3 of summer, year 1
+You see:
+  a man in his sixties: gathering food, then eating, then asleep
+  a woman in her sixties: asleep
+  a man in his fifties: gathering food, then walking, then asleep
+  a woman in her fifties: gathering food, then walking
+  a man in his thirties: asleep
+  a man in his twenties: asleep, then walking, then eating
+  a woman in her twenties: eating, then waiting
+  a man in his fifties: asleep, then walking
+  a girl: asleep
+  a man in his sixties: walking
+
+~ a man in his sixties: 5.4 -> 5.2
+~ a woman in her sixties: 5.6 -> 5.3
+~ a man in his fifties: 5.5 -> 5.2
+~ a woman in her fifties: 21.6 -> 21.3
+~ a man in his thirties: 21.5 -> 21.2
+~ a man in his fifties: 21.5 -> 21.2
+Learned: noticedNeeds.w5_3-social-74:food.day=9.5; noticedNeeds.w5_3-social-66:food.day=9.416666666666666
+
+--- afternoon of day 10: visit 
+12pm, day 3 of summer, year 1 → 6pm, day 3 of summer, year 1
+You see:
+  a man in his sixties: asleep
+  a woman in her sixties: walking
+  a man in his fifties: asleep, then walking
+  a woman in her twenties: waiting
+  a girl: asleep, then eating, then waiting
+  a man in his twenties: talking with someone with a man in his fifties
+  a man in his fifties: talking with someone with a man in his twenties
+  a man in his fifties: walking
+  a man in his thirties: walking (Family cottage)
+  a man in his sixties: trade work (Forge)
+
+~ a man in his sixties: 5.2 -> 4.9
+~ a woman in her sixties: 5.3 -> 5.0
+~ a man in his fifties: 5.2 -> 5.0
+~ a woman in her fifties: 21.3 -> 21.0
+~ a man in his thirties: 21.2 -> 21.0
+~ a man in his fifties: 21.2 -> 21.0
+Learned: noticedNeeds.w5_3-social-74:food.day=9.625
+
+--- evening of day 10: visit 
+6pm, day 3 of summer, year 1 → 6am, day 4 of summer, year 1
+You see:
+  a girl: waiting
+  a man in his sixties: waiting
+  a man in his twenties: waiting
+  a man in his fifties: waiting
+  a woman in her twenties: waiting
+  a woman in her fifties: walking
+
+~ a man in his sixties: 4.9 -> 4.4
+~ a woman in her sixties: 5.0 -> 4.5
+~ a man in his fifties: 5.0 -> 4.4
+~ a woman in her fifties: 21.0 -> 20.5
+~ a man in his thirties: 21.0 -> 20.4
+~ a man in his fifties: 21.0 -> 20.4
+Learned: noticedNeeds.w5_3-social-66:food.day=9.875
+
+--- morning of day 11: visit 
+6am, day 4 of summer, year 1 → 12pm, day 4 of summer, year 1
+You see:
+  a man in his sixties: asleep, then walking, then trade work (Forge)
+  a man in his sixties: gathering food, then eating, then talking with someone with a woman in her fifties, then waiting
+  a woman in her sixties: gathering food, then asleep
+  a man in his fifties: gathering food, then eating, then walking
+  a woman in her fifties: asleep, then waiting, then talking with someone with a man in his sixties
+  a man in his thirties: asleep, then gathering food, then eating
+  a woman in her thirties: asleep, then gathering food
+  a man in his twenties: asleep, then eating
+  a woman in her twenties: eating, then waiting, then walking (Kitchen garden)
+  a man in his fifties: asleep, then walking
+  …and 1 others about their day
+~ a man in his sixties: 4.4 -> 4.1
+~ a woman in her sixties: 4.5 -> 4.3
+~ a man in his fifties: 4.4 -> 4.2
+~ a woman in her fifties: 20.5 -> 20.3
+~ a man in his thirties: 20.4 -> 20.2
+~ a man in his fifties: 20.4 -> 20.2
+Learned: noticedNeeds.w5_3-social-74:food.day=10.458333333333332; noticedNeeds.w5_3-social-66:food.day=10.375
+
+--- afternoon of day 11: visit 
+12pm, day 4 of summer, year 1 → 6pm, day 4 of summer, year 1
+You see:
+  a man in his sixties: trade work (Forge), then walking, then eating, then walking (Forge)
+  a woman in her sixties: asleep, then walking
+  a man in his thirties: walking, then talking with someone with a woman in her thirties, then waiting
+  a man in his twenties: talking with someone with a man in his fifties
+  a girl: eating, then waiting
+  a man in his fifties: walking, then talking with someone with a man in his twenties, then walking (Family cottage)
+  a woman in her thirties: talking with someone with a man in his thirties, then talking with someone with a woman in her sixties
+  a man in his old age: walking
+  a man in his fifties: waiting
+  a woman in her twenties: walking (Family cottage)
+  …and 1 others about their day
+* Maud Thuson left for another region · seeking company
+* a woman in her sixties quarrelled with a woman in her thirties
+~ a man in his sixties: 4.1 -> 3.9
+~ a woman in her sixties: 4.3 -> 4.0
+~ a man in his fifties: 4.2 -> 3.9
+~ a woman in her fifties: 20.3 -> 20.0
+~ a man in his thirties: 20.2 -> 19.9
+~ a man in his fifties: 20.2 -> 19.9
+Learned: noticedNeeds.w5_3-social-66:food.day=10.625; noticedNeeds.w5_3-social-65:food.speakerId="w5_3-social-65"; noticedNeeds.w5_3-social-65:food.kind="food"; noticedNeeds.w5_3-social-65:food.householdId="w5_3-social-82"; noticedNeeds.w5_3-social-65:food.day=10.625; reactions.terrain5_3-event-1432="quarrel"
+
+--- evening of day 11: visit 
+6pm, day 4 of summer, year 1 → 6am, day 5 of summer, year 1
+You see:
+  a man in his fifties: walking
+  a woman in her sixties: walking (Family cottage)
+  a man in his twenties: talking with someone with a woman in her twenties, then walking
+  a man in his thirties: walking
+  a girl: waiting
+  a girl: walking
+  a woman in her sixties: walking
+  a woman in her thirties: talking with someone with a man in his forties
+  a man in his sixties: talking with someone with a woman in her fifties, then walking
+  a man in his forties: talking with someone with a woman in her thirties
+  …and 4 others about their day
+~ a man in his sixties: 3.9 -> 3.4
+~ a woman in her sixties: 4.0 -> 3.5
+~ a man in his fifties: 3.9 -> 3.4
+~ a woman in her fifties: 20.0 -> 19.5
+~ a man in his thirties: 19.9 -> 19.4
+~ a man in his fifties: 19.9 -> 19.4
+Learned: noticedNeeds.w5_3-social-74:food.day=10.875; noticedNeeds.w5_3-social-66:food.day=10.875
+
+--- morning of day 12: visit 
+6am, day 5 of summer, year 1 → 12pm, day 5 of summer, year 1
+You see:
+  a man in his sixties: asleep, then trade work (Forge)
+  a woman in her sixties: walking
+  a man in his fifties: walking
+  a woman in her fifties: asleep
+  a man in his thirties: asleep
+  a woman in her thirties: waiting, then talking with someone with a woman in her twenties
+  a woman in her twenties: eating, then talking with someone with a woman in her thirties, then tend garden (Kitchen garden)
+  a man in his fifties: asleep
+  a girl: waiting, then eating
+  a man in his twenties: walking, then eating
+
+~ a man in his sixties: 3.4 -> 3.1
+~ a woman in her sixties: 3.5 -> 3.2
+~ a man in his fifties: 3.4 -> 3.2
+~ a woman in her fifties: 19.5 -> 19.2
+~ a man in his thirties: 19.4 -> 19.2
+~ a man in his fifties: 19.4 -> 19.2
+Learned: noticedNeeds.w5_3-social-74:food.day=11.5; noticedNeeds.w5_3-social-66:food.day=11.375
+
+--- afternoon of day 12: visit 
+12pm, day 5 of summer, year 1 → 6pm, day 5 of summer, year 1
+You see:
+  a man in his sixties: trade work (Forge)
+  a man in his sixties: talking with someone with a man in his twenties, then waiting
+  a man in his twenties: talking with someone with a man in his sixties, then walking (Family cottage)
+  a girl: waiting
+  a man in his old age: talking with someone with a woman in her twenties, then walking
+  a woman in her sixties: walking
+  a man in his forties: walking
+
+~ a man in his sixties: 3.1 -> 2.9
+~ a woman in her sixties: 3.2 -> 3.0
+~ a man in his fifties: 3.2 -> 2.9
+~ a woman in her fifties: 19.2 -> 19.0
+~ a man in his thirties: 19.2 -> 18.9
+~ a man in his fifties: 19.2 -> 18.9
+Learned: noticedNeeds.w5_3-social-74:food.day=11.708333333333332; noticedNeeds.w5_3-social-65:food.day=11.666666666666666
+
+--- evening of day 12: visit 
+6pm, day 5 of summer, year 1 → 6am, day 6 of summer, year 1
+You see:
+  a man in his twenties: walking
+  a man in his forties: walking
+  a girl: waiting
+  a man in his old age: walking (Family cottage)
+  a man in his fifties: walking (Family cottage)
+  a man in his thirties: waiting
+  a woman in her sixties: waiting
+
+~ a man in his sixties: 2.9 -> 2.3
+~ a woman in her sixties: 3.0 -> 2.5
+~ a man in his fifties: 2.9 -> 2.4
+~ a woman in her fifties: 19.0 -> 18.5
+~ a man in his thirties: 18.9 -> 18.4
+~ a man in his fifties: 18.9 -> 18.4
+Learned: noticedNeeds.w5_3-social-65:food.day=11.791666666666666
+
+--- morning of day 13: visit 
+6am, day 6 of summer, year 1 → 12pm, day 6 of summer, year 1
+You see:
+  a man in his sixties: asleep
+  a man in his sixties: waiting
+  a woman in her sixties: asleep, then walking
+  a man in his fifties: asleep
+  a woman in her fifties: asleep
+  a man in his thirties: asleep, then waiting
+  a woman in her thirties: asleep, then talking with someone with a woman in her twenties
+  a man in his twenties: asleep, then eating, then walking
+  a woman in her twenties: eating, then walking, then talking with someone with a woman in her thirties
+  a man in his fifties: asleep
+  …and 1 others about their day
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+~ a man in his sixties: 2.3 -> 2.1
+~ a woman in her sixties: 2.5 -> 2.2
+~ a man in his fifties: 2.4 -> 2.1
+~ a woman in her fifties: 18.5 -> 18.2
+~ a man in his thirties: 18.4 -> 18.1
+~ a man in his fifties: 18.4 -> 18.1
+Learned: noticedNeeds.w5_3-social-74:food.day=12.291666666666666; noticedNeeds.w5_3-social-66:food.day=12.458333333333332
+
+--- afternoon of day 13: visit 
+12pm, day 6 of summer, year 1 → 6pm, day 6 of summer, year 1
+You see:
+  a man in his sixties: trade work (Forge)
+  a woman in her fifties: waiting, then walking, then talking with someone with a man in his fifties
+  a woman in her twenties: walking, then perform subtask in slot (Kitchen garden), then perform subtask in slot (Family field)
+  a man in his fifties: asleep, then talking with someone with a woman in her fifties
+  a girl: waiting
+  a man in his twenties: talking with someone with a man in his sixties
+  a man in his sixties: walking, then talking with someone with a man in his twenties
+
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+~ a man in his sixties: 2.1 -> 1.8
+~ a woman in her sixties: 2.2 -> 2.0
+~ a man in his fifties: 2.1 -> 1.9
+~ a woman in her fifties: 18.2 -> 18.0
+~ a man in his thirties: 18.1 -> 17.9
+~ a man in his fifties: 18.1 -> 17.9
+Learned: noticedNeeds.w5_3-social-74:food.day=12.75; noticedNeeds.w5_3-social-96:harvest.speakerId="w5_3-social-96"; noticedNeeds.w5_3-social-96:harvest.kind="harvest"; noticedNeeds.w5_3-social-96:harvest.householdId="w5_3-home-1"; noticedNeeds.w5_3-social-96:harvest.day=12.75; noticedNeeds.w5_3-social-74:harvest.speakerId="w5_3-social-74"; noticedNeeds.w5_3-social-74:harvest.kind="harvest"; noticedNeeds.w5_3-social-74:harvest.householdId="w5_3-home-11"; noticedNeeds.w5_3-social-74:harvest.day=12.75
+
+--- evening of day 13: visit 
+6pm, day 6 of summer, year 1 → 6am, day 7 of summer, year 1
+You see:
+  a man in his sixties: talking with someone with a man in his twenties, then waiting
+  a man in his twenties: talking with someone with a man in his sixties, then waiting
+  a woman in her twenties: perform subtask in slot (Family field), then waiting
+  a girl: waiting
+  a woman in her sixties: walking
+  a man in his fifties: waiting
+
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+~ a man in his sixties: 1.8 -> 1.3
+~ a woman in her sixties: 2.0 -> 1.4
+~ a man in his fifties: 1.9 -> 1.4
+~ a woman in her fifties: 18.0 -> 17.4
+~ a man in his thirties: 17.9 -> 17.4
+~ a man in his fifties: 17.9 -> 17.4
+Learned: noticedNeeds.w5_3-social-74:food.day=12.875; noticedNeeds.w5_3-social-96:harvest.day=12.875; noticedNeeds.w5_3-social-74:harvest.day=12.875
+
+--- morning of day 14: visit 
+6am, day 7 of summer, year 1 → 12pm, day 7 of summer, year 1
+You see:
+  a man in his sixties: asleep
+  a woman in her sixties: asleep, then walking, then perform subtask in slot (Family field)
+  a man in his fifties: asleep, then walking
+  a man in his thirties: asleep
+  a woman in her thirties: asleep
+  a man in his twenties: asleep, then eating, then walking
+  a woman in her twenties: eating, then walking, then tend garden (Kitchen garden)
+  a girl: waiting, then eating
+  a man in his sixties: asleep
+  a woman in her fifties: asleep
+  …and 1 others about their day
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+~ a man in his sixties: 1.3 -> 1.1
+~ a woman in her sixties: 1.4 -> 1.2
+~ a man in his fifties: 1.4 -> 1.1
+~ a woman in her fifties: 17.4 -> 17.2
+~ a man in his thirties: 17.4 -> 17.1
+~ a man in his fifties: 17.4 -> 17.1
+Learned: noticedNeeds.w5_3-social-74:food.day=13.375; noticedNeeds.w5_3-social-96:harvest.day=13.5; noticedNeeds.w5_3-social-74:harvest.day=13.375; noticedNeeds.w5_3-social-66:harvest.speakerId="w5_3-social-66"; noticedNeeds.w5_3-social-66:harvest.kind="harvest"; noticedNeeds.w5_3-social-66:harvest.householdId="w5_3-home-6"; noticedNeeds.w5_3-social-66:harvest.day=13.5
+
+--- afternoon of day 14: visit 
+12pm, day 7 of summer, year 1 → 6pm, day 7 of summer, year 1
+You see:
+  a man in his sixties: asleep, then walking
+  a woman in her sixties: walking, then perform subtask in slot (Family field), then eating
+  a woman in her fifties: asleep, then eating, then walking
+  a man in his twenties: walking, then perform subtask in slot (Family field)
+  a woman in her twenties: walking, then walking (Family field)
+  a man in his fifties: asleep, then eating
+  a girl: waiting
+  a man in his fifties: walking
+  a woman in her thirties: walking
+
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a woman in her sixties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a man in his twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* a woman in her twenties brought in 6 grain
+* William Clebasi attended the Midsummer Gathering
+~ a man in his sixties: 1.1 -> 0.8
+~ a woman in her sixties: 1.2 -> 8.9
+~ a man in his fifties: 1.1 -> 8.8
+~ a woman in her fifties: 17.2 -> 24.9
+~ a man in his thirties: 17.1 -> 16.8
+~ a man in his twenties: 0.0 -> 24.0 (now a familiar acquaintance)
+~ a woman in her twenties: 0.0 -> 8.0
+~ a man in his fifties: 17.1 -> 24.8
+~ a girl: 0.0 -> 8.0
+Learned: noticedNeeds.w5_3-social-96:harvest.day=13.708333333333332; noticedNeeds.w5_3-social-66:harvest.day=13.708333333333332
+
+--- evening of day 14: visit 
+6pm, day 7 of summer, year 1 → 6am, day 1 of autumn, year 1
+You see:
+  a man in his old age: walking, then festival wait
+  a man in his sixties: festival wait
+  a woman in her sixties: festival wait
+  a man in his fifties: festival wait
+  a woman in her fifties: festival wait
+  a man in his thirties: walking, then festival wait
+  a woman in her thirties: walking, then festival wait
+  a man in his twenties: festival wait
+  a woman in her twenties: festival wait
+  a man in his fifties: festival wait
+  …and 1 others about their day
+> season: [{"id":"terrain5_3-event-1432","text":"a woman quarrelled with a woman.","section":"life","eventIds":["terrain5_3-event-1432"]},{"id":"harvest","text":"The harvest came in: 246 grain over 41 loads.","section":"work","eventIds":["terrain5_3-event-1476","terrain5_3-event-1477","terrain5_3-event-1501","terrain5_3-event-1502","terrain5_3-event-1504","terrain5_3-event-1508","terrain5_3-event-1511","ter
+> unfinished: The slot ended before the task finished
+~ a man in his old age: 0.8 -> 8.3
+~ a man in his sixties: 0.0 -> 7.6
+~ a woman in her sixties: 8.9 -> 8.5
+~ a man in his fifties: 8.8 -> 8.4
+~ a woman in her fifties: 24.9 -> 24.5
+~ a man in his thirties: 16.8 -> 24.4
+~ a woman in her thirties: 0.0 -> 7.6
+~ a man in his twenties: 24.0 -> 23.5
+~ a woman in her twenties: 8.0 -> 7.5
+~ a man in his fifties: 24.8 -> 24.4
+~ a girl: 8.0 -> 7.5
+~ a boy: new arrival -> 0.0
+~ a boy: new arrival -> 0.0
+~ a man in his thirties: new arrival -> 0.0
+Learned: noticedNeeds.w5_3-social-66:harvest.day=13.875

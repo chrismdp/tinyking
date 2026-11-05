@@ -133,7 +133,7 @@ export function foodSupplies(s) {
   return supplies;
 }
 export function narrateSlot(s,r) {
-  const out=[],add=(kind,text)=>{if(text)out.push({kind,text});},who=id=>describePerson(s,id);
+  const out=[],add=(kind,text)=>{if(text&&!out.some(p=>p.kind==kind&&p.text==text))out.push({kind,text});},who=id=>describePerson(s,id);
   if(r.road)r.road.lines.forEach(line=>add("narration",line));
   else add("narration",r.choice.placeId?"You spent the "+r.slot+" at "+placeName(s,r.choice.placeId).replace(/^(The|Open) /,m=>m.toLowerCase())+".":"You spent the "+r.slot+" with the people here.");
   if(r.supplies && r.choice.activity==="forage") {
@@ -143,7 +143,7 @@ export function narrateSlot(s,r) {
   const sights={};
   for(const o of r.seen||[]) {
     if(o.personId===s.ui.playerId)continue;
-    const task=activityWords(o.activity)+(o.targetId&&personComponent(s,"personable",o.targetId)?" with "+who(o.targetId):"");
+    const task=(o.hungry?"hungry and ":o.tired?"weary and ":"")+activityWords(o.activity)+(o.targetId&&personComponent(s,"personable",o.targetId)?" with "+who(o.targetId):"");
     (sights[o.personId] ||= new Set()).add(task);
   }
   for(const [id,tasks] of Object.entries(sights))add("sighting",cap(who(id))+" was "+[...tasks].join(", then ")+".");

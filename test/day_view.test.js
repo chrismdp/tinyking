@@ -167,3 +167,14 @@ it("says plainly when the part of the day ran out, and whether a pair met", () =
   expect(prose).toContain("The morning ran out before you were done.");
   expect(prose).toMatch(/did not come together: they need a meal first\./);
 });
+
+it("tells the time running out once, and says who it saw was hungry or weary", () => {
+  const {state:s,person,parent}=peopleWorld();
+  const r={slot:"afternoon",choice:{activity:"forage",placeId:null},conversations:[],facts:[],events:[],regard:[],
+    seen:[{personId:person,activity:"sleep",hungry:true},{personId:parent,activity:"walk_to",tired:true}],
+    outcomes:[1,2,3].map(()=>({kind:"unfinished",reason:"The slot ended before the task finished"}))};
+  const prose=narrateSlot(s,r).map(p=>p.text);
+  expect(prose.filter(t=>t.includes("ran out"))).toHaveLength(1);
+  expect(prose.join(" ")).toMatch(/was hungry and asleep/);
+  expect(prose.join(" ")).toMatch(/was weary and walking/);
+});

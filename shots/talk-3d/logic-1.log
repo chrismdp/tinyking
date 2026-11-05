@@ -1,0 +1,40 @@
+FAIL test/chat_interventions.test.js
+  ● offers introduce under Family and queues a real pair meeting, then releases chat
+
+    TypeError: Cannot read properties of undefined (reading 'filter')
+
+      41 |   expect(s.ecs.planner[w.person].world.social).toMatchObject({partnerId:w.parent,stage:"outbound"});
+      42 |   expect(s.ecs.planner[w.parent].world.social.partnerId).toBe(w.person);
+    > 43 |   expect(s.events.filter(e=>e.type=="reconciliation")).toHaveLength(0);
+         |                   ^
+      44 |   expect(s.social.courtships).toEqual({});
+      45 |   if(family=="make_peace") {chatTogether(s,w.person,w.parent);expect(s.events.some(e=>e.type=="reconciliation")).toBe(true);}
+      46 | });
+
+      at test/chat_interventions.test.js:43:19
+
+FAIL test/ask_journal.test.js
+  ● only shows learned related events
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 2
+    Received array:  ["Agnes Miller quarrelled with Edith Miller", "Agnes Miller and a woman in her twenties married in Withyford"]
+
+      31 |   recordEvent(s,"marriage",[w.person,w.sibling]);
+      32 |   const journal=asksJournal(s)[0];
+    > 33 |   expect(journal.targetId).toBe(w.parent);expect(journal.learned).toHaveLength(1);
+         |                                                                   ^
+      34 |   r.status="completed";expect(asksJournal(s)[0].status).toBe("completed");
+      35 | });
+      36 |
+
+      at Object.<anonymous> (test/ask_journal.test.js:33:67)
+
+
+Test Suites: 2 failed, 2 passed, 4 total
+Tests:       2 failed, 51 passed, 53 total
+Snapshots:   0 total
+Time:        3.445 s, estimated 5 s
+Ran all test suites matching test/chat_interventions.test.js|test/ask_journal.test.js|test/social_interventions.test.js|test/day_view.test.js.

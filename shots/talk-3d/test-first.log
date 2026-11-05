@@ -1,0 +1,220 @@
+FAIL test/chat_interventions.test.js
+  ● offers make_peace under Family and queues a real pair meeting, then releases chat
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "9"
+    Received: undefined
+
+      34 |   s.chat.active.focus="family";
+      35 |   const line=chatChoices(s).find(l=>l.family==family);
+    > 36 |   expect(line?.b.other.id).toBe(w.parent);
+         |                            ^
+      37 |   expect(chooseLine(s,line.key)).toBe(true);
+      38 |   expect(s.chat.active).toBeUndefined();
+      39 |   expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
+
+      at test/chat_interventions.test.js:36:28
+
+  ● offers introduce under Family and queues a real pair meeting, then releases chat
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "9"
+    Received: undefined
+
+      34 |   s.chat.active.focus="family";
+      35 |   const line=chatChoices(s).find(l=>l.family==family);
+    > 36 |   expect(line?.b.other.id).toBe(w.parent);
+         |                            ^
+      37 |   expect(chooseLine(s,line.key)).toBe(true);
+      38 |   expect(s.chat.active).toBeUndefined();
+      39 |   expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
+
+      at test/chat_interventions.test.js:36:28
+
+  ● keeps an introduction available while hungry passes and waits without interrupting it
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      67 |   if(passing=="work") {p.world.currentJob="harvest";p.task=["harvest"] ;}
+      68 |   if(passing=="early")s.days=Math.floor(s.days)+7/24;
+    > 69 |   const line=candidates(s,"introduce")[0];expect(line).toBeDefined();
+         |                                                        ^
+      70 |   const task=p.task;speakLine(s,line);expect(s.chat.active).toBeUndefined();
+      71 |   updateSocialInterventions(s);expect(p.world.social).toBeUndefined();expect(p.task).toBe(task);
+      72 |   p.world.feeling={};delete p.world.currentJob;p.task=["wait_for",HOUR];s.days=Math.floor(s.days)+10/24;
+
+      at test/chat_interventions.test.js:69:56
+
+  ● keeps an introduction available while tired passes and waits without interrupting it
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      67 |   if(passing=="work") {p.world.currentJob="harvest";p.task=["harvest"] ;}
+      68 |   if(passing=="early")s.days=Math.floor(s.days)+7/24;
+    > 69 |   const line=candidates(s,"introduce")[0];expect(line).toBeDefined();
+         |                                                        ^
+      70 |   const task=p.task;speakLine(s,line);expect(s.chat.active).toBeUndefined();
+      71 |   updateSocialInterventions(s);expect(p.world.social).toBeUndefined();expect(p.task).toBe(task);
+      72 |   p.world.feeling={};delete p.world.currentJob;p.task=["wait_for",HOUR];s.days=Math.floor(s.days)+10/24;
+
+      at test/chat_interventions.test.js:69:56
+
+  ● keeps an introduction available while work passes and waits without interrupting it
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      67 |   if(passing=="work") {p.world.currentJob="harvest";p.task=["harvest"] ;}
+      68 |   if(passing=="early")s.days=Math.floor(s.days)+7/24;
+    > 69 |   const line=candidates(s,"introduce")[0];expect(line).toBeDefined();
+         |                                                        ^
+      70 |   const task=p.task;speakLine(s,line);expect(s.chat.active).toBeUndefined();
+      71 |   updateSocialInterventions(s);expect(p.world.social).toBeUndefined();expect(p.task).toBe(task);
+      72 |   p.world.feeling={};delete p.world.currentJob;p.task=["wait_for",HOUR];s.days=Math.floor(s.days)+10/24;
+
+      at test/chat_interventions.test.js:69:56
+
+  ● keeps an introduction available while early passes and waits without interrupting it
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      67 |   if(passing=="work") {p.world.currentJob="harvest";p.task=["harvest"] ;}
+      68 |   if(passing=="early")s.days=Math.floor(s.days)+7/24;
+    > 69 |   const line=candidates(s,"introduce")[0];expect(line).toBeDefined();
+         |                                                        ^
+      70 |   const task=p.task;speakLine(s,line);expect(s.chat.active).toBeUndefined();
+      71 |   updateSocialInterventions(s);expect(p.world.social).toBeUndefined();expect(p.task).toBe(task);
+      72 |   p.world.feeling={};delete p.world.currentJob;p.task=["wait_for",HOUR];s.days=Math.floor(s.days)+10/24;
+
+      at test/chat_interventions.test.js:69:56
+
+  ● refuses a stale spoken proposal in the NPC's voice and keeps the conversation open
+
+    TypeError: Cannot read properties of undefined (reading 'icons')
+
+      37 | function rowAfter(c,line) {
+      38 |   const row=[...c.row],popped=[];
+    > 39 |   for(const icon of line.icons) {
+         |                          ^
+      40 |     const at=icon.kind=="grievance"?-1:row.findIndex(x=>x.kind!="grievance"&&iconKey(x)==iconKey(icon));
+      41 |     if(at<0)row.push({...icon});else {row.splice(at,1);popped.push(icon);}
+      42 |   }
+
+      at rowAfter (src/game/chat.js:39:26)
+      at previewLine (src/game/chat.js:121:22)
+      at speakLine (src/game/chat.js:274:42)
+      at Object.<anonymous> (test/chat_interventions.test.js:78:19)
+
+  ● does not carry an unfulfilled meeting into another day
+
+    TypeError: Cannot read properties of undefined (reading 'icons')
+
+      37 | function rowAfter(c,line) {
+      38 |   const row=[...c.row],popped=[];
+    > 39 |   for(const icon of line.icons) {
+         |                          ^
+      40 |     const at=icon.kind=="grievance"?-1:row.findIndex(x=>x.kind!="grievance"&&iconKey(x)==iconKey(icon));
+      41 |     if(at<0)row.push({...icon});else {row.splice(at,1);popped.push(icon);}
+      42 |   }
+
+      at rowAfter (src/game/chat.js:39:26)
+      at previewLine (src/game/chat.js:121:22)
+      at speakLine (src/game/chat.js:274:42)
+      at Object.<anonymous> (test/chat_interventions.test.js:88:12)
+
+FAIL test/ask_journal.test.js
+  ● keeps the actual peace ask at speech time, through chat close and save
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      15 |   openChat(s,w.player,w.person);s.chat.active.row=[];
+      16 |   const row=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+    > 17 |   expect(row).toBeDefined();speakLine(s,row);
+         |               ^
+      18 |   expect(asksJournal(s)[0]).toMatchObject({words:row.text,targetId:w.parent,status:"offered"});
+      19 |   closeChat(s);
+      20 |   const restored=restoreGame(serialiseGame(s));
+
+      at test/ask_journal.test.js:17:15
+
+  ● keeps the actual word ask at speech time, through chat close and save
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      15 |   openChat(s,w.player,w.person);s.chat.active.row=[];
+      16 |   const row=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+    > 17 |   expect(row).toBeDefined();speakLine(s,row);
+         |               ^
+      18 |   expect(asksJournal(s)[0]).toMatchObject({words:row.text,targetId:w.parent,status:"offered"});
+      19 |   closeChat(s);
+      20 |   const restored=restoreGame(serialiseGame(s));
+
+      at test/ask_journal.test.js:17:15
+
+  ● keeps the actual visit ask at speech time, through chat close and save
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      15 |   openChat(s,w.player,w.person);s.chat.active.row=[];
+      16 |   const row=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+    > 17 |   expect(row).toBeDefined();speakLine(s,row);
+         |               ^
+      18 |   expect(asksJournal(s)[0]).toMatchObject({words:row.text,targetId:w.parent,status:"offered"});
+      19 |   closeChat(s);
+      20 |   const restored=restoreGame(serialiseGame(s));
+
+      at test/ask_journal.test.js:17:15
+
+  ● keeps the actual find ask at speech time, through chat close and save
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      15 |   openChat(s,w.player,w.person);s.chat.active.row=[];
+      16 |   const row=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+    > 17 |   expect(row).toBeDefined();speakLine(s,row);
+         |               ^
+      18 |   expect(asksJournal(s)[0]).toMatchObject({words:row.text,targetId:w.parent,status:"offered"});
+      19 |   closeChat(s);
+      20 |   const restored=restoreGame(serialiseGame(s));
+
+      at test/ask_journal.test.js:17:15
+
+  ● keeps separate words for two asks of the same kind and only shows learned related events
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "9"
+    Received: undefined
+
+      28 |   recordEvent(s,"marriage",[w.person,w.sibling]);
+      29 |   const journal=asksJournal(s)[0];
+    > 30 |   expect(journal.targetId).toBe(w.parent);expect(journal.learned).toHaveLength(1);
+         |                            ^
+      31 |   r.status="completed";expect(asksJournal(s)[0].status).toBe("completed");
+      32 | });
+      33 |
+
+      at Object.<anonymous> (test/ask_journal.test.js:30:28)
+
+Test Suites: 2 failed, 2 total
+Tests:       13 failed, 8 passed, 21 total
+Snapshots:   0 total
+Time:        4.901 s
+Ran all test suites matching test/chat_interventions.test.js|test/ask_journal.test.js.

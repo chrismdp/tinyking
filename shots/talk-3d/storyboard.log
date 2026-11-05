@@ -1,0 +1,32 @@
+
+> tinyking@1.0.0 storyboard
+> node scripts/storyboard.js http://localhost:8173/?seed=13 shots/talk-3d/storyboard
+
+STARTUP menu ready after 3.554 seconds
+STARTUP character/world ready after 68.513 seconds
+FRAME 01-arrival.png at 9.00h
+FRAME 02-villager.png at 9.08h
+CHAT approach w5_3-social-74
+CHAT panel open w5_3-social-74
+CHAT line player.season_talk.rain.base.03
+CHAT line player.introduction.player_name.base.02
+CHAT line player.lands_question.country.new_wet.01
+CHAT line player.maternal_search.named_relative.base.01
+CHAT line player.lands_question.roads.base.04
+CHAT line player.family_question.spouse.base.02
+CHAT line player.own_question.general.base.04
+CHAT line player.mood_reply.guarded.base.01
+CHAT line player.lands_question.beyond.base.03
+CHAT line player.help_offer.generic.base.04
+CHAT line player.direct_answer.fallback_answer_acknowledgement.base.01
+CHAT line player.lands_question.villages.new.01
+CHAT w5_3-social-74 goodwill -7.25; 13 pops; End chat closed
+page.waitForFunction: Timeout 180000ms exceeded.
+    at waitForChatReadiness (/home/cp/code/tk-talk3d/scripts/acceptance-selection.js:170:14)
+    at async readyChat (/home/cp/code/tk-talk3d/scripts/acceptance-selection.js:183:3)
+    at async chatVisit (/home/cp/code/tk-talk3d/scripts/acceptance-selection.js:187:3)
+    at async chatForTrust (/home/cp/code/tk-talk3d/scripts/acceptance-selection.js:198:18)
+    at async /home/cp/code/tk-talk3d/scripts/storyboard.js:111:17 {
+  log: [],
+  name: 'TimeoutError'
+}

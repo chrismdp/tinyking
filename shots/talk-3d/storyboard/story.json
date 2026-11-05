@@ -1,0 +1,482 @@
+{
+  "assistance": "Command-assisted: selection, orders and speed use public ui.actions. Chat, news and family controls are clicked. No state/results shortcuts.",
+  "url": "http://localhost:8173/?seed=13",
+  "actions": [
+    {
+      "action": "Recorded actual arrival and handover",
+      "arrival": {
+        "startedActive": true,
+        "walked": true,
+        "seconds": 5.206700000047683,
+        "elapsed": 5.2,
+        "phase": "complete"
+      }
+    },
+    {
+      "action": "Assisted scenario selection",
+      "person": "w5_3-social-74",
+      "home": "w5_3-home-11",
+      "field": "terrain5_3-3925",
+      "controller": "w5_3-social-74",
+      "rule": "Read-only selection of the nearest independent living householder whose fixed tastes allow friendship, with one physically reachable growing field, including every crop patch, delivery route and storage for the full eighteen-grain favour. Spring growth, conversations, harvest work and delivery run normally."
+    }
+  ],
+  "frames": [
+    {
+      "file": "01-arrival.png",
+      "label": "arrival",
+      "day": 0.375,
+      "gameHours": 9,
+      "intro": {
+        "active": true,
+        "elapsed": 3.758,
+        "phase": "making-camp"
+      },
+      "playerTasks": [],
+      "hunger": 0.6356813358691711,
+      "tiredness": 0.35603153038677565,
+      "ring": "public",
+      "hint": null,
+      "favours": [],
+      "latestEvents": [
+        {
+          "id": "w5_3-event-1156",
+          "type": "visit",
+          "people": [
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w6_3-village-1",
+          "place": "w6_3-home-1",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-86",
+              "w6_3-social-87",
+              "w5_3-social-102",
+              "w6_3-social-74",
+              "w6_3-social-88",
+              "w6_3-social-99",
+              "w6_3-social-102",
+              "w6_3-social-110",
+              "w5_3-social-75",
+              "w6_3-social-116",
+              "w6_3-social-119",
+              "w6_3-social-120",
+              "w6_3-social-121",
+              "w6_3-social-123",
+              "w6_3-social-127"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "summary": true,
+          "fromVillage": "w5_3-village-2",
+          "toVillage": "w6_3-village-1"
+        },
+        {
+          "id": "w5_3-event-1157",
+          "type": "move",
+          "people": [
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w6_3-social-82",
+              "w5_3-social-95",
+              "w5_3-social-98",
+              "w5_3-social-102",
+              "w6_3-social-108",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromHouse": "w6_3-home-1",
+          "toHouse": "w5_3-social-99",
+          "fromVillage": "w6_3-village-1",
+          "toVillage": "w5_3-village-2"
+        },
+        {
+          "id": "w5_3-event-1158",
+          "type": "marriage",
+          "people": [
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-65",
+              "w5_3-social-68",
+              "w5_3-social-69",
+              "w5_3-social-72",
+              "w5_3-social-77",
+              "w5_3-social-80",
+              "w6_3-social-71",
+              "w5_3-social-86",
+              "w5_3-social-90",
+              "w5_3-social-95",
+              "w6_3-social-87",
+              "w5_3-social-102",
+              "w6_3-social-107",
+              "w5_3-social-104",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "kind": "practical",
+          "fromVillages": [
+            "w5_3-village-2",
+            "w6_3-village-1"
+          ],
+          "houseId": "w5_3-social-99"
+        },
+        {
+          "id": "w5_3-event-1159",
+          "type": "world_move",
+          "people": [
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-61",
+              "w5_3-social-70",
+              "w5_3-social-77",
+              "w5_3-social-80",
+              "w5_3-social-90",
+              "w5_3-social-102",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromWorld": "6,3",
+          "toWorld": "5,3",
+          "reason": "marriage",
+          "summary": true
+        },
+        {
+          "id": "w5_3-event-1160",
+          "type": "departure",
+          "people": [
+            "w5_3-social-92"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-82",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-65",
+              "w5_3-social-69",
+              "w5_3-social-73",
+              "w5_3-social-90",
+              "w5_3-social-93",
+              "w5_3-social-95",
+              "w5_3-social-97",
+              "w5_3-social-98",
+              "w5_3-social-102",
+              "w6_3-social-107",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromWorld": "5,3",
+          "toWorld": "6,3",
+          "reason": "seeking company"
+        }
+      ]
+    },
+    {
+      "file": "02-villager.png",
+      "label": "villager",
+      "day": 0.3784722222222222,
+      "gameHours": 9.083333333333332,
+      "intro": {
+        "active": false,
+        "elapsed": 5.2,
+        "phase": "complete"
+      },
+      "playerTasks": [],
+      "tiredness": 0.35603153038677565,
+      "selected": "w5_3-social-74",
+      "ring": "public",
+      "hint": null,
+      "favours": [],
+      "latestEvents": [
+        {
+          "id": "w5_3-event-1156",
+          "type": "visit",
+          "people": [
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w6_3-village-1",
+          "place": "w6_3-home-1",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-86",
+              "w6_3-social-87",
+              "w5_3-social-102",
+              "w6_3-social-74",
+              "w6_3-social-88",
+              "w6_3-social-99",
+              "w6_3-social-102",
+              "w6_3-social-110",
+              "w5_3-social-75",
+              "w6_3-social-116",
+              "w6_3-social-119",
+              "w6_3-social-120",
+              "w6_3-social-121",
+              "w6_3-social-123",
+              "w6_3-social-127"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "summary": true,
+          "fromVillage": "w5_3-village-2",
+          "toVillage": "w6_3-village-1"
+        },
+        {
+          "id": "w5_3-event-1157",
+          "type": "move",
+          "people": [
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w6_3-social-82",
+              "w5_3-social-95",
+              "w5_3-social-98",
+              "w5_3-social-102",
+              "w6_3-social-108",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromHouse": "w6_3-home-1",
+          "toHouse": "w5_3-social-99",
+          "fromVillage": "w6_3-village-1",
+          "toVillage": "w5_3-village-2"
+        },
+        {
+          "id": "w5_3-event-1158",
+          "type": "marriage",
+          "people": [
+            "w5_3-social-102",
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-65",
+              "w5_3-social-68",
+              "w5_3-social-69",
+              "w5_3-social-72",
+              "w5_3-social-77",
+              "w5_3-social-80",
+              "w6_3-social-71",
+              "w5_3-social-86",
+              "w5_3-social-90",
+              "w5_3-social-95",
+              "w6_3-social-87",
+              "w5_3-social-102",
+              "w6_3-social-107",
+              "w5_3-social-104",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "kind": "practical",
+          "fromVillages": [
+            "w5_3-village-2",
+            "w6_3-village-1"
+          ],
+          "houseId": "w5_3-social-99"
+        },
+        {
+          "id": "w5_3-event-1159",
+          "type": "world_move",
+          "people": [
+            "w6_3-social-116"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-99",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-61",
+              "w5_3-social-70",
+              "w5_3-social-77",
+              "w5_3-social-80",
+              "w5_3-social-90",
+              "w5_3-social-102",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromWorld": "6,3",
+          "toWorld": "5,3",
+          "reason": "marriage",
+          "summary": true
+        },
+        {
+          "id": "w5_3-event-1160",
+          "type": "departure",
+          "people": [
+            "w5_3-social-92"
+          ],
+          "day": 0,
+          "season": 0,
+          "villageId": "w5_3-village-2",
+          "place": "w5_3-social-82",
+          "items": [],
+          "hexKey": "5,3",
+          "awareness": {
+            "status": "private",
+            "knowers": [
+              "w5_3-social-65",
+              "w5_3-social-69",
+              "w5_3-social-73",
+              "w5_3-social-90",
+              "w5_3-social-93",
+              "w5_3-social-95",
+              "w5_3-social-97",
+              "w5_3-social-98",
+              "w5_3-social-102",
+              "w6_3-social-107",
+              "w5_3-social-92",
+              "w6_3-social-116"
+            ],
+            "villages": [],
+            "hexes": []
+          },
+          "fromWorld": "5,3",
+          "toWorld": "6,3",
+          "reason": "seeking company"
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined",
+    "Could not find icon undefined"
+  ],
+  "failure": "TimeoutError: page.waitForFunction: Timeout 180000ms exceeded."
+}

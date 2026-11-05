@@ -1,0 +1,26 @@
+
+> tinyking@1.0.0 playtest
+> node scripts/playtest.js http://localhost:8173/?seed=13 10
+
+STARTUP menu ready after 3.773 seconds
+STARTUP character/world ready after 118.103 seconds
+PASS the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds - {"seconds":5.128399999856953,"noCamp":true,"steps":2,"walked":true,"nearCamp":true,"standing":true,"bundle":true,"locked":true,"gameDays":0}
+PASS the player starts at a camp with a bedroll and no house
+PASS a waiting build is replaced by explicit chopping and finishes on a new build order
+STARTUP menu ready after 13.762 seconds
+STARTUP character/world ready after 68.86 seconds
+PASS clicking a villager selects it - {"selected":"terrain5_3-person-3904"}
+PASS clicking a tile opens its job menu, and Move here starts an order - {"target":"terrain5_3-828"}
+PASS the current order appears in the status strip
+PASS Chat starts a personal order from the person panel - {"person":"w5_3-social-74"}
+PASS the person panel has no Recruit order
+PASS Create Field, Create Stockpile and Cut down can be ordered from the popups - {"fieldTile":"terrain5_3-784","stockpileTile":"terrain5_3-695","tree":"terrain5_3-2407"}
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')
+    at eval (eval at evaluate (:370:30), <anonymous>:8:42)
+    at UtilityScript.evaluate (<anonymous>:372:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at game (/home/cp/code/tk-talk3d/scripts/playtest.js:134:34)
+    at play (/home/cp/code/tk-talk3d/scripts/playtest.js:483:30)
+    at async /home/cp/code/tk-talk3d/scripts/playtest.js:66:5
+FAIL the playtest ran to the end - "page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')"
+PASS no console errors - []

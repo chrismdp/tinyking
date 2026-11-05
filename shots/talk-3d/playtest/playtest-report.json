@@ -1,0 +1,76 @@
+{
+  "errors": [],
+  "checks": [
+    {
+      "name": "the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
+      "ok": true,
+      "detail": {
+        "seconds": 5.128399999856953,
+        "noCamp": true,
+        "steps": 2,
+        "walked": true,
+        "nearCamp": true,
+        "standing": true,
+        "bundle": true,
+        "locked": true,
+        "gameDays": 0
+      }
+    },
+    {
+      "name": "the player starts at a camp with a bedroll and no house",
+      "ok": true
+    },
+    {
+      "name": "a waiting build is replaced by explicit chopping and finishes on a new build order",
+      "ok": true
+    },
+    {
+      "name": "clicking a villager selects it",
+      "ok": true,
+      "detail": {
+        "selected": "terrain5_3-person-3904"
+      }
+    },
+    {
+      "name": "clicking a tile opens its job menu, and Move here starts an order",
+      "ok": true,
+      "detail": {
+        "target": "terrain5_3-828"
+      }
+    },
+    {
+      "name": "the current order appears in the status strip",
+      "ok": true
+    },
+    {
+      "name": "Chat starts a personal order from the person panel",
+      "ok": true,
+      "detail": {
+        "person": "w5_3-social-74"
+      }
+    },
+    {
+      "name": "the person panel has no Recruit order",
+      "ok": true
+    },
+    {
+      "name": "Create Field, Create Stockpile and Cut down can be ordered from the popups",
+      "ok": true,
+      "detail": {
+        "fieldTile": "terrain5_3-784",
+        "stockpileTile": "terrain5_3-695",
+        "tree": "terrain5_3-2407"
+      }
+    },
+    {
+      "name": "the playtest ran to the end",
+      "ok": false,
+      "detail": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": []
+    }
+  ]
+}

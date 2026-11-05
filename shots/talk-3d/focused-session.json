@@ -1,0 +1,3497 @@
+{
+  "errors": [],
+  "actions": [
+    {
+      "command": {
+        "op": "shot",
+        "name": "menu-1280"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "start"
+      },
+      "result": "Ask the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour"
+    },
+    {
+      "command": {
+        "op": "observe"
+      },
+      "result": {
+        "day": 0.3770833333333333,
+        "player": "terrain5_3-person-3904",
+        "speed": "normal",
+        "hint": "Ask the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour",
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "nameOnly": true
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": []
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {}
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2070,
+              "y": 779.4228634059947
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2478.4307806183465,
+              "y": 1167.1535329954588
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2070,
+              "y": 779.4228634059947
+            },
+            "needs": {}
+          }
+        ],
+        "jobs": [],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "arrival-1280"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "hint"
+      },
+      "result": "hint clicked"
+    },
+    {
+      "command": {
+        "op": "await_chat"
+      },
+      "result": {
+        "day": 0.41249999999999987,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "w5_3-social-74",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.weather.03",
+              "family": "greeting",
+              "text": "Wet day to be out in. I'm Geoffrey.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "season"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-74"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-74": {
+              "traits": []
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": []
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {}
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2055.1458397291826,
+              "y": 707.0408888608757
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2108.3370109579128,
+              "y": 904.3066580114971
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2070,
+              "y": 743.4613391789284
+            },
+            "needs": {}
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-1",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "w5_3-social-74",
+            "progress": 0,
+            "approachAt": 0.38263888888888886,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "introduction"
+      },
+      "error": "Error: No such visible line: []"
+    },
+    {
+      "command": {
+        "op": "subject",
+        "name": "Family"
+      },
+      "result": [
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.01",
+          "family": "family_question",
+          "text": "Have you family here in Reedbrook?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.season_talk.rain.base.03",
+          "family": "season_talk",
+          "text": "Rain, and plenty of it.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.01",
+          "family": "family_question",
+          "text": "Have you family here in Reedbrook?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.season_talk.rain.base.03",
+          "family": "season_talk",
+          "text": "Rain, and plenty of it.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.01",
+          "family": "family_question",
+          "text": "Have you family here in Reedbrook?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.season_talk.rain.base.03",
+          "family": "season_talk",
+          "text": "Rain, and plenty of it.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "first-chat-1280"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "maternal_search"
+      },
+      "result": {
+        "id": "player.maternal_search.named_relative.base.01",
+        "family": "maternal_search",
+        "text": "Do you know my uncle, Hugh Seesi?",
+        "disabled": false,
+        "matches": 0
+      }
+    },
+    {
+      "command": {
+        "op": "end"
+      },
+      "result": "closed through End chat"
+    },
+    {
+      "command": {
+        "op": "talk",
+        "id": "w5_3-social-66"
+      },
+      "result": {
+        "day": 0.42083333333333317,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "w5_3-social-66",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.trade.07",
+              "family": "greeting",
+              "text": "Morning. I'm Hugh, the smith here in Reedbrook.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "work"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": []
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {}
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            }
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 1980,
+              "y": 555.5767664977294
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2121.6885774964894,
+              "y": 913.1734200228777
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2077.4270801354087,
+              "y": 837.633088565021
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-2",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "w5_3-social-66",
+            "progress": 0,
+            "approachAt": 0.41388888888888875,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "end"
+      },
+      "result": "closed through End chat"
+    },
+    {
+      "command": {
+        "op": "talk",
+        "id": "terrain5_3-person-4147"
+      },
+      "result": {
+        "day": 0.4263888888888887,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "terrain5_3-person-4147",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.love.01",
+              "family": "greeting",
+              "text": "*Smiling.* Hello. I'm Hugh, and you're very welcome in Reedbrook.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "terrain5_3-person-4147"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "terrain5_3-person-4147": {
+              "traits": []
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": []
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {}
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.41666666666666663
+            }
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2004,
+              "y": 613.1459858793826
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 16,
+              "base": 16
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2104.593154794875,
+              "y": 886.1226063077022
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2138.5448728736706,
+              "y": 950.0712158542871
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-3",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "terrain5_3-person-4147",
+            "progress": 0,
+            "approachAt": 0.42222222222222205,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "subject",
+        "name": "Family"
+      },
+      "result": [
+        {
+          "id": "player.maternal_introduction.mothers_child.base.01",
+          "family": "maternal_introduction",
+          "text": "I am Dionisia Seesi's child.",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my aunt, Margaret Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.02",
+          "family": "family_question",
+          "text": "Have you kin hereabouts?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.maternal_introduction.mothers_child.base.01",
+          "family": "maternal_introduction",
+          "text": "I am Dionisia Seesi's child.",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my aunt, Margaret Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.02",
+          "family": "family_question",
+          "text": "Have you kin hereabouts?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "maternal_introduction"
+      },
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-line-id=\"player.maternal_introduction.mothers_child.base.01\"] .chat-choice-text')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-pressed=\"false\" class=\"chat-choice-text\">I am Dionisia Seesi's child.</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
+    },
+    {
+      "command": {
+        "op": "observe"
+      },
+      "result": {
+        "day": 0.4263888888888887,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "terrain5_3-person-4147",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.love.01",
+              "family": "greeting",
+              "text": "*Smiling.* Hello. I'm Hugh, and you're very welcome in Reedbrook.",
+              "speaker": "npc"
+            },
+            {
+              "id": "player.maternal_introduction.mothers_child.base.01",
+              "family": "maternal_introduction",
+              "text": "I am Dionisia Seesi's child.",
+              "speaker": "player"
+            },
+            {
+              "id": "npc.maternal_recognition.welcome_kin.base.01",
+              "family": "maternal_recognition",
+              "text": "Then you are my nephew! Your mother is my own kin. Welcome, child; you have found family here.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "terrain5_3-person-4147"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "uncle"
+              },
+              "conversation": {
+                "day": 0.4263888888888887,
+                "position": {
+                  "x": 2130.5057029617037,
+                  "y": 836.2215116488602
+                },
+                "otherPosition": {
+                  "x": 2104.593154794875,
+                  "y": 886.1226063077022
+                }
+              },
+              "topicTastes": {
+                "family": 2
+              }
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": [
+              "terrain5_3-person-4147"
+            ]
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {
+              "trust": {
+                "personId": "terrain5_3-person-4147",
+                "day": 0.4263888888888887
+              }
+            }
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:food": {
+              "speakerId": "w5_3-social-78",
+              "kind": "food",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-66:word": {
+              "speakerId": "w5_3-social-66",
+              "kind": "word",
+              "householdId": "w5_3-home-6",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:visit": {
+              "speakerId": "w5_3-social-78",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-96:visit": {
+              "speakerId": "w5_3-social-96",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            }
+          },
+          "kinLinks": {
+            "terrain5_3-person-3904:terrain5_3-person-4147:maternal": {
+              "id": "terrain5_3-person-3904:terrain5_3-person-4147:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "terrain5_3-person-4147",
+              "kinship": "uncle",
+              "kin_term": "uncle",
+              "inverse_term": "nephew"
+            }
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2004,
+              "y": 613.1459858793826
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 38,
+              "base": 36
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2104.593154794875,
+              "y": 886.1226063077022
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2138.5448728736706,
+              "y": 950.0712158542871
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-3",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "terrain5_3-person-4147",
+            "progress": 0,
+            "approachAt": 0.42222222222222205,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": []
+    },
+    {
+      "command": {
+        "op": "subject",
+        "name": "Family"
+      },
+      "result": [
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.01",
+          "family": "family_question",
+          "text": "Have you family here in Reedbrook?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.own_question.general.base.03",
+          "family": "own_question",
+          "text": "How have you been, truly?",
+          "disabled": false,
+          "matches": 0
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.01",
+          "family": "family_question",
+          "text": "Have you family here in Reedbrook?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.own_question.general.base.03",
+          "family": "own_question",
+          "text": "How have you been, truly?",
+          "disabled": false,
+          "matches": 0
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "own_question"
+      },
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-line-id=\"player.own_question.general.base.03\"] .chat-choice-text')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-pressed=\"false\" class=\"chat-choice-text\">How have you been, truly?</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
+    },
+    {
+      "command": {
+        "op": "end"
+      },
+      "result": "closed through End chat"
+    },
+    {
+      "command": {
+        "op": "talk",
+        "id": "w5_3-social-69"
+      },
+      "result": {
+        "day": 0.4374999999999998,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "w5_3-social-69",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.base.02",
+              "family": "greeting",
+              "text": "Margaret Seesi. I don't think we've met, this spring or any other.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "season"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-69"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": []
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "uncle"
+              },
+              "conversation": {
+                "day": 0.4263888888888887,
+                "position": {
+                  "x": 2130.5057029617037,
+                  "y": 836.2215116488602
+                },
+                "otherPosition": {
+                  "x": 2104.593154794875,
+                  "y": 886.1226063077022
+                }
+              },
+              "topicTastes": {
+                "family": 2
+              }
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": [
+              "terrain5_3-person-4147"
+            ]
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {
+              "trust": {
+                "personId": "terrain5_3-person-4147",
+                "day": 0.4263888888888887
+              }
+            }
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:food": {
+              "speakerId": "w5_3-social-78",
+              "kind": "food",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-66:word": {
+              "speakerId": "w5_3-social-66",
+              "kind": "word",
+              "householdId": "w5_3-home-6",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:visit": {
+              "speakerId": "w5_3-social-78",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-96:visit": {
+              "speakerId": "w5_3-social-96",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            }
+          },
+          "kinLinks": {
+            "terrain5_3-person-3904:terrain5_3-person-4147:maternal": {
+              "id": "terrain5_3-person-3904:terrain5_3-person-4147:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "terrain5_3-person-4147",
+              "kinship": "uncle",
+              "kin_term": "uncle",
+              "inverse_term": "nephew"
+            }
+          }
+        },
+        "asks": [],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2020,
+              "y": 640.8587988004846
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 38,
+              "base": 36
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2104.593154794875,
+              "y": 886.1226063077022
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2294.4147326018738,
+              "y": 1116.7992977194533
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-4",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "w5_3-social-69",
+            "progress": 0,
+            "approachAt": 0.4277777777777776,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ]
+      }
+    },
+    {
+      "command": {
+        "op": "subject",
+        "name": "Family"
+      },
+      "result": [
+        {
+          "id": "player.maternal_introduction.mothers_child.base.01",
+          "family": "maternal_introduction",
+          "text": "I am Dionisia Seesi's child.",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.maternal_search.named_relative.base.01",
+          "family": "maternal_search",
+          "text": "Do you know my uncle, Hugh Seesi?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.family_question.general.base.04",
+          "family": "family_question",
+          "text": "Is your family close by?",
+          "disabled": false,
+          "matches": 1
+        },
+        {
+          "id": "player.flirt.company.base.01",
+          "family": "flirt",
+          "text": "I rather like being here with you.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "maternal_introduction"
+      },
+      "result": {
+        "id": "player.maternal_introduction.mothers_child.base.01",
+        "family": "maternal_introduction",
+        "text": "I am Dionisia Seesi's child.",
+        "disabled": false,
+        "matches": 0
+      }
+    },
+    {
+      "command": {
+        "op": "observe"
+      },
+      "result": {
+        "day": 0.4374999999999998,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "w5_3-social-69",
+          "expectation": "offer",
+          "transcript": [
+            {
+              "id": "npc.greeting.first_meeting.base.02",
+              "family": "greeting",
+              "text": "Margaret Seesi. I don't think we've met, this spring or any other.",
+              "speaker": "npc"
+            },
+            {
+              "id": "player.maternal_introduction.mothers_child.base.01",
+              "family": "maternal_introduction",
+              "text": "I am Dionisia Seesi's child.",
+              "speaker": "player"
+            },
+            {
+              "id": "npc.maternal_recognition.welcome_kin.base.01",
+              "family": "maternal_recognition",
+              "text": "Then you are my nephew! Your mother is my own kin. Welcome, child; you have found family here.",
+              "speaker": "npc"
+            },
+            {
+              "id": "npc.favour_ask.visit.base.02",
+              "family": "favour_ask",
+              "text": "Would you call on Hugh for me? They'd never say they were lonely.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "season"
+            },
+            {
+              "kind": "topic",
+              "key": "family"
+            },
+            {
+              "kind": "topic",
+              "key": "help"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "aunt"
+              },
+              "conversation": {
+                "day": 0.4374999999999998,
+                "position": {
+                  "x": 2067.392324062286,
+                  "y": 673.6931640663437
+                },
+                "otherPosition": {
+                  "x": 2020,
+                  "y": 640.8587988004846
+                }
+              },
+              "topicTastes": {
+                "family": -2
+              },
+              "personReactions": {
+                "w5_3-social-69": {
+                  "score": 0,
+                  "day": 0.4374999999999998
+                }
+              }
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "uncle"
+              },
+              "conversation": {
+                "day": 0.4263888888888887,
+                "position": {
+                  "x": 2130.5057029617037,
+                  "y": 836.2215116488602
+                },
+                "otherPosition": {
+                  "x": 2104.593154794875,
+                  "y": 886.1226063077022
+                }
+              },
+              "topicTastes": {
+                "family": 2
+              }
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": [
+              "terrain5_3-person-4147",
+              "w5_3-social-69"
+            ]
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {
+              "trust": {
+                "personId": "terrain5_3-person-4147",
+                "day": 0.4263888888888887
+              }
+            }
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:food": {
+              "speakerId": "w5_3-social-78",
+              "kind": "food",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-66:word": {
+              "speakerId": "w5_3-social-66",
+              "kind": "word",
+              "householdId": "w5_3-home-6",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-78:visit": {
+              "speakerId": "w5_3-social-78",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-96:visit": {
+              "speakerId": "w5_3-social-96",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4374999999999998
+            }
+          },
+          "kinLinks": {
+            "terrain5_3-person-3904:terrain5_3-person-4147:maternal": {
+              "id": "terrain5_3-person-3904:terrain5_3-person-4147:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "terrain5_3-person-4147",
+              "kinship": "uncle",
+              "kin_term": "uncle",
+              "inverse_term": "nephew"
+            },
+            "terrain5_3-person-3904:w5_3-social-69:maternal": {
+              "id": "terrain5_3-person-3904:w5_3-social-69:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "w5_3-social-69",
+              "kinship": "aunt",
+              "kin_term": "aunt",
+              "inverse_term": "nephew"
+            }
+          },
+          "favours": [
+            "terrain5_3-favour-13"
+          ],
+          "offers": {
+            "terrain5_3-favour-13": {
+              "speakerId": "w5_3-social-69",
+              "day": 0.4374999999999998
+            }
+          }
+        },
+        "asks": [
+          {
+            "id": "terrain5_3-favour-13",
+            "giverId": "w5_3-social-69",
+            "householdId": "w5_3-social-82",
+            "kind": "visit",
+            "targetId": "w5_3-social-66",
+            "quantity": 1,
+            "progress": 0,
+            "delivered": 0,
+            "produced": 0,
+            "goodwill": 6,
+            "status": "offered",
+            "cargo": [],
+            "createdDay": 0.375,
+            "reason": "An old relative living alone"
+          }
+        ],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 33.75,
+              "base": 36
+            },
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2020,
+              "y": 640.8587988004846
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 38,
+              "base": 36
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2104.593154794875,
+              "y": 886.1226063077022
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2294.4147326018738,
+              "y": 1116.7992977194533
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-4",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "w5_3-social-69",
+            "progress": 0,
+            "approachAt": 0.4277777777777776,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ],
+        "book": {
+          "askWords": {
+            "terrain5_3-favour-13": {
+              "text": "Would you call on Hugh for me? They'd never say they were lonely.",
+              "speakerId": "w5_3-social-69",
+              "targetName": "Hugh"
+            }
+          }
+        }
+      }
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": []
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "ask-spoken-1280"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.favour_accept.visit.base.02",
+          "family": "favour_accept",
+          "text": "I'll sit with them a while.",
+          "disabled": false,
+          "matches": 2
+        },
+        {
+          "id": "player.favour_decline.decline.base.02",
+          "family": "favour_decline",
+          "text": "Not this time, I'm sorry.",
+          "disabled": false,
+          "matches": 1
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "favour_accept"
+      },
+      "result": {
+        "id": "player.favour_accept.visit.base.02",
+        "family": "favour_accept",
+        "text": "I'll sit with them a while.",
+        "disabled": false,
+        "matches": 2
+      }
+    },
+    {
+      "command": {
+        "op": "end"
+      },
+      "result": "closed through End chat"
+    },
+    {
+      "command": {
+        "op": "click",
+        "name": "Journal · J"
+      },
+      "result": "clicked"
+    },
+    {
+      "command": {
+        "op": "selector",
+        "selector": ".favour-list summary"
+      },
+      "result": "clicked"
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "ask-journal-1280",
+        "selector": ".favour-request"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "size",
+        "width": 390,
+        "height": 800
+      },
+      "result": "resized"
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "ask-journal-390",
+        "selector": ".favour-request"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "read",
+        "selector": ".favour-list"
+      },
+      "result": "Favours · 1 requests\nMargaret Seesi\nLook in on them\nWould you call on Hugh for me? They'd never say they were lonely.\n\nAbout Hugh\n\nYou promised to help.\n\nAccepted\n\nAnswer requests in Chat. A delivery starts when you agree. Other promises stay here as events unfold."
+    },
+    {
+      "command": {
+        "op": "size",
+        "width": 1280,
+        "height": 800
+      },
+      "result": "resized"
+    },
+    {
+      "command": {
+        "op": "click",
+        "name": "Journal · J"
+      },
+      "result": "clicked"
+    },
+    {
+      "command": {
+        "op": "talk",
+        "id": "w5_3-social-66"
+      },
+      "result": {
+        "day": 0.44513888888888864,
+        "player": "terrain5_3-person-3904",
+        "speed": "paused",
+        "hint": "Choose a reply in the conversation, or End chat.",
+        "chat": {
+          "npcId": "w5_3-social-66",
+          "transcript": [
+            {
+              "id": "npc.greeting.met_no_exchange.activity.01",
+              "family": "greeting",
+              "text": "*Looking up from the forge.* We've not had a proper word yet. I'm Hugh.",
+              "speaker": "npc"
+            }
+          ],
+          "row": [
+            {
+              "kind": "topic",
+              "key": "work"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ]
+        },
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "aunt"
+              },
+              "conversation": {
+                "day": 0.4374999999999998,
+                "position": {
+                  "x": 2067.392324062286,
+                  "y": 673.6931640663437
+                },
+                "otherPosition": {
+                  "x": 2020,
+                  "y": 640.8587988004846
+                }
+              },
+              "topicTastes": {
+                "family": -2,
+                "help": -2
+              },
+              "personReactions": {
+                "w5_3-social-69": {
+                  "score": 0,
+                  "day": 0.4374999999999998
+                }
+              }
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "uncle"
+              },
+              "conversation": {
+                "day": 0.4263888888888887,
+                "position": {
+                  "x": 2130.5057029617037,
+                  "y": 836.2215116488602
+                },
+                "otherPosition": {
+                  "x": 2104.593154794875,
+                  "y": 886.1226063077022
+                }
+              },
+              "topicTastes": {
+                "family": 2
+              }
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": [
+              "terrain5_3-person-4147",
+              "w5_3-social-69"
+            ]
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {
+              "trust": {
+                "personId": "terrain5_3-person-4147",
+                "day": 0.4263888888888887
+              }
+            }
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:food": {
+              "speakerId": "w5_3-social-78",
+              "kind": "food",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-66:word": {
+              "speakerId": "w5_3-social-66",
+              "kind": "word",
+              "householdId": "w5_3-home-6",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-78:visit": {
+              "speakerId": "w5_3-social-78",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4374999999999998
+            },
+            "w5_3-social-96:visit": {
+              "speakerId": "w5_3-social-96",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4374999999999998
+            }
+          },
+          "kinLinks": {
+            "terrain5_3-person-3904:terrain5_3-person-4147:maternal": {
+              "id": "terrain5_3-person-3904:terrain5_3-person-4147:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "terrain5_3-person-4147",
+              "kinship": "uncle",
+              "kin_term": "uncle",
+              "inverse_term": "nephew"
+            },
+            "terrain5_3-person-3904:w5_3-social-69:maternal": {
+              "id": "terrain5_3-person-3904:w5_3-social-69:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "w5_3-social-69",
+              "kinship": "aunt",
+              "kin_term": "aunt",
+              "inverse_term": "nephew"
+            }
+          },
+          "favours": [
+            "terrain5_3-favour-13"
+          ],
+          "offers": {
+            "terrain5_3-favour-13": {
+              "speakerId": "w5_3-social-69",
+              "day": 0.4374999999999998
+            }
+          }
+        },
+        "asks": [
+          {
+            "id": "terrain5_3-favour-13",
+            "giverId": "w5_3-social-69",
+            "householdId": "w5_3-social-82",
+            "kind": "visit",
+            "targetId": "w5_3-social-66",
+            "quantity": 1,
+            "progress": 0,
+            "delivered": 0,
+            "produced": 0,
+            "goodwill": 6,
+            "status": "accepted",
+            "cargo": [],
+            "createdDay": 0.375,
+            "reason": "An old relative living alone",
+            "acceptedDay": 0.4374999999999998,
+            "actorId": "terrain5_3-person-3904",
+            "deliveryAuthorised": true
+          }
+        ],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "needs": {}
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 29.75,
+              "base": 36
+            },
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2020,
+              "y": 640.8587988004846
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 38,
+              "base": 36
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2096.0454434440676,
+              "y": 872.5971994501144
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-74",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.20714285714285713,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2432.9639389570757,
+              "y": 1196.8250246085418
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": false,
+              "homeId": "w5_3-home-11",
+              "stage": "outbound",
+              "expires": 0.875
+            }
+          }
+        ],
+        "jobs": [
+          {
+            "id": "task-5",
+            "job": {
+              "key": "chat"
+            },
+            "targetId": "w5_3-social-66",
+            "progress": 0,
+            "approachAt": 0.43888888888888866,
+            "waiting": null,
+            "assignedId": "terrain5_3-person-3904"
+          }
+        ],
+        "latest": [
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1153"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w5_3-social-96"
+            ],
+            "id": "w5_3-event-1154"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          }
+        ],
+        "book": {
+          "askWords": {
+            "terrain5_3-favour-13": {
+              "text": "Would you call on Hugh for me? They'd never say they were lonely.",
+              "speakerId": "w5_3-social-69",
+              "targetName": "Hugh"
+            }
+          }
+        }
+      }
+    },
+    {
+      "command": {
+        "op": "choices"
+      },
+      "result": [
+        {
+          "id": "player.maternal_introduction.mothers_child.base.01",
+          "family": "maternal_introduction",
+          "text": "I am Dionisia Seesi's child.",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.lands_question.beyond.base.01",
+          "family": "lands_question",
+          "text": "What lies past the passes?",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.season_talk.rain.base.04",
+          "family": "season_talk",
+          "text": "Wet out there.",
+          "disabled": false,
+          "matches": 0
+        },
+        {
+          "id": "player.need_question.anyone.new.01",
+          "family": "need_question",
+          "text": "I'm new here. Who could use a hand?",
+          "disabled": false,
+          "matches": 0
+        }
+      ]
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "introduction"
+      },
+      "error": "Error: No such visible line: [{\"id\":\"player.maternal_introduction.mothers_child.base.01\",\"family\":\"maternal_introduction\",\"text\":\"I am Dionisia Seesi's child.\",\"disabled\":false,\"matches\":0},{\"id\":\"player.lands_question.beyond.base.01\",\"family\":\"lands_question\",\"text\":\"What lies past the passes?\",\"disabled\":false,\"matches\":0},{\"id\":\"player.season_talk.rain.base.04\",\"family\":\"season_talk\",\"text\":\"Wet out there.\",\"disabled\":false,\"matches\":0},{\"id\":\"player.need_question.anyone.new.01\",\"family\":\"need_question\",\"text\":\"I'm new here. Who could use a hand?\",\"disabled\":false,\"matches\":0}]"
+    },
+    {
+      "command": {
+        "op": "end"
+      },
+      "result": "closed through End chat"
+    },
+    {
+      "command": {
+        "op": "advance",
+        "minutes": 60
+      },
+      "result": {
+        "start": 0.4465277777777775,
+        "end": 0.48819444444444404,
+        "steps": 60,
+        "chat": false,
+        "seasonTurn": false
+      }
+    },
+    {
+      "command": {
+        "op": "click",
+        "name": "Journal · J"
+      },
+      "result": "clicked"
+    },
+    {
+      "command": {
+        "op": "shot",
+        "name": "ask-outcome-1280",
+        "selector": ".favour-request"
+      },
+      "result": "saved"
+    },
+    {
+      "command": {
+        "op": "read",
+        "selector": ".favour-list"
+      },
+      "result": "Favours · 1 requests"
+    },
+    {
+      "command": {
+        "op": "observe"
+      },
+      "result": {
+        "day": 0.5034722222222218,
+        "player": "terrain5_3-person-3904",
+        "speed": "normal",
+        "hint": "Select grassland near camp and choose Build shelter before night.\nShow shelter tile",
+        "known": {
+          "people": {
+            "terrain5_3-backstory-4146": {
+              "traits": [],
+              "nameOnly": true
+            },
+            "w5_3-social-66": {
+              "traits": [],
+              "trade": "smith"
+            },
+            "w5_3-social-69": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "aunt"
+              },
+              "conversation": {
+                "day": 0.4374999999999998,
+                "position": {
+                  "x": 2067.392324062286,
+                  "y": 673.6931640663437
+                },
+                "otherPosition": {
+                  "x": 2020,
+                  "y": 640.8587988004846
+                }
+              },
+              "topicTastes": {
+                "family": -2,
+                "help": -2
+              },
+              "personReactions": {
+                "w5_3-social-69": {
+                  "score": 0,
+                  "day": 0.4374999999999998
+                }
+              }
+            },
+            "terrain5_3-person-4147": {
+              "traits": [],
+              "maternalKin": {
+                "motherId": "terrain5_3-backstory-4146",
+                "term": "uncle"
+              },
+              "conversation": {
+                "day": 0.4263888888888887,
+                "position": {
+                  "x": 2130.5057029617037,
+                  "y": 836.2215116488602
+                },
+                "otherPosition": {
+                  "x": 2104.593154794875,
+                  "y": 886.1226063077022
+                }
+              },
+              "topicTastes": {
+                "family": 2
+              }
+            },
+            "w5_3-social-74": {
+              "traits": [],
+              "conversation": {
+                "day": 0.41249999999999987,
+                "position": {
+                  "x": 2045.302574602153,
+                  "y": 692.362452035751
+                },
+                "otherPosition": {
+                  "x": 2070,
+                  "y": 743.4613391789284
+                }
+              },
+              "topicTastes": {
+                "family": 0
+              }
+            }
+          },
+          "feelings": {},
+          "maternalFamily": {
+            "motherId": "terrain5_3-backstory-4146",
+            "origin": "this region",
+            "met": [
+              "terrain5_3-person-4147",
+              "w5_3-social-69"
+            ]
+          },
+          "peopleGoals": {
+            "villageId": "w5_3-village-1",
+            "earned": {
+              "trust": {
+                "personId": "terrain5_3-person-4147",
+                "day": 0.4263888888888887
+              }
+            }
+          },
+          "familyWhereabouts": {
+            "terrain5_3-person-4147": {
+              "villageId": "w5_3-village-1",
+              "direction": "south",
+              "day": 0.41249999999999987,
+              "speakerId": "w5_3-social-74"
+            }
+          },
+          "villages": [
+            "w5_3-village-1"
+          ],
+          "noticedNeeds": {
+            "w5_3-social-65:food": {
+              "speakerId": "w5_3-social-65",
+              "kind": "food",
+              "householdId": "w5_3-social-82",
+              "day": 0.5
+            },
+            "w5_3-social-65:visit": {
+              "speakerId": "w5_3-social-65",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.5
+            },
+            "w5_3-social-69:visit": {
+              "speakerId": "w5_3-social-69",
+              "kind": "visit",
+              "householdId": "w5_3-social-82",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-78:food": {
+              "speakerId": "w5_3-social-78",
+              "kind": "food",
+              "householdId": "w5_3-home-16",
+              "day": 0.4263888888888887
+            },
+            "w5_3-social-66:word": {
+              "speakerId": "w5_3-social-66",
+              "kind": "word",
+              "householdId": "w5_3-home-6",
+              "day": 0.5
+            },
+            "w5_3-social-78:visit": {
+              "speakerId": "w5_3-social-78",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4583333333333333
+            },
+            "w5_3-social-96:visit": {
+              "speakerId": "w5_3-social-96",
+              "kind": "visit",
+              "householdId": "w5_3-home-16",
+              "day": 0.4583333333333333
+            },
+            "w5_3-social-76:visit": {
+              "speakerId": "w5_3-social-76",
+              "kind": "visit",
+              "householdId": "w5_3-home-11",
+              "day": 0.5
+            }
+          },
+          "kinLinks": {
+            "terrain5_3-person-3904:terrain5_3-person-4147:maternal": {
+              "id": "terrain5_3-person-3904:terrain5_3-person-4147:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "terrain5_3-person-4147",
+              "kinship": "uncle",
+              "kin_term": "uncle",
+              "inverse_term": "nephew"
+            },
+            "terrain5_3-person-3904:w5_3-social-69:maternal": {
+              "id": "terrain5_3-person-3904:w5_3-social-69:maternal",
+              "speaker_id": "terrain5_3-person-3904",
+              "relative_id": "w5_3-social-69",
+              "kinship": "aunt",
+              "kin_term": "aunt",
+              "inverse_term": "nephew"
+            }
+          },
+          "favours": [
+            "terrain5_3-favour-13"
+          ],
+          "offers": {
+            "terrain5_3-favour-13": {
+              "speakerId": "w5_3-social-69",
+              "day": 0.4374999999999998
+            }
+          }
+        },
+        "asks": [
+          {
+            "id": "terrain5_3-favour-13",
+            "giverId": "w5_3-social-69",
+            "householdId": "w5_3-social-82",
+            "kind": "visit",
+            "targetId": "w5_3-social-66",
+            "quantity": 1,
+            "progress": 0,
+            "delivered": 0,
+            "produced": 0,
+            "goodwill": 6,
+            "status": "accepted",
+            "cargo": [],
+            "createdDay": 0.375,
+            "reason": "An old relative living alone",
+            "acceptedDay": 0.4374999999999998,
+            "actorId": "terrain5_3-person-3904",
+            "deliveryAuthorised": true
+          }
+        ],
+        "people": [
+          {
+            "id": "terrain5_3-backstory-4146",
+            "name": "Dionisia Seesi",
+            "age": 57.10714285714286,
+            "spouse": null
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "public",
+              "goodwill": 0,
+              "base": 0
+            },
+            "age": 66,
+            "spouse": "w5_3-social-71",
+            "where": {
+              "id": "w5_3-social-66",
+              "x": 2099.2858546120233,
+              "y": 760.0487400635427
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "terrain5_3-person-4147",
+              "visitor": true,
+              "homeId": "w5_3-home-6",
+              "stage": "visiting",
+              "expires": 0.875,
+              "started": 0.4597222222222219,
+              "courting": false,
+              "utterance": {
+                "speakerId": "w5_3-social-66",
+                "listenerId": "terrain5_3-person-4147",
+                "lineId": "npc.overheard_topic.spring.base.01",
+                "namedPeople": [],
+                "text": "The spring days are here.",
+                "day": 0.5013888888888884,
+                "until": 0.5222222222222218,
+                "audible": false
+              },
+              "newsExchanged": true,
+              "conversations": 2
+            }
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": "Margaret Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 29.83571428571429,
+              "base": 36
+            },
+            "age": 64,
+            "spouse": "w5_3-social-65",
+            "where": {
+              "id": "w5_3-social-69",
+              "x": 2357.2871870788977,
+              "y": 1153.1342951089919
+            },
+            "needs": {}
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": "Hugh Seesi",
+            "bond": {
+              "ring": "social",
+              "goodwill": 37.91428571428571,
+              "base": 36
+            },
+            "age": 55.10714285714286,
+            "spouse": null,
+            "where": {
+              "id": "terrain5_3-person-4147",
+              "x": 2157.5656249659155,
+              "y": 755.0837345458447
+            },
+            "needs": {},
+            "visit": {
+              "partnerId": "w5_3-social-66",
+              "visitor": false,
+              "homeId": "w5_3-home-6",
+              "stage": "visiting",
+              "expires": 0.875,
+              "started": 0.4597222222222219,
+              "courting": false,
+              "utterance": {
+                "speakerId": "terrain5_3-person-4147",
+                "listenerId": "w5_3-social-66",
+                "lineId": "npc.overheard_topic.spring.base.01",
+                "namedPeople": [],
+                "text": "The spring days are here.",
+                "day": 0.5013888888888884,
+                "until": 0.5222222222222218,
+                "audible": true
+              },
+              "newsExchanged": true,
+              "conversations": 2
+            }
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": "Geoffrey Jobari",
+            "bond": {
+              "ring": "public",
+              "goodwill": -0.12142857142857139,
+              "base": 0
+            },
+            "age": 58,
+            "spouse": "w5_3-social-76",
+            "where": {
+              "id": "w5_3-social-74",
+              "x": 2610,
+              "y": 1406.9226783578567
+            },
+            "needs": {}
+          }
+        ],
+        "jobs": [],
+        "latest": [
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-96",
+              "w5_3-social-97"
+            ],
+            "id": "w5_3-event-1155"
+          },
+          {
+            "type": "visit",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1156"
+          },
+          {
+            "type": "move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1157"
+          },
+          {
+            "type": "marriage",
+            "day": 0,
+            "people": [
+              "w5_3-social-102",
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1158"
+          },
+          {
+            "type": "world_move",
+            "day": 0,
+            "people": [
+              "w6_3-social-116"
+            ],
+            "id": "w5_3-event-1159"
+          },
+          {
+            "type": "departure",
+            "day": 0,
+            "people": [
+              "w5_3-social-92"
+            ],
+            "id": "w5_3-event-1160"
+          },
+          {
+            "type": "visit",
+            "day": 0.47986111111111074,
+            "people": [
+              "w5_3-social-86",
+              "w5_3-social-102"
+            ],
+            "id": "terrain5_3-event-1169"
+          },
+          {
+            "type": "visit",
+            "day": 0.4805555555555552,
+            "people": [
+              "w5_3-social-66",
+              "terrain5_3-person-4147"
+            ],
+            "id": "terrain5_3-event-1170"
+          }
+        ],
+        "book": {
+          "askWords": {
+            "terrain5_3-favour-13": {
+              "text": "Would you call on Hugh for me? They'd never say they were lonely.",
+              "speakerId": "w5_3-social-69",
+              "targetName": "Hugh"
+            }
+          }
+        }
+      }
+    },
+    {
+      "command": {
+        "op": "click",
+        "name": "Journal · J"
+      },
+      "result": "clicked"
+    },
+    {
+      "command": {
+        "op": "talk",
+        "id": "w5_3-social-66"
+      },
+      "error": "Error: Chat approach ended without a panel: {\"day\":0.5118055555555551,\"bond\":{\"ring\":\"public\",\"goodwill\":0,\"base\":0},\"history\":{\"actorId\":\"terrain5_3-person-3904\",\"npcId\":\"w5_3-social-66\",\"day\":0.44513888888888864,\"encounter\":2,\"endReason\":\"player_ended\",\"lines\":[{\"id\":\"npc.greeting.met_no_exchange.activity.01\",\"family\":\"greeting\",\"situation\":\"met_no_exchange\",\"speaker\":\"npc\",\"text\":\"*Looking up from the forge.* We've not had a proper word yet. I'm Hugh.\",\"icons\":[{\"kind\":\"topic\",\"key\":\"work\"},{\"kind\":\"person\",\"personId\":\"w5_3-social-66\"}],\"pops\":[],\"requestIds\":[],\"presentation\":{\"before\":{\"row\":[],\"regard\":0,\"learned\":{\"traits\":[],\"trade\":\"smith\"}},\"icons\":[{\"kind\":\"topic\",\"key\":\"work\"},{\"kind\":\"person\",\"personId\":\"w5_3-social-66\"}],\"after\":{\"row\":[{\"kind\":\"topic\",\"key\":\"work\"},{\"kind\":\"person\",\"personId\":\"w5_3-social-66\"}],\"regard\":0,\"learned\":{\"traits\":[],\"trade\":\"smith\"}}}},{\"id\":\"player.leave_taking.player_farewell.day.01\",\"family\":\"leave_taking\",\"speaker\":\"player\",\"text\":\"Good day to you.\",\"icons\":[],\"pops\":[]},{\"id\":\"npc.leave_taking.npc_farewell.base.02\",\"family\":\"leave_taking\",\"speaker\":\"npc\",\"text\":\"Go well.\",\"icons\":[],\"pops\":[]}]},\"result\":{\"personId\":\"w5_3-social-66\",\"message\":\"They need a rest before talking. Try another neighbour.\"}}"
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "maternal_introduction"
+      },
+      "error": "Error: No such visible line: []"
+    },
+    {
+      "command": {
+        "op": "subject",
+        "name": "Family"
+      },
+      "error": "TimeoutError: locator.getAttribute: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.chat-panel details')\u001b[22m\n"
+    },
+    {
+      "command": {
+        "op": "choose",
+        "family": "maternal_introduction"
+      },
+      "error": "Error: No such visible line: []"
+    }
+  ]
+}

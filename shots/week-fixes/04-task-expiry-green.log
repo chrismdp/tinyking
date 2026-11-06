@@ -1,0 +1,8 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       86 passed, 86 total
+Snapshots:   0 total
+Time:        4.207 s
+Ran all test suites matching test/favours.test.js|test/player_day.test.js|test/core_loop.test.js.
+
+Exit status: 0

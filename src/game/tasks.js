@@ -16,7 +16,7 @@ import { designationPlants } from "game/designation";
 import { canPlaceField, reserveFieldPlot, routeBlocked } from "game/land_use";
 import { GARDEN_CARE_TIME, GARDEN_GROWTH } from "game/household_routines";
 import { exitPoint, tileAt } from "game/travel_geometry";
-import { FUEL_TRADES, FUEL_HOURS, harvestRouteReason, fuelReady, householdFood, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, releaseFavourCargo, finishFavour, favourSource } from "game/favours";
+import { FUEL_TRADES, FUEL_HOURS, harvestRouteReason, fuelReady, householdFood, householdStore, favourReceiver, favourCargoAvailable, requestForTask, reasonGone, expireFavour, finishFavour, favourSource } from "game/favours";
 import { friendEligible, releaseFriendWork } from "game/friend_help";
 import { transferPossession } from "game/possessions";
 import { recordEvent } from "game/events";
@@ -1255,7 +1255,7 @@ export function do_favour(state, actorId, world, dt, firstRun, requestId) {
   if (firstRun && r) r.working = false;
   if (!r || r.status != "accepted" || r.actorId && r.actorId != actorId || ecs.personable[actorId]?.dead) return Task.ABORT;
   const gone = reasonGone(state, r);
-  if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(state, r); return Task.ABORT; }
+  if (gone) { expireFavour(state,r,gone); return Task.ABORT; }
   const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);
   if(firstRun)delete order.failureReason;
   const fail = reason => { order.failureReason = reason; return Task.ABORT; };

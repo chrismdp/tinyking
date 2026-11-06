@@ -125,6 +125,16 @@ export function harvestOfferQuantity(s, field) {
   return quantity;
 }
 
+export function expireFavour(s,r,reason) {
+  const accepted=r.status=="accepted";
+  r.status="expired";r.outcome=reason+" · no goodwill";
+  releaseFavourCargo(s,r);
+  for(const task of [...s.ecs.manager[s.ui.playerId].jobs])if(task.favourId==r.id) {
+    task.waiting=r.outcome;cancelTask(s,task.id);
+  }
+  if(accepted)s.ui.favourNotice={requestId:r.id,text:`${s.personName?.(r.giverId)||"Your neighbour"} no longer needs this help. ${reason}.`};
+}
+
 export function updateFavours(s) {
   const ecs = s.ecs, player = s.ui?.playerId;
   if (!player || !ecs.personable?.[player]) return;
@@ -132,12 +142,7 @@ export function updateFavours(s) {
   const food = householdFood(s);
   for (const r of Object.values(s.favours.requests)) if (["offered", "accepted"].includes(r.status)) {
     const gone = reasonGone(s, r, food);
-    if (gone) {
-      const accepted=r.status=="accepted";
-      r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(s, r);
-      for(const task of [...ecs.manager[player].jobs])if(task.favourId==r.id){task.waiting=r.outcome;cancelTask(s,task.id);}
-      if(accepted)s.ui.favourNotice={requestId:r.id,text:`${s.personName?.(r.giverId)||"Your neighbour"} no longer needs this help. ${gone}.`};
-    }
+    if (gone) expireFavour(s,r,gone);
   }
   for (const [house, h] of Object.entries(ecs.household || {})) {
     if (!h.storeId || !ecs.container?.[h.storeId]) continue;

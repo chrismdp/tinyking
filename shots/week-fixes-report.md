@@ -59,3 +59,45 @@ The mother's record is off-map. The subject chooser previously filtered to local
 The combined follow-up passed 50 tests: [06-07-followup-green.log](week-fixes/06-07-followup-green.log), exit 0. The earlier news/home/origin run preserved one origin failure: [05-07-green.log](week-fixes/05-07-green.log), exit 1. Its news and current-home tests passed.
 
 The first affected-gate shell ended with tool exit 143 before it wrote any Jest output. This is a terminated shell receipt, not a Jest result. Its empty log is [affected.log](week-fixes/affected.log). The command was rerun under the lock.
+
+## Gate and production build
+
+The affected gate used the required command under its lock:
+
+```text
+flock -w 7200 /tmp/27agents-gate.lock npx jest --changedSince=dc3b6ca --runInBand
+```
+
+Exit 1. Complete literal output: [affected-rerun.log](week-fixes/affected-rerun.log).
+
+```text
+Test Suites: 2 failed, 150 passed, 152 total
+Tests:       3 failed, 1531 passed, 1534 total
+Snapshots:   1 passed, 1 total
+Time:        254.359 s
+Ran all test suites related to changed files.
+```
+
+The multiple-ask failure was corrected as described above. Two old peace tests checked the words “conversation” and “Personal”. Those assertions now test the blocking behaviour: a reason is returned, a meeting attempt is refused, and no visit starts. The fixed hate cap and all other original assertions remain. This follows the instruction to avoid copy tests.
+
+Retained the 150 passing files. Reran the two failed files and five files exposed to the final speech, subject eligibility and request-ID changes:
+
+```text
+flock -w 7200 /tmp/27agents-gate.lock npx jest test/social_interventions.test.js test/chat_interventions.test.js test/chat_answers.test.js test/mother_family.test.js test/chat_tell.test.js test/chat_row_rules.test.js test/conversation_rungs.test.js --runInBand
+
+Test Suites: 7 passed, 7 total
+Tests:       100 passed, 100 total
+Snapshots:   0 total
+Time:        19.413 s, estimated 23 s
+Ran all test suites matching test/social_interventions.test.js|test/chat_interventions.test.js|test/chat_answers.test.js|test/mother_family.test.js|test/chat_tell.test.js|test/chat_row_rules.test.js|test/conversation_rungs.test.js.
+
+Exit status: 0
+```
+
+Literal receipt: [affected-repairs.log](week-fixes/affected-repairs.log). No whole-suite gate ran. This JavaScript repo has no typecheck script or TypeScript configuration. ESLint covered all changed source and the observation driver: exit 0, [lint-final.log](week-fixes/lint-final.log). Earlier source lint also exited 0: [lint.log](week-fixes/lint.log).
+
+One production build: `flock -w 7200 /tmp/27agents-gate-2.lock npm run build`, exit 0. Complete literal output: [build.log](week-fixes/build.log). Webpack reported three bundle-size warnings. The app compiled in 29,521 ms and the save worker in 910 ms.
+
+A final path check found that `do_favour` could expire its own request before the hourly updater. That path bypassed the new queue cleanup. A new regression failed first: [04-task-expiry-red.log](week-fixes/04-task-expiry-red.log), exit 1. Both expiry paths now use the same cleanup and notice. The complete favour, player-day and energy files passed, 86 tests: [04-task-expiry-green.log](week-fixes/04-task-expiry-green.log), exit 0.
+
+This demonstrated runtime correction landed after the first production build. A second build is required to cover it. This is the only repeated production build, caused by a concrete missed expiry path rather than a routine repeat.

@@ -1,0 +1,8 @@
+
+Test Suites: 7 passed, 7 total
+Tests:       100 passed, 100 total
+Snapshots:   0 total
+Time:        19.413 s, estimated 23 s
+Ran all test suites matching test/social_interventions.test.js|test/chat_interventions.test.js|test/chat_answers.test.js|test/mother_family.test.js|test/chat_tell.test.js|test/chat_row_rules.test.js|test/conversation_rungs.test.js.
+
+Exit status: 0

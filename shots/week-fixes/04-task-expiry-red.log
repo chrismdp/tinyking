@@ -1,0 +1,23 @@
+FAIL test/favours.test.js
+  ● clears and announces a need that lapses during the delivery task itself
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not {"assignedId": "7", "expectedGoodwill": 12, "favourId": "favour-2", "forId": "8", "id": "task-1", "job": {"key": "favour"}, "progress": 0, "targetId": "12"}
+    Received array:     [{"assignedId": "7", "expectedGoodwill": 12, "favourId": "favour-2", "forId": "8", "id": "task-1", "job": {"key": "favour"}, "progress": 0, "targetId": "12"}]
+
+      816 |  s.ecs.container[w.store].amounts.wood=1;
+      817 |  expect(do_favour(s,w.player,s.ecs.planner[w.player].world,HOUR/60,false,r.id)).toBe(Task.ABORT);
+    > 818 |  expect(r.status).toBe('expired');expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+          |                                                                            ^
+      819 |  expect(s.ui.favourNotice.requestId).toBe(r.id);
+      820 | });
+      821 |
+
+      at Object.<anonymous> (test/favours.test.js:818:76)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 58 skipped, 59 total
+Snapshots:   0 total
+Time:        1.919 s, estimated 2 s
+Ran all test suites matching test/favours.test.js with tests matching "lapses during".

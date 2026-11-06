@@ -809,3 +809,12 @@ it('clears an expired delivery and alerts its player when someone else meets the
  expect(r.status).toBe('expired');expect(s.ecs.manager[w.player].jobs).not.toContain(task);
  expect(s.ecs.planner[w.player].task).toBeNull();expect(s.ui.favourNotice.requestId).toBe(r.id);
 });
+
+it('clears and announces a need that lapses during the delivery task itself',()=>{
+ const w=favourWorld(),s=w.state,r=w.request('wood');const task=acceptFavour(s,r.id);
+ task.assignedId=w.player;s.ecs.planner[w.player].world.currentJob='favour';
+ s.ecs.container[w.store].amounts.wood=1;
+ expect(do_favour(s,w.player,s.ecs.planner[w.player].world,HOUR/60,false,r.id)).toBe(Task.ABORT);
+ expect(r.status).toBe('expired');expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+ expect(s.ui.favourNotice.requestId).toBe(r.id);
+});

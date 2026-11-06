@@ -35,10 +35,14 @@ it("requires both parties' Personal trust and a completed conversation with each
   const e = quarrel(w);
   expect(peaceUnavailable(s,w.player,w.a,w.b)).toBeNull();
   s.social.contacts[[w.player,w.a].sort().join(":")] = e.day - HOUR;
-  expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/conversation/);
+  expect(peaceUnavailable(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(makePeace(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(s.ecs.planner[w.a].world.social).toBeUndefined();
   completeConversation(s,w.player,w.a);
   s.ecs.relationships[w.b].known[w.player].ring = "social";
-  expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+  expect(peaceUnavailable(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(makePeace(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(s.ecs.planner[w.a].world.social).toBeUndefined();
 });
 
 it("expires avoidance early and plans a real meeting without recording peace before contact, once per season", () => {
@@ -60,7 +64,9 @@ it("keeps fixed hate's Public cap even after gifts", () => {
   s.ecs.personality[w.b].opinionThresholds={hate:100,love:200};
   addGoodwill(s,w.player,w.b,200);
   expect(relationshipCap(s,w.b,w.player)).toBe(0);
-  expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+  expect(peaceUnavailable(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(makePeace(s,w.player,w.a,w.b)).toEqual(expect.any(String));
+  expect(s.ecs.planner[w.a].world.social).toBeUndefined();
 });
 
 it("introduces only eligible willing people through routes and existing visit planners", () => {

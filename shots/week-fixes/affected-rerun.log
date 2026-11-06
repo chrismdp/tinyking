@@ -1,0 +1,116 @@
+FAIL test/chat_interventions.test.js
+  ● explains each accepted promise when one person has more than one
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      139 |    s.chat.active.row=[];s.chat.active.focus='help';
+      140 |    const line=chatChoices(s).find(l=>l.family==='promise_followup'&&l.b.request.id===r.id);
+    > 141 |    expect(line).toBeDefined();chooseLine(s,line.key);
+          |                 ^
+      142 |    expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:'npc',family:'promise_step',step:{requestId:r.id}});
+      143 |  }
+      144 | });
+
+      at Object.<anonymous> (test/chat_interventions.test.js:141:17)
+
+{"childExtras":false,"before":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]},"after":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]}}
+{"childExtras":true,"before":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]},"after":{"interest":3,"eligible":2,"knownChecks":21,"choices":[["visit","alice","fay"],["visit","ben","beth"],["play","child-a","child-b"],["play","child-c","child-d"]]}}
+FAIL test/social_interventions.test.js
+  ● requires both parties' Personal trust and a completed conversation with each since the quarrel
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /conversation/
+    Received string:  "Talk with each person since the quarrel, so you have heard both sides"
+
+      36 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toBeNull();
+      37 |   s.social.contacts[[w.player,w.a].sort().join(":")] = e.day - HOUR;
+    > 38 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/conversation/);
+         |                                                ^
+      39 |   completeConversation(s,w.player,w.a);
+      40 |   s.ecs.relationships[w.b].known[w.player].ring = "social";
+      41 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+
+      at Object.<anonymous> (test/social_interventions.test.js:38:48)
+
+  ● keeps fixed hate's Public cap even after gifts
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /Personal/
+    Received string:  "Spend more time with both people. They each need to trust you as a friend"
+
+      61 |   addGoodwill(s,w.player,w.b,200);
+      62 |   expect(relationshipCap(s,w.b,w.player)).toBe(0);
+    > 63 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+         |                                                ^
+      64 | });
+      65 |
+      66 | it("introduces only eligible willing people through routes and existing visit planners", () => {
+
+      at Object.<anonymous> (test/social_interventions.test.js:63:48)
+
+
+Summary of all failing tests
+FAIL test/chat_interventions.test.js
+  ● explains each accepted promise when one person has more than one
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      139 |    s.chat.active.row=[];s.chat.active.focus='help';
+      140 |    const line=chatChoices(s).find(l=>l.family==='promise_followup'&&l.b.request.id===r.id);
+    > 141 |    expect(line).toBeDefined();chooseLine(s,line.key);
+          |                 ^
+      142 |    expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:'npc',family:'promise_step',step:{requestId:r.id}});
+      143 |  }
+      144 | });
+
+      at Object.<anonymous> (test/chat_interventions.test.js:141:17)
+
+FAIL test/social_interventions.test.js
+  ● requires both parties' Personal trust and a completed conversation with each since the quarrel
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /conversation/
+    Received string:  "Talk with each person since the quarrel, so you have heard both sides"
+
+      36 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toBeNull();
+      37 |   s.social.contacts[[w.player,w.a].sort().join(":")] = e.day - HOUR;
+    > 38 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/conversation/);
+         |                                                ^
+      39 |   completeConversation(s,w.player,w.a);
+      40 |   s.ecs.relationships[w.b].known[w.player].ring = "social";
+      41 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+
+      at Object.<anonymous> (test/social_interventions.test.js:38:48)
+
+  ● keeps fixed hate's Public cap even after gifts
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /Personal/
+    Received string:  "Spend more time with both people. They each need to trust you as a friend"
+
+      61 |   addGoodwill(s,w.player,w.b,200);
+      62 |   expect(relationshipCap(s,w.b,w.player)).toBe(0);
+    > 63 |   expect(peaceUnavailable(s,w.player,w.a,w.b)).toMatch(/Personal/);
+         |                                                ^
+      64 | });
+      65 |
+      66 | it("introduces only eligible willing people through routes and existing visit planners", () => {
+
+      at Object.<anonymous> (test/social_interventions.test.js:63:48)
+
+
+Test Suites: 2 failed, 150 passed, 152 total
+Tests:       3 failed, 1531 passed, 1534 total
+Snapshots:   1 passed, 1 total
+Time:        254.359 s
+Ran all test suites related to changed files.
+
+Exit status: 1

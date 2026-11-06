@@ -24,7 +24,7 @@ Other subjects offers family, work, news, help, village and season choices. Ordi
 
 You can select a known person as the news subject. A question does not inspect the NPC's hidden knowledge. Their answer can disclose a permitted fact, refuse on trust grounds, or report that they have no further news.
 
-A first exchange establishes acquaintance. Nearby strangers with real needs show anonymous speech hints. The hint teaches no name or request identity. An adult can offer a real household favour after completed contact. Acceptance and decline are chat lines. Acceptance also authorises the existing physical collection, work and delivery order. Speech awards no favour completion reward.
+A first exchange establishes acquaintance. Nearby strangers with real needs show anonymous speech hints. The hint teaches no name or request identity. An adult can offer a real household favour after completed contact. Acceptance and decline are chat lines. Every accepted ask receives an acknowledgement. A spent subject leaves other choices available. Acceptance also authorises the existing physical collection, work and delivery order. Speech awards no favour completion reward.
 
 Visit news requires an event the speaker knows, and a visitor the player knows or a notable visitor. Other people's visits do not enter the player's feed without spoken disclosure. Family and gossip events use the shared event disclosure policy. Telling an event calls `learnEvent`, including its once-only family reactions.
 
@@ -96,3 +96,5 @@ Secret activity accounts inherit the disclosure policy of their source event. Th
 Family offers a line to make peace when both people trust you and you completed a conversation with each since their known quarrel. Family and News offer introductions between willing, compatible single adults you know. These lines use the shared social rules.
 
 Saying the line checks the rule again. A refusal gives the person's reason and keeps the conversation open. An agreed meeting closes Chat and lets the world resume. Meals, rest, work and an early hour can delay the meeting within that day. The pair use their ordinary visit plans when both are free. Speech itself records no reconciliation or courtship. Their actual meeting produces those results.
+
+Accepted personal promises offer a follow-up under Help, News and Family. Peace follow-ups and journal cards read the same current trust, contact and timing conditions. Tell identifies the news for an accepted carry-word promise, including when the selected subject is its recipient. A later departure known to the speaker prevents an older return from becoming a current whereabouts opener.

@@ -1,3 +1,4 @@
+import { localHome } from "game/construction";
 import { askNextStep } from "game/ask_steps";
 import { lifeStageLabel } from "game/life_stages";
 import { eventById } from "game/events";
@@ -36,8 +37,13 @@ export function notable(s,id) {
   const h=s.ecs.household?.[id]?.houseId,v=s.ecs.village?.[id]?.villageId;
   return living(s,id) && (!!s.ecs.profession?.[id] || !!h&&s.ecs.controllable[h]?.controllerId==id || !!v&&villageElder(s,v)==id);
 }
+const WHEREABOUTS=["departure","return","world_move","world_visit","move"];
+export function latestWhereabouts(s,speaker,e) {
+  return !WHEREABOUTS.includes(e.type) || !knownEvents(s,speaker,e.people[0]).some(later=>
+    WHEREABOUTS.includes(later.type) && later.day>e.day);
+}
 export function relevantVisit(s,speaker,viewer,e) {
-  return !!e && VISITS.includes(e.type) && heard(s,speaker,e) && !heard(s,viewer,e) && canDiscloseEvent(s,speaker,viewer,e) &&
+  return !!e && VISITS.includes(e.type) && latestWhereabouts(s,speaker,e) && heard(s,speaker,e) && !heard(s,viewer,e) && canDiscloseEvent(s,speaker,viewer,e) &&
     (knows(s,viewer,e.people[0]) || notable(s,e.people[0])&&knows(s,speaker,e.people[0])) &&
     (e.people.includes(speaker) || e.villageId==s.ecs.village?.[speaker]?.villageId || e.fromWorld==(s.travel?.active||s.map?.worldKey));
 }
@@ -126,7 +132,7 @@ function elsewhereRequests(s,c) {
 function tellableTravel(s,c) {
   return knownEvents(s,c.npcId).filter(e=>["world_visit","world_move","return"].includes(e.type)&&e.people[0]!=c.npcId&&e.fromWorld&&e.toWorld&&
     (knows(s,c.actorId,e.people[0])||notable(s,e.people[0])&&knows(s,c.npcId,e.people[0]))&&
-    canDiscloseEvent(s,c.npcId,c.actorId,e));
+    canDiscloseEvent(s,c.npcId,c.actorId,e)&&latestWhereabouts(s,c.npcId,e));
 }
 // Bind one source at a time. Multiple real events/relatives remain distinct
 // candidates; an absent source rejects the row, including in negative tests.
@@ -142,6 +148,7 @@ export function sourceValues(s,c,b,d) {
     .filter(id=>id!=p&&id!=n&&living(s,id)&&e.planner?.[id]&&knows(s,p,id)).map(id=>personFact(s,id)).filter(Boolean);
   case "accepted_promise_with_npc":return Object.values(s.favours?.requests||{}).filter(r=>r.status=="accepted"&&r.actorId==p&&[r.giverId,r.targetId].includes(n)&&["peace","word","visit","find"].includes(r.kind)).map(r=>({...request(r),step:askNextStep(s,r)}));
   case "pending_promise_step":return c.promiseStep?[askNextStep(s,s.favours.requests[c.promiseStep])]:[];
+  case "player_arrival_story":return s.backstories?.[p]?[{id:p,mother_name:personFact(s,s.backstories[p].motherId)?.first_name,origin:"the cottage where I grew up with my mother"}]:[];
   case "pending_meeting_result":return c.meetingResult?[c.meetingResult]:[];
   case "customs_chat": {
     const context=c.context;if(!context)return [];
@@ -156,7 +163,7 @@ export function sourceValues(s,c,b,d) {
   case "npc_current_profession":case "player_known_trade_of_npc": {const j=e.profession?.[n],w=e.workplace?.[e.household?.[e.household?.[n]?.houseId]?.workplaceId];return j?[{...j,trade:j.trade,workplace_name:trades[j.trade],since_when:w?.builtDay!=null?relativeDate(s,{day:w.builtDay}):undefined}]:[];}
   case "npc_household_field":return (e.household?.[e.household?.[n]?.houseId]?.fields||[]).map(id=>({id,...e.farmable[id],ripe_words:words(e.farmable[id].slots.filter(x=>x.state=="harvestable").length),ploughable_words:words(e.farmable[id].slots.filter(x=>["empty","harvested","rotten"].includes(x.state)).length)}));
   case "npc_household":return [homeFact(s,e.household?.[n]?.houseId)].filter(Boolean);
-  case "player_home":return Object.keys(e.camp||{}).concat(Object.keys(e.shelter||{}),Object.keys(e.building||{})).filter(id=>e.controllable?.[id]?.controllerId==p).map(id=>homeFact(s,id));
+  case "player_home":return [homeFact(s,localHome(s,p))].filter(Boolean);
   case "npc_household_pasture":return Object.entries(e.pasture||{}).filter(([id,v])=>v.houseId==e.household?.[n]?.houseId||e.interior?.[id]?.buildingId==e.household?.[n]?.houseId).map(([id,v])=>({id,...v,animal_plural:v.kind}));
   case "player_observed_local_weather":return localWeather(s)?[{id:Math.floor(s.days*24),weather_type:localWeather(s).type,season:season(s.days)}]:[];
   case "npc_village": {const v=s.villages?.[e.village?.[n]?.villageId];return v?[{...v,id:e.village[n].villageId,house_count_words:words(v.houses?.length||0),trade_list:[...new Set((v.houses||[]).map(h=>e.household[h]?.trade).filter(Boolean))].map(t=>"a "+t).join(" and ")}]:[];}

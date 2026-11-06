@@ -62,3 +62,22 @@ it("offers another available neighbour when the nearest person is unfriendly",()
   expect(hint.targetId).toBeDefined();expect(hint.targetId).not.toBe(n);
   expect(require("game/manager").chatUnavailable(s,p,hint.targetId)).toBeNull();
 });
+
+it('does not describe a personal promise or set-aside delivery as running work',()=>{
+ const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};s.days=1.4;
+ s.ecs.playable[p].known=tiles.map(id=>require('game/hex').Hex().fromPoint(s.ecs.spatial[id]));
+ s.knowledge={[p]:{people:{},favours:['ask']}};
+ s.favours={requests:{ask:{id:'ask',actorId:p,giverId:n,targetId:n,kind:'word',status:'accepted'}}};
+ expect(openingGuidance(s).key).not.toBe('working');
+ s.favours.requests.ask.kind='food';expect(openingGuidance(s).key).not.toBe('working');
+ s.ecs.manager[p].jobs=[{job:{key:'favour'},favourId:'ask'}];expect(openingGuidance(s).key).toBe('working');
+ s.favours.requests.ask.status='expired';expect(openingGuidance(s).key).not.toBe('working');
+});
+it('updates a failed approach message when the neighbour is available again',()=>{
+ const {state:s,player:p,person:n}=peopleWorld();
+ const {enqueueTask,chatResultMessage}=require('game/manager');
+ s.ecs.planner[n].task=['sleep'];enqueueTask(s,{key:'chat'},n);
+ expect(chatResultMessage(s,n)).toBeTruthy();
+ s.ecs.planner[n].task=null;s.ecs.planner[n].world.feeling={};
+ expect(chatResultMessage(s,n)).toBeNull();
+});

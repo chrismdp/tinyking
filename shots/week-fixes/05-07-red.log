@@ -1,0 +1,74 @@
+FAIL test/mother_family.test.js
+  ● knows the mother named in the arrival story without discovering the sealed father
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "an unknown person"
+
+      180 | it("knows the mother named in the arrival story without discovering the sealed father",()=>{
+      181 |  const {state:s,player}=setup(),b=s.backstories[player];
+    > 182 |  expect(displayName(s,b.motherId)).not.toBe('an unknown person');
+          |                                        ^
+      183 |  const tree=knownFamilyTree(s,player,player);
+      184 |  expect(JSON.stringify(tree)).toContain(b.motherId);
+      185 |  expect(s.knowledge[player].people[b.motherId].nameOnly).not.toBe(true);
+
+      at Object.<anonymous> (test/mother_family.test.js:182:40)
+
+FAIL test/chat_answers.test.js (15.493 s)
+  ● offers a direct answer about the arrival journey alongside refusal
+
+    TypeError: Cannot read properties of undefined (reading 'filter')
+
+      163 |   const b=backstoryFor(s,actor);if(!b)return [];
+      164 |   const knows=(a,id)=>a==id||!!s.ecs.relationships?.[a]?.known[id]||!!s.knowledge?.[a]?.people?.[id]&&!s.knowledge[a].people[id].nameOnly;
+    > 165 |   return b.relatives.filter(r=>r.id!=npc&&!s.knowledge?.[actor]?.maternalFamily?.met?.includes(r.id)).map(r=>{
+          |                      ^
+      166 |     const home=s.ecs.household?.[r.id]?.houseId,village=s.villages?.[s.ecs.village?.[r.id]?.villageId];
+      167 |     const known=knows(npc,r.id),contact=!known&&Object.keys(s.ecs.relationships?.[npc]?.known||{}).sort().find(id=>alive(s,id)&&knows(id,r.id));
+      168 |     return {...r,answer:known&&home&&village?"known":contact?"referral":"unknown",village_id:known?village?.id||s.ecs.village[r.id].villageId:undefined,village_name:known?village?.name:undefined,
+
+      at familySearchFacts (src/game/mother_family.js:165:22)
+      at sourceValues (src/game/chat_facts.js:153:50)
+      at src/game/chat.js:79:84
+          at Array.flatMap (<anonymous>)
+      at queryLineCandidates (src/game/chat.js:79:61)
+      at src/game/chat.js:69:32
+      at withFavourQuery (src/game/favours.js:69:34)
+      at lineCandidates (src/game/chat.js:69:25)
+      at src/game/chat.js:166:52
+          at Array.flatMap (<anonymous>)
+      at queryChatChoices (src/game/chat.js:166:28)
+      at src/game/chat.js:156:39
+      at withFavourQuery (src/game/favours.js:71:16)
+      at chatChoices (src/game/chat.js:156:32)
+      at Object.<anonymous> (test/chat_answers.test.js:81:27)
+
+  ● offers answers about the current shelter rather than an earlier owned camp
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 2
+
+      Array [
+    +   "11",
+    +   "12",
+        "12",
+      ]
+
+      87 |  s.ecs.household[p]={houseId:home};s.ecs.spatial[p]={...s.ecs.spatial[n]};openChat(s,p,n);s.chat.active.row=[];
+      88 |  const {sourceValues}=require('game/chat_facts');
+    > 89 |  expect(sourceValues(s,s.chat.active,{}, {source:'player_home'}).map(h=>h.id)).toEqual([home]);
+         |                                                                                ^
+      90 |  const {lineCandidates}=require('game/chat');
+      91 |  expect(lineCandidates(s,s.chat.active,'player_work','player').filter(l=>l.situation==='camp')).toEqual([]);
+      92 |  expect(camp).not.toBe(home);
+
+      at Object.<anonymous> (test/chat_answers.test.js:89:80)
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       3 failed, 60 passed, 63 total
+Snapshots:   0 total
+Time:        22.292 s
+Ran all test suites matching test/chat.test.js|test/mother_family.test.js|test/chat_answers.test.js.

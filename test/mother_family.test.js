@@ -176,3 +176,14 @@ it("dates the stranger's birth with the shared two-life-years-per-season clock",
   const mother=s.peopleDirectory[s.backstories[player].motherId].personable;
   expect(mother.age-s.ecs.personable[player].age).toBe(16);
 });
+
+it("knows the mother named in the arrival story without discovering the sealed father",()=>{
+ const {state:s,player}=setup(),b=s.backstories[player];
+ expect(displayName(s,b.motherId)).not.toBe('an unknown person');
+ const tree=knownFamilyTree(s,player,player);
+ expect(JSON.stringify(tree)).toContain(b.motherId);
+ expect(s.knowledge[player].people[b.motherId].nameOnly).not.toBe(true);
+ expect(require('game/chat').chatSubjects(s)).toContain(b.motherId);
+ expect(s.knowledge[player].people[b.fatherId]).toBeUndefined();
+ expect(knownEvents(s,player).some(e=>e.sealed)).toBe(false);
+});

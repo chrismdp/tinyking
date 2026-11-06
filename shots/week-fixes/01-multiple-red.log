@@ -1,0 +1,33 @@
+FAIL test/chat_interventions.test.js
+  ● explains each accepted promise when one person has more than one
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 2
+
+      Object {
+        "family": "promise_step",
+        "speaker": "npc",
+        "step": Object {
+    -     "requestId": "multi-peace",
+    +     "ready": true,
+    +     "text": "Ask Agnes Miller or Edith Miller to come and talk together under Help or Family.",
+        },
+      }
+
+      140 |    const line=chatChoices(s).find(l=>l.family==='promise_followup'&&l.b.request.id===r.id);
+      141 |    expect(line).toBeDefined();chooseLine(s,line.key);
+    > 142 |    expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:'npc',family:'promise_step',step:{requestId:r.id}});
+          |                                            ^
+      143 |  }
+      144 | });
+      145 |
+
+      at Object.<anonymous> (test/chat_interventions.test.js:142:44)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 21 passed, 22 total
+Snapshots:   0 total
+Time:        2.923 s
+Ran all test suites matching test/chat_interventions.test.js.

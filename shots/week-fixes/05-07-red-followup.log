@@ -1,0 +1,64 @@
+FAIL test/chat_answers.test.js (13.75 s)
+  ● offers a direct answer about the arrival journey alongside refusal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      80 |  s.backstories={[p]:{motherId:n,relatives:[]}};openChat(s,p,n);s.chat.active.expectation='origin';
+      81 |  const answers=chatChoices(s).filter(l=>l.answers?.includes('origin'));
+    > 82 |  expect(answers.some(l=>!l.evasive)).toBe(true);expect(answers.some(l=>l.evasive)).toBe(true);
+         |                                      ^
+      83 | });
+      84 | it('offers answers about the current shelter rather than an earlier owned camp',()=>{
+      85 |  const {state:s,player:p,person:n}=peopleWorld(),{newEntities}=require('game/entities');
+
+      at Object.<anonymous> (test/chat_answers.test.js:82:38)
+
+  ● offers answers about the current shelter rather than an earlier owned camp
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 2
+
+      Array [
+    +   "11",
+    +   "12",
+        "12",
+      ]
+
+      87 |  s.ecs.household[p]={houseId:home};s.ecs.spatial[p]={...s.ecs.spatial[n]};openChat(s,p,n);s.chat.active.row=[];
+      88 |  const {sourceValues}=require('game/chat_facts');
+    > 89 |  expect(sourceValues(s,s.chat.active,{}, {source:'player_home'}).map(h=>h.id)).toEqual([home]);
+         |                                                                                ^
+      90 |  const {lineCandidates}=require('game/chat');
+      91 |  expect(lineCandidates(s,s.chat.active,'player_work','player').filter(l=>l.situation==='camp')).toEqual([]);
+      92 |  expect(camp).not.toBe(home);
+
+      at Object.<anonymous> (test/chat_answers.test.js:89:80)
+
+FAIL test/chat.test.js
+  ● does not announce an old return when the speaker knows a later departure, even after it was told
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+      337 |  s.days=2;const left=recordEvent(s,'departure',[parent],[],{audienceIds:[n],fromWorld:'5,3',toWorld:'6,3'});
+      338 |  const {learnEvent}=require('game/events');learnEvent(s,p,left);
+    > 339 |  expect(require('game/chat_facts').relevantVisit(s,n,p,returned)).toBe(false);
+          |                                                                   ^
+      340 |  expect(openChat(s,p,n)).toBe(true);
+      341 |  const {lineCandidates}=require('game/chat');
+      342 |  expect(lineCandidates(s,s.chat.active,'visit_news','npc').some(l=>l.b.event?.id===returned.id)).toBe(false);
+
+      at Object.<anonymous> (test/chat.test.js:339:67)
+
+Test Suites: 2 failed, 2 total
+Tests:       3 failed, 43 passed, 46 total
+Snapshots:   0 total
+Time:        15.553 s, estimated 21 s
+Ran all test suites matching test/chat.test.js|test/chat_answers.test.js.

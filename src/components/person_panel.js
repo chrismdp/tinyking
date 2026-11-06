@@ -1,3 +1,4 @@
+import { chatResultMessage } from "game/manager";
 import { isAdult, isDependent, lifeStageLabel } from "game/life_stages";
 import { full as gameDate } from "game/time";
 import { patience } from "game/chat_patience";
@@ -128,7 +129,7 @@ export function PersonPanel({ entityId }) {
   const occupation = isDependent(personComponent(state, "personable", entityId).age) ? lifeStageLabel(personComponent(state, "personable", entityId).age) : trade ? titleCase(trade) :
     personComponent(state, "household", houseId)?.farming ? "Farming household" : null;
   const approach = ecs.manager[player]?.jobs.find(j=>j.job.key=="chat" && j.targetId==entityId);
-  const approachMessage = approach?.waiting || (state.ui.talkResult?.personId==entityId ? state.ui.talkResult.message : null);
+  const approachMessage = approach?.waiting || chatResultMessage(state,entityId);
   const activity = approachMessage ? null : !present ? "Away in another world hex" : currentActivity(ecs, entityId, t, id => knownDisplayName(state, id, id => displayName(state, id)), state.ui.debug);
   return <Sheet label={personName + "'s panel"} onClose={close} className="person-window">
     <header className="people-header"><div><h3>{personName}</h3>

@@ -130,3 +130,16 @@ it.each(["trust","one_side","ready"])("explains an accepted peace ask to either 
     expect(s.chat.active.transcript.at(-1).step).toEqual(askNextStep(s,r));
   }
 });
+
+it('explains each accepted promise when one person has more than one',()=>{
+ const w=pairChat(true),s=w.state;
+ const records=['peace','visit'].map(kind=>({id:'multi-'+kind,kind,giverId:w.person,targetId:w.parent,eventId:w.quarrel.id,status:'accepted',actorId:w.player,createdDay:s.days,acceptedDay:s.days}));
+ s.favours={requests:Object.fromEntries(records.map(r=>[r.id,r]))};
+ const explained=new Set();
+ for(let i=0;i<records.length;i++) {
+   s.chat.active.row=[];s.chat.active.focus='help';
+   const line=chatChoices(s).find(l=>l.family==='promise_followup'&&!explained.has(l.b.request.id));
+   expect(line).toBeDefined();const requestId=line.b.request.id;chooseLine(s,line.key);explained.add(requestId);
+   expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:'npc',family:'promise_step',step:{requestId}});
+ }
+});

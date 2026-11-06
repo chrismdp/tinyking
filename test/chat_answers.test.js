@@ -74,3 +74,23 @@ it("keeps other subjects available after the NPC has no more news on the chosen 
   expect(c.transcript.at(-1).speaker).toBe("npc");expect(c.endReason).toBeUndefined();
   expect(chatChoices(s).some(l=>previewLine(s,l).fits)).toBe(true);
 });
+
+it('offers a direct answer about the arrival journey alongside refusal',()=>{
+ const {state:s,player:p,person:n}=peopleWorld();s.ecs.spatial[p]={...s.ecs.spatial[n]};
+ s.backstories={[p]:{motherId:n,relatives:[]}};openChat(s,p,n);s.chat.active.expectation='origin';
+ const answers=chatChoices(s).filter(l=>l.answers?.includes('origin'));
+ expect(answers.some(l=>!l.evasive)).toBe(true);expect(answers.some(l=>l.evasive)).toBe(true);
+ chooseLine(s,answers.find(l=>!l.evasive).key);
+ expect(s.chat.active.transcript.at(-1).family).not.toBe('guarded_acknowledged');
+ expect(s.chat.active.row.some(i=>i.kind==='mood'&&i.key==='guarded')).toBe(false);
+});
+it('offers answers about the current shelter rather than an earlier owned camp',()=>{
+ const {state:s,player:p,person:n}=peopleWorld(),{newEntities}=require('game/entities');
+ const [camp,home]=newEntities(s,[{camp:{},controllable:{controllerId:p}},{spatial:{...s.ecs.spatial[p]},shelter:{stage:'lean-to'},building:{},controllable:{controllerId:p}}]);
+ s.ecs.household[p]={houseId:home};s.ecs.spatial[p]={...s.ecs.spatial[n]};openChat(s,p,n);s.chat.active.row=[];
+ const {sourceValues}=require('game/chat_facts');
+ expect(sourceValues(s,s.chat.active,{}, {source:'player_home'}).map(h=>h.id)).toEqual([home]);
+ const {lineCandidates}=require('game/chat');
+ expect(lineCandidates(s,s.chat.active,'player_work','player').filter(l=>l.situation==='camp')).toEqual([]);
+ expect(camp).not.toBe(home);
+});

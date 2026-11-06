@@ -165511,7 +165511,7 @@
   "text": "{step.text}",
   "facts": [],
   "icons": [],
-  "use_key": "promise_step:{context.encounter_number}:{context.game_hour}",
+  "use_key": "promise_step:{step.requestId}:{context.encounter_number}",
   "tradeoff": {
    "risks": [
     "Help or their portrait can land badly with them."
@@ -165902,6 +165902,76 @@
    "requests": [],
    "facts": []
   },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "player.direct_answer.arrival_origin.base.01",
+  "speaker": "player",
+  "family": "direct_answer",
+  "situation": "arrival_origin",
+  "weight": 1,
+  "bindings": {
+   "story": {
+    "source": "player_arrival_story"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "answer_expected_is",
+     "args": {
+      "value": "origin"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I came from {story.origin}. Mother asked me to find her family here.",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   }
+  ],
+  "use_key": "origin:{player.id}:{npc.id}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "answers": [
+   "origin"
+  ],
   "level": {
    "ring": "public",
    "below": "hide"

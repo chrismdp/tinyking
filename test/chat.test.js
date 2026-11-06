@@ -328,3 +328,16 @@ it("does not describe close kin as passing acquaintances even with a public bond
   expect(lines.some(l=>l.situation=="passing")).toBe(false);
   expect(lines.some(l=>l.situation=="kin_public")).toBe(true);
 });
+
+it('does not announce an old return when the speaker knows a later departure, even after it was told',()=>{
+ const {state:s,player:p,person:n,parent}=peopleWorld();
+ s.newsModel=true;s.ecs.spatial[p]={...s.ecs.spatial[n]};
+ s.ecs.relationships[p].known[parent]={ring:'public',goodwill:0};
+ s.days=1;const returned=recordEvent(s,'return',[parent],[],{audienceIds:[n],fromWorld:'6,3',toWorld:'5,3'});
+ s.days=2;const left=recordEvent(s,'departure',[parent],[],{audienceIds:[n],fromWorld:'5,3',toWorld:'6,3'});
+ const {learnEvent}=require('game/events');learnEvent(s,p,left);
+ expect(require('game/chat_facts').relevantVisit(s,n,p,returned)).toBe(false);
+ expect(openChat(s,p,n)).toBe(true);
+ const {lineCandidates}=require('game/chat');
+ expect(lineCandidates(s,s.chat.active,'visit_news','npc').some(l=>l.b.event?.id===returned.id)).toBe(false);
+});

@@ -1,0 +1,22 @@
+FAIL test/chat_interventions.test.js
+  ● explains each accepted promise when one person has more than one
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      140 |    s.chat.active.row=[];s.chat.active.focus='help';
+      141 |    const line=chatChoices(s).find(l=>l.family==='promise_followup'&&!explained.has(l.b.request.id));
+    > 142 |    expect(line).toBeDefined();const requestId=line.b.request.id;chooseLine(s,line.key);explained.add(requestId);
+          |                 ^
+      143 |    expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:'npc',family:'promise_step',step:{requestId}});
+      144 |  }
+      145 | });
+
+      at Object.<anonymous> (test/chat_interventions.test.js:142:17)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 21 passed, 22 total
+Snapshots:   0 total
+Time:        3.301 s
+Ran all test suites matching test/chat_interventions.test.js.

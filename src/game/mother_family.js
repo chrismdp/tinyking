@@ -134,7 +134,7 @@ export function seedMotherFamily(s,actor,seed) {
     b.relatives.push({id,name:fullName(s,id),term:grandparent?(male?"grandfather":"grandmother"):(male?"uncle":"aunt"),inverse:grandparent?"grandchild":e.nameable[actor].male?"nephew":"niece"});
   }
   s.knowledge ||= {};const k=s.knowledge[actor] ||= {people:{},feelings:{}};k.people ||= {};
-  k.people[motherId]={traits:[],nameOnly:true};
+  k.people[motherId]={traits:[]};
   for(const r of b.relatives)k.people[r.id]={traits:[],nameOnly:true};
   k.maternalFamily={motherId,origin:"this region",met:[]};
   updateFavours(s);

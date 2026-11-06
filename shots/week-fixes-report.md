@@ -47,3 +47,15 @@ Phone notices hide while a control sheet is open and return when it closes. The 
 Delivery guidance now needs a live favour task. A personal promise or work set aside does not ask the player to wait for an absent delivery. Approach failures caused by availability read the neighbour's current needs.
 
 Guidance regressions failed, exit 1: [08-red.log](week-fixes/08-red.log). Mother and guidance regressions passed, exit 0: [06-08-green.log](week-fixes/06-08-green.log), 25 tests.
+
+## Follow-up findings during build and play
+
+A new multiple-promise regression found that request-bound lines shared a spoken ID. One follow-up could hide another ask in the same chat. Request-bound lines now qualify their IDs with the request, as event lines already did. The initial test assumed a fixed choice order. The corrected test follows the visible ask and then asks about the remaining one. Both failures are preserved: [01-multiple-red.log](week-fixes/01-multiple-red.log), [01-multiple-red-followup.log](week-fixes/01-multiple-red-followup.log), exits 1. The fix passed 54 tests: [01-multiple-green.log](week-fixes/01-multiple-green.log), exit 0.
+
+The truthful origin answer initially inherited the refusal's guarded acknowledgement. Play showed the mismatch. A regression failed before correcting that reply purpose: [07-origin-reply-red.log](week-fixes/07-origin-reply-red.log), exit 1.
+
+The mother's record is off-map. The subject chooser previously filtered to local ECS records. A failing eligibility regression confirmed that missing route: [06-subject-red.log](week-fixes/06-subject-red.log), exit 1. The chooser now uses the same permitted person facts as speech. Father and sealed history stay hidden.
+
+The combined follow-up passed 50 tests: [06-07-followup-green.log](week-fixes/06-07-followup-green.log), exit 0. The earlier news/home/origin run preserved one origin failure: [05-07-green.log](week-fixes/05-07-green.log), exit 1. Its news and current-home tests passed.
+
+The first affected-gate shell ended with tool exit 143 before it wrote any Jest output. This is a terminated shell receipt, not a Jest result. Its empty log is [affected.log](week-fixes/affected.log). The command was rerun under the lock.

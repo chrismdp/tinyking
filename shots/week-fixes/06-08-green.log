@@ -1,0 +1,6 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       25 passed, 25 total
+Snapshots:   0 total
+Time:        3.47 s
+Ran all test suites matching test/chat_guidance.test.js|test/mother_family.test.js.

@@ -1,0 +1,36 @@
+FAIL test/chat_guidance.test.js
+  ● does not describe a personal promise or set-aside delivery as running work
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "working"
+
+      69 |  s.knowledge={[p]:{people:{},favours:['ask']}};
+      70 |  s.favours={requests:{ask:{id:'ask',actorId:p,giverId:n,targetId:n,kind:'word',status:'accepted'}}};
+    > 71 |  expect(openingGuidance(s).key).not.toBe('working');
+         |                                     ^
+      72 |  s.favours.requests.ask.kind='food';expect(openingGuidance(s).key).not.toBe('working');
+      73 |  s.ecs.manager[p].jobs=[{job:{key:'favour'},favourId:'ask'}];expect(openingGuidance(s).key).toBe('working');
+      74 |  s.favours.requests.ask.status='expired';expect(openingGuidance(s).key).not.toBe('working');
+
+      at Object.<anonymous> (test/chat_guidance.test.js:71:37)
+
+  ● updates a failed approach message when the neighbour is available again
+
+    TypeError: chatResultMessage is not a function
+
+      78 |  const {enqueueTask,chatResultMessage}=require('game/manager');
+      79 |  s.ecs.planner[n].task=['sleep'];enqueueTask(s,{key:'chat'},n);
+    > 80 |  expect(chatResultMessage(s,n)).toBeTruthy();
+         |         ^
+      81 |  s.ecs.planner[n].task=null;s.ecs.planner[n].world.feeling={};
+      82 |  expect(chatResultMessage(s,n)).toBeNull();
+      83 | });
+
+      at Object.<anonymous> (test/chat_guidance.test.js:80:9)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 6 passed, 8 total
+Snapshots:   0 total
+Time:        1.099 s
+Ran all test suites matching test/chat_guidance.test.js.

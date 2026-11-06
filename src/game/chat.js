@@ -82,7 +82,8 @@ function queryLineCandidates(s,c,family,speaker) {
       if(tests.some(v=>v===undefined)||!row.when.all.every((_,i)=>tests[i])||row.when.none.some((_,i)=>tests[row.when.all.length+i]))continue;
       // Catalogue accounts are one authored template with distinct real facts.
       // Qualify their spoken IDs so telling one harvest does not hide all others.
-      const id=row.icons.some(i=>i.kind=="event")?row.id+"@"+b.event.id:row.id;
+      const claim=row.icons.some(i=>i.kind=="event")?b.event.id:b.request?.id||b.step?.requestId;
+      const id=claim?row.id+"@"+claim:row.id;
       if(id!=row.id&&c.usedIds.includes(id))continue;
       let text=interpolate(row.text,b);
       const promise=row.family=="gossip_tell"&&Object.values(s.favours?.requests||{}).find(r=>r.kind=="word"&&r.status=="accepted"&&r.actorId==c.actorId&&r.targetId==c.npcId&&r.eventId==b.event?.id);
@@ -165,7 +166,7 @@ function queryChatChoices(s) {
   const families=[...new Set(LINES.filter(l=>l.speaker=="player"&&l.family!="leave_taking").map(l=>l.family))];
   const available=families.flatMap(f=>variants(s,c,lineCandidates(s,c,f,"player")));
   let all=available;
-  const direct=available.filter(l=>l.answers?.includes(c.expectation)&&previewLine(s,l).fits);
+  const direct=available.filter(l=>l.answers?.includes(c.expectation)&&previewLine(s,l).fits).sort((a,b)=>Number(!!a.evasive)-Number(!!b.evasive));
   const withAnswers=(result,limit=true)=>{
     const mandatory=["warning","oath","leave","offer"].includes(c.expectation)?direct.filter((l,i)=>direct.findIndex(x=>x.family==l.family&&x.situation==l.situation)==i).slice(0,2):direct.slice(0,1);
     const evasion=direct.find(l=>l.evasive);
@@ -495,4 +496,8 @@ export function startVillagerChat(s,npc,{actorId=s.ui.playerId,openingFamily="gr
   if(!p||s.ecs.personable[npc]?.dead||s.ecs.personable[actorId]?.dead||p.world.chatVisit)return false;
   p.world.chatVisit={actorId,openingFamily,context,required};p.task=null;p.plan=null;
   return true;
+}
+
+export function chatSubjects(s, actor=s.ui.playerId, npc=s.chat?.active?.npcId) {
+  return Object.keys(s.knowledge?.[actor]?.people||{}).filter(id=>id!=actor&&id!=npc&&personFact(s,id));
 }

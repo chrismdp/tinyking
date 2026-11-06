@@ -1,0 +1,20 @@
+FAIL test/mother_family.test.js
+  ● knows the mother named in the arrival story without discovering the sealed father
+
+    TypeError: require(...).chatSubjects is not a function
+
+      184 |  expect(JSON.stringify(tree)).toContain(b.motherId);
+      185 |  expect(s.knowledge[player].people[b.motherId].nameOnly).not.toBe(true);
+    > 186 |  expect(require('game/chat').chatSubjects(s)).toContain(b.motherId);
+          |                              ^
+      187 |  expect(s.knowledge[player].people[b.fatherId]).toBeUndefined();
+      188 |  expect(knownEvents(s,player).some(e=>e.sealed)).toBe(false);
+      189 | });
+
+      at Object.<anonymous> (test/mother_family.test.js:186:30)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 16 skipped, 17 total
+Snapshots:   0 total
+Time:        1.967 s, estimated 3 s
+Ran all test suites matching test/mother_family.test.js with tests matching "knows the mother".

@@ -1227,3 +1227,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   }
   .chat-panel .chat-icon.large .chat-icon-name { font-size: clamp(7px, 1.9vw, 9px); }
 }
+
+// A phone sheet owns the controls it opens. Notices return when it closes.
+@media (max-width: 700px), (max-height: 500px) {
+  #ui:has(.panel, .person-window, .tree-window, .chat-panel, #journal[open]) #day-notices { display: none; }
+  #day-notices { max-height: 140px; bottom: auto; }
+}

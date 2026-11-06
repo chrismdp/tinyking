@@ -98,8 +98,9 @@ export function openingGuidance(state) {
         {actorId,key:"seed_explore",text:"You have seed grain. Choose Move here at the edge of visible land to find unused grass for Create Field."};
     }
   }
-  if(accepted && !task?.waiting) return {actorId,key:"working",text:"Keep the game running to finish your favour delivery."};
-  if(accepted && task?.waiting && accepted.kind!="harvest") return {actorId,key:"supply",text:accepted.kind=="wood" ? "Select an unclaimed tree and choose Cut down to supply your promised log." : "Select a forage plant and choose Forage to supply your promised food."};
+  const delivery=task?.job.key=="favour" && state.favours?.requests[task.favourId];
+  if(delivery?.status=="accepted" && !task.waiting) return {actorId,key:"working",text:"Keep the game running to finish your favour delivery."};
+  if(delivery?.status=="accepted" && task.waiting && delivery.kind!="harvest") return {actorId,key:"supply",text:delivery.kind=="wood" ? "Select an unclaimed tree and choose Cut down to supply your promised log." : "Select a forage plant and choose Forage to supply your promised food."};
   const lead=Object.values(state.knowledge?.[actorId]?.heardNeeds||{}).find(l=>{
     const r=state.favours?.requests[l.requestId];
     return r?.status=="offered"&&!reasonGone(state,r)&&!state.knowledge?.[actorId]?.offers?.[r.id]&&!ecs.personable[r.giverId]?.dead&&patience(state,actorId,r.giverId).free>=patience(state,actorId,r.giverId).minimum;
@@ -128,7 +129,7 @@ export function openingGuidance(state) {
     let text="Chat with "+n+" and ask how you can help.";
     if(n=="an unknown person") text=anyContact?"Chat with the nearby neighbour to meet someone new.":"Chat with the nearby neighbour to make your first acquaintance.";
     if(walking) text="Let your character walk over to start the conversation.";
-    if(accepted) text="Chat with the nearby neighbour while your harvest waits.";
+    if(accepted?.kind=="harvest") text="Chat with the nearby neighbour while your harvest waits.";
     const relative=backstoryFor(state)?.relatives.find(r=>!familyGoal(state).met.includes(r.id));
     if(relative)text="Ask the neighbours whether they know your "+relative.term+" "+relative.name+".";
     return {actorId,key:"chat",targetId:target,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};

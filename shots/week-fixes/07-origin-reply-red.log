@@ -1,0 +1,22 @@
+FAIL test/chat_answers.test.js
+  ● offers a direct answer about the arrival journey alongside refusal
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "guarded_acknowledged"
+
+      82 |  expect(answers.some(l=>!l.evasive)).toBe(true);expect(answers.some(l=>l.evasive)).toBe(true);
+      83 |  chooseLine(s,answers.find(l=>!l.evasive).key);
+    > 84 |  expect(s.chat.active.transcript.at(-1).family).not.toBe('guarded_acknowledged');
+         |                                                     ^
+      85 |  expect(s.chat.active.row.some(i=>i.kind==='mood'&&i.key==='guarded')).toBe(false);
+      86 | });
+      87 | it('offers answers about the current shelter rather than an earlier owned camp',()=>{
+
+      at Object.<anonymous> (test/chat_answers.test.js:84:53)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 10 skipped, 11 total
+Snapshots:   0 total
+Time:        1.66 s, estimated 17 s
+Ran all test suites matching test/chat_answers.test.js with tests matching "arrival journey".

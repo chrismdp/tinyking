@@ -1,0 +1,24 @@
+FAIL test/chat_answers.test.js (14.508 s)
+  ● offers a direct answer about the arrival journey alongside refusal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      80 |  s.backstories={[p]:{motherId:n,relatives:[]}};openChat(s,p,n);s.chat.active.expectation='origin';
+      81 |  const answers=chatChoices(s).filter(l=>l.answers?.includes('origin'));
+    > 82 |  expect(answers.some(l=>!l.evasive)).toBe(true);expect(answers.some(l=>l.evasive)).toBe(true);
+         |                                      ^
+      83 | });
+      84 | it('offers answers about the current shelter rather than an earlier owned camp',()=>{
+      85 |  const {state:s,player:p,person:n}=peopleWorld(),{newEntities}=require('game/entities');
+
+      at Object.<anonymous> (test/chat_answers.test.js:82:38)
+
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       1 failed, 45 passed, 46 total
+Snapshots:   0 total
+Time:        16.602 s
+Ran all test suites matching test/chat.test.js|test/chat_answers.test.js.

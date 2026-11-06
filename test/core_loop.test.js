@@ -126,3 +126,18 @@ it('reaches home and sleeps after collapse with another ready order queued',()=>
  expect(Math.hypot(s.ecs.spatial[a].x-s.ecs.spatial[camp].x,s.ecs.spatial[a].y-s.ecs.spatial[camp].y)).toBeLessThan(10);expect(s.ecs.personable[a].energy).toBeGreaterThan(10);
  expect(s.ecs.planner[a].task[0]).toBe('sleep');expect(s.ecs.manager[a].jobs).toContain(order);
 });
+
+it('finishes a night rest at dawn without starting another six-hour sleep',()=>{
+  const {state:s,villager:a}=playerFixture();s.days=22/24;
+  s.ecs.personable[a].energy=20;
+  const sim=require('game/simulation').createSimulation(s);
+  enqueueTask(s,{key:'rest'},a);
+  for(let i=0;i<82;i++)sim.step(60,0);
+  expect(s.days).toBeGreaterThanOrEqual(1+6/24);
+  expect(s.ecs.planner[a].task?.[0]).not.toBe('sleep');
+  expect(s.ecs.manager[a].jobs.some(j=>j.job.key==='rest')).toBe(false);
+  const woke=s.ecs.personable[a].energy;
+  for(let i=0;i<15;i++)sim.step(60,0);
+  expect(s.ecs.planner[a].task?.[0]).not.toBe('sleep');
+  expect(s.ecs.personable[a].energy).toBe(woke);
+});

@@ -796,6 +796,7 @@ export function sleep(state, actorId, world, dt, firstRun) {
     world.sleepHours+=dt*24;
     const hour=state.days%1*24;
     if(world.sleepDawn != null ? state.days < world.sleepDawn - 1e-9 : world.sleepHours<6 || hour<6 || hour>=18)return Task.CONTINUE;
+    state.ui.restSummary=`${comfortable?"You rested in a bed.":"You slept rough."} Energy ${Math.round(person.energy)}.`+(world.sleepCeiling<100 ? " A late or missed night limited your rest." : "");
     delete world.sleepDawn;
     delete world.sleepStart;delete world.forcedRest;delete world.restCamp;delete person.collapsed;
     return Task.FINISH;

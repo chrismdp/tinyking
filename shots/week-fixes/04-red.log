@@ -1,0 +1,74 @@
+FAIL test/favours.test.js
+  ● sets accepted delivery aside for move_to_here and can resume it explicitly
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "accepted"
+    Received: "cancelled"
+
+      794 |  const w=favourWorld(),s=w.state,r=w.request('wood');
+      795 |  acceptFavour(s,r.id);const next=enqueueTask(s,{key},w.tiles[2]);
+    > 796 |  expect(r.status).toBe('accepted');expect(s.ecs.manager[w.player].jobs).toEqual([next]);
+          |                   ^
+      797 |  const {resumeFavour}=require('game/favours');
+      798 |  const delivery=resumeFavour(s,r.id);expect(delivery.favourId).toBe(r.id);
+      799 |  advanceUntil(w,()=>r.status==='completed');expect(r.delivered).toBe(1);
+
+      at test/favours.test.js:796:19
+
+  ● sets accepted delivery aside for chat and can resume it explicitly
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "accepted"
+    Received: "cancelled"
+
+      794 |  const w=favourWorld(),s=w.state,r=w.request('wood');
+      795 |  acceptFavour(s,r.id);const next=enqueueTask(s,{key},w.tiles[2]);
+    > 796 |  expect(r.status).toBe('accepted');expect(s.ecs.manager[w.player].jobs).toEqual([next]);
+          |                   ^
+      797 |  const {resumeFavour}=require('game/favours');
+      798 |  const delivery=resumeFavour(s,r.id);expect(delivery.favourId).toBe(r.id);
+      799 |  advanceUntil(w,()=>r.status==='completed');expect(r.delivered).toBe(1);
+
+      at test/favours.test.js:796:19
+
+  ● sets accepted delivery aside for rest and can resume it explicitly
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "accepted"
+    Received: "cancelled"
+
+      794 |  const w=favourWorld(),s=w.state,r=w.request('wood');
+      795 |  acceptFavour(s,r.id);const next=enqueueTask(s,{key},w.tiles[2]);
+    > 796 |  expect(r.status).toBe('accepted');expect(s.ecs.manager[w.player].jobs).toEqual([next]);
+          |                   ^
+      797 |  const {resumeFavour}=require('game/favours');
+      798 |  const delivery=resumeFavour(s,r.id);expect(delivery.favourId).toBe(r.id);
+      799 |  advanceUntil(w,()=>r.status==='completed');expect(r.delivered).toBe(1);
+
+      at test/favours.test.js:796:19
+
+  ● clears an expired delivery and alerts its player when someone else meets the need
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not {"assignedId": "7", "expectedGoodwill": 12, "favourId": "favour-2", "forId": "8", "id": "task-1", "job": {"key": "favour"}, "progress": 0, "targetId": "12", "waiting": "Needs wood"}
+    Received array:     [{"assignedId": "7", "expectedGoodwill": 12, "favourId": "favour-2", "forId": "8", "id": "task-1", "job": {"key": "favour"}, "progress": 0, "targetId": "12", "waiting": "Needs wood"}]
+
+      804 |  s.ecs.planner[w.player].world.currentJob='favour';s.ecs.planner[w.player].task=['do_favour',r.id];
+      805 |  s.ecs.container[w.store].amounts.wood=1;updateFavours(s);
+    > 806 |  expect(r.status).toBe('expired');expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+          |                                                                            ^
+      807 |  expect(s.ecs.planner[w.player].task).toBeNull();expect(s.ui.favourNotice.requestId).toBe(r.id);
+      808 | });
+      809 |
+
+      at Object.<anonymous> (test/favours.test.js:806:76)
+
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 54 passed, 58 total
+Snapshots:   0 total
+Time:        3.61 s
+Ran all test suites matching test/favours.test.js.

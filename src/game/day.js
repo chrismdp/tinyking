@@ -137,9 +137,7 @@ function factsChanged(before,after,path="") {
 // its work is taken up again by choosing to work for that household.
 function setAside(s,actor) {
   for(const j of [...s.ecs.manager[actor].jobs]) {
-    const r=j.favourId && s.favours?.requests?.[j.favourId], kept=r?.status=="accepted";
-    cancelTask(s,j.id);
-    if(kept) {r.status="accepted";delete r.outcome;}
+    cancelTask(s,j.id,{keepPromise:true});
   }
 }
 

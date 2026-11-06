@@ -59,7 +59,7 @@ export function UserInterface() {
       <PanelBoundary key={(state.ui?.familyPersonId ? "family:" : "person:") + (state.ui?.familyPersonId || show.selected_person)} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.change_visibility({selected_person:null});}}>{state.ui?.familyPersonId ? <React.Suspense fallback={null}><FamilyTree entityId={state.ui.familyPersonId} onClose={()=>{state.ui.familyPersonId=null;state.ui.actions.end_turn();}} onSelect={id=>{state.ui.familyPersonId=null;state.ui.actions.select_entity(id,false);}}/></React.Suspense> : show.selected_person && <SelectedPerson entityId={show.selected_person}/>}</PanelBoundary>
       {show.speed_controls && <><div id="day-notices" aria-label="Today">
         {state.ui?.dayMessage && <aside className="morning-line" role="status"><span>{state.ui.dayMessage}</span><button aria-label="Dismiss morning message" onClick={()=>{delete state.ui.dayMessage;state.ui.actions.end_turn();}}>×</button></aside>}
-        <OpeningGuidance/>{!state.seasonTurn && <FestivalNotice/>}
+        <OpeningGuidance/>{state.ui.favourNotice && <aside className="morning-line" role="status"><span>{state.ui.favourNotice.text}</span><button aria-label="Dismiss favour message" onClick={()=>{delete state.ui.favourNotice;state.ui.actions.end_turn();}}>×</button></aside>}{!state.seasonTurn && <FestivalNotice/>}
       </div><RealmControls/><TravelOverview/><PanelBoundary><StatusStrip/><Journal/></PanelBoundary><SpeedControls/><PanelBoundary><EventFeed/></PanelBoundary></>}
     </div>
   );

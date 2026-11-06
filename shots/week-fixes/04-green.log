@@ -1,0 +1,147 @@
+FAIL test/favours.test.js
+  ● resolves a dead accepted target with explicit text and no reward
+
+    expect(received).toBeTruthy()
+
+    Received: undefined
+
+      205 |   updateFavours(s); readyPlayerTasks(s);
+      206 |   expect(r.status).toBe('expired');
+    > 207 |   expect(task.waiting).toBeTruthy();
+          |                        ^
+      208 |   expect(s.ecs.relationships[r.giverId].known[w.player]?.goodwill || 0).toBe(0);
+      209 | });
+      210 |
+
+      at test/favours.test.js:207:24
+
+  ● resolves a lost accepted target with explicit text and no reward
+
+    expect(received).toBeTruthy()
+
+    Received: undefined
+
+      205 |   updateFavours(s); readyPlayerTasks(s);
+      206 |   expect(r.status).toBe('expired');
+    > 207 |   expect(task.waiting).toBeTruthy();
+          |                        ^
+      208 |   expect(s.ecs.relationships[r.giverId].known[w.player]?.goodwill || 0).toBe(0);
+      209 | });
+      210 |
+
+      at test/favours.test.js:207:24
+
+  ● resolves a resolved accepted target with explicit text and no reward
+
+    expect(received).toBeTruthy()
+
+    Received: undefined
+
+      205 |   updateFavours(s); readyPlayerTasks(s);
+      206 |   expect(r.status).toBe('expired');
+    > 207 |   expect(task.waiting).toBeTruthy();
+          |                        ^
+      208 |   expect(s.ecs.relationships[r.giverId].known[w.player]?.goodwill || 0).toBe(0);
+      209 | });
+      210 |
+
+      at test/favours.test.js:207:24
+
+  ● a meal replaces a favour, and cancellation leaves collected goods without goodwill
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "cancelled"
+    Received: "accepted"
+
+      232 |   w.step(3);
+      233 |   expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
+    > 234 |   expect(r.status).toBe('cancelled');
+          |                    ^
+      235 |   expect(task.progress).toBeLessThan(1);
+      236 |   // A separate accepted request cannot refund goods or claim completion on cancel.
+      237 |   s.ecs.workplace[w.workplace].fuelHours = 0; s.ecs.container[w.store].amounts.wood = 0;
+
+      at Object.<anonymous> (test/favours.test.js:234:20)
+
+  ● never eats borrowed harvest during a real meal interruption and releases family cargo on cancel
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "7"
+
+      334 |   for (const id of r.cargo) if (s.ecs.good[id]) {
+      335 |     expect(s.ecs.controllable[id].controllerId).toBe(w.person);
+    > 336 |     expect(s.ecs.haulable[id].heldBy).not.toBe(w.player);
+          |                                           ^
+      337 |   }
+      338 |   expect(r.status).toBe('cancelled');
+      339 |   expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBe(0);
+
+      at Object.<anonymous> (test/favours.test.js:336:43)
+
+  ● reports missing harvested cargo rather than completing or endlessly working an impossible request
+
+    expect(received).toContain(expected) // indexOf
+
+    Matcher error: received value must not be null nor undefined
+
+    Received has value: null
+
+      400 |   deleteEntity(s, r.cargo[0]);
+      401 |   updateFavours(s); readyPlayerTasks(s);
+    > 402 |   expect(r.status).toBe('expired'); expect(task.waiting).toContain('cargo no longer available');
+          |                                                          ^
+      403 | });
+      404 |
+      405 | it('releases family cargo when an explicit gathering order replaces its delivery', () => {
+
+      at Object.<anonymous> (test/favours.test.js:402:58)
+
+  ● releases family cargo when an explicit gathering order replaces its delivery
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "7"
+
+      414 |   expect(s.ecs.container[w.camp].amounts.grain).toBe(6);
+      415 |   expect(s.ecs.container[w.camp].amounts.berries).toBe(1);
+    > 416 |   expect(s.ecs.haulable[borrowed].heldBy).not.toBe(w.player);
+          |                                               ^
+      417 |   expect(s.ecs.controllable[borrowed].controllerId).toBe(w.person);
+      418 |   cancelTask(s, favour.id);
+      419 | });
+
+      at Object.<anonymous> (test/favours.test.js:416:47)
+
+FAIL test/player_day.test.js
+  ● replacing a harvest favour releases borrowed crop without refunding work or awarding goodwill
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "delivered": 1,
+        "produced": 5,
+        "progress": 1,
+    -   "status": "cancelled",
+    +   "status": "accepted",
+      }
+
+      46 |  const order=enqueueTask(s,{key:'favour'},tiles[1],{favourId:'f'});order.assignedId=p;world.currentJob='favour';
+      47 |  const next=enqueueTask(s,{key:'move_to_here'},tiles[2]);
+    > 48 |  expect(s.ecs.manager[p].jobs).toEqual([next]);expect(r).toMatchObject({status:'cancelled',progress:1,delivered:1,produced:5});
+         |                                                          ^
+      49 |  expect(s.ecs.good[crop].amount).toBe(5);expect(s.ecs.haulable[crop].heldBy).toBeFalsy();expect(s.ecs.haulable[crop].reservedFor).toBeUndefined();
+      50 |  expect(s.ecs.controllable[crop].controllerId).toBe('family');expect(s.events || []).toEqual([]);
+      51 | });
+
+      at Object.<anonymous> (test/player_day.test.js:48:58)
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       8 failed, 77 passed, 85 total
+Snapshots:   0 total
+Time:        5.373 s, estimated 7 s
+Ran all test suites matching test/player_day.test.js|test/core_loop.test.js|test/favours.test.js.

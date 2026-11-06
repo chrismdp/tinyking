@@ -231,8 +231,9 @@ it('a meal replaces a favour, and cancellation leaves collected goods without go
   enqueueTask(s,{key:'eat_food'},w.camp,{foodType:'grain'});
   w.step(3);
   expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
-  expect(r.status).toBe('cancelled');
+  expect(r.status).toBe('accepted');
   expect(task.progress).toBeLessThan(1);
+  require('game/favours').cancelFavour(s,r);
   // A separate accepted request cannot refund goods or claim completion on cancel.
   s.ecs.workplace[w.workplace].fuelHours = 0; s.ecs.container[w.store].amounts.wood = 0;
   updateFavours(s); const next = w.request('wood');
@@ -330,7 +331,9 @@ it('never eats borrowed harvest during a real meal interruption and releases fam
   expect(s.ecs.personable[w.player].energy).toBeGreaterThan(20);
   expect(s.ecs.container[w.camp].amounts.grain).toBe(5);
   expect(s.ecs.good[borrowed] || s.ecs.container[w.store].amounts.grain > 30).toBeTruthy();
-  cancelTask(s, task.id);
+  expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+  const resumed=require('game/favours').resumeFavour(s,r.id);
+  cancelTask(s, resumed.id);
   for (const id of r.cargo) if (s.ecs.good[id]) {
     expect(s.ecs.controllable[id].controllerId).toBe(w.person);
     expect(s.ecs.haulable[id].heldBy).not.toBe(w.player);
@@ -788,4 +791,21 @@ it('delivers real food beside a store full of non-food goods without exceeding c
   }
   expect(s.ecs.relationships[w.person].known[w.player].goodwill).toBeGreaterThan(before);
   expect(finishFavour(s,r)).toBe(false);
+});
+
+it.each(['move_to_here','chat','rest'])('sets accepted delivery aside for %s and can resume it explicitly',key=>{
+ const w=favourWorld(),s=w.state,r=w.request('wood');
+ acceptFavour(s,r.id);const next=enqueueTask(s,{key},w.tiles[2]);
+ expect(r.status).toBe('accepted');expect(s.ecs.manager[w.player].jobs).toEqual([next]);
+ const {resumeFavour}=require('game/favours');
+ const delivery=resumeFavour(s,r.id);expect(delivery.favourId).toBe(r.id);
+ advanceUntil(w,()=>r.status==='completed');expect(r.delivered).toBe(1);
+});
+it('clears an expired delivery and alerts its player when someone else meets the need',()=>{
+ const w=favourWorld(),s=w.state,r=w.request('wood');
+ const task=acceptFavour(s,r.id);task.assignedId=w.player;task.waiting='Needs wood';
+ s.ecs.planner[w.player].world.currentJob='favour';s.ecs.planner[w.player].task=['do_favour',r.id];
+ s.ecs.container[w.store].amounts.wood=1;updateFavours(s);
+ expect(r.status).toBe('expired');expect(s.ecs.manager[w.player].jobs).not.toContain(task);
+ expect(s.ecs.planner[w.player].task).toBeNull();expect(s.ui.favourNotice.requestId).toBe(r.id);
 });

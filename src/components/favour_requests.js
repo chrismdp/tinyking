@@ -5,7 +5,7 @@ import { GameState } from "components/contexts";
 import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { taskPlace } from "game/task_places";
-import { ASKS, harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
+import { ASKS, resumeFavour, harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
 import { asksJournal, knownPersonName } from "game/day_view";
 import { harvestCounts } from "game/harvest_task";
 import { patience } from "game/chat_patience";
@@ -52,6 +52,7 @@ export function RequestCard({ request: r, personId }) {
     {r.kind == "harvest" && ["accepted", "completed"].includes(r.status) ? <small>{harvestCounts(s, r)}</small> :
       r.status == "accepted" && <small>{r.progress}/{r.quantity} delivered · {r.delivered} carried home</small>}
     {!playerOrderAllowed(s,"favour") && <small>Adult work. Children can help at home when crops need care.</small>}
+    {r.status=="accepted" && !s.ecs.manager[s.ui.playerId].jobs.some(j=>j.favourId==r.id) && <button onClick={()=>{resumeFavour(s,r.id);s.ui.actions.end_turn();}}>Resume delivery</button>}
     {r.outcome && <p role="status">{r.outcome}</p>}
   </article>;
 }

@@ -7,7 +7,7 @@ import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { giftOptions, addGoodwill, meet } from "game/people";
 import { taskPlace } from "game/task_places";
-import { enqueueTask, playerOrderAllowed, canReachTask } from "game/manager";
+import { enqueueTask, cancelTask, playerOrderAllowed, canReachTask } from "game/manager";
 import { recordEvent, knownEvents, closeFamily } from "game/events";
 import { take, give } from "game/holder";
 import { newEntities } from "game/entities";
@@ -132,7 +132,12 @@ export function updateFavours(s) {
   const food = householdFood(s);
   for (const r of Object.values(s.favours.requests)) if (["offered", "accepted"].includes(r.status)) {
     const gone = reasonGone(s, r, food);
-    if (gone) { r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(s, r); }
+    if (gone) {
+      const accepted=r.status=="accepted";
+      r.status = "expired"; r.outcome = gone + " · no goodwill"; releaseFavourCargo(s, r);
+      for(const task of [...ecs.manager[player].jobs])if(task.favourId==r.id){task.waiting=r.outcome;cancelTask(s,task.id);}
+      if(accepted)s.ui.favourNotice={requestId:r.id,text:`${s.personName?.(r.giverId)||"Your neighbour"} no longer needs this help. ${gone}.`};
+    }
   }
   for (const [house, h] of Object.entries(ecs.household || {})) {
     if (!h.storeId || !ecs.container?.[h.storeId]) continue;
@@ -280,6 +285,14 @@ export function acceptFavour(s, id, personId) {
   r.deliveryAuthorised=true;
   r.status="accepted";r.acceptedDay=s.days;r.actorId=s.ui.playerId;r.taskId=task.id;
   return task;
+}
+// Resume work only when the player deliberately chooses delivery again.
+export function resumeFavour(s,id) {
+  updateFavours(s);
+  const r=s.favours?.requests[id];
+  if(!r || r.status!="accepted" || r.actorId!=s.ui.playerId || ASKS.includes(r.kind))return null;
+  return s.ecs.manager[s.ui.playerId].jobs.find(j=>j.favourId==id) ||
+    enqueueTask(s,{key:"favour"},r.targetId,{favourId:id,forId:r.giverId,expectedGoodwill:r.goodwill});
 }
 // A settled delivery needs neither spare pantry capacity nor another trip.
 export function favourWorkDone(s, r) {

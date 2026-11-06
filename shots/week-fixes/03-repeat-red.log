@@ -1,0 +1,22 @@
+FAIL test/player_day.test.js
+  ● does not replay Rest at dawn when it was chosen during an automatic night sleep
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "sleep"
+
+       97 |  for(let i=0;i<2000&&!s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
+       98 |  for(let i=0;i<120;i++)sim.step(1);
+    >  99 |  expect(s.ecs.planner[p].task?.[0]).not.toBe('sleep');
+          |                                         ^
+      100 |  expect(s.ecs.manager[p].jobs.some(j=>j.job.key==='rest')).toBe(false);
+      101 | });
+      102 |
+
+      at Object.<anonymous> (test/player_day.test.js:99:41)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 11 passed, 12 total
+Snapshots:   0 total
+Time:        2.381 s
+Ran all test suites matching test/player_day.test.js.

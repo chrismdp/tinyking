@@ -4,7 +4,7 @@ import { customsIntentUnavailable } from "game/village_customs";
 import { nightTime } from "game/home";
 import { ownsField } from "game/farming";
 export { fieldOrders } from "game/farming";
-import { cancelFavour, requestForTask, favourWaiting, favourReceiver, favourWorkDone } from "game/favours";
+import { releaseFavourCargo, cancelFavour, requestForTask, favourWaiting, favourReceiver, favourWorkDone } from "game/favours";
 import { Hex } from "game/hex";
 import { path } from "game/pathfinding";
 import { STAGES, shelterLogSource, deliveryHome } from "game/construction";
@@ -38,19 +38,21 @@ export const removeJob = (ecs, managerId, key, targetId) => {
 };
 
 // Gathering promised supplies runs before its delivery without cancelling it.
-// Other player orders replace the old one through the same cancellation rules.
+// Other orders set its work aside; only explicit cancellation ends the promise.
 export function enqueueTask(state, job, targetId, metadata = {}) {
   if (!playerOrderAllowed(state, job.key)) return null;
   const manager = state.ecs.manager[state.ui.playerId];
   const entry = { ...metadata, id: "task-" + (manager.nextTask = (manager.nextTask || 0) + 1),
     job, targetId, progress: 0, ...(job.key == "build_shelter" ? { buildStage: state.ecs.construction?.[targetId]?.stage } : {}) };
+  const active=state.ecs.planner[state.ui.playerId];
+  if(job.key=="rest" && (active.task?.[0]=="sleep" || active.world.forcedRest))return manager.jobs.find(j=>j.job.key=="rest") || entry;
   if(job.key == "move_to_here")delete state.ui.talkResult;
   if(CHAT_APPROACH_JOBS.includes(job.key)) {
     delete state.ui.talkResult;
     const reason = chatIntentUnavailable(state,state.ui.playerId,targetId,metadata.chatIntent) || chatUnavailable(state, state.ui.playerId, targetId);
     if(reason && (metadata.chatIntent || chatUnfriendly(state,state.ui.playerId,targetId) || state.ecs.planner?.[targetId]?.task?.[0] == "sleep" || nightTime(state.days))) {
       entry.failed = true; entry.waiting = entry.detail = reason;
-      state.ui.talkResult = {personId:targetId,message:reason};
+      state.ui.talkResult = {personId:targetId,message:reason,availability:true};
       return entry;
     }
   }
@@ -59,7 +61,7 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
     if (request?.status == "accepted" &&
       (job.key == "forage" && request.kind == "food" || job.key == "cut_tree_down" && request.kind == "wood")) {
       if (previous.assignedId == state.ui.playerId) interruptOrder(state);
-    } else cancelTask(state, previous.id);
+    } else cancelTask(state, previous.id, {keepPromise:true});
   }
   manager.jobs.unshift(entry);
   delete state.ecs.planner[state.ui.playerId].world.fireHome;
@@ -98,12 +100,14 @@ function interruptOrder(state) {
 // Commodity gifts retain their physical identity while another order runs.
 export const promisedGift = (ecs, id) => Object.values(ecs.manager || {}).some(manager => manager.jobs.some(job => job.giftItem == id));
 
-export function cancelTask(state, taskId) {
+export function cancelTask(state, taskId, {keepPromise=false}={}) {
   const jobs = state.ecs.manager[state.ui.playerId].jobs;
   const index = jobs.findIndex(j => j.id == taskId);
   if (index < 0) return;
   if (jobs[index].assignedId == state.ui.playerId) interruptOrder(state);
-  cancelFavour(state, requestForTask(state, jobs[index]));
+  const request=requestForTask(state,jobs[index]);
+  if(keepPromise && request)releaseFavourCargo(state,request);
+  else cancelFavour(state,request);
   jobs.splice(index, 1);
 }
 
@@ -206,6 +210,11 @@ export function chatUnavailable(state, actor, target) {
   if(planner?.world.feeling?.hungry) return "They are still eating or looking for a meal. Try again after their meal, or choose another neighbour.";
   return null;
 }
+export function chatResultMessage(state,target) {
+  const result=state.ui.talkResult;
+  if(result?.personId!=target)return null;
+  return result.availability ? chatUnavailable(state,state.ui.playerId,target) : result.message;
+}
 export function completeChatOrder(state, taskId) {
   const jobs=state.ecs.manager[state.ui.playerId].jobs;
   const index=jobs.findIndex(j=>j.id==taskId);
@@ -219,7 +228,7 @@ function failChatApproach(state, job, reason) {
   interruptOrder(state);
   job.failed=true;job.waiting=job.detail=reason;
   const index=jobs.indexOf(job);if(index>=0)jobs.splice(index,1);
-  state.ui.talkResult={personId:job.targetId,message:reason,recovery:!chatUnavailable(state,state.ui.playerId,job.targetId) ? "move_closer" : null};
+  state.ui.talkResult={personId:job.targetId,message:reason,availability:reason==chatUnavailable(state,state.ui.playerId,job.targetId),recovery:!chatUnavailable(state,state.ui.playerId,job.targetId) ? "move_closer" : null};
 }
 export function expireChatApproach(state) {
   if(state.chat?.active)return;

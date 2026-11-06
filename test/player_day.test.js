@@ -38,14 +38,14 @@ it('keeps an awake night at normal speed and respects chat and pause during slee
  delete s.chat;s.game_speed='paused';sim.step(600);expect(s.days).toBe(day);
 });
 
-it('replacing a harvest favour releases borrowed crop without refunding work or awarding goodwill',()=>{
+it('setting harvest work aside releases borrowed crop and keeps the promise without refunding work',()=>{
  const {s,p,tiles,world}=economy();
  const [crop]=newEntities(s,[{spatial:{...s.ecs.spatial[p]},good:{type:'grain',amount:5},haulable:{reservedFor:'f'},controllable:{controllerId:'family'}}]);
  require('game/holder').give(s.ecs,crop,p);
  const r={id:'f',kind:'harvest',status:'accepted',cargo:[crop],progress:1,delivered:1,produced:5};s.favours={requests:{f:r}};
  const order=enqueueTask(s,{key:'favour'},tiles[1],{favourId:'f'});order.assignedId=p;world.currentJob='favour';
  const next=enqueueTask(s,{key:'move_to_here'},tiles[2]);
- expect(s.ecs.manager[p].jobs).toEqual([next]);expect(r).toMatchObject({status:'cancelled',progress:1,delivered:1,produced:5});
+ expect(s.ecs.manager[p].jobs).toEqual([next]);expect(r).toMatchObject({status:'accepted',progress:1,delivered:1,produced:5});
  expect(s.ecs.good[crop].amount).toBe(5);expect(s.ecs.haulable[crop].heldBy).toBeFalsy();expect(s.ecs.haulable[crop].reservedFor).toBeUndefined();
  expect(s.ecs.controllable[crop].controllerId).toBe('family');expect(s.events || []).toEqual([]);
 });
@@ -76,4 +76,26 @@ it('starts a full daytime rest after an earlier night rest was cancelled',()=>{
  while(s.days<1+10/24)sim.step(60,0);
  const rest=enqueueTask(s,{key:'rest'},p);sim.step(10,0);
  expect(s.ecs.planner[p].task?.[0]).toBe('sleep');expect(rest.progress).toBeLessThan(1);
+});
+
+it('stays awake through the morning after the accelerated night reaches dawn',()=>{
+ const {s,p}=economy();s.days=22/24;s.game_speed='normal';s.ecs.personable[p].energy=10;
+ enqueueTask(s,{key:'rest'},p);const sim=createSimulation(s);
+ for(let i=0;i<2000&&!s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
+ expect(s.ui.dayMessage).toMatch(/^Morning/);
+ for(let i=0;i<120;i++)sim.step(1);
+ expect(s.ecs.planner[p].task?.[0]).not.toBe('sleep');
+ expect(s.ecs.planner[p].world.forcedRest).toBeFalsy();
+ expect(s.ecs.manager[p].jobs.some(j=>j.job.key==='rest')).toBe(false);
+});
+
+it('does not replay Rest at dawn when it was chosen during an automatic night sleep',()=>{
+ const {s,p}=economy();s.days=23/24;s.game_speed='normal';s.ecs.personable[p].energy=0;
+ const sim=createSimulation(s);
+ for(let i=0;i<100&&!s.nightSleep;i++)sim.step(1,0);
+ expect(s.nightSleep).toBeTruthy();enqueueTask(s,{key:'rest'},p);
+ for(let i=0;i<2000&&!s.ui.dayMessage?.startsWith('Morning');i++)sim.step(1);
+ for(let i=0;i<120;i++)sim.step(1);
+ expect(s.ecs.planner[p].task?.[0]).not.toBe('sleep');
+ expect(s.ecs.manager[p].jobs.some(j=>j.job.key==='rest')).toBe(false);
 });

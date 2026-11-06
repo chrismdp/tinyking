@@ -1233,3 +1233,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #ui:has(.panel, .person-window, .tree-window, .chat-panel, #journal[open]) #day-notices { display: none; }
   #day-notices { max-height: 140px; bottom: auto; }
 }
+@media (max-width: 700px), (max-height: 500px) {
+  #game:has(.popper[style*="visibility: visible"]) #day-notices { display: none; }
+}

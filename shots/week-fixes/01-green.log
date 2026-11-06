@@ -1,0 +1,54 @@
+FAIL test/chat_interventions.test.js
+  ● explains an accepted peace ask to either party and the journal: trust
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "ready": true,
+    -   "text": "Ask Agnes Miller or Edith Miller to come and talk together under Help or Family.",
+    +   "ready": false,
+    +   "text": "Spend more time with both people. They each need to trust you as a friend",
+      }
+
+      128 |     expect(line).toBeDefined();expect(chooseLine(s,line.key)).toBe(true);
+      129 |     expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"promise_step"});
+    > 130 |     expect(s.chat.active.transcript.at(-1).step).toEqual(askNextStep(s,r));
+          |                                                  ^
+      131 |   }
+      132 | });
+      133 |
+
+      at test/chat_interventions.test.js:130:50
+
+  ● explains an accepted peace ask to either party and the journal: one_side
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "ready": true,
+    -   "text": "Ask Agnes Miller or Edith Miller to come and talk together under Help or Family.",
+    +   "ready": false,
+    +   "text": "Talk with each person since the quarrel, so you have heard both sides",
+      }
+
+      128 |     expect(line).toBeDefined();expect(chooseLine(s,line.key)).toBe(true);
+      129 |     expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"promise_step"});
+    > 130 |     expect(s.chat.active.transcript.at(-1).step).toEqual(askNextStep(s,r));
+          |                                                  ^
+      131 |   }
+      132 | });
+      133 |
+
+      at test/chat_interventions.test.js:130:50
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       2 failed, 29 passed, 31 total
+Snapshots:   0 total
+Time:        4.421 s, estimated 7 s
+Ran all test suites matching test/asks.test.js|test/chat_interventions.test.js.

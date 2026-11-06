@@ -84,7 +84,10 @@ function queryLineCandidates(s,c,family,speaker) {
       // Qualify their spoken IDs so telling one harvest does not hide all others.
       const id=row.icons.some(i=>i.kind=="event")?row.id+"@"+b.event.id:row.id;
       if(id!=row.id&&c.usedIds.includes(id))continue;
-      const text=interpolate(row.text,b),useKey=interpolate(row.use_key,b);
+      let text=interpolate(row.text,b);
+      const promise=row.family=="gossip_tell"&&Object.values(s.favours?.requests||{}).find(r=>r.kind=="word"&&r.status=="accepted"&&r.actorId==c.actorId&&r.targetId==c.npcId&&r.eventId==b.event?.id);
+      if(promise&&text)text=`${displayName(s,promise.giverId)} asked me to tell you: ${text}`;
+      const useKey=interpolate(row.use_key,b);
       if(text==null||useKey==null)continue;
       const reoffer=family=="favour_ask" && c.tags.includes("offered_help") && s.knowledge?.[c.actorId]?.declinedOffers?.[b.request?.id];
       if(pair.used[useKey] && !row.answers?.includes(c.expectation) && !row.situation.startsWith("fallback_") && family!="referral_reply" && !reoffer && !["greeting","leave_taking","introduction_reply","name_answer"].includes(family))continue;
@@ -94,7 +97,7 @@ function queryLineCandidates(s,c,family,speaker) {
       if(icons.some(i=>i.kind=="person"&&!i.personId))continue;
       const risk=lineRisk(s,c,row);
       if(risk&&row.level.below=="hide")continue;
-      result.push({...row,id,text,useKey,key:row.id+"|"+useKey,icons,b,...(risk?{risk}:{})});
+      result.push({...row,id,text,useKey,...(promise?{promiseId:promise.id}:{}),key:row.id+"|"+useKey,icons,b,...(risk?{risk}:{})});
     }
   }
   return result;
@@ -179,13 +182,13 @@ function queryChatChoices(s) {
   if(c.closingReply) return withAnswers(all.filter(l=>(c.closingReply=="offer"?["favour_accept","favour_decline"]:["referral_reply"]).includes(l.family)));
   if(c.focus=="tell")return withAnswers(all.filter(l=>l.family=="gossip_tell"&&l.situation.startsWith("catalogue_")).sort((a,b)=>b.b.event.day-a.b.event.day||a.useKey.localeCompare(b.useKey)),false);
   if (c.focus) {
-    const focus={family:["make_peace","introduce","maternal_introduction","maternal_search","family_question","own_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["introduce","gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress"],village:["lands_question","village_question"],season:["season_talk"],mood:["own_question","mood_talk","mood_reply"]}[c.focus];
+    const focus={family:["promise_followup","make_peace","introduce","maternal_introduction","maternal_search","family_question","own_question","player_family","confidence_question","flirt"],work:["work_question","player_work"],news:["promise_followup","make_peace","introduce","gossip_question","gossip_tell","visit_question"],help:["need_question","help_offer","favour_accept","favour_decline","favour_progress","promise_followup","make_peace"],village:["lands_question","village_question"],season:["season_talk"],mood:["own_question","mood_talk","mood_reply"]}[c.focus];
     all=all.filter(l=>focus.includes(l.family)||l.family=="customs_question"||c.focus=="season"&&l.family=="lands_question"&&l.situation=="country");
   }
   // Practical lines remain reachable; the list otherwise favours a visible
   // match and distinct purposes, without looking up hidden taste scores.
   all.sort((a,b)=>{
-    const rank=l=>!previewLine(s,l).fits?-20:l.family=="customs_question"?110:l.family=="favour_accept"?100:l.family=="favour_decline"?90:["make_peace","introduce"].includes(l.family)?85:c.focus=="family"&&l.family=="family_question"&&l.situation=="general"?80:["season_talk","lands_question","need_question"].includes(l.family)?70+previewLine(s,l).matches:l.family=="introduction"?60:previewLine(s,l).matches*4;
+    const rank=l=>!previewLine(s,l).fits?-20:l.family=="customs_question"?110:l.family=="promise_followup"?105:l.family=="favour_accept"?100:l.family=="favour_decline"?90:["make_peace","introduce"].includes(l.family)?85:c.focus=="family"&&l.family=="family_question"&&l.situation=="general"?80:["season_talk","lands_question","need_question"].includes(l.family)?70+previewLine(s,l).matches:l.family=="introduction"?60:previewLine(s,l).matches*4;
     return rank(b)-rank(a)||hashUnit(c.encounter+":"+c.transcript.length+":"+a.useKey)-hashUnit(c.encounter+":"+c.transcript.length+":"+b.useKey);
   });
   const result=[],used=new Set();
@@ -248,6 +251,7 @@ function effects(s,c,line) {
   for(const op of line.effects||[]) {
     const k=knowledge(s,ref(op.viewer)||c.actorId);
     switch(op.op) {
+    case "promise_step":c.promiseStep=b.request.id;break;
     case "arrange_meeting": {
       const run=op.kind=="make_peace"?makePeace:introduce;
       const reason=run(s,c.actorId,c.npcId,ref(op.other),{whenFree:true});
@@ -338,7 +342,7 @@ export function speakLine(s,line) {
   }
   c.lastPops=[...(c.lastPops||[]),...pops];
   c.usedIds.push(line.id);
-  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
+  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,...(line.family=="promise_step"?{step:line.b.step}:{}),icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
   c.transcript.push(spoken);
   if(!risk) {
     for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
@@ -390,6 +394,7 @@ export function reply(s,requested) {
   if(!line&&(requested=="need_news" || requested=="introduction_reply" && c.knewBefore && c.completed))line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["own_news","visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}
+  if(!line)line=pickNpc(s,c,"answer_acknowledged");
   if(line){speakLine(s,line);noteExhausted(s,c,line);
     if(requested=="maternal_recognition"&&firstFamilyRequest(s,c.actorId,c.npcId)) {
       const offer=pickNpc(s,c,"favour_ask",true);
@@ -401,7 +406,7 @@ export function reply(s,requested) {
     if(line.family=="own_news"&&line.situation.startsWith("told_")) {
       const ask=pickNpc(s,c,"favour_ask",true);if(ask&&["word","peace","visit","find"].includes(ask.b?.request?.kind))speakLine(s,ask);
     }
-    if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)endChat(s,c.closeReason||"no_news");}
+    if(["nothing_more","nothing_more_village"].includes(line.situation)&&!c.pendingOfferId)c.focus=null;}
   else endChat(s,c.closeReason||"no_news");
   c.phase="player_turn";
 }

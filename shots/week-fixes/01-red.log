@@ -1,0 +1,101 @@
+FAIL test/asks.test.js (5.758 s)
+  ● delivers accepted word to the giver's kin even when the deceased was not their kin or village neighbour
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      192 |   s.chat.active.subjectId=sibling;s.chat.active.focus="tell";
+      193 |   const tell=chatChoices(s).find(l=>l.b.event?.id==death.id);
+    > 194 |   expect(tell).toBeDefined();
+          |                ^
+      195 |   expect(tell.promiseId).toBe(r.id);
+      196 |   expect(chooseLine(s,tell.key)).toBe(true);
+      197 |   updateFavours(s);expect(r.status).toBe("completed");
+
+      at Object.<anonymous> (test/asks.test.js:194:16)
+
+FAIL test/chat_interventions.test.js
+  ● explains an accepted peace ask to either party and the journal: trust
+
+    Configuration error:
+
+    Could not locate module game/ask_steps mapped as:
+    /home/cp/code/tk-fixes/src/game/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/game\/(.*)/": "/home/cp/code/tk-fixes/src/game/$1"
+      },
+      "resolver": undefined
+    }
+
+      119 |   if(missing=="trust")s.ecs.relationships[w.parent].known[w.player].ring="social";
+      120 |   if(missing=="one_side")delete s.social.contacts[[w.player,w.parent].sort().join(":")];
+    > 121 |   const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/day_view");
+          |                       ^
+      122 |   expect(askNextStep(s,r).ready).toBe(missing=="ready");
+      123 |   expect(asksJournal(s,[r])[0].nextStep).toEqual(askNextStep(s,r));
+      124 |   for(const npc of [w.person,w.parent]) {
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1322:17)
+      at test/chat_interventions.test.js:121:23
+
+  ● explains an accepted peace ask to either party and the journal: one_side
+
+    Configuration error:
+
+    Could not locate module game/ask_steps mapped as:
+    /home/cp/code/tk-fixes/src/game/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/game\/(.*)/": "/home/cp/code/tk-fixes/src/game/$1"
+      },
+      "resolver": undefined
+    }
+
+      119 |   if(missing=="trust")s.ecs.relationships[w.parent].known[w.player].ring="social";
+      120 |   if(missing=="one_side")delete s.social.contacts[[w.player,w.parent].sort().join(":")];
+    > 121 |   const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/day_view");
+          |                       ^
+      122 |   expect(askNextStep(s,r).ready).toBe(missing=="ready");
+      123 |   expect(asksJournal(s,[r])[0].nextStep).toEqual(askNextStep(s,r));
+      124 |   for(const npc of [w.person,w.parent]) {
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1322:17)
+      at test/chat_interventions.test.js:121:23
+
+  ● explains an accepted peace ask to either party and the journal: ready
+
+    Configuration error:
+
+    Could not locate module game/ask_steps mapped as:
+    /home/cp/code/tk-fixes/src/game/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/game\/(.*)/": "/home/cp/code/tk-fixes/src/game/$1"
+      },
+      "resolver": undefined
+    }
+
+      119 |   if(missing=="trust")s.ecs.relationships[w.parent].known[w.player].ring="social";
+      120 |   if(missing=="one_side")delete s.social.contacts[[w.player,w.parent].sort().join(":")];
+    > 121 |   const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/day_view");
+          |                       ^
+      122 |   expect(askNextStep(s,r).ready).toBe(missing=="ready");
+      123 |   expect(asksJournal(s,[r])[0].nextStep).toEqual(askNextStep(s,r));
+      124 |   for(const npc of [w.person,w.parent]) {
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1322:17)
+      at test/chat_interventions.test.js:121:23
+
+Test Suites: 2 failed, 2 total
+Tests:       4 failed, 27 passed, 31 total
+Snapshots:   0 total
+Time:        6.581 s
+Ran all test suites matching test/asks.test.js|test/chat_interventions.test.js.

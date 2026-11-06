@@ -53,3 +53,24 @@ it("answers the live help-before-introduction rebuff with a usable name line",()
   expect(previewLine(s,answer).fits).toBe(true);expect(chooseLine(s,answer.key)).toBe(true);
   expect(s.knowledge[n].people[p]).toBeDefined();
 });
+
+it("acknowledges a weather answer even after all the NPC's ordinary subject lines were used",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  s.ecs.spatial[p]={...s.ecs.spatial[n]};openChat(s,p,n);
+  const c=s.chat.active;c.row=[];c.phase="player_turn";
+  c.usedIds.push(...LINES.filter(l=>l.speaker=="npc"&&!['answer_acknowledged','leave_taking'].includes(l.family)).map(l=>l.id));
+  c.expectation="weather";
+  const line=chatChoices(s).find(l=>l.answers?.includes("weather"));expect(line).toBeDefined();
+  chooseLine(s,line.key);
+  expect(c.transcript.at(-1).speaker).toBe("npc");expect(c.endReason).toBeUndefined();
+  expect(chatChoices(s).some(l=>previewLine(s,l).fits)).toBe(true);
+});
+
+it("keeps other subjects available after the NPC has no more news on the chosen subject",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();s.ecs.spatial[p]={...s.ecs.spatial[n]};openChat(s,p,n);
+  const c=s.chat.active;c.row=[];c.subjectId=p;c.focus="news";delete c.expectation;
+  const question=chatChoices(s).find(l=>l.family=="gossip_question");expect(question).toBeDefined();
+  chooseLine(s,question.key);
+  expect(c.transcript.at(-1).speaker).toBe("npc");expect(c.endReason).toBeUndefined();
+  expect(chatChoices(s).some(l=>previewLine(s,l).fits)).toBe(true);
+});

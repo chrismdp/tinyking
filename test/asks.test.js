@@ -175,3 +175,46 @@ it("never offers an ask as work, so it cannot be finished by labour", () => {
   expect(choices.some(c=>c.personId==person)).toBe(true);
   expect(choices.filter(c=>c.activity=="work"&&c.requestId==r.id)).toEqual([]);
 });
+
+it("delivers accepted word to the giver's kin even when the deceased was not their kin or village neighbour", () => {
+  const {s,player,person,parent,sibling}=family();
+  // The recipient is the giver's sister; the deceased is the giver's spouse.
+  s.ecs.kinship[parent]={parents:[],children:[],spouse:person};
+  s.ecs.kinship[person]={parents:[],children:[],spouse:parent};
+  s.ecs.kinship[sibling]={parents:[],children:[]};
+  s.ecs.personable[parent].dead=true;
+  const death=recordEvent(s,"death",[parent],[],{audienceIds:[person]});
+  learnEvent(s,player,death);
+  const r={id:"word-test",kind:"word",giverId:person,targetId:sibling,eventId:death.id,status:"accepted",actorId:player,acceptedDay:s.days,createdDay:s.days,goodwill:10};
+  s.favours={requests:{[r.id]:r}};
+  s.ecs.spatial[player]={...s.ecs.spatial[sibling]};
+  expect(openChat(s,player,sibling,{required:true})).toBe(true);
+  s.chat.active.subjectId=sibling;s.chat.active.focus="tell";
+  const tell=chatChoices(s).find(l=>l.b.event?.id==death.id);
+  expect(tell).toBeDefined();
+  expect(tell.promiseId).toBe(r.id);
+  expect(chooseLine(s,tell.key)).toBe(true);
+  updateFavours(s);expect(r.status).toBe("completed");
+});
+
+it.each(["word","peace","visit","find"])("acknowledges accepting a %s ask and returns choices with patience left",kind=>{
+  const {s,player,person,parent,sibling}=family();
+  s.newsModel=false;s.ecs.personable[parent].dead=kind=="word";
+  const event=recordEvent(s,kind=="word"?"death":kind=="find"?"departure":"quarrel",kind=="word"?[parent]:[person,sibling],[],{audienceIds:[person]});
+  const r={id:"accept-test",kind,giverId:person,targetId:sibling,eventId:event.id,householdId:s.ecs.household[person].houseId,status:"offered",createdDay:s.days};
+  s.favours={requests:{[r.id]:r}};
+  s.ecs.relationships[person].known[player]={ring:"personal",goodwill:40};
+  s.ecs.spatial[player]={...s.ecs.spatial[person]};
+  openChat(s,player,person,{required:true});s.chat.active.row=[];s.chat.active.phase="reply";
+  const {lineCandidates,speakLine}=require("game/chat");
+  const offer=lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id);
+  // Completed contact is the fixture boundary for this offer.
+  if(!offer){require("game/people").completeConversation(s,player,person);}
+  speakLine(s,offer||lineCandidates(s,s.chat.active,"favour_ask","npc").find(l=>l.b.request?.id==r.id));
+  s.chat.active.row=[];s.chat.active.phase="player_turn";
+  const yes=chatChoices(s).find(l=>l.family=="favour_accept");expect(yes).toBeDefined();
+  chooseLine(s,yes.key);
+  expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"favour_accepted"});
+  expect(s.chat.active.endReason).toBeUndefined();
+  expect(chatChoices(s).some(l=>require("game/chat").previewLine(s,l).fits)).toBe(true);
+});

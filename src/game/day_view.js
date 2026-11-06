@@ -1,3 +1,4 @@
+import { askNextStep } from "game/ask_steps";
 // Presentation data for the day screen. Reads learned facts and committed day
 // results; the simulation remains the authority for choices and consequences.
 import { Hex } from "./hex";
@@ -199,7 +200,7 @@ export function asksJournal(s, requests=visibleFavours(s)) {
     const related=knownEvents(s,s.ui.playerId).filter(e=>e.id===r.eventId || ((e.people?.includes(r.targetId)||e.people?.includes(r.giverId)) && e.day>= (r.createdDay??0)));
     const completed={peace:"You kept your promise. They made peace.",word:"You kept your promise. The news reached them.",visit:"You kept your promise. You spent time together.",find:"You kept your promise. You found news of them."}[r.kind]||"You kept your promise. The household received your help.";
     return {id:r.id,giverId:remembered?.speakerId||r.giverId,targetId:r.targetId,targetName:remembered?.targetName||describePerson(s,r.targetId),title:favourTitle(r),status:r.status,
-      words:remembered?.text||null,context:r.reason,
+      words:remembered?.text||null,context:r.reason,nextStep:askNextStep(s,r),
       learned:related.map(e=>eventText(s,e,id=>describePerson(s,id))),
       outcome:r.status==="completed"?completed:r.status==="accepted"?(r.progress>0?"You have delivered some of what they asked for. Your promise is still open.":"You promised to help."):r.status==="offered"?"They are waiting for your answer.":r.outcome?.split(" · ")[0]||"The ask has come to an end."};
   });

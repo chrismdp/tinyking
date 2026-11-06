@@ -1,0 +1,95 @@
+FAIL test/asks.test.js
+  ● acknowledges accepting a word ask and returns choices with patience left
+
+    TypeError: Cannot read properties of undefined (reading 'icons')
+
+      38 | function rowAfter(c,line) {
+      39 |   const row=[...c.row],popped=[];
+    > 40 |   for(const icon of line.icons) {
+         |                          ^
+      41 |     const at=icon.kind=="grievance"?-1:row.findIndex(x=>x.kind!="grievance"&&iconKey(x)==iconKey(icon));
+      42 |     if(at<0)row.push({...icon});else {row.splice(at,1);popped.push(icon);}
+      43 |   }
+
+      at rowAfter (src/game/chat.js:40:26)
+      at previewLine (src/game/chat.js:125:22)
+      at speakLine (src/game/chat.js:298:42)
+      at test/asks.test.js:213:3
+
+  ● acknowledges accepting a peace ask and returns choices with patience left
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "family": "favour_accepted",
+    -   "speaker": "npc",
+    +   "family": "favour_accept",
+    +   "speaker": "player",
+      }
+
+      215 |   const yes=chatChoices(s).find(l=>l.family=="favour_accept");expect(yes).toBeDefined();
+      216 |   chooseLine(s,yes.key);
+    > 217 |   expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"favour_accepted"});
+          |                                           ^
+      218 |   expect(s.chat.active.endReason).toBeUndefined();
+      219 |   expect(chatChoices(s).some(l=>require("game/chat").previewLine(s,l).fits)).toBe(true);
+      220 | });
+
+      at test/asks.test.js:217:43
+
+  ● acknowledges accepting a visit ask and returns choices with patience left
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "family": "favour_accepted",
+    -   "speaker": "npc",
+    +   "family": "favour_accept",
+    +   "speaker": "player",
+      }
+
+      215 |   const yes=chatChoices(s).find(l=>l.family=="favour_accept");expect(yes).toBeDefined();
+      216 |   chooseLine(s,yes.key);
+    > 217 |   expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"favour_accepted"});
+          |                                           ^
+      218 |   expect(s.chat.active.endReason).toBeUndefined();
+      219 |   expect(chatChoices(s).some(l=>require("game/chat").previewLine(s,l).fits)).toBe(true);
+      220 | });
+
+      at test/asks.test.js:217:43
+
+  ● acknowledges accepting a find ask and returns choices with patience left
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "family": "favour_accepted",
+    -   "speaker": "npc",
+    +   "family": "favour_accept",
+    +   "speaker": "player",
+      }
+
+      215 |   const yes=chatChoices(s).find(l=>l.family=="favour_accept");expect(yes).toBeDefined();
+      216 |   chooseLine(s,yes.key);
+    > 217 |   expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"favour_accepted"});
+          |                                           ^
+      218 |   expect(s.chat.active.endReason).toBeUndefined();
+      219 |   expect(chatChoices(s).some(l=>require("game/chat").previewLine(s,l).fits)).toBe(true);
+      220 | });
+
+      at test/asks.test.js:217:43
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       4 failed, 19 passed, 23 total
+Snapshots:   0 total
+Time:        25.418 s
+Ran all test suites matching test/asks.test.js|test/chat_answers.test.js.

@@ -165411,5 +165411,500 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "player.promise_followup.promise.base.01",
+  "speaker": "player",
+  "family": "promise_followup",
+  "situation": "promise",
+  "weight": 5,
+  "bindings": {
+   "request": {
+    "source": "accepted_promise_with_npc"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "About my promise concerning {request.target_first_name}, what is needed now?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "promise_followup:{request.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [
+    "Help or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Nothing new: they already know you agreed"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "promise_step"
+   },
+   {
+    "op": "set_reply_purpose",
+    "purpose": "promise_step"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.promise_step.promise.base.01",
+  "speaker": "npc",
+  "family": "promise_step",
+  "situation": "promise",
+  "weight": 5,
+  "bindings": {
+   "step": {
+    "source": "pending_promise_step"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{step.text}",
+  "facts": [],
+  "icons": [],
+  "use_key": "promise_step:{context.encounter_number}:{context.game_hour}",
+  "tradeoff": {
+   "risks": [
+    "Help or their portrait can land badly with them."
+   ],
+   "reveals": [
+    "Nothing new: they already know you agreed"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_accepted.word.base.01",
+  "speaker": "npc",
+  "family": "favour_accepted",
+  "situation": "word",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_favour_result"
+   },
+   "request": {
+    "source": "result_request",
+    "result": "result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "result",
+      "value": "favour_accepted"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "word"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. Tell them gently, when you see them.",
+  "facts": [
+   {
+    "ref": "result",
+    "fields": [
+     "request_id",
+     "accepted",
+     "delivery_authorised"
+    ],
+    "tense": "performed"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "favour_ack:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Help can land badly with them."
+   ],
+   "reveals": [
+    "That the request is now yours"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_accepted.peace.base.01",
+  "speaker": "npc",
+  "family": "favour_accepted",
+  "situation": "peace",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_favour_result"
+   },
+   "request": {
+    "source": "result_request",
+    "result": "result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "result",
+      "value": "favour_accepted"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "peace"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. Speak with us both. We need someone we can trust.",
+  "facts": [
+   {
+    "ref": "result",
+    "fields": [
+     "request_id",
+     "accepted",
+     "delivery_authorised"
+    ],
+    "tense": "performed"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "favour_ack:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Help can land badly with them."
+   ],
+   "reveals": [
+    "That the request is now yours"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_accepted.visit.base.01",
+  "speaker": "npc",
+  "family": "favour_accepted",
+  "situation": "visit",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_favour_result"
+   },
+   "request": {
+    "source": "result_request",
+    "result": "result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "result",
+      "value": "favour_accepted"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "visit"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. A little company will do them good.",
+  "facts": [
+   {
+    "ref": "result",
+    "fields": [
+     "request_id",
+     "accepted",
+     "delivery_authorised"
+    ],
+    "tense": "performed"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "favour_ack:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Help can land badly with them."
+   ],
+   "reveals": [
+    "That the request is now yours"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
+ },
+ {
+  "id": "npc.favour_accepted.find.base.01",
+  "speaker": "npc",
+  "family": "favour_accepted",
+  "situation": "find",
+  "weight": 1,
+  "bindings": {
+   "result": {
+    "source": "pending_favour_result"
+   },
+   "request": {
+    "source": "result_request",
+    "result": "result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "result",
+      "value": "favour_accepted"
+     }
+    },
+    {
+     "test": "request_kind_is",
+     "args": {
+      "request": "request",
+      "kind": "find"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Thank you. Come back when you hear how they fare.",
+  "facts": [
+   {
+    "ref": "result",
+    "fields": [
+     "request_id",
+     "accepted",
+     "delivery_authorised"
+    ],
+    "tense": "performed"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "help"
+   }
+  ],
+  "use_key": "favour_ack:{request.id}",
+  "tradeoff": {
+   "risks": [
+    "Help can land badly with them."
+   ],
+   "reveals": [
+    "That the request is now yours"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  }
  }
 ]

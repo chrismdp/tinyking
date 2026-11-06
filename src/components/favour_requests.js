@@ -18,6 +18,7 @@ function AskCard({ request: r }) {
     <p>About {entry.targetName}</p>
     {!entry.words && <p>{entry.context}</p>}
     <p role="status">{entry.outcome}</p>
+    {entry.nextStep && <p>{entry.nextStep.text}</p>}
     {!!entry.learned.length && <div><strong>What you learned</strong>{entry.learned.map((text,i)=><p key={i}>{text}</p>)}</div>}
     <div className="request-bottom"><strong className="request-state">{entry.status[0].toUpperCase()+entry.status.slice(1)}</strong></div>
     {r.status=="offered"&&s.ecs.planner?.[entry.giverId]&&<button disabled={patience(s,s.ui.playerId,entry.giverId).free<patience(s,s.ui.playerId,entry.giverId).minimum} onClick={()=>s.ui.actions.talk_to(entry.giverId,"chat")}>Chat with {giver}</button>}

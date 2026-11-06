@@ -111,3 +111,22 @@ it("does not carry an unfulfilled meeting into another day",()=>{
   updateSocialInterventions(s);expect(s.social.meetings).toHaveLength(0);
   expect(s.ecs.planner[w.parent].world.social).toBeUndefined();
 });
+
+it.each(["trust","one_side","ready"])("explains an accepted peace ask to either party and the journal: %s",missing=>{
+  const w=pairChat(true),s=w.state;
+  const r={id:"peace-test",kind:"peace",giverId:w.person,targetId:w.parent,eventId:w.quarrel.id,status:"accepted",actorId:w.player,acceptedDay:s.days,createdDay:s.days};
+  s.favours={requests:{[r.id]:r}};
+  if(missing=="trust")s.ecs.relationships[w.parent].known[w.player].ring="social";
+  if(missing=="one_side")delete s.social.contacts[[w.player,w.parent].sort().join(":")];
+  const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/day_view");
+  expect(askNextStep(s,r).ready).toBe(missing=="ready");
+  expect(asksJournal(s,[r])[0].nextStep).toEqual(askNextStep(s,r));
+  for(const npc of [w.person,w.parent]) {
+    closeChat(s,{interrupted:true});s.ecs.spatial[w.player]={...s.ecs.spatial[npc]};
+    openChat(s,w.player,npc,{required:true});s.chat.active.row=[];s.chat.active.focus="help";
+    const line=chatChoices(s).find(l=>l.b.request?.id==r.id&&l.family=="promise_followup");
+    expect(line).toBeDefined();expect(chooseLine(s,line.key)).toBe(true);
+    expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"promise_step"});
+    expect(s.chat.active.transcript.at(-1).step).toEqual(askNextStep(s,r));
+  }
+});

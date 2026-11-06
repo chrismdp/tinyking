@@ -1,3 +1,4 @@
+import { askNextStep } from "game/ask_steps";
 import { lifeStageLabel } from "game/life_stages";
 import { eventById } from "game/events";
 import { knowsEvent } from "game/event_knowledge";
@@ -139,6 +140,8 @@ export function sourceValues(s,c,b,d) {
   switch(d.source) {
   case "player_known_local_person":return [...new Set([...Object.keys(s.knowledge?.[p]?.people||{}),...Object.keys(e.relationships?.[p]?.known||{})])]
     .filter(id=>id!=p&&id!=n&&living(s,id)&&e.planner?.[id]&&knows(s,p,id)).map(id=>personFact(s,id)).filter(Boolean);
+  case "accepted_promise_with_npc":return Object.values(s.favours?.requests||{}).filter(r=>r.status=="accepted"&&r.actorId==p&&[r.giverId,r.targetId].includes(n)&&["peace","word","visit","find"].includes(r.kind)).map(r=>({...request(r),step:askNextStep(s,r)}));
+  case "pending_promise_step":return c.promiseStep?[askNextStep(s,s.favours.requests[c.promiseStep])]:[];
   case "pending_meeting_result":return c.meetingResult?[c.meetingResult]:[];
   case "customs_chat": {
     const context=c.context;if(!context)return [];
@@ -181,7 +184,7 @@ export function sourceValues(s,c,b,d) {
     .sort((a,b)=>b.day-a.day||a.id.localeCompare(b.id)).map(x=>eventFact(s,x));
   case "npc_known_unheard_event_for_question":return newsEvents(s,c).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
-  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
+  case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId)||Object.values(s.favours?.requests||{}).some(r=>r.status=="accepted"&&r.kind=="word"&&r.actorId==p&&r.targetId==n&&r.eventId==x.id))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   case "event_just_told_by_player":return [eventFact(s,eventById(s,c.toldEventId))].filter(Boolean);
   case "event_person":return [personFact(s,ref(d.event)?.people[d.index])].filter(Boolean);
   case "event_other_participant":return (ref(d.event)?.people||[]).filter(id=>id!=person(d.person)).map(id=>personFact(s,id));

@@ -1,0 +1,10 @@
+87592: SIGTERM sent to verified owned server
+87591: SIGTERM sent to verified owned server
+87567: SIGTERM sent to verified owned server
+Server 87567: not running
+Server 87591: not running
+Server 87592: not running
+Browser/driver saved PID 105373: not running
+Browser/driver saved PID 105534: not running
+Browser/driver saved PID 105576: not running
+Cleanup exit status: 0

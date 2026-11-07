@@ -21,6 +21,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Production dependencies only: the game ships its runtime packages, while dev
+      # tooling (jest, webpack-dev-server) never reaches the browser.
+      - name: Dependency audit (high and above in production dependencies blocks)
+        run: npm audit --omit=dev --audit-level=high
       - run: npx jest
       - run: npm run build
       - name: Deploy to Cloudflare

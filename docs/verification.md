@@ -26,7 +26,7 @@ A whole-suite run with failures retains its passing evidence. Fix the failures, 
 
 For documentation or test-script-only changes, relevant lint, affected tests or the changed script and code review are sufficient when runtime/package/build configuration is unchanged. Do not spend another whole-suite run proving unchanged gameplay. Never remove meaningful assertions to qualify for that exception.
 
-Fast-forward main to the accepted candidate, push, build/deploy from main and verify the live commit. Do not repeat a browser review simply because the same source moved onto main. Preserve and verify complete evidence before removing each worktree.
+Fast-forward main to the accepted candidate and push; the Deploy workflow builds and deploys it. Verify the live commit. Do not repeat a browser review simply because the same source moved onto main. Preserve and verify complete evidence before removing each worktree.
 
 ## Resources and authority
 

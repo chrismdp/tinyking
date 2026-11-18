@@ -1,9 +1,10 @@
+import { knownPersonName, describePerson, asksJournal } from "game/ask_journal";
 import React from "react";
 import PropTypes from "prop-types";
 import { personComponent } from "game/residents";
 import { WorldHex } from "game/hex";
 import { valleyLayout } from "game/day_view";
-import { portraitKey, knownPersonName, describePerson, familyTree, personSheet, knownPeople, asksJournal, doing, actionWords } from "game/day_view";
+import { portraitKey, familyTree, personSheet, knownPeople, doing, actionWords } from "game/day_view";
 import manOther from "../../assets/day/man-other.jpg";
 import olderOther from "../../assets/day/older-man-other.webp";
 import childOther from "../../assets/day/child-other.webp";

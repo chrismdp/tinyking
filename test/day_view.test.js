@@ -1,8 +1,9 @@
+import { describePerson, asksJournal } from "game/ask_journal";
 jest.mock("../src/data/male_names.json",()=>[["John"],["William"]]);
 jest.mock("../src/data/female_names.json",()=>[["Agnes"],["Mary"]]);
 import { peopleWorld } from "./support/people";
 import { Hex } from "game/hex";
-import { revealValley, placeNames, describePerson, familyTree, portraitKey, narrateSlot, rememberAsks, asksJournal, relationshipWords, valleyPlaces, foodSupplies, valleyLayout } from "game/day_view";
+import { revealValley, placeNames, familyTree, portraitKey, narrateSlot, rememberAsks, relationshipWords, valleyPlaces, foodSupplies, valleyLayout } from "game/day_view";
 
 it("reveals the valley ground without introducing any people", () => {
   const {state:s,player,tiles}=peopleWorld();

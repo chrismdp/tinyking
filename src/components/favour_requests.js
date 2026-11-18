@@ -6,7 +6,7 @@ import { displayName } from "game/knowledge";
 import { name } from "game/name";
 import { taskPlace } from "game/task_places";
 import { ASKS, resumeFavour, harvestApproach, favourWaiting, canRequestForHousehold, visibleFavours, favourTitle, favourQuantity, householdStore, favourReceiver, FUEL_TRADES } from "game/favours";
-import { asksJournal, knownPersonName } from "game/day_view";
+import { asksJournal, knownPersonName } from "game/ask_journal";
 import { harvestCounts } from "game/harvest_task";
 import { patience } from "game/chat_patience";
 

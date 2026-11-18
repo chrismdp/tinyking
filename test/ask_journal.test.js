@@ -1,7 +1,7 @@
 import { completeConversation } from "game/people";
 import { peopleWorld } from "./support/people";
 import { openChat, lineCandidates, speakLine, closeChat } from "game/chat";
-import { asksJournal } from "game/day_view";
+import { asksJournal } from "game/ask_journal";
 import { recordEvent, learnEvent } from "game/events";
 import { serialiseGame, restoreGame } from "game/save_game";
 jest.mock("game/name",()=>({name:n=>n?.nickname||"?",firstName:n=>n?.nickname?.split(" ")[0]||"?",familyName:n=>n?.nickname?.split(" ")[1]||"?"}));

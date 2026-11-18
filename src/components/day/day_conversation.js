@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { chatChoices, previewLine, iconKey, patience } from "game/chat";
-import { describePerson } from "game/day_view";
+import { describePerson } from "game/ask_journal";
 import { createChatPlayback, presentChoices, iconLabel, knownReaction, explainIcon, poppingRow } from "../chat_presentation";
 import { Face } from "./day_reference";
 

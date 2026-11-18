@@ -118,7 +118,7 @@ it.each(["trust","one_side","ready"])("explains an accepted peace ask to either 
   s.favours={requests:{[r.id]:r}};
   if(missing=="trust")s.ecs.relationships[w.parent].known[w.player].ring="social";
   if(missing=="one_side")delete s.social.contacts[[w.player,w.parent].sort().join(":")];
-  const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/day_view");
+  const {askNextStep}=require("game/ask_steps"),{asksJournal}=require("game/ask_journal");
   expect(askNextStep(s,r).ready).toBe(missing=="ready");
   expect(asksJournal(s,[r])[0].nextStep).toEqual(askNextStep(s,r));
   for(const npc of [w.person,w.parent]) {

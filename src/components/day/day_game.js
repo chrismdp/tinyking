@@ -1,10 +1,11 @@
+import { personName, describePerson } from "game/ask_journal";
 import React from "react";
 import PropTypes from "prop-types";
 import { replaceGame, decompressGame } from "game/save_game";
 import { slotChoices, playSlot } from "game/day";
 import { skipIntro } from "game/intro";
 import { day_of_season, season } from "game/time";
-import { revealValley, personName, describePerson, valleyPlaces, doing, actionWords, narrateSlot, rememberAsks, foodSupplies, houseStanding } from "game/day_view";
+import { revealValley, valleyPlaces, doing, actionWords, narrateSlot, rememberAsks, foodSupplies, houseStanding } from "game/day_view";
 import { DayConversation } from "./day_conversation";
 import { DayReference, Face } from "./day_reference";
 import seed13 from "../../assets/day/seed-13.json.gz";

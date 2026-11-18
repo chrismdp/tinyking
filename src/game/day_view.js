@@ -1,34 +1,17 @@
-import { askNextStep } from "game/ask_steps";
+import { personName, describePerson, knownPersonName } from "game/ask_journal";
 // Presentation data for the day screen. Reads learned facts and committed day
 // results; the simulation remains the authority for choices and consequences.
 import { Hex } from "./hex";
-import { name, familyName } from "./name";
-import { displayName } from "./knowledge";
+import { familyName } from "./name";
 import { personComponent } from "./residents";
 import { FOODS } from "./goods";
 import { knownFamilyTree, giftOptions } from "./people";
-import { knownEvents, eventText } from "./events";
-import { visibleFavours, favourTitle } from "./favours";
+import { eventText } from "./events";
 import { biography } from "./biography";
 import { season, DAYS_IN_SEASON } from "./time";
 import { membership } from "./village_customs";
 
 const cap = text => text ? text[0].toUpperCase() + text.slice(1) : "";
-export const personName = (s,id) => {
-  const record=personComponent(s,"nameable",id);
-  return record ? name(record) : "someone";
-};
-export function describePerson(s,id) {
-  if(id===s.ui.playerId)return "you";
-  const named=displayName(s,id,x=>personName(s,x));
-  if(named && named!=="an unknown person")return named;
-  const p=personComponent(s,"personable",id),n=personComponent(s,"nameable",id);
-  if(!p || p.unrevealed)return "someone";
-  const a=p.age,m=n?.male;
-  if(a<13)return m===true?"a boy":m===false?"a girl":"a child";
-  if(a<20)return m===true?"a young man":m===false?"a young woman":"a young person";
-  return (m===true?"a man in his ":m===false?"a woman in her ":"a person in their ")+(a<30?"twenties":a<40?"thirties":a<50?"forties":a<60?"fifties":a<70?"sixties":"old age");
-}
 export function revealValley(s) {
   const known=s.ecs.playable[s.ui.playerId].known;
   const have=new Set(known.map(h=>String(Hex(h))));
@@ -100,14 +83,6 @@ export function valleyPlaces(s,menu) {
 }
 const distance=(a,b)=>!a||!b?Infinity:(a.x-b.x)**2+(a.y-b.y)**2;
 export const relationshipWords=ring=>({public:"an acquaintance",social:"a familiar acquaintance",personal:"a friend",intimate:"one of your closest friends"})[ring]||"a stranger";
-// A name heard in a story belongs in the journal even when the player would
-// not yet recognise that person's face in the lane.
-export function knownPersonName(s,id) {
-  if(id===s.ui.playerId)return "You";
-  if(s.knowledge?.[s.ui.playerId]?.people?.[id]?.nameOnly)return personName(s,id);
-  const named=displayName(s,id,x=>personName(s,x));
-  return named==="an unknown person"?"Unknown":named;
-}
 export function familyTree(s,root=s.ui.playerId) {
   const tree=knownFamilyTree(s,s.ui.playerId,root);
   return {rootId:tree.rootId,nodes:Object.values(tree.nodes).map(n=>{
@@ -193,17 +168,6 @@ export function rememberAsks(s) {
     const spoken=[...c.transcript].reverse().find(l=>l.speaker==="npc"&&l.family==="favour_ask" && (l.requestIds?l.requestIds.includes(id):(!l.situation || l.situation.startsWith(request?.kind))));
     if(spoken && !s.dayBook.askWords[id])s.dayBook.askWords[id]={text:spoken.text,speakerId:c.npcId};
   }
-}
-export function asksJournal(s, requests=visibleFavours(s)) {
-  return requests.map(r=>{
-    const remembered=s.dayBook?.askWords?.[r.id];
-    const related=knownEvents(s,s.ui.playerId).filter(e=>e.id===r.eventId || ((e.people?.includes(r.targetId)||e.people?.includes(r.giverId)) && e.day>= (r.createdDay??0)));
-    const completed={peace:"You kept your promise. They made peace.",word:"You kept your promise. The news reached them.",visit:"You kept your promise. You spent time together.",find:"You kept your promise. You found news of them."}[r.kind]||"You kept your promise. The household received your help.";
-    return {id:r.id,giverId:remembered?.speakerId||r.giverId,targetId:r.targetId,targetName:remembered?.targetName||describePerson(s,r.targetId),title:favourTitle(r),status:r.status,
-      words:remembered?.text||null,context:r.reason,nextStep:askNextStep(s,r),
-      learned:related.map(e=>eventText(s,e,id=>describePerson(s,id))),
-      outcome:r.status==="completed"?completed:r.status==="accepted"?(r.progress>0?"You have delivered some of what they asked for. Your promise is still open.":"You promised to help."):r.status==="offered"?"They are waiting for your answer.":r.outcome?.split(" · ")[0]||"The ask has come to an end."};
-  });
 }
 export function knownPeople(s) {
   return [...new Set([s.ui.playerId,...Object.keys(s.knowledge?.[s.ui.playerId]?.people||{}),...Object.keys(s.ecs.relationships[s.ui.playerId]?.known||{})])].filter(id=>personComponent(s,"personable",id)&&!personComponent(s,"personable",id).unrevealed);

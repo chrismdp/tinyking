@@ -93,9 +93,8 @@ function runSocialHour(s) {
 
 // Player introductions and ordinary visits share the same destinations and HTN
 // plans. An invitation cannot interrupt needs, paid work or another encounter.
-// `at` judges the hours for a meeting planned later in the same day.
-export function visitUnavailable(s, a, b, { ignoreAvoidance = false, at, whenFree = false } = {}) {
-  const hour = at ?? (whenFree ? Math.max(9, (s.days % 1) * 24) : (s.days % 1) * 24);
+export function visitUnavailable(s, a, b, { ignoreAvoidance = false, whenFree = false } = {}) {
+  const hour = whenFree ? Math.max(9, (s.days % 1) * 24) : (s.days % 1) * 24;
   if (hour < 9 || hour >= 21) return "They meet between nine in the morning and nine at night";
   for (const id of [a, b]) {
     const person = s.ecs.personable?.[id], p = s.ecs.planner?.[id];

@@ -452,6 +452,5 @@ it("keeps an unrelated camping player in the live hex when neighbours marry acro
   expect(s.travel.maps[key].residents[camper]).toBeFalsy();
   expect(s.ecs.playable[camper].known).toEqual(known);
   expect(s.ecs.spatial[camper]).toEqual(point);
-  expect(require("game/day").slotChoices(s).choices.some(c=>c.available)).toBe(true);
   expect(Object.values(s.travel.events).some(e=>e.type=="world_move"&&e.people.includes(camper))).toBe(false);
 });

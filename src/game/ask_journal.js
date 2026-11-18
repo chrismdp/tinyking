@@ -5,7 +5,7 @@ import { personComponent } from "game/residents";
 import { knownEvents, eventText } from "game/events";
 import { visibleFavours, favourTitle } from "game/favours";
 
-export const personName = (s,id) => {
+const personName = (s,id) => {
   const record=personComponent(s,"nameable",id);
   return record ? name(record) : "someone";
 };

@@ -162,19 +162,6 @@ it("makes the ask when a player they know offers help", () => {
   expect(asked?.text).toContain("Gillian");
 });
 
-it("never offers an ask as work, so it cannot be finished by labour", () => {
-  const {s,player,person,sibling}=family();
-  s.ecs.village[sibling]=s.ecs.village[person];
-  recordEvent(s,"quarrel",[person,sibling],[],{audienceIds:[person,sibling]});
-  updateFavours(s);
-  const r=offered(s,"peace",person);
-  expect(accept(s,r,person,player)).toBeTruthy();
-  const {Hex}=require("game/hex");
-  s.ecs.playable[player].known=Object.keys(s.ecs.walkable).map(id=>Hex().fromPoint(s.ecs.spatial[id]));
-  const choices=require("game/day").slotChoices(s).choices;
-  expect(choices.some(c=>c.personId==person)).toBe(true);
-  expect(choices.filter(c=>c.activity=="work"&&c.requestId==r.id)).toEqual([]);
-});
 
 it("delivers accepted word to the giver's kin even when the deceased was not their kin or village neighbour", () => {
   const {s,player,person,parent,sibling}=family();

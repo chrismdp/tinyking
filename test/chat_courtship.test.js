@@ -61,6 +61,14 @@ it("applies the existing time-together effect once when the player courts",()=>{
   expect(choice(s,"flirt")).toBeUndefined();
 });
 
+it("cannot repeat an already spoken courting line from the offered choices",()=>{
+  const {state:s,player:p,person:n}=courtingChat(),line=choice(s,"flirt");
+  expect(chooseLine(s,line.key)).toBe(true);
+  const after=bondValues(s,p,n);
+  expect(chooseLine(s,line.key)).toBe(false);
+  expect(bondValues(s,p,n)).toEqual(after);
+});
+
 it("answers a taste mismatch without applying the courting effect",()=>{
   const {state:s,player:p,person:n}=courtingChat();
   s.ecs.personality[n].opinionThresholds={hate:100,love:101};

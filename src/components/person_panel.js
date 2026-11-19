@@ -4,8 +4,7 @@ import { full as gameDate } from "game/time";
 import { patience } from "game/chat_patience";
 import { TopicTastes } from "./chat_panel";
 import { WeddingNotice } from "./wedding_notice";
-import { eligiblePartner } from "game/social";
-import { canMarryPlayer, marriageReason, canInviteHome } from "game/family";
+import { canInviteHome } from "game/family";
 import { VillageMembership } from "./village_customs";
 import { biography, disclosedPossessions } from "game/biography";
 import { isResident, personComponent, homeState } from "game/residents";
@@ -138,9 +137,7 @@ export function PersonPanel({ entityId }) {
     {approachMessage && <p className="talk-result" role="status">{approachMessage}</p>}
     <div className="person-body">
       {!dead && personComponent(state, "kinship", player)?.spouse == entityId && <p className="talk-note">You are married.</p>}
-      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && isAdult(personComponent(state, "personable", player).age) && <div className="court-actions" aria-label="Courtship"><button disabled={!left || !eligiblePartner(state,player,entityId,true)} onClick={() => queue("court")}>Court</button><button disabled={!left || !canMarryPlayer(state,player,entityId)} onClick={() => queue("marry")}>Ask to marry</button></div>}
       {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={slots.free<slots.minimum} onClick={() => queue("chat")}>Chat</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
-      {!dead && present && entityId != player && personComponent(state, "kinship", player)?.spouse != entityId && isAdult(personComponent(state, "personable", player).age) && <p className="talk-note">{marriageReason(state,player,entityId) || "You both feel close enough. Visit to ask and join a family home."}</p>}
       {!dead && present && canInviteHome(state,player,entityId) && <button onClick={()=>queue("invite_home")}>Invite to your household</button>}
       {!dead && present && entityId != player && isDependent(personComponent(state, "personable", player).age) && isDependent(personComponent(state, "personable", entityId).age) && <button disabled={!left} onClick={() => queue("play")}>Play together</button>}
       {!dead && present && <VillageMembership personId={entityId}/>}

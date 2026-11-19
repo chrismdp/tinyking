@@ -8,7 +8,7 @@ import { disposition, goodwillTowards } from "game/people";
 import { createCourtshipIndex, availableCourtshipCandidates } from "game/nearby_courtship";
 import { runSocialActions } from "game/social_actions";
 import { restoreGame, serialiseGame } from "game/save_game";
-import { familyConversation, marriageReason } from "game/family";
+import { courtPlayer, marriageReason } from "game/family";
 import { recordEvent } from "game/events";
 import { activeSecretActivities } from "game/secret_activity_history";
 import { startSecretActivity } from "game/secret_activities";
@@ -60,7 +60,7 @@ it("keeps friendship disposition and goodwill independent of orientation", () =>
 
 it("rejects deliberate courtship and explains incompatible marriage", () => {
   const { s, a, b } = pair(true, "opposite", true, "opposite");
-  expect(familyConversation(s, a, b, "court").ok).toBe(false);
+  expect(courtPlayer(s, a, b).ok).toBe(false);
   expect(marriageReason(s, a, b)).toBeTruthy();
 });
 

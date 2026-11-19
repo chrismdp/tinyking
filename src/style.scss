@@ -887,10 +887,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .tree-window { height: calc(100svh - 90px - var(--safe-top) - var(--safe-bottom)); overflow: hidden; }
 .tree-scroll { flex: 1 1 0; width: 100%; min-height: 120px; }
 .family-tree { max-width: none; flex-shrink: 0; }
-.tree-centres, .court-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.tree-centres { display: flex; flex-wrap: wrap; gap: 6px; }
 .tree-centres button { font-size: 13px; padding: 5px 10px; }
-.court-actions { margin: 12px 0; }
-.court-actions small { flex-basis: 100%; }
 .family-status { margin: 12px 0; padding: 10px; border: 1px solid #78686b; }
 .family-goal { min-height: 0; overflow: auto; touch-action: pan-y; margin: 0; padding: 10px 15px; font-size: 14px; line-height: 1.45; border-top: 1px solid #78686b; }
 .family-welcome { color: #ffe29a; }
@@ -924,7 +922,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 }
 
 @media (max-width: 700px), (max-height: 500px) {
-  .person-window .court-actions { margin: 0 0 6px; }
   .person-window .talk-actions { margin-top: 0; }
 }
 

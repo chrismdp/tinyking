@@ -56,7 +56,7 @@ export function playerDay(s) {
     if(w.fireHome || w.byFire) {delete w.fireHome;delete w.byFire;p.task=null;p.plan=null;}
   }
   const talking=s.chat?.active || w.capturedBy || w.capturedAttentionOf ||
-    ["chat","ask_about","court","marry","play","invite_home","give_gift"].includes(w.currentJob);
+    ["chat","ask_about","play","invite_home","give_gift"].includes(w.currentJob);
   const resting=p.task?.[0]=="sleep" || w.currentJob=="rest" || w.forcedRest;
   if(!talking && !resting && w.currentJob!="eat_food") {
     // A single return per exhaustion leaves later deliberate visits available.

@@ -1117,7 +1117,7 @@ export function talk(state, actorId, world, dt, firstRun, personId, key, aboutId
   }
   if (!workComplete(state, actorId, world, dt, firstRun, TALK_MINUTES[key] / 1440)) return Task.CONTINUE;
   let result;
-  if (["court", "marry", "play", "invite_home"].includes(key)) result = familyConversation(state,actorId,personId,key);
+  if (["play", "invite_home"].includes(key)) result = familyConversation(state,actorId,personId,key);
   if (key == "ask_about") result = askAbout(state, actorId, personId, aboutId);
   if (key == "give_gift") {
     const order = jobQueueFor(ecs, actorId).find(j => j.assignedId == actorId);

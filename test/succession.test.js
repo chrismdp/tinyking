@@ -3,6 +3,7 @@ import { DAYS_IN_SEASON } from "game/time";
 import { community as initialCommunity, attach } from "./support/travel";
 import { peopleWorld } from "./support/people";
 import { canMarryPlayer } from "game/family";
+import { chatChoices, chooseLine, closeChat } from "game/chat";
 import { resolveSuccession } from "game/succession";
 import { generateHistory } from "game/history";
 import { advanceSeason, historyStep, canCourt, SOCIAL_RATES } from "game/social";
@@ -22,6 +23,13 @@ const community = (...args) => {
 
 const intimate = (s,a,b) => { for (const [x,y] of [[a,b],[b,a]]) s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66}; };
 const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.nameable[f.player].male=true; f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; return f; };
+const marryInChat = w => {
+  const {state:s,person,step}=w;
+  const job=enqueueTask(s,{key:"chat"},person);step(.05);expect(job.progress).toBeLessThan(1);step(2);
+  s.chat.active.focus="family";
+  const proposal=chatChoices(s).find(l=>l.family=="proposal");expect(proposal).toBeDefined();
+  expect(chooseLine(s,proposal.key)).toBe(true);expect(job.progress).toBe(1);
+};
 
 it("requires mutual adult consent for deliberate marriage, while NPC matchmaking excludes the player", () => {
   const {state:s,player:a,person:b,parent}=weddingWorld();
@@ -36,36 +44,11 @@ it("requires mutual adult consent for deliberate marriage, while NPC matchmaking
   expect(canMarryPlayer(s,a,b)).toBe(false);
 });
 
-it("courts through a real queued walk and timed conversation, growing both directional bonds", () => {
-  const {state:s,player,person,step}=weddingWorld();
-  const job=enqueueTask(s,{key:"court"},person);
-  expect(s.knowledge?.[player]?.people?.[person]?.conversation).toBeUndefined();
-  step(.05); expect(job.progress).toBeLessThan(1);
-  step(2);
-  expect(job.progress).toBe(1);
-  for (const [a,b] of [[player,person],[person,player]]) expect(s.ecs.relationships[a].known[b].goodwill).toBeGreaterThan(16);
-  expect(s.knowledge[player].people[person].conversation).toBeDefined();
-  expect(s.ecs.kinship[player].spouse).toBeNull();
-});
-
-it.each(["consent","age","married","death"])("revalidates %s after a marriage visit was queued", reason => {
-  const {state:s,player,person,sibling,step}=weddingWorld(); intimate(s,player,person);
-  enqueueTask(s,{key:"marry"},person);
-  if(reason=="consent")s.ecs.relationships[person].known[player].ring="social";
-  if(reason=="age")s.ecs.personable[player].age=12;
-  if(reason=="married"){s.ecs.kinship[person].spouse=sibling;s.ecs.kinship[sibling].spouse=person;}
-  if(reason=="death")s.ecs.personable[person].dead=true;
-  step(2);
-  expect(s.ecs.kinship[player].spouse).toBeNull();
-  expect((s.events||[]).some(e=>e.type=="marriage")).toBe(false);
-  expect(s.knowledge?.[player]?.people?.[person]?.conversation).toBeUndefined();
-});
-
-it("marries through the planner, retains the living householder, possessions and tastes, and limits in-law regard", () => {
-  const {state:s,player,person,parent,sibling,tiles,step}=weddingWorld(); intimate(s,player,person);
+it("marries through chat, retains the living householder, possessions and tastes, and limits in-law regard", () => {
+  const w=weddingWorld(),{state:s,player,person,parent,sibling,tiles}=w; intimate(s,player,person);
   const item=createPossession(s,person,"Family ring");
   s.ecs.personality[parent].opinionThresholds={hate:100,love:101}; const before=JSON.stringify(s.ecs.personality);
-  const job=enqueueTask(s,{key:"marry"},person); step(.05);expect(job.progress).toBeLessThan(1);step(2);
+  marryInChat(w);
   expect(s.ecs.kinship[player].spouse).toBe(person);expect(s.ecs.kinship[person].spouse).toBe(player);
   expect(s.ecs.household[player].houseId).toBe(tiles[3]);expect(s.ecs.controllable[tiles[3]].controllerId).toBe(parent);
   expect(heirFor(s,parent)).toBe(person);expect(s.ecs.possession[item].ownerId).toBe(person);
@@ -78,9 +61,8 @@ it("marries through the planner, retains the living householder, possessions and
   for(const id of [player,person,parent,sibling])expect(()=>topController(s.ecs,id)).not.toThrow();
 });
 
-it("does not let a deceased actor finish a timed gift or marriage", () => {
+it("does not let a deceased actor finish a timed gift", () => {
   const {state:s,player,person}=weddingWorld();intimate(s,player,person);die(s,player);
-  expect(talk(s,player,s.ecs.planner[player].world,1,false,person,"marry")).toBe(Task.ABORT);
   expect(talk(s,player,s.ecs.planner[player].world,1,false,person,"give_gift")).toBe(Task.ABORT);
 });
 
@@ -101,7 +83,7 @@ it("ages the player during live and offscreen seasons without automatic marriage
 });
 
 it("allows a genuine player marriage to produce reciprocal children on actual seasons with a one-season cooldown", () => {
-  const {state:s,player,person,step}=weddingWorld();intimate(s,player,person);enqueueTask(s,{key:"marry"},person);step(2);
+  const w=weddingWorld(),{state:s,player,person}=w;intimate(s,player,person);marryInChat(w);
   for(let season=1;season<=4 && !s.ecs.kinship[player].children.length;season++){s.days=season*DAYS_IN_SEASON;advanceSeason(s,season);}
   const children=s.ecs.kinship[player].children;expect(children.length).toBeGreaterThan(0);
   const child=children[0];expect(s.ecs.kinship[child].parents).toEqual(expect.arrayContaining([player,person]));
@@ -162,16 +144,8 @@ it("restarts deterministically in the same persistent world, with no old assets 
   expect(await run()).toEqual(await run());
 });
 
-it("finishes the real wedding order when joining a different household resets the player's planner", () => {
-  const {state:s,player,person,tiles,step}=weddingWorld();intimate(s,player,person);
-  s.ecs.household[player].houseId=tiles[0];
-  const job=enqueueTask(s,{key:"marry"},person);
-  expect(()=>step(2)).not.toThrow();expect(job.progress).toBe(1);
-  expect(s.ecs.household[player].houseId).toBe(tiles[3]);
-});
-
 it("admits births in a player-owned family home before it belongs to a village", () => {
-  const {state:s,player,person,tiles,step}=weddingWorld();intimate(s,player,person);enqueueTask(s,{key:"marry"},person);step(2);
+  const w=weddingWorld(),{state:s,player,person,tiles}=w;intimate(s,player,person);marryInChat(w);
   s.ecs.village[player].villageId=null;s.ecs.village[person].villageId=null;s.ecs.village[tiles[3]]={villageId:null};
   for(let season=1;season<=4&&!s.ecs.kinship[player].children.length;season++){s.days=season*DAYS_IN_SEASON;advanceSeason(s,season);}
   expect(s.ecs.kinship[player].children.length).toBeGreaterThan(0);
@@ -182,7 +156,8 @@ it("refuses a player proposal to a known lineal ancestor beyond the NPC two-gene
   for(const [i,id] of chain.entries())s.ecs.kinship[id]={parents:i?[chain[i-1]]:[],children:i<3?[chain[i+1]]:[],spouse:null};
   for(const [i,id] of chain.entries())s.ecs.personable[id].age=[87,65,43,18][i];
   intimate(s,player,sibling);expect(canMarryPlayer(s,player,sibling)).toBe(false);
-  enqueueTask(s,{key:"marry"},sibling);step(2);
+  enqueueTask(s,{key:"chat"},sibling);step(2);s.chat.active.focus="family";
+  expect(chatChoices(s).some(l=>["proposal","flirt"].includes(l.family))).toBe(false);closeChat(s);
   expect(s.ecs.kinship[player].spouse).toBeNull();expect((s.events||[]).some(e=>e.type=="marriage")).toBe(false);
 });
 

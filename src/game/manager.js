@@ -162,7 +162,7 @@ function waitingReason(state, actorId, job) {
   if (job.job.key=="eat_food" && job.assignedId==actorId && ecs.planner[actorId].task?.[0]=="eat_food")return null;
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
-  if (["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
+  if (["chat", "ask_about", "give_gift", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
   if(job.job.key=="chat" && chatUnavailable(state, actorId, target)) return chatUnavailable(state, actorId, target);
   if (job.job.key == "give_gift") {
     const item=job.giftItem, cargo=ecs.haulable?.[item];
@@ -300,8 +300,6 @@ const retrySteps = {
   chat: "Let them finish eating or resting, then choose Chat again.",
   ask_about: "Let them finish eating or resting, then choose Chat and ask about them.",
   give_gift: "Choose an owned item you can reach, then offer the gift again.",
-  court: "Chat to learn their feelings, then try Court again.",
-  marry: "Chat to learn their feelings before asking to marry again.",
   play: "Choose another nearby child and try Play together again.",
   invite_home: "Finish a house with room, then invite a willing adult friend again."
 };
@@ -322,7 +320,6 @@ function runtimeWaiting(state, id, job) {
     rest:"No reachable sleeping place is available",
     travel:"The edge route or travel requirements changed", favour:"The favour's goods or work are temporarily unavailable",
     chat:"They cannot stop to talk now", ask_about:"They cannot stop to answer now", give_gift:"The gift or recipient is unavailable",
-    court:"They cannot accept courtship now", marry:"Marriage needs two willing unmarried adults with mutual close feelings",
     play:"Your playmate cannot play now", invite_home:"The invitation needs a willing adult friend and room at home",
     move_to_here:"The walking route is blocked"
   }[key] || "This order's target or access changed";

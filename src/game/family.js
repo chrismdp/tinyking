@@ -14,14 +14,14 @@ export function marriageTasteReason(s,a,b) {
   return null;
 }
 export function marriageReason(s,a,b) {
-  if (!eligiblePartner(s,a,b,true)) return "Marriage needs living unmarried adults who are not close kin.";
+  if (!eligiblePartner(s,a,b,true)) return "We must both be unmarried adults, and we cannot be close kin.";
   const taste = marriageTasteReason(s,a,b);
   if (taste) return taste;
-  if (!canMarryPlayer(s,a,b)) return "Marriage needs mutual Personal regard and no ill will.";
+  if (!canMarryPlayer(s,a,b)) return "We both need to feel close, with no ill will between us, before we marry.";
   return null;
 }
 export function courtPlayer(s,a,b) {
-  const reason=!eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." : marriageTasteReason(s,a,b);
+  const reason=!eligiblePartner(s,a,b,true) ? "We can only court if we are unmarried adults and not close kin." : marriageTasteReason(s,a,b);
   if(reason)return {ok:false,message:reason};
   beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
   return {ok:true,message:"You spent time courting. Your feelings grow at their own pace."};
@@ -41,21 +41,13 @@ export function familyConversation(s,a,b,key) {
     recordEvent(s,"household_join",[b,a],[],{houseId:house});
     return {ok:true,message:"Your friend agreed to join your household. Their belongings remain theirs."};
   }
-  const reason = key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." : marriageTasteReason(s,a,b);
-  if (reason) return {ok:false,message:reason};
-  if (!spendPatience(s,a,b)) return {ok:false,message:"They have had enough of talking for today."};
-  return key == "court" ? courtPlayer(s,a,b) : proposeMarriage(s,a,b);
 }
 export function proposeMarriage(s,a,b) {
   const reason=marriageReason(s,a,b);
   if(reason)return {ok:false,message:reason};
   // Snapshot the original families before the new spouse links join them.
   const families = [[a,closeFamily(s,b)],[b,closeFamily(s,a)]];
-  const planner=s.ecs.planner[a],task=planner?.task,plan=planner?.plan,currentJob=planner?.world.currentJob;
-  if (!marry(s,a,b,false,true)) return {ok:false,message:"There is no family home with room for you both yet."};
-  // A household move clears stale plans. Preserve only this finishing deliberate
-  // visit so the normal release-attention/complete-job tail can run once.
-  if(planner?.world.ordered) {planner.task=task;planner.plan=plan;planner.world.currentJob=currentJob;delete planner.world.moveHome;}
+  if (!marry(s,a,b,false,true)) return {ok:false,message:"We have no family home with room for us both yet."};
   beginInteraction(s,a,b);completeConversation(s,a,b);
   for (const [newcomer,kin] of families) for (const relative of kin) if (![a,b].includes(relative) && !s.ecs.personable[relative]?.dead) {
     addGoodwill(s,newcomer,relative,6);addGoodwill(s,relative,newcomer,6);

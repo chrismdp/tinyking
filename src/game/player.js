@@ -1,8 +1,8 @@
 import { check_jobs } from "game/compound";
 import { firstFreeJob } from "game/manager";
 
-export const TALK_JOBS = ["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"];
-export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, court: 30, marry: 30, play: 30, invite_home: 30 };
+export const TALK_JOBS = ["chat", "ask_about", "give_gift", "play", "invite_home"];
+export const TALK_MINUTES = { chat: 15, ask_about: 20, give_gift: 10, play: 30, invite_home: 30 };
 
 // Meals and early rest are deliberate; exhaustion and late evenings bring the player home.
 export const player = () => [

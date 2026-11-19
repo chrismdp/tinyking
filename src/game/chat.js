@@ -436,7 +436,7 @@ export function noteExhausted(s,c,line) {
 export function chooseLine(s,key) {
   const c=s.chat?.active;if(!c||c.endReason)return false;
   const offered=c.offeredMeetings?.[key]||c.offeredRomance?.[key];
-  const line=chatChoices(s).find(l=>l.key==key)||offered;if(!line)return false;
+  const line=chatChoices(s).find(l=>l.key==key)||(!c.usedIds.includes(offered?.id)&&offered);if(!line)return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
   if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}

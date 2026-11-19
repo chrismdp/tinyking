@@ -29,7 +29,7 @@ import { harvestCounts, harvestPhase } from "game/harvest_task";
 export const TASK_TITLES = {
   plough_field: "Plough field", sow_field: "Sow field", tend_field: "Tend field", harvest_field: "Harvest field",
   eat_food: "Eat", rest: "Rest", travel: "Travel", cut_tree_down: "Chop wood", forage: "Forage", move_to_here: "Move here",
-  chat: "Chat", court: "Court", marry: "Ask to marry", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
+  chat: "Chat", play: "Play together", invite_home: "Invite to household", tend_garden: "Help at home", ask_about: "Ask about someone", give_gift: "Give a gift",
   create_field: "Create Field", create_stockpile: "Create Stockpile"
 };
 
@@ -63,7 +63,7 @@ export function ActivityDetails() {
   const detail = job.detail || (construction ? `0 of ${STAGES[construction.stage].logs} logs` : job.job.key == "cut_tree_down" ? `0 of ${ecs.good?.[job.targetId]?.amount || 1} logs` : job.job.key == "forage" ? "0 of 1 meal" : "0 of 1 task");
   return <article className={"task" + (job.waiting ? " waiting" : active ? " current" : "")}>
     <div className="task-content"><div className="task-title">{title}</div>
-      <small>{["chat", "ask_about", "give_gift", "court", "marry", "play", "invite_home"].includes(job.job.key) ? displayName(state, job.targetId, id => name(ecs.nameable[id])) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
+      <small>{["chat", "ask_about", "give_gift", "play", "invite_home"].includes(job.job.key) ? displayName(state, job.targetId, id => name(ecs.nameable[id])) : job.forId ? "For " + displayName(state, job.forId, id => name(ecs.nameable[id])) : "Your work"} · {taskPlace(state, job.targetId) || (wood ? "Home delivery" : "")}{!active && !job.waiting && !harvest && ` · ${wood ? wood.phase : request ? "Travel, work and delivery" : travelling ? "One season after walking off-map" : `~${minutes}m`}`}</small>
       {request && <small>{harvest ? harvestCounts(state, request) : `${favourQuantity(request)} · ${request.progress}/${request.quantity} delivered`}</small>}
       {job.gift && <small>{job.gift.type} · 1 item</small>}
       {job.aboutId && <small>About {displayName(state, job.aboutId, id => name(ecs.nameable[id]))}</small>}

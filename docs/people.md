@@ -100,6 +100,10 @@ Both knowledge functions leave state unchanged.
 
 The [phase-one design](design.md#marriage-ownership-and-succession) describes deliberate courtship, marriage, births and player succession. The same `heirFor` function supplies visible heirs and actual inheritance. Control transfer keeps the successor's records. Initial history excludes the new stranger. Automatic NPC matchmaking still excludes the player.
 
+The player courts and proposes through lines under Family or Moods in Chat. Courtship requires unrelated, unmarried adults whose orientations permit the match. The courting line applies the existing time-together effect. A taste mismatch gets a spoken explanation from the listener. Below Personal closeness, the line keeps its intrusive-advance penalty.
+
+The proposal appears when `canMarryPlayer` permits marriage. Saying it checks the rules again. The listener explains any refusal, and Chat stays open. Acceptance forms the household, adds family goodwill, records the wedding and celebration, then ends Chat. The person panel has no Court or Ask to marry buttons. Play and household invitations remain separate actions.
+
 `playable.arrivedAt` records the real arrival handover. Only an arrived playable actor participates in seasonal ageing and births. NPC people always use their shared lifecycle. This keeps pre-arrival strangers and legacy NPC-only placeholder players outside that lifecycle without altering NPC matchmaking. A controlled NPC heir starts playable participation immediately.
 
 ## Energy, meals and speed

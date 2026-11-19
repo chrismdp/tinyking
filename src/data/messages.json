@@ -35,8 +35,6 @@
     "chat": "Chat",
     "ask_about": "Ask about someone",
     "give_gift": "Give a gift",
-    "court": "Court",
-    "marry": "Ask to marry",
     "play": "Play together",
     "invite_home": "Invite to your household",
     "tend_garden": "Help at home"
@@ -75,8 +73,6 @@
     "baking": "Baking",
     "tanning": "Tanning hides",
     "milling": "Milling grain",
-    "court": "Courting",
-    "marry": "Discussing marriage",
     "play": "Playing together",
     "invite_home": "Inviting a friend home"
   },

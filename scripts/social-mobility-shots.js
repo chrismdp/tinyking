@@ -42,7 +42,7 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
             const p = s.ecs.spatial[id], x = Math.round(p.x / 90); return { x, y: Math.round(p.y / (60 * Math.sqrt(3)) - (x & 1) / 2) };
           });
           s.redraws = [...new Set([...before, ...Object.keys(s.ecs.spatial)])];
-          s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true, speed_controls: true });
+          s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true });
           s.renderer.focusOn(s.ecs.spatial[focus], 650);
         }, { snapshot, focus });
         await page.waitForTimeout(1200);
@@ -55,13 +55,13 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
         const data = await page.evaluate(() => {
           const bounds = el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
           const panel = document.querySelector(".people-sheet") || document.querySelector("#journal") || document.querySelector("#status-strip");
-          const feed = document.querySelector(".event-feed"), speed = document.querySelector("#speed-controls");
-          const a = bounds(panel), b = bounds(feed), c = bounds(speed);
+          const feed = document.querySelector(".event-feed");
+          const a = bounds(panel), b = bounds(feed);
           const intersects = (a, b) => a.x < b.right && a.right > b.x && a.y < b.bottom && a.bottom > b.y;
-          return { panel: a, feed: b, speed: c, overlap: intersects(a, b), speedOverlap: intersects(b, c), scrollable: feed.querySelector(".event-entries").scrollHeight >= feed.querySelector(".event-entries").clientHeight };
+          return { panel: a, feed: b, overlap: intersects(a, b), scrollable: feed.querySelector(".event-entries").scrollHeight >= feed.querySelector(".event-entries").clientHeight };
         });
         evidence.layout.push({ phone, label, ...data });
-        assert(!data.overlap, label + ": news overlaps panel"); assert(!data.speedOverlap, label + ": news overlaps speed");
+        assert(!data.overlap, label + ": news overlaps panel");
       };
       await install(travelling, travellingMeta.id); await shot("travelling");
       await install(visit, visitMeta.people[0]); await layout("collapsed"); await shot("visit-collapsed");
@@ -78,11 +78,9 @@ const evidence = { setup: "Natural simulation snapshots; observer reveals terrai
       if (phone) await page.touchscreen.tap(mapClick.x, mapClick.y); else await page.mouse.click(mapClick.x, mapClick.y);
       await page.locator(".person-window").waitFor(); await shot("visit-selected");
       await press(page.locator(".person-window .sheet-close"));
-      // Physical discovery of task expansion, news disclosure and accessible speed buttons.
+      // Physical discovery of task expansion and news disclosure.
       await press(page.getByRole("button", { name: phone ? "Journal · J" : "Close journal", exact: true }));
       await press(page.locator(".event-feed summary")); await layout("tasks-news-expanded"); await shot("visit-expanded");
-      await press(page.locator("#speed-controls").getByRole("button", { name: "Normal speed", exact: true }));
-      await press(page.getByRole("button", { name: "Pause", exact: true }));
       await press(page.locator(".event-feed summary"));
       await install(heard, person);
       await press(page.locator(".event-feed summary"));

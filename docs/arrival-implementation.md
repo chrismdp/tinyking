@@ -58,7 +58,7 @@ Intentional differences from the static sample:
   Dragging remains available, including the current task.
 - Actual task counts, log amounts, building durations, generated names and
   hunger levels replace sample values. No sample favours are fabricated.
-- On narrow or short screens the queue starts collapsed above the speed controls.
+- On narrow or short screens the queue starts collapsed in the compact strip.
   The name/status stays in the compact strip. The toggle opens a scrollable list;
   up/down and cancel controls have 44px targets. Landscape popups sit beside
   the strip so both remain visible. The desktop name/status HUD moves
@@ -69,9 +69,9 @@ and opens the popup. Pointer cancellation does not select anything. Touch select
 browser's follow-up click has passed, so opening a menu cannot accidentally
 activate the button beneath the finger. Existing
 new-game windows and popups scroll within the viewport. Menus, window close
-buttons, chooser controls and speed controls have 44px targets. Fonts use pixel
+buttons and chooser controls have 44px targets. Fonts use pixel
 sizes rather than shrinking with viewport height. Selected-person text remains
-readable above the speed controls. Nothing requires hover.
+readable. Nothing requires hover.
 
 The screenshot script explicitly enables the existing selected-person HUD as
 well as the new player HUD to check both at desktop and phone sizes. Snapshot
@@ -178,8 +178,8 @@ Full output: `shots/arrival-check.log`.
 
 All sixteen final captures were inspected at their full viewport sizes. The
 desktop task list was compared with section 01. Portrait controls remain readable;
-landscape popups sit beside the task strip. The phone script asserts 44px queue,
-speed and popup button targets, and checks that tapping opens a popup without
+landscape popups sit beside the task strip. The phone script asserts 44px queue
+and popup button targets, and checks that tapping opens a popup without
 activating its action.
 
 The captures use 1440×900 and 390×844. The phone context sets `isMobile: true`

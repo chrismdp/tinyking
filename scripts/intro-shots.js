@@ -58,7 +58,7 @@ async function start(page, skip = false, record = false) {
           resolve({ frames, end: { standing: s.intro.pose == "standing", atCamp: Math.hypot(p.x - c.x, p.y - c.y) < 40,
             bundle: !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
             carrying: s.renderer.objectOf(s.ui.playerId).getObjectByName("arrival-bundle").visible,
-            controls: s.ui.show.speed_controls, frozen: s.days == days, realSeconds: performance.now() / 1000 - started } });
+            controls: (!s.intro.active && !s.ui.show.main_menu && !s.ui.show.mapgen), frozen: s.days == days, realSeconds: performance.now() / 1000 - started } });
         };
         watch();
       };
@@ -75,7 +75,7 @@ async function campState(page) {
     return { active: s.intro.active, standing: s.intro.pose == "standing", atCamp: Math.hypot(p.x - c.x, p.y - c.y) < 40,
       bundle: !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
       carrying: s.renderer.objectOf(s.ui.playerId).getObjectByName("arrival-bundle").visible,
-      selected: !!s.ui.selected, jobs: s.ecs.manager[s.ui.playerId].jobs.length, controls: s.ui.show.speed_controls };
+      selected: !!s.ui.selected, jobs: s.ecs.manager[s.ui.playerId].jobs.length, controls: (!s.intro.active && !s.ui.show.main_menu && !s.ui.show.mapgen) };
   });
 }
 
@@ -92,7 +92,7 @@ async function campState(page) {
       page.on("pageerror", e => errors.push(e.message));
       await start(page, false, true);
       assert.equal(await page.locator("#intro-skip").innerText(), touch ? "Tap to skip" : "Click to skip");
-      assert.equal(await page.locator("#speed-controls").count(), 0);
+      assert.equal(await page.locator("#status-strip").count(), 0);
       const { frames, end } = await page.evaluate(() => window.introFinished);
       assert.equal(frames.length, CAPTURES.length);
       for (const frame of frames) {
@@ -104,8 +104,8 @@ async function campState(page) {
       }
       assert(end.atCamp && end.bundle && end.standing && end.controls && !end.carrying && end.frozen);
       assert(end.realSeconds >= 4 && end.realSeconds <= 6);
-      await page.locator("#speed-controls").waitFor();
-      await page.locator("#speed-controls button").first().click();
+      await page.locator("#status-strip").waitFor();
+      await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
       await page.screenshot({ path: path.join(SHOTS, `intro-${name}-control.png`) });
       assert.deepEqual(errors, []);
       fs.writeFileSync(path.join(SHOTS, `intro-${name}.json`), JSON.stringify({ viewport, touch, frames, end }, null, 2));

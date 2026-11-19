@@ -48,12 +48,6 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
       if (label == "request-discovery") await page.locator(".person-requests .favour-request").first().scrollIntoViewIfNeeded();
       if (label == "family-preserved") {
         await assertFamilySurfaceClear(page);
-        for (const [label, speed] of [["Normal speed", "normal"], ["Pause", "paused"]]) {
-          const rect = await page.locator("#speed-controls").getByRole("button", { name: label, exact: true }).boundingBox();
-          await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: rect.x + rect.width/2, y: rect.y + rect.height/2 }] });
-          await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-          await page.waitForFunction(value => window.tinyking.game_speed == value, speed);
-        }
       }
       if (label == "earned-ring-improvement") await page.locator(".relationship").scrollIntoViewIfNeeded();
       if (journal) {
@@ -351,12 +345,8 @@ const story = { assistance: "Command-assisted: selection, orders and speed use p
     await page.evaluate(id => window.tinyking.ui.actions.select_entity(id, false), person);
     await page.getByRole("button", { name: "Open family tree »" }).click();
     await assertFamilySurfaceClear(page);
-    for (const [label, speed] of [["Normal speed", "normal"], ["Pause", "paused"]]) {
-      await page.locator("#speed-controls").getByRole("button", { name: label, exact: true }).click();
-      await page.waitForFunction(value => window.tinyking.game_speed == value, speed);
-    }
     await pair("family-preserved");
-    story.actions.push("News and notices left visible family cards and controls clear; desktop clicks and phone touch events operated Normal and Pause");
+    story.actions.push("News and notices left visible family cards and controls clear on desktop and phone");
     await page.evaluate(() => { const s = window.tinyking; s.ui.actions.change_visibility({ selected_person: null }); s.ui.actions.select_entity(s.ui.playerId, false); s.renderer.focusOn(s.ecs.spatial[s.ui.playerId], 650); });
     await frame("player");
     assert.equal(story.errors.length, 0, story.errors.join("\n"));

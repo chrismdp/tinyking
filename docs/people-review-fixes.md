@@ -16,6 +16,6 @@ The new tests cover stale forge labels, all six trades, current farm work, child
 
 Run the focused Jest gate with the explicit changed files under the shared lock. Run the production build separately. This JavaScript project has no separate TypeScript check. Webpack compiles JavaScript and checks source lint rules. The coordinator runs full Jest after rebase.
 
-Run `node scripts/people-review-fixes-shots.js http://localhost:8119/` against the owned server for the desktop and phone evidence. The script labels its fixtures on each image. It uses real seed-13 planner routines for the smith, fixture trust and asymmetric rings for gossip, and fixture supplies for source choices. Canvas selections, gossip requests, gift selection and speed changes use real UI input. Its delivery observer reads the transferred item and total wood at completion.
+Run `node scripts/people-review-fixes-shots.js http://localhost:8119/` against the owned server for the desktop and phone evidence. The script labels its fixtures on each image. It uses real seed-13 planner routines for the smith, fixture trust and asymmetric rings for gossip, and fixture supplies for source choices. Canvas selections, gossip requests and gift selection use real UI input. Observer pauses use `ui.actions.set_speed`. Its delivery observer reads the transferred item and total wood at completion.
 
 The final run details and image paths are in the ignored `shots/fix-report.md`. The prescribed `npm run playtest -- http://localhost:8119/` separately exercises earned wood and real Gift delivery.

@@ -74,8 +74,7 @@ async function run(browser, phone, data) {
   const click = async locator => phone ? locator.tap() : locator.click();
   const speed = async n => {
     if (phone && await page.locator(".people-sheet").count()) await click(page.locator(".people-sheet .sheet-close"));
-    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed"][n], exact: true });
-    if (await button.isEnabled()) await click(button);
+    await page.evaluate(index => window.tinyking.ui.actions.set_speed(["paused", "normal"][index]), n);
   };
   const focus = async id => {
     await page.evaluate(({ id, phone }) => {
@@ -183,7 +182,7 @@ async function run(browser, phone, data) {
     await click(page.getByText("Start new game", { exact: true }));
     await page.waitForSelector(".character canvas");
     await click(phone ? page.getByRole("button", { name: "Start game", exact: true }) : page.getByRole("button", { name: "Start game", exact: true }));
-    await page.waitForFunction(() => window.tinyking.ui.show.speed_controls);
+    await page.locator("#status-strip").waitFor();
     await speed(0);
     for (const [phase, expected] of [["forge", "At the forge"], ["eating", "Eating"], ["walking", "Walking to the village green"]]) {
       await install(snapshots[phase], "seed 13, real smith routine snapshot; terrain revealed");

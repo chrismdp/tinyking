@@ -59,7 +59,7 @@ Accepted harvest favours can leave household-owned grain beside a full pantry.
 
 Choose Rest to walk home and sleep. A bed restores 12.5 energy per hour.
 A camp bedroll or rough ground restores eight energy per hour.
-Daytime sleep lasts at least six hours. Sleep at night continues until dawn, even after a late bedtime. The screen fades to dark while the simulation runs through the night in small steps. Hourly needs, weather, visits and festivals keep their normal rules. At dawn the screen returns with a short morning line. Staying awake keeps normal speed. Pause stops time, including during sleep. Space toggles Pause and Normal.
+Daytime sleep lasts at least six hours. Sleep at night continues until dawn, even after a late bedtime. The screen fades to dark while the simulation runs through the night in small steps. Hourly needs, weather, visits and festivals keep their normal rules. At dawn the screen returns with a short morning line. Staying awake keeps normal speed. The player has no speed controls. Conversations, the season-turn page, the main menu and new-game generation own their pauses and resume when they finish.
 Sleeping late reduces the recovery ceiling by seven energy per hour after 10pm,
 with a minimum ceiling of 55. Missing a second night causes collapse and a
 55-energy ceiling. Sleep reduces tiredness too.

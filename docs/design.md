@@ -44,6 +44,8 @@ stores and ownership. Only the current hex runs live. Away communities advance
 through compact seasonal records of people and households. Detailed maps leave
 memory after an atomic save to IndexedDB. See [travel](travel.md).
 
+The player has no speed controls or Space shortcut. The world runs at normal speed during play. Conversations, the season-turn page, the main menu and new-game generation pause it for their own duration. Loading a manually paused save resumes normal play; saved conversations and season pages keep their pause until closed. Succession continues automatically.
+
 Each season lasts seven days. The last evening brings a village festival.
 After its night, a page shows only real events the player knows. Begin the new
 season to continue from dawn.

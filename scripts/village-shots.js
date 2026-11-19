@@ -109,7 +109,7 @@ async function fixtures() {
           return { x, y: Math.round(p.y / (60 * Math.sqrt(3)) - (x & 1) / 2) };
         });
         s.redraws = Array.from({ length: count }, (_, i) => String(i));
-        s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true, speed_controls: true });
+        s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true });
       }, snapshot);
       await page.waitForTimeout(500);
     }
@@ -150,7 +150,7 @@ async function fixtures() {
       });
       s.redraws = Array.from({ length: s.ecs.nextId }, (_, i) => String(i));
       s.renderer.focusOn(house, 1000);
-      s.ui.actions.change_visibility({ main_menu: false, info: null, selected_person: null, clock: true, speed_controls: true });
+      s.ui.actions.change_visibility({ main_menu: false, info: null, selected_person: null, clock: true });
     }, { snapshot: f.initial, house: f.villagePoint });
     await phone.waitForTimeout(8000);
     await phone.screenshot({ path: path.join(SHOTS, "village-phone.png") });

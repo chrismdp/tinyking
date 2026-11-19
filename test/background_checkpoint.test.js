@@ -1,3 +1,4 @@
+/* global it, expect, jest, beforeAll, require, setImmediate */
 import { createAutosave } from "game/autosave";
 import { completeTravel } from "game/travel";
 import { createSimulation } from "game/simulation";

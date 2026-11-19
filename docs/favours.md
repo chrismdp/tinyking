@@ -40,7 +40,7 @@ Construction help starts only once all logs have been delivered through the exis
 
 Field helpers plough and harvest while the player is working an owned field. Sowing remains the player's seed/food choice. Short-lived `slot.workerId` claims prevent two workers changing the same patch; the existing field claim still serialises ordinary family workers. Interrupted or finished workers release their claims. A helper's crop remains the player's. Hunger, tiredness or a lapsed Personal ring ends help and returns the helper to their own planner.
 
-The standard seed-13 storyboard uses two conversations and one real fuel delivery to earn Personal, then explicitly chooses nearby trees by their actual timber yield and chops enough wood to let a friend help finish the house. It pauses through normal UI speed commands at the actual delivery and helper work for desktop/phone frames. It injects no materials, needs or relationships. Evidence and any limits are recorded in `shots/favours-report.md`.
+The standard seed-13 storyboard uses two conversations and one real fuel delivery to earn Personal, then explicitly chooses nearby trees by their actual timber yield and chops enough wood to let a friend help finish the house. The script pauses through observer commands at the actual delivery and helper work for desktop/phone frames. It injects no materials, needs or relationships. Evidence and any limits are recorded in `shots/favours-report.md`.
 
 ## Food and the daily budget
 

@@ -40,7 +40,7 @@ const load = file => JSON.parse(fs.readFileSync((process.env.SOCIAL_OUT || "shot
             const p = s.ecs.spatial[id], x = Math.round(p.x / 90); return { x, y: Math.round(p.y / (60 * Math.sqrt(3)) - (x & 1) / 2) };
           });
           s.redraws = [...new Set([...old, ...Object.keys(s.ecs.spatial)])];
-          s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true, speed_controls: true });
+          s.ui.actions.change_visibility({ selected_person: null, character: false, main_menu: false, info: null, clock: true });
         }, snapshot);
         await page.waitForTimeout(1200);
       };

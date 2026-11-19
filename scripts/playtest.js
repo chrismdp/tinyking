@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 // Plays the running dev build in headless Chromium and checks it, all
-// through the UI (mouse, wheel and keys), reading game state through the
-// dev-only window.tinyking:
+// through the UI (mouse, wheel and keys). Observer pauses use ui.actions,
+// with game state read through the dev-only window.tinyking:
 //   main menu -> new game -> stranger at a camp (seed 13)
 //   click a villager to select it
 //   order Chat, Gift, Move here, Create Field, Create Stockpile and Cut down from
@@ -96,7 +96,7 @@ async function opening(page) {
       s.ui.actions.choose_job(s.ui.playerId,{key:"move_to_here"},s.intro.tileIds.at(-1));
       s.ui.actions.select_entity(s.ui.playerId);
       const start={days,p,needs,noCamp:!Object.keys(s.ecs.camp||{}).length,
-        locked:s.game_speed=="normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !s.ui.show.speed_controls};
+        locked:s.game_speed=="normal" && !s.ui.selected && !s.ecs.manager[s.ui.playerId].jobs.length && !document.querySelector("#status-strip")};
       window.introObservation={start,walked:false};
       const watch=()=>{
         const now=s.ecs.spatial[s.ui.playerId],o=window.introObservation;
@@ -109,7 +109,7 @@ async function opening(page) {
           nearCamp:Math.hypot(now.x-camp.x,now.y-camp.y)<40,standing:s.intro.pose=="standing",
           bundle:!!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
           campCount:Object.keys(s.ecs.camp||{}).length,steps:s.intro.tileIds.length-1,
-          days:s.days,needs:JSON.stringify(s.ecs.personable),control:s.ui.show.speed_controls};
+          days:s.days,needs:JSON.stringify(s.ecs.personable),control:(!s.intro.active && !s.ui.show.main_menu && !s.ui.show.mapgen)};
         s.ui.actions.set_speed("paused");
       };
       requestAnimationFrame(watch);
@@ -127,8 +127,7 @@ async function opening(page) {
 async function play(page, alreadyStarted=false) {
   const game = (fn, arg) => page.evaluate(fn, arg);
   const speed = async n => {
-    const button = page.locator("#speed-controls").getByRole("button", { name: ["Pause", "Normal speed"][n], exact: true });
-    if (!await button.isDisabled()) await button.click({noWaitAfter:true});
+    await game(index => window.tinyking.ui.actions.set_speed(["paused", "normal"][index]), n);
     await page.waitForFunction(index => window.tinyking.game_speed == ["paused", "normal"][index], n);
   };
   const [ PAUSE, NORMAL ] = [0, 1];
@@ -478,22 +477,18 @@ async function play(page, alreadyStarted=false) {
           const s = window.tinyking;
           const job = s.ecs.manager[s.ui.playerId].jobs.find(j => j.job.key == "move_to_here" && j.targetId == targetId);
           const b = s.ecs.spatial[targetId];
-          const distances = {};
-          for (const id in s.ecs.personable) {
-            const a = s.ecs.spatial[id];
-            distances[id] = Math.hypot(a.x - b.x, a.y - b.y);
-          }
-          return { assigned: job ? job.assignedId : null, open: !!job, distances };
+          const a = s.ecs.spatial[s.ui.playerId];
+          return { assigned: job ? job.assignedId : null, open: !!job, distance: Math.hypot(a.x - b.x, a.y - b.y) };
         }, target);
         if (status.assigned && !walk) {
-          walk = { walker: status.assigned, from: Math.round(status.distances[status.assigned]) };
+          walk = { walker: status.assigned, from: Math.round(status.distance) };
         }
         if (walk && !status.open) {
-          walk.to = Math.round(status.distances[walk.walker]);
+          walk.to = Math.round(status.distance);
           break;
         }
       }
-      check("a villager walks to the ordered tile", walk && walk.to < 20 && walk.from > walk.to, walk);
+      check("the player walks to the ordered tile", walk && walk.to < 20 && walk.from > walk.to, walk);
       await speed(PAUSE);
       await shot("arrived.png");
     }

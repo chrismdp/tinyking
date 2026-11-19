@@ -72,7 +72,7 @@ async function fixtures() {
       await page.getByText("Start new game", { exact: true }).click();
       await page.waitForSelector(".character canvas");
       await page.getByRole("button", { name: "Start game", exact: true }).click();
-      await page.waitForFunction(() => window.tinyking.ui.show.speed_controls);
+      await page.locator("#status-strip").waitFor();
       await page.waitForTimeout(8000);
       const install = async (snapshot, selected = person) => {
         if (await page.locator(".people-sheet").count()) await page.locator(".people-sheet .sheet-close").click();

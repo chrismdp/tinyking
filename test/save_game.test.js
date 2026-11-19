@@ -1,3 +1,4 @@
+/* global it, expect, require */
 import { serialiseGame, restoreGame, SAVE_VERSION } from "game/save_game";
 
 it("preserves undefined, non-finite planner values and shared references, excluding render resources", () => {

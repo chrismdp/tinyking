@@ -1,3 +1,4 @@
+/* global it, expect */
 import { DAYS_IN_SEASON } from "game/time";
 import { community as initialCommunity, attach } from "./support/travel";
 import { peopleWorld } from "./support/people";

@@ -402,7 +402,7 @@ async function assertFamilySurfaceClear(page) {
       const x=Math.max(r.x,area.x),y=Math.max(r.y,area.y);
       return {x,y,width:Math.min(r.x+r.width,area.x+area.width)-x,height:Math.min(r.y+r.height,area.y+area.height)-y};
     }).filter(r=>r.width>0 && r.height>0);
-    const controls=[...document.querySelectorAll(".tree-centres button,#speed-controls button")].map(e=>{
+    const controls=[...document.querySelectorAll(".tree-centres button")].map(e=>{
       const r=rect(e),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
       return {label:e.getAttribute("aria-label") || e.textContent,rect:r,unobscured:e==hit || e.contains(hit),disabled:e.disabled};
     });

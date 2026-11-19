@@ -1,3 +1,4 @@
+/* global it, expect, require */
 import { respond, discussOath } from "./support/customs_chat";
 import { community } from "./support/travel";
 import { newEntities } from "game/entities";

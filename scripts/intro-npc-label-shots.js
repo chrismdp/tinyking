@@ -43,7 +43,7 @@ async function observe(page) {
           frozen: frames.every(f => f.frozen), steps: state.intro.tileIds.length - 1,
           carrying: player.getObjectByName("arrival-bundle").visible,
           bundle: !!state.renderer.objectOf(state.intro.campId).getObjectByName("arrival-bundle"),
-          controls: state.ui.show.speed_controls, selected: state.ui.selected,
+          controls: (!state.intro.active && !state.ui.show.main_menu && !state.ui.show.mapgen), selected: state.ui.selected,
           jobs: state.ecs.manager[state.ui.playerId].jobs.length });
       };
       requestAnimationFrame(sample);
@@ -85,7 +85,7 @@ async function observe(page) {
         if (method != "url") {
           await page.waitForFunction(() => window.tinyking.intro?.active && window.tinyking.intro.elapsed >= 1.2);
           assert.equal(await page.locator("#intro-skip").innerText(), phone ? "Tap to skip" : "Click to skip");
-          assert.equal(await page.locator("#speed-controls").count(), 0);
+          assert.equal(await page.locator("#status-strip").count(), 0);
           await page.screenshot({ path: path.join(SHOTS, `${prefix}-opening.png`) });
           assert(await page.evaluate(() => window.tinyking.intro.active), "Opening screenshot missed the cinematic");
           if (method == "watch") {
@@ -99,8 +99,8 @@ async function observe(page) {
         const evidence = await page.evaluate(() => window.introLabelEvidence);
         // Save observations before assertions, so a failure keeps its evidence.
         fs.writeFileSync(path.join(SHOTS, `${prefix}.json`), JSON.stringify({ device, method, errors, ...evidence }, null, 2));
-        await page.locator("#speed-controls").waitFor();
-        await page.locator("#speed-controls button").first().click();
+        await page.locator("#status-strip").waitFor();
+        await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
         await page.screenshot({ path: path.join(SHOTS, `${prefix}-handover.png`) });
         const { frames, end } = evidence;
         if (method != "url") {

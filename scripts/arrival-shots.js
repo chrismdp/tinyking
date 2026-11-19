@@ -68,7 +68,7 @@ async function snapshots() {
     await page.waitForSelector(".character canvas");
     await page.screenshot({ path: path.join(SHOTS, phone ? "phone-new-game.png" : "desktop-new-game.png") });
     await page.getByRole("button", { name: "Start game", exact: true }).click();
-    await page.locator("#speed-controls button").first().click();
+    await page.evaluate(() => window.tinyking.ui.actions.set_speed("paused"));
     for (const [label, snapshot] of Object.entries(shots)) {
       await page.evaluate(({ snapshot, player }) => {
         const state = window.tinyking;
@@ -85,7 +85,7 @@ async function snapshots() {
       await page.screenshot({ path: path.join(SHOTS, `${phone ? "phone" : "desktop"}-${label}.png`) });
       // Every rendered interactive control on the phone must be touch-sized.
       if (phone) {
-        const tiny = await page.locator("#status-strip button, #journal button, #speed-controls button").evaluateAll(buttons => buttons.filter(b => {
+        const tiny = await page.locator("#status-strip button, #journal button").evaluateAll(buttons => buttons.filter(b => {
           const r = b.getBoundingClientRect();
           return r.width && r.height && (r.width < 44 || r.height < 44);
         }).map(b => b.getAttribute("aria-label") || b.textContent));

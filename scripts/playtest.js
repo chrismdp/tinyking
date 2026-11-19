@@ -510,6 +510,9 @@ async function play(page, alreadyStarted=false) {
       await panTo(id); if (!await orderOn([id],action)) throw new Error("Could not restart "+action);
       await finishOrder();
     }
+    // Deliver the gathered gift during the day. The following six-hour
+    // observation can run into evening, when villagers go home to sleep.
+    await giveGift();
 
     // --- Play on ------------------------------------------------------------------------
     await speed(NORMAL);
@@ -579,8 +582,6 @@ async function play(page, alreadyStarted=false) {
     (outcome.chatted || outcome.chatWaiting) &&
     (outcome.treeGone || outcome.treeWaiting), outcome);
     check("at least one of those orders is done", outcome.fields + outcome.stockpiles > 0 || outcome.chatted || outcome.treeGone, outcome);
-
-    await giveGift();
 
   } else {
     await page.getByRole("button", { name: "Start game", exact: true }).click();

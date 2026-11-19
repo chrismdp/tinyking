@@ -100,3 +100,16 @@ it("restores the shared festival record used by live play and the season page",a
  const packet=await encodeWorldSave(s),loaded=await decodeWorldSave(structuredClone(packet.world),key=>packet.records[key]);
  expect(loaded.festivals).toBe(loaded.social.festivals);
 });
+
+it.each(["world", "chat", "season"])("loads a paused %s manifest at the speed owned by its current screen", async screen => {
+  const {s} = fresh();
+  s.travel.wholeWorld = true;
+  s.game_speed = "paused";
+  if (screen == "chat") s.chat = { active: { previousSpeed: "paused" } };
+  if (screen == "season") s.seasonTurn = { season: 0, lines: [] };
+  const packet = await encodeWorldSave(s);
+  const loaded = await decodeWorldSave(structuredClone(packet.world), key => packet.records[key]);
+  expect(loaded.game_speed).toBe(screen == "world" ? "normal" : "paused");
+  expect(loaded.chat).toEqual(s.chat);
+  expect(loaded.seasonTurn).toEqual(s.seasonTurn);
+});

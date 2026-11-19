@@ -76,7 +76,6 @@ export function startIntro(state, { skip = false, narrative = null } = {}) {
   const route = arrivalRoute(state);
   state.intro = { ...route, ...(narrative ? { narrative } : {}), active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
   state.ui.selected = null;
-  state.ui.show.speed_controls = false;
   move(state, route.points[0]);
   state.redraws.push(state.ui.playerId);
   updateIntro(state, 0);
@@ -98,7 +97,6 @@ export function skipIntro(state) {
   Object.assign(intro, { campId, active: false, elapsed: INTRO_TIMING.duration, phase: "complete", pose: "standing", putDown: 1, fire: 1, bedroll: 1,
     facing: Math.atan2(CAMP_LAYOUT.bundle.x - CAMP_LAYOUT.drop.x, CAMP_LAYOUT.bundle.y - CAMP_LAYOUT.drop.y) });
   state.redraws.push(campId);
-  state.ui.show.speed_controls = true;
   const playable = state.ecs.playable[state.ui.playerId];
   playable.arrivedAt ??= state.days;
   const known = new Set(playable.known.map(h => h.x + "," + h.y));

@@ -341,3 +341,19 @@ it('does not announce an old return when the speaker knows a later departure, ev
  const {lineCandidates}=require('game/chat');
  expect(lineCandidates(s,s.chat.active,'visit_news','npc').some(l=>l.b.event?.id===returned.id)).toBe(false);
 });
+
+it("closes a saved conversation at normal speed even when an older save remembers a manual pause", () => {
+  const {state:s, player:p, person:n} = contact();
+  openChat(s,p,n);
+  s.chat.active.previousSpeed = "paused";
+  const restored = restoreGame(serialiseGame(s));
+  const sim = require("game/simulation").createSimulation(restored), before = restored.days;
+  expect(restored.game_speed).toBe("paused");
+  sim.step(60);
+  expect(restored.days).toBe(before);
+  closeChat(restored);
+  expect(restored.chat.active).toBeUndefined();
+  expect(restored.game_speed).toBe("normal");
+  sim.step(10,0);
+  expect(restored.days).toBeGreaterThan(before);
+});

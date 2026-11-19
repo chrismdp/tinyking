@@ -18,7 +18,7 @@ export function closeCharacter(state) {
 
 export function startGame(state, options = {}) {
   if (state.generating || !state.ecs.personable?.[state.ui.playerId]) return false;
-  Object.assign(state.ui.show, { main_menu: false, mapgen: false, tutorial: false, clock: true, speed_controls: true });
+  Object.assign(state.ui.show, { main_menu: false, mapgen: false, tutorial: false, clock: true });
   seedMotherFamily(state,state.ui.playerId,state.map?.seed);
   repairHouseholds(state);
   state.game_speed = "normal";

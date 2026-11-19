@@ -184,3 +184,19 @@ it("refuses a player proposal to a known lineal ancestor beyond the NPC two-gene
   enqueueTask(s,{key:"marry"},sibling);step(2);
   expect(s.ecs.kinship[player].spouse).toBeNull();expect((s.events||[]).some(e=>e.type=="marriage")).toBe(false);
 });
+
+it.each([false, true])("continues time after succession without waiting for a speed control (has heir=%s)", async hasHeir => {
+  const {s, ids:[player, heir]} = community();
+  if (hasHeir) {
+    s.ecs.kinship[player].children = [heir];
+    s.ecs.kinship[heir].parents = [player];
+  }
+  die(s,player);
+  await resolveSuccession(s);
+  expect(s.ui.playerId).not.toBe(player);
+  expect(s.game_speed).toBe("normal");
+  skipIntro(s);
+  const before = s.days;
+  createSimulation(s).step(10,0);
+  expect(s.days).toBeGreaterThan(before);
+});

@@ -25,7 +25,7 @@ function controlled(s,id,arriving=false) {
   ecs.controllable[id]={...ecs.controllable[id],id,controllerId:id};
   ecs.playable[id]={id,known:[],...(ecs.playable[id]||{})};
   if(!arriving)ecs.playable[id].arrivedAt ??= s.days;
-  s.ui.playerId=id;s.ui.selected=id;s.ui.show.selected_person=id;s.ui.show.game_over=false;s.ui.show.speed_controls=true;
+  s.ui.playerId=id;s.ui.selected=id;s.ui.show.selected_person=id;s.ui.show.game_over=false;
   if(!ecs.playable[id].known.length)ecs.playable[id].known=Grid.hexagon({center:Hex().fromPoint(ecs.spatial[id]),radius:2}).map(h=>({x:h.x,y:h.y}));
   s.ui.talkResult=null;s.ui.familyPersonId=null;s.ui.resourceOrder=null;s.ui.customsResult=null;s.intro=null;s.wedding=null;
   delete s.pendingPlayerTravel;delete s.arrivalEntry;delete s.arrivalCampId;delete s.arrivalHomeId;
@@ -81,7 +81,7 @@ export async function resolveSuccession(s) {
   const named=id=>s.personName?.(id) || s.ecs.nameable[id]?.nickname || "a new stranger";
   s.ui.successionMessage=named(dead)+" died. "+
     (newStranger?"A new stranger arrives: ":"You continue as ")+named(heir)+".";
-  s.game_speed="paused";
+  s.game_speed=s.seasonTurn ? "paused" : "normal";
   if(s.travel)s.travel.maps[s.travel.active]=localSnapshot(s);
   await evictAwayMaps(s);
   return true;

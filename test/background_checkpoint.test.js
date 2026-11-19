@@ -151,3 +151,20 @@ it("queues autosaves and pagehide behind the pending arrival checkpoint", async 
   await s.persistence.flush();
   expect(f.client.mock.calls.map(([operation]) => operation)).toEqual(["checkpoint", "save"]);
 });
+
+it("stops on a travel failure without leaving a separate manual pause behind", async () => {
+  const {s} = fixture();
+  const failure = new Error("Travel failed"), onError = jest.fn();
+  const complete = jest.spyOn(require("game/travel"), "completeTravel").mockRejectedValueOnce(failure);
+  try {
+    const sim = createSimulation(s, {onError}), before = s.days;
+    s.pendingPlayerTravel = { destination: "6,5", side: 0 };
+    await sim.step(0,0);
+    expect(onError).toHaveBeenCalledWith(failure);
+    expect(s.worldBusy).toBe(false);
+    expect(s.travelError).toContain("Travel failed");
+    expect(s.game_speed).toBe("normal");
+    sim.step(60);
+    expect(s.days).toBe(before);
+  } finally { complete.mockRestore(); }
+});

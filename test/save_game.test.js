@@ -45,3 +45,13 @@ it("loads the original version-1 node representation", () => {
   expect(0 in copy.ecs.list).toBe(false);
   expect(2 in copy.ecs.list).toBe(true);
 });
+
+it.each(["world", "chat", "season"])("loads a paused %s save at the speed owned by its current screen", screen => {
+  const state = { ecs: {}, ui: { playerId: "p", show: {} }, game_speed: "paused" };
+  if (screen == "chat") state.chat = { active: { previousSpeed: "paused" } };
+  if (screen == "season") state.seasonTurn = { season: 0, lines: [] };
+  const loaded = restoreGame(serialiseGame(state));
+  expect(loaded.game_speed).toBe(screen == "world" ? "normal" : "paused");
+  expect(loaded.chat).toEqual(state.chat);
+  expect(loaded.seasonTurn).toEqual(state.seasonTurn);
+});

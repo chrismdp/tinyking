@@ -37,7 +37,7 @@ it("keeps the heir's actual oath and rejects the dead actor's oath under real me
   expect(membership(s,b,"own")).toBe("oath");expect(resourcePermission(s,b,ownTree).permitted).toBe(true);expect(resourcePermission(s,b,tree).permitted).toBe(false);
   expect(s.ecs.village[a].memberships.v).toBeDefined();
 });
-it.each(["warning","oath"])("releases an actual held %s encounter before a paused handover and prevents answering for the dead actor",async kind=>{
+it.each(["warning","oath"])("releases an actual held %s encounter before a handover and prevents answering for the dead actor",async kind=>{
   const {s,a,b,c,tree,until,succeed}=fixture();
   if(kind=="warning")enqueueTask(s,{key:"cut_tree_down"},tree);
   else {
@@ -51,7 +51,7 @@ it.each(["warning","oath"])("releases an actual held %s encounter before a pause
   const speaker=s.chat?.active?.context.speakerId;expect(s.ecs.planner[speaker].world.capturedBy).toBe(a);
   s.ui.resourceOrder={job:{key:"cut_tree_down"},targetId:tree,villageId:"v"};s.ui.customsResult={speakerId:speaker,message:"Old actor"};
   await succeed();
-  expect(s.ui.playerId).toBe(b);expect(s.game_speed).toBe("paused");expect(s.chat?.active?.context).toBeUndefined();
+  expect(s.ui.playerId).toBe(b);expect(s.game_speed).toBe("normal");expect(s.chat?.active?.context).toBeUndefined();
   expect(s.ecs.planner[speaker].world.capturedBy).toBeFalsy();expect(s.ecs.planner[speaker].world.customsVisit).toBeUndefined();
   expect(s.ui.resourceOrder).toBeNull();expect(s.ui.customsResult).toBeNull();expect(respond(s,"accept")).toBe(false);
   expect(membership(s,b,"v")).toBeNull();expect(membership(s,b,"own")).toBe("oath");

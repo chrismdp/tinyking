@@ -81,3 +81,12 @@ it('updates a failed approach message when the neighbour is available again',()=
  s.ecs.planner[n].task=null;s.ecs.planner[n].world.feeling={};
  expect(chatResultMessage(s,n)).toBeNull();
 });
+
+it.each(["paused", "normal"])("guides the current walk without offering speed controls at %s speed", speed => {
+  const {state:s, player:p, tiles} = peopleWorld();
+  s.intro = { active: false };
+  s.ui.show = {};
+  s.game_speed = speed;
+  s.ecs.manager[p].jobs = [{ job: { key: "move_to_here" }, targetId: tiles[1] }];
+  expect(openingGuidance(s)).toEqual({ actorId: p, key: "moving", text: "Let your character finish walking to the selected ground." });
+});

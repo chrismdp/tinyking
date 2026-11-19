@@ -114,7 +114,7 @@ canvas {
       ". Supplies Supplies Clock Clock Clock ."
       ". Main Main Main Main Main ."
       ". SelectedPerson SelectedPerson SelectedPerson . . ."
-      ". . . SpeedControls SpeedControls SpeedControls ."
+      ". . . . . . ."
       ". . . . . . ."
   }
 
@@ -127,24 +127,6 @@ canvas {
     grid-area: Clock;
     text-align: right;
     text-transform: capitalize;
-  }
-
-  #speed-controls { grid-area: SpeedControls; }
-
-  #speed-controls {
-    pointer-events: auto;
-    animation: fade-in 1.5s forwards;
-    opacity: 0;
-    text-align: right;
-    button {
-      font-size: 1.1vh;
-      font-size: clamp(0.875rem, 1.1svh, 1.25rem);
-      margin-left: 5px;
-      background: black;
-      &:disabled {
-        background: #417154;
-      }
-    }
   }
 
   #selected-person {
@@ -598,8 +580,6 @@ hr {
 button, a { cursor: pointer; }
 button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offset: 2px; }
 #game #clock { grid-area: auto; position: absolute; top: calc(20px + var(--safe-top)); right: calc(24px + var(--safe-right)); font-size: 16px; }
-#game #speed-controls { grid-area: auto; position: absolute; bottom: calc(18px + var(--safe-bottom)); right: calc(24px + var(--safe-right)); }
-#game #speed-controls button { min-height: 44px; min-width: 44px; font-size: 16px; }
 #game #selected-person { grid-area: auto; position: absolute; bottom: calc(75px + var(--safe-bottom)); left: calc(392px + var(--safe-left)); margin: 0; max-width: calc(100% - 420px - var(--safe-left) - var(--safe-right)); max-height: calc(100vh - 120px); max-height: calc(100svh - 120px - var(--safe-top) - var(--safe-bottom)); overflow: auto; touch-action: pan-y; font-size: 12px; text-shadow: 1px 2px 3px #000; }
 #game #selected-person h1 { margin: 0; font-size: 22px; }
 #game #selected-person .traits { position: static; }
@@ -624,7 +604,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .desktop { z-index: 10; pointer-events: none; }
 @media (max-width: 700px), (max-height: 500px) {
   #game #clock { top: calc(12px + var(--safe-top)); right: calc(12px + var(--safe-right)); font-size: 16px; }
-  #game #speed-controls { bottom: calc(12px + var(--safe-bottom)); right: calc(12px + var(--safe-right)); }
   #game #selected-person { bottom: calc(12px + var(--safe-bottom)); left: calc(12px + var(--safe-left)); max-width: calc(100% - 180px - var(--safe-left) - var(--safe-right)); max-height: 60px; font-size: 12px; }
   #game #selected-person h1 { font-size: 17px; }
   #game #selected-person .hunger-stage { font-size: 14px; }
@@ -829,7 +808,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   }
   .people-sheet { max-height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
   .tree-window { height: calc(100svh - 74px - var(--news-space) - var(--safe-top) - var(--safe-bottom)); }
-  #game #speed-controls { z-index: 23; }
 }
 
 
@@ -866,8 +844,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 .travel-loading { position: absolute; inset: 30% 10% auto; padding: 24px; background: #e9dfc9; color: #29251f; text-align: center; border-radius: 8px; }
 .travel-loading small { display: block; margin-top: 12px; }
 
-#speed-controls .debug-toggle { font-size: 11px; min-width: 44px; min-height: 44px; padding: 4px; }
-#speed-controls .debug-toggle[aria-pressed="true"] { outline: 2px solid #d9b86c; }
 .biography { padding: 8px 0; }
 
 .need-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
@@ -1197,7 +1173,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
   #journal { top: calc(76px + var(--safe-top)); left: calc(10px + var(--safe-left)); width: calc(100% - 22px - var(--safe-left) - var(--safe-right)); max-height: calc(100svh - 260px - var(--news-space, 0px) - var(--safe-top) - var(--safe-bottom)); }
 }
 
-#game #speed-controls { z-index: 23; }
 
 // Daily notices share one scrollable stack above the activity strip.
 #day-notices {

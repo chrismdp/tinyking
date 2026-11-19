@@ -58,7 +58,7 @@ export async function decodeWorldSave(world,read) {
   Object.assign(manifest,map);manifest.travel.maps[world.active]=map;
   manifest.redraws=[];
   if(manifest.social?.festivals)manifest.festivals=manifest.social.festivals;
-  if(manifest.game_speed && manifest.game_speed!=="paused")manifest.game_speed="normal";
+  if(manifest.game_speed)manifest.game_speed=manifest.chat?.active || manifest.seasonTurn ? "paused" : "normal";
   if(manifest.ui?.show?.journal)manifest.ui.show.journal=false;
   return manifest;
 }

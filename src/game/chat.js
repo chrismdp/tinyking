@@ -453,7 +453,7 @@ export function closeChat(s,{interrupted=false}={}) {
   const taskId=c.taskId;
   if(c.initiatedBy&&target) {delete target.world.chatVisit;target.task=null;target.plan=null;}
   if(taskId)completeChatOrder(s,taskId);
-  s.game_speed=c.previousSpeed;delete s.chat.active;
+  s.game_speed="normal";delete s.chat.active;
   s.redraws?.push(c.actorId,c.npcId);
 }
 export function openChat(s,actor,npc,options={}) {
@@ -472,7 +472,7 @@ export function openChat(s,actor,npc,options={}) {
   const knewBefore=!!e.relationships[npc]?.known[actor],pair=chatRecord(s,actor,npc);
   const c=s.chat.active={actorId:actor,npcId:npc,encounter:++pair.encounters,knewBefore,phase:"opening",tags:[],row:[],usedIds:[],transcript:[],
     initiatedBy:options.initiatedBy,context:options.context,required:options.required,
-    taskId:!options.initiatedBy&&e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,previousSpeed:s.game_speed,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary",
+    taskId:!options.initiatedBy&&e.manager?.[actor]?.jobs.find(j=>j.job.key=="chat" && j.targetId==npc && !j.failed)?.id,subjectId:e.manager?.[actor]?.jobs.find(j=>j.assignedId==actor)?.aboutId,activity:e.planner?.[actor]?.world.chatActivity||snapshotActivity(s,npc),mode:"ordinary",
     startRanks:{[npc]:Math.max(0,RINGS.indexOf(e.relationships?.[npc]?.known[actor]?.ring)),[actor]:Math.max(0,RINGS.indexOf(e.relationships?.[actor]?.known[npc]?.ring))}};
   meet(s,actor,npc);meet(s,npc,actor);s.game_speed="paused";
   if(e.planner[npc])e.planner[npc].world.capturedBy=actor;
@@ -481,7 +481,7 @@ export function openChat(s,actor,npc,options={}) {
   if(!options.openingFamily&&line&&line.icons.length>=patience(s,actor,npc).free)line=null;
   line ||= pickNpc(s,c,"recall");
   line ||= pickNpc(s,c,"greeting");
-  if(line)speakLine(s,line);else {s.game_speed=c.previousSpeed;delete s.chat.active;return false;}
+  if(line)speakLine(s,line);else {s.game_speed="normal";delete s.chat.active;return false;}
   c.phase="player_turn";
   if(s.ui.show)s.ui.show.selected_person=null;
   s.redraws?.push(actor,npc);return true;

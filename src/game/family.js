@@ -2,15 +2,15 @@ import { isAdult } from "game/life_stages";
 import { mutuallyOriented } from "game/orientation";
 import { householdMembers, refreshPersonIndex } from "game/population_index";
 import { canCourt, eligiblePartner, marry, chatTogether, moveHouse } from "game/social";
-import { addGoodwill, disposition, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
+import { addGoodwill, relationshipCap, spendPatience, beginInteraction, completeConversation } from "game/people";
 import { entityId } from "game/residents";
 import { Hex } from "game/hex";
 import { closeFamily, recordEvent } from "game/events";
 
 export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
 export function marriageTasteReason(s,a,b) {
-  if (!mutuallyOriented(s,a,b)) return "You are not romantically compatible with each other.";
-  if (relationshipCap(s,b,a) < 2 || relationshipCap(s,a,b) < 2) return "One of you dislikes the other. Marriage needs willing partners.";
+  if (!mutuallyOriented(s,a,b)) return "We are not romantically compatible with each other.";
+  if (relationshipCap(s,b,a) < 2 || relationshipCap(s,a,b) < 2) return "One of us dislikes the other. Marriage needs willing partners.";
   return null;
 }
 export function marriageReason(s,a,b) {
@@ -19,6 +19,12 @@ export function marriageReason(s,a,b) {
   if (taste) return taste;
   if (!canMarryPlayer(s,a,b)) return "Marriage needs mutual Personal regard and no ill will.";
   return null;
+}
+export function courtPlayer(s,a,b) {
+  const reason=!eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." : marriageTasteReason(s,a,b);
+  if(reason)return {ok:false,message:reason};
+  beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
+  return {ok:true,message:"You spent time courting. Your feelings grow at their own pace."};
 }
 export function familyConversation(s,a,b,key) {
   if (key == "play") {
@@ -35,14 +41,14 @@ export function familyConversation(s,a,b,key) {
     recordEvent(s,"household_join",[b,a],[],{houseId:house});
     return {ok:true,message:"Your friend agreed to join your household. Their belongings remain theirs."};
   }
-  const reason = !mutuallyOriented(s,a,b) ? marriageTasteReason(s,a,b) : key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." :
-    disposition(s,a,b) == "hate" || disposition(s,b,a) == "hate" ? marriageTasteReason(s,a,b) : null;
+  const reason = key == "marry" ? marriageReason(s,a,b) : !eligiblePartner(s,a,b,true) ? "Courtship needs living unmarried adults who are not close kin." : marriageTasteReason(s,a,b);
   if (reason) return {ok:false,message:reason};
   if (!spendPatience(s,a,b)) return {ok:false,message:"They have had enough of talking for today."};
-  if (key == "court") {
-    beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
-    return {ok:true,message:marriageTasteReason(s,a,b) || "You spent time courting. Your feelings grow at their own pace."};
-  }
+  return key == "court" ? courtPlayer(s,a,b) : proposeMarriage(s,a,b);
+}
+export function proposeMarriage(s,a,b) {
+  const reason=marriageReason(s,a,b);
+  if(reason)return {ok:false,message:reason};
   // Snapshot the original families before the new spouse links join them.
   const families = [[a,closeFamily(s,b)],[b,closeFamily(s,a)]];
   const planner=s.ecs.planner[a],task=planner?.task,plan=planner?.plan,currentJob=planner?.world.currentJob;

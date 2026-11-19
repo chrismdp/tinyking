@@ -12,6 +12,7 @@ import { learnEvent, recordEvent } from "game/events";
 import { recogniseConversation } from "game/guidance";
 import { acceptFavour, withFavourQuery } from "game/favours";
 import { makePeace, introduce } from "game/social_interventions";
+import { courtPlayer, proposeMarriage } from "game/family";
 import { hashUnit } from "game/math";
 import { patience, chatRecord } from "game/chat_patience";
 import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
@@ -158,6 +159,9 @@ export function chatChoices(s) {
   for(const line of choices)if(line.effects.some(e=>e.op=="arrange_meeting")) {
     (s.chat.active.offeredMeetings ||= {})[line.key]=line;
   }
+  for(const line of choices)if(line.effects.some(e=>e.op=="court_player"||e.op=="propose_marriage")) {
+    (s.chat.active.offeredRomance ||= {})[line.key]=line;
+  }
   return choices;
 }
 function queryChatChoices(s) {
@@ -176,6 +180,10 @@ function queryChatChoices(s) {
     const own=["family","mood"].includes(c.focus)&&available.find(l=>l.family=="own_question");
     if(own)mandatory.push(own);
     if(["warning","oath","leave"].includes(c.expectation))return mandatory;
+    if(["family","mood"].includes(c.focus))for(const family of ["proposal","flirt"]) {
+      const romance=available.find(l=>l.family==family&&previewLine(s,l).fits);
+      if(romance)mandatory.push(romance);
+    }
     const combined=[...mandatory,...result.filter(l=>!mandatory.some(x=>x.useKey==l.useKey))];
     let searches=0;
     return combined.filter(l=>l.family!="maternal_search"||++searches<=1).slice(0,limit?4:undefined);
@@ -252,6 +260,14 @@ function effects(s,c,line) {
   for(const op of line.effects||[]) {
     const k=knowledge(s,ref(op.viewer)||c.actorId);
     switch(op.op) {
+    case "court_player":
+    case "propose_marriage": {
+      const proposal=op.op=="propose_marriage",result=(proposal?proposeMarriage:courtPlayer)(s,c.actorId,c.npcId);
+      c.romanceResult={value:result.ok?"accepted":"refused",reason:result.ok?null:result.message};
+      c.reply=proposal?"proposal_reply":"flirt_reply";
+      if(proposal&&result.ok)c.marriageAccepted=true;
+      break;
+    }
     case "promise_step":c.promiseStep=b.request.id;break;
     case "arrange_meeting": {
       const run=op.kind=="make_peace"?makePeace:introduce;
@@ -378,9 +394,10 @@ export function speakLine(s,line) {
   c.row=[...grievances,...c.row.filter(i=>i.kind!="grievance")].slice(0,Math.max(0,p.max-p.resting));
   spoken.presentation.after=snapshot();
   if(c.meetingQueued) {endChat(s,"meeting_queued");closeChat(s);return true;}
-  const awaitsAnswer=line.speaker=="player"&&(line.resolve||line.effects?.some(e=>e.op=="set_reply_purpose"));
+  const awaitsAnswer=line.speaker=="player"&&(line.resolve||line.effects?.some(e=>["set_reply_purpose","court_player","propose_marriage"].includes(e.op)));
   const meetingRefusal=line.family=="meeting_reply" || line.effects?.some(e=>e.op=="arrange_meeting")&&c.meetingResult?.reason;
-  if(!meetingRefusal && c.phase!="opening" && c.row.length+p.resting>=p.max) {
+  const romanceExchange=["flirt_reply","proposal_reply"].includes(line.family)||line.effects?.some(e=>["court_player","propose_marriage"].includes(e.op));
+  if(!meetingRefusal && !(romanceExchange&&(c.romanceResult?.reason||c.marriageAccepted)) && c.phase!="opening" && c.row.length+p.resting>=p.max) {
     c.closeReason="row_full";
     if(c.expectation||c.closingReply)c.closeAfterReply=true;
     else if(awaitsAnswer)c.finishAfterReply=true;
@@ -418,12 +435,13 @@ export function noteExhausted(s,c,line) {
 }
 export function chooseLine(s,key) {
   const c=s.chat?.active;if(!c||c.endReason)return false;
-  const offered=c.offeredMeetings?.[key];
+  const offered=c.offeredMeetings?.[key]||c.offeredRomance?.[key];
   const line=chatChoices(s).find(l=>l.key==key)||offered;if(!line)return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
   if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}
   if(!c.endReason)reply(s,c.reply);
+  if(c.marriageAccepted){endChat(s,"married");closeChat(s);return true;}
   if(!c.endReason && !c.expectation && !c.closingReply && c.finishAfterReply)endChat(s,c.closeReason||(c.row.length+patience(s,c.actorId,c.npcId).resting>=patience(s,c.actorId,c.npcId).max?"row_full":"exchange_complete"));
   if(!c.endReason && !c.expectation && !c.closingReply && patience(s,c.actorId,c.npcId).max==2)endChat(s,"tired");
   c.focus=null;

@@ -146617,16 +146617,8 @@
      }
     },
     {
-     "test": "is_adult",
-     "args": {
-      "person": "npc"
-     }
-    },
-    {
-     "test": "is_adult",
-     "args": {
-      "person": "player"
-     }
+     "test": "courtship_eligible",
+     "args": {}
     }
    ],
    "none": []
@@ -146658,8 +146650,7 @@
   "resolve": null,
   "effects": [
    {
-    "op": "set_reply_purpose",
-    "purpose": "flirt_reply"
+    "op": "court_player"
    }
   ],
   "disclosure": {
@@ -146683,13 +146674,24 @@
   "family": "flirt_reply",
   "situation": "fallback_company",
   "weight": 1,
-  "bindings": {},
+  "bindings": {
+   "romance": {
+    "source": "pending_romance_result"
+   }
+  },
   "when": {
    "all": [
     {
      "test": "phase_is",
      "args": {
       "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "romance",
+      "value": "accepted"
      }
     }
    ],
@@ -146732,6 +146734,65 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "npc.flirt_reply.refused.01",
+  "speaker": "npc",
+  "family": "flirt_reply",
+  "situation": "refused",
+  "weight": 1,
+  "bindings": {
+   "romance": {
+    "source": "pending_romance_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "romance",
+      "value": "refused"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{romance.reason}",
+  "facts": [],
+  "icons": [],
+  "use_key": "flirt_reply:refused:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
  },
  {
   "id": "player.family_question.death.base.01",
@@ -165976,5 +166037,188 @@
    "ring": "public",
    "below": "hide"
   }
+ },
+ {
+  "id": "player.proposal.marriage.01",
+  "speaker": "player",
+  "family": "proposal",
+  "situation": "marriage",
+  "weight": 1,
+  "bindings": {},
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "player_turn"
+     }
+    },
+    {
+     "test": "proposal_eligible",
+     "args": {}
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Will you marry me?",
+  "facts": [],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "npc"
+   }
+  ],
+  "use_key": "proposal:{npc.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "propose_marriage"
+   }
+  ],
+  "disclosure": {
+   "to": "npc",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.proposal_reply.accepted.01",
+  "speaker": "npc",
+  "family": "proposal_reply",
+  "situation": "accepted",
+  "weight": 1,
+  "bindings": {
+   "romance": {
+    "source": "pending_romance_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "romance",
+      "value": "accepted"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "Yes. Let us make a home together, and celebrate with our families.",
+  "facts": [],
+  "icons": [],
+  "use_key": "proposal_reply:accepted:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.proposal_reply.refused.01",
+  "speaker": "npc",
+  "family": "proposal_reply",
+  "situation": "refused",
+  "weight": 1,
+  "bindings": {
+   "romance": {
+    "source": "pending_romance_result"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "result_is",
+     "args": {
+      "result": "romance",
+      "value": "refused"
+     }
+    }
+   ],
+   "none": []
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{romance.reason}",
+  "facts": [],
+  "icons": [],
+  "use_key": "proposal_reply:refused:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
  }
 ]

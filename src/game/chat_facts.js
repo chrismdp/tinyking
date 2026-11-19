@@ -6,6 +6,9 @@ import { knowsEvent } from "game/event_knowledge";
 import { householdMembers } from "game/population_index";
 import { condition } from "game/social_conditions";
 import { peaceUnavailable, introduceUnavailable } from "game/social_interventions";
+import { canMarryPlayer } from "game/family";
+import { eligiblePartner } from "game/social";
+import { mutuallyOriented } from "game/orientation";
 import { personComponent } from "game/residents";
 import { familySearchFacts, maternalIntroduction } from "game/mother_family";
 /* global require */
@@ -150,6 +153,7 @@ export function sourceValues(s,c,b,d) {
   case "pending_promise_step":return c.promiseStep?[askNextStep(s,s.favours.requests[c.promiseStep])]:[];
   case "player_arrival_story":return s.backstories?.[p]?[{id:p,mother_name:personFact(s,s.backstories[p].motherId)?.first_name,origin:"the cottage where I grew up with my mother"}]:[];
   case "pending_meeting_result":return c.meetingResult?[c.meetingResult]:[];
+  case "pending_romance_result":return c.romanceResult?[c.romanceResult]:[];
   case "customs_chat": {
     const context=c.context;if(!context)return [];
     const i=s.customs?.incidents.find(i=>i.id==context.incidentId);
@@ -237,6 +241,8 @@ export function predicate(s,c,b,{test,args:a={}}) {
   const lands=()=>landsFact(s,c.npcId),told=f=>landsTold(s,viewer||c.actorId,id(a.speaker)||c.npcId,f);
   const tripTold=e=>!!s.chat?.pairs?.[c.actorId+":"+c.npcId]?.used?.[`lands_trip:${c.npcId}:${c.actorId}:${e.id}`];
   switch(test) {
+  case "courtship_eligible":return eligiblePartner(s,c.actorId,c.npcId,true)&&mutuallyOriented(s,c.actorId,c.npcId);
+  case "proposal_eligible":return canMarryPlayer(s,c.actorId,c.npcId);
   case "meeting_available":return !(a.kind=="make_peace"?peaceUnavailable:introduceUnavailable)(s,c.actorId,c.npcId,id(a.other),{whenFree:true});
   case "family_search_answer":return b.relative?.answer==a.value;
   case "festival_active":return !!s.ecs.planner?.[c.npcId]?.world.festivalPlace;

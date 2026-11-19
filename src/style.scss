@@ -584,7 +584,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 #game #selected-person h1 { margin: 0; font-size: 22px; }
 #game #selected-person .traits { position: static; }
 #world canvas { touch-action: none; }
-.popper { z-index: 5; font-size: 16px; max-width: min(380px, 90vw); max-height: 70vh; max-height: min(70svh, calc(100svh - 20px - var(--safe-top) - var(--safe-bottom))); overflow: auto; box-sizing: border-box; }
+.popper { z-index: 24; font-size: 16px; max-width: min(380px, 90vw); max-height: 70vh; max-height: min(70svh, calc(100svh - 20px - var(--safe-top) - var(--safe-bottom))); overflow: auto; box-sizing: border-box; }
 .popper .close, .panel .close { float: right; background: transparent; min-width: 44px; min-height: 44px; padding: 10px; }
 .job-list button { min-height: 44px; font-size: 16px; }
 .popper a { display: inline-block; min-height: 44px; line-height: 44px; }

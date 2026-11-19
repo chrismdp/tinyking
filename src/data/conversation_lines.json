@@ -146661,11 +146661,8 @@
    "facts": []
   },
   "level": {
-   "ring": "personal",
-   "below": "risk",
-   "cost": 3,
-   "grievance": true,
-   "reason": "flirt"
+   "ring": "public",
+   "below": "hide"
   }
  },
  {

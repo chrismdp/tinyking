@@ -46,9 +46,10 @@ it("keeps courting available before mutual Personal regard, but hides a proposal
   expect(candidate(s,"proposal")).toBeUndefined();
 });
 
-it("applies the existing time-together effect once when the player courts",()=>{
+it.each(["public","social","personal"])("applies the existing time-together effect once when the player courts at %s closeness",ring=>{
   const {state:s,player:p,person:n}=courtingChat();
   const expected=courtingChat().state;
+  for(const state of [s,expected])for(const [a,b] of [[p,n],[n,p]])state.ecs.relationships[a].known[b].ring=ring;
   chatTogether(expected,p,n);
   const before=bondValues(s,p,n);
   expect(chooseLine(s,choice(s,"flirt").key)).toBe(true);

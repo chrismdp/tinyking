@@ -640,7 +640,12 @@ async function play(page, alreadyStarted=false) {
   const buildDay = await game(() => window.tinyking.days);
   await speed(NORMAL);
   if (siteTile) {
-    await observeWork(page,()=>page.waitForFunction(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to"), null, { timeout: 300000 }));
+    // Villagers may start a chat while the shelter goes up; the player ends it and the build carries on.
+    const until = Date.now() + 300000;
+    while (!await game(() => Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")) && Date.now() < until) {
+      if (await game(() => !!window.tinyking.chat?.active)) await page.getByRole("button", { name: "End chat", exact: true }).click();
+      await page.waitForTimeout(500);
+    }
   }
   check("logs are delivered and a lean-to finishes", siteTile && await game(() => window.buildEvidence?.delivered == 4 && Object.values(window.tinyking.ecs.shelter || {}).some(s => s.stage == "lean-to")),
     { seconds: (Date.now() - buildStarted) / 1000, gameHours: Math.round((await game(() => window.tinyking.days) - buildDay) * 24) });

@@ -493,7 +493,12 @@ async function play(page, alreadyStarted=false) {
       await shot("arrived.png");
     }
     check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
-    await panTo(person); await orderOn([person], "Chat");
+    await game(id => window.tinyking.ui.actions.select_entity(id, false), person);
+    await page.locator(".person-window").getByRole("button", { name: "Chat", exact: true }).click();
+    if (!await game(id => {
+      const s = window.tinyking;
+      return s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
+    }, person)) throw new Error("The person panel did not queue Chat with " + person);
     await waitForChatPanel(page, person);
     const conversation = await finishChatPanel(page, person, {maxLines:1});
     check("Chat pauses the world, chosen lines make contact and End chat releases the panel",
@@ -511,7 +516,7 @@ async function play(page, alreadyStarted=false) {
     const sample = () => game(() => {
       const s = window.tinyking;
       const ground = s.renderer.ground;
-      return Object.keys(s.ecs.personable).map(id => {
+      return Object.keys(s.ecs.spatial).filter(id => s.ecs.personable[id]).map(id => {
         const p = s.ecs.spatial[id];
         const object = s.renderer.objectOf(id);
         return {

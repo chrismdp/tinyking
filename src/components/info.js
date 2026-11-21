@@ -14,7 +14,6 @@ import { useTranslate } from "react-polyglot";
 import { fullEntity } from "game/entities";
 import { Hex } from "game/map";
 import { topController } from "game/playable";
-import { homeOf } from "game/overworld";
 
 import { GameState } from "components/contexts";
 import { JobList } from "components/job_list";
@@ -58,14 +57,8 @@ Job.propTypes = {
 // NOTE: how a tile feels (high ground is colder) and the world hex it is in
 function WorldHex({ mappable }) {
   const state = React.useContext(GameState);
-  const t = useTranslate();
-  const home = homeOf(state.world);
-  const high = mappable.elevation >= 260;
   return (
     <div className="world-hex">
-      {mappable.biome && <div>{mappable.biomeMix ? mappable.biome+" mix" : mappable.biome}</div>}
-      <div>{t(high ? "world.high_ground" : "world.temperature", { value: mappable.temperature })}</div>
-      <div>{t("world.world_hex", home)}</div>
       {mappable.elevation >= 260 && <div>{frozenAt(mappable,state.days) ? "Frozen highlands · a shorter growing season" : "Highland thaw · a shorter growing season"}</div>}
     </div>
   );
@@ -192,11 +185,11 @@ export function Info({ entityId }) {
         {entity.manager.jobs.map((j, idx) => (<Job linkToTarget={true} key={idx} job={j} managerId={entityId}/>)) }
       </div>)}
       { <JobList jobs={jobs} targetId={entity.id}/>}
-      <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&
+      {process.env.NODE_ENV!=="production" && <div><a className="knockedback" onClick={toggleDebug}>(debug)</a>{ showDebug &&
         Object.keys(entity).filter(c => entity[c]).map(c => <li key={c} className="knockedback">
           <strong>{c}</strong>: {JSON.stringify(entity[c])}
         </li>)
-      }</div>
+      }</div>}
     </div>
   );
 }

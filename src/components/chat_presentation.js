@@ -11,7 +11,7 @@ export function explainIcon(s,icon,learned) {
   const label=iconLabel(s,icon),who=iconLabel(s,{kind:"person",personId:s.chat.active.npcId});
   if(icon.kind=="grievance")return "Grievance: locked. It cannot match and takes a slot until this chat ends.";
   const score=knownReaction(icon,learned),kind=icon.kind=="person"?"person":icon.kind;
-  return `${label}: a ${kind}. `+(score===null?`You do not yet know how ${who} feels about this. Match a pair to find out.`:score>0?`${who} likes this. A pair raises regard.`:score<0?`${who} dislikes this. A pair lowers regard.`:`${who} feels neutral. A pair costs 0.25 regard.`);
+  return `${label}: a ${kind}. `+(score===null?`You do not yet know how ${who} feels about this. Match a pair to find out.`:score>0?`${who} likes this. A pair raises regard.`:score<0?`${who} dislikes this. A pair lowers regard.`:`${who} feels neutral. A pair leaves regard unchanged.`);
 }
 export function presentChoices(s,choices,c=s.chat.active) {
   const male=s.ecs.nameable[c.npcId]?.male,pronoun=male===true?"he":male===false?"she":null;

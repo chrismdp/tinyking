@@ -6,7 +6,7 @@ import { TravelOverview } from "./travel";
 import { RealmControls } from "./realm_controls";
 import { WeddingNotice } from "./wedding_notice";
 import { ResourceNotice } from "./village_customs";
-import { openingGuidance } from "game/guidance";
+import { OpeningGuidance } from "./opening_guidance";
 import { EventFeed } from "./event_feed";
 import React from "react";
 
@@ -26,13 +26,6 @@ import { SelectedPerson } from "components/selected_person";
 
 const FamilyTree = React.lazy(()=>import("./person_panel").then(module=>({default:module.FamilyTree})));
 
-
-function OpeningGuidance() {
-  const state = React.useContext(GameState);
-  const hint = openingGuidance(state);
-  if (!hint) return null;
-  return <aside id="opening-guidance" aria-label="Getting started"><span>{hint.text}</span>{hint.action && <button onClick={() => hint.selectId ? state.ui.actions.select_entity(hint.selectId,false) : hint.job ? state.ui.actions.choose_job(hint.actorId,{key:hint.job},hint.targetId || hint.actorId) : state.ui.actions.talk_to(hint.targetId,"chat")}>{hint.action}</button>}</aside>;
-}
 
 export function UserInterface() {
   const state = React.useContext(GameState);

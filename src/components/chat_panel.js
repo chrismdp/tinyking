@@ -23,7 +23,7 @@ export function ChatIcon({icon,reaction,matches,onExplain,large=false}) {
 ChatIcon.propTypes={icon:PropTypes.object,reaction:PropTypes.number,matches:PropTypes.bool,onExplain:PropTypes.func,large:PropTypes.bool};
 export function TopicTastes({personId,onExplain}) {
   const s=React.useContext(GameState),known=s.knowledge?.[s.ui.playerId]?.people?.[personId]?.topicTastes||{},moods=s.knowledge?.[s.ui.playerId]?.people?.[personId]?.moodTastes||{};
-  return <><div className="topic-tastes" aria-label="Topic tastes">{Object.entries(TOPICS).map(([key])=><ChatIcon key={key} onExplain={onExplain} icon={{kind:"topic",key}} reaction={personId==s.ui.playerId?topicScore(s,personId,key):known[key]??null}/>)}</div><div className="topic-tastes" aria-label="Mood tastes">{Object.entries(MOODS).map(([key])=><ChatIcon key={key} onExplain={onExplain} icon={{kind:"mood",key}} reaction={personId==s.ui.playerId?moodScore(s,personId,key):moods[key]??null}/>)}</div></>;
+  return <><div className="topic-tastes" aria-label="Topic tastes">{Object.keys(TOPICS).filter(key=>personId==s.ui.playerId||known[key]!=null).map(key=><ChatIcon key={key} onExplain={onExplain} icon={{kind:"topic",key}} reaction={personId==s.ui.playerId?topicScore(s,personId,key):known[key]}/>)}</div><div className="topic-tastes" aria-label="Mood tastes">{Object.keys(MOODS).filter(key=>personId==s.ui.playerId||moods[key]!=null).map(key=><ChatIcon key={key} onExplain={onExplain} icon={{kind:"mood",key}} reaction={personId==s.ui.playerId?moodScore(s,personId,key):moods[key]}/>)}</div></>;
 }
 TopicTastes.propTypes={personId:PropTypes.string,onExplain:PropTypes.func};
 export function ChatChoice({line,preview,selected,onSelect,onSpeak,onExplain,onPreview,reaction}) {

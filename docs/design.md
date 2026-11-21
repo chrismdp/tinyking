@@ -88,7 +88,7 @@ Traits and tastes set directional dispositions. Hate permits Public, liking perm
 
 Selecting a stranger does not introduce them. Names, biographies, events and possession stories use the current actor's actual knowledge. Completed conversations record spoken contact. An ordered, unreachable or refused visit does not. An identified family story requires actual disclosure, rather than an anonymous tree or access to global history.
 
-The family tree shows known people and connected unknown relatives. Its cards retain readable sizes. The viewport scrolls and can centre on the selected person, owner or heir when they are in the known tree. Household owner and heir text follows the real inheritance function and the current actor's knowledge.
+The family tree shows known people and connected unknown relatives, including aunts, uncles and their families. Its cards retain readable sizes. The viewport scrolls and can centre on the selected person, owner or heir when they are in the known tree. Household owner and heir text follows the real inheritance function and the current actor's knowledge.
 
 ## Orders, needs and help
 
@@ -97,7 +97,7 @@ Orders belong to the current player. They use the same planner as village work. 
 Energy is the player's daily work budget. Physical work spends it. Chatting is free.
 Low energy slows work. At zero, work waits for food or sleep. Eat consumes a
 specific carried or owned portion. The player never searches for a meal automatically.
-Rest walks home and sleeps. A bed restores more energy than rough ground or a
+Rest walks home and sleeps. A new player order wakes the player. Overnight rest ends at dawn, with the morning summary and activity strip showing the same recovered energy. A bed restores more energy than rough ground or a
 camp bedroll. Late nights and collapse reduce the next morning's recovery.
 Work and visits remain available after dark. At zero energy the player walks
 home and sits by their fire or camp. At 11pm they turn in unless in a conversation. See [energy](survival.md).

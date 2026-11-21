@@ -1202,9 +1202,16 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 
 // A phone sheet owns the controls it opens. Notices return when it closes.
 @media (max-width: 700px), (max-height: 500px) {
-  #ui:has(.panel, .person-window, .tree-window, .chat-panel, #journal[open]) #day-notices { display: none; }
+  #ui:has(.panel, .person-window, .tree-window, .chat-panel, #journal) #day-notices { display: none; }
   #day-notices { max-height: 140px; bottom: auto; }
 }
+
+// Sheets own their recovery controls. World notices wait until they close.
+#ui:has(.people-sheet, .chat-panel, #journal) {
+  #village-news, #day-notices { display: none; }
+}
+.chat-recovery { padding: 12px 18px; background: #304f3a; display: flex; flex-direction: column; gap: 8px; }
+#journal header { flex-shrink: 0; }
 @media (max-width: 700px), (max-height: 500px) {
   #game:has(.popper[style*="visibility: visible"]) #day-notices { display: none; }
 }

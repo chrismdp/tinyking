@@ -46,7 +46,7 @@ export function Overworld({ world, size, labels, weather, onSelect, known, commu
       onClick={!isHome && onSelect ? () => onSelect(h) : undefined}
       onKeyDown={!isHome && onSelect ? e => { if (["Enter", " "].includes(e.key)) { e.preventDefault(); onSelect(h); } } : undefined}
       style={isHome ? {pointerEvents:"none"} : undefined}>
-      <title>{labelOf(h) + ": " + h.morality + ", " + h.temperature + ", " + h.moisture + (isHome ? " (you are here)" : "")}</title>
+      <title>{labelOf(h) + (!onSelect?": " + h.morality + ", " + h.temperature + ", " + h.moisture:"") + (isHome ? " (you are here)" : "")}</title>
       <polygon points={corners} fill={isHome ? "none" : css(colourOf(h))}
         stroke={isHome ? "#d93b30" : "rgba(0, 0, 0, 0.35)"} strokeWidth={isHome ? 3 : 1} opacity={!isHome && known && !known.has(h.x + "," + h.y) ? .5 : 1}/>
       {!isHome && known?.has(h.x + "," + h.y) && <polygon points={corners} fill="none" stroke="#f9edc9" strokeWidth={2} pointerEvents="none"/>}

@@ -2,7 +2,7 @@ import { TALK_MINUTES } from "game/player";
 import { isDependent } from "game/life_stages";
 import { foodChoices } from "game/energy";
 import { FOOD_ENERGY } from "game/goods";
-import { enqueueTask } from "game/manager";
+import { enqueueTask, wakePlayer } from "game/manager";
 import { journeyText } from "game/travel";
 import { canFoundHousehold } from "game/family";
 import { heirFor } from "game/possessions";
@@ -110,7 +110,7 @@ export function StatusStrip() {
         <span>Energy {energy} / 100</span><div className="meter" role="meter" aria-label="Energy" aria-valuenow={energy} aria-valuemin={0} aria-valuemax={100}><span style={{width:energy+"%"}}/></div>
       </div>
       <span className="current-activity" role="status" title={job?.waiting || activity}>{activity}</span>
-      <button disabled={!job || person.dead} onClick={()=>state.ui.actions.cancel_task(job.id)}>Stop</button>
+      <button disabled={!job && !sleeping || person.dead} onClick={()=>{if(job)state.ui.actions.cancel_task(job.id);else {wakePlayer(state);state.ui.actions.end_turn();}}}>Stop</button>
     </div>
     <div className="daily-actions">
       {!person.dead && <button disabled={sleeping} onClick={()=>state.ui.actions.choose_job(id,{key:"rest"},id)}>Rest</button>}

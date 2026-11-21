@@ -1,3 +1,4 @@
+import { OpeningGuidance } from "./opening_guidance";
 import { chatResultMessage } from "game/manager";
 import { isAdult, isDependent, lifeStageLabel } from "game/life_stages";
 import { full as gameDate } from "game/time";
@@ -135,6 +136,7 @@ export function PersonPanel({ entityId }) {
       <p className="person-meta">{identified ? <>{lifeStageLabel(personComponent(state, "personable", entityId).age)} · {village}<br/>{home.home} · {home.family} household</> : "Identity and household not yet known"}{dead ? " · † Dead" : ""}<br/>{[occupation, activity].filter(Boolean).join(" · ")}</p></div>
     <button className="sheet-close" aria-label={"Close " + personName + "'s panel"} onClick={close}>×</button></header>
     {approachMessage && <p className="talk-result" role="status">{approachMessage}</p>}
+    {state.ui.talkResult?.personId==entityId && <OpeningGuidance recoveryOnly/>}
     <div className="person-body">
       {!dead && personComponent(state, "kinship", player)?.spouse == entityId && <p className="talk-note">You are married.</p>}
       {!dead && present && <div className="talk-actions" aria-label="Talking"><button disabled={slots.free<slots.minimum} onClick={() => queue("chat")}>Chat</button><button onClick={() => setChooser(chooser == "gift" ? null : "gift")}>Give a gift</button></div>}
@@ -242,7 +244,7 @@ export function FamilyTree({ entityId, onClose, onSelect }) {
   }
   return <Sheet label={"The family of " + personName} onClose={close} className="tree-window">
     <header className="people-header"><h3>The family of {personName}</h3><span className="count">{nodes.filter(n => !n.unknown).length} of {nodes.length} names known</span><button className="sheet-close" aria-label="Close family tree" onClick={close}>×</button></header>
-    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · siblings &amp; spouses · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",owner],["Heir",heir]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
+    <div className="tree-toolbar"><strong>Two generations above · two below</strong><span>Ancestors · aunts &amp; uncles · cousins · descendants</span><div className="tree-centres">{[["Selected person",entityId],["Owner",owner],["Heir",heir]].filter(([,id])=>positions[id]).map(([label,id])=><button key={label} onClick={()=>{const p=positions[id],el=scroll.current;el.scrollLeft=p.x-el.clientWidth/2+82;el.scrollTop=p.y-el.clientHeight/2+48;}}>{label}</button>)}</div></div>
     <WeddingNotice/>
     <div className="tree-scroll" ref={scroll} tabIndex={0} aria-label="Scroll family tree"><svg className="family-tree" width={width} height={height} role="group" aria-label={"The family of " + personName}>
       <g className="kinline">{nodes.filter(n => n.spouse && n.id < n.spouse).map(n => {

@@ -2,7 +2,7 @@
 
 Choose Chat in a person's panel, or use the next-step hint. Your character walks into speech reach. An indoor neighbour receives a knock at their real door and comes outside to talk. A sleeper gives no answer: try in the morning. An unfriendly neighbour refuses before you set off; a liked gift or an offered favour can repair goodwill, while their fixed disposition stays the same. The conversation panel pauses the world until you choose End chat. Reading has no time cost.
 
-Each spoken line adds topic, person or mood icons. Two identical live icons pop. Every pop changes the NPC's regard for you, whichever person completes the pair. Topic scores come from the NPC's existing traits and tastes. A neutral pair costs 0.25 goodwill. Each person icon uses that person's stable identity. Each choice marks the icons that match the row before you choose it.
+Each spoken line adds topic, person or mood icons. Two identical live icons pop. Every pop changes the NPC's regard for you, whichever person completes the pair. Topic scores come from the NPC's existing traits and tastes. A neutral pair leaves goodwill unchanged. Sympathy for a guarded answer, accepting an ask and welcoming found family never lose goodwill from matching. Disliked ordinary matches keep their costs, and the listener says what displeases them. Each person icon uses that person's stable identity. Each choice marks the icons that match the row before you choose it.
 
 The keeping question uses the listener's portrait. Its pair uses their real
 reaction to talking about themselves. Family and Moods always include an
@@ -10,7 +10,7 @@ eligible keeping question alongside required answers in the four choices.
 
 The panel shows the remaining patience slots. The NPC's actual ring and goodwill set the maximum, from six to twelve when rested. Surviving icons spend slots when the chat closes. Slots recover over game hours, faster with closer relationships. Unmatched icons stay until a matching line removes the pair. The panel labels occupied and resting slots. A full row ends the chat after any pending answer.
 
-The person sheet starts with unknown topic and mood tastes. A pop reveals only the tested taste. Pops do not change the player's regard in version one. The reaction text states the NPC's name and the signed change.
+The person sheet shows only discovered topic and mood tastes. A pop reveals only the tested taste. Pops do not change the player's regard in version one. The reaction text states the NPC's name and the signed change.
 
 The shipped data contains 1,507 authored rows in `src/data/conversation_lines.json`. The engine binds each row to people, events, activities, needs and knowledge. A missing binding or false condition rejects the row. Selection chooses a purpose and a real situation, then uses seeded weights for the wording. Spoken IDs cannot repeat during a chat. Catalogue account IDs include the event identity, so different events of one type remain available. The NPC avoids their last wording for that situation on the next encounter.
 
@@ -44,7 +44,7 @@ When the NPC asks for an answer, the direct answer leads the choices. At most on
 
 ## Moods and evasive answers
 
-Guarded, Grumbling, Cheerful and Joking are separate mood icons. Each person has stable hidden likes and dislikes for these moods. Personality traits and tastes bias these preferences. Seeded variation decides a preference when those influences balance. Mood tastes remain separate from topic tastes, and show `?` until a pair pops. A pop reveals only that mood and changes the NPC’s regard, whichever speaker completes it.
+Guarded, Grumbling, Cheerful and Joking are separate mood icons. Each person has stable hidden likes and dislikes for these moods. Personality traits and tastes bias these preferences. Seeded variation decides a preference when those influences balance. Mood tastes remain separate from topic tastes. Choices show `?` until a pair pops. A pop reveals only that mood and changes the NPC’s regard, whichever speaker completes it.
 
 An evasive answer costs one goodwill from the listener towards the speaker. It adds a Guarded icon. The NPC can commiserate, completing the pair with the same mood. An NPC can also evade a family or news question. The player can answer with “I hear you” or leave the icon alone. Moods offers ordinary grumbling, cheerful and joking lines. Grievances remain unmatchable.
 
@@ -99,6 +99,6 @@ Secret activity accounts inherit the disclosure policy of their source event. Th
 
 Family offers a line to make peace when both people trust you and you completed a conversation with each since their known quarrel. Family and News offer introductions between willing, compatible single adults you know. These lines use the shared social rules.
 
-Saying the line checks the rule again. A refusal gives the person's reason and keeps the conversation open. An agreed meeting closes Chat and lets the world resume. Meals, rest, work and an early hour can delay the meeting within that day. The pair use their ordinary visit plans when both are free. Speech itself records no reconciliation or courtship. Their actual meeting produces those results.
+Saying the line checks the rule again. A refusal gives the person's reason and keeps the conversation open. An agreed meeting closes Chat and lets the world resume. Meals, rest and work can delay the meeting within that day. Peace has no clock limit: awake, free people can meet at any hour, including during a festival. Introductions keep the ordinary visiting hours. The pair use their ordinary visit plans when both are free. Speech itself records no reconciliation or courtship. Their actual meeting produces those results.
 
 Accepted personal promises offer a follow-up under Help, News and Family. Peace follow-ups and journal cards read the same current trust, contact and timing conditions. Tell identifies the news for an accepted carry-word promise, including when the selected subject is its recipient. A later departure known to the speaker prevents an older return from becoming a current whereabouts opener.

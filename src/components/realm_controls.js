@@ -12,6 +12,6 @@ export function RealmControls() {
   return <div id="realm-controls"><div id="camera-actions">
     <button aria-label="World map" aria-pressed={!!s.ui.show.world_overview} onClick={() => { toggleWorldMap(s); s.ui.actions.end_turn(); }}>◇ World map · M</button>
     <button aria-label="Recenter on you" onClick={() => s.renderer?.recenter()}>◎ You</button>
-    <button aria-label="Debug activities" aria-pressed={!!s.ui.debug} onClick={() => s.ui.actions.toggle_debug()}>Debug</button>
+    {process.env.NODE_ENV!=="production" && <button aria-label="Debug activities" aria-pressed={!!s.ui.debug} onClick={() => s.ui.actions.toggle_debug()}>Debug</button>}
   </div></div>;
 }

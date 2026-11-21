@@ -44,12 +44,12 @@ it("knocks on a sleeping neighbour's real door at night and returns without cont
   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
-it("leads to a concrete shelter after two chats even after arrival day",()=>{
+it("keeps guidance on people after two chats even after arrival day",()=>{
   const {state:s,player:p,person:n,parent,tiles}=peopleWorld();s.intro={active:false};s.days=4.4;
   newEntities(s,[{spatial:{...s.ecs.spatial[tiles[0]]},camp:{},controllable:{controllerId:p}}]);
   s.ecs.playable[p].known=tiles.map(id=>Hex().fromPoint(s.ecs.spatial[id]));
   s.knowledge={[p]:{people:{[n]:{conversation:{}},[parent]:{conversation:{}}}}};
-  expect(openingGuidance(s)).toMatchObject({key:"shelter",selectId:expect.any(String)});
+  expect(openingGuidance(s)).toMatchObject({key:"chat",targetId:expect.any(String)});
 });
 it("turns owned seed into Create Field, Plough and Sow instructions using existing mechanics",()=>{
   const {state:s,player:p,tiles}=peopleWorld();s.intro={active:false};
@@ -90,12 +90,12 @@ it("does not call the row full after the closing reply clears its icons",()=>{
 });
 
 
-it("leads home after the first completed favour even with only one acquaintance",()=>{
+it("keeps guidance on people after the first completed favour",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.days=4.4;
   newEntities(s,[{spatial:{...s.ecs.spatial[tiles[0]]},camp:{},controllable:{controllerId:p}}]);
   s.ecs.playable[p].known=tiles.map(id=>Hex().fromPoint(s.ecs.spatial[id]));
   s.knowledge={[p]:{people:{[n]:{conversation:{}}}}};s.favours={requests:{done:{actorId:p,status:"completed"}}};
-  expect(openingGuidance(s)).toMatchObject({key:"shelter",selectId:expect.any(String)});
+  expect(openingGuidance(s)).toMatchObject({key:"chat",targetId:expect.any(String)});
 });
 it("retains the actual failed harvest stage instead of a generic supply failure",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld(),h=tiles[3];

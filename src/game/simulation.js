@@ -283,6 +283,9 @@ export function createSimulation(state, { onHour, onDay, onTravel, onError, onSl
     sleep.fadeSeconds += realSeconds;
     if (state.days >= sleep.dawn - 1e-9 || !sleepingAtNight()) {
       if (state.days >= sleep.dawn - 1e-9) {
+        // Commit the boundary before the next bedtime check. Repeated minute
+        // additions can leave the clock a fraction short of six o'clock.
+        state.days = Math.max(state.days, sleep.dawn);
         // Finish the sleep task at the dawn boundary without advancing the clock.
         updatePlanners(state,0);
         state.ui.dayMessage = "Morning. The village stirs in the first light. "+(state.ui.restSummary||"");

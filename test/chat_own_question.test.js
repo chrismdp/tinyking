@@ -10,7 +10,7 @@ function setup() {
   openChat(s,p,n);s.chat.active.row=[];s.chat.active.phase="player_turn";
   return f;
 }
-it.each([["proud",1],["humble",-1],["generous",-.25]])("asks about the listener and uses their real %s reaction",(trait,amount)=>{
+it.each([["proud",1],["humble",-1],["generous",0]])("asks about the listener and uses their real %s reaction",(trait,amount)=>{
   const {state:s,player:p,person:n}=setup(),c=s.chat.active;
   s.ecs.personality[n]={traits:[trait],likes:[],dislikes:[]};
   const questions=lineCandidates(s,c,"own_question","player");
@@ -21,7 +21,7 @@ it.each([["proud",1],["humble",-1],["generous",-.25]])("asks about the listener 
   expect(speakLine(s,questions[0])).toBe(true);
   expect(c.row).toEqual([]);
   expect(s.ecs.relationships[n].known[p].goodwill).toBe(before+amount);
-  expect(s.knowledge[p].people[n].personReactions[n].score).toBe(amount==-.25?0:amount);
+  expect(s.knowledge[p].people[n].personReactions[n].score).toBe(amount);
   expect(s.knowledge[p].people[n].topicTastes?.family).toBeUndefined();
 });
 

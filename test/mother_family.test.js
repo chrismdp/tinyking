@@ -84,7 +84,7 @@ it("stores named off-map royal history and reciprocal kin, giving only maternal 
   expect(record(b.fatherId).children).toEqual([player,b.halfBrotherId]);
   expect(record(b.motherId).children).toContain(player);
   expect(s.peopleDirectory[b.fatherId].personable.dead).toBe(true);
-  expect(s.peopleDirectory[b.motherId].personable.dead).toBeFalsy();
+  expect(s.peopleDirectory[b.motherId].personable.dead).toBe(true);
   expect(s.ecs.spatial[b.motherId]).toBeUndefined();
   expect(s.peopleDirectory[b.halfBrotherId].personality.traits).toContain("cruel");
   expect(s.events.filter(e=>e.sealed).map(e=>e.type)).toEqual(["marriage","birth","separation","exile","marriage","birth","death"]);

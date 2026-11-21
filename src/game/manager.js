@@ -56,6 +56,7 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
       return entry;
     }
   }
+  wakePlayer(state);
   for (const previous of [...manager.jobs]) {
     const request = requestForTask(state, previous);
     if (request?.status == "accepted" &&
@@ -71,11 +72,20 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   return entry;
 }
 
-function interruptOrder(state) {
+export function wakePlayer(state) {
+  const planner=state.ecs.planner[state.ui.playerId],world=planner.world;
+  if(planner.task?.[0]!="sleep" && !world.forcedRest)return;
+  for(const key of ["forcedRest","sleepStart","sleepDawn","sleepHours","sleepCeiling","restCamp"])delete world[key];
+  delete state.nightSleep;
+  delete state.ui.restSummary;
+  interruptOrder(state,true);
+}
+
+function interruptOrder(state, wake=false) {
   const id = state.ui.playerId;
   const planner = state.ecs.planner[id];
   const world = planner.world;
-  if (!world.currentJob && ["eat_food", "sleep", "forage"].includes(planner.task?.[0])) return;
+  if (!wake && !world.currentJob && ["eat_food", "sleep", "forage"].includes(planner.task?.[0])) return;
   for (const job of state.ecs.manager[id].jobs) if (job.assignedId == id) job.assignedId = null;
   if (world.capturedAttentionOf && state.ecs.planner[world.capturedAttentionOf]) {
     state.ecs.planner[world.capturedAttentionOf].world.capturedBy = null;
@@ -104,7 +114,7 @@ export function cancelTask(state, taskId, {keepPromise=false}={}) {
   const jobs = state.ecs.manager[state.ui.playerId].jobs;
   const index = jobs.findIndex(j => j.id == taskId);
   if (index < 0) return;
-  if (jobs[index].assignedId == state.ui.playerId) interruptOrder(state);
+  if (jobs[index].assignedId == state.ui.playerId) { wakePlayer(state); interruptOrder(state); }
   const request=requestForTask(state,jobs[index]);
   if(keepPromise && request)releaseFavourCargo(state,request);
   else cancelFavour(state,request);

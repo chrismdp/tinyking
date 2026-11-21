@@ -43,7 +43,7 @@ function runSocialHour(s) {
   const hour = (s.days % 1) * 24;
   for (const [id, p] of Object.entries(s.ecs.planner || {})) {
     const v = p.world.social;
-    if (v && v.stage != "returning" && (s.days >= v.expires || hour >= 21 || p.world.feeling.hungry || p.world.feeling.tired ||
+    if (v && v.stage != "returning" && (s.days >= v.expires || !v.anyHour && hour >= 21 || p.world.feeling.hungry || p.world.feeling.tired ||
       s.ecs.personable[v.partnerId]?.dead || (!s.ecs.planner[v.partnerId]?.world.social || s.ecs.planner[v.partnerId].world.social.stage == "returning"))) returnFromVisit(s, id);
   }
   if (hour < 9 || hour >= 21) return;
@@ -93,16 +93,16 @@ function runSocialHour(s) {
 
 // Player introductions and ordinary visits share the same destinations and HTN
 // plans. An invitation cannot interrupt needs, paid work or another encounter.
-export function visitUnavailable(s, a, b, { ignoreAvoidance = false, whenFree = false } = {}) {
+export function visitUnavailable(s, a, b, { ignoreAvoidance = false, whenFree = false, anyHour = false } = {}) {
   const hour = whenFree ? Math.max(9, (s.days % 1) * 24) : (s.days % 1) * 24;
-  if (hour < 9 || hour >= 21) return "They meet between nine in the morning and nine at night";
+  if (!anyHour && (hour < 9 || hour >= 21)) return "They meet between nine in the morning and nine at night";
   for (const id of [a, b]) {
     const person = s.ecs.personable?.[id], p = s.ecs.planner?.[id];
     if (!person || person.dead || !isAdult(person.age) || !p) return "They cannot visit here";
     if (!whenFree) {
       if (person.hunger > .9 || p.world.feeling.hungry) return "They need a meal first";
-      if (person.tiredness > .9 || p.world.feeling.tired) return "They need rest first";
-      if (!idle(p, false)) return "They are busy with work or company";
+      if (p.task?.[0]=="sleep" || !p.world.festivalPlace && (person.tiredness > .9 || p.world.feeling.tired)) return "They need rest first";
+      if (!idle(p, false) && !(anyHour && p.task?.[0]=="festival_wait" && !p.world.capturedBy && !p.world.capturedAttentionOf)) return "They are busy with work or company";
     }
   }
   if (!ignoreAvoidance && s.social?.avoidance?.[[a,b].sort().join(":")] > s.days) return "They are avoiding each other after a quarrel";
@@ -111,16 +111,16 @@ export function visitUnavailable(s, a, b, { ignoreAvoidance = false, whenFree = 
   for (const id of [a,b]) {
     const route = path(s, navAt(s,s.ecs.spatial[id]), navAt(s,positions[id]));
     const hours = route.reduce((n,tile) => n + 1/(s.ecs.walkable[tile.id].speed || 1), 0)/(10*LOCOMOTION_RATIO);
-    if (hours + .5 >= 21-hour) return "There is not time to arrive and talk before night";
+    if (!anyHour && hours + .5 >= 21-hour) return "There is not time to arrive and talk before night";
   }
   return null;
 }
-export function planVisit(s, a, b) {
+export function planVisit(s, a, b, {anyHour=false}={}) {
   const positions = conversationPositions(s, a, b);
   if (!positions) return false;
   for (const [id, partnerId] of [[a,b],[b,a]]) {
     const p = s.ecs.planner[id];
-    p.world.social = { partnerId, visitor:id==a, homeId:s.ecs.household[id]?.houseId, stage:"outbound", expires:Math.floor(s.days)+21/24 };
+    p.world.social = { partnerId, visitor:id==a, homeId:s.ecs.household[id]?.houseId, stage:"outbound", ...(anyHour?{anyHour:true}:{}), expires:anyHour?s.days+2/24:Math.floor(s.days)+21/24 };
     p.world.places.socialDestination = positions[id];
     p.task = null; p.plan = null;
   }

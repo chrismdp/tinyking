@@ -27,7 +27,7 @@ it("keeps an unmatched icon through many lines and a save, then frees exactly it
   expect(previewLine(restored,line("match",[topic("work")])).matches).toBe(1);
   speakLine(restored,line("match",[topic("work")]));
   expect(restored.chat.active.row).toEqual([]);
-  expect(restored.ecs.relationships[n].known[p].goodwill).toBe(before-.25);
+  expect(restored.ecs.relationships[n].known[p].goodwill).toBe(before);
 
 });
 it("fills all available slots, closes, and spends them on the next conversation",()=>{

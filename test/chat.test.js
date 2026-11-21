@@ -128,7 +128,7 @@ it("keeps unrelated tastes hidden and scores NPC replies against the NPC's taste
   const line=(id,speaker,topic)=>({id,key:id,useKey:id,speaker,text:id,icons:[{kind:"topic",key:topic}],effects:[],tags:{},disclosure:{}});
   const before=s.ecs.relationships[n].known[p].goodwill;
   speakLine(s,line("one","npc","food"));speakLine(s,line("two","player","food"));
-  expect(s.ecs.relationships[n].known[p].goodwill).toBe(before-.25);
+  expect(s.ecs.relationships[n].known[p].goodwill).toBe(before);
   expect(s.knowledge[p].people[n].topicTastes).toEqual({food:0});
   s.ecs.personality[p].traits=["gloomy"];
   s.ecs.personality[n].traits=["cheerful"];

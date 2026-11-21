@@ -35,7 +35,8 @@ it.each([["gloomy",1],["proud",-1],["cheerful",-1]])("learns a separate mood tas
   const answer=lineCandidates(s,s.chat.active,"mood_reply","player").find(l=>l.situation=="guarded");
   expect(speakLine(s,answer)).toBe(true);
   expect(s.chat.active.row).toEqual([]);
-  const pop=s.chat.active.lastPops.at(-1);expect(Math.sign(pop.amount)).toBe(sign);
+  const pop=s.chat.active.lastPops.at(-1);expect(Math.sign(pop.score)).toBe(sign);
+  expect(pop.amount).toBe(Math.max(0,pop.score));
   expect(s.knowledge[p].people[n].moodTastes).toEqual({guarded:pop.score});
   expect(s.knowledge[p].people[n].topicTastes).toBeUndefined();
   expect(iconKey({kind:"mood",key:"guarded"})).not.toBe(iconKey({kind:"topic",key:"guarded"}));

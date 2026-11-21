@@ -332,12 +332,20 @@ export function knownFamilyTree(state, viewerId, personId) {
   };
   follow(personId, "parents", 2);
   follow(personId, "children", 2);
+  // Include the side branches of known parents: aunts, uncles and cousins.
+  // Names still depend on the viewer's actual discoveries below.
+  for(const parent of kinship(personId)?.parents || [])if(allowed(parent)) {
+    for(const relative of siblingsOf(state,parent).filter(allowed)) {
+      selected.add(relative);
+      follow(relative,"children",1);
+    }
+  }
   for (const id of siblingsOf(state, personId).filter(allowed)) selected.add(id);
   for (const id of [...selected]) if (kinship(id)?.spouse && allowed(kinship(id).spouse)) selected.add(kinship(id).spouse);
   const known = personComponent(state, "relationships", viewerId).known;
   const learned = state.knowledge?.[viewerId]?.people || {};
   const anonymousSubject = viewerId!=personId && learned[personId]?.nameOnly;
-  const visible = id => !anonymousSubject && (viewerId == personId || id == viewerId || !!known[id] || !!learned[id]);
+  const visible = id => !anonymousSubject && (id == viewerId || !!known[id] || !!learned[id] && !learned[id].nameOnly);
   let nextUnknown = 0;
   const aliases = Object.fromEntries([...selected].map(id => [id, visible(id) ? id : "unknown-" + (++nextUnknown)]));
   const nodes = {};

@@ -85,7 +85,7 @@ export function seedMotherFamily(s,actor,seed) {
     const grandparent=reference(true,Math.max(age,e.personable[anchor].age)+20,familySeed,{dead:true,historical:true});
     kin(s,anchor).parents=[grandparent];kin(s,grandparent).children=[anchor];
   }
-  const motherId=reference(false,age,familySeed),parents=[...kin(s,anchor).parents];
+  const motherId=reference(false,age,familySeed,{dead:true,historical:true}),parents=[...kin(s,anchor).parents];
   kin(s,motherId).parents=parents;
   for(const p of parents)kin(s,p).children.push(motherId);
   const village=e.village[anchor].villageId;

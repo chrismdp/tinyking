@@ -24,6 +24,22 @@ const clamp=(v,n)=>Math.max(-n,Math.min(n,v));
 const traitWeight=(s,id,t)=>{const p=s.ecs.personality[id];return Number(p.traits.includes(t))+Number(p.likes.includes(t))-Number(p.dislikes.includes(t));};
 export function topicScore(s,id,topic) {const [add,sub]=mapping[topic];return clamp(add.reduce((v,t)=>v+traitWeight(s,id,t),0)-sub.reduce((v,t)=>v+traitWeight(s,id,t),0),2);}
 export const iconKey=i=>i.kind=="grievance"?"grievance":i.kind=="person"?"person:"+i.personId:i.kind+":"+i.key;
+
+// These exchanges welcome help or acknowledge someone else's feelings.
+// A dislike of the subject is not displeasure with that act of kindness.
+function supportiveExchange(c,line) {
+  return ["favour_accept","favour_accepted","maternal_recognition"].includes(line.family) ||
+    line.family=="mood_reply" && line.situation=="guarded" ||
+    line.family=="answer_acknowledged" && c.question?.family=="mood_reply" && c.question?.situation=="guarded";
+}
+function tasteObjection(s,c,icons) {
+  const moods={guarded:"I would rather we spoke plainly than kept things guarded.",grumbling:"I do not care for grumbling.",cheerful:"I am not feeling cheerful. I would rather have a quiet moment.",joking:"I do not feel like joking."};
+  return [...new Map(icons.map(i=>[iconKey(i),i])).values()].map(i=>{
+    if(i.kind=="mood")return moods[i.key];
+    const subject=i.kind=="topic"?TOPICS[i.key].toLowerCase():i.personId==c.npcId?"myself":i.personId==c.actorId?"you":displayName(s,i.personId);
+    return `I would rather not talk about ${subject} just now.`;
+  }).join(" ");
+}
 // Levels refer to the NPC's directional relationship with this player. Standing
 // is local to that NPC's village, and an explicit departure revokes it.
 function lineRisk(s,c,line) {
@@ -339,7 +355,8 @@ export function speakLine(s,line) {
   const before=snapshot();
   const {row,popped}=rowAfter(c,{...line,risk}),pops=[];
   for(const i of popped) {
-    const score=iconScore(s,i,c.actorId,c.npcId),amount=score==0?-.25:score;
+    const score=iconScore(s,i,c.actorId,c.npcId),raw=score;
+    const amount=supportiveExchange(c,line)?Math.max(0,raw):raw;
     if(line.score!==false) {
       addGoodwill(s,c.actorId,c.npcId,amount);pops.push({...i,score,amount,listenerId:c.npcId});
       learnIdentity(s,c.actorId,c.npcId);const learned=knowledge(s,c.actorId).people[c.npcId];
@@ -360,7 +377,17 @@ export function speakLine(s,line) {
   c.lastPops=[...(c.lastPops||[]),...pops];
   c.usedIds.push(line.id);
   const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,...(line.family=="promise_step"?{step:line.b.step}:{}),icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
+  const disliked=pops.filter(p=>p.amount<0);
+  // The listener speaks their displeasure when a match costs regard. A mood
+  // answer must express the same reaction instead of welcoming a disliked mood.
+  const moodDispleasure=line.family=="mood_answer"?c.lastPops.filter(p=>p.kind=="mood"&&p.key==line.situation&&p.amount<0):[];
+  const objections=moodDispleasure.length?moodDispleasure:disliked;
+  if(objections.length && line.speaker=="npc")spoken.text=line.family=="mood_answer"?tasteObjection(s,c,objections):line.text+" "+tasteObjection(s,c,objections);
+  if(objections.length)spoken.displeasure=objections.map(iconKey);
   c.transcript.push(spoken);
+  if(disliked.length && line.speaker=="player")c.transcript.push({
+    id:line.id+":reaction",speaker:"npc",family:"taste_reaction",text:tasteObjection(s,c,disliked),displeasure:disliked.map(iconKey),icons:[],pops:[]
+  });
   if(!risk) {
     for(const t of line.tags?.add||[])if(!c.tags.includes(t))c.tags.push(t);
     c.tags=c.tags.filter(t=>!line.tags?.remove?.includes(t));

@@ -8,8 +8,6 @@ import { designationPlants } from "game/designation";
 import { patience } from "game/chat_patience";
 import { localDirection, worldDirection } from "game/chat_lands";
 import { visibleFavours, reasonGone } from "game/favours";
-import { STAGES, shelterLogSource, canPlaceShelter } from "game/construction";
-import { topController } from "game/playable";
 import { Hex } from "game/hex";
 import { displayName } from "game/knowledge";
 
@@ -34,6 +32,13 @@ export function openingGuidance(state) {
   const person=ecs.personable[actorId],jobs=ecs.manager?.[actorId]?.jobs||[];
   const deferred=jobs.find(j=>j.waiting&&j.job.key=="chat");
   if(deferred)return {actorId,key:"deferred",text:deferred.waiting};
+  const result=state.ui.talkResult;
+  if(result?.recovery=="move_closer" && ecs.spatial[result.personId]) {
+    const point=ecs.spatial[result.personId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
+    const tile=Object.keys(ecs.walkable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&!ecs.mappable[id]?.buildingPlot&&!ecs.mappable[id]?.cropPlot)
+      .sort((a,b)=>Math.hypot(ecs.spatial[a].x-point.x,ecs.spatial[a].y-point.y)-Math.hypot(ecs.spatial[b].x-point.x,ecs.spatial[b].y-point.y)).find(id=>canReachTask(state,actorId,id));
+    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to clear ground by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
+  }
   if(person.energy<20)return {actorId,key:"energy",text:"Low energy slows work. Eat food you own, or Rest. Chatting costs no energy."};
   if(state.days%1*24>=18 || state.days%1*24<6)return {actorId,key:"evening",text:"You can work or visit after dark. At zero energy you return to your fire. Rest to turn in early."};
   if (state.ui.familyPersonId) return {actorId,key:"family",text:"Close the family tree to return to your conversations."};
@@ -45,39 +50,9 @@ export function openingGuidance(state) {
     return {actorId,key:"approach",text:"Let your character walk over to start the conversation."};
   }
   if(task?.job.key=="move_to_here" && !task.waiting)return {actorId,key:"moving",text:"Let your character finish walking to the selected ground."};
-  const result=state.ui.talkResult;
-  if(result?.recovery=="move_closer" && ecs.spatial[result.personId]) {
-    const point=ecs.spatial[result.personId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
-    const tile=Object.keys(ecs.walkable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&!ecs.mappable[id]?.buildingPlot&&!ecs.mappable[id]?.cropPlot)
-      .sort((a,b)=>Math.hypot(ecs.spatial[a].x-point.x,ecs.spatial[a].y-point.y)-Math.hypot(ecs.spatial[b].x-point.x,ecs.spatial[b].y-point.y)).find(id=>canReachTask(state,actorId,id));
-    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to clear ground by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
-  }
   const arrived=ecs.playable?.[actorId]?.arrivedAt;
   const firstDay=arrived!=null && state.days<Math.floor(arrived)+1+6/24;
   const contacts=Object.values(state.knowledge?.[actorId]?.people||{}).filter(p=>p.conversation).length;
-  const completedFavour=Object.values(state.favours?.requests||{}).some(r=>r.actorId==actorId&&r.status=="completed");
-  if((contacts>=2 || completedFavour) && isAdult(person.age ?? LIFE_STAGES.youngAdult.from)) {
-    const owned=id=>ecs.controllable?.[id] && topController(ecs,id)==actorId;
-    const shelter=Object.keys(ecs.shelter||{}).find(owned);
-    const site=Object.keys(ecs.construction||{}).find(owned);
-    if(site) {
-      const build=ecs.construction[site];
-      if(build.delivered<STAGES[build.stage].logs && !shelterLogSource(state,actorId))
-        return {actorId,key:"shelter_logs",text:"Select an unclaimed tree and choose Cut down for your shelter's logs."};
-      if(!jobs.some(j=>j.job.key=="build_shelter" && j.targetId==site))
-        return {actorId,key:"shelter",text:"Select your shelter site and choose Build shelter to finish it before night."};
-      return {actorId,key:"building",text:"Keep the game running to finish your shelter before night."};
-    }
-    if(!shelter) {
-      const at=ecs.spatial[actorId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
-      const tile=Object.keys(ecs.mappable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&ecs.mappable[id].terrain=="grassland")
-        .sort((a,b)=>Math.hypot(ecs.spatial[a].x-at.x,ecs.spatial[a].y-at.y)-Math.hypot(ecs.spatial[b].x-at.x,ecs.spatial[b].y-at.y)).find(id=>canPlaceShelter(state,id));
-      return tile?{actorId,key:"shelter",text:"Select grassland near camp and choose Build shelter before night.",action:"Show shelter tile",selectId:tile}:
-        {actorId,key:"shelter",text:"Build shelter needs an available site on explored ground. Explore empty grass within three tiles of camp; select a tile to see its shelter requirements."};
-    }
-    if(firstDay && state.days%1*24>=17) return jobs.some(j=>j.job.key=="rest")?{actorId,key:"resting",text:"Keep the game running until your Rest task finishes."}:
-      {actorId,key:"sleep",text:"Choose Rest to sleep in your shelter.",action:"Rest",job:"rest"};
-  }
   const hasSeed=Object.keys(ecs.good||{}).some(id=>ecs.good[id].type=="grain"&&ecs.good[id].amount>=1&&householdAccess(ecs,actorId,id)) ||
     Object.keys(ecs.container||{}).some(id=>ecs.container[id].amounts.grain>=1&&householdAccess(ecs,actorId,id));
   if(hasSeed && isAdult(person.age ?? LIFE_STAGES.youngAdult.from)) {

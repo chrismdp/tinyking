@@ -19,13 +19,13 @@ export function peaceUnavailable(s, helper, a, b, options = {}) {
   // relationship changes until a real subsequent contact runs that action.
   const proposed = { ...s, social:{ ...s.social, avoidance:{ ...s.social.avoidance, [key]:s.days } } };
   if (!socialActionAvailable(proposed,action,socialActionBindings(proposed,action,a,b),a,b)) return "They have already reconciled this season";
-  return visitUnavailable(s,a,b,{...options,ignoreAvoidance:true});
+  return visitUnavailable(s,a,b,{...options,ignoreAvoidance:true,anyHour:true});
 }
 export function makePeace(s, helper, a, b, options = {}) {
   const reason = peaceUnavailable(s,helper,a,b,options);
   if (reason) return reason;
   if (options.whenFree) return queueMeeting(s,"make_peace",helper,a,b);
-  if (!planVisit(s,a,b)) return "There is no route for them to meet";
+  if (!planVisit(s,a,b,{anyHour:true})) return "There is no route for them to meet";
   s.social.avoidance[pairKey(a,b)] = s.days;
   return null;
 }

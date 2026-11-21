@@ -80,6 +80,13 @@ export function restoreGame(text) {
   save.nodes.forEach((node, i) => node.entries.forEach(([key, value]) => { objects[i][key] = decode(value); }));
   const data = { ...decode(save.root), redraws: [] };
   restoreOrientations(data);
+  // The stranger's mother died before arrival, including in older saves
+  // whose reference record omitted the death flag. Keep all discoveries.
+  const directory=data.travel?.people || data.peopleDirectory;
+  for(const {motherId} of Object.values(data.backstories || {})) {
+    const mother=directory?.[motherId]?.personable;
+    if(mother){mother.dead=true;mother.historical=true;}
+  }
   if (data.game_speed) data.game_speed = data.chat?.active || data.seasonTurn ? "paused" : "normal";
   if (data.ui?.show?.journal) data.ui.show.journal = false;
   return data;

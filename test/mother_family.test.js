@@ -187,3 +187,16 @@ it("knows the mother named in the arrival story without discovering the sealed f
  expect(s.knowledge[player].people[b.fatherId]).toBeUndefined();
  expect(knownEvents(s,player).some(e=>e.sealed)).toBe(false);
 });
+
+it.each(["directory","travel"])("repairs the mother's death record in an older save without losing recognised family (%s)",storage=>{
+  const {state:s,player}=setup(),b=s.backstories[player];
+  recogniseMaternalKin(s,player,b.relatives[0].id);
+  const mother=s.peopleDirectory[b.motherId];
+  delete mother.personable.dead;delete mother.personable.historical;
+  if(storage=="travel"){s.travel={people:s.peopleDirectory};delete s.peopleDirectory;}
+  const restored=restoreGame(serialiseGame(s));
+  const directory=restored.travel?.people || restored.peopleDirectory;
+  expect(directory[b.motherId].personable).toMatchObject({dead:true,historical:true});
+  expect(restored.knowledge[player].maternalFamily).toEqual(s.knowledge[player].maternalFamily);
+  expect(restored.backstories[player]).toEqual(b);
+});

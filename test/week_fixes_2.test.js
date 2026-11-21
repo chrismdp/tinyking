@@ -129,7 +129,7 @@ it.each([7,22,23])("permits peace at %s:00 for awake free people and keeps the r
   const [plan]=require("game/htn").solve(s.ecs.planner[a].world,[],[["person"]]);
   expect(plan.some(task=>task[0]=="socialise")).toBe(true);
   expect(plan.some(task=>task[0]=="festival_wait")).toBe(false);
-  expect(s.ecs.planner[a].world.social.expires).toBeGreaterThan(s.days);
+  expect(s.ecs.planner[a].world.social.expires).toBeUndefined();
   socialHour(s);expect(s.ecs.planner[a].world.social.stage).toBe("outbound");
 });
 

@@ -120,7 +120,7 @@ export function planVisit(s, a, b, {anyHour=false}={}) {
   if (!positions) return false;
   for (const [id, partnerId] of [[a,b],[b,a]]) {
     const p = s.ecs.planner[id];
-    p.world.social = { partnerId, visitor:id==a, homeId:s.ecs.household[id]?.houseId, stage:"outbound", ...(anyHour?{anyHour:true}:{}), expires:anyHour?s.days+2/24:Math.floor(s.days)+21/24 };
+    p.world.social = { partnerId, visitor:id==a, homeId:s.ecs.household[id]?.houseId, stage:"outbound", ...(anyHour?{anyHour:true}:{expires:Math.floor(s.days)+21/24}) };
     p.world.places.socialDestination = positions[id];
     p.task = null; p.plan = null;
   }

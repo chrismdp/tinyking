@@ -1,3 +1,4 @@
+import { patience } from "game/chat_patience";
 import { isAdult, canHelpAtHome } from "game/life_stages";
 import { refreshPersonIndex, householdMembers } from "game/population_index";
 import { meetInSecret } from "game/secret_activities";
@@ -43,7 +44,7 @@ import { workOnShelter, collectShelterLog, deliverShelterLog, deliveryHome, loca
 import { MAX_SUBTASKS } from "game/primitive";
 import { beginInteraction, askAbout, giftOptions, giftGoodwill, addGoodwill, completeConversation, spendPatience, patienceLeft } from "game/people";
 import { familyConversation } from "game/family";
-import { CHAT_APPROACH_JOBS, chatIntentUnavailable, chatUnfriendly, completeChatOrder } from "game/manager";
+import { CHAT_APPROACH_JOBS, chatIntentUnavailable, completeChatOrder } from "game/manager";
 import { TALK_MINUTES } from "game/player";
 
 export const GLEANING_SHARE = 0.05;
@@ -965,10 +966,19 @@ export function eat(state, actorId, world, dt, firstRun, thing) {
   return Task.FINISH;
 }
 
+// Finish the current activity before accepting a visit. Walking remains live,
+// so the player follows the person's current position rather than freezing them.
+function chatTargetFree(s,actor,targetId) {
+  const p=s.ecs.planner[targetId],w=p.world;
+  return !w.feeling.hungry && !w.feeling.tired && (!w.capturedBy || w.capturedBy==actor) &&
+    (!p.task || ["wait_for","socialise","home_downtime","festival_wait"].includes(p.task[0])) &&
+    patience(s,actor,targetId).free>=patience(s,actor,targetId).minimum;
+}
+
 // Walk before asking for attention, so an indoor neighbour answers at the door.
 export function approach_chat(state, actorId, world, dt, firstRun, targetId) {
-  const e=state.ecs,target=e.planner[targetId],unfriendly=chatUnfriendly(state,actorId,targetId);
-  if(!target||e.personable[targetId]?.dead||unfriendly)return Task.ABORT;
+  const e=state.ecs,target=e.planner[targetId];
+  if(!target||e.personable[targetId]?.dead)return Task.ABORT;
   const order=jobQueueFor(e,actorId).find(j=>j.assignedId==actorId);
   const reason=chatIntentUnavailable(state,actorId,targetId,order?.chatIntent);
   if(reason&&math.squaredDistance(e.spatial[actorId],e.spatial[targetId])<=SPEECH_REACH**2){state.ui.talkResult={personId:targetId,message:reason};return Task.ABORT;}
@@ -994,7 +1004,7 @@ export function approach_chat(state, actorId, world, dt, firstRun, targetId) {
       if(job)completeChatOrder(state,job.id);
       delete world.doorCall;return Task.CONTINUE;
     }
-    if(target.world.feeling.hungry||target.world.feeling.tired)return Task.CONTINUE;
+    if(!chatTargetFree(state,actorId,targetId))return Task.CONTINUE;
     if(!call.coming) {
       world.chatActivity=snapshotActivity(state,targetId);target.world.capturedBy=actorId;world.capturedAttentionOf=targetId;
       target.task=null;target.plan=null;call.coming=true;
@@ -1005,17 +1015,18 @@ export function approach_chat(state, actorId, world, dt, firstRun, targetId) {
     if(result!=Task.FINISH)return Task.CONTINUE;
     delete world.doorCall;
   } else {
-    if(target.world.capturedBy!=actorId) {
-      if(target.world.feeling.hungry||target.world.feeling.tired||target.world.capturedBy)return Task.CONTINUE;
-      world.chatActivity=snapshotActivity(state,targetId);target.world.capturedBy=actorId;
-      world.capturedAttentionOf=targetId;replan(target);
-    }
     if(math.squaredDistance(e.spatial[actorId],e.spatial[targetId])>SPEECH_REACH**2) {
       const point=speechPosition(state,actorId,targetId);if(!point)return Task.ABORT;
       const key=[targetId,point.x,point.y].join(":");
       const result=walk_to(state,actorId,world,dt,world.chatWalk!=key,point);world.chatWalk=key;
       return result==Task.ABORT?result:Task.CONTINUE;
     }
+    if(!chatTargetFree(state,actorId,targetId))return Task.CONTINUE;
+    if(target.world.capturedBy!=actorId) {
+      world.chatActivity=snapshotActivity(state,targetId);target.world.capturedBy=actorId;
+      world.capturedAttentionOf=targetId;replan(target);
+    }
+
   }
   world.capturedAttentionOf=targetId;
   return Task.FINISH;

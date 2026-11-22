@@ -202,16 +202,20 @@ it("leaves a collected choice in hand on cancellation and waits if the chosen so
   expect(state.ecs.good[supply].amount).toBe(1);
 });
 
-it("stops waiting for a hungry chat target within one game hour and gives a next step",()=>{
+it("keeps a hungry chat target beyond an hour and starts after the meal without another order",()=>{
   const {state:s,player:p,person:n,step}=peopleWorld();
   const {enqueueTask}=require("game/manager");
   s.ecs.personality[n].traits=[];
   s.ecs.personable[n].hunger=1.1;s.ecs.planner[n].world.feeling.hungry=true;
   const order=enqueueTask(s,{key:"chat"},n);
   step(1.1);
-  expect(order.waiting).toBeTruthy();
-  expect(order.assignedId).toBeFalsy();
+  expect(s.ecs.manager[p].jobs).toContain(order);
+  expect(order.assignedId).toBe(p);
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+  s.ecs.personable[n].hunger=0;s.ecs.planner[n].world.feeling.hungry=false;
+  s.ecs.planner[n].task=null;s.ecs.planner[n].plan=null;
+  step(2);
+  expect(s.chat?.active?.npcId).toBe(n);
 });
 it("knocks for an indoor target and opens at the doorstep without premature contact",()=>{
   const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;

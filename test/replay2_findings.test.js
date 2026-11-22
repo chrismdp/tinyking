@@ -80,12 +80,13 @@ it('checks oath eligibility again at enqueue instead of starting an ineligible a
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ui.talkResult).toBeDefined();
 });
-it('ends an oath approach within the same one hour bound as Chat, releasing attention',()=>{
+it('keeps an eligible oath approach beyond one hour without claiming contact',()=>{
   const w=oathWorld(),s=w.state;
+  const contact=s.knowledge?.[w.player]?.people?.[w.parent]?.conversation;
   const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});expireChatApproach(s);
   s.days+=1.1/24;expireChatApproach(s);
-  expect(s.ecs.manager[w.player].jobs).not.toContain(job);
-  expect(s.ui.talkResult).toBeDefined();
+  expect(s.ecs.manager[w.player].jobs).toContain(job);
+  expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBe(contact);
   expect(s.ecs.planner[w.parent].world.capturedBy).toBeFalsy();
 });
 it.each(['help','family','season','village'])('has a usable reply after the name-first rebuff, including %s focus',focus=>{

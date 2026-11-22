@@ -173,7 +173,7 @@ function waitingReason(state, actorId, job) {
   if (!ecs.spatial[target]) return "Target gone";
   if (job.job.key == "cut_tree_down" && !ecs.good[target]) return "Target gone";
   if (["chat", "ask_about", "give_gift", "play", "invite_home"].includes(job.job.key) && (!ecs.personable[target] || ecs.personable[target].dead || !ecs.planner[target])) return "Target gone";
-  if(job.job.key=="chat" && chatUnavailable(state, actorId, target)) return chatUnavailable(state, actorId, target);
+  if(job.job.key=="chat" && chatUnreachable(state, target)) return chatUnreachable(state, target);
   if (job.job.key == "give_gift") {
     const item=job.giftItem, cargo=ecs.haulable?.[item];
     const gift = item ? ecs.good[item] && cargo && (cargo.heldBy == actorId || !cargo.heldBy && householdAccess(ecs,actorId,item)) :
@@ -207,18 +207,15 @@ export function chatUnfriendly(state, actor, target) {
   if(regard<0)return "They will not come out to talk while they feel unfriendly. Rebuild goodwill with a gift they like or an offered favour, then try again.";
   return null;
 }
-export function chatUnavailable(state, actor, target) {
-  const ecs=state.ecs;
-  if(!ecs.personable?.[target])return "Target gone";
-  const planner=ecs.planner?.[target],unfriendly=chatUnfriendly(state,actor,target);
-  if(unfriendly)return unfriendly;
-  // An indoor sleeper is reached by knocking, rather than waiting outside.
-  const home=ecs.interior?.[target]?.buildingId;
-  if(home && ecs.spatial[home] && home!=ecs.interior?.[actor]?.buildingId)return null;
-  if(planner?.task?.[0] == "sleep") return "They are asleep. Try after 6am when they have finished resting, or choose another neighbour.";
-  if(planner?.world.feeling?.tired) return "They are still resting. Try again after they have rested, or choose another neighbour.";
-  if(planner?.world.feeling?.hungry) return "They are still eating or looking for a meal. Try again after their meal, or choose another neighbour.";
+export function chatUnreachable(state, target) {
+  const e=state.ecs;
+  if(e.personable?.[target]?.dead)return "They have died. You cannot visit them now.";
+  if(!e.personable?.[target] || !e.planner?.[target] || !e.spatial?.[target])return "They have left this map. You cannot reach them here.";
+  if(e.planner[target].task?.[0]=="sleep")return "They are asleep for the night. Visit them in the morning.";
   return null;
+}
+export function chatUnavailable(state, actor, target) {
+  return chatUnreachable(state,target) || chatUnfriendly(state,actor,target);
 }
 export function chatResultMessage(state,target) {
   const result=state.ui.talkResult;
@@ -245,13 +242,10 @@ export function expireChatApproach(state) {
   const actor=state.ui.playerId,jobs=state.ecs.manager?.[actor]?.jobs||[];
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
-  // A vanished person keeps the order's own "Target gone" reason.
-  if(!job || !state.ecs.personable?.[job.targetId] || !state.ecs.spatial?.[job.targetId])return;
-  job.approachAt ??= state.days;
-  if(state.days-job.approachAt<1/24)return;
-  const reason=chatIntentUnavailable(state,actor,job.targetId,job.chatIntent) || chatUnavailable(state,actor,job.targetId) ||
-    "You could not reach them within an hour. Move closer, then choose Chat again, or try another neighbour.";
-  failChatApproach(state,job,reason);
+  if(!job)return;
+  const reason=chatUnreachable(state,job.targetId) ||
+    (job.waiting=="No path there" ? "The way to them is blocked. You cannot reach them from here." : null);
+  if(reason)failChatApproach(state,job,reason);
 }
 
 // Called at a free planner boundary. Only the current player order can become ready.
@@ -340,7 +334,7 @@ export function deferPlayerTask(state) {
   const job = state.ecs.manager[id].jobs.find(j => j.assignedId == id);
   if (!job) return;
   if(CHAT_APPROACH_JOBS.includes(job.job.key)) {
-    failChatApproach(state,job,chatIntentUnavailable(state,id,job.targetId,job.chatIntent) || chatUnavailable(state,id,job.targetId) || "They cannot stop to talk now. Choose another neighbour or try Chat again later.");
+    failChatApproach(state,job,chatUnreachable(state,job.targetId) || "The way to them is blocked. You cannot reach them from here.");
     return;
   }
   const blocked = waitingReason(state, id, job);

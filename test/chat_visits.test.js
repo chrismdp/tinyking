@@ -27,10 +27,10 @@ it("walks to the actual door, knocks and brings an awake resident outside before
   chooseLine(s,chatChoices(s)[0].key);closeChat(s);
   expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
 });
-it("knocks at a sleeping resident's door at night, gets no answer and grants no contact",()=>{
+it("ends a sleeping resident visit at night and grants no contact",()=>{
   const w=indoor({asleep:true}),s=w.state;
   const job=enqueueTask(s,{key:"chat"},w.person);
-  until(w,()=>s.ui.talkResult?.message.includes("No answer"));
+  expect(s.ui.talkResult).toMatchObject({personId:w.person,message:expect.any(String)});
 expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ecs.interior[w.person]).toBeDefined();expect(s.chat?.active).toBeUndefined();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
@@ -66,11 +66,11 @@ it("releases the answering resident if the player cancels while they come outsid
   require("game/manager").cancelTask(s,job.id);
   expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
 });
-it("keeps outdoor attention while the player walks over, without recording early contact",()=>{
+it("approaches outdoors before claiming attention, without recording early contact",()=>{
   const w=peopleWorld(),s=w.state;
   expect(Math.hypot(s.ecs.spatial[w.player].x-s.ecs.spatial[w.person].x,s.ecs.spatial[w.player].y-s.ecs.spatial[w.person].y)).toBeGreaterThan(70);
   enqueueTask(s,{key:"chat"},w.person);w.step(.005);
-  expect(s.ecs.planner[w.person].world.capturedBy).toBe(w.player);
+  expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
   until(w,()=>!!s.chat?.active);
   expect(s.chat.active.npcId).toBe(w.person);

@@ -130,3 +130,18 @@ it("lets a giver tell the accepted messenger the promised event without disclosi
   s.favours.requests.word.status="completed";
   expect(canDiscloseEvent(s,giver,a,event)).toBe(false);
 });
+
+it("recognises each death when two people are mourned in the same chat",()=>{
+  const {state:s,player:a,person:n,parent:first,sibling:second}=peopleWorld();
+  s.ecs.spatial[a]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};
+  s.ecs.kinship[n]={parents:[],children:[],spouse:null};
+  s.ecs.relationships[n].known={};
+  s.knowledge={[a]:{people:{[first]:{traits:[]},[second]:{traits:[]}}},[n]:{people:{[first]:{traits:[]},[second]:{traits:[]}}}};
+  const events=[first,second].map(id=>recordEvent(s,"death",[id],[],{audienceIds:[a]}));
+  openChat(s,a,n);s.chat.active.row=[];delete s.chat.active.expectation;
+  for(const event of events){s.chat.active.focus="tell";chooseLine(s,chatChoices(s).find(l=>l.b.event?.id==event.id).key);}
+  const replies=s.chat.active.transcript.filter(l=>l.family=="death_reaction");
+  expect(replies).toHaveLength(2);
+  expect(replies.map(l=>l.icons.find(i=>i.kind=="person").personId)).toEqual([first,second]);
+  expect(replies[0].id).not.toBe(replies[1].id);
+});

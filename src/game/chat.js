@@ -99,7 +99,7 @@ function queryLineCandidates(s,c,family,speaker) {
       if(tests.some(v=>v===undefined)||!row.when.all.every((_,i)=>tests[i])||row.when.none.some((_,i)=>tests[row.when.all.length+i]))continue;
       // Catalogue accounts are one authored template with distinct real facts.
       // Qualify their spoken IDs so telling one harvest does not hide all others.
-      const claim=row.icons.some(i=>i.kind=="event")?b.event.id:b.request?.id||b.step?.requestId;
+      const claim=row.icons.some(i=>i.kind=="event")||row.family=="death_reaction"?b.event.id:b.request?.id||b.step?.requestId;
       const id=claim?row.id+"@"+claim:row.id;
       if(id!=row.id&&c.usedIds.includes(id))continue;
       let text=interpolate(row.text,b);

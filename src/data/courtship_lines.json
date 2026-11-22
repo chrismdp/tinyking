@@ -19,7 +19,13 @@
       "I am curious about you too. Stay a while.",
       "I am glad you came over. We have time.",
       "There is room beside me. Come and talk."
-    ]
+    ],
+    "memoryReplies": {
+      "family": "I am glad you listened about my family. I would like to know you too.",
+      "trait": "You have noticed that about me, then. There is more to learn about us both.",
+      "work": "You take an interest in my work. That is a welcome start.",
+      "news": "You remembered what I told you. I am glad we began talking."
+    }
   },
   "social": {
     "lines": [
@@ -53,7 +59,13 @@
       "It feels easy to have you beside me now.",
       "You have become a welcome part of my days.",
       "I find myself hoping you will come back."
-    ]
+    ],
+    "memoryReplies": {
+      "family": "You remember my family. I like that you listen to what matters to me.",
+      "trait": "You are getting to know my ways. I am growing fond of yours too.",
+      "work": "I like having you to talk to after work. I look forward to it.",
+      "news": "You listened, and remembered. I have come to value these talks with you."
+    }
   },
   "personal": {
     "lines": [
@@ -69,7 +81,13 @@
       "I want you in my life, through ordinary days too.",
       "I feel close to you. You can count on that.",
       "I can imagine a home with you in it."
-    ]
+    ],
+    "memoryReplies": {
+      "family": "I trust you with my family’s stories. You have become part of my life.",
+      "trait": "You know that side of me now. I feel I can be myself with you.",
+      "work": "I want you in my life, on working days as well as quiet ones.",
+      "news": "I trusted you with that news because you are dear to me."
+    }
   },
   "intimate": {
     "lines": [
@@ -85,7 +103,13 @@
       "You have my heart too. There is no doubt left.",
       "I feel at home with you as with no one else.",
       "I want to be beside you, whatever comes."
-    ]
+    ],
+    "memoryReplies": {
+      "family": "I love that you care for my family’s stories. I want us to make our own.",
+      "trait": "You know my ways and still choose me. I love you for that.",
+      "work": "I love sharing my days with you, work and all.",
+      "news": "I can tell you what weighs on me. I love having you beside me."
+    }
   },
   "memories": {
     "public": {

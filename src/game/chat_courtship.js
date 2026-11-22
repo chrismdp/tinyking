@@ -36,6 +36,6 @@ export function courtingResult(s,c,exchange,result) {
   else if(!canMarryPlayer(s,a,b))barrier="eligibility";
   reason ||= WORDS.barriers[barrier]||null;
   const replies=WORDS[listenerRing].replies,index=Number(exchange?.id.split(":").at(-1))||0;
-  const answer=result.ok?replies[index%replies.length]:"";
+  const answer=result.ok?(WORDS[listenerRing].memoryReplies[exchange?.memory]||replies[index%replies.length]):"";
   return {barrier,reason,listenerRing,reply:[answer,reason].filter(Boolean).join(" ")};
 }

@@ -136,3 +136,19 @@ it("rejects another courting choice cached before the first one was spoken",()=>
   expect(chooseLine(s,first.key)).toBe(true);
   expect(chooseLine(s,other.key)).toBe(false);
 });
+
+it.each(["family","trait","work","news"])("answers a learned %s reference rather than giving the same general courting reply",kind=>{
+  const control=couple("social"),w=couple("social"),{state:s,player:p,person:n,parent}=w;
+  if(kind=="family")s.knowledge[p].kinLinks={link:{speaker_id:n,relative_id:parent,kin_term:"mother"}};
+  if(kind=="trait")s.knowledge[p].people[n].traits=["generous"];
+  if(kind=="work")s.knowledge[p].people[n].trade="baker";
+  if(kind=="news") {
+    const e=recordEvent(s,"death",[parent],[],{audienceIds:[n]});
+    s.knowledge[p].events=[e.id];s.knowledge[p].spokenSources={[e.id]:{speakerId:n}};
+  }
+  expect(flirt(s).b.courtship.memory).toBe(kind);
+  expect(chooseLine(s,flirt(s).key)).toBe(true);
+  expect(chooseLine(control.state,flirt(control.state).key)).toBe(true);
+  expect(s.chat.active.transcript.findLast(l=>l.family=="flirt_reply").text)
+    .not.toBe(control.state.chat.active.transcript.findLast(l=>l.family=="flirt_reply").text);
+});

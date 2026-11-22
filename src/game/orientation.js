@@ -23,6 +23,7 @@ export function mutuallyOriented(s, a, b, other = s) {
   const nameA = personComponent(s, "nameable", a), nameB = personComponent(other, "nameable", b);
   if (typeof nameA?.male != "boolean" || typeof nameB?.male != "boolean") return false;
   const accepts = (state, id, name) => {
+    if (id == s.ui?.playerId || id == other.ui?.playerId) return true;
     const orientation = personComponent(state, "personality", id)?.orientation ?? orientationForSeed(name.seed ?? id);
     return orientation == "both" || orientation == (nameA.male == nameB.male ? "same" : "opposite");
   };

@@ -9,8 +9,9 @@ import { closeFamily, recordEvent } from "game/events";
 
 export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
 export function marriageTasteReason(s,a,b) {
-  if (!mutuallyOriented(s,a,b)) return "We are not romantically compatible with each other.";
-  if (relationshipCap(s,b,a) < 2 || relationshipCap(s,a,b) < 2) return "One of us dislikes the other. Marriage needs willing partners.";
+  if (!mutuallyOriented(s,a,b)) return "I do not feel that sort of attraction to you. That will not change.";
+  if (relationshipCap(s,b,a) < 2) return "I could never feel that way about you. Please do not wait for me.";
+  if (relationshipCap(s,a,b) < 2) return "I do not think you could be happy with me. Marriage needs more than that.";
   return null;
 }
 export function marriageReason(s,a,b) {

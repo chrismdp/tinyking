@@ -1,0 +1,122 @@
+{
+  "public": {
+    "lines": [
+      "I would like to know you better.",
+      "You have caught my eye. May I stay?",
+      "I hoped we might talk again.",
+      "There is something about you that draws me here.",
+      "I find myself looking for you in the village.",
+      "Will you walk with me a little?",
+      "I like the sound of your voice.",
+      "I am glad our paths crossed today.",
+      "I would like another moment of your company.",
+      "May I sit beside you for a while?",
+      "I came hoping to see you.",
+      "I would like us to be more than strangers."
+    ],
+    "replies": [
+      "You have my attention. Let us see where this goes.",
+      "I am curious about you too. Stay a while.",
+      "I am glad you came over. We have time.",
+      "There is room beside me. Come and talk."
+    ]
+  },
+  "social": {
+    "lines": [
+      "I have been looking forward to seeing you again.",
+      "The day feels better when we spend it together.",
+      "I keep thinking of our talks.",
+      "I am beginning to feel at home beside you.",
+      "You are becoming someone I look for every day.",
+      "I missed your company since we last spoke.",
+      "Shall we find a quiet place together?",
+      "I like how easily we talk now.",
+      "I want to make more time for you.",
+      "I feel happier when you are near.",
+      "There is more I want to learn about you.",
+      "I would like to be part of your days.",
+      "I hope you look forward to these visits too.",
+      "I thought of you on my way here.",
+      "I am glad we are no longer strangers.",
+      "I am growing fond of you.",
+      "I like the person I am getting to know.",
+      "I wish our visits lasted a little longer.",
+      "There is nowhere I would rather sit just now.",
+      "I feel I can speak more freely with you.",
+      "I saved a little of my day for you.",
+      "Could we spend tomorrow together too?",
+      "You make this place feel less lonely.",
+      "I want us to have more days like this."
+    ],
+    "replies": [
+      "I have come to look forward to you too.",
+      "It feels easy to have you beside me now.",
+      "You have become a welcome part of my days.",
+      "I find myself hoping you will come back."
+    ]
+  },
+  "personal": {
+    "lines": [
+      "I can picture making a life beside you.",
+      "I trust you with more than small talk now.",
+      "I want you beside me when the days are hard.",
+      "You have become dear to me.",
+      "I would like our lives to grow together.",
+      "When I think of home, I think of you."
+    ],
+    "replies": [
+      "You are dear to me. I trust what we have.",
+      "I want you in my life, through ordinary days too.",
+      "I feel close to you. You can count on that.",
+      "I can imagine a home with you in it."
+    ]
+  },
+  "intimate": {
+    "lines": [
+      "You know me better than anyone here.",
+      "I love the life we are finding together.",
+      "I want to keep choosing you, every day.",
+      "You have my heart. I hope you know it.",
+      "I cannot imagine my days without you now.",
+      "Whatever comes, I want to face it with you."
+    ],
+    "replies": [
+      "I love you. I want that life with you.",
+      "You have my heart too. There is no doubt left.",
+      "I feel at home with you as with no one else.",
+      "I want to be beside you, whatever comes."
+    ]
+  },
+  "memories": {
+    "public": {
+      "family": "I would like to hear more about {name}.",
+      "trait": "Your {trait} nature caught my attention.",
+      "work": "I would like to hear about your {trade} work.",
+      "news": "Your news about {name} stayed with me."
+    },
+    "social": {
+      "family": "I remember what you told me about {name}.",
+      "trait": "I am growing fond of your {trait} ways.",
+      "work": "I like hearing about your work as a {trade}.",
+      "news": "I remember the news you shared about {name}."
+    },
+    "personal": {
+      "family": "Your stories of {name} make me feel closer.",
+      "trait": "Your {trait} side has become dear to me.",
+      "work": "I want to share your days, {trade} work and all.",
+      "news": "I am glad you trusted me with news of {name}."
+    },
+    "intimate": {
+      "family": "I want to share your memories of {name}.",
+      "trait": "I love you, your {trait} side and all.",
+      "work": "I love sharing your days, even the {trade} work.",
+      "news": "What happens to {name} matters to me too."
+    }
+  },
+  "barriers": {
+    "listener_closeness": "I like your company, but I do not know you well enough to promise a life together. Let us spend more time together.",
+    "player_closeness": "I feel close to you. I want you to know me just as well before we speak of marriage.",
+    "ill_will": "There is still hurt between us. We need to put that right before we think of marriage.",
+    "eligibility": "We cannot promise each other marriage while another commitment stands between us."
+  }
+}

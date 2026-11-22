@@ -96,7 +96,7 @@ export function StatusStrip() {
   const request = requestForTask(state,job);
   const fireside = ["settle_fire","walk_to"].includes(planner.task?.[0]) && planner.world.fireHome;
   const activity = person.dead ? "Dead" : sleeping ? "Sleeping" : fireside ? currentActivity(ecs,id,key=>key) : job?.waiting ? "Waiting · " + (request ? favourTitle(request) : TASK_TITLES[job.job.key] || "Building") :
-    wood?.phase || (request && favourTitle(request)) || (job && TASK_TITLES[job.job.key]) ||
+    wood?.phase || (request && favourTitle(request)) || (job?.job.key=="chat" && currentActivity(ecs,id,key=>messages.tasks[key.split(".")[1]],other=>displayName(state,other))) || (job && TASK_TITLES[job.job.key]) ||
     currentActivity(ecs,id,key=>messages.tasks[key.split(".")[1]],other=>displayName(state,other)) || "Ready";
   const meals = person.dead ? [] : foodChoices(state).slice(0,1);
   React.useEffect(()=>{

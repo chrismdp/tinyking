@@ -25,6 +25,7 @@ import { growingAt, frozenAt, climateTile } from "game/climate";
 import { Hex } from "game/hex";
 import { currentReach, worldDirection, localDirection, countryWords, placeFact, discoveredVillage, knownPlaces, ownTrips, visitedVillage, landsFact, landsTold } from "game/chat_lands";
 import { patience } from "game/chat_patience";
+import { courtingExchanges } from "game/chat_courtship";
 
 export const VISITS=Object.keys(EVENT_TYPES).filter(type=>EVENT_TYPES[type].spokenVisit);
 const trades={baker:"oven",smith:"forge",carpenter:"workshop",weaver:"loom",tanner:"tan-yard",miller:"mill"};
@@ -165,6 +166,7 @@ export function sourceValues(s,c,b,d) {
   case "player_arrival_story":return s.backstories?.[p]?[{id:p,mother_name:personFact(s,s.backstories[p].motherId)?.first_name,origin:"the cottage where I grew up with my mother"}]:[];
   case "pending_meeting_result":return c.meetingResult?[c.meetingResult]:[];
   case "pending_romance_result":return c.romanceResult?[c.romanceResult]:[];
+  case "courtship_exchange":return courtingExchanges(s,c);
   case "customs_chat": {
     const context=c.context;if(!context)return [];
     const i=s.customs?.incidents.find(i=>i.id==context.incidentId);

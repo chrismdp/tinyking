@@ -34868,9 +34868,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name"
    ],
@@ -34960,9 +34958,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name"
    ],
@@ -35052,9 +35048,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name"
    ],
@@ -35144,9 +35138,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name"
    ],
@@ -35258,9 +35250,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you arrived recently"
@@ -35373,9 +35363,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you arrived recently"
@@ -35488,9 +35476,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you arrived recently"
@@ -35595,9 +35581,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you live at a camp"
@@ -35702,9 +35686,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you live at a camp"
@@ -35809,9 +35791,7 @@
   ],
   "use_key": "introduce:{player.id}:{npc.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait costs 1 of their goodwill whenever it pops, whoever completes the pair."
-   ],
+   "risks": [],
    "reveals": [
     "Your name",
     "That you live at a camp"
@@ -36685,7 +36665,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. I'll remember that.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -36712,9 +36692,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -36777,7 +36755,7 @@
    ],
    "remove": []
   },
-  "text": "Good to know you, {player.first_name}.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -36804,9 +36782,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -36869,7 +36845,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Right you are.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -36896,9 +36872,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -36961,7 +36935,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Well, you're here now.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -36988,9 +36962,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37060,7 +37032,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}! A good name, that.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37087,9 +37059,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37159,7 +37129,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}! Glad to know you.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37186,9 +37156,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37258,7 +37226,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. I'll not forget it.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37285,9 +37253,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37357,7 +37323,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Good. Now we know each other.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37384,9 +37350,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37456,7 +37420,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Right.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37483,9 +37447,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37555,7 +37517,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Well. There it is.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37582,9 +37544,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37654,7 +37614,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. Peace to you.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37681,9 +37641,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37753,7 +37711,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. You're welcome among us.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37780,9 +37738,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37853,7 +37809,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. You're very welcome here.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37880,9 +37836,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -37944,7 +37898,7 @@
    ],
    "remove": []
   },
-  "text": "Hm.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -37971,9 +37925,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -38035,7 +37987,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. If you say so.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -38062,9 +38014,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -38126,7 +38076,7 @@
    ],
    "remove": []
   },
-  "text": "Right.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -38153,9 +38103,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -38224,7 +38172,7 @@
    ],
    "remove": []
   },
-  "text": "{player.first_name}. I'll not forget it, either.",
+  "text": "Hello, {player.first_name}. Pleased to meet you.",
   "facts": [
    {
     "ref": "player",
@@ -38251,9 +38199,7 @@
   ],
   "use_key": "ack_name:{npc.id}:{player.id}",
   "tradeoff": {
-   "risks": [
-    "Your portrait in their line costs 1 of their goodwill if it pops."
-   ],
+   "risks": [],
    "reveals": [
     "How they take your introduction, from their real disposition and goodwill"
    ],
@@ -145109,7 +145055,9 @@
   "tags": {
    "require": [],
    "forbid": [],
-   "add": [],
+   "add": [
+    "player_named"
+   ],
    "remove": []
   },
   "text": "I'm {player.first_name}. Pleased to meet you.",
@@ -145135,7 +145083,7 @@
    },
    {
     "op": "set_reply_purpose",
-    "purpose": "answer_acknowledged"
+    "purpose": "introduction_reply"
    }
   ],
   "disclosure": {
@@ -146607,7 +146555,11 @@
   "family": "flirt",
   "situation": "company",
   "weight": 1,
-  "bindings": {},
+  "bindings": {
+   "courtship": {
+    "source": "courtship_exchange"
+   }
+  },
   "when": {
    "all": [
     {
@@ -146625,11 +146577,15 @@
   },
   "tags": {
    "require": [],
-   "forbid": [],
-   "add": [],
+   "forbid": [
+    "courted"
+   ],
+   "add": [
+    "courted"
+   ],
    "remove": []
   },
-  "text": "I rather like being here with you.",
+  "text": "{courtship.line}",
   "facts": [],
   "icons": [
    {
@@ -146641,7 +146597,7 @@
     "ref": "npc"
    }
   ],
-  "use_key": "flirt:{npc.id}:{context.encounter_number}",
+  "use_key": "flirt:{npc.id}:{courtship.stage}:{courtship.line}",
   "tradeoff": {
    "risks": [],
    "reveals": [],
@@ -146700,7 +146656,7 @@
    "add": [],
    "remove": []
   },
-  "text": "Stay and talk a little, then.",
+  "text": "{romance.reply}",
   "facts": [],
   "icons": [
    {

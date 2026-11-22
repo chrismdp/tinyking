@@ -13,6 +13,7 @@ import { recogniseConversation } from "game/guidance";
 import { acceptFavour, withFavourQuery } from "game/favours";
 import { makePeace, introduce } from "game/social_interventions";
 import { courtPlayer, proposeMarriage } from "game/family";
+import { courtingResult } from "game/chat_courtship";
 import { hashUnit } from "game/math";
 import { patience, chatRecord } from "game/chat_patience";
 import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
@@ -28,7 +29,8 @@ export const iconKey=i=>i.kind=="grievance"?"grievance":i.kind=="person"?"person
 // These exchanges welcome help or acknowledge someone else's feelings.
 // A dislike of the subject is not displeasure with that act of kindness.
 function supportiveExchange(c,line) {
-  return ["favour_accept","favour_accepted","maternal_recognition"].includes(line.family) ||
+  return line.family=="introduction" && line.answers?.includes("name") || line.family=="introduction_reply" ||
+    ["favour_accept","favour_accepted","maternal_recognition"].includes(line.family) ||
     line.family=="mood_reply" && line.situation=="guarded" ||
     line.family=="answer_acknowledged" && c.question?.family=="mood_reply" && c.question?.situation=="guarded";
 }
@@ -99,7 +101,7 @@ function queryLineCandidates(s,c,family,speaker) {
       if(tests.some(v=>v===undefined)||!row.when.all.every((_,i)=>tests[i])||row.when.none.some((_,i)=>tests[row.when.all.length+i]))continue;
       // Catalogue accounts are one authored template with distinct real facts.
       // Qualify their spoken IDs so telling one harvest does not hide all others.
-      const claim=row.icons.some(i=>i.kind=="event")||row.family=="death_reaction"?b.event.id:b.request?.id||b.step?.requestId;
+      const claim=row.icons.some(i=>i.kind=="event")||row.family=="death_reaction"?b.event.id:b.courtship?.id||b.request?.id||b.step?.requestId;
       const id=claim?row.id+"@"+claim:row.id;
       if(id!=row.id&&c.usedIds.includes(id))continue;
       let text=interpolate(row.text,b);
@@ -281,6 +283,7 @@ function effects(s,c,line) {
     case "propose_marriage": {
       const proposal=op.op=="propose_marriage",result=(proposal?proposeMarriage:courtPlayer)(s,c.actorId,c.npcId);
       c.romanceResult={value:result.ok?"accepted":"refused",reason:result.ok?null:result.message};
+      if(!proposal)Object.assign(c.romanceResult,courtingResult(s,c,b.courtship,result));
       c.reply=proposal?"proposal_reply":"flirt_reply";
       if(proposal&&result.ok)c.marriageAccepted=true;
       break;
@@ -466,6 +469,7 @@ export function chooseLine(s,key) {
   const c=s.chat?.active;if(!c||c.endReason)return false;
   const offered=c.offeredMeetings?.[key]||c.offeredRomance?.[key];
   const line=chatChoices(s).find(l=>l.key==key)||(!c.usedIds.includes(offered?.id)&&offered);if(!line)return false;
+  if(line.family=="flirt"&&c.tags.includes("courted"))return false;
   c.lastPops=[];
   if(!speakLine(s,line))return false;
   if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}

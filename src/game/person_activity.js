@@ -18,6 +18,15 @@ function activity(ecs, id, t, personName) {
   const planner = ecs.planner?.[id], task = planner?.task, world = planner?.world;
   if (!task) return null;
   const [key, target, place] = task;
+  if (key == "approach_chat") {
+    const other=ecs.planner?.[target], doing=other?.task?.[0], name=personName(target);
+    const finishing={eat:"eating",trade_work:"working",walk_to:"walking",forage:"foraging",chop_tree:"cutting wood",perform_subtask_in_slot:"working in the field",tend_garden:"tending the garden",carry_home:"carrying goods home"}[doing];
+    if (finishing) return "Waiting for " + name + " to finish " + finishing;
+    if (other?.world.feeling.hungry) return "Waiting for " + name + " to find food";
+    if (other?.world.feeling.tired) return "Waiting for " + name + " to rest";
+    if (world.doorCall?.knocked) return "Waiting for " + name + " to answer the door";
+    return "Going to talk to " + name;
+  }
   if (key == "settle_fire") return "Sitting by the fire";
   if (key == "walk_to" && world.fireHome == target) return "Walking home to the fire";
   if (key == "approach_chat" && world.doorCall?.knocked) return "Knocking at the door";

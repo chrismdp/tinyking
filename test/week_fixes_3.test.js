@@ -106,3 +106,27 @@ it("asks first about the same unvisited relative that the opening hint selects",
   const question=chatChoices(s).find(l=>l.family=="maternal_search");
   expect(question.b.relative.id).toBe(hint.relativeId);
 });
+
+it("lets a giver tell the accepted messenger the promised event without disclosing it to other strangers",()=>{
+  const {state:s,player:a,person:giver,parent:dead,sibling:recipient}=peopleWorld();
+  const {canDiscloseEvent}=require("game/people"),{knowsEvent}=require("game/event_knowledge");
+  s.newsModel=1;s.events=[];s.ecs.village[a].villageId=null;
+  const event=recordEvent(s,"death",[dead],[],{audienceIds:[giver]});
+  expect(canDiscloseEvent(s,giver,a,event)).toBe(false);
+  s.favours={requests:{word:{id:"word",kind:"word",giverId:giver,actorId:a,targetId:recipient,eventId:event.id,status:"offered"}}};
+  expect(canDiscloseEvent(s,giver,a,event)).toBe(false);
+  s.favours.requests.word.status="accepted";
+  expect(canDiscloseEvent(s,giver,a,event)).toBe(true);
+  const [stranger]=newEntities(s,[{personable:{age:30},kinship:{parents:[],children:[]},village:{villageId:null}}]);
+  expect(canDiscloseEvent(s,giver,stranger,event)).toBe(false);
+  s.ecs.spatial[a]={...s.ecs.spatial[giver],x:s.ecs.spatial[giver].x-45};
+  expect(openChat(s,a,giver)).toBe(true);
+  const {lineCandidates,speakLine}=require("game/chat");
+  s.chat.active.row=[];s.chat.active.phase="reply";s.chat.active.subjectId=dead;
+  const account=lineCandidates(s,s.chat.active,"event_news","npc").find(l=>l.b.event?.id==event.id);
+  expect(speakLine(s,account)).toBe(true);
+  expect(knowsEvent(s,a,event)).toBe(true);
+  expect(canDiscloseEvent(s,a,recipient,event)).toBe(true);
+  s.favours.requests.word.status="completed";
+  expect(canDiscloseEvent(s,giver,a,event)).toBe(false);
+});

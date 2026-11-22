@@ -23,23 +23,24 @@ it("retires the exact approach when chat closes, even before another simulation 
   expect(s.ecs.manager[p].jobs).toEqual([next]);
   expect(s.ecs.planner[p].world.currentJob).toBeNull();
 });
-it("actually ends a timed-out approach and preserves its single reason",()=>{
-  const {state:s,player:p,person:n}=peopleWorld();
-  const job=enqueueTask(s,{key:"chat"},n);expireChatApproach(s);s.days+=1.1/24;expireChatApproach(s);
+it("ends an unreachable approach and preserves its single reason",()=>{
+  const {state:s,player:p,person:n,tiles}=peopleWorld();
+  const job=enqueueTask(s,{key:"chat"},n);
+  for(const id of tiles)s.ecs.walkable[id].neighbours={};
+  readyPlayerTasks(s);expireChatApproach(s);
   expect(s.ecs.manager[p].jobs).not.toContain(job);
   expect(s.ui.talkResult.message).toBe(job.detail);
   expect(readyPlayerTasks(s)).not.toContain(job);
 });
-it("knocks on a sleeping neighbour's real door at night and returns without contact",()=>{
+it("refuses a sleeping neighbour visit at night without movement or contact",()=>{
   const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;s.days=1/24;
   const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},building:{entrance:3},household:{},controllable:{controllerId:n}}]);
   s.ecs.household[n].houseId=home;s.ecs.spatial[n]={...s.ecs.spatial[home]};
   s.ecs.interior={[n]:{buildingId:home}};s.ecs.planner[n].task=["sleep"];s.ecs.planner[n].plan=[];
   s.ecs.personable[n].tiredness=1.5;s.ecs.planner[n].world.feeling.tired=true;
   const before={...s.ecs.spatial[p]},job=enqueueTask(s,{key:"chat"},n);
-  expect(s.ecs.manager[p].jobs).toContain(job);
-  for(let i=0;i<2500&&!s.ui.talkResult?.message.includes("No answer");i++)w.step(.005);
-  expect(s.ecs.manager[p].jobs).not.toContain(job);expect(s.ecs.spatial[p]).not.toEqual(before);
+  expect(s.ui.talkResult).toMatchObject({personId:n,message:expect.any(String)});
+  expect(s.ecs.manager[p].jobs).not.toContain(job);expect(s.ecs.spatial[p]).toEqual(before);
   expect(s.chat?.active).toBeUndefined();
   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
@@ -109,10 +110,12 @@ it("retains the actual failed harvest stage instead of a generic supply failure"
   expect(r.progress).toBe(0);
   expect(r.status).toBe("accepted");
 });
-it("replaces a timed-out Chat hint with one concrete movement order",()=>{
+it("offers one concrete movement order after a blocked Chat route",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};
   s.ecs.playable[p].known=tiles.map(id=>Hex().fromPoint(s.ecs.spatial[id]));
-  const job=enqueueTask(s,{key:"chat"},n);expireChatApproach(s);s.days+=1.1/24;expireChatApproach(s);
+  const job=enqueueTask(s,{key:"chat"},n);
+  for(const id of tiles)s.ecs.walkable[id].neighbours={};
+  readyPlayerTasks(s);expireChatApproach(s);
   const hint=openingGuidance(s);
   expect(hint).toMatchObject({key:"move_closer",job:"move_to_here",targetId:expect.any(String)});
   enqueueTask(s,{key:hint.job},hint.targetId);

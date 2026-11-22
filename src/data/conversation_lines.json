@@ -166325,7 +166325,8 @@
    "ring": "public",
    "below": "hide"
   },
-  "score": false
+  "score": false,
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.death_reaction.known_kin.base.01",
@@ -166543,7 +166544,8 @@
    "ring": "public",
    "below": "hide"
   },
-  "score": false
+  "score": false,
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.death_reaction.known_inlaw.base.01",
@@ -166761,7 +166763,8 @@
    "ring": "public",
    "below": "hide"
   },
-  "score": false
+  "score": false,
+  "expects": "acknowledgement"
  },
  {
   "id": "npc.death_reaction.known_friend.base.01",

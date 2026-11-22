@@ -283,7 +283,10 @@ function effects(s,c,line) {
     case "propose_marriage": {
       const proposal=op.op=="propose_marriage",result=(proposal?proposeMarriage:courtPlayer)(s,c.actorId,c.npcId);
       c.romanceResult={value:result.ok?"accepted":"refused",reason:result.ok?null:result.message};
-      if(!proposal)Object.assign(c.romanceResult,courtingResult(s,c,b.courtship,result));
+      if(!proposal) {
+        c.romanceExchange=b.courtship;
+        Object.assign(c.romanceResult,courtingResult(s,c,b.courtship,result));
+      }
       c.reply=proposal?"proposal_reply":"flirt_reply";
       if(proposal&&result.ok)c.marriageAccepted=true;
       break;
@@ -380,13 +383,17 @@ export function speakLine(s,line) {
   }
   c.lastPops=[...(c.lastPops||[]),...pops];
   c.usedIds.push(line.id);
-  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:line.text,...(line.family=="promise_step"?{step:line.b.step}:{}),icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
+  // The reply's matches can complete or lose a ring. Its words follow the
+  // feelings and marriage barrier shown by the whole exchange.
+  const courtingReply=line.family=="flirt_reply"&&c.romanceResult?.value=="accepted";
+  if(courtingReply)Object.assign(c.romanceResult,courtingResult(s,c,c.romanceExchange,{ok:true}));
+  const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:courtingReply?c.romanceResult.reply:line.text,...(line.family=="promise_step"?{step:line.b.step}:{}),icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
   const disliked=pops.filter(p=>p.amount<0);
   // The listener speaks their displeasure when a match costs regard. A mood
   // answer must express the same reaction instead of welcoming a disliked mood.
   const moodDispleasure=line.family=="mood_answer"?c.lastPops.filter(p=>p.kind=="mood"&&p.key==line.situation&&p.amount<0):[];
   const objections=moodDispleasure.length?moodDispleasure:disliked;
-  if(objections.length && line.speaker=="npc")spoken.text=line.family=="mood_answer"?tasteObjection(s,c,objections):line.text+" "+tasteObjection(s,c,objections);
+  if(objections.length && line.speaker=="npc")spoken.text=line.family=="mood_answer"?tasteObjection(s,c,objections):spoken.text+" "+tasteObjection(s,c,objections);
   if(objections.length)spoken.displeasure=objections.map(iconKey);
   c.transcript.push(spoken);
   if(disliked.length && line.speaker=="player")c.transcript.push({
@@ -428,7 +435,7 @@ export function speakLine(s,line) {
   const awaitsAnswer=line.speaker=="player"&&(line.resolve||line.effects?.some(e=>["set_reply_purpose","court_player","propose_marriage"].includes(e.op)));
   const meetingRefusal=line.family=="meeting_reply" || line.effects?.some(e=>e.op=="arrange_meeting")&&c.meetingResult?.reason;
   const romanceExchange=["flirt_reply","proposal_reply"].includes(line.family)||line.effects?.some(e=>["court_player","propose_marriage"].includes(e.op));
-  if(!meetingRefusal && !(romanceExchange&&(c.romanceResult?.reason||c.marriageAccepted)) && c.phase!="opening" && c.row.length+p.resting>=p.max) {
+  if(!meetingRefusal && !romanceExchange && c.phase!="opening" && c.row.length+p.resting>=p.max) {
     c.closeReason="row_full";
     if(c.expectation||c.closingReply)c.closeAfterReply=true;
     else if(awaitsAnswer)c.finishAfterReply=true;

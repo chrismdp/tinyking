@@ -152,3 +152,37 @@ it.each(["family","trait","work","news"])("answers a learned %s reference rather
   expect(s.chat.active.transcript.findLast(l=>l.family=="flirt_reply").text)
     .not.toBe(control.state.chat.active.transcript.findLast(l=>l.family=="flirt_reply").text);
 });
+
+it.each([false,true])("uses the completed courting exchange for readiness, including a full row: %s",full=>{
+  const {state:s,player:p,person:n,tiles}=couple("social");
+  s.ecs.building={[tiles[3]]:{rooms:[]}};
+  s.opinionThresholds={hate:-100,love:100};
+  s.ecs.relationships[p].known[n].goodwill=29;
+  s.ecs.relationships[n].known[p].goodwill=24;
+  s.chat.active.row=[{kind:"person",personId:n}];
+  if(full) {
+    chatRecord(s,p,n).resting=1;
+    s.chat.active.row.unshift(...["food","season","village","work","faith","gossip"].map(key=>({kind:"topic",key})));
+  }
+  expect(chooseLine(s,flirt(s).key)).toBe(true);
+  expect(s.ecs.relationships[n].known[p].ring).toBe("personal");
+  expect(s.chat.active.romanceResult).toMatchObject({barrier:null,reason:null,listenerRing:"personal"});
+  expect(s.chat.active.endReason).toBeUndefined();
+  s.chat.active.focus="family";
+  expect(chatChoices(s).some(l=>l.family=="proposal")).toBe(true);
+});
+
+it("keeps the completed courting reason when a disliked reply match lowers trust",()=>{
+  const {state:s,player:p,person:n}=couple("social");
+  s.opinionThresholds={hate:-100,love:100};
+  s.ecs.personality[n]={traits:["greedy","timid","lazy"],likes:[],dislikes:["generous","humble"],orientation:"opposite"};
+  s.ecs.relationships[p].known[n].goodwill=29;
+  s.ecs.relationships[n].known[p].goodwill=26;
+  s.chat.active.row=[{kind:"person",personId:n}];
+  expect(chooseLine(s,flirt(s).key)).toBe(true);
+  expect(s.ecs.relationships[n].known[p].ring).toBe("social");
+  expect(s.chat.active.romanceResult).toMatchObject({barrier:"listener_closeness",listenerRing:"social"});
+  const answer=s.chat.active.transcript.findLast(l=>l.family=="flirt_reply");
+  expect(answer.pops.some(pop=>pop.amount<0)).toBe(true);
+  expect(answer.text.startsWith(s.chat.active.romanceResult.reply)).toBe(true);
+});

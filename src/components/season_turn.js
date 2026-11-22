@@ -12,7 +12,9 @@ export function SeasonTurn() {
     <p className="eyebrow">The season turns · year {Math.floor(page.season/4)+1}</p>
     <h1>{kind[0].toUpperCase()+kind.slice(1)} in the village</h1>
     <p>What you saw and what people told you.</p>
-    {page.lines.length ? <ul>{page.lines.map(line=><li key={line.id} className={"season-"+line.section}>{line.text}</li>)}</ul> : <p>No news reached you this season.</p>}
+    {page.lines.filter(line=>line.section=="player").map(line=><p key={line.id} className="season-player">{line.text}</p>)}
+    {page.lines.some(line=>line.section!="player") && <section className="village-news"><h2>Village news</h2><ul>{page.lines.filter(line=>line.section!="player").map(line=><li key={line.id} className={"season-"+line.section}>{line.text}</li>)}</ul></section>}
+    {!page.lines.length && <p>No news reached you this season.</p>}
     <button onClick={()=>{finishSeasonTurn(s);s.ui.actions.end_turn();}}>Begin {next}</button>
   </article></div>;
 }

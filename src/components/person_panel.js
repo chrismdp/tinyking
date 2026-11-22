@@ -157,7 +157,7 @@ export function PersonPanel({ entityId }) {
         <div className="goodwill"><span>Goodwill with {personName.split(" ")[0]}</span><span>{number(goodwill)}{next ? " / " + next : ""}</span></div>
         {next && <div className={"meter " + ring + "-meter"} role="progressbar" aria-label={"Goodwill with " + personName} aria-valuenow={number(goodwill)} aria-valuemin={0} aria-valuemax={next || GOODWILL_STEPS[3]}><span style={{ width: Math.max(0, Math.min(100, goodwill / (next || GOODWILL_STEPS[3]) * 100)) + "%" }}/></div>}
         {next && <small>{`${number(Math.max(0, next - goodwill))} more towards ${RELATIONSHIP_NAMES[nextRing].toLowerCase()} · space matters too.`}</small>}
-        {cap < 3 ? <small>{personName} will never be more than {cap == 0 ? "an acquaintance" : "a friend"} to you because of their fixed tastes.</small> : !next && <small>One of their closest friends · space matters too.</small>}
+        {cap == 3 && !next && <small>One of their closest friends · space matters too.</small>}
       </> : <p>{dead ? "Their feelings are part of the past." : "You have not spoken together yet. Their feelings about you are unknown."}</p>}</div>
       <div className="people-list"><p className="label">{trusted ? titleCase(possessive) + " closest people" : "People seen with " + (pronoun == "They" ? "them" : pronoun == "He" ? "him" : "her")}</p>
         <ul>{theirPeople.map(([id]) => <li key={id}><button onClick={() => select(id)}>{displayName(state, id)}</button><span className="kin">{trusted ? relation(state, entityId, id) : "Known to you"}</span></li>)}

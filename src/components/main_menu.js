@@ -12,7 +12,7 @@ export function MainMenu({ show }) {
       <div className="header">
         <div className="small">Welcome to</div>
         <div className="main">Tiny King</div>
-        <div className="strapline">The kingdom builder that&rsquo;s all about the people.<br/>Placeholder art, alpha gameplay, open development.</div>
+        <div className="strapline">Arrive in a valley, find your mother&rsquo;s family and meet the people you come to care about.</div>
       </div>
       <menu className={show ? "" : "hiding"}>
         {state.persistence?.hasSave && <li><button disabled={!!state.generating} onClick={state.ui.actions.continue_game}>Continue</button></li>}

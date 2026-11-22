@@ -156,7 +156,9 @@ export function recogniseMaternalKin(s,actor,npc) {
     (k.kinLinks ||= {})[actor+":"+npc+":maternal"]={id:actor+":"+npc+":maternal",speaker_id:actor,relative_id:npc,kinship:r.term,kin_term:r.term,inverse_term:r.inverse};
     welcomeCloseKin(s,viewer,other);
   }
-  s.knowledge[actor].maternalFamily.met.push(npc);
+  const family=s.knowledge[actor].maternalFamily;
+  family.met.push(npc);
+  (family.reunions ||= {})[npc]={day:s.days};
   return true;
 }
 export function familySearchFacts(s,actor,npc) {

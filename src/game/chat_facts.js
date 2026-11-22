@@ -81,6 +81,17 @@ export function kinLinks(s,id) {
     return {id:id+":"+r+":"+kind,speaker_id:id,relative_id:r,kinship:kind,kin_term:term(kind,male),inverse_term:term(({parent:"child",child:"parent",grandparent:"grandchild",grandchild:"grandparent"})[kind]||kind,inv)};
   });
 }
+// Grief follows the listener's actual family and friendship, including in-laws.
+function deathNews(s,c,event) {
+  if(event?.type!="death")return null;
+  const id=event.people[0],n=c.npcId,family=closeFamily(s,n),spouse=personComponent(s,"kinship",n)?.spouse;
+  const bond=s.ecs.relationships?.[n]?.known[id];
+  const closeness=family.includes(id)?"kin":
+    family.some(relative=>personComponent(s,"kinship",relative)?.spouse==id) || spouse&&closeFamily(s,spouse).includes(id)?"inlaw":
+      bond?.goodwill<0 || disposition(s,n,id)=="hate"?"hostile":
+        ["personal","intimate"].includes(bond?.ring)?"friend":"distant";
+  return {id,name:personLabel(s,id,s.personName,n),him_her:personComponent(s,"nameable",id)?.male?"him":"her",closeness};
+}
 export const linkKnown=(s,viewer,l)=>!!l&&!!s.knowledge?.[viewer]?.kinLinks?.[l.id];
 function homeFact(s,id) {
   if(!id)return null;
@@ -197,6 +208,7 @@ export function sourceValues(s,c,b,d) {
   case "npc_known_relevant_unheard_visit":return newsEvents(s,c,true).filter(x=>!d.eventType||x.type==d.eventType).map(x=>eventFact(s,x));
   case "player_known_permitted_event":return knownEvents(s,p).filter(x=>(!d.eventType||x.type==d.eventType)&&canDiscloseEvent(s,p,n,x)&&(!c.subjectId||x.people.includes(c.subjectId)||Object.values(s.favours?.requests||{}).some(r=>r.status=="accepted"&&r.kind=="word"&&r.actorId==p&&r.targetId==n&&r.eventId==x.id))).sort((a,b)=>b.day-a.day).map(x=>eventFact(s,x));
   case "event_just_told_by_player":return [eventFact(s,eventById(s,c.toldEventId))].filter(Boolean);
+  case "death_news":return [deathNews(s,c,ref(d.event))].filter(Boolean);
   case "event_person":return [personFact(s,ref(d.event)?.people[d.index])].filter(Boolean);
   case "event_other_participant":return (ref(d.event)?.people||[]).filter(id=>id!=person(d.person)).map(id=>personFact(s,id));
   case "event_participant_who_is_close_kin_of":return (ref(d.event)?.people||[]).filter(id=>closeFamily(s,person(d.person)).includes(id)).map(id=>personFact(s,id));
@@ -244,6 +256,7 @@ export function predicate(s,c,b,{test,args:a={}}) {
   case "courtship_eligible":return eligiblePartner(s,c.actorId,c.npcId,true)&&mutuallyOriented(s,c.actorId,c.npcId);
   case "proposal_eligible":return canMarryPlayer(s,c.actorId,c.npcId);
   case "meeting_available":return !(a.kind=="make_peace"?peaceUnavailable:introduceUnavailable)(s,c.actorId,c.npcId,id(a.other),{whenFree:true});
+  case "death_news_closeness":return b.deceased?.closeness==a.value;
   case "family_search_answer":return b.relative?.answer==a.value;
   case "festival_active":return !!s.ecs.planner?.[c.npcId]?.world.festivalPlace;
   case "mood_in_row":return c.row.some(i=>i.kind=="mood"&&i.key==a.key);

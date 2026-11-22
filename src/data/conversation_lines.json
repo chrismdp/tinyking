@@ -166217,5 +166217,1095 @@
    "below": "hide"
   },
   "score": false
+ },
+ {
+  "id": "npc.death_reaction.new_kin.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "new_kin",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": false
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "kin"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{deceased.name} has died? I will miss {deceased.him_her}. Thank you for telling me.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.known_kin.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "known_kin",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": true
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "kin"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know that {deceased.name} has died. I still miss {deceased.him_her}.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.new_inlaw.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "new_inlaw",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": false
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "inlaw"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{deceased.name} has died? Our family will feel that loss. Thank you for bringing word.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.known_inlaw.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "known_inlaw",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": true
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "inlaw"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I heard that {deceased.name} has died. It is a sad loss for our family.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.new_friend.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "new_friend",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": false
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "friend"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "{deceased.name} has died? I have lost a dear friend. Thank you for telling me.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.known_friend.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "known_friend",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": true
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "friend"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I heard that {deceased.name} has died. I miss my friend.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.new_hostile.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "new_hostile",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": false
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "hostile"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "So {deceased.name} has died. We had our differences. Thank you for telling me.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.known_hostile.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "known_hostile",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": true
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "hostile"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I know that {deceased.name} has died. We had our differences.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.new_distant.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "new_distant",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": false
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "distant"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I am sorry to hear that {deceased.name} has died. Thank you for bringing word.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
+ },
+ {
+  "id": "npc.death_reaction.known_distant.base.01",
+  "speaker": "npc",
+  "family": "death_reaction",
+  "situation": "known_distant",
+  "weight": 1,
+  "bindings": {
+   "event": {
+    "source": "event_just_told_by_player"
+   },
+   "deceased": {
+    "source": "death_news",
+    "event": "event"
+   }
+  },
+  "when": {
+   "all": [
+    {
+     "test": "phase_is",
+     "args": {
+      "phase": "reply"
+     }
+    },
+    {
+     "test": "npc_knew_event_before_line",
+     "args": {
+      "event": "event",
+      "value": true
+     }
+    },
+    {
+     "test": "death_news_closeness",
+     "args": {
+      "value": "distant"
+     }
+    }
+   ],
+   "none": [
+    {
+     "test": "chat_mode_is",
+     "args": {
+      "mode": "practical_only"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "require": [],
+   "forbid": [],
+   "add": [],
+   "remove": []
+  },
+  "text": "I heard that {deceased.name} has died. A sad thing.",
+  "facts": [
+   {
+    "ref": "event",
+    "fields": [
+     "id",
+     "type",
+     "people"
+    ],
+    "tense": "past"
+   },
+   {
+    "ref": "deceased",
+    "fields": [
+     "closeness"
+    ],
+    "tense": "present"
+   }
+  ],
+  "icons": [
+   {
+    "kind": "topic",
+    "key": "family"
+   },
+   {
+    "kind": "person",
+    "ref": "deceased"
+   }
+  ],
+  "use_key": "react:{npc.id}:{event.id}:{context.encounter_number}",
+  "tradeoff": {
+   "risks": [],
+   "reveals": [
+    "How they feel about the death"
+   ],
+   "commitment": null
+  },
+  "resolve": null,
+  "effects": [
+   {
+    "op": "set_reply_purpose",
+    "purpose": "open"
+   }
+  ],
+  "disclosure": {
+   "to": "player",
+   "people": [],
+   "events": [],
+   "requests": [],
+   "facts": []
+  },
+  "level": {
+   "ring": "public",
+   "below": "hide"
+  },
+  "score": false
  }
 ]

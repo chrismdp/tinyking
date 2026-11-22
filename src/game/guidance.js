@@ -37,7 +37,7 @@ export function openingGuidance(state) {
     const point=ecs.spatial[result.personId],known=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>String(Hex(h))));
     const tile=Object.keys(ecs.walkable||{}).filter(id=>known.has(String(Hex().fromPoint(ecs.spatial[id])))&&!ecs.mappable[id]?.buildingPlot&&!ecs.mappable[id]?.cropPlot)
       .sort((a,b)=>Math.hypot(ecs.spatial[a].x-point.x,ecs.spatial[a].y-point.y)-Math.hypot(ecs.spatial[b].x-point.x,ecs.spatial[b].y-point.y)).find(id=>canReachTask(state,actorId,id));
-    if(tile)return {actorId,key:"move_closer",text:"The approach ended after an hour. Choose Move closer to walk to clear ground by that neighbour.",action:"Move closer",job:"move_to_here",targetId:tile};
+    if(tile)return {actorId,key:"move_closer",text:"The way to that neighbour is blocked. Choose Move closer to reach clear ground nearby.",action:"Move closer",job:"move_to_here",targetId:tile};
   }
   if(person.energy<20)return {actorId,key:"energy",text:"Low energy slows work. Eat food you own, or Rest. Chatting costs no energy."};
   if(state.days%1*24>=18 || state.days%1*24<6)return {actorId,key:"evening",text:"You can work or visit after dark. At zero energy you return to your fire. Rest to turn in early."};
@@ -106,7 +106,7 @@ export function openingGuidance(state) {
     if(accepted?.kind=="harvest") text="Chat with the nearby neighbour while your harvest waits.";
     const relative=backstoryFor(state)?.relatives.find(r=>!familyGoal(state).met.includes(r.id));
     if(relative)text="Ask the neighbours whether they know your "+relative.term+" "+relative.name+".";
-    return {actorId,key:"chat",targetId:target,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
+    return {actorId,key:"chat",targetId:target,relativeId:relative?.id,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
   }
   if(candidates.length)return {actorId,key:"neighbours_busy",text:chatUnavailable(state,actorId,candidates[0])};
   return {actorId,key:"explore",text:"Select the edge of visible ground and choose Move here to find another neighbour."};

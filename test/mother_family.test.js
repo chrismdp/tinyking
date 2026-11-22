@@ -160,9 +160,11 @@ it("keeps reference-only off-map royals and the mother out of playable successio
 });
 
 it("speaks an on-topic named search answer and learns a lead without revealing terrain or a face",()=>{
-  const {state:s,player,person,sibling}=setup(),known=[...s.ecs.playable[player].known];
+  const {state:s,player,person}=setup(),known=[...s.ecs.playable[player].known];
   expect(openChat(s,player,person)).toBe(true);
-  const q=chatChoices(s).find(l=>l.family=="maternal_search"&&l.b.relative.id==sibling);expect(q).toBeDefined();
+  const q=chatChoices(s).find(l=>l.family=="maternal_search");expect(q).toBeDefined();
+  const sibling=q.b.relative.id;
+  expect(sibling).toBe(s.backstories[player].relatives.find(r=>r.id!=person).id);
   expect(chooseLine(s,q.key)).toBe(true);
   expect(s.chat.active.transcript.at(-1)).toMatchObject({family:"maternal_whereabouts",situation:"known"});
   expect(s.knowledge[player].familyWhereabouts[sibling].villageId).toBe("village");

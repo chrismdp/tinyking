@@ -238,7 +238,8 @@ function queryChatChoices(s) {
   if(comfort&&!result.some(l=>l.family=="mood_reply")) {if(result.length==4)result.pop();result.push(comfort);}
   // The opening goal always has a reachable line, including under Family.
   if(!c.focus || c.focus=="family") {
-    const practical=all.filter(l=>["maternal_introduction","maternal_search"].includes(l.family)&&previewLine(s,l).fits).sort((a,b)=>Number(b.family=="maternal_introduction")-Number(a.family=="maternal_introduction"));
+    const relatives=s.backstories?.[c.actorId]?.relatives || [];
+    const practical=all.filter(l=>["maternal_introduction","maternal_search"].includes(l.family)&&previewLine(s,l).fits).sort((a,b)=>Number(b.family=="maternal_introduction")-Number(a.family=="maternal_introduction") || relatives.findIndex(r=>r.id==a.b.relative?.id)-relatives.findIndex(r=>r.id==b.b.relative?.id));
     let searches=0;
     const unique=[...new Map(practical.map(l=>[l.useKey,l])).values()].filter(l=>l.family!="maternal_search"||++searches<=1);
     if(unique.length)return withAnswers([...unique,...result.filter(l=>!unique.some(x=>x.useKey==l.useKey))]);
@@ -435,7 +436,8 @@ export function speakLine(s,line) {
 export function reply(s,requested) {
   const c=s.chat.active;c.phase="reply";
   let line;
-  if(c.finishAfterReply&&["open","practical"].includes(requested))line=pickNpc(s,c,"answer_acknowledged");
+  if(requested=="gossip_reaction" && eventById(s,c.toldEventId)?.type=="death")line=pickNpc(s,c,"death_reaction");
+  if(!line&&c.finishAfterReply&&["open","practical"].includes(requested))line=pickNpc(s,c,"answer_acknowledged");
   if(!line&&(requested=="need_news" || requested=="introduction_reply" && c.knewBefore && c.completed))line=pickNpc(s,c,"favour_ask",true);
   if(!line&&requested&&!["open","player_introduction_or_open","practical","favour_choice"].includes(requested))line=pickNpc(s,c,requested);
   if(!line&&(!requested||["open","player_introduction_or_open","practical","favour_choice"].includes(requested)))for(const f of ["own_news","visit_news","event_news","work_talk","season_talk"]){line=pickNpc(s,c,f,["favour_ask","event_news"].includes(f));if(line)break;}

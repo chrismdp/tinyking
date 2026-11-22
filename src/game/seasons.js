@@ -163,6 +163,19 @@ export function seasonLines(s, n, actor = s.ui.playerId) {
   const festivals = [...new Set(own.filter(e=>e.type=="festival").map(e=>e.title))];
   const helped = own.filter(e=>e.type=="favour").length;
   const met = Object.entries(s.knowledge?.[actor]?.people || {}).filter(([id,p])=>id!=actor && p.conversation?.day>=start && p.conversation.day<end && !s.ecs.personable?.[id]?.unrevealed).length;
+  const milestones=[],k=s.knowledge?.[actor],relatives=s.backstories?.[actor]?.relatives || [];
+  const reunions=relatives.filter(r=>{
+    const day=k?.maternalFamily?.reunions?.[r.id]?.day;
+    return day>=start && day<end;
+  });
+  if(reunions.length) {
+    const complete=relatives.every(r=>k.maternalFamily.met.includes(r.id));
+    const names=reunions.map(r=>r.name).join(", ");
+    milestones.push({...row("maternal-family",complete?"You found your mother’s family: "+names+". You kept her last wish.":"You found "+names+" of your mother’s family.","player",[]),personIds:reunions.map(r=>r.id),complete});
+  }
+  const labels={trust:"You earned someone’s trust in your arrival village.",story:"You learned a family’s story.",help:"A friend helped with your work.",wedding:"You witnessed a wedding."};
+  for(const [key,evidence] of Object.entries(k?.peopleGoals?.earned || {}))if(labels[key] && evidence.day>=start && evidence.day<end)
+    milestones.push(row("milestone-"+key,labels[key],"player",[]));
   const personal = [];
   if (festivals.length || helped || met) {
     const parts = [...festivals.map(title=>"attended the " + title)];
@@ -171,10 +184,11 @@ export function seasonLines(s, n, actor = s.ui.playerId) {
     personal.push(row("your-season", "You " + parts.join("; ") + ".", "player", own));
   }
   // Keep work and the actor's season visible even when village life is busy.
-  if (life.length + work.length + personal.length <= SEASON_PAGE_LINES) return [...life, ...work, ...personal];
-  const shownLife = life.slice(0, SEASON_PAGE_LINES - work.length - personal.length - 1);
-  const more = life.length - shownLife.length;
-  return [...shownLife, ...work, ...personal, row("more", "And " + more + " more pieces of news.", "more", [])];
+  if (milestones.length + life.length + work.length + personal.length <= SEASON_PAGE_LINES) return [...milestones, ...life, ...work, ...personal];
+  const shownLife = life.slice(0, Math.max(0,SEASON_PAGE_LINES - milestones.length - work.length - personal.length - 1));
+  const shown=[...milestones,...shownLife,...work,...personal].slice(0,SEASON_PAGE_LINES-1);
+  const more = milestones.length + life.length + work.length + personal.length - shown.length;
+  return [...shown, row("more", "And " + more + " more pieces of news.", "more", [])];
 }
 // Suggestions rank only personally known needs and the family names already given.
 export function festivalPeople(s, candidates) {
@@ -187,7 +201,12 @@ export function festivalPeople(s, candidates) {
     if (Object.values(s.favours?.requests || {}).some(r=>knownFavours.has(r.id) && r.giverId==id && ["offered","accepted"].includes(r.status))) return 2;
     return personLabel(s,id) != "a person" && (bond || k?.people?.[id] && !k.people[id].nameOnly) ? 1 : 0;
   };
-  return candidates.filter(id=>!s.ecs.personable[id]?.unrevealed).sort((x,y)=>rank(y)-rank(x) || x.localeCompare(y, undefined, {numeric:true})).slice(0,4);
+  const ranked=candidates.filter(id=>!s.ecs.personable[id]?.unrevealed).sort((x,y)=>rank(y)-rank(x) || x.localeCompare(y, undefined, {numeric:true}));
+  const active=s.festivals?.active;
+  if(!active)return ranked.slice(0,4);
+  const choices=(active.choices ||= {})[a] ||= [];
+  for(const id of ranked)if(choices.length<4 && !choices.includes(id))choices.push(id);
+  return [...choices];
 }
 // Pause at dawn, after the festival night and before the new day's work.
 export function seasonTurnAt(s,to) {

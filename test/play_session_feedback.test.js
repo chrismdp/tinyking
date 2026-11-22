@@ -106,7 +106,7 @@ it("keeps paused player speech physically separated and still requires genuine n
   expect(s.knowledge[player].people[a].conversation).toBeDefined();
   const before=s.ecs.relationships[a].known[player].goodwill;
   s.ecs.spatial[player]={...s.ecs.spatial[a],x:s.ecs.spatial[a].x+200};
-  expect(Math.hypot(s.ecs.spatial[player].x-s.ecs.spatial[a].x,s.ecs.spatial[player].y-s.ecs.spatial[a].y)).toBe(200);
+  expect(Math.hypot(s.ecs.spatial[player].x-s.ecs.spatial[a].x,s.ecs.spatial[player].y-s.ecs.spatial[a].y)).toBeCloseTo(200,8);
   expect(require("game/tasks").talk(s,player,s.ecs.planner[player].world,1/24,true,a,"chat")).toBe(Task.ABORT);
   expect(s.ecs.relationships[a].known[player].goodwill).toBe(before);
 });

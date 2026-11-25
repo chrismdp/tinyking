@@ -219,3 +219,14 @@ it.each(["name","family"])("accepts a maternal introduction as the required %s a
   expect(c.transcript.slice(before).some(l=>l.family==="taste_reaction")).toBe(false);
   expect(c.transcript.slice(before).some(l=>l.family==="maternal_recognition")).toBe(true);
 });
+
+it.each([["personal",55],["intimate",80]])("preserves earned %s warmth when an already close person learns the maternal connection",(ring,goodwill)=>{
+  const {state:s,player:p,person:n}=setup();
+  s.opinionThresholds={hate:-100,love:-99};
+  for(const [a,b] of [[p,n],[n,p]])s.ecs.relationships[a].known[b]={ring,goodwill,base:0};
+  expect(openChat(s,p,n)).toBe(true);
+  const before=s.ecs.relationships[n].known[p].goodwill;
+  expect(chooseLine(s,chatChoices(s).find(l=>l.family==="maternal_introduction").key)).toBe(true);
+  expect(s.ecs.relationships[n].known[p].goodwill).toBeGreaterThanOrEqual(before);
+  expect(s.ecs.relationships[n].known[p].ring).toBe(ring);
+});

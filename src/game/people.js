@@ -260,8 +260,9 @@ export function welcomeCloseKin(state, observer, other) {
   meet(state,observer,other);
   const rank=Math.min(2,relationshipCap(state,observer,other)),goodwill=rank?GOODWILL_STEPS[rank]+STARTING_BUFFER:0;
   const list=state.ecs.relationships[observer].known;
-  list[other]={ring:list[other].ring,goodwill,base:goodwill};
-  moveTo(list,other,rank);
+  const previous=list[other];
+  list[other]={ring:previous.ring,goodwill:Math.max(goodwill,previous.goodwill),base:Math.max(goodwill,previous.base||0)};
+  moveTo(list,other,Math.min(relationshipCap(state,observer,other),Math.max(rank,RINGS.indexOf(previous.ring))));
 }
 
 export function initializeRelationships(state, seed) {

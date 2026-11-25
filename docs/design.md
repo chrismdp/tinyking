@@ -124,7 +124,7 @@ The gathering changes no household access or legal ownership.
 Villagers walk there and remain available for chat. The festival panel offers one Attend action and at most four nearby people, prioritising the player’s family search, friends and known favours. Other people remain clickable in the world. Attendance gives two goodwill
 with villagers present, once per season. Midsummer conversations use the existing
 marriage rules, including consent, kin exclusions, housing and the love or practical courtship wait.
-The player receives no forced wedding. Authored chat openings live in the generated catalogue.
+The player receives no forced wedding. Chat openings are authored directly in `src/data/conversation_lines.json`.
 
 After festival night, the season-turn page pauses at dawn. It shows known births,
 marriages, deaths, moves, harvests, buildings, favours and other recorded events.

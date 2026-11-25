@@ -1,3 +1,4 @@
+import { courtingToday } from "game/player_courtship";
 import { eventById } from "game/events";
 import EVENT_TYPES from "data/event_types.json";
 import { displayName } from "game/knowledge";
@@ -13,7 +14,7 @@ import { recogniseConversation } from "game/guidance";
 import { acceptFavour, withFavourQuery } from "game/favours";
 import { makePeace, introduce } from "game/social_interventions";
 import { courtPlayer, proposeMarriage } from "game/family";
-import { courtingResult } from "game/chat_courtship";
+import { courtingResult, rememberCourtingReply } from "game/chat_courtship";
 import { hashUnit } from "game/math";
 import { patience, chatRecord } from "game/chat_patience";
 import { baseBindings, sourceValues, predicate, snapshotActivity, heard, personFact, knows } from "game/chat_facts";
@@ -30,7 +31,7 @@ export const iconKey=i=>i.kind=="grievance"?"grievance":i.kind=="person"?"person
 // A dislike of the subject is not displeasure with that act of kindness.
 function supportiveExchange(c,line) {
   return line.family=="introduction" && line.answers?.includes("name") || line.family=="introduction_reply" ||
-    ["favour_accept","favour_accepted","maternal_recognition"].includes(line.family) ||
+    ["favour_accept","favour_accepted","maternal_introduction","maternal_recognition"].includes(line.family) ||
     line.family=="mood_reply" && line.situation=="guarded" ||
     line.family=="answer_acknowledged" && c.question?.family=="mood_reply" && c.question?.situation=="guarded";
 }
@@ -282,7 +283,7 @@ function effects(s,c,line) {
     case "court_player":
     case "propose_marriage": {
       const proposal=op.op=="propose_marriage",result=(proposal?proposeMarriage:courtPlayer)(s,c.actorId,c.npcId);
-      c.romanceResult={value:result.ok?"accepted":"refused",reason:result.ok?null:result.message};
+      c.romanceResult={value:result.ok?"accepted":"refused",reason:result.ok?null:result.message,grew:result.grew};
       if(!proposal) {
         c.romanceExchange=b.courtship;
         Object.assign(c.romanceResult,courtingResult(s,c,b.courtship,result));
@@ -364,7 +365,7 @@ export function speakLine(s,line) {
   for(const i of popped) {
     const score=iconScore(s,i,c.actorId,c.npcId),raw=score;
     const amount=supportiveExchange(c,line)?Math.max(0,raw):raw;
-    if(line.score!==false) {
+    if(line.score!==false && !(line.family=="flirt"&&courtingToday(s,c.actorId,c.npcId)) && !(line.family=="flirt_reply"&&c.romanceResult?.grew===false)) {
       addGoodwill(s,c.actorId,c.npcId,amount);pops.push({...i,score,amount,listenerId:c.npcId});
       learnIdentity(s,c.actorId,c.npcId);const learned=knowledge(s,c.actorId).people[c.npcId];
       if(i.kind=="topic")(learned.topicTastes ||= {})[i.key]=score;
@@ -385,8 +386,8 @@ export function speakLine(s,line) {
   c.usedIds.push(line.id);
   // The reply's matches can complete or lose a ring. Its words follow the
   // feelings and marriage barrier shown by the whole exchange.
-  const courtingReply=line.family=="flirt_reply"&&c.romanceResult?.value=="accepted";
-  if(courtingReply)Object.assign(c.romanceResult,courtingResult(s,c,c.romanceExchange,{ok:true}));
+  const courtingReply=line.family=="flirt_reply"&&c.romanceExchange;
+  if(courtingReply)Object.assign(c.romanceResult,courtingResult(s,c,c.romanceExchange,{ok:c.romanceResult.value=="accepted",message:c.romanceResult.reason}));
   const spoken={id:line.id,expects:line.expects,answers:line.answers,family:line.family,situation:line.situation,speaker:line.speaker,text:courtingReply?c.romanceResult.reply:line.text,...(line.family=="promise_step"?{step:line.b.step}:{}),icons:line.icons,pops,requestIds:line.disclosure?.requests?.map(key=>line.b[key]?.id),presentation:{before,icons:[...line.icons,...(line.defiant||risk?.grievance?[{kind:"grievance"}]:[])]}};
   const disliked=pops.filter(p=>p.amount<0);
   // The listener speaks their displeasure when a match costs regard. A mood
@@ -396,6 +397,7 @@ export function speakLine(s,line) {
   if(objections.length && line.speaker=="npc")spoken.text=line.family=="mood_answer"?tasteObjection(s,c,objections):spoken.text+" "+tasteObjection(s,c,objections);
   if(objections.length)spoken.displeasure=objections.map(iconKey);
   c.transcript.push(spoken);
+  if(line.family=="flirt_reply")rememberCourtingReply(s,c);
   if(disliked.length && line.speaker=="player")c.transcript.push({
     id:line.id+":reaction",speaker:"npc",family:"taste_reaction",text:tasteObjection(s,c,disliked),displeasure:disliked.map(iconKey),icons:[],pops:[]
   });
@@ -481,7 +483,8 @@ export function chooseLine(s,key) {
   if(!speakLine(s,line))return false;
   if(line.family=="leave_taking"){endChat(s,"exchange_complete");return true;}
   if(!c.endReason)reply(s,c.reply);
-  if(c.marriageAccepted){endChat(s,"married");closeChat(s);return true;}
+  if(c.marriageAccepted){c.focus=null;return true;}
+  if(line.family=="proposal"){c.focus=null;return true;}
   if(!c.endReason && !c.expectation && !c.closingReply && c.finishAfterReply)endChat(s,c.closeReason||(c.row.length+patience(s,c.actorId,c.npcId).resting>=patience(s,c.actorId,c.npcId).max?"row_full":"exchange_complete"));
   if(!c.endReason && !c.expectation && !c.closingReply && patience(s,c.actorId,c.npcId).max==2)endChat(s,"tired");
   c.focus=null;

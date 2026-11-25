@@ -202,3 +202,20 @@ it.each(["directory","travel"])("repairs the mother's death record in an older s
   expect(restored.knowledge[player].maternalFamily).toEqual(s.knowledge[player].maternalFamily);
   expect(restored.backstories[player]).toEqual(b);
 });
+
+it.each(["name","family"])("accepts a maternal introduction as the required %s answer without any negative match",expectation=>{
+  const {state:s,player:p,person:n}=setup();
+  s.ecs.personality[n]={traits:["greedy","humble"],likes:[],dislikes:["generous"]};
+  expect(openChat(s,p,n)).toBe(true);
+  const c=s.chat.active;c.expectation=expectation;
+  c.row=[{kind:"topic",key:"family"}];
+  const before=c.transcript.length,regard=s.ecs.relationships[n].known[p].goodwill;
+  const line=chatChoices(s).find(l=>l.family==="maternal_introduction");
+  expect(line.answers).toContain(expectation);
+  expect(chooseLine(s,line.key)).toBe(true);
+  expect(c.expectation).not.toBe(expectation);
+  expect(c.transcript.slice(before).flatMap(l=>l.pops).every(pop=>pop.amount>=0)).toBe(true);
+  expect(s.ecs.relationships[n].known[p].goodwill).toBeGreaterThanOrEqual(regard);
+  expect(c.transcript.slice(before).some(l=>l.family==="taste_reaction")).toBe(false);
+  expect(c.transcript.slice(before).some(l=>l.family==="maternal_recognition")).toBe(true);
+});

@@ -1,114 +1,306 @@
 {
   "public": {
     "lines": [
-      "I would like to know you better.",
-      "You have caught my eye. May I stay?",
-      "I hoped we might talk again.",
-      "There is something about you that draws me here.",
-      "I find myself looking for you in the village.",
-      "Will you walk with me a little?",
-      "I like the sound of your voice.",
-      "I am glad our paths crossed today.",
-      "I would like another moment of your company.",
-      "May I sit beside you for a while?",
-      "I came hoping to see you.",
-      "I would like us to be more than strangers."
-    ],
-    "replies": [
-      "You have my attention. Let us see where this goes.",
-      "I am curious about you too. Stay a while.",
-      "I am glad you came over. We have time.",
-      "There is room beside me. Come and talk."
+      {
+        "line": "I would like to know you better.",
+        "reply": "We can begin with a little time together. What would you like to know?",
+        "refusal": "I can talk with you, but knowing me better will not change my feelings."
+      },
+      {
+        "line": "You have caught my eye. May I stay?",
+        "reply": "You may stay. I would like to see what caught your eye.",
+        "refusal": "You may stay as a neighbour. I do not want to give you false hope."
+      },
+      {
+        "line": "I hoped we might talk again.",
+        "reply": "And here we are. I wondered whether you would come back.",
+        "refusal": "We can talk again. I need you to understand where I stand."
+      },
+      {
+        "line": "There is something about you that draws me here.",
+        "reply": "Then stay and find out. I am curious about you too.",
+        "refusal": "I hear that you feel drawn to me. I must be honest about my own feelings."
+      },
+      {
+        "line": "I find myself looking for you in the village.",
+        "reply": "I will look out for you as well. There are worse ways to begin a day.",
+        "refusal": "I would be sorry if looking for me kept you from finding someone willing."
+      },
+      {
+        "line": "Will you walk with me a little?",
+        "reply": "A short walk would be welcome. Come alongside me.",
+        "refusal": "I can offer a friendly walk. I cannot offer courtship."
+      },
+      {
+        "line": "I like the sound of your voice.",
+        "reply": "Then you will have to give me something worth talking about.",
+        "refusal": "I am glad my voice pleases you. Affection needs more than that."
+      },
+      {
+        "line": "I am glad our paths crossed today.",
+        "reply": "I am glad too. It is a good day to meet someone.",
+        "refusal": "Our paths can cross without either of us promising more."
+      },
+      {
+        "line": "I would like another moment of your company.",
+        "reply": "A moment, then. You have my attention.",
+        "refusal": "I can spare a moment of company, but I must speak plainly."
+      },
+      {
+        "line": "May I sit beside you for a while?",
+        "reply": "There is room here. Sit, and tell me about yourself.",
+        "refusal": "You may sit here. Please do not mistake a welcome for a promise."
+      },
+      {
+        "line": "I came hoping to see you.",
+        "reply": "You found me. I am pleased you made the effort.",
+        "refusal": "I am here, and I hear you. I need to tell you how I feel."
+      },
+      {
+        "line": "I would like us to be more than strangers.",
+        "reply": "Let us learn each other’s ways, and see where that takes us.",
+        "refusal": "We need not be strangers. I cannot promise we will become lovers."
+      }
     ],
     "memoryReplies": {
-      "family": "I am glad you listened about my family. I would like to know you too.",
-      "trait": "You have noticed that about me, then. There is more to learn about us both.",
-      "work": "You take an interest in my work. That is a welcome start.",
-      "news": "You remembered what I told you. I am glad we began talking."
+      "family": "There is more I can tell you about {name}. I am glad you want to listen.",
+      "work": "The {trade} work fills much of my day. It is good to have someone take an interest.",
+      "news": "You remembered the news: {news}. I am glad you listened.",
+      "trait": "{trait_reply} I am curious to learn your ways too."
+    },
+    "memoryRefusals": {
+      "family": "I am glad you listened about {name}. I need you to hear my answer as well.",
+      "trait": "You have noticed my {trait} side. I must be clear about my feelings.",
+      "work": "It is kind of you to take an interest in my {trade} work. I must answer honestly.",
+      "news": "I did want you to hear this: {news}. Sharing news was not a promise of courtship."
     }
   },
   "social": {
     "lines": [
-      "I have been looking forward to seeing you again.",
-      "The day feels better when we spend it together.",
-      "I keep thinking of our talks.",
-      "I am beginning to feel at home beside you.",
-      "You are becoming someone I look for every day.",
-      "I missed your company since we last spoke.",
-      "Shall we find a quiet place together?",
-      "I like how easily we talk now.",
-      "I want to make more time for you.",
-      "I feel happier when you are near.",
-      "There is more I want to learn about you.",
-      "I would like to be part of your days.",
-      "I hope you look forward to these visits too.",
-      "I thought of you on my way here.",
-      "I am glad we are no longer strangers.",
-      "I am growing fond of you.",
-      "I like the person I am getting to know.",
-      "I wish our visits lasted a little longer.",
-      "There is nowhere I would rather sit just now.",
-      "I feel I can speak more freely with you.",
-      "I saved a little of my day for you.",
-      "Could we spend tomorrow together too?",
-      "You make this place feel less lonely.",
-      "I want us to have more days like this."
-    ],
-    "replies": [
-      "I have come to look forward to you too.",
-      "It feels easy to have you beside me now.",
-      "You have become a welcome part of my days.",
-      "I find myself hoping you will come back."
+      {
+        "line": "I have been looking forward to seeing you again.",
+        "reply": "I hoped we would meet again today. I kept a place for you.",
+        "refusal": "I enjoy seeing you, but I must not let these visits promise more than I feel."
+      },
+      {
+        "line": "The day feels better when we spend it together.",
+        "reply": "You have made my day lighter too. Stay a little longer.",
+        "refusal": "A pleasant day together is something I can share. I cannot offer more."
+      },
+      {
+        "line": "I keep thinking of our talks.",
+        "reply": "I turn our talks over in my mind as well. Especially the quiet parts.",
+        "refusal": "I value our talks. I do not want you to read a promise into them."
+      },
+      {
+        "line": "I am beginning to feel at home beside you.",
+        "reply": "I like that you can rest beside me. You need not put on a brave face.",
+        "refusal": "Feeling at home beside someone matters. I must be honest about what is possible."
+      },
+      {
+        "line": "You are becoming someone I look for every day.",
+        "reply": "I look for you too. The village feels different when you are away.",
+        "refusal": "I know you look for me. I do not want you waiting for an answer that will change."
+      },
+      {
+        "line": "I missed your company since we last spoke.",
+        "reply": "I missed you as well. Tell me how your day went.",
+        "refusal": "I hear that you missed me. I need to be clear about my feelings."
+      },
+      {
+        "line": "Shall we find a quiet place together?",
+        "reply": "Yes, let us sit away from the bustle for a while.",
+        "refusal": "A quiet place will not change what I need to tell you."
+      },
+      {
+        "line": "I like how easily we talk now.",
+        "reply": "We have learned how to listen to each other. I like that ease.",
+        "refusal": "I like being able to talk easily. That makes honesty all the more necessary."
+      },
+      {
+        "line": "I want to make more time for you.",
+        "reply": "I can make time for you too. We both have lives to tend.",
+        "refusal": "Your time is precious. I do not want to take it under a false promise."
+      },
+      {
+        "line": "I feel happier when you are near.",
+        "reply": "I am happier for seeing you. I was hoping you would say that.",
+        "refusal": "I am glad my company lifts you. I cannot offer everything you hope for."
+      },
+      {
+        "line": "There is more I want to learn about you.",
+        "reply": "Ask me, then. I am beginning to trust you with more.",
+        "refusal": "There are things you can still learn about me. They will not change this answer."
+      },
+      {
+        "line": "I would like to be part of your days.",
+        "reply": "I would like that. There is room for you among my ordinary days.",
+        "refusal": "We can be part of each other’s village days without courting."
+      },
+      {
+        "line": "I hope you look forward to these visits too.",
+        "reply": "I do look forward to them. More than I expected at first.",
+        "refusal": "I welcome your visits, but I cannot welcome them as courtship."
+      },
+      {
+        "line": "I thought of you on my way here.",
+        "reply": "What were you thinking? I like knowing I crossed your mind.",
+        "refusal": "I hear that you thought of me. Please listen to what I need to say."
+      },
+      {
+        "line": "I am glad we are no longer strangers.",
+        "reply": "We have come a little way together. I am glad of it.",
+        "refusal": "I am glad we know each other. I do not want to repay that with a false hope."
+      },
+      {
+        "line": "I am growing fond of you.",
+        "reply": "I am fond of you too. Let us give that feeling time to grow.",
+        "refusal": "Your fondness deserves an honest answer from me."
+      },
+      {
+        "line": "I like the person I am getting to know.",
+        "reply": "I hope you will like the less polished parts of me as well.",
+        "refusal": "I am glad you like who I am. I must still be plain about my feelings."
+      },
+      {
+        "line": "I wish our visits lasted a little longer.",
+        "reply": "I feel the same when it is time to part. There will be another visit.",
+        "refusal": "Longer visits would not make this answer kinder or different."
+      },
+      {
+        "line": "There is nowhere I would rather sit just now.",
+        "reply": "Then sit with me. We can let the rest of the village hurry.",
+        "refusal": "You have chosen to sit here. I want you to know where I stand."
+      },
+      {
+        "line": "I feel I can speak more freely with you.",
+        "reply": "You can speak freely here. I want to know what is on your mind.",
+        "refusal": "Speak freely, and let me do the same about my feelings."
+      },
+      {
+        "line": "I saved a little of my day for you.",
+        "reply": "I am glad you saved it for me. I have been waiting for a quiet moment.",
+        "refusal": "I am grateful for the time you saved. I cannot turn it into a promise."
+      },
+      {
+        "line": "Could we spend tomorrow together too?",
+        "reply": "I would like to see you tomorrow. Let us both have a day worth telling.",
+        "refusal": "Tomorrow can bring another friendly talk, but I cannot promise courtship."
+      },
+      {
+        "line": "You make this place feel less lonely.",
+        "reply": "I know that loneliness. I am glad we can ease it for each other.",
+        "refusal": "I do not want loneliness to lead either of us into a false promise."
+      },
+      {
+        "line": "I want us to have more days like this.",
+        "reply": "So do I. A life is made of days like this, after all.",
+        "refusal": "We can value these days together without promising a shared life."
+      }
     ],
     "memoryReplies": {
-      "family": "You remember my family. I like that you listen to what matters to me.",
-      "trait": "You are getting to know my ways. I am growing fond of yours too.",
-      "work": "I like having you to talk to after work. I look forward to it.",
-      "news": "You listened, and remembered. I have come to value these talks with you."
+      "family": "You remembered {name}. It means something to me that you kept that story.",
+      "work": "I will save you a story from the {trade} work. I like having you to tell.",
+      "news": "Yes, I remember telling you: {news}. It helps to talk it over with you.",
+      "trait": "{trait_reply} I like that you are learning who I am."
+    },
+    "memoryRefusals": {
+      "family": "I am glad you listened about {name}. I need you to hear my answer as well.",
+      "trait": "You have noticed my {trait} side. I must be clear about my feelings.",
+      "work": "It is kind of you to take an interest in my {trade} work. I must answer honestly.",
+      "news": "I did want you to hear this: {news}. Sharing news was not a promise of courtship."
     }
   },
   "personal": {
     "lines": [
-      "I can picture making a life beside you.",
-      "I trust you with more than small talk now.",
-      "I want you beside me when the days are hard.",
-      "You have become dear to me.",
-      "I would like our lives to grow together.",
-      "When I think of home, I think of you."
-    ],
-    "replies": [
-      "You are dear to me. I trust what we have.",
-      "I want you in my life, through ordinary days too.",
-      "I feel close to you. You can count on that.",
-      "I can imagine a home with you in it."
+      {
+        "line": "I can picture making a life beside you.",
+        "reply": "I can see that life too. I want us to be sure of it.",
+        "refusal": "I hear the life you picture. I must be honest before you build your hopes on it."
+      },
+      {
+        "line": "I trust you with more than small talk now.",
+        "reply": "I will take care of that trust. Tell me what you have held back.",
+        "refusal": "I will honour your trust by speaking plainly about what I can offer."
+      },
+      {
+        "line": "I want you beside me when the days are hard.",
+        "reply": "I want to be there when things are hard, as well as when they are easy.",
+        "refusal": "You deserve someone who can choose you through the hard days."
+      },
+      {
+        "line": "You have become dear to me.",
+        "reply": "You are dear to me too. I think you know how much that means.",
+        "refusal": "I know I am dear to you. That makes it harder to say this, but I must."
+      },
+      {
+        "line": "I would like our lives to grow together.",
+        "reply": "I want our lives to grow together too, without either of us disappearing.",
+        "refusal": "Our lives matter too much for me to promise what I cannot give."
+      },
+      {
+        "line": "When I think of home, I think of you.",
+        "reply": "Home has begun to mean your company to me. That is something I cherish.",
+        "refusal": "I hear what home means to you. I cannot let you mistake my answer."
+      }
     ],
     "memoryReplies": {
-      "family": "I trust you with my family’s stories. You have become part of my life.",
-      "trait": "You know that side of me now. I feel I can be myself with you.",
-      "work": "I want you in my life, on working days as well as quiet ones.",
-      "news": "I trusted you with that news because you are dear to me."
+      "family": "Speaking of {name} with you feels easier now. You understand why that story matters to me.",
+      "work": "Some days the {trade} work leaves me worn out. I would like to come home to you then.",
+      "news": "I trusted you with this: {news}. You have given me no cause to regret it.",
+      "trait": "{trait_reply} I trust you to see that part of me clearly."
+    },
+    "memoryRefusals": {
+      "family": "I am glad you listened about {name}. I need you to hear my answer as well.",
+      "trait": "You have noticed my {trait} side. I must be clear about my feelings.",
+      "work": "It is kind of you to take an interest in my {trade} work. I must answer honestly.",
+      "news": "I did want you to hear this: {news}. Sharing news was not a promise of courtship."
     }
   },
   "intimate": {
     "lines": [
-      "You know me better than anyone here.",
-      "I love the life we are finding together.",
-      "I want to keep choosing you, every day.",
-      "You have my heart. I hope you know it.",
-      "I cannot imagine my days without you now.",
-      "Whatever comes, I want to face it with you."
-    ],
-    "replies": [
-      "I love you. I want that life with you.",
-      "You have my heart too. There is no doubt left.",
-      "I feel at home with you as with no one else.",
-      "I want to be beside you, whatever comes."
+      {
+        "line": "You know me better than anyone here.",
+        "reply": "You have stayed to learn me. I trust you with what you have found.",
+        "refusal": "You do know me well. Please hear this part of me too."
+      },
+      {
+        "line": "I love the life we are finding together.",
+        "reply": "I love it too. Even the small, untidy parts of our days.",
+        "refusal": "The life we have found deserves an honest answer about marriage."
+      },
+      {
+        "line": "I want to keep choosing you, every day.",
+        "reply": "And I choose you. Tomorrow will be another day to say it.",
+        "refusal": "Choosing each other must be something we can both do freely."
+      },
+      {
+        "line": "You have my heart. I hope you know it.",
+        "reply": "I know, and you have mine. I do not say that lightly.",
+        "refusal": "I hear what you say about your heart. I will answer with care."
+      },
+      {
+        "line": "I cannot imagine my days without you now.",
+        "reply": "My days have made a place for you that nobody else could fill.",
+        "refusal": "I do not want you to shape every day around a promise I cannot make."
+      },
+      {
+        "line": "Whatever comes, I want to face it with you.",
+        "reply": "Then we will face it side by side. You need not carry it alone.",
+        "refusal": "Facing things together also means hearing the difficult truth."
+      }
     ],
     "memoryReplies": {
-      "family": "I love that you care for my family’s stories. I want us to make our own.",
-      "trait": "You know my ways and still choose me. I love you for that.",
-      "work": "I love sharing my days with you, work and all.",
-      "news": "I can tell you what weighs on me. I love having you beside me."
+      "family": "I want you to keep those memories of {name} with me. They belong in the life we share.",
+      "work": "The {trade} work is easier to face knowing you are beside me. I love that ordinary life with you.",
+      "news": "You stayed to listen when I told you: {news}. I love that you care about the people in my stories.",
+      "trait": "{trait_reply} You know that part of me, and I love that you stay."
+    },
+    "memoryRefusals": {
+      "family": "I am glad you listened about {name}. I need you to hear my answer as well.",
+      "trait": "You have noticed my {trait} side. I must be clear about my feelings.",
+      "work": "It is kind of you to take an interest in my {trade} work. I must answer honestly.",
+      "news": "I did want you to hear this: {news}. Sharing news was not a promise of courtship."
     }
   },
   "memories": {
@@ -142,5 +334,21 @@
     "player_closeness": "I feel close to you. I want you to know me just as well before we speak of marriage.",
     "ill_will": "There is still hurt between us. We need to put that right before we think of marriage.",
     "eligibility": "We cannot promise each other marriage while another commitment stands between us."
+  },
+  "traitReplies": {
+    "brave": "Being brave is easier with someone worth standing beside.",
+    "timid": "My timid ways can make a first step hard. You make it easier.",
+    "generous": "I give what I can. I am glad my generous ways brought you closer.",
+    "greedy": "I know I can be greedy. You need not pretend every part of me is easy.",
+    "proud": "I am proud, yes. It matters to me that you see something to value in that.",
+    "humble": "My humble ways do not mean I have nothing to say. I like that you listen.",
+    "hard-working": "There is always work to do. You noticed how hard-working I am, and that means something.",
+    "lazy": "My lazy side does like a quiet seat. I am glad you would share it.",
+    "cheerful": "I find more to be cheerful about when you are here.",
+    "gloomy": "You have seen my gloomy side and still come back. I value that.",
+    "pious": "My faith shapes my pious ways. I would like you to understand it.",
+    "worldly": "My worldly ways have given me a few stories. I would like to share them.",
+    "kind": "I try to be kind. You make me glad of the effort.",
+    "cruel": "You have seen my cruel side. We must speak honestly about that."
   }
 }

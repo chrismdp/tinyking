@@ -2,6 +2,7 @@
 import { DAYS_IN_SEASON } from "game/time";
 import { community as initialCommunity, attach } from "./support/travel";
 import { peopleWorld } from "./support/people";
+import { chatRecord } from "game/chat_patience";
 import { canMarryPlayer } from "game/family";
 import { chatChoices, chooseLine, closeChat } from "game/chat";
 import { resolveSuccession } from "game/succession";
@@ -22,13 +23,14 @@ const community = (...args) => {
 };
 
 const intimate = (s,a,b) => { for (const [x,y] of [[a,b],[b,a]]) s.ecs.relationships[x].known[y]={ring:"intimate",goodwill:66,base:66}; };
-const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.nameable[f.player].male=true; f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; return f; };
+const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.nameable[f.player].male=true; f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; chatRecord(f.state,f.player,f.person).courtship={started:f.state.days-6,visits:7,lastDay:Math.floor(f.state.days)-1}; return f; };
 const marryInChat = w => {
   const {state:s,person,step}=w;
   const job=enqueueTask(s,{key:"chat"},person);step(.05);expect(job.progress).toBeLessThan(1);step(2);
   s.chat.active.focus="family";
   const proposal=chatChoices(s).find(l=>l.family=="proposal");expect(proposal).toBeDefined();
-  expect(chooseLine(s,proposal.key)).toBe(true);expect(job.progress).toBe(1);
+  expect(chooseLine(s,proposal.key)).toBe(true);expect(job.progress).toBeLessThan(1);
+  closeChat(s);expect(job.progress).toBe(1);
 };
 
 it("requires mutual adult consent for deliberate marriage, while NPC matchmaking excludes the player", () => {

@@ -1,3 +1,4 @@
+import { playerCourtship, recordCourtingDay } from "game/player_courtship";
 import { isAdult } from "game/life_stages";
 import { mutuallyOriented } from "game/orientation";
 import { householdMembers, refreshPersonIndex } from "game/population_index";
@@ -7,7 +8,7 @@ import { entityId } from "game/residents";
 import { Hex } from "game/hex";
 import { closeFamily, recordEvent } from "game/events";
 
-export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true);
+export const canMarryPlayer = (s,a,b) => canCourt(s,a,b,true) && playerCourtship(s,a,b).ready;
 export function marriageTasteReason(s,a,b) {
   if (!mutuallyOriented(s,a,b)) return "I do not feel that sort of attraction to you. That will not change.";
   if (relationshipCap(s,b,a) < 2) return "I could never feel that way about you. Please do not wait for me.";
@@ -18,14 +19,18 @@ export function marriageReason(s,a,b) {
   if (!eligiblePartner(s,a,b,true)) return "We must both be unmarried adults, and we cannot be close kin.";
   const taste = marriageTasteReason(s,a,b);
   if (taste) return taste;
-  if (!canMarryPlayer(s,a,b)) return "We both need to feel close, with no ill will between us, before we marry.";
+  if (!canCourt(s,a,b,true)) return "We both need to feel close, with no ill will between us, before we marry.";
+  if (!playerCourtship(s,a,b).ready) return "I want more days to know you, and time between our visits to be sure. Let us keep courting.";
   return null;
 }
 export function courtPlayer(s,a,b) {
   const reason=!eligiblePartner(s,a,b,true) ? "We can only court if we are unmarried adults and not close kin." : marriageTasteReason(s,a,b);
   if(reason)return {ok:false,message:reason};
-  beginInteraction(s,a,b);chatTogether(s,a,b);completeConversation(s,a,b);
-  return {ok:true,message:"You spent time courting. Your feelings grow at their own pace."};
+  beginInteraction(s,a,b);
+  const grew=recordCourtingDay(s,a,b);
+  if(grew)chatTogether(s,a,b);
+  completeConversation(s,a,b);
+  return {ok:true,grew,message:"You spent time courting. Your feelings grow at their own pace."};
 }
 export function familyConversation(s,a,b,key) {
   if (key == "play") {

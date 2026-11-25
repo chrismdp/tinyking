@@ -1,3 +1,4 @@
+import { playerWeddings } from "game/player_wedding";
 import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { villagePeople } from "game/population_index";
 import { DAYS_IN_SEASON, day_of_season, hour_of_day, season } from "game/time";
@@ -132,7 +133,7 @@ export function seasonLines(s, n, actor = s.ui.playerId) {
   const events = knownEvents(s, actor).filter(e => e.day >= start && e.day < end)
     .sort((a,b) => a.day-b.day || a.id.localeCompare(b.id, undefined, {numeric:true}));
   const row = (id, text, section, records) => ({id, text, section, eventIds:records.map(e=>e.id)});
-  const lifeRecords=events.filter(e=>LIFE_EVENTS.has(e.type) || EVENT_TYPES[e.type]?.seasonSection=="life");
+  const lifeRecords=events.filter(e=>!(e.type=="marriage"&&e.people.includes(actor)) && (LIFE_EVENTS.has(e.type) || EVENT_TYPES[e.type]?.seasonSection=="life"));
   const groups=new Map();
   for(const event of lifeRecords) {
     if(event.people.includes(actor))continue;
@@ -163,7 +164,7 @@ export function seasonLines(s, n, actor = s.ui.playerId) {
   const festivals = [...new Set(own.filter(e=>e.type=="festival").map(e=>e.title))];
   const helped = own.filter(e=>e.type=="favour").length;
   const met = Object.entries(s.knowledge?.[actor]?.people || {}).filter(([id,p])=>id!=actor && p.conversation?.day>=start && p.conversation.day<end && !s.ecs.personable?.[id]?.unrevealed).length;
-  const milestones=[],k=s.knowledge?.[actor],relatives=s.backstories?.[actor]?.relatives || [];
+  const milestones=playerWeddings(s,actor).filter(e=>e.day>=start&&e.day<end).map(e=>row(e.id,e.text,"player",[e])),k=s.knowledge?.[actor],relatives=s.backstories?.[actor]?.relatives || [];
   const reunions=relatives.filter(r=>{
     const day=k?.maternalFamily?.reunions?.[r.id]?.day;
     return day>=start && day<end;

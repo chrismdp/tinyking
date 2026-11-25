@@ -9,6 +9,7 @@ import { currentActivity } from "game/person_activity";
 
 function couple(ring="public") {
   const w=peopleWorld(),{state:s,player:p,person:n}=w;
+  chatRecord(s,p,n).courtship={started:s.days-6,visits:7,lastDay:Math.floor(s.days)-1};
   s.ecs.nameable[p].male=true;s.ecs.personality[p].orientation="same";
   s.ecs.personality[n].orientation="opposite";s.opinionThresholds={hate:-100,love:-99};
   for(const [a,b] of [[p,n],[n,p]])s.ecs.relationships[a].known[b]={ring,goodwill:({public:0,social:12,personal:35,intimate:65})[ring]};
@@ -19,7 +20,7 @@ function couple(ring="public") {
 }
 const flirt=s=>chatChoices(s).find(l=>l.family==="flirt");
 function visit(s,p,n) {
-  closeChat(s);chatRecord(s,p,n).resting=0;
+  closeChat(s);s.days+=1;chatRecord(s,p,n).resting=0;
   expect(openChat(s,p,n)).toBe(true);
   s.chat.active.row=[];s.chat.active.focus="family";delete s.chat.active.expectation;
 }
@@ -185,4 +186,19 @@ it("keeps the completed courting reason when a disliked reply match lowers trust
   const answer=s.chat.active.transcript.findLast(l=>l.family=="flirt_reply");
   expect(answer.pops.some(pop=>pop.amount<0)).toBe(true);
   expect(answer.text.startsWith(s.chat.active.romanceResult.reply)).toBe(true);
+});
+
+it.each([false,true])("answers three different learned traits distinctly across saved visits in the same stage, including refusal: %s",refused=>{
+  const {state:s,player:p,person:n}=couple("intimate");let game=s;
+  if(refused)game.ecs.personality[n].opinionThresholds={hate:100,love:101};
+  const replies=[];
+  for(const trait of ["brave","generous","proud"]) {
+    game.knowledge[p].people[n].traits=[trait];
+    const line=flirt(game);
+    expect(line.b.courtship.factId).toBe(trait);
+    expect(line).toBeDefined();expect(chooseLine(game,line.key)).toBe(true);
+    replies.push(game.chat.active.transcript.findLast(l=>l.family==="flirt_reply").text);
+    visit(game,p,n);game=restoreGame(serialiseGame(game));
+  }
+  expect(new Set(replies).size).toBe(replies.length);
 });

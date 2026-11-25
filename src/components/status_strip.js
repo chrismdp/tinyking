@@ -1,3 +1,4 @@
+import { playerWeddings } from "game/player_wedding";
 import { TALK_MINUTES } from "game/player";
 import { isDependent } from "game/life_stages";
 import { foodChoices } from "game/energy";
@@ -135,6 +136,7 @@ export function Journal() {
       <button className="your-family" onClick={()=>state.ui.actions.show_family(id)}>Your family</button>
       {goals.family && <p className="family-goal" role="status">{goals.family.text}</p>}
       <section className="people-goals"><h3>Life here · {goals.completed.length}/4</h3><p>{goals.hint}</p>{goals.labels.map(text=><p key={text}>✓ {text}</p>)}</section>
+      {playerWeddings(state).map(event=><p key={event.id} className="your-wedding">{event.text}</p>)}
       <ActivityDetails/>
       {!person.dead && <div className="journal-meals">{foodChoices(state).filter((meal,i,all)=>all.findIndex(x=>x.type==meal.type)==i).map(meal=><button key={meal.type} onClick={()=>{enqueueTask(state,{key:"eat_food"},meal.sourceId,{foodType:meal.type});state.ui.actions.end_turn();}} title={"Restores " + FOOD_ENERGY[meal.type] + " energy"}>Eat {meal.type}</button>)}</div>}
       {garden && <button onClick={()=>state.ui.actions.choose_job(id,{key:"tend_garden"},garden)}>Help at home</button>}

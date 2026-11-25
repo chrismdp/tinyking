@@ -144157,7 +144157,11 @@
   "level": {
    "ring": "public",
    "below": "hide"
-  }
+  },
+  "answers": [
+   "name",
+   "family"
+  ]
  },
  {
   "id": "npc.maternal_recognition.welcome_kin.base.01",

@@ -1,11 +1,13 @@
 import { peopleWorld } from "./support/people";
-import { openChat, chatChoices, chooseLine, lineCandidates, patience } from "game/chat";
+import { openChat, chatChoices, chooseLine, closeChat, lineCandidates, patience } from "game/chat";
 import { marriageReason, marriageTasteReason } from "game/family";
+import { chatRecord } from "game/chat_patience";
 import { chatTogether } from "game/social";
 import { enqueueTask } from "game/manager";
 
 function courtingChat() {
   const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;
+  chatRecord(s,p,n).courtship={started:s.days-6,visits:7,lastDay:Math.floor(s.days)-1};
   s.ecs.nameable[p].male=true;
   s.ecs.personality[p].orientation="both";s.ecs.personality[n].orientation="both";
   s.opinionThresholds={hate:-100,love:-99};
@@ -81,7 +83,7 @@ it("answers a taste mismatch without applying the courting effect",()=>{
   expect(s.chat.active.transcript.at(-1).text).toContain(reason);
 });
 
-it("accepts a proposal, celebrates, releases attention and finishes the queued chat after a household move",()=>{
+it("keeps an accepted proposal paused and visible until the player closes chat after a household move",()=>{
   const {state:s,player:p,person:n,tiles}=courtingChat();
   s.ecs.household[p].houseId=tiles[0];
   const job=enqueueTask(s,{key:"chat"},n);s.chat.active.taskId=job.id;
@@ -91,6 +93,11 @@ it("accepts a proposal, celebrates, releases attention and finishes the queued c
   expect(s.events.filter(e=>e.type=="marriage")).toHaveLength(1);
   expect(s.events.filter(e=>e.type=="celebration")).toHaveLength(1);
   expect(s.wedding.people).toEqual([p,n]);
+  expect(s.chat.active).toBeDefined();expect(s.game_speed).toBe("paused");
+  expect(s.chat.active.transcript.at(-1)).toMatchObject({speaker:"npc",family:"proposal_reply"});
+  expect(s.ecs.planner[n].world.capturedBy).toBe(p);
+  expect(job.progress).toBeLessThan(1);
+  closeChat(s);
   expect(s.chat.active).toBeUndefined();expect(s.game_speed).toBe("normal");
   expect(s.chat.history.at(-1).lines.some(l=>l.speaker=="npc"&&l.family=="proposal_reply")).toBe(true);
   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();

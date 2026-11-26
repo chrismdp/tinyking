@@ -1,6 +1,8 @@
+/* global it, expect */
 import { generateFamilies, Hex, Grid, ALL_SIDES } from "game/map";
 import { newEntities } from "game/entities";
-import { arrivalRoute, startIntro, skipIntro, updateIntro, INTRO_TIMING } from "game/intro";
+import { arrivalRoute, startIntro, skipIntro, updateIntro, introFrameSeconds, INTRO_TIMING } from "game/intro";
+import { serialiseGame, restoreGame } from "game/save_game";
 
 const routeFixture = () => {
   const state = { ecs: { nextId: 1, building: {} }, days: 0.375, space: {}, redraws: [], ui: { show: {} },
@@ -28,6 +30,35 @@ it("chooses an entry facing the nearest village", () => {
   const village = Hex(state.villages.v.centre).toPoint();
   const dot = (end.x - start.x) * (village.x - end.x) + (end.y - start.y) * (village.y - end.y);
   expect(dot / Math.hypot(end.x - start.x, end.y - start.y) / Math.hypot(village.x - end.x, village.y - end.y)).toBeGreaterThan(0.95);
+});
+
+it("excludes character setup before arrival from the first animation frame", () => {
+  const state = routeFixture(), before = performance.now();
+  startIntro(state);
+  const after = performance.now();
+  const seconds = introFrameSeconds(state, before - 5000, after);
+  expect(seconds).toBeGreaterThanOrEqual(0);
+  expect(seconds).toBeLessThanOrEqual((after - before) / 1000);
+  updateIntro(state, seconds);
+  expect(state.intro.active).toBe(true);
+  expect(introFrameSeconds(state, after, after + 200)).toBeCloseTo(.2, 10);
+});
+
+it("resumes a saved arrival with the new page's clock and no saved wall time", () => {
+  const state = routeFixture();
+  startIntro(state);
+  updateIntro(state, .5);
+  const loaded = restoreGame(serialiseGame(state));
+  expect(loaded.intro).toEqual(state.intro);
+  expect(introFrameSeconds(loaded, 1000, 1100)).toBeCloseTo(.1, 10);
+});
+
+it("leaves the real frame interval unchanged after arrival finishes", () => {
+  const state = routeFixture();
+  startIntro(state);
+  skipIntro(state);
+  const now = performance.now();
+  expect(introFrameSeconds(state, now - 5000, now)).toBe(5);
 });
 
 it("chooses another two-hex approach when the preferred approach is unwalkable", () => {

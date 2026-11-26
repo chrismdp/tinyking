@@ -43,7 +43,7 @@ import { useTranslate } from "react-polyglot";
 
 import { generateWorldGame, startWorldPlayer } from "game/world_history";
 
-import { skipIntro, introActive } from "game/intro";
+import { skipIntro, introActive, introFrameSeconds } from "game/intro";
 import { createSimulation } from "game/simulation";
 import { createTicker } from "game/ticker";
 import { GameState } from "components/contexts";
@@ -91,7 +91,7 @@ const renderMap = (webgl, state, selectEntity, renderUI, t) => {
   let simulationTime = performance.now();
   state.ticker.add(frameMod => {
     const now = performance.now();
-    simulation.step(frameMod, (now - simulationTime) / 1000);
+    simulation.step(frameMod, introFrameSeconds(state, simulationTime, now));
     simulationTime = now;
     state.persistence.flush();
   });

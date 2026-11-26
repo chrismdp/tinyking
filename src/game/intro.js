@@ -17,6 +17,14 @@ const smooth = t => t * t * (3 - 2 * t);
 const offset = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
 const tileAt = (state, p) => (state.space[Hex().fromPoint(p)] || []).find(id => state.ecs.mappable[id]);
 export const introActive = state => !!state.intro?.active;
+const arrivalStarted = new WeakMap();
+
+// A frame can include character setup before this arrival began. This clock
+// belongs to the current page and never enters the saved game.
+export function introFrameSeconds(state, previousTime, now) {
+  const start = introActive(state) ? arrivalStarted.get(state.intro) : undefined;
+  return (now - Math.max(previousTime, start ?? previousTime)) / 1000;
+}
 
 // The route and its immediate neighbours are visible throughout the opening.
 export const arrivalTiles = state => state.intro.tileIds.flatMap(id =>
@@ -75,6 +83,7 @@ export function startIntro(state, { skip = false, narrative = null } = {}) {
   goalEvidence(state,state.ui.playerId);
   const route = arrivalRoute(state);
   state.intro = { ...route, ...(narrative ? { narrative } : {}), active: true, elapsed: 0, phase: "walking", pose: "walking", putDown: 0, fire: 0, bedroll: 0 };
+  arrivalStarted.set(state.intro, performance.now());
   state.ui.selected = null;
   move(state, route.points[0]);
   state.redraws.push(state.ui.playerId);

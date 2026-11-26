@@ -65,7 +65,10 @@ const check = (name, ok, detail) => {
     const snapshot = await page.evaluate(() => {
       const s = window.tinyking;
       return { ecs: s.ecs, space: s.space, days: s.days, map: s.map, villages: s.villages,
-        ui: { playerId: s.ui.playerId }, game_speed: s.game_speed };
+        ui: { playerId: s.ui.playerId, show: s.ui.show }, game_speed: s.game_speed,
+        worldBusy: s.worldBusy, transition: s.transition, travelError: s.travelError,
+        chatActive: !!s.chat?.active, seasonTurn: s.seasonTurn, nightSleep: s.nightSleep,
+        simulationClock: s.simulationClock };
     }).catch(() => null);
     if (snapshot) fs.writeFileSync(path.join(SHOTS, "playtest-failure.json"), JSON.stringify(snapshot));
     await page.screenshot({ path: path.join(SHOTS, "playtest-failure.png") }).catch(() => {});
@@ -530,11 +533,16 @@ async function play(page, alreadyStarted=false) {
     await giveGift();
 
     // --- Play on ------------------------------------------------------------------------
+    const simulationProfile = process.env.PLAYTEST_PROFILE ? await page.context().newCDPSession(page) : null;
+    if (simulationProfile) {
+      await simulationProfile.send("Profiler.enable");
+      await simulationProfile.send("Profiler.start");
+    }
     await speed(NORMAL);
     const sample = () => game(() => {
       const s = window.tinyking;
       const ground = s.renderer.ground;
-      return Object.keys(s.ecs.spatial).filter(id => s.ecs.personable[id]).map(id => {
+      const people = Object.keys(s.ecs.spatial).filter(id => s.ecs.personable[id]).map(id => {
         const p = s.ecs.spatial[id];
         const object = s.renderer.objectOf(id);
         return {
@@ -545,24 +553,37 @@ async function play(page, alreadyStarted=false) {
           offGround: object ? Math.abs(object.position.y - ground.heightAt(p.x, p.y)) : null
         };
       });
+      return { people, observation: { day: s.days, speed: s.game_speed,
+        worldBusy: !!s.worldBusy, chatActive: !!s.chat?.active, seasonTurn: !!s.seasonTurn,
+        travelError: s.travelError, simulationClock: s.simulationClock } };
     });
-    const first = await sample();
+    const first = (await sample()).people;
     const startDays = await game(() => window.tinyking.days);
     let worstOffGround = 0;
     const heights = new Set();
     // Poll real simulation progress after End chat. Sample six game hours
     // (scaled by the optional observation argument), not a fixed wall sleep.
-    for (let step = 1; step <= 12; step++) {
-      await page.waitForFunction(day => window.tinyking.days >= day,
-        startDays + step * (SECONDS / 60) / 48, {timeout:45000});
-      for (const p of await sample()) {
-        if (p.offGround != null) {
-          worstOffGround = Math.max(worstOffGround, p.offGround);
+    try {
+      for (let step = 1; step <= 12; step++) {
+        await page.waitForFunction(day => window.tinyking.days >= day,
+          startDays + step * (SECONDS / 60) / 48, {timeout:45000});
+        const observed = await sample();
+        console.log("SIMULATION observation " + step + "/12 " + JSON.stringify(observed.observation));
+        for (const p of observed.people) {
+          if (p.offGround != null) {
+            worstOffGround = Math.max(worstOffGround, p.offGround);
+          }
+          heights.add(Math.round(p.height));
         }
-        heights.add(Math.round(p.height));
+      }
+    } finally {
+      if (simulationProfile) {
+        const { profile } = await simulationProfile.send("Profiler.stop");
+        fs.writeFileSync(path.join(SHOTS, "simulation.cpuprofile"), JSON.stringify(profile));
+        await simulationProfile.detach();
       }
     }
-    const last = await sample();
+    const last = (await sample()).people;
     const moved = last.filter(p => {
       const before = first.find(f => f.id == p.id);
       return before && Math.hypot(before.x - p.x, before.y - p.y) > 30;

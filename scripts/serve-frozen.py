@@ -17,7 +17,7 @@ class FrozenHandler(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
-    parser.add_argument('--port', type=int, default=8123)
+    parser.add_argument('--port', type=int, default=8191)
     args = parser.parse_args()
     directory = args.directory.resolve(strict=True)
     if not (directory / 'index.html').is_file():

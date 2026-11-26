@@ -1,6 +1,6 @@
 import { HOUSEHOLD_CAPACITY } from "game/household_capacity";
 import { householdMembers, withPopulationIndex } from "game/population_index";
-import { attachPeople, PERSON_COMPONENTS } from "game/person_storage";
+import { attachPeople, PERSON_COMPONENTS, syncPerson } from "game/person_storage";
 import { captureDetailOrigins, prepareNeighbourDetails, releaseHistoryWorkspace } from "game/hex_detail";
 import { compactMap, SUMMARY_COMPONENTS } from "game/community_summary";
 export { compactMap } from "game/community_summary";
@@ -8,7 +8,7 @@ import MersenneTwister from "mersenne-twister";
 import { Hex } from "game/hex";
 import { routeCrossing } from "game/geography";
 import { generateWorld } from "game/overworld";
-import { generateMap, generatePerson } from "game/map";
+import { generateMap, generatePerson, discoverStartingTiles } from "game/map";
 import { newEntities } from "game/entities";
 import { initialiseTravel, advanceWorldClock, localSnapshot, ensureMap, freezeOpinions, releaseLocalWork, withReferenceIndex } from "game/travel";
 import { advanceSeason } from "game/social";
@@ -124,16 +124,32 @@ export async function advanceHistorySeasons(s,firstSeason,lastSeason,progress=as
 }
 
 export async function generateWorldGame(s,seed,progress=async()=>{},options={}) {
+  await generateWorldTemplate(s,seed,progress,options);
+  return startWorldPlayer(s);
+}
+
+export async function generateWorldTemplate(s,seed,progress=async()=>{},options={}) {
   await progress("Preparing the whole world",0);
   await generateWorldHistory(s,seed,(label, value) => progress(label, value * .8));
   captureDetailOrigins(s);
-  const map=await ensureMap(s,s.travel.active,(label,value)=>progress(label,.65+.15*value),options);
+  const map=await ensureMap(s,s.travel.active,(label,value)=>progress(label,.65+.15*value),{...options,noPlayer:true});
   delete s.compact;Object.assign(s,map);
   await advanceWorldClock(s);
   await prepareNeighbourDetails(s, (label, value) => progress("Preparing nearby lands: " + label, .8 + .2 * value), options);
   await releaseHistoryWorkspace(s);
   s.travel.maps[s.travel.active]=localSnapshot(s);
-  return {map:s.map,playerId:Object.keys(s.ecs.playable)[0]};
+  return {map:s.map};
+}
+
+// The shared artifact ends before the stranger, their discoveries and arrival.
+// Both browser generation and a downloaded world enter personal play here.
+export function startWorldPlayer(s) {
+  const playerId=addMapPlayer(s);
+  discoverStartingTiles(s.ecs,playerId,Hex(s.map.playerStartTile));
+  freezeOpinions(s);
+  syncPerson(s,playerId);
+  s.travel.maps[s.travel.active]=localSnapshot(s);
+  return {map:s.map,playerId};
 }
 
 export async function buildHistoryMap(s,hex,summary,progress,options={}) {
@@ -141,7 +157,7 @@ export async function buildHistoryMap(s,hex,summary,progress,options={}) {
   if(s.travel.localPeople){attachPeople(fresh,s.travel);fresh.knowledge={};}
   const roll=(s.worldHistory?.contents || s.travel.contents)[worldKey(hex)];
   const contents=roll && {...roll,settlements:roll.settlements.map(v=>({...v,houseCount:Math.max(v.houseCount,summary.villages[v.id]?.houses.length||0)}))};
-  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents,noPlayer:worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
+  const result=await generateMap(fresh,summary.map.seed,progress|| (async()=>{}),{...options,surveyedEntrances:options.geographyFixture ? undefined : storedEntrances(s,hex,summary),world:s.world,hex,worldSeed:s.travel.seed,storedHistory:summary,contents,noPlayer:options.noPlayer||worldKey(hex)!==worldKey(s.world.home)||!!s.ui.playerId});
   fresh.map=result.map;return localSnapshot(fresh);
 }
 
@@ -198,11 +214,7 @@ export function installStoredHistory(s,summary,sites,contents,noPlayer) {
   }
   // Add the stranger only after all historical world seasons have finished.
   e.playable ||= {};
-  if(!noPlayer) {
-    const generator=new MersenneTwister(s.map.seed);
-    const [id]=newEntities(s,[{...generatePerson({spatial:requirePoint(s.map.playerStartTile),male:true,age:24,familySeed:generator.random_int(),generator,days:s.days}),village:{villageId:null},relationships:{known:{}}}],"person-");
-    e.playable[id]={id,known:[]};e.manager[id].ordered=true;e.planner[id].world.ordered=true;e.controllable[id].controllerId=id;s.residents[id]=true;
-  }
+  if(!noPlayer) addMapPlayer(s);
   for(const id of Object.keys(e.possession||{}))e.spatial[id]={...(e.spatial[e.possession[id].ownerId]||requirePoint(s.map.playerStartTile)),id};
   placeSummaryCargo(s,summary,true);
   repairHouseholds(s);
@@ -210,6 +222,13 @@ export function installStoredHistory(s,summary,sites,contents,noPlayer) {
   const point=Object.values(s.map.entrances)[0]?.campPoint||requirePoint(s.map.playerStartTile);
   newEntities(s,[{spatial:{x:point.x+70,y:point.y+70,immovable:true},nameable:{nickname:contents.discoveries[0]},discovery:{kind:contents.discoveries[0]}}],"discovery-");
   s.needsUpdatedAt=s.environmentUpdatedAt=s.days;
+}
+
+function addMapPlayer(s) {
+  const e=s.ecs,generator=new MersenneTwister(s.map.seed);
+  const [id]=newEntities(s,[{...generatePerson({spatial:requirePoint(s.map.playerStartTile),male:true,age:24,familySeed:generator.random_int(),generator,days:s.days}),village:{villageId:null},relationships:{known:{}}}],"person-");
+  (e.playable ||= {})[id]={id,known:[]};e.manager[id].ordered=true;e.planner[id].world.ordered=true;e.controllable[id].controllerId=id;s.residents[id]=true;
+  return id;
 }
 
 export function restoreDetails(detail,summary) {

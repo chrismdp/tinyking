@@ -3,6 +3,8 @@ name: Deploy
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 4 * * 1'
   workflow_dispatch:
 
 concurrency:
@@ -25,6 +27,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - run: npx jest
       - run: npm run build
+      - run: npm run build-world
       - name: Deploy to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

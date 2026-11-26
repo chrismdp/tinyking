@@ -460,7 +460,7 @@ export async function generateSettlements(seed, grid, landscape, start, progress
   return { settlements, villages, settlementSites };
 }
 
-function discoverStartingTiles(ecs, id, center) {
+export function discoverStartingTiles(ecs, id, center) {
   const tiles = Grid.spiral({ center, radius: STARTING_KNOWN_DISTANCE })
     .map(s => ({ x: s.x, y: s.y }));
   discoverTiles(ecs, { id, tiles });

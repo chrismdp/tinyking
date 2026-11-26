@@ -14,6 +14,7 @@ import { personComponent } from "game/residents";
 import { openCharacter, closeCharacter, startGame } from "game/new_game";
 import { connectSaveWorker, createAutosave, bindAutosave } from "game/autosave";
 import { replaceGame } from "game/save_game";
+import { loadWorldTemplate } from "game/world_loader";
 import { habitatAt, localHabitat, climateAt } from "game/biome_field";
 import { repairHouseholds } from "game/possessions";
 import { foundHousehold } from "game/family";
@@ -40,7 +41,7 @@ import * as THREE from "three";
 
 import { useTranslate } from "react-polyglot";
 
-import { generateWorldGame } from "game/world_history";
+import { generateWorldGame, startWorldPlayer } from "game/world_history";
 
 import { skipIntro, introActive } from "game/intro";
 import { createSimulation } from "game/simulation";
@@ -189,7 +190,7 @@ export function World() {
 
   React.useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("seed");
-    const initialSeed = requested ? (isNaN(+requested) ? requested : +requested) : Math.round(Math.random() * 10000000);
+    const initialSeed = requested ? (isNaN(+requested) ? requested : +requested) : undefined;
     const webgl = new THREE.WebGLRenderer({ antialias: true });
     webgl.setPixelRatio(rendererPixelRatio(window));
     webgl.setSize(window.innerWidth, window.innerHeight);
@@ -347,17 +348,29 @@ export function World() {
         state.game_speed = "normal";
         state.days = 0.375;
 
-        await state.ui.actions.progress_update("Preparing your world", 0);
-        const results = await generateWorldGame(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
-        state.map = results.map;
-        state.ui.playerId = results.playerId;
-        if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
+        try {
+          state.persistence.error = null;
+          await state.ui.actions.progress_update("Preparing your world", 0);
+          let results;
+          if (seed === undefined) {
+            const data = await loadWorldTemplate(state.ui.actions.progress_update);
+            replaceGame(state, data);
+            state.ui.show = show;
+            results = startWorldPlayer(state);
+          } else {
+            results = await generateWorldGame(state, seed, state.ui.actions.progress_update, { settlementFixture:process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("settlement") : null, geographyFixture: process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("geography") : null });
+          }
+          state.map = results.map;
+          state.ui.playerId = results.playerId;
+          if (process.env.NODE_ENV !== "production") applyWeatherPreview(state, window.location.search);
 
-        state.generating = false;
-        // Hold the new world still while the player chooses their character.
-        if (state.ui.show.main_menu || state.ui.show.mapgen) state.game_speed = "paused";
-        renderMap(webgl, state, selectEntity, renderUI, t);
-
+          // Hold the new world still while the player chooses their character.
+          if (state.ui.show.main_menu || state.ui.show.mapgen) state.game_speed = "paused";
+          renderMap(webgl, state, selectEntity, renderUI, t);
+        } catch (error) {
+          state.persistence.error = "Could not start a new game: " + error.message;
+          state.ui.show = { main_menu: true, mapgen: false };
+        } finally { state.generating = false; }
         renderUI();
       },
       progress_update: createLoadingProgress(state, () => flushSync(renderUI))
@@ -378,8 +391,8 @@ export function World() {
       }
     };
 
-    if (process.env.NODE_ENV !== "production") {
-      // NOTE: lets scripts/playtest.js look inside the running game
+    if (process.env.NODE_ENV !== "production" || window.__TINYKING_PLAYTEST__) {
+      // The playtest opts in before boot, including on the production artifact.
       window.tinyking = state;
       window.tinykingTravel = { createSimulation: () => createSimulation(state, { onDay: () => state.persistence.request(), onTravel: () => { state.ui.actions.dismiss_travel(); renderMap(webgl,state,selectEntity,renderUI,t); } }) };
       window.tinykingSocial = { startSecretActivity, activityPlace, recordEvent, chatTogether, runSocialActions, maritalSatisfaction, exchangeNews, openChat, lineCandidates, speakLine, closeChat };

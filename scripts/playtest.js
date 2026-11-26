@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-// Plays the running dev build in headless Chromium and checks it, all
+// Plays the running dev or frozen production build in headless Chromium, all
 // through the UI (mouse, wheel and keys). Observer pauses use ui.actions,
-// with game state read through the dev-only window.tinyking:
+// with game state read through the opted-in window.tinyking observer:
 //   main menu -> new game -> stranger at a camp (seed 13)
 //   click a villager to select it
 //   order Chat, Gift, Move here, Create Field, Create Stockpile and Cut down from
@@ -12,7 +12,8 @@
 //   no console errors throughout
 // Screenshots go to shots/ (gitignored).
 //
-//   npm start                (in another terminal)
+//   npm run build-world -- --seed 13
+//   npm start                (port 8190; or serve dist on frozen port 8191)
 //   npm run playtest -- [url] [seconds]
 const path = require("path");
 const fs = require("fs");
@@ -24,7 +25,7 @@ const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
 
-const BASE_URL = process.argv[2] || "http://localhost:8080/";
+const BASE_URL = process.argv[2] || "http://localhost:8190/";
 const SECONDS = +(process.argv[3] || 60);
 const SHOTS = path.resolve(process.env.PLAYTEST_OUT || path.join(__dirname, "..", "shots"));
 const CHROME = process.env.CHROME ||
@@ -46,6 +47,7 @@ const check = (name, ok, detail) => {
     args: ["--use-gl=swiftshader", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
   });
   const page = await browser.newPage({ viewport: VIEW });
+  await page.addInitScript(() => { window.__TINYKING_PLAYTEST__ = true; });
   page.on("pageerror", e => report.errors.push("pageerror: " + e.message));
   page.on("console", m => {
     const where = m.location() && m.location().url || "";
@@ -77,10 +79,17 @@ const check = (name, ok, detail) => {
 
 async function opening(page) {
   const url = new URL(BASE_URL);
-  url.searchParams.set("seed", "13");
+  url.searchParams.delete("seed");
   url.searchParams.delete("intro");
   await page.goto(url.href);
   await waitForStartMenu(page);
+  await page.evaluate(() => {
+    document.addEventListener("click", function observeNewGame(event) {
+      if (event.target.textContent !== "Start new game") return;
+      document.removeEventListener("click", observeNewGame);
+      window.newGameClickedAt = performance.now();
+    });
+  });
   await page.getByText("Start new game", { exact: true }).click();
   await waitForCharacter(page);
   await page.screenshot({path:path.join(SHOTS,"new-game.png")});
@@ -106,6 +115,7 @@ async function opening(page) {
         }
         const camp=s.ecs.spatial[s.intro.campId];
         o.end={elapsed:s.intro.elapsed,realSeconds:performance.now()/1000-started,
+          newGameSeconds:(performance.now()-window.newGameClickedAt)/1000,
           nearCamp:Math.hypot(now.x-camp.x,now.y-camp.y)<40,standing:s.intro.pose=="standing",
           bundle:!!s.ecs.camp[s.intro.campId].bundle && !!s.renderer.objectOf(s.intro.campId).getObjectByName("arrival-bundle"),
           campCount:Object.keys(s.ecs.camp||{}).length,steps:s.intro.tileIds.length-1,
@@ -118,6 +128,11 @@ async function opening(page) {
   await page.getByRole("button", { name: "Start game", exact: true }).click();
   await page.waitForFunction(() => window.introObservation?.end, null, { timeout: 15000 });
   const {start,end,walked}=await page.evaluate(()=>window.introObservation);
+  report.startupSeconds = end.newGameSeconds;
+  console.log("STARTUP click Start new game to standing: " + end.newGameSeconds.toFixed(3) + " seconds (includes character screen and arrival)");
+  check("new games use the pre-built seed 13 world", await page.evaluate(() =>
+    !new URLSearchParams(location.search).has("seed") && window.tinyking.travel.seed === 13 &&
+    performance.getEntriesByType("resource").some(r => new URL(r.name).pathname.endsWith("/world.json.gz"))));
   check("the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
     start.noCamp && start.locked && walked && end.realSeconds >= 4 && end.realSeconds <= 6 && end.nearCamp && end.standing && end.bundle && end.campCount == 1 && end.steps == 2 &&
     end.control && end.days == start.days && end.needs == start.needs,
@@ -301,7 +316,7 @@ async function play(page, alreadyStarted=false) {
 
   // --- Start a game ---------------------------------------------------------------
   const playURL = new URL(BASE_URL);
-  playURL.searchParams.set("seed", "13");
+  playURL.searchParams.delete("seed");
   playURL.searchParams.set("intro", "skip");
   if(!alreadyStarted) {
     await page.goto(playURL.href);

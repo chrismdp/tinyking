@@ -11,7 +11,6 @@ module.exports = [merge(common, {
     hot: false,
     liveReload: false,
     static: path.resolve(__dirname, "dist"),
-    port: 8190,
     historyApiFallback: true,
     host: "0.0.0.0"
   }

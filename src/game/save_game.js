@@ -1,9 +1,10 @@
 import { attachPeople, syncWorldSave } from "./person_storage";
 import { bindNewsContext } from "./event_knowledge";
 import { restoreOrientations } from "./orientation";
+import { SAVE_VERSION } from "./save_version";
+export { SAVE_VERSION } from "./save_version";
 // Everything affecting play is saved. Only browser resources and the save
 // controller and transient screen fades are excluded; UI actions are reattached by World on restore.
-export const SAVE_VERSION = 1;
 const RUNTIME = new Set(["renderer", "ticker", "personName", "redraws", "persistence", "generating", "worldBusy", "transition", "nightSleep", "detailError"]);
 export function gameData(state) {
   syncWorldSave(state);

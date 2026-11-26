@@ -1,0 +1,6 @@
+
+> tinyking@1.0.0 build-world
+> node scripts/build-world.js --seed 13
+
+Building world 2026-W48 for seed 13
+{"week":"2026-W48","key":"v1/2026-W48.json.gz","seed":13,"out":"/home/cp/code/tk-worlds/worlds/v1/2026-W48.json.gz","seconds":133.213,"compressedBytes":4552476,"MiB":4.342}

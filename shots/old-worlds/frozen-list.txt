@@ -1,0 +1,8 @@
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.12.3
+Date: Thu, 26 Nov 2026 21:40:41 GMT
+Content-Type: application/json
+Content-Length: 88
+Cache-Control: public, max-age=60
+
+[{"id": "2026-W48", "monday": "2026-11-23"}, {"id": "2026-W47", "monday": "2026-11-16"}]

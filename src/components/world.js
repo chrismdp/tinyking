@@ -228,10 +228,10 @@ export function World() {
         delete state.ui.show[id];
         renderUI();
       },
-      custom_game: async () => {
+      custom_game: async (week) => {
         if (state.generating) return;
         openCharacter(state);
-        if (!state.map || state.ecs.playable?.[state.ui.playerId]?.arrivedAt != null) await state.ui.actions.generate_map(initialSeed);
+        await state.ui.actions.generate_map(week ? undefined : initialSeed, week);
         renderUI();
       },
       start_game: () => {
@@ -332,7 +332,7 @@ export function World() {
       select_entity: (id, touch) => {
         selectEntity(id, touch);
       },
-      generate_map: async (seed) => {
+      generate_map: async (seed, week) => {
         if (state.generating) return;
         state.generating = true;
         releaseMap(state);
@@ -353,7 +353,7 @@ export function World() {
           await state.ui.actions.progress_update("Preparing your world", 0);
           let results;
           if (seed === undefined) {
-            const data = await loadWorldTemplate(state.ui.actions.progress_update);
+            const data = await loadWorldTemplate(state.ui.actions.progress_update, fetch, week);
             replaceGame(state, data);
             state.ui.show = show;
             results = startWorldPlayer(state);

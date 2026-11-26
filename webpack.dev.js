@@ -12,6 +12,10 @@ module.exports = [merge(common, {
     liveReload: false,
     static: path.resolve(__dirname, "dist"),
     historyApiFallback: true,
-    host: "0.0.0.0"
+    host: "0.0.0.0",
+    setupMiddlewares: middlewares => {
+      middlewares.unshift({ name: "worlds", middleware: require("./scripts/serve-worlds") });
+      return middlewares;
+    }
   }
 }), require("./webpack.save")("development")];

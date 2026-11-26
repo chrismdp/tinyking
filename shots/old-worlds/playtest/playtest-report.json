@@ -1,0 +1,214 @@
+{
+  "errors": [],
+  "checks": [
+    {
+      "name": "new games use the pre-built seed 13 world",
+      "ok": true
+    },
+    {
+      "name": "the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
+      "ok": true,
+      "detail": {
+        "seconds": 5.278099999904634,
+        "noCamp": true,
+        "steps": 2,
+        "walked": true,
+        "nearCamp": true,
+        "standing": true,
+        "bundle": true,
+        "locked": true,
+        "gameDays": 0
+      }
+    },
+    {
+      "name": "the player starts at a camp with a bedroll and no house",
+      "ok": true
+    },
+    {
+      "name": "a waiting build is replaced by explicit chopping and finishes on a new build order",
+      "ok": true
+    },
+    {
+      "name": "clicking a villager selects it",
+      "ok": true,
+      "detail": {
+        "selected": "terrain5_3-person-4145"
+      }
+    },
+    {
+      "name": "clicking a tile opens its job menu, and Move here starts an order",
+      "ok": true,
+      "detail": {
+        "target": "terrain5_3-828"
+      }
+    },
+    {
+      "name": "the current order appears in the status strip",
+      "ok": true
+    },
+    {
+      "name": "Chat starts a personal order from the person panel",
+      "ok": true,
+      "detail": {
+        "person": "w5_3-social-74"
+      }
+    },
+    {
+      "name": "the person panel has no Recruit order",
+      "ok": true
+    },
+    {
+      "name": "Create Field, Create Stockpile and Cut down can be ordered from the popups",
+      "ok": true,
+      "detail": {
+        "fieldTile": "terrain5_3-784",
+        "stockpileTile": "terrain5_3-695",
+        "tree": "terrain5_3-2407"
+      }
+    },
+    {
+      "name": "the player walks to the ordered tile",
+      "ok": true,
+      "detail": {
+        "walker": "terrain5_3-person-4145",
+        "from": 124,
+        "to": 4
+      }
+    },
+    {
+      "name": "the completed task leaves the panel",
+      "ok": true
+    },
+    {
+      "name": "Chat pauses the world, chosen lines make contact and End chat releases the panel",
+      "ok": true,
+      "detail": {
+        "person": "w5_3-social-74",
+        "lines": [
+          {
+            "id": "player.direct_answer.fallback_answer_wellbeing.base.01",
+            "family": "direct_answer",
+            "disabled": false,
+            "matches": 1,
+            "score": 0
+          }
+        ],
+        "pops": [
+          {
+            "kind": "topic",
+            "key": "season",
+            "score": 1,
+            "amount": 1,
+            "listenerId": "w5_3-social-74"
+          }
+        ],
+        "contact": {
+          "day": 0.4937499999999996,
+          "position": {
+            "x": 2110.6358761346396,
+            "y": 667.4357592764001
+          },
+          "otherPosition": {
+            "x": 2160,
+            "y": 623.5382907247957
+          }
+        }
+      }
+    },
+    {
+      "name": "Gift chooser queues a real item for delivery",
+      "ok": true
+    },
+    {
+      "name": "the player walks over and gives the gift",
+      "ok": true,
+      "detail": {
+        "itemId": "terrain5_3-4271",
+        "type": "wood",
+        "owner": "w5_3-social-96",
+        "personId": "w5_3-social-96",
+        "distance": 5.415459315359215,
+        "receiptDay": 0.6479166666666657,
+        "observedDay": 0.6486111111111101
+      }
+    },
+    {
+      "name": "villagers move about",
+      "ok": true,
+      "detail": {
+        "moved": 40,
+        "of": 83,
+        "gameHours": 6
+      }
+    },
+    {
+      "name": "villagers are drawn on the ground",
+      "ok": true,
+      "detail": {
+        "worstOffGround": 0
+      }
+    },
+    {
+      "name": "the orders are carried out (or still waiting their turn)",
+      "ok": true,
+      "detail": {
+        "fields": 1,
+        "fieldWaiting": false,
+        "stockpiles": 1,
+        "stockpileWaiting": false,
+        "chatted": true,
+        "chatWaiting": false,
+        "treeGone": true,
+        "treeWaiting": false
+      }
+    },
+    {
+      "name": "at least one of those orders is done",
+      "ok": true,
+      "detail": {
+        "fields": 1,
+        "fieldWaiting": false,
+        "stockpiles": 1,
+        "stockpileWaiting": false,
+        "chatted": true,
+        "chatWaiting": false,
+        "treeGone": true,
+        "treeWaiting": false
+      }
+    },
+    {
+      "name": "a lean-to site can be placed from the popup",
+      "ok": true
+    },
+    {
+      "name": "logs are delivered and a lean-to finishes",
+      "ok": true,
+      "detail": {
+        "seconds": 59.709,
+        "gameHours": 5
+      }
+    },
+    {
+      "name": "the view follows a window resize",
+      "ok": true,
+      "detail": {
+        "width": 960,
+        "height": 640
+      }
+    },
+    {
+      "name": "the real debug deep link serves the SPA entry",
+      "ok": true
+    },
+    {
+      "name": "the targeted playtest ran to the end",
+      "ok": true
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "startupSeconds": 11.906400000095367
+}

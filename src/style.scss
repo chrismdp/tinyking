@@ -973,6 +973,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid #e2c879; outline-offs
 #save-status { position: absolute; bottom: 12px; left: 12px; max-width: min(420px, calc(100% - 36px)); background: #453a3d; padding: 10px; pointer-events: auto; z-index: 30; }
 #main-menu .save-message { font-size: 16px; line-height: 1.4; max-width: 450px; margin: 12px auto; }
 #main-menu menu button { font: inherit; min-height: 44px; }
+#main-menu .earlier-weeks {
+  font-size: 0.8em;
+  .week-toggle, .week-picker button { background: transparent; color: inherit; text-shadow: inherit; cursor: pointer; }
+  .week-toggle { opacity: 0.8; }
+  button:hover, button:focus-visible { color: #e3d5ad; text-decoration: underline; }
+  .week-picker { max-height: 25vh; max-height: 25svh; overflow-y: auto; }
+  ul { padding: 0; margin: 0; }
+  p { margin: 8px; }
+}
 
 .chat-panel {
   --ink:#efe8d6; --muted:#a3ad9d; --gold:#d8b25c; --line:#3a4a40; --good:#6fbf73; --bad:#de6b55;

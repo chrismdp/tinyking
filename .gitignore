@@ -111,3 +111,4 @@ tags
 # Playtest screenshots (scripts/playtest.js)
 shots/
 .wrangler
+worlds/

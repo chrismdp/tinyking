@@ -1,0 +1,6 @@
+browserType.launch: Failed to launch chromium because executable doesn't exist at /home/cp/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+    at /home/cp/code/tk-worlds/shots/old-worlds/observe-menu.cjs:8:34
+    at Object.<anonymous> (/home/cp/code/tk-worlds/shots/old-worlds/observe-menu.cjs:41:3) {
+  log: [],
+  name: 'Error'
+}

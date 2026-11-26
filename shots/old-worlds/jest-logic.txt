@@ -1,0 +1,6 @@
+
+Test Suites: 4 passed, 4 total
+Tests:       34 passed, 34 total
+Snapshots:   0 total
+Time:        0.943 s, estimated 1 s
+Ran all test suites within paths "test/worlds_worker.test.js", "test/london_midnight.test.js", "test/world_menu.test.js", "test/world_loader.test.js".

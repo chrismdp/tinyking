@@ -1,0 +1,5 @@
+STARTUP menu ready after 0.524 seconds
+STARTUP character/world ready after 4.599 seconds
+PASS menu shows two weeks, newest first, with Monday labels
+PASS choosing the earlier week downloads its URL and starts a seed 13 game
+[{"path":"/worlds","status":200},{"path":"/worlds","status":200},{"path":"/worlds/2026-W47.json.gz","status":200}]

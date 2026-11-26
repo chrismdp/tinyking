@@ -17,13 +17,19 @@ it.each([true, false])("downloads and restores the gzip save with progress (leng
   const fetchWorld = jest.fn().mockResolvedValue(await download(knownLength));
   const updates = [];
   const loaded = await loadWorldTemplate(async (label, value) => updates.push({ label, value }), fetchWorld);
-  expect(fetchWorld).toHaveBeenCalledWith("world.json.gz", { cache: "no-cache" });
+  expect(fetchWorld).toHaveBeenCalledWith("/worlds/current.json.gz", { cache: "no-cache" });
   expect(loaded).toMatchObject(fixture);
   expect(loaded.ui.playerId).toBeUndefined();
   expect(updates.some(u => /Downloading/.test(u.label))).toBe(true);
   expect(updates.some(u => /Unpacking/.test(u.label))).toBe(true);
   expect(updates.at(-1).value).toBe(1);
   expect(updates.every((u, i) => u.value >= 0 && u.value <= 1 && (!i || u.value >= updates[i - 1].value))).toBe(true);
+});
+
+it("downloads the week selected in the menu", async () => {
+  const fetchWorld = jest.fn().mockResolvedValue(await download());
+  expect(await loadWorldTemplate(async () => {}, fetchWorld, "2026-W47")).toMatchObject(fixture);
+  expect(fetchWorld).toHaveBeenCalledWith("/worlds/2026-W47.json.gz", { cache: "no-cache" });
 });
 
 it("rejects an HTTP failure before trying to unpack it", async () => {

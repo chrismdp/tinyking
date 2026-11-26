@@ -1,0 +1,50 @@
+
+> tinyking@1.0.0 playtest
+> node scripts/playtest.js http://127.0.0.1:8193/
+
+STARTUP menu ready after 0.26 seconds
+STARTUP character/world ready after 4.336 seconds
+STARTUP click Start new game to standing: 11.906 seconds (includes character screen and arrival)
+PASS new games use the pre-built seed 13 world
+PASS the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds - {"seconds":5.278099999904634,"noCamp":true,"steps":2,"walked":true,"nearCamp":true,"standing":true,"bundle":true,"locked":true,"gameDays":0}
+PASS the player starts at a camp with a bedroll and no house
+PASS a waiting build is replaced by explicit chopping and finishes on a new build order
+STARTUP menu ready after 4.583 seconds
+STARTUP character/world ready after 4.078 seconds
+PASS clicking a villager selects it - {"selected":"terrain5_3-person-4145"}
+PASS clicking a tile opens its job menu, and Move here starts an order - {"target":"terrain5_3-828"}
+PASS the current order appears in the status strip
+PASS Chat starts a personal order from the person panel - {"person":"w5_3-social-74"}
+PASS the person panel has no Recruit order
+PASS Create Field, Create Stockpile and Cut down can be ordered from the popups - {"fieldTile":"terrain5_3-784","stockpileTile":"terrain5_3-695","tree":"terrain5_3-2407"}
+PASS the player walks to the ordered tile - {"walker":"terrain5_3-person-4145","from":124,"to":4}
+PASS the completed task leaves the panel
+CHAT approach w5_3-social-74
+CHAT panel open w5_3-social-74
+CHAT line player.direct_answer.fallback_answer_wellbeing.base.01
+PASS Chat pauses the world, chosen lines make contact and End chat releases the panel - {"person":"w5_3-social-74","lines":[{"id":"player.direct_answer.fallback_answer_wellbeing.base.01","family":"direct_answer","disabled":false,"matches":1,"score":0}],"pops":[{"kind":"topic","key":"season","score":1,"amount":1,"listenerId":"w5_3-social-74"}],"contact":{"day":0.4937499999999996,"position":{"x":2110.6358761346396,"y":667.4357592764001},"otherPosition":{"x":2160,"y":623.5382907247957}}}
+PASS Gift chooser queues a real item for delivery
+PASS the player walks over and gives the gift - {"itemId":"terrain5_3-4271","type":"wood","owner":"w5_3-social-96","personId":"w5_3-social-96","distance":5.415459315359215,"receiptDay":0.6479166666666657,"observedDay":0.6486111111111101}
+SIMULATION observation 1/12 {"day":0.6722222222222212,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.00555555555555541,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 2/12 {"day":0.6930555555555544,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.02638888888888875,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 3/12 {"day":0.7138888888888877,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.005555555555555389,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 4/12 {"day":0.7347222222222209,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.02638888888888873,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 5/12 {"day":0.7555555555555542,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.005555555555555368,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 6/12 {"day":0.7763888888888875,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.02638888888888871,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 7/12 {"day":0.7972222222222207,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.005555555555555348,"requestsStarted":true,"winter":false,"frames":0.9419999999993891}}
+SIMULATION observation 8/12 {"day":0.818055555555554,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.026388888888888688,"requestsStarted":true,"winter":false,"frames":5.92799999999799}}
+SIMULATION observation 9/12 {"day":0.8388888888888872,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.005555555555555327,"requestsStarted":true,"winter":false,"frames":5.92799999999799}}
+SIMULATION observation 10/12 {"day":0.8597222222222205,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.026388888888888667,"requestsStarted":true,"winter":false,"frames":5.92799999999799}}
+SIMULATION observation 11/12 {"day":0.8805555555555538,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.005555555555555306,"requestsStarted":true,"winter":false,"frames":5.92799999999799}}
+SIMULATION observation 12/12 {"day":0.901388888888887,"speed":"normal","worldBusy":false,"chatActive":false,"seasonTurn":false,"simulationClock":{"hour":0.026388888888888646,"requestsStarted":true,"winter":false,"frames":5.92799999999799}}
+PASS villagers move about - {"moved":40,"of":83,"gameHours":6}
+PASS villagers are drawn on the ground - {"worstOffGround":0}
+ground heights seen under villagers: 111 115 116 117 119 120 123 124 126 128 129 130 132 133 134 136 139 142 145 146 147 148 149 153 154 155 156 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 207 208 211 212 213 214 215 216 217 218 219 220 221 223 227 229 230
+PASS the orders are carried out (or still waiting their turn) - {"fields":1,"fieldWaiting":false,"stockpiles":1,"stockpileWaiting":false,"chatted":true,"chatWaiting":false,"treeGone":true,"treeWaiting":false}
+PASS at least one of those orders is done - {"fields":1,"fieldWaiting":false,"stockpiles":1,"stockpileWaiting":false,"chatted":true,"chatWaiting":false,"treeGone":true,"treeWaiting":false}
+PASS a lean-to site can be placed from the popup
+PASS logs are delivered and a lean-to finishes - {"seconds":59.709,"gameHours":5}
+PASS the view follows a window resize - {"width":960,"height":640}
+PASS the real debug deep link serves the SPA entry
+PASS the targeted playtest ran to the end
+PASS no console errors - []

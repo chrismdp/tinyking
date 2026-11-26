@@ -1,0 +1,131 @@
+FAIL test/worlds_worker.test.js
+  ● Test suite failed to run
+
+    Cannot find module '../src/worker' from 'test/worlds_worker.test.js'
+
+      1 | /* global it, expect, jest */
+    > 2 | import worker from "../src/worker";
+        | ^
+      3 | import { WORLD_PREFIX, parseWorldKey, parseWorldWeek, worldKey, worldWeek } from "game/world_weeks";
+      4 |
+      5 | const request = path => new Request("https://tinyking.test" + path);
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:1031:11)
+      at Object.<anonymous> (test/worlds_worker.test.js:2:1)
+
+FAIL test/world_loader.test.js
+  ● downloads and restores the gzip save with progress (length known: true)
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+    - "/worlds/current.json.gz",
+    + "world.json.gz",
+      {"cache": "no-cache"},
+
+    Number of calls: 1
+
+      18 |   const updates = [];
+      19 |   const loaded = await loadWorldTemplate(async (label, value) => updates.push({ label, value }), fetchWorld);
+    > 20 |   expect(fetchWorld).toHaveBeenCalledWith("/worlds/current.json.gz", { cache: "no-cache" });
+         |                      ^
+      21 |   expect(loaded).toMatchObject(fixture);
+      22 |   expect(loaded.ui.playerId).toBeUndefined();
+      23 |   expect(updates.some(u => /Downloading/.test(u.label))).toBe(true);
+
+      at test/world_loader.test.js:20:22
+
+  ● downloads and restores the gzip save with progress (length known: false)
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+    - "/worlds/current.json.gz",
+    + "world.json.gz",
+      {"cache": "no-cache"},
+
+    Number of calls: 1
+
+      18 |   const updates = [];
+      19 |   const loaded = await loadWorldTemplate(async (label, value) => updates.push({ label, value }), fetchWorld);
+    > 20 |   expect(fetchWorld).toHaveBeenCalledWith("/worlds/current.json.gz", { cache: "no-cache" });
+         |                      ^
+      21 |   expect(loaded).toMatchObject(fixture);
+      22 |   expect(loaded.ui.playerId).toBeUndefined();
+      23 |   expect(updates.some(u => /Downloading/.test(u.label))).toBe(true);
+
+      at test/world_loader.test.js:20:22
+
+  ● downloads the week selected in the menu
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+    - "/worlds/2026-W47.json.gz",
+    + "world.json.gz",
+      {"cache": "no-cache"},
+
+    Number of calls: 1
+
+      30 |   const fetchWorld = jest.fn().mockResolvedValue(await download());
+      31 |   expect(await loadWorldTemplate(async () => {}, fetchWorld, "2026-W47")).toMatchObject(fixture);
+    > 32 |   expect(fetchWorld).toHaveBeenCalledWith("/worlds/2026-W47.json.gz", { cache: "no-cache" });
+         |                      ^
+      33 | });
+      34 |
+      35 | it("rejects an HTTP failure before trying to unpack it", async () => {
+
+      at Object.<anonymous> (test/world_loader.test.js:32:22)
+
+FAIL test/world_menu.test.js
+  ● Test suite failed to run
+
+    Configuration error:
+
+    Could not locate module game/world_menu mapped as:
+    /home/cp/code/tk-worlds/src/game/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/game\/(.*)/": "/home/cp/code/tk-worlds/src/game/$1"
+      },
+      "resolver": undefined
+    }
+
+      1 | /* global it, expect, jest */
+    > 2 | import { weekChoices, loadWeekChoices } from "game/world_menu";
+        | ^
+      3 |
+      4 | it("omits the earlier-week option with zero or one distinct stored week", () => {
+      5 |   expect(weekChoices([])).toEqual([]);
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1322:17)
+      at Object.<anonymous> (test/world_menu.test.js:2:1)
+
+FAIL test/london_midnight.test.js
+  ● Test suite failed to run
+
+    Cannot find module '../scripts/london-midnight' from 'test/london_midnight.test.js'
+
+      1 | /* global it, expect */
+    > 2 | const { shouldDeploy } = require("../scripts/london-midnight");
+        |                          ^
+      3 |
+      4 | it.each([
+      5 |   ["2026-11-29T23:00:00Z", false],
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:1031:11)
+      at Object.<anonymous> (test/london_midnight.test.js:2:26)
+
+Test Suites: 4 failed, 4 total
+Tests:       3 failed, 2 passed, 5 total
+Snapshots:   0 total
+Time:        1.17 s
+Ran all test suites within paths "test/worlds_worker.test.js", "test/london_midnight.test.js", "test/world_menu.test.js", "test/world_loader.test.js".

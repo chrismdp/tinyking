@@ -1,0 +1,27 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+cache-control: public, max-age=60
+content-type: application/json
+Date: Thu, 26 Nov 2026 21:38:25 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+[{"id":"2026-W48","monday":"2026-11-23"},{"id":"2026-W47","monday":"2026-11-16"}]HTTP/1.1 200 OK
+X-Powered-By: Express
+cache-control: public, max-age=60
+content-type: application/gzip
+Date: Thu, 26 Nov 2026 21:38:25 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+cache-control: public, max-age=31536000
+content-type: application/gzip
+Date: Thu, 26 Nov 2026 21:38:25 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+

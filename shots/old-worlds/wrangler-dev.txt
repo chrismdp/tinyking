@@ -1,0 +1,29 @@
+
+ ⛅️ wrangler 4.156.0 (update available 4.168.0)
+───────────────────────────────────────────────
+Your Worker has access to the following bindings:
+Binding                           Resource       Mode
+env.WORLDS (tinyking-worlds)      R2 Bucket      local
+env.ASSETS                        Assets         local
+
+⎔ Starting local server...
+Wrangler detected this dev session is running in an AI agent.
+The Local Explorer API is available at http://127.0.0.1:8193/cdn-cgi/local/explorer/api
+Useful routes:
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/local/workers - local Workers and bindings
+  POST http://127.0.0.1:8193/cdn-cgi/local/explorer/api/local/scheduled?worker=<name> - invoke a Worker's scheduled handler; cron is required (see the OpenAPI schema for the full request)
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/storage/kv/namespaces - KV namespaces
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/d1/database - D1 databases
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/r2/buckets - R2 buckets
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/workers/durable_objects/namespaces - Durable Object namespaces
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api/workflows - Workflows
+  POST http://127.0.0.1:8193/cdn-cgi/local/explorer/api/local/observability/query - run a read-only SQL query (SELECT/WITH only) over captured request traces and console logs. Tables: spans, logs (read attributes via json(attributes)). Example:
+    curl -X POST http://127.0.0.1:8193/cdn-cgi/local/explorer/api/local/observability/query -H 'Content-Type: application/json' -d '{"sql":"SELECT service, name, outcome, duration_ms FROM spans WHERE parent_id IS NULL LIMIT 20"}'
+  POST http://127.0.0.1:8193/cdn-cgi/local/explorer/api/local/observability/clear - clear all captured traces and logs
+If the routes above don't cover what you need, fetch the full OpenAPI schema (large - use only as a last resort):
+  GET http://127.0.0.1:8193/cdn-cgi/local/explorer/api - OpenAPI schema
+[wrangler:info] Ready on http://127.0.0.1:8193
+[wrangler:info] GET /worlds 200 OK (156ms)
+[wrangler:info] GET /worlds/current.json.gz 200 OK (18ms)
+[wrangler:info] GET /worlds/2026-W47.json.gz 200 OK (23ms)
+[wrangler:info] GET /worlds/2026-W46.json.gz 404 Not Found (26ms)

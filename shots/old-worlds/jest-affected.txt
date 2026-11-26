@@ -1,0 +1,6 @@
+
+Test Suites: 8 passed, 8 total
+Tests:       55 passed, 55 total
+Snapshots:   0 total
+Time:        69.387 s
+Ran all test suites within paths "test/worlds_worker.test.js", "test/london_midnight.test.js", "test/world_menu.test.js", "test/world_loader.test.js", "test/world_seed.test.js", "test/save_game.test.js", "test/world_template.test.js", "test/first_run.test.js".

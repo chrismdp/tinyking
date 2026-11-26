@@ -20,7 +20,7 @@ module.exports = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin({ cleanOnceBeforeBuildPatterns: ["**/*", "!world.json.gz"] }),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: "Tiny King",
       meta: {

@@ -135,7 +135,7 @@ async function opening(page) {
   console.log("STARTUP click Start new game to standing: " + end.newGameSeconds.toFixed(3) + " seconds (includes character screen and arrival)");
   check("new games use the pre-built seed 13 world", await page.evaluate(() =>
     !new URLSearchParams(location.search).has("seed") && window.tinyking.travel.seed === 13 &&
-    performance.getEntriesByType("resource").some(r => new URL(r.name).pathname.endsWith("/world.json.gz"))));
+    performance.getEntriesByType("resource").some(r => new URL(r.name).pathname === "/worlds/current.json.gz")));
   check("the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
     start.noCamp && start.locked && walked && end.realSeconds >= 4 && end.realSeconds <= 6 && end.nearCamp && end.standing && end.bundle && end.campCount == 1 && end.steps == 2 &&
     end.control && end.days == start.days && end.needs == start.needs,

@@ -6,7 +6,8 @@ export function weekChoices(weeks) {
   const dateFormat = new Intl.DateTimeFormat("en-GB", {
     timeZone: "UTC", day: "numeric", month: "long", year: "numeric"
   });
-  return available.sort((a, b) => b.id.localeCompare(a.id)).map(week => ({
+  // The newest week is the one "Start new game" plays, so only earlier weeks are listed.
+  return available.sort((a, b) => b.id.localeCompare(a.id)).slice(1).map(week => ({
     id: week.id, label: "Week of " + dateFormat.format(new Date(week.monday + "T00:00:00Z"))
   }));
 }

@@ -1,0 +1,1417 @@
+{
+  "started": "2026-11-25T22:27:04.554Z",
+  "commands": [
+    {
+      "at": "2026-11-25T22:27:37.267Z",
+      "code": "return {url:page.url(),text:await page.locator('body').innerText()};\n",
+      "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation\n    at read (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:18:27)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:59:28)",
+      "after": {
+        "text": ""
+      }
+    },
+    {
+      "at": "2026-11-25T22:28:33.365Z",
+      "code": "await page.getByText('Start new game',{exact:true}).waitFor({timeout:50000});\nawait page.getByText('Start new game',{exact:true}).click();\nreceipt.generationStarted=new Date().toISOString(); save();\nreturn {generationStarted:receipt.generationStarted,text:await page.locator('body').innerText()};\n",
+      "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation\n    at read (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:18:27)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:59:28)",
+      "after": {
+        "text": ""
+      }
+    },
+    {
+      "at": "2026-11-25T22:31:15.661Z",
+      "code": "await page.getByText('Start new game',{exact:true}).waitFor({timeout:50000});\nawait page.getByText('Start new game',{exact:true}).click();\nreceipt.generationStarted=new Date().toISOString(); save();\nreturn {generationStarted:receipt.generationStarted,text:await page.locator('body').innerText()};\n",
+      "before": {
+        "text": ""
+      },
+      "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Start new game', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <a>Start new game</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\u001b[2m    - click action done\u001b[22m\n\u001b[2m    - waiting for scheduled navigations to finish\u001b[22m\n\n    at eval (<anonymous>:4:53)\n    at async Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:22)",
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nSurveying the world: 1 of 91\n\n0%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:33:10.747Z",
+      "code": "receipt.generationStarted=receipt.commands.at(-2).at; save();\nreturn {text:await page.locator('body').innerText(),state:await page.evaluate(()=>({day:window.tinyking.days,generating:window.tinyking.generating}))};\n",
+      "before": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nSurveying the world: 21 of 91\n\n1%"
+      },
+      "result": {
+        "text": "A life among people\nTiny King\n\nSurveying the world: 22 of 91\n\n1%",
+        "state": {
+          "day": 0.375,
+          "generating": true
+        }
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nSurveying the world: 25 of 91\n\n1%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:33:51.072Z",
+      "code": "return {text:await page.locator('body').innerText()};\n",
+      "before": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nSurveying the world: 46 of 91\n\n3%"
+      },
+      "result": {
+        "text": "A life among people\nTiny King\n\nSurveying the world: 47 of 91\n\n3%"
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nSurveying the world: 50 of 91\n\n3%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:34:32.260Z",
+      "code": "return {text:await page.locator('body').innerText()};\n",
+      "before": {
+        "day": -329,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 1\n\n7%"
+      },
+      "error": "locator.innerText: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\n    at eval (<anonymous>:3:59)\n    at eval (<anonymous>:4:3)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:28)",
+      "after": {
+        "day": -322,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 1\n\n8%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:35:19.955Z",
+      "code": "return {text:await page.locator('body').innerText()};\n",
+      "before": {
+        "day": -322,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 1\n\n8%"
+      },
+      "error": "locator.innerText: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\n    at eval (<anonymous>:3:59)\n    at eval (<anonymous>:4:3)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:28)",
+      "after": {
+        "day": -315,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 1\n\n9%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:36:13.672Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -308,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 1\n\n11%"
+      },
+      "result": {
+        "day": -301,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 2\n\n12%"
+      },
+      "after": {
+        "day": -294,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 2\n\n13%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:37:30.267Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -245,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 4\n\n21%"
+      },
+      "result": {
+        "day": -238,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 4\n\n22%"
+      },
+      "after": {
+        "day": -231,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 4\n\n23%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:38:53.153Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -217,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 5\n\n26%"
+      },
+      "result": {
+        "day": -210,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 5\n\n27%"
+      },
+      "after": {
+        "day": -203,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 5\n\n28%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:40:33.560Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -189,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 6\n\n30%"
+      },
+      "result": {
+        "day": -182,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 6\n\n32%"
+      },
+      "after": {
+        "day": -175,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 6\n\n33%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:42:07.271Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -154,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 7\n\n36%"
+      },
+      "result": {
+        "day": -147,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 7\n\n37%"
+      },
+      "after": {
+        "day": -140,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 7\n\n39%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:43:38.450Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -119,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 8\n\n42%"
+      },
+      "result": {
+        "day": -112,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 8\n\n43%"
+      },
+      "after": {
+        "day": -105,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 9\n\n44%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:45:10.477Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -77,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 10\n\n49%"
+      },
+      "result": {
+        "day": -70,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 10\n\n50%"
+      },
+      "after": {
+        "day": -63,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 10\n\n51%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:46:41.244Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -56,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 10\n\n53%"
+      },
+      "result": {
+        "day": -49,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 11\n\n54%"
+      },
+      "after": {
+        "day": -42,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 11\n\n55%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:48:22.268Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": -28,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 11\n\n57%"
+      },
+      "result": {
+        "day": -21,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 12\n\n58%"
+      },
+      "after": {
+        "day": -14,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\n12 years of world history: year 12\n\n60%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:49:52.469Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nFinding paths through the land\n\n69%"
+      },
+      "result": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPlanting forests\n\n70%"
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nBuilding the remembered households\n\n74%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:51:24.650Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Planting forests\n\n82%"
+      },
+      "result": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Building the remembered households\n\n84%"
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Ready to arrive\n\n86%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:52:44.756Z",
+      "code": "return await read();\n",
+      "before": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Building the remembered households\n\n97%"
+      },
+      "result": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Ready to arrive\n\n100%"
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "normal",
+        "generating": true,
+        "text": "A life among people\nTiny King\n\nPreparing nearby lands: Ready to arrive\n\n100%"
+      }
+    },
+    {
+      "at": "2026-11-25T22:53:34.047Z",
+      "code": "await page.locator('.character canvas').waitFor({timeout:50000});\nawait page.getByRole('button',{name:'Start game',exact:true}).waitFor({timeout:50000});\nglobalThis.req=process.getBuiltinModule('module').createRequire(process.cwd()+'/shots/week-play-4-driver.cjs');\nglobalThis.UI=req('./week-play-4-ui.cjs')(page);\nreceipt.generationFinished=new Date().toISOString(); save();\nreturn {generationFinished:receipt.generationFinished,text:(await read()).text};\n",
+      "before": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      },
+      "result": {
+        "generationFinished": "2026-11-25T22:53:48.356Z",
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      },
+      "after": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      }
+    },
+    {
+      "at": "2026-11-25T22:54:37.944Z",
+      "code": "await page.getByRole('button',{name:'Start game',exact:true}).click({timeout:20000});\nawait page.waitForFunction(()=>window.tinyking.intro&&!window.tinyking.intro.active,null,{timeout:40000});\nawait shot('01-arrival');\nreturn await page.evaluate(()=>{const s=window.tinyking,p=s.ui.playerId,pos=s.ecs.spatial[p];return {day:s.days,player:p,pos,camp:s.ecs.camp,villages:s.villages,people:Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead&&s.ecs.spatial[id]).map(id=>({id,name:s.ecs.nameable[id],pos:s.ecs.spatial[id],distance:Math.hypot(pos.x-s.ecs.spatial[id].x,pos.y-s.ecs.spatial[id].y)})).sort((a,b)=>a.distance-b.distance).slice(0,12),tiles:Object.keys(s.ecs.mappable).map(id=>({id,...s.ecs.spatial[id]})).filter(t=>Math.hypot(t.x-2070,t.y-571.58)<80)}};});\n",
+      "before": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      },
+      "error": "SyntaxError: missing ) after argument list\n    at new Function (<anonymous>)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:60:19)",
+      "after": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      }
+    },
+    {
+      "at": "2026-11-25T22:54:53.051Z",
+      "code": "await page.getByRole('button',{name:'Start game',exact:true}).click({timeout:20000});\nawait page.waitForFunction(()=>window.tinyking.intro&&!window.tinyking.intro.active,null,{timeout:40000});\nawait shot('01-arrival');\nreturn await page.evaluate(()=>{const s=window.tinyking,p=s.ui.playerId,pos=s.ecs.spatial[p];return {day:s.days,player:p,pos,camp:s.ecs.camp,villages:s.villages,people:Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead&&s.ecs.spatial[id]).map(id=>({id,name:s.ecs.nameable[id],pos:s.ecs.spatial[id],distance:Math.hypot(pos.x-s.ecs.spatial[id].x,pos.y-s.ecs.spatial[id].y)})).sort((a,b)=>a.distance-b.distance).slice(0,12),tiles:Object.keys(s.ecs.mappable).map(id=>({id,...s.ecs.spatial[id]})).filter(t=>Math.hypot(t.x-2070,t.y-571.58)<80)};});\n",
+      "before": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      },
+      "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Start game', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"mobile-start\">Start game</button>\u001b[22m\n\n    at eval (<anonymous>:3:81)\n    at eval (<anonymous>:7:3)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:28)",
+      "after": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      }
+    },
+    {
+      "at": "2026-11-25T22:56:06.460Z",
+      "code": "const b=await page.getByRole('button',{name:'Start game',exact:true}).boundingBox({timeout:50000});\nreceipt.startButton=b; save();\nawait page.mouse.click(b.x+b.width/2,b.y+b.height/2);\nawait page.waitForFunction(()=>window.tinyking.intro&&!window.tinyking.intro.active,null,{timeout:50000}).catch(()=>{});\nreturn {state:await read(),intro:await page.evaluate(()=>window.tinyking.intro)};\n",
+      "before": {
+        "day": 0.375,
+        "speed": "paused",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 1980,
+          "y": 207.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "hunger": 0.6356813358691711,
+          "id": "terrain5_3-person-3904"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nStart new game\nCustomise your character\nGender:\nMale\nFemale\nFirst name:\nHair colour:\n6\nStart game"
+      },
+      "result": {
+        "state": {
+          "day": 0.37569444444444444,
+          "speed": "normal",
+          "generating": false,
+          "player": "terrain5_3-person-3904",
+          "position": {
+            "x": 2008,
+            "y": 227.84609690826525,
+            "id": "terrain5_3-person-3904"
+          },
+          "person": {
+            "type": "person",
+            "age": 24,
+            "size": 20,
+            "male": true,
+            "hair": 5,
+            "body": 5127984,
+            "tiredness": 0.35603153038677565,
+            "id": "terrain5_3-person-3904",
+            "energy": 74.57274656523316
+          },
+          "household": {
+            "id": "terrain5_3-person-3904",
+            "houseId": "terrain5_3-4151"
+          },
+          "jobs": [],
+          "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nAsk the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+        },
+        "intro": {
+          "campPoint": {
+            "x": 1980,
+            "y": 207.84609690826525
+          },
+          "tileIds": [
+            "terrain5_3-738",
+            "terrain5_3-739",
+            "terrain5_3-740"
+          ],
+          "points": [
+            {
+              "x": 1980,
+              "y": -74.82459488697549
+            },
+            {
+              "x": 1980,
+              "y": 0,
+              "immovable": true,
+              "id": "terrain5_3-738"
+            },
+            {
+              "x": 1980,
+              "y": 103.92304845413263,
+              "immovable": true,
+              "id": "terrain5_3-739"
+            },
+            {
+              "x": 2008,
+              "y": 227.84609690826525
+            }
+          ],
+          "active": false,
+          "elapsed": 5.2,
+          "phase": "complete",
+          "pose": "standing",
+          "putDown": 1,
+          "fire": 1,
+          "bedroll": 1,
+          "facing": -2.723368324010564,
+          "campId": "terrain5_3-4151"
+        }
+      },
+      "after": {
+        "day": 0.3770833333333333,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nAsk the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      }
+    },
+    {
+      "at": "2026-11-25T22:58:04.979Z",
+      "code": "await shot('01-arrival');\nreturn await page.evaluate(()=>{const s=window.tinyking,p=s.ui.playerId,pos=s.ecs.spatial[p];return {day:s.days,player:p,pos,villages:s.villages,people:Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead&&s.ecs.spatial[id]).map(id=>({id,name:s.ecs.nameable[id],pos:s.ecs.spatial[id],distance:Math.hypot(pos.x-s.ecs.spatial[id].x,pos.y-s.ecs.spatial[id].y)})).sort((a,b)=>a.distance-b.distance).slice(0,12),tiles:Object.keys(s.ecs.mappable).map(id=>({id,...s.ecs.spatial[id]})).filter(t=>Math.hypot(t.x-2070,t.y-571.58)<80)};});\n",
+      "before": {
+        "day": 0.3784722222222222,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nAsk the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      },
+      "error": "page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\n    at shot (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:26:16)\n    at eval (<anonymous>:3:25)\n    at eval (<anonymous>:5:3)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:28)",
+      "after": {
+        "day": 0.3798611111111111,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nAsk the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      }
+    },
+    {
+      "at": "2026-11-25T22:58:58.160Z",
+      "code": "process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY='1';\ndelete req.cache[req.resolve('./week-play-4-ui.cjs')];globalThis.UI=req('./week-play-4-ui.cjs')(page);\nreturn await page.evaluate(()=>{const s=window.tinyking,p=s.ui.playerId,pos=s.ecs.spatial[p];return {day:s.days,pos,villages:Object.entries(s.villages).map(([id,v])=>({id,name:v.name,centre:v.centre})),people:Object.keys(s.ecs.personable).filter(id=>!s.ecs.personable[id].dead&&s.ecs.spatial[id]).map(id=>({id,name:s.ecs.nameable[id],pos:s.ecs.spatial[id],distance:Math.hypot(pos.x-s.ecs.spatial[id].x,pos.y-s.ecs.spatial[id].y)})).sort((a,b)=>a.distance-b.distance).slice(0,12),tiles:Object.keys(s.ecs.mappable).map(id=>({id,...s.ecs.spatial[id]})).filter(t=>Math.hypot(t.x-2070,t.y-571.58)<80)};});\n",
+      "before": {
+        "day": 0.3819444444444444,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nAsk the neighbours whether they know your uncle Hugh Seesi.\nChat with nearby neighbour\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      },
+      "result": {
+        "day": 0.3833333333333333,
+        "pos": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "villages": [
+          {
+            "id": "w5_3-village-1",
+            "name": "Reedbrook",
+            "centre": {
+              "x": 24,
+              "y": 6
+            }
+          },
+          {
+            "id": "w5_3-village-2",
+            "name": "Reedford",
+            "centre": {
+              "x": 27,
+              "y": 13
+            }
+          }
+        ],
+        "people": [
+          {
+            "id": "terrain5_3-person-3904",
+            "name": {
+              "type": "person",
+              "familySeed": 4050004304,
+              "male": true,
+              "seed": 2633977028,
+              "id": "terrain5_3-person-3904"
+            },
+            "pos": {
+              "x": 2008,
+              "y": 227.84609690826525,
+              "id": "terrain5_3-person-3904"
+            },
+            "distance": 0
+          },
+          {
+            "id": "w5_3-social-74",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 2058426777,
+              "seed": 2871172627,
+              "id": "w5_3-social-74"
+            },
+            "pos": {
+              "id": "w5_3-social-74",
+              "x": 2070,
+              "y": 743.4613391789284
+            },
+            "distance": 519.3294504087311
+          },
+          {
+            "id": "w5_3-social-76",
+            "name": {
+              "type": "person",
+              "male": false,
+              "familySeed": 3307863350,
+              "seed": 3897328484,
+              "id": "w5_3-social-76"
+            },
+            "pos": {
+              "id": "w5_3-social-76",
+              "x": 2070,
+              "y": 743.4613391789284
+            },
+            "distance": 519.3294504087311
+          },
+          {
+            "id": "w5_3-social-79",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 2058426777,
+              "seed": 2507514324,
+              "id": "w5_3-social-79"
+            },
+            "pos": {
+              "id": "w5_3-social-79",
+              "x": 2070,
+              "y": 743.4613391789284
+            },
+            "distance": 519.3294504087311
+          },
+          {
+            "id": "w6_3-social-89",
+            "name": {
+              "type": "person",
+              "male": false,
+              "familySeed": 2633977028,
+              "seed": 1974439044,
+              "firstName": "Joan",
+              "id": "w6_3-social-89"
+            },
+            "pos": {
+              "id": "w6_3-social-89",
+              "x": 2070,
+              "y": 743.4613391789284
+            },
+            "distance": 519.3294504087311
+          },
+          {
+            "id": "w5_3-social-91",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 1834638987,
+              "seed": 261768742,
+              "id": "w5_3-social-91"
+            },
+            "pos": {
+              "id": "w5_3-social-91",
+              "x": 2159.5584361344395,
+              "y": 754.4054768255448
+            },
+            "distance": 547.9368030552309
+          },
+          {
+            "id": "w5_3-social-66",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 1834638987,
+              "seed": 2736679551,
+              "id": "w5_3-social-66"
+            },
+            "pos": {
+              "id": "w5_3-social-66",
+              "x": 2150,
+              "y": 831.384387633061
+            },
+            "distance": 620.0181193892707
+          },
+          {
+            "id": "terrain5_3-person-4147",
+            "name": {
+              "type": "person",
+              "familySeed": 1834638987,
+              "male": true,
+              "seed": 1675375800,
+              "firstName": "Humphrey",
+              "id": "terrain5_3-person-4147"
+            },
+            "pos": {
+              "id": "terrain5_3-person-4147",
+              "x": 2070,
+              "y": 875.4228634059947
+            },
+            "distance": 650.5379839084377
+          },
+          {
+            "id": "w5_3-social-65",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 1133633200,
+              "seed": 211133276,
+              "firstName": "Adam",
+              "id": "w5_3-social-65"
+            },
+            "pos": {
+              "id": "w5_3-social-65",
+              "x": 2371.143593539449,
+              "y": 1161.1342951089919
+            },
+            "distance": 1001.4490153919485
+          },
+          {
+            "id": "w5_3-social-69",
+            "name": {
+              "type": "person",
+              "male": false,
+              "familySeed": 1834638987,
+              "seed": 3447945017,
+              "id": "w5_3-social-69"
+            },
+            "pos": {
+              "id": "w5_3-social-69",
+              "x": 2371.143593539449,
+              "y": 1161.1342951089919
+            },
+            "distance": 1001.4490153919485
+          },
+          {
+            "id": "w5_3-social-90",
+            "name": {
+              "type": "person",
+              "male": true,
+              "familySeed": 1133633200,
+              "seed": 2347215030,
+              "id": "w5_3-social-90"
+            },
+            "pos": {
+              "id": "w5_3-social-90",
+              "x": 2371.143593539449,
+              "y": 1161.1342951089919
+            },
+            "distance": 1001.4490153919485
+          },
+          {
+            "id": "w5_3-social-95",
+            "name": {
+              "type": "person",
+              "male": false,
+              "familySeed": 1133633200,
+              "seed": 3391474401,
+              "id": "w5_3-social-95"
+            },
+            "pos": {
+              "id": "w5_3-social-95",
+              "x": 2371.143593539449,
+              "y": 1161.1342951089919
+            },
+            "distance": 1001.4490153919485
+          }
+        ],
+        "tiles": [
+          {
+            "id": "terrain5_3-788",
+            "x": 2070,
+            "y": 571.5767664977294,
+            "immovable": true
+          }
+        ]
+      },
+      "after": {
+        "day": 0.38402777777777775,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      }
+    },
+    {
+      "at": "2026-11-25T22:59:36.184Z",
+      "code": "await shot('01-arrival');\nawait UI.select('terrain5_3-788');\nreturn {text:(await read()).text,metrics:await page.evaluate(()=>({redraws:window.tinyking.redraws.length,metrics:window.tinyking.renderer.metrics}))};\n",
+      "before": {
+        "day": 0.38611111111111107,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      },
+      "error": "page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\n    at shot (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:26:16)\n    at eval (<anonymous>:3:25)\n    at eval (<anonymous>:6:3)\n    at Server.<anonymous> (/home/cp/code/tk-week4/shots/week-play-4-driver.cjs:61:28)",
+      "after": {
+        "day": 0.38749999999999996,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      }
+    },
+    {
+      "at": "2026-11-25T23:00:29.560Z",
+      "code": "await UI.select('terrain5_3-788');\nreturn {text:(await read()).text,metrics:await page.evaluate(()=>({redraws:window.tinyking.redraws.length,metrics:window.tinyking.renderer.metrics}))};\n",
+      "before": {
+        "day": 0.3895833333333333,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      },
+      "result": {
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1\nGrassland\n\nShelter: This ground belongs to a village plot.\n\nMove here\n(debug)",
+        "metrics": {
+          "redraws": 0,
+          "metrics": {
+            "distance": 806.340557016637,
+            "pose": {
+              "x": 2070.000000499257,
+              "z": 571.5767772794503,
+              "y": 138.46487673264946,
+              "yaw": 3.8415926535897933,
+              "pitch": 0.78,
+              "distance": 806.340557016637
+            },
+            "render": {
+              "frame": 129,
+              "calls": 56,
+              "triangles": 13082,
+              "points": 0,
+              "lines": 674
+            },
+            "memory": {
+              "geometries": 79,
+              "textures": 2
+            },
+            "programs": 14,
+            "drawingBuffer": {
+              "width": 1280,
+              "height": 800
+            },
+            "days": 0.40208333333333324,
+            "active": "5,3",
+            "maps": 40,
+            "directory": 1410,
+            "residents": 83,
+            "position": {
+              "x": 2008,
+              "y": 227.84609690826525,
+              "id": "terrain5_3-person-3904"
+            },
+            "jobs": 0,
+            "nightLights": {
+              "pointLights": 0,
+              "maxPointLights": 2,
+              "pools": 3
+            }
+          }
+        }
+      },
+      "after": {
+        "day": 0.4027777777777777,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "selected": "terrain5_3-788",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1\nGrassland\n\nShelter: This ground belongs to a village plot.\n\nMove here\n(debug)"
+      }
+    },
+    {
+      "at": "2026-11-25T23:01:46.066Z",
+      "code": "const session=await page.context().newCDPSession(page);\nconst capture=await session.send('Page.captureScreenshot',{format:'png',fromSurface:false,captureBeyondViewport:false});\nfs.writeFileSync(process.cwd()+'/shots/week-play-4/01-arrival.png',Buffer.from(capture.data,'base64'));\nreceipt.frames.push({file:'01-arrival.png',...(await read()),capture:'CDP fromSurface false'});save();\nreturn await page.evaluate(()=>({day:window.tinyking.days,redraws:window.tinyking.redraws.length,metrics:window.tinyking.renderer.metrics}));\n",
+      "before": {
+        "day": 0.39236111111111105,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      },
+      "result": {
+        "day": 0.39583333333333326,
+        "redraws": 0,
+        "metrics": {
+          "distance": 806.340557016637,
+          "pose": {
+            "x": 2062.5461090292392,
+            "z": 437.8528115941102,
+            "y": 126.9631880032315,
+            "yaw": 3.8415926535897933,
+            "pitch": 0.78,
+            "distance": 806.340557016637
+          },
+          "render": {
+            "frame": 114,
+            "calls": 73,
+            "triangles": 13413,
+            "points": 0,
+            "lines": 650
+          },
+          "memory": {
+            "geometries": 77,
+            "textures": 2
+          },
+          "programs": 13,
+          "drawingBuffer": {
+            "width": 1280,
+            "height": 800
+          },
+          "days": 0.39583333333333326,
+          "active": "5,3",
+          "maps": 40,
+          "directory": 1410,
+          "residents": 83,
+          "position": {
+            "x": 2008,
+            "y": 227.84609690826525,
+            "id": "terrain5_3-person-3904"
+          },
+          "jobs": 0,
+          "nightLights": {
+            "pointLights": 0,
+            "maxPointLights": 2,
+            "pools": 3
+          }
+        }
+      },
+      "after": {
+        "day": 0.39722222222222214,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1"
+      }
+    },
+    {
+      "at": "2026-11-25T23:04:18.551Z",
+      "code": "globalThis.capshot=async label=>{const session=await page.context().newCDPSession(page);const capture=await session.send('Page.captureScreenshot',{format:'png',fromSurface:false,captureBeyondViewport:false});fs.writeFileSync(process.cwd()+'/shots/week-play-4/'+label+'.png',Buffer.from(capture.data,'base64'));const state=await read();receipt.frames.push({file:label+'.png',...state,capture:'CDP fromSurface false'});save();return state;};\nreturn await page.evaluate(()=>({day:window.tinyking.days,selected:window.tinyking.ui.selected,text:document.body.innerText,worldBusy:window.tinyking.worldBusy,transition:window.tinyking.transition,detailQueue:window.tinyking.travel.detailQueue,detailError:window.tinyking.detailError}));\n",
+      "before": {
+        "day": 0.4027777777777777,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "selected": "terrain5_3-788",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1\nGrassland\n\nShelter: This ground belongs to a village plot.\n\nMove here\n(debug)"
+      },
+      "result": {
+        "day": 0.4027777777777777,
+        "selected": "terrain5_3-788",
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1\nGrassland\n\nShelter: This ground belongs to a village plot.\n\nMove here\n(debug)",
+        "worldBusy": false,
+        "transition": null,
+        "detailQueue": []
+      },
+      "after": {
+        "day": 0.4034722222222221,
+        "speed": "normal",
+        "generating": false,
+        "player": "terrain5_3-person-3904",
+        "selected": "terrain5_3-788",
+        "position": {
+          "x": 2008,
+          "y": 227.84609690826525,
+          "id": "terrain5_3-person-3904"
+        },
+        "person": {
+          "type": "person",
+          "age": 24,
+          "size": 20,
+          "male": true,
+          "hair": 5,
+          "body": 5127984,
+          "tiredness": 0.35603153038677565,
+          "id": "terrain5_3-person-3904",
+          "energy": 74.57274656523316
+        },
+        "household": {
+          "id": "terrain5_3-person-3904",
+          "houseId": "terrain5_3-4151"
+        },
+        "jobs": [],
+        "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1\nGrassland\n\nShelter: This ground belongs to a village plot.\n\nMove here\n(debug)"
+      }
+    }
+  ],
+  "frames": [
+    {
+      "file": "01-arrival.png",
+      "day": 0.3951388888888888,
+      "speed": "normal",
+      "generating": false,
+      "player": "terrain5_3-person-3904",
+      "position": {
+        "x": 2008,
+        "y": 227.84609690826525,
+        "id": "terrain5_3-person-3904"
+      },
+      "person": {
+        "type": "person",
+        "age": 24,
+        "size": 20,
+        "male": true,
+        "hair": 5,
+        "body": 5127984,
+        "tiredness": 0.35603153038677565,
+        "id": "terrain5_3-person-3904",
+        "energy": 74.57274656523316
+      },
+      "household": {
+        "id": "terrain5_3-person-3904",
+        "houseId": "terrain5_3-4151"
+      },
+      "jobs": [],
+      "text": "This region\n9am, Day 1 Of Spring, Year 1 · Rain\nSelect the edge of visible ground and choose Move here to find another neighbour.\n◇ World map · M\n◎ You\nDebug\nEnergy 75 / 100\nReady\nStop\nRest\nJournal · J\nVillage news 1",
+      "capture": "CDP fromSurface false"
+    }
+  ],
+  "errors": [
+    {
+      "at": "2026-11-25T22:31:44.569Z",
+      "error": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "walks": [],
+  "pids": {
+    "driver": 3545913,
+    "browser": 3545977
+  },
+  "generationStarted": "2026-11-25T22:31:15.661Z",
+  "generationFinished": "2026-11-25T22:53:48.356Z",
+  "startButton": {
+    "x": 75,
+    "y": 582.3125,
+    "width": 255,
+    "height": 44
+  },
+  "ended": "2026-11-25T23:05:07.174Z"
+}

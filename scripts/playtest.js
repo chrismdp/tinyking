@@ -471,7 +471,9 @@ async function play(page, alreadyStarted=false) {
 
     // --- Orders from the popups (still paused) ------------------------------------------
     const t = await targets();
-    const target = await orderOn(t.move, "Move here", () => shot("job-menu.png"));
+    const plannedField = designationCandidates(await selectionState(page))[0]?.id;
+    if (!plannedField) throw new Error("No legal reachable field site in discovered land");
+    const target = await orderOn(t.move.filter(id => id != plannedField && id != clearing.id), "Move here", () => shot("job-menu.png"));
     check("clicking a tile opens its job menu, and Move here starts an order", target && (await queued()).includes("move_to_here"), { target });
 
     check("the current order appears in the status strip", (await page.locator("#status-strip .current-activity").innerText()) == "Move here");
@@ -481,7 +483,7 @@ async function play(page, alreadyStarted=false) {
     await closePopup();
 
     // NOTE: a tile already ordered is a job target, so offers no more jobs
-    fieldTile = await orderOn(restartCandidates(await selectionState(page), "create_field", null, [target, clearing.id]), "Create Field");
+    fieldTile = await orderOn(restartCandidates(await selectionState(page), "create_field", plannedField, [target, clearing.id]), "Create Field");
     stockpileTile = await orderOn(restartCandidates(await selectionState(page), "create_stockpile", clearing.id, [target, fieldTile]), "Create Stockpile");
     let tree = await orderOn(treeCandidates(await selectionState(page)), "Cut down");
     check("Create Field, Create Stockpile and Cut down can be ordered from the popups",

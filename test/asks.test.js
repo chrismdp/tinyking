@@ -1,5 +1,5 @@
 import { peopleWorld } from "./support/people";
-import { openChat, chatChoices, chooseLine, closeChat } from "game/chat";
+import { openChat, chatChoices, chooseLine, closeChat, lineCandidates, speakLine } from "game/chat";
 import { recordEvent, learnEvent, knownEvents } from "game/events";
 import { updateFavours, acceptFavour } from "game/favours";
 
@@ -27,6 +27,26 @@ const accept=(s,r,giver,player)=>{
   (k.favours ||= []).push(r.id);(k.offers ||= {})[r.id]={speakerId:giver,day:s.days};
   return acceptFavour(s,r.id,giver);
 };
+
+it("keeps Hugh's regard at 36 when his authored death-news request matches his disliked Family topic",()=>{
+  const {s,player:p,person:n,parent}=family();
+  s.ecs.personable[parent].dead=true;
+  learnEvent(s,n,recordEvent(s,"death",[parent]));
+  updateFavours(s);
+  s.ecs.personality[n]={traits:["greedy"],likes:[],dislikes:[]};
+  s.ecs.relationships[n].known[p]={ring:"personal",goodwill:36,base:36};
+  s.ecs.spatial[p]={...s.ecs.spatial[n]};
+  s.knowledge[p]={people:{[n]:{traits:[],conversation:{day:s.days}}},feelings:{}};
+  expect(openChat(s,p,n)).toBe(true);
+  const c=s.chat.active;c.phase="reply";c.row=[{kind:"topic",key:"family"}];
+  const ask=lineCandidates(s,c,"favour_ask","npc").find(l=>l.situation=="word");
+  expect(ask).toBeDefined();
+  expect(speakLine(s,ask)).toBe(true);
+  expect(s.ecs.relationships[n].known[p].goodwill).toBe(36);
+  expect(c.pendingOfferId).toBe(ask.b.request.id);
+  expect(c.transcript.at(-1).displeasure).toBeUndefined();
+  expect(chatChoices(s).some(l=>l.family=="favour_accept")).toBe(true);
+});
 
 it("asks the player to carry news of a death to close kin in another village, and completes when the player tells them", () => {
   const {s,player,person,parent,sibling}=family();

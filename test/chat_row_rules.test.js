@@ -16,6 +16,40 @@ function setup(ring="public",goodwill=0) {
   openChat(s,p,n);s.chat.active.row=[];
   return w;
 }
+
+it.each(["favour_ask", "own_news", "maternal_recognition"])("never scores the villager's own %s, whether they like or dislike its topic", family=>{
+  for(const traits of [["greedy"],["generous"]]) {
+    const {state:s,player:p,person:n}=setup("personal",36);
+    s.ecs.personality[n]={traits,likes:[],dislikes:[]};
+    s.chat.active.phase="reply";
+    s.chat.active.row=[topic("family")];
+    const before=s.ecs.relationships[n].known[p].goodwill;
+    expect(speakLine(s,line("their-line",[topic("family")],{speaker:"npc",family}))).toBe(true);
+    expect(s.ecs.relationships[n].known[p].goodwill).toBe(before);
+    expect(s.chat.active.row).toEqual([]);
+    expect(s.chat.active.transcript.at(-1).pops).toEqual([]);
+    expect(s.chat.active.transcript.at(-1).displeasure).toBeUndefined();
+  }
+});
+
+it("keeps scoring player choices and ordinary NPC replies",()=>{
+  const {state:s,player:p,person:n}=setup("personal",36);
+  s.ecs.personality[n]={traits:["greedy"],likes:[],dislikes:[]};
+  for(const speaker of ["player","npc"]) {
+    s.chat.active.row=[topic("family")];
+    const before=s.ecs.relationships[n].known[p].goodwill;
+    speakLine(s,line(speaker,[topic("family")],{speaker,family:"family_answer"}));
+    expect(s.ecs.relationships[n].known[p].goodwill).toBe(before-1);
+  }
+});
+
+it("does not score a villager's opening against a matching icon",()=>{
+  const {state:s,player:p,person:n}=setup("personal",36);
+  s.ecs.personality[n]={traits:["generous"],likes:[],dislikes:[]};
+  s.chat.active.phase="opening";s.chat.active.row=[topic("family")];
+  speakLine(s,line("welcome",[topic("family")],{speaker:"npc",family:"greeting"}));
+  expect(s.ecs.relationships[n].known[p].goodwill).toBe(36);
+});
 it("keeps an unmatched icon through many lines and a save, then frees exactly its pair's slot",()=>{
   const {state:s,player:p,person:n}=setup();
   speakLine(s,line("old",[topic("work")]));

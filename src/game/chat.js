@@ -362,7 +362,10 @@ export function speakLine(s,line) {
   const snapshot=()=>({row:c.row.map(i=>({...i})),regard:s.ecs.relationships[c.npcId]?.known[c.actorId]?.goodwill||0,learned:JSON.parse(JSON.stringify(s.knowledge?.[c.actorId]?.people?.[c.npcId]||{}))});
   const before=snapshot();
   const {row,popped}=rowAfter(c,{...line,risk}),pops=[];
+  // Their own trouble, request or welcome is not a choice the player made.
+  const initiative=line.speaker=="npc" && (c.phase=="opening" || ["own_news","favour_ask","maternal_recognition"].includes(line.family));
   for(const i of popped) {
+    if(initiative)continue;
     const score=iconScore(s,i,c.actorId,c.npcId),raw=score;
     const amount=supportiveExchange(c,line)?Math.max(0,raw):raw;
     if(line.score!==false && !(line.family=="flirt"&&courtingToday(s,c.actorId,c.npcId)) && !(line.family=="flirt_reply"&&c.romanceResult?.grew===false)) {

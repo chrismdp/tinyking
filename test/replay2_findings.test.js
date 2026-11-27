@@ -80,12 +80,13 @@ it('checks oath eligibility again at enqueue instead of starting an ineligible a
   expect(s.ecs.manager[w.player].jobs).not.toContain(job);
   expect(s.ui.talkResult).toBeDefined();
 });
-it('keeps an eligible oath approach beyond one hour without claiming contact',()=>{
+it('ends an unfinished oath approach early without claiming contact',()=>{
   const w=oathWorld(),s=w.state;
   const contact=s.knowledge?.[w.player]?.people?.[w.parent]?.conversation;
   const job=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});expireChatApproach(s);
   s.days+=1.1/24;expireChatApproach(s);
-  expect(s.ecs.manager[w.player].jobs).toContain(job);
+  expect(s.ecs.manager[w.player].jobs).not.toContain(job);
+  expect(s.ui.talkResult).toMatchObject({personId:w.parent,recovery:'move_closer'});
   expect(s.knowledge?.[w.player]?.people?.[w.parent]?.conversation).toBe(contact);
   expect(s.ecs.planner[w.parent].world.capturedBy).toBeFalsy();
 });

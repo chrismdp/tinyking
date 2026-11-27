@@ -118,3 +118,13 @@ it.each(["walking", "meal", "rest", "patience", "attention"])("ends an approach 
   expect(s.chat?.active).toBeUndefined();
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });
+
+it("ends a still-incomplete visit within half an hour even when its target stays free",()=>{
+  const {state:s,player:p,person:n}=peopleWorld();
+  const job=enqueueTask(s,{key:"chat"},n);
+  s.days+=31/1440;expireChatApproach(s);
+  expect(s.ecs.manager[p].jobs).not.toContain(job);
+  expect(s.ui.talkResult).toMatchObject({personId:n,recovery:"move_closer"});
+  expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+});

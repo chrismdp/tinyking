@@ -18,6 +18,7 @@ import { HEX_SIZE } from "game/hex";
 import { careSpeed } from "game/hunger";
 
 export const CHAT_APPROACH_JOBS = ["chat"];
+const CHAT_APPROACH_HOURS = .5;
 export const chatIntentUnavailable = (state,actor,target,intent) => intent?customsIntentUnavailable(state,actor,target,intent):null;
 
 export const CHILD_ORDERS = ["move_to_here", "chat", "ask_about", "give_gift", "play", "tend_garden", "eat_food", "rest", "travel"];
@@ -52,6 +53,7 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   if(job.key=="rest" && (active.task?.[0]=="sleep" || active.world.forcedRest))return manager.jobs.find(j=>j.job.key=="rest") || entry;
   if(job.key == "move_to_here")delete state.ui.talkResult;
   if(CHAT_APPROACH_JOBS.includes(job.key)) {
+    entry.chatStartedAt=state.days;
     delete state.ui.talkResult;
     const reason = chatIntentUnavailable(state,state.ui.playerId,targetId,metadata.chatIntent) || chatUnavailable(state, state.ui.playerId, targetId);
     if(reason) {
@@ -165,7 +167,7 @@ export function canChatSoon(state, actor, target) {
     previous=point;
   }
   const weight=(e.holder?.[actor]?.held||[]).reduce((v,id)=>v*(e.haulable[id].speedModifier||1),1);
-  return hours/(weight*careSpeed(e.personable[actor]))<=.5;
+  return hours/(weight*careSpeed(e.personable[actor]))<=CHAT_APPROACH_HOURS;
 }
 
 function waitingReason(state, actorId, job) {
@@ -285,8 +287,10 @@ export function expireChatApproach(state) {
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
   if(!job)return;
+  job.chatStartedAt ??= state.days;
   const reason=chatUnavailable(state,actor,job.targetId) ||
-    (job.waiting=="No path there" ? "The way to them is blocked. You cannot reach them from here." : null);
+    (job.waiting=="No path there" ? "The way to them is blocked. You cannot reach them from here." : null) ||
+    (state.days-job.chatStartedAt>=CHAT_APPROACH_HOURS/24 ? "This visit is taking too long. Move closer and try Chat again, or choose another neighbour." : null);
   if(reason)failChatApproach(state,job,reason);
 }
 

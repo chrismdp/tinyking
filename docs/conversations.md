@@ -2,7 +2,7 @@
 
 Choose Chat in a person's panel, or use the next-step hint. Your character walks into speech reach. An indoor neighbour receives a knock at their real door and comes outside to talk. A sleeper gives no answer: try in the morning. An unfriendly neighbour refuses before you set off; a liked gift or an offered favour can repair goodwill, while their fixed disposition stays the same. The conversation panel pauses the world until you choose End chat. Reading has no time cost.
 
-The nearby hint offers free neighbours with a reachable walk estimated at half an hour or less. Busy people explain when to try again. A walker names their destination when it has a name. If someone becomes busy during your approach, the visit ends with the same explanation.
+The nearby hint offers free neighbours with a reachable walk estimated at half an hour or less. Busy people explain when to try again. A walker names their destination when it has a name. If someone becomes busy during your approach, the visit ends with the same explanation. An unfinished approach ends after half an hour and offers Move closer.
 
 Each spoken line adds topic, person or mood icons. Two identical live icons pop. Every pop changes the NPC's regard for you, whichever person completes the pair. Topic scores come from the NPC's existing traits and tastes. A neutral pair leaves goodwill unchanged. Giving your name, hearing an introduction, sympathy for a guarded answer, accepting an ask and welcoming found family never lose goodwill from matching. Disliked ordinary matches keep their costs, and the listener says what displeases them. Each person icon uses that person's stable identity. Each choice marks the icons that match the row before you choose it.
 

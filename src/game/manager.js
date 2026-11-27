@@ -236,6 +236,12 @@ export function chatUnreachable(state, target) {
   if(e.planner[target].task?.[0]=="sleep")return "They are asleep for the night. Visit them in the morning.";
   return null;
 }
+export function chatDestination(state, target) {
+  const e=state.ecs,p=e.planner?.[target];
+  if(p?.task?.[0]!="walk_to")return null;
+  const destination=p.world.places?.[p.task[1]] || p.task[1],id=destination?.id || destination;
+  return e.nameable?.[id]?.nickname && !e.personable?.[id] && !e.mappable?.[id] ? id : null;
+}
 export function chatUnavailable(state, actor, target) {
   const reason=chatUnreachable(state,target) || chatUnfriendly(state,actor,target);
   if(reason)return reason;
@@ -246,9 +252,8 @@ export function chatUnavailable(state, actor, target) {
   const slots=patience(state,actor,target);
   if(slots.free<slots.minimum)return `They need a break from chatting. Try again in about ${Math.ceil(slots.readyIn)} game hours, or chat with another neighbour.`;
   if(p.task && !["wait_for","socialise","home_downtime","festival_wait"].includes(p.task[0])) {
-    const destination=w.places?.[p.task[1]] || p.task[1],id=destination?.id || destination;
-    const place=state.ecs.nameable?.[id]?.nickname;
-    if(p.task[0]=="walk_to" && place && !state.ecs.personable?.[id])return `They are walking to ${place}. Try there after they arrive, or chat with another neighbour.`;
+    const place=chatDestination(state,target);
+    if(place)return `They are walking to ${state.ecs.nameable[place].nickname}. Try there after they arrive, or chat with another neighbour.`;
     if(["walk_to","carry_home"].includes(p.task[0]))return "They are on their way somewhere. Try after they arrive, or chat with another neighbour.";
     return "They are busy with their work. Try after they have finished, or chat with another neighbour.";
   }

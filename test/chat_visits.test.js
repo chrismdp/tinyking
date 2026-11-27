@@ -1,6 +1,6 @@
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
-import { enqueueTask, expireChatApproach, chatUnavailable } from "game/manager";
+import { enqueueTask, expireChatApproach, chatUnavailable, chatDestination } from "game/manager";
 import { startVillagerChat, closeChat, chatChoices, chooseLine } from "game/chat";
 import { doorstep } from "game/conversation";
 function indoor({asleep=false,unfriendly=false}={}) {
@@ -16,6 +16,17 @@ function indoor({asleep=false,unfriendly=false}={}) {
   return {...w,home};
 }
 const until=(w,f)=>{for(let i=0;i<2500&&!f();i++)w.step(.005);expect(f()).toBeTruthy();};
+
+it("offers only a real named destination, including a planner place binding",()=>{
+  const {state:s,person:n,tiles}=peopleWorld(),p=s.ecs.planner[n];
+  s.ecs.nameable[tiles[5]]={nickname:"Map tile"};p.task=["walk_to",tiles[5]];
+  expect(chatDestination(s,n)).toBeNull();
+  const [place]=newEntities(s,[{nameable:{nickname:"Reedbrook well"},meetingPlace:{kind:"well"},spatial:{...s.ecs.spatial[tiles[5]]}}]);
+  p.task=["walk_to",place];expect(chatDestination(s,n)).toBe(place);
+  p.task=["walk_to","meet"];p.world.places.meet={id:place};
+  expect(chatDestination(s,n)).toBe(place);
+  p.task=["walk_to",n];expect(chatDestination(s,n)).toBeNull();
+});
 it("walks to the actual door, knocks and brings an awake resident outside before opening chat",()=>{
   const w=indoor(),s=w.state,initial={...s.ecs.spatial[w.player]};
   enqueueTask(s,{key:"chat"},w.person);

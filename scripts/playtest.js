@@ -2,7 +2,7 @@
 // Plays the running dev or frozen production build in headless Chromium, all
 // through the UI (mouse, wheel and keys). Observer pauses use ui.actions,
 // with game state read through the opted-in window.tinyking observer:
-//   main menu -> new game -> stranger at a camp (seed 13)
+//   main menu -> new game -> stranger at a camp (served world or explicit URL seed)
 //   click a villager to select it
 //   order Chat, Gift, Move here, Create Field, Create Stockpile and Cut down from
 //   the popups, and watch a villager walk to the Move here tile
@@ -20,7 +20,8 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView, waitForChatPanel, finishChatPanel, observeWork, waitForStartMenu, waitForCharacter } = require("./acceptance-selection");
-const { designationTerrain, finishDesignationCuts } = require("./designation-selection");
+const { designationCandidates, treeCandidates, restartCandidates, worldIdentity } = require("./playtest-selection");
+const { decompressGame } = require("../src/game/save_game");
 const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
 const GIFT_ONLY = process.argv.includes("--gift-only");
@@ -34,6 +35,11 @@ const VIEW = { width: 1280, height: 800 };
 const WAIT = 10000;
 
 const report = { errors: [], checks: [] };
+const selectionState = page => page.evaluate(() => {
+  const s = window.tinyking;
+  return { ecs: s.ecs, space: s.space, map: s.map, villages: s.villages,
+    landUseRevision: s.landUseRevision, ui: { playerId: s.ui.playerId }, travel: { seed: s.travel?.seed } };
+});
 const check = (name, ok, detail) => {
   report.checks.push({ name, ok: !!ok, detail });
   fs.writeFileSync(path.join(SHOTS,"playtest-report.json"),JSON.stringify(report,null,2));
@@ -48,6 +54,14 @@ const check = (name, ok, detail) => {
   });
   const page = await browser.newPage({ viewport: VIEW });
   await page.addInitScript(() => { window.__TINYKING_PLAYTEST__ = true; });
+  // Compare with the exact response the game consumed, including a selected
+  // historical week. A second fetch could observe a newly published world.
+  let servedWorld;
+  page.on("response", response => {
+    if (!/^\/worlds\/(current|\d{4}-W\d{2})\.json\.gz$/.test(new URL(response.url()).pathname)) return;
+    servedWorld = response.body().then(bytes => decompressGame(bytes)).then(s => ({ seed: s.travel?.seed }))
+      .catch(error => ({ error: error.message }));
+  });
   page.on("pageerror", e => report.errors.push("pageerror: " + e.message));
   page.on("console", m => {
     const where = m.location() && m.location().url || "";
@@ -58,7 +72,7 @@ const check = (name, ok, detail) => {
   });
 
   try {
-    if (!TARGETED && !GIFT_ONLY) await opening(page);
+    if (!TARGETED && !GIFT_ONLY) await opening(page, () => servedWorld);
     await play(page, !TARGETED && !GIFT_ONLY);
   } catch (e) {
     console.error(e.stack);
@@ -80,9 +94,8 @@ const check = (name, ok, detail) => {
   process.exit(report.checks.every(c => c.ok) ? 0 : 1);
 })().catch(e => { console.error(e); process.exit(2); });
 
-async function opening(page) {
+async function opening(page, servedWorld) {
   const url = new URL(BASE_URL);
-  url.searchParams.delete("seed");
   url.searchParams.delete("intro");
   await page.goto(url.href);
   await waitForStartMenu(page);
@@ -133,9 +146,10 @@ async function opening(page) {
   const {start,end,walked}=await page.evaluate(()=>window.introObservation);
   report.startupSeconds = end.newGameSeconds;
   console.log("STARTUP click Start new game to standing: " + end.newGameSeconds.toFixed(3) + " seconds (includes character screen and arrival)");
-  check("new games use the pre-built seed 13 world", await page.evaluate(() =>
-    !new URLSearchParams(location.search).has("seed") && window.tinyking.travel.seed === 13 &&
-    performance.getEntriesByType("resource").some(r => new URL(r.name).pathname === "/worlds/current.json.gz")));
+  const served = await servedWorld();
+  const identity = worldIdentity(await selectionState(page), url.href, served?.seed);
+  check("the world loads and reports the seed requested by the URL or served world", identity.loaded && identity.matches,
+    { ...identity, ...(served?.error ? { downloadError: served.error } : {}) });
   check("the arrival starts without camp, walks two hexes, makes camp and hands over standing in 4–6 seconds",
     start.noCamp && start.locked && walked && end.realSeconds >= 4 && end.realSeconds <= 6 && end.nearCamp && end.standing && end.bundle && end.campCount == 1 && end.steps == 2 &&
     end.control && end.days == start.days && end.needs == start.needs,
@@ -206,6 +220,8 @@ async function play(page, alreadyStarted=false) {
   const orderOn = async (ids, button, beforeOrder) => {
     const misses = [];
     for (const id of ids) {
+      await closePopup();
+      await panTo(id);
       const miss = await openJobMenu(id, button);
       if (!miss) {
         if (beforeOrder) {
@@ -249,12 +265,12 @@ async function play(page, alreadyStarted=false) {
   // NOTE: what each order can be given to, nearest the player first:
   //   person - other households' villagers on known land
   //   move    - any walkable known tile a little way off
-  //   empty   - reachable legal natural terrain, allowing designation to clear forage
   //   trees   - standing trees on known land
   const targets = async () => {
-    const build = shelterCandidates(await snapshot(page));
-    const empty = (await designationTerrain(page)).map(c => c.id);
-    return game(({build, empty}) => {
+    const state = await selectionState(page);
+    const build = shelterCandidates(state);
+    const trees = treeCandidates(state);
+    return game(({build, trees}) => {
       const s = window.tinyking;
       const p = s.ecs.spatial[s.ui.playerId];
       const distance = id => Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y);
@@ -271,14 +287,10 @@ async function play(page, alreadyStarted=false) {
           .filter(hex => !s.space[hex].some(id => s.ecs.building[id]))
           .map(tileIn)
           .filter(id => s.ecs.walkable[id].speed > 0 && distance(id) > 150)),
-        empty: nearest(empty),
         build,
-        trees: nearest(Object.keys(s.ecs.good)
-          .filter(id => s.ecs.good[id].type == "wood" && !(s.ecs.haulable && s.ecs.haulable[id]))
-          .filter(id => window.tinykingCustoms.resourcePermission(s, s.ui.playerId, id).permitted)
-          .filter(drawn))
+        trees
       };
-    }, {build, empty});
+    }, {build, trees});
   };
 
   // Shared by the complete playtest and the bounded gift closeout. Keep the
@@ -319,7 +331,6 @@ async function play(page, alreadyStarted=false) {
 
   // --- Start a game ---------------------------------------------------------------
   const playURL = new URL(BASE_URL);
-  playURL.searchParams.delete("seed");
   playURL.searchParams.set("intro", "skip");
   if(!alreadyStarted) {
     await page.goto(playURL.href);
@@ -433,38 +444,30 @@ async function play(page, alreadyStarted=false) {
     await shot("selected.png");
     await closePopup();
 
-    // Seed 13 has only one legal unclaimed plot in the starting discovery.
-    // Timber can already be plentiful there, so its survey need not earn the
-    // common rights required by the two separate designation checks below.
-    if ((await designationTerrain(page, true)).length < 2) {
+    // Field placement and storage have different land-use rules. Find a
+    // natural storage site that actually needs chopping, then let the whole
+    // Cut down job carry its real logs home before inspecting eligibility.
+    let state = await selectionState(page);
+    let clearing = designationCandidates(state, { action: "create_stockpile", allowTrees: true }).find(c => c.trees.length);
+    if (!designationCandidates(state).length || !clearing) {
       const [survey] = await discoverTimber(page, 0);
       const common = survey.commonWoodland[0];
       if (!common) throw new Error("No discovered common woodland for designation rights");
       const rights = await earnTimberRights(page, common);
       fs.writeFileSync(path.join(SHOTS, "designation-rights.json"), JSON.stringify(rights, null, 2));
       await closePopup();
+      state = await selectionState(page);
+      clearing = designationCandidates(state, { action: "create_stockpile", allowTrees: true }).find(c => c.trees.length);
     }
-
-    // Prepare two real designation sites only if standing trees block them.
-    // Selection reads known terrain; every removal is an explicit native job.
-    if ((await designationTerrain(page)).length < 2) {
-      const sites = (await designationTerrain(page, true)).slice(0, 2);
-      if (sites.length < 2) throw new Error("No two legal reachable natural designation sites");
-      const trees = sites.flatMap(site => site.trees);
-      for (const tree of trees) {
-        await panTo(tree);
-        if (!await orderOn([tree], "Cut down")) throw new Error("Could not explicitly cut designation tree " + tree);
-        await closePopup(); await speed(NORMAL);
-        await page.waitForFunction(finishDesignationCuts, [tree], {timeout:180000});
-        await speed(PAUSE);
-      }
-      await speed(NORMAL);
-      await page.waitForFunction(finishDesignationCuts, trees, {timeout: 180000});
-      await speed(PAUSE);
-      const after = await designationTerrain(page);
-      check("explicit Cut down work makes natural terrain eligible for designation", after.length >= 2, {sites, trees, after});
-      fs.writeFileSync(path.join(SHOTS, "designation-clearing.json"), JSON.stringify({sites, trees, after}, null, 2));
+    if (!clearing) throw new Error("No legal reachable tree tile for designation clearing");
+    for (const tree of clearing.trees) {
+      if (!await orderOn([tree], "Cut down")) throw new Error("Could not explicitly cut designation tree " + tree);
+      await finishOrder();
     }
+    const after = designationCandidates(await selectionState(page), { action: "create_stockpile" });
+    check("explicit Cut down work makes natural terrain eligible for designation",
+      after.some(c => c.id == clearing.id), { site: clearing, after });
+    fs.writeFileSync(path.join(SHOTS, "designation-clearing.json"), JSON.stringify({ site: clearing, after }, null, 2));
 
     // --- Orders from the popups (still paused) ------------------------------------------
     const t = await targets();
@@ -478,9 +481,9 @@ async function play(page, alreadyStarted=false) {
     await closePopup();
 
     // NOTE: a tile already ordered is a job target, so offers no more jobs
-    fieldTile = await orderOn(t.empty.filter(id => id != target), "Create Field");
-    stockpileTile = await orderOn(t.empty.filter(id => id != target && id != fieldTile), "Create Stockpile");
-    const tree = await orderOn(t.trees, "Cut down");
+    fieldTile = await orderOn(restartCandidates(await selectionState(page), "create_field", null, [target, clearing.id]), "Create Field");
+    stockpileTile = await orderOn(restartCandidates(await selectionState(page), "create_stockpile", clearing.id, [target, fieldTile]), "Create Stockpile");
+    let tree = await orderOn(treeCandidates(await selectionState(page)), "Cut down");
     check("Create Field, Create Stockpile and Cut down can be ordered from the popups",
       fieldTile && stockpileTile && tree, { fieldTile, stockpileTile, tree });
 
@@ -524,8 +527,16 @@ async function play(page, alreadyStarted=false) {
       {person,lines:conversation.selected,pops:conversation.pops,contact:conversation.contact});
     await closeUp(page, game, "zoom-day.png");
     // Each physical order completes before the next one is issued.
-    for (const [id,action] of [[fieldTile,"Create Field"],[stockpileTile,"Create Stockpile"],[tree,"Cut down"]]) {
-      await panTo(id); if (!await orderOn([id],action)) throw new Error("Could not restart "+action);
+    for (const [key, action, preferred] of [["create_field", "Create Field", fieldTile],
+      ["create_stockpile", "Create Stockpile", stockpileTile], ["cut_tree_down", "Cut down", tree]]) {
+      const candidates = restartCandidates(await selectionState(page), key, preferred,
+        key == "create_field" ? [stockpileTile] : key == "create_stockpile" ? [fieldTile] : []);
+      const id = await orderOn(candidates, action);
+      if (!id) throw new Error("Could not restart " + action + ": no currently eligible clickable target");
+      console.log("RESTART " + action + " " + JSON.stringify({ previous: preferred, selected: id, candidates }));
+      if (key == "create_field") fieldTile = id;
+      if (key == "create_stockpile") stockpileTile = id;
+      if (key == "cut_tree_down") tree = id;
       await finishOrder();
     }
     // Deliver the gathered gift during the day. The following six-hour
@@ -625,20 +636,23 @@ async function play(page, alreadyStarted=false) {
     await page.mouse.move(VIEW.width / 2, VIEW.height / 2);
     await page.mouse.wheel(0, 915);
     await returnToLocalView(page);
-    // Reproduce the later failing case's seed, field/stockpile reservations,
-    // explicit chopping and elapsed simulation; this is not the fresh build.
-    for (const [id, action] of [["1368", "Move here"], ["1340", "Create Field"], ["1311", "Create Stockpile"], ["1679", "Cut down"]]) {
-      await panTo(id);
-      if (!await orderOn([id], action)) throw new Error("Failed later-case setup: " + action);
+    // Prepare the later-construction scenario in this world's discovered land.
+    const move = await orderOn((await targets()).move, "Move here");
+    if (!move) throw new Error("Failed later-case setup: Move here");
+    await finishOrder();
+    for (const [key, action] of [["create_field", "Create Field"], ["create_stockpile", "Create Stockpile"], ["cut_tree_down", "Cut down"]]) {
+      const id = await orderOn(restartCandidates(await selectionState(page), key), action);
+      if (!id) throw new Error("Failed later-case setup: " + action);
+      if (key == "create_field") fieldTile = id;
+      if (key == "create_stockpile") stockpileTile = id;
       await finishOrder();
     }
-    fieldTile = "1340"; stockpileTile = "1311";
     await closePopup(); await speed(NORMAL);
     await page.waitForFunction(() => window.tinyking.days >= 2.915, null, { timeout: 180000 });
     await speed(PAUSE);
     const state = await snapshot(page);
     fs.writeFileSync(path.join(SHOTS, "later-placement-state.json"), JSON.stringify(state));
-    console.log("SETUP later construction: real seed13 field/stockpile/chopping orders, elapsed day " + await game(() => window.tinyking.days));
+    console.log("SETUP later construction: discovered field/stockpile/chopping orders, elapsed day " + await game(() => window.tinyking.days));
   }
 
   // Gather enough timber, place a site through its popup, and wait for actual delivery and work.

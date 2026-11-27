@@ -1,6 +1,6 @@
 import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { familyGoal, backstoryFor } from "game/mother_family";
-import { chatUnavailable, canReachTask } from "game/manager";
+import { chatUnavailable, canReachTask, canChatSoon } from "game/manager";
 import { ownsField } from "game/farming";
 import { householdAccess } from "game/playable";
 import { canPlaceField } from "game/land_use";
@@ -94,7 +94,7 @@ export function openingGuidance(state) {
   const explored=new Set((ecs.playable?.[actorId]?.known||[]).map(h=>h.x+","+h.y));
   const candidates=Object.keys(ecs.planner||{}).filter(id=>id!=actorId&&!ecs.personable[id]?.dead&&ecs.spatial[id]&&explored.has(String(Hex().fromPoint(ecs.spatial[id])))&&patience(state,actorId,id).free>=patience(state,actorId,id).minimum);
   candidates.sort((a,b)=>Math.hypot(ecs.spatial[a].x-player.x,ecs.spatial[a].y-player.y)-Math.hypot(ecs.spatial[b].x-player.x,ecs.spatial[b].y-player.y));
-  const available=candidates.filter(id=>!chatUnavailable(state,actorId,id));
+  const available=candidates.filter(id=>!chatUnavailable(state,actorId,id)&&canChatSoon(state,actorId,id));
   const target=available.find(id=>!state.knowledge?.[actorId]?.people?.[id]?.conversation) || available.sort((a,b)=>(state.chat?.pairs?.[actorId+":"+a]?.encounters||0)-(state.chat?.pairs?.[actorId+":"+b]?.encounters||0))[0];
   if(target && !chatUnavailable(state,actorId,target)) {
     const n=displayName(state,target);
@@ -108,7 +108,8 @@ export function openingGuidance(state) {
     if(relative)text="Ask the neighbours whether they know your "+relative.term+" "+relative.name+".";
     return {actorId,key:"chat",targetId:target,relativeId:relative?.id,text,action:walking?null:"Chat with "+(n=="an unknown person"?"nearby neighbour":n)};
   }
-  if(candidates.length)return {actorId,key:"neighbours_busy",text:chatUnavailable(state,actorId,candidates[0])};
+  const busy=candidates.length&&chatUnavailable(state,actorId,candidates[0]);
+  if(busy)return {actorId,key:"neighbours_busy",text:busy};
   return {actorId,key:"explore",text:"Select the edge of visible ground and choose Move here to find another neighbour."};
 }
 

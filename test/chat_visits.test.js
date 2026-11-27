@@ -1,6 +1,6 @@
 import { peopleWorld } from "./support/people";
 import { newEntities } from "game/entities";
-import { enqueueTask } from "game/manager";
+import { enqueueTask, expireChatApproach, chatUnavailable } from "game/manager";
 import { startVillagerChat, closeChat, chatChoices, chooseLine } from "game/chat";
 import { doorstep } from "game/conversation";
 function indoor({asleep=false,unfriendly=false}={}) {
@@ -8,7 +8,9 @@ function indoor({asleep=false,unfriendly=false}={}) {
   const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[w.tiles[3]]},building:{entrance:3},household:{},controllable:{controllerId:w.person}}]);
   s.ecs.household[w.person].houseId=home;s.ecs.spatial[w.person]={...s.ecs.spatial[home]};
   s.ecs.interior={[w.person]:{buildingId:home}};
-  s.ecs.planner[w.person].task=[asleep?"sleep":"home_downtime",1];s.ecs.planner[w.person].plan=[];
+  // Initial fixture: an awake resident remains free while the visitor walks.
+  s.ecs.planner[w.person].task=[asleep?"sleep":"wait_for",1];s.ecs.planner[w.person].plan=[];
+  s.ecs.planner[w.person].world.wait_until=s.days+1;
   if(asleep){s.days=1/24;s.ecs.personable[w.person].tiredness=1.5;s.ecs.planner[w.person].world.feeling.tired=true;}
   if(unfriendly)s.ecs.relationships[w.person].known[w.player]={ring:"public",goodwill:-3,base:0};
   return {...w,home};
@@ -68,10 +70,40 @@ it("releases the answering resident if the player cancels while they come outsid
 });
 it("approaches outdoors before claiming attention, without recording early contact",()=>{
   const w=peopleWorld(),s=w.state;
+  s.ecs.planner[w.person].task=["wait_for",1];s.ecs.planner[w.person].plan=[];
+  s.ecs.planner[w.person].world.wait_until=s.days+1;
   expect(Math.hypot(s.ecs.spatial[w.player].x-s.ecs.spatial[w.person].x,s.ecs.spatial[w.player].y-s.ecs.spatial[w.person].y)).toBeGreaterThan(70);
   enqueueTask(s,{key:"chat"},w.person);w.step(.005);
   expect(s.ecs.planner[w.person].world.capturedBy).toBeFalsy();
   expect(s.knowledge?.[w.player]?.people?.[w.person]?.conversation).toBeUndefined();
   until(w,()=>!!s.chat?.active);
   expect(s.chat.active.npcId).toBe(w.person);
+});
+
+it.each(["walk_to", "carry_home", "trade_work", "eat", "forage"])("declines a busy %s visit before moving or claiming attention", activity=>{
+  const {state:s,player:p,person:n,tiles}=peopleWorld();
+  s.ecs.planner[n].task=[activity,tiles[3]];
+  const before={...s.ecs.spatial[p]},job=enqueueTask(s,{key:"chat"},n);
+  expect(job.failed).toBe(true);
+  expect(s.ecs.manager[p].jobs).not.toContain(job);
+  expect(s.ui.talkResult).toMatchObject({personId:n,availability:true});
+  expect(s.ecs.spatial[p]).toEqual(before);
+  expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+});
+
+it.each(["walking", "meal", "rest", "patience", "attention"])("ends an approach as soon as its target becomes unavailable: %s", busy=>{
+  const {state:s,player:p,person:n,tiles}=peopleWorld();
+  const job=enqueueTask(s,{key:"chat"},n);
+  if(busy=="walking")s.ecs.planner[n].task=["walk_to",tiles[5]];
+  if(busy=="meal")s.ecs.planner[n].world.feeling.hungry=true;
+  if(busy=="rest")s.ecs.planner[n].world.feeling.tired=true;
+  if(busy=="patience"){s.chat={pairs:{[p+":"+n]:{resting:6,used:{},last:{}}}};}
+  if(busy=="attention")s.ecs.planner[n].world.capturedBy="another visitor";
+  expireChatApproach(s);
+  expect(chatUnavailable(s,p,n)).toBeTruthy();
+  expect(s.ecs.manager[p].jobs).not.toContain(job);
+  expect(s.ui.talkResult).toMatchObject({personId:n,availability:true});
+  expect(s.chat?.active).toBeUndefined();
+  expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
 });

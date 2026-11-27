@@ -31,6 +31,22 @@ it("offers another available neighbour when the nearest person is unfriendly",()
   expect(require("game/manager").chatUnavailable(s,p,hint.targetId)).toBeNull();
 });
 
+it("offers a free neighbour instead of chasing the nearest walker",()=>{
+  const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};
+  s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
+  s.ecs.spatial[n]={...s.ecs.spatial[p],x:s.ecs.spatial[p].x+40};
+  s.ecs.planner[n].task=["walk_to",tiles[5]];
+  expect(openingGuidance(s).targetId).toBeDefined();
+  expect(openingGuidance(s).targetId).not.toBe(n);
+});
+
+it.each(["blocked", "slow"])("does not offer a nearby chat without a short reachable route: %s", reason=>{
+  const {state:s,player:p,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};
+  s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));
+  for(const t of tiles)if(reason=="blocked")s.ecs.walkable[t].neighbours={};else s.ecs.walkable[t].speed=.1;
+  expect(openingGuidance(s).targetId).toBeUndefined();
+});
+
 it("does not describe a personal promise or set-aside delivery as running work",()=>{
   const {state:s,player:p,person:n,tiles}=peopleWorld();s.intro={active:false};s.ui.show={};s.days=1.4;
   s.ecs.playable[p].known=tiles.map(id=>require("game/hex").Hex().fromPoint(s.ecs.spatial[id]));

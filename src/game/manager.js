@@ -1,7 +1,6 @@
 import { isAdult, LIFE_STAGES } from "game/life_stages";
 import { physicalOrder, workBlocked } from "game/energy";
 import { customsIntentUnavailable } from "game/village_customs";
-import { nightTime } from "game/home";
 import { ownsField } from "game/farming";
 export { fieldOrders } from "game/farming";
 import { releaseFavourCargo, cancelFavour, requestForTask, favourWaiting, favourReceiver, favourWorkDone } from "game/favours";
@@ -12,6 +11,11 @@ import { forageAvailable } from "game/ecology";
 import { topController, householdAccess } from "game/playable";
 import { disposition } from "game/people";
 import { giftOptions } from "game/people";
+import { patience } from "game/chat_patience";
+import { doorstep, speechPosition } from "game/conversation";
+import { HUMAN_SPEED } from "game/locomotion";
+import { HEX_SIZE } from "game/hex";
+import { careSpeed } from "game/hunger";
 
 export const CHAT_APPROACH_JOBS = ["chat"];
 export const chatIntentUnavailable = (state,actor,target,intent) => intent?customsIntentUnavailable(state,actor,target,intent):null;
@@ -50,7 +54,7 @@ export function enqueueTask(state, job, targetId, metadata = {}) {
   if(CHAT_APPROACH_JOBS.includes(job.key)) {
     delete state.ui.talkResult;
     const reason = chatIntentUnavailable(state,state.ui.playerId,targetId,metadata.chatIntent) || chatUnavailable(state, state.ui.playerId, targetId);
-    if(reason && (metadata.chatIntent || chatUnfriendly(state,state.ui.playerId,targetId) || state.ecs.planner?.[targetId]?.task?.[0] == "sleep" || nightTime(state.days))) {
+    if(reason) {
       entry.failed = true; entry.waiting = entry.detail = reason;
       state.ui.talkResult = {personId:targetId,message:reason,availability:true};
       return entry;
@@ -146,6 +150,24 @@ export function canReachTask(state, actorId, targetId) {
   return !!(start && end && path(state, start, end));
 }
 
+// The nearby hint promises a short walk, including terrain and carried weight.
+// Explicit visits can still cover longer distances chosen by the player.
+export function canChatSoon(state, actor, target) {
+  const e=state.ecs,from=e.spatial[actor],home=e.interior?.[target]?.buildingId;
+  const to=home ? doorstep(state,home) : speechPosition(state,actor,target);
+  const tile=p=>p&&(state.space[Hex().fromPoint(p)]||[]).find(id=>e.walkable[id]);
+  const start=tile(from),end=tile(to),route=start&&end&&path(state,start,end);
+  if(!route)return false;
+  let previous=from,hours=0;
+  for(const [i,step] of route.entries()) {
+    const point=i==route.length-1?to:e.spatial[step.id];
+    hours+=Math.hypot(point.x-previous.x,point.y-previous.y)/(HUMAN_SPEED*HEX_SIZE*(e.walkable[step.id].speed||1));
+    previous=point;
+  }
+  const weight=(e.holder?.[actor]?.held||[]).reduce((v,id)=>v*(e.haulable[id].speedModifier||1),1);
+  return hours/(weight*careSpeed(e.personable[actor]))<=.5;
+}
+
 function waitingReason(state, actorId, job) {
   const ecs = state.ecs;
   const target = job.targetId;
@@ -215,7 +237,22 @@ export function chatUnreachable(state, target) {
   return null;
 }
 export function chatUnavailable(state, actor, target) {
-  return chatUnreachable(state,target) || chatUnfriendly(state,actor,target);
+  const reason=chatUnreachable(state,target) || chatUnfriendly(state,actor,target);
+  if(reason)return reason;
+  const p=state.ecs.planner[target],w=p.world;
+  if(w.feeling.hungry || p.task?.[0]=="eat")return "They are having a meal. Try after they have eaten, or chat with another neighbour.";
+  if(w.feeling.tired)return "They need to rest. Try after they have rested, or chat with another neighbour.";
+  if(w.capturedBy && w.capturedBy!=actor)return "They are talking with someone else. Try after that conversation, or chat with another neighbour.";
+  const slots=patience(state,actor,target);
+  if(slots.free<slots.minimum)return `They need a break from chatting. Try again in about ${Math.ceil(slots.readyIn)} game hours, or chat with another neighbour.`;
+  if(p.task && !["wait_for","socialise","home_downtime","festival_wait"].includes(p.task[0])) {
+    const destination=w.places?.[p.task[1]] || p.task[1],id=destination?.id || destination;
+    const place=state.ecs.nameable?.[id]?.nickname;
+    if(p.task[0]=="walk_to" && place && !state.ecs.personable?.[id])return `They are walking to ${place}. Try there after they arrive, or chat with another neighbour.`;
+    if(["walk_to","carry_home"].includes(p.task[0]))return "They are on their way somewhere. Try after they arrive, or chat with another neighbour.";
+    return "They are busy with their work. Try after they have finished, or chat with another neighbour.";
+  }
+  return null;
 }
 export function chatResultMessage(state,target) {
   const result=state.ui.talkResult;
@@ -243,7 +280,7 @@ export function expireChatApproach(state) {
   const head=jobs.find(j=>!j.waiting || CHAT_APPROACH_JOBS.includes(j.job.key));
   const job=jobs.find(j=>CHAT_APPROACH_JOBS.includes(j.job.key)&&(j.assignedId==actor||j==head));
   if(!job)return;
-  const reason=chatUnreachable(state,job.targetId) ||
+  const reason=chatUnavailable(state,actor,job.targetId) ||
     (job.waiting=="No path there" ? "The way to them is blocked. You cannot reach them from here." : null);
   if(reason)failChatApproach(state,job,reason);
 }
@@ -334,7 +371,7 @@ export function deferPlayerTask(state) {
   const job = state.ecs.manager[id].jobs.find(j => j.assignedId == id);
   if (!job) return;
   if(CHAT_APPROACH_JOBS.includes(job.job.key)) {
-    failChatApproach(state,job,chatUnreachable(state,job.targetId) || "The way to them is blocked. You cannot reach them from here.");
+    failChatApproach(state,job,chatUnavailable(state,id,job.targetId) || "The way to them is blocked. You cannot reach them from here.");
     return;
   }
   const blocked = waitingReason(state, id, job);

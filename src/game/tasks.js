@@ -1,4 +1,3 @@
-import { patience } from "game/chat_patience";
 import { isAdult, canHelpAtHome } from "game/life_stages";
 import { refreshPersonIndex, householdMembers } from "game/population_index";
 import { meetInSecret } from "game/secret_activities";

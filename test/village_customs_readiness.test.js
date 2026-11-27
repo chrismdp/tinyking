@@ -90,7 +90,7 @@ it("still lets a ready child member leave through the existing dialogue policy",
   expect(membership(s,w.player,"village")).toBe(null);
 });
 
-it("returns a clear refusal when a real queued approach reaches an elder who became tired",()=>{
+it("ends a real queued approach early when the elder becomes tired",()=>{
   const w=readyWorld({distant:true}),s=w.state;
   // INITIAL elder is near the native fatigue boundary; the simulation changes
   // their feeling while the queued player walks to the actual speaker.
@@ -104,7 +104,7 @@ it("returns a clear refusal when a real queued approach reaches an elder who bec
   expect(s.ecs.planner[w.parent].world.feeling.tired).toBe(true);
   expect(s.ui.talkResult.personId).toBe(w.parent);
   const a=s.ecs.spatial[w.player],b=s.ecs.spatial[w.parent];
-  expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeLessThanOrEqual(SPEECH_REACH);
+  expect(Math.hypot(a.x-b.x,a.y-b.y)).toBeGreaterThan(SPEECH_REACH);
   for(const id of [w.player,w.parent]) {
     expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();
     expect(s.ecs.planner[id].world.capturedBy).toBeFalsy();

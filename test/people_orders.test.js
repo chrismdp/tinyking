@@ -15,6 +15,8 @@ jest.mock("game/name", () => ({ name: n => n.nickname }));
 
 it("walks to a paused chat, completes spoken contact and releases attention without changing control", () => {
   const { state, player, person, step } = peopleWorld();
+  state.ecs.planner[person].task=["wait_for",1];state.ecs.planner[person].plan=[];
+  state.ecs.planner[person].world.wait_until=state.days+1;
   const task = enqueueTask(state, { key: "chat" }, person);
   expect(state.ecs.relationships[player].known).toEqual({});
   step(0.1);
@@ -202,18 +204,21 @@ it("leaves a collected choice in hand on cancellation and waits if the chosen so
   expect(state.ecs.good[supply].amount).toBe(1);
 });
 
-it("keeps a hungry chat target beyond an hour and starts after the meal without another order",()=>{
+it("ends a hungry visit early and allows a new visit after the meal",()=>{
   const {state:s,player:p,person:n,step}=peopleWorld();
   const {enqueueTask}=require("game/manager");
   s.ecs.personality[n].traits=[];
   s.ecs.personable[n].hunger=1.1;s.ecs.planner[n].world.feeling.hungry=true;
+  const before={...s.ecs.spatial[p]};
   const order=enqueueTask(s,{key:"chat"},n);
-  step(1.1);
-  expect(s.ecs.manager[p].jobs).toContain(order);
-  expect(order.assignedId).toBe(p);
+  expect(s.ecs.manager[p].jobs).not.toContain(order);
+  expect(order.failed).toBe(true);expect(s.ui.talkResult.personId).toBe(n);
+  expect(s.ecs.spatial[p]).toEqual(before);
   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
   s.ecs.personable[n].hunger=0;s.ecs.planner[n].world.feeling.hungry=false;
-  s.ecs.planner[n].task=null;s.ecs.planner[n].plan=null;
+  s.ecs.planner[n].task=["wait_for",1];s.ecs.planner[n].plan=[];
+  s.ecs.planner[n].world.wait_until=s.days+1;
+  enqueueTask(s,{key:"chat"},n);
   step(2);
   expect(s.chat?.active?.npcId).toBe(n);
 });
@@ -221,7 +226,8 @@ it("knocks for an indoor target and opens at the doorstep without premature cont
   const w=peopleWorld(),{state:s,player:p,person:n,tiles}=w;
   const [home]=newEntities(s,[{spatial:{...s.ecs.spatial[tiles[3]]},building:{entrance:3},household:{},controllable:{controllerId:n}}]);
   s.ecs.household[n].houseId=home;s.ecs.spatial[n]={...s.ecs.spatial[home]};
-  s.ecs.interior={[n]:{buildingId:home}};s.ecs.planner[n].task=["home_downtime",1];s.ecs.planner[n].plan=[];
+  s.ecs.interior={[n]:{buildingId:home}};s.ecs.planner[n].task=["wait_for",1];s.ecs.planner[n].plan=[];
+  s.ecs.planner[n].world.wait_until=s.days+1;
   enqueueTask(s,{key:"chat"},n);
   for(let i=0;i<2500&&!s.ui.talkResult?.message.includes("Knock");i++)w.step(.005);
   expect(s.ui.talkResult.personId).toBe(w.person);

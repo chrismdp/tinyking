@@ -364,6 +364,9 @@ export function speakLine(s,line) {
   const {row,popped}=rowAfter(c,{...line,risk}),pops=[];
   // Their own trouble, request or welcome is not a choice the player made.
   const initiative=line.speaker=="npc" && (c.phase=="opening" || ["own_news","favour_ask","maternal_recognition"].includes(line.family));
+  // Kin recognition can grant warmth directly. Keep the conversation's ring
+  // limit even when their welcome has no scored matches.
+  if(initiative)addGoodwill(s,c.actorId,c.npcId,0);
   for(const i of popped) {
     if(initiative)continue;
     const score=iconScore(s,i,c.actorId,c.npcId),raw=score;

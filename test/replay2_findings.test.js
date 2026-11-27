@@ -134,6 +134,8 @@ it('rechecks pantry room before accepting a stale spoken harvest offer',()=>{
 });
 it('receives the oath at the receipt trust of 10.1 before normal drift removes eligibility',()=>{
  const w=oathWorld(),s=w.state,start=s.days;
+ s.ecs.planner[w.parent].task=['wait_for',1];s.ecs.planner[w.parent].plan=[];
+ s.ecs.planner[w.parent].world.wait_until=s.days+1;
  const order=enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"oath"});
  for(let minute=0;minute<60 && !s.chat?.active?.context;minute++)w.step(1/60);
  expect(s.chat?.active?.context).toMatchObject({kind:'oath',speakerId:w.parent});

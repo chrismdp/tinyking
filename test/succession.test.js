@@ -26,6 +26,8 @@ const intimate = (s,a,b) => { for (const [x,y] of [[a,b],[b,a]]) s.ecs.relations
 const weddingWorld = () => { const f=peopleWorld(); f.state.ecs.nameable[f.player].male=true; f.state.ecs.playable[f.player].arrivedAt=f.state.days; f.state.opinionThresholds={hate:-100,love:-99}; f.state.ecs.building={[f.tiles[3]]:{rooms:[]}}; chatRecord(f.state,f.player,f.person).courtship={started:f.state.days-6,visits:7,lastDay:Math.floor(f.state.days)-1}; return f; };
 const marryInChat = w => {
   const {state:s,person,step}=w;
+  s.ecs.planner[person].task=["wait_for",1];s.ecs.planner[person].plan=[];
+  s.ecs.planner[person].world.wait_until=s.days+1;
   const job=enqueueTask(s,{key:"chat"},person);step(.05);expect(job.progress).toBeLessThan(1);step(2);
   s.chat.active.focus="family";
   const proposal=chatChoices(s).find(l=>l.family=="proposal");expect(proposal).toBeDefined();
@@ -158,6 +160,8 @@ it("refuses a player proposal to a known lineal ancestor beyond the NPC two-gene
   for(const [i,id] of chain.entries())s.ecs.kinship[id]={parents:i?[chain[i-1]]:[],children:i<3?[chain[i+1]]:[],spouse:null};
   for(const [i,id] of chain.entries())s.ecs.personable[id].age=[87,65,43,18][i];
   intimate(s,player,sibling);expect(canMarryPlayer(s,player,sibling)).toBe(false);
+  s.ecs.planner[sibling].task=["wait_for",1];s.ecs.planner[sibling].plan=[];
+  s.ecs.planner[sibling].world.wait_until=s.days+1;
   enqueueTask(s,{key:"chat"},sibling);step(2);s.chat.active.focus="family";
   expect(chatChoices(s).some(l=>["proposal","flirt"].includes(l.family))).toBe(false);closeChat(s);
   expect(s.ecs.kinship[player].spouse).toBeNull();expect((s.events||[]).some(e=>e.type=="marriage")).toBe(false);

@@ -73,7 +73,7 @@ NPC adults choose visits through the planner. Mutual Personal relationships, com
 
 ## Relationships and disclosure
 
-Player conversations use the paused panel and authored lines described in [Conversations](conversations.md). Topic and person pairs change the NPC's regard for the player, whichever speaker completes them. Patience slots recover over game time. A spoken fact reveals only its stated knowledge.
+Player conversations use the paused panel and authored lines described in [Conversations](conversations.md). Topic and person pairs change the NPC's regard for the player, whichever speaker completes them. A villager's own opening, welcome, grief or request never scores these matches against the player. Patience slots recover over game time. A spoken fact reveals only its stated knowledge.
 
 Relationships are one-way. Each observer has their own goodwill and limited slots:
 

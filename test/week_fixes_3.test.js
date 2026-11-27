@@ -3,20 +3,22 @@ import { enqueueTask, expireChatApproach, readyPlayerTasks } from "game/manager"
 import { approach_chat } from "game/tasks";
 import { Task } from "game/htn";
 
-it.each(["eat", "trade_work", "walk_to"])("follows a person doing %s and waits to take their attention until they are free", activity=>{
+it.each(["eat", "trade_work", "walk_to"])("declines a person doing %s and permits a fresh visit when they are free", activity=>{
   const {state:s,player:a,person:n,tiles}=peopleWorld();
   const target=s.ecs.planner[n],world=s.ecs.planner[a].world;
   target.task=[activity,tiles[4]];target.plan=[];
   const start={...s.ecs.spatial[a]},order=enqueueTask(s,{key:"chat"},n);
   approach_chat(s,a,world,1/1440,true,n);
-  expect(s.ecs.spatial[a]).not.toEqual(start);
+  expect(s.ecs.spatial[a]).toEqual(start);
   expect(target.world.capturedBy).toBeFalsy();
   s.days+=3/24;expireChatApproach(s);
-  expect(s.ecs.manager[a].jobs).toContain(order);
+  expect(s.ecs.manager[a].jobs).not.toContain(order);
+  expect(s.ui.talkResult.personId).toBe(n);
   s.ecs.spatial[a]={...s.ecs.spatial[n],x:s.ecs.spatial[n].x-45};
   expect(approach_chat(s,a,world,1/1440,false,n)).toBe(Task.CONTINUE);
   expect(target.world.capturedBy).toBeFalsy();
   target.task=null;
+  enqueueTask(s,{key:"chat"},n);
   expect(approach_chat(s,a,world,1/1440,false,n)).toBe(Task.FINISH);
   expect(target.world.capturedBy).toBe(a);
 });

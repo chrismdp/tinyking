@@ -91,6 +91,8 @@ it("keeps concrete actor-specific guidance after conversations and dismissal", (
 
 it("keeps paused player speech physically separated and still requires genuine near contact", () => {
   const {state:s,player,person:a,step}=peopleWorld();
+  s.ecs.planner[a].task=["wait_for",1];s.ecs.planner[a].plan=[];
+  s.ecs.planner[a].world.wait_until=s.days+1;
   const {enqueueTask}=require("game/manager");
   enqueueTask(s,{key:"chat"},a);
   let speech;

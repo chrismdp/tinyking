@@ -240,7 +240,7 @@ export function chatUnavailable(state, actor, target) {
   const reason=chatUnreachable(state,target) || chatUnfriendly(state,actor,target);
   if(reason)return reason;
   const p=state.ecs.planner[target],w=p.world;
-  if(w.feeling.hungry || p.task?.[0]=="eat")return "They are having a meal. Try after they have eaten, or chat with another neighbour.";
+  if(w.feeling.hungry || p.task?.[0]=="eat")return "They need a meal. Try after they have eaten, or chat with another neighbour.";
   if(w.feeling.tired)return "They need to rest. Try after they have rested, or chat with another neighbour.";
   if(w.capturedBy && w.capturedBy!=actor)return "They are talking with someone else. Try after that conversation, or chat with another neighbour.";
   const slots=patience(state,actor,target);

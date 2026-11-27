@@ -19,6 +19,8 @@ it("plays a day with a queued walk, spoken chat and a night's rest", () => {
   Object.assign(s.villages.village, {id: "village", sharedPlaces: []});
   const [camp] = newEntities(s, [{spatial: {...s.ecs.spatial[player]}, camp: {}, controllable: {controllerId: player}, sleepable: {capacity: 1, occupiers: []}}]);
   s.ecs.household[player].houseId = camp;
+  s.ecs.planner[person].task=["wait_for",1];s.ecs.planner[person].plan=[];
+  s.ecs.planner[person].world.wait_until=s.days+1;
   const start = s.days;
   enqueueTask(s, {key: "chat"}, person);
   for (let minute = 0; minute < 120 && !s.chat?.active; minute++) w.step(1/60);

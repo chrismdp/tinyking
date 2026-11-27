@@ -21,6 +21,7 @@ function world() {
   for(const id of [person,parent,sibling]) {
     s.ecs.household[id].houseId=house;
     s.ecs.planner[id].task=["wait_for",1]; s.ecs.planner[id].plan=[];
+    s.ecs.planner[id].world.wait_until=s.days+1;
   }
   s.ecs.spatial[parent]={...s.ecs.spatial[tiles[1]]};
   s.ecs.spatial[sibling]={...s.ecs.spatial[tiles[0]]};
@@ -188,6 +189,9 @@ it("receives and declines an oath through a real visit, then swears and leaves e
   const [permittedTree]=newEntities(s,[{spatial:{...s.ecs.spatial[w.tree]},tree:{},good:{type:"wood",amount:1}}]);
   enqueueTask(s,{key:"cut_tree_down"},permittedTree);until(w,()=>!s.ecs.good[permittedTree]);
   expect(s.customs.incidents).toEqual([]);
+  // Initial availability for the later leaving conversation, after the work.
+  s.ecs.planner[w.parent].task=["wait_for",1];s.ecs.planner[w.parent].plan=[];
+  s.ecs.planner[w.parent].world.wait_until=s.days+1;
   enqueueTask(s,{key:"chat"},w.parent,{chatIntent:"leave"});
   until(w,()=>s.chat?.active?.context?.kind=="leave");respond(s,"leave");
   expect(resourcePermission(s,w.player,w.tree).permitted).toBe(false);

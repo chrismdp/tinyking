@@ -795,7 +795,9 @@ it('delivers real food beside a store full of non-food goods without exceeding c
 
 it.each(['move_to_here','chat','rest'])('sets accepted delivery aside for %s and can resume it explicitly',key=>{
  const w=favourWorld(),s=w.state,r=w.request('wood');
- acceptFavour(s,r.id);const next=enqueueTask(s,{key},w.tiles[2]);
+ // Chat requires a living local person, rather than the ground tile used by Move.
+ if(key==='chat')s.ecs.planner[w.person]={id:w.person,task:['wait_for',1],plan:[],world:{places:{},no_place_for:{},feeling:{},holding:{},wait_until:s.days+1}};
+ acceptFavour(s,r.id);const next=enqueueTask(s,{key},key==='chat'?w.person:w.tiles[2]);
  expect(r.status).toBe('accepted');expect(s.ecs.manager[w.player].jobs).toEqual([next]);
  const {resumeFavour}=require('game/favours');
  const delivery=resumeFavour(s,r.id);expect(delivery.favourId).toBe(r.id);

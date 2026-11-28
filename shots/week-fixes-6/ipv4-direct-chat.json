@@ -1,0 +1,30 @@
+{
+  "source": "c60d541",
+  "start": {
+    "day": 1.5111111111111888,
+    "id": "w5_3-social-78",
+    "task": [
+      "walk_to",
+      "w5_3-store-12"
+    ],
+    "point": {
+      "x": 2070,
+      "y": 883.3459118601273,
+      "id": "terrain5_3-person-4145"
+    }
+  },
+  "end": {
+    "day": 1.5118055555556333,
+    "result": {
+      "personId": "w5_3-social-78",
+      "message": "They are on their way somewhere. Try after they arrive, or chat with another neighbour.",
+      "availability": true
+    },
+    "jobs": [],
+    "point": {
+      "x": 2070,
+      "y": 883.3459118601273,
+      "id": "terrain5_3-person-4145"
+    }
+  }
+}

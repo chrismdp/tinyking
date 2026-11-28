@@ -1,0 +1,23 @@
+FAIL test/chat_visits.test.js
+  ● ends a still-incomplete visit within half an hour even when its target stays free
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not {"id": "task-1", "job": {"key": "chat"}, "progress": 0, "targetId": "8"}
+    Received array:     [{"id": "task-1", "job": {"key": "chat"}, "progress": 0, "targetId": "8"}]
+
+      124 |   const job=enqueueTask(s,{key:"chat"},n);
+      125 |   s.days+=31/1440;expireChatApproach(s);
+    > 126 |   expect(s.ecs.manager[p].jobs).not.toContain(job);
+          |                                     ^
+      127 |   expect(s.ui.talkResult).toMatchObject({personId:n,recovery:"move_closer"});
+      128 |   expect(s.ecs.planner[n].world.capturedBy).toBeFalsy();
+      129 |   expect(s.knowledge?.[p]?.people?.[n]?.conversation).toBeUndefined();
+
+      at Object.<anonymous> (test/chat_visits.test.js:126:37)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 19 passed, 20 total
+Snapshots:   0 total
+Time:        1.84 s
+Ran all test suites matching test/chat_visits.test.js.

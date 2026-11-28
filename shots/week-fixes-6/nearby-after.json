@@ -1,0 +1,25 @@
+{
+  "start": {
+    "days": 1.53263888888897,
+    "player": {
+      "x": 2070,
+      "y": 571.5767664977294,
+      "id": "terrain5_3-person-4145"
+    }
+  },
+  "end": {
+    "days": 1.5361111111111927,
+    "result": {
+      "personId": "w5_3-social-102",
+      "message": "They are walking to Map tile. Try there after they arrive, or chat with another neighbour.",
+      "availability": true
+    },
+    "jobs": [],
+    "player": {
+      "x": 2089.7428708286434,
+      "y": 615.3285556205014,
+      "id": "terrain5_3-person-4145"
+    }
+  },
+  "elapsedGameMinutes": 5.000000000000782
+}

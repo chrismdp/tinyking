@@ -1,0 +1,5 @@
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      511          0.0.0.0:8176      0.0.0.0:*    users:(("webpack",pid=1276710,fd=21))
+
+Stopped owned webpack PID from ss: 1276710
+Exit status of kill: 0

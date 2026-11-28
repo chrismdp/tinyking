@@ -1,0 +1,91 @@
+FAIL test/chat_visits.test.js
+  ● walks to the actual door, knocks and brings an awake resident outside before opening chat
+
+    TypeError: Cannot read properties of undefined (reading 'filter')
+
+      395 |   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
+      396 |   if (!v) return null;
+    > 397 |   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
+          |                                 ^
+      398 |   const villagers = villagePeople(state,v.id).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
+      399 |     state.ecs.village[person]?.villageId == v.id);
+      400 |   const key = JSON.stringify([Math.floor(state.days), villagers, places]);
+
+      at eveningPlace (src/game/villages.js:397:33)
+      at Object.find_place (src/game/tasks.js:744:122)
+      at Object.runTask (src/game/htn.js:77:31)
+      at updatePlannerFrame (src/game/simulation.js:157:13)
+      at src/game/simulation.js:55:71
+      at withGardenHelpIndex (src/game/household_routines.js:13:16)
+      at src/game/simulation.js:55:57
+      at withFenceCache (src/game/fences.js:9:16)
+      at updatePlanners (src/game/simulation.js:55:24)
+      at stepWorld (src/game/simulation.js:256:5)
+      at tick (src/game/simulation.js:301:20)
+      at Object.step (src/game/simulation.js:332:11)
+      at Object.step (test/support/people.js:46:68)
+      at until (test/chat_visits.test.js:16:52)
+      at Object.<anonymous> (test/chat_visits.test.js:20:3)
+
+  ● releases the answering resident if the player cancels while they come outside
+
+    TypeError: Cannot read properties of undefined (reading 'filter')
+
+      395 |   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
+      396 |   if (!v) return null;
+    > 397 |   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
+          |                                 ^
+      398 |   const villagers = villagePeople(state,v.id).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
+      399 |     state.ecs.village[person]?.villageId == v.id);
+      400 |   const key = JSON.stringify([Math.floor(state.days), villagers, places]);
+
+      at eveningPlace (src/game/villages.js:397:33)
+      at Object.find_place (src/game/tasks.js:744:122)
+      at Object.runTask (src/game/htn.js:77:31)
+      at updatePlannerFrame (src/game/simulation.js:157:13)
+      at src/game/simulation.js:55:71
+      at withGardenHelpIndex (src/game/household_routines.js:13:16)
+      at src/game/simulation.js:55:57
+      at withFenceCache (src/game/fences.js:9:16)
+      at updatePlanners (src/game/simulation.js:55:24)
+      at stepWorld (src/game/simulation.js:256:5)
+      at tick (src/game/simulation.js:301:20)
+      at Object.step (src/game/simulation.js:332:11)
+      at Object.step (test/support/people.js:46:68)
+      at until (test/chat_visits.test.js:16:52)
+      at Object.<anonymous> (test/chat_visits.test.js:64:3)
+
+  ● approaches outdoors before claiming attention, without recording early contact
+
+    TypeError: Cannot read properties of undefined (reading 'filter')
+
+      395 |   const v = state.villages?.[state.ecs.village?.[actorId]?.villageId];
+      396 |   if (!v) return null;
+    > 397 |   const places = v.sharedPlaces.filter(id => ["green", "alehouse"].includes(state.ecs.meetingPlace[id].kind));
+          |                                 ^
+      398 |   const villagers = villagePeople(state,v.id).filter(person => isResident(state,person) && !state.ecs.personable[person].dead &&
+      399 |     state.ecs.village[person]?.villageId == v.id);
+      400 |   const key = JSON.stringify([Math.floor(state.days), villagers, places]);
+
+      at eveningPlace (src/game/villages.js:397:33)
+      at Object.find_place (src/game/tasks.js:744:122)
+      at Object.runTask (src/game/htn.js:77:31)
+      at updatePlannerFrame (src/game/simulation.js:157:13)
+      at src/game/simulation.js:55:71
+      at withGardenHelpIndex (src/game/household_routines.js:13:16)
+      at src/game/simulation.js:55:57
+      at withFenceCache (src/game/fences.js:9:16)
+      at updatePlanners (src/game/simulation.js:55:24)
+      at stepWorld (src/game/simulation.js:256:5)
+      at tick (src/game/simulation.js:301:20)
+      at Object.step (src/game/simulation.js:332:11)
+      at Object.step (test/support/people.js:46:68)
+      at until (test/chat_visits.test.js:16:52)
+      at Object.<anonymous> (test/chat_visits.test.js:75:3)
+
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       3 failed, 26 passed, 29 total
+Snapshots:   0 total
+Time:        5.414 s
+Ran all test suites matching test/chat_visits.test.js|test/chat_guidance.test.js.

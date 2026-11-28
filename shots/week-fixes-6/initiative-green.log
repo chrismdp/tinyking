@@ -1,0 +1,6 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       70 passed, 70 total
+Snapshots:   0 total
+Time:        6.117 s
+Ran all test suites matching test/asks.test.js|test/chat_row_rules.test.js|test/chat.test.js.

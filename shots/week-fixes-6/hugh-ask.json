@@ -1,0 +1,450 @@
+{
+  "days": 0.8791666666666649,
+  "seed": 13,
+  "regard": {
+    "ring": "personal",
+    "goodwill": 36,
+    "base": 36
+  },
+  "transcript": [
+    {
+      "id": "npc.greeting.first_meeting.base.04",
+      "family": "greeting",
+      "situation": "first_meeting",
+      "speaker": "npc",
+      "text": "Evening. I'm Hugh, of Reedbrook.",
+      "icons": [
+        {
+          "kind": "topic",
+          "key": "village"
+        },
+        {
+          "kind": "person",
+          "personId": "w5_3-social-66"
+        }
+      ],
+      "pops": [],
+      "requestIds": [],
+      "presentation": {
+        "before": {
+          "row": [],
+          "regard": 0,
+          "learned": {
+            "traits": [],
+            "nameOnly": true
+          }
+        },
+        "icons": [
+          {
+            "kind": "topic",
+            "key": "village"
+          },
+          {
+            "kind": "person",
+            "personId": "w5_3-social-66"
+          }
+        ],
+        "after": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ],
+          "regard": 0,
+          "learned": {
+            "traits": []
+          }
+        }
+      }
+    },
+    {
+      "id": "player.maternal_introduction.mothers_child.base.01",
+      "answers": [
+        "name",
+        "family"
+      ],
+      "family": "maternal_introduction",
+      "situation": "mothers_child",
+      "speaker": "player",
+      "text": "I am Dionisia Seesi's child.",
+      "icons": [
+        {
+          "kind": "topic",
+          "key": "family"
+        }
+      ],
+      "pops": [],
+      "requestIds": [],
+      "presentation": {
+        "before": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ],
+          "regard": 0,
+          "learned": {
+            "traits": []
+          }
+        },
+        "icons": [
+          {
+            "kind": "topic",
+            "key": "family"
+          }
+        ],
+        "after": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            },
+            {
+              "kind": "topic",
+              "key": "family"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "npc.maternal_recognition.welcome_kin.base.01",
+      "family": "maternal_recognition",
+      "situation": "welcome_kin",
+      "speaker": "npc",
+      "text": "Then you are my nephew! Your mother is my own kin. Welcome, child; you have found family here.",
+      "icons": [
+        {
+          "kind": "topic",
+          "key": "family"
+        }
+      ],
+      "pops": [],
+      "requestIds": [],
+      "presentation": {
+        "before": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            },
+            {
+              "kind": "topic",
+              "key": "family"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        },
+        "icons": [
+          {
+            "kind": "topic",
+            "key": "family"
+          }
+        ],
+        "after": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "npc.own_news.death.told.01@w5_3-event-1140",
+      "family": "own_news",
+      "situation": "told_death",
+      "speaker": "npc",
+      "text": "We lost Agnes earlier today. The house is quiet without them.",
+      "icons": [
+        {
+          "kind": "topic",
+          "key": "family"
+        },
+        {
+          "kind": "person",
+          "personId": "w5_3-social-71"
+        }
+      ],
+      "pops": [],
+      "requestIds": [],
+      "presentation": {
+        "before": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        },
+        "icons": [
+          {
+            "kind": "topic",
+            "key": "family"
+          },
+          {
+            "kind": "person",
+            "personId": "w5_3-social-71"
+          }
+        ],
+        "after": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            },
+            {
+              "kind": "topic",
+              "key": "family"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-71"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "npc.favour_ask.word.base.02@terrain5_3-favour-11",
+      "expects": "offer",
+      "family": "favour_ask",
+      "situation": "word",
+      "speaker": "npc",
+      "text": "Somebody ought to tell Margaret, in Reedford. I can't face the road. Would you go?",
+      "icons": [
+        {
+          "kind": "topic",
+          "key": "family"
+        },
+        {
+          "kind": "topic",
+          "key": "help"
+        },
+        {
+          "kind": "person",
+          "personId": "w5_3-social-66"
+        }
+      ],
+      "pops": [],
+      "requestIds": [
+        "terrain5_3-favour-11"
+      ],
+      "presentation": {
+        "before": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-66"
+            },
+            {
+              "kind": "topic",
+              "key": "family"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-71"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        },
+        "icons": [
+          {
+            "kind": "topic",
+            "key": "family"
+          },
+          {
+            "kind": "topic",
+            "key": "help"
+          },
+          {
+            "kind": "person",
+            "personId": "w5_3-social-66"
+          }
+        ],
+        "after": {
+          "row": [
+            {
+              "kind": "topic",
+              "key": "village"
+            },
+            {
+              "kind": "person",
+              "personId": "w5_3-social-71"
+            },
+            {
+              "kind": "topic",
+              "key": "help"
+            }
+          ],
+          "regard": 36,
+          "learned": {
+            "traits": [],
+            "maternalKin": {
+              "motherId": "terrain5_3-backstory-4146",
+              "term": "uncle"
+            },
+            "conversation": {
+              "day": 0.8791666666666649,
+              "position": {
+                "x": 2062.6632669434453,
+                "y": 721.9848351354266
+              },
+              "otherPosition": {
+                "x": 2033,
+                "y": 663.37545929888
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

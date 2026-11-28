@@ -1,6 +1,0 @@
-
-Test Suites: 2 passed, 2 total
-Tests:       29 passed, 29 total
-Snapshots:   0 total
-Time:        4.234 s, estimated 5 s
-Ran all test suites matching test/chat_visits.test.js|test/chat_guidance.test.js.

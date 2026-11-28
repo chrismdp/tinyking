@@ -1,3 +1,0 @@
-Source: c60d541c3e4a8f59a20d4856a439d921ea6e29be
-Built source: c60d541c3e4a8f59a20d4856a439d921ea6e29be
-Exit status: 0

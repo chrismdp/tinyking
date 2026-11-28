@@ -573,13 +573,31 @@ async function play(page, alreadyStarted=false) {
     }
     check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
     // The walk let game time pass. The earlier neighbour may now be busy.
-    await discoverPerson();
-    const chatPerson = await orderOn((await targets()).person, "Chat");
-    if (!await game(id => {
-      const s = window.tinyking;
-      return s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
-    }, chatPerson)) throw new Error("The person panel did not queue Chat with " + chatPerson);
-    await waitForChatPanel(page, chatPerson);
+    let chatPerson;
+    const chatStarted = (await selectionState(page)).days;
+    for (let attempt = 0; attempt < 48; attempt++) {
+      await speed(PAUSE);
+      await discoverPerson();
+      if ((await selectionState(page)).days - chatStarted >= 1) break;
+      chatPerson = await orderOn((await targets()).person, "Chat");
+      if (!await game(id => {
+        const s = window.tinyking;
+        return s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
+      }, chatPerson)) throw new Error("The person panel did not queue Chat with " + chatPerson);
+      try {
+        await waitForChatPanel(page, chatPerson);
+        break;
+      } catch (error) {
+        await speed(PAUSE);
+        const result = await game(() => window.tinyking.ui.talkResult);
+        // A free neighbour can start work during the walk. Read the game's
+        // refusal, then choose afresh just as the person sheet suggests.
+        if (result?.personId != chatPerson || !result.availability) throw error;
+        console.log("CHAT declined during approach " + JSON.stringify(result));
+        chatPerson = null;
+      }
+    }
+    if (!chatPerson || !await page.locator(".chat-panel").count()) throw new Error("No neighbour opened Chat within one game day");
     const conversation = await finishChatPanel(page, chatPerson, {maxLines:1});
     check("Chat pauses the world, chosen lines make contact and End chat releases the panel",
       conversation.contact && conversation.selected.length && conversation.history.npcId == chatPerson,

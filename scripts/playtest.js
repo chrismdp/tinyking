@@ -699,7 +699,7 @@ async function play(page, alreadyStarted=false) {
         treeGone: !s.ecs.good[tree],
         treeWaiting: waiting("cut_tree_down")
       };
-    }, [person, tree, fieldTile, stockpileTile]);
+    }, [chatPerson, tree, fieldTile, stockpileTile]);
     check("the orders are carried out (or still waiting their turn)",
       (outcome.fields > 0 || outcome.fieldWaiting) &&
     (outcome.stockpiles > 0 || outcome.stockpileWaiting) &&

@@ -5,6 +5,9 @@ const { path } = require("../src/game/pathfinding");
 const { canPlaceField, tileContents } = require("../src/game/land_use");
 const { designationPlants, clearableForage } = require("../src/game/designation");
 const { resourcePermission } = require("../src/game/village_customs");
+const { chatUnavailable, chatUnfriendly } = require("../src/game/manager");
+const { patience } = require("../src/game/chat_patience");
+const { isResident } = require("../src/game/residents");
 
 // All selection runs on detached snapshots. Use the same land, permission and
 // navigation rules as the game, restricted to what the player has discovered.
@@ -53,6 +56,21 @@ function restartCandidates(s, action, preferred, exclude = []) {
   return ids.includes(preferred) ? [preferred, ...ids.filter(id => id != preferred)] : ids;
 }
 
+function livingNeighbours(s) {
+  const e = s.ecs, actor = s.ui.playerId;
+  return Object.keys(e.personable || {}).filter(id => id != actor && e.spatial[id] && isResident(s, id) &&
+    !e.personable[id].dead && e.personable[id].age >= 18 && e.controllable[id]?.controllerId != actor);
+}
+
+function chatCandidates(s) {
+  const { e, actor, reachable, distance } = context(s);
+  const known = new Set(e.playable[actor].known.map(h => String(Hex(h))));
+  return livingNeighbours(s).filter(id => known.has(String(Hex().fromPoint(e.spatial[id]))) &&
+    !chatUnavailable(s, actor, id) && reachable(id))
+    .filter(id => { const slots = patience(s, actor, id); return slots.free >= slots.minimum; })
+    .sort((a, b) => distance(a) - distance(b) || a.localeCompare(b));
+}
+
 // Assisted selection may locate a distant neighbour in the snapshot, but each
 // Move here target stays within the continuously discovered part of the route.
 function personApproach(s) {
@@ -62,8 +80,7 @@ function personApproach(s) {
   const start = tileContents(s, actor).find(id => e.mappable[id]);
   const distance = id => Math.hypot(e.spatial[id].x - p.x, e.spatial[id].y - p.y);
   const indoors = id => !!e.interior?.[id]?.buildingId;
-  const people = Object.keys(e.personable || {}).filter(id => id != actor && e.spatial[id] &&
-    !e.personable[id].dead && e.personable[id].age >= 18 && e.controllable[id]?.controllerId != actor)
+  const people = livingNeighbours(s).filter(id => !chatUnfriendly(s, actor, id))
     .sort((a, b) => Number(indoors(a)) - Number(indoors(b)) || distance(a) - distance(b) || a.localeCompare(b));
   for (const person of people) {
     const goal = tileContents(s, person).find(id => e.mappable[id]);
@@ -87,4 +104,4 @@ function worldIdentity(s, url, servedSeed) {
     matches: expectedSeed !== undefined && seed === expectedSeed };
 }
 
-module.exports = { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach };
+module.exports = { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach, chatCandidates };

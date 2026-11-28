@@ -20,7 +20,7 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView, waitForChatPanel, finishChatPanel, observeWork, waitForStartMenu, waitForCharacter } = require("./acceptance-selection");
-const { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach } = require("./playtest-selection");
+const { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach, chatCandidates } = require("./playtest-selection");
 const { decompressGame } = require("../src/game/save_game");
 const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
@@ -38,7 +38,8 @@ const report = { errors: [], checks: [] };
 const selectionState = page => page.evaluate(() => {
   const s = window.tinyking;
   return { ecs: s.ecs, space: s.space, map: s.map, villages: s.villages,
-    landUseRevision: s.landUseRevision, ui: { playerId: s.ui.playerId }, travel: { seed: s.travel?.seed } };
+    landUseRevision: s.landUseRevision, ui: { playerId: s.ui.playerId }, travel: { seed: s.travel?.seed },
+    peopleSeed: s.peopleSeed, opinionThresholds: s.opinionThresholds, residents: s.residents, chat: s.chat };
 });
 const check = (name, ok, detail) => {
   report.checks.push({ name, ok: !!ok, detail });
@@ -270,7 +271,8 @@ async function play(page, alreadyStarted=false) {
     const state = await selectionState(page);
     const build = shelterCandidates(state);
     const trees = treeCandidates(state);
-    return game(({build, trees}) => {
+    const people = chatCandidates(state);
+    return game(({build, trees, people}) => {
       const s = window.tinyking;
       const p = s.ecs.spatial[s.ui.playerId];
       const distance = id => Math.hypot(s.ecs.spatial[id].x - p.x, s.ecs.spatial[id].y - p.y);
@@ -280,9 +282,7 @@ async function play(page, alreadyStarted=false) {
       const tileIn = hex => s.space[hex].find(id => s.ecs.mappable[id]);
       const knownHexes = Object.keys(s.space).filter(hex => known.has(hex) && tileIn(hex));
       return {
-        person: nearest(Object.keys(s.ecs.personable)
-          .filter(id => id != s.ui.playerId && s.ecs.controllable[id].controllerId != s.ui.playerId)
-          .filter(id => !s.ecs.personable[id].dead && drawn(id))),
+        person: people.filter(drawn),
         move: nearest(knownHexes
           .filter(hex => !s.space[hex].some(id => s.ecs.building[id]))
           .map(tileIn)
@@ -290,7 +290,7 @@ async function play(page, alreadyStarted=false) {
         build,
         trees
       };
-    }, {build, trees});
+    }, {build, trees, people});
   };
 
   const discoverPerson = async () => {

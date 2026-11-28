@@ -4,7 +4,7 @@ import { newEntities } from "game/entities";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { addBidirectionalLink } from "game/pathfinding";
 import { rowOfTiles } from "./support/world";
-import { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach } from "../scripts/playtest-selection";
+import { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach, chatCandidates } from "../scripts/playtest-selection";
 
 function world() {
   const s = { ecs: { nextId: 1 }, space: {}, redraws: [], ui: {}, map: { seed: 9876 } };
@@ -138,4 +138,23 @@ it("returns no neighbour when no living other-household adult is reachable", () 
   const { s, tiles } = distantNeighbour();
   s.ecs.walkable[tiles[2]].neighbours = {};
   expect(personApproach(s)).toBeNull();
+});
+
+it("chooses a known neighbour who accepts Chat, excluding refusal, sleep and exhausted patience", () => {
+  const { s, tiles, actor, person } = distantNeighbour();
+  s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
+  const [friendly] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] },
+    personable: { age: 30 }, controllable: { controllerId: "other" } }]);
+  s.ecs.planner = { [actor]: {}, [person]: {}, [friendly]: {} };
+  s.ecs.personality = { [actor]: { traits: ["brave"] },
+    [person]: { likes: [], dislikes: ["brave"], opinionSeed: 1, opinionThresholds: { hate: -.5, love: .5 } } };
+  const before = JSON.stringify(s);
+  expect(chatCandidates(s)).toEqual([friendly]);
+  expect(personApproach(s).person).toBe(friendly);
+  expect(JSON.stringify(s)).toBe(before);
+  s.ecs.planner[friendly].task = ["sleep"];
+  expect(chatCandidates(s)).toEqual([]);
+  delete s.ecs.planner[friendly].task;
+  s.chat = { pairs: { [actor + ":" + friendly]: { resting: 6 } } };
+  expect(chatCandidates(s)).toEqual([]);
 });

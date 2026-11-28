@@ -109,6 +109,7 @@ function distantNeighbour() {
   s.ecs.playable[actor] = { known: tiles.slice(0, 3).map(id => Hex().fromPoint(s.ecs.spatial[id])) };
   const [person] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] },
     personable: { age: 30 }, controllable: { controllerId: "other" } }]);
+  s.ecs.planner = { [actor]: { world: { feeling: {} } }, [person]: { world: { feeling: {} } } };
   return { s, tiles, actor, person };
 }
 
@@ -145,7 +146,7 @@ it("chooses a known neighbour who accepts Chat, excluding refusal, sleep and exh
   s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
   const [friendly] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] },
     personable: { age: 30 }, controllable: { controllerId: "other" } }]);
-  s.ecs.planner = { [actor]: {}, [person]: {}, [friendly]: {} };
+  s.ecs.planner[friendly] = { world: { feeling: {} } };
   s.ecs.personality = { [actor]: { traits: ["brave"] },
     [person]: { likes: [], dislikes: ["brave"], opinionSeed: 1, opinionThresholds: { hate: -.5, love: .5 } } };
   const before = JSON.stringify(s);
@@ -157,6 +158,46 @@ it("chooses a known neighbour who accepts Chat, excluding refusal, sleep and exh
   delete s.ecs.planner[friendly].task;
   s.chat = { pairs: { [actor + ":" + friendly]: { resting: 6 } } };
   expect(chatCandidates(s)).toEqual([]);
+});
+
+it.each([
+  { task: ["walk_to", "field"] },
+  { task: ["chop", "tree"] },
+  { task: ["eat"] },
+  { task: ["sleep"] },
+  { world: { feeling: { hungry: true } } },
+  { world: { feeling: { tired: true } } },
+  { world: { feeling: {}, capturedBy: "someone-else" } }
+])("waits for a busy neighbour instead of approaching them: %j", busy => {
+  const { s, tiles, actor, person } = distantNeighbour();
+  s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
+  Object.assign(s.ecs.planner[person], busy);
+  const before = JSON.stringify(s);
+  expect(chatCandidates(s)).toEqual([]);
+  expect(personApproach(s)).toBeNull();
+  expect(JSON.stringify(s)).toBe(before);
+  s.ecs.planner[person] = { task: ["home_downtime"], world: { feeling: {} } };
+  expect(personApproach(s).person).toBe(person);
+});
+
+it("approaches a free neighbour ahead of a nearer busy one and waits for spent patience", () => {
+  const { s, tiles, actor, person } = distantNeighbour();
+  const [busy] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[2]] },
+    personable: { age: 30 }, controllable: { controllerId: "other" } }]);
+  s.ecs.planner[busy] = { task: ["walk_to", "home"], world: { feeling: {} } };
+  expect(personApproach(s).person).toBe(person);
+  s.chat = { pairs: { [actor + ":" + person]: { resting: 6 } } };
+  expect(personApproach(s)).toBeNull();
+});
+
+it("moves closer before Chat when the walk exceeds half an hour", () => {
+  const { s, tiles, actor, person } = distantNeighbour();
+  s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
+  for (const walk of Object.values(s.ecs.walkable)) walk.speed = .1;
+  expect(chatCandidates(s)).toEqual([]);
+  expect(personApproach(s)).toMatchObject({ person, moves: [tiles[5], tiles[4], tiles[3], tiles[2], tiles[1]] });
+  s.ecs.spatial[actor] = { ...s.ecs.spatial[tiles[5]] };
+  expect(chatCandidates(s)).toEqual([person]);
 });
 
 it("chooses timber near its delivery home after exploring far from camp", () => {

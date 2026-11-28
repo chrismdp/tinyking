@@ -124,12 +124,13 @@ it("finds a route towards a distant neighbour but orders only its discovered pre
 
 it("ignores dead people and the player's household, and prefers an outdoor adult", () => {
   const { s, tiles, actor, person } = distantNeighbour();
-  newEntities(s, [
+  const people = newEntities(s, [
     { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30, dead: true }, controllable: { controllerId: "other" } },
     { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30 }, controllable: { controllerId: actor } },
     { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 12 }, controllable: { controllerId: "other" } },
     { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30 }, controllable: { controllerId: "other" }, interior: { buildingId: "house" } }
   ]);
+  for (const id of people) s.ecs.planner[id] = { world: { feeling: {} } };
   expect(personApproach(s).person).toBe(person);
   s.ecs.interior[person] = { buildingId: "house" };
   expect(personApproach(s).indoors).toBe(true);

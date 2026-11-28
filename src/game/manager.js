@@ -166,7 +166,7 @@ export function canChatSoon(state, actor, target) {
     hours+=Math.hypot(point.x-previous.x,point.y-previous.y)/(HUMAN_SPEED*HEX_SIZE*(e.walkable[step.id].speed||1));
     previous=point;
   }
-  const weight=(e.holder?.[actor]?.held||[]).reduce((v,id)=>v*(e.haulable[id].speedModifier||1),1);
+  const weight=(e.holder?.[actor]?.held||[]).reduce((v,id)=>v*(e.haulable?.[id]?.speedModifier||1),1);
   return hours/(weight*careSpeed(e.personable[actor]))<=CHAT_APPROACH_HOURS;
 }
 

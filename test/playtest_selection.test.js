@@ -143,6 +143,7 @@ it("returns no neighbour when no living other-household adult is reachable", () 
 
 it("chooses a known neighbour who accepts Chat, excluding refusal, sleep and exhausted patience", () => {
   const { s, tiles, actor, person } = distantNeighbour();
+  s.ecs.spatial[actor] = { ...s.ecs.spatial[tiles[1]] };
   s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
   const [friendly] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] },
     personable: { age: 30 }, controllable: { controllerId: "other" } }]);

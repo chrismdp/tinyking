@@ -5,8 +5,7 @@ const { path } = require("../src/game/pathfinding");
 const { canPlaceField, tileContents } = require("../src/game/land_use");
 const { designationPlants, clearableForage } = require("../src/game/designation");
 const { resourcePermission } = require("../src/game/village_customs");
-const { chatUnavailable, chatUnfriendly } = require("../src/game/manager");
-const { patience } = require("../src/game/chat_patience");
+const { chatUnavailable, canChatSoon } = require("../src/game/manager");
 const { isResident } = require("../src/game/residents");
 const { deliveryHome } = require("../src/game/construction");
 
@@ -71,8 +70,7 @@ function chatCandidates(s) {
   const { e, actor, reachable, distance } = context(s);
   const known = new Set(e.playable[actor].known.map(h => String(Hex(h))));
   return livingNeighbours(s).filter(id => known.has(String(Hex().fromPoint(e.spatial[id]))) &&
-    !chatUnavailable(s, actor, id) && reachable(id))
-    .filter(id => { const slots = patience(s, actor, id); return slots.free >= slots.minimum; })
+    !chatUnavailable(s, actor, id) && reachable(id) && canChatSoon(s, actor, id))
     .sort((a, b) => distance(a) - distance(b) || a.localeCompare(b));
 }
 
@@ -85,7 +83,7 @@ function personApproach(s) {
   const start = tileContents(s, actor).find(id => e.mappable[id]);
   const distance = id => Math.hypot(e.spatial[id].x - p.x, e.spatial[id].y - p.y);
   const indoors = id => !!e.interior?.[id]?.buildingId;
-  const people = livingNeighbours(s).filter(id => !chatUnfriendly(s, actor, id))
+  const people = livingNeighbours(s).filter(id => !chatUnavailable(s, actor, id))
     .sort((a, b) => Number(indoors(a)) - Number(indoors(b)) || distance(a) - distance(b) || a.localeCompare(b));
   for (const person of people) {
     const goal = tileContents(s, person).find(id => e.mappable[id]);
@@ -95,7 +93,7 @@ function personApproach(s) {
     const prefix = unseen < 0 ? route : route.slice(0, unseen);
     const moves = prefix.map(step => step.id).reverse().filter(id => distance(id) > 100 &&
       !e.mappable[id].buildingPlot && !tileContents(s, id).some(other => e.building?.[other]));
-    return { person, moves, indoors: indoors(person) };
+    if (moves.length) return { person, moves, indoors: indoors(person) };
   }
   return null;
 }

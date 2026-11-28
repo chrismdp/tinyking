@@ -39,7 +39,7 @@ const selectionState = page => page.evaluate(() => {
   const s = window.tinyking;
   return { ecs: s.ecs, space: s.space, map: s.map, villages: s.villages,
     landUseRevision: s.landUseRevision, ui: { playerId: s.ui.playerId }, travel: { seed: s.travel?.seed },
-    peopleSeed: s.peopleSeed, opinionThresholds: s.opinionThresholds, residents: s.residents, chat: s.chat };
+    peopleSeed: s.peopleSeed, opinionThresholds: s.opinionThresholds, residents: s.residents, chat: s.chat, days: s.days };
 });
 const check = (name, ok, detail) => {
   report.checks.push({ name, ok: !!ok, detail });
@@ -241,15 +241,23 @@ async function play(page, alreadyStarted=false) {
   };
 
   const panTo = async id => {
-    for (let attempt = 0; attempt < 4; attempt++) {
+    for (let view = 0; view < 3; view++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        if (await clickPointFor(id)) return;
+        const point = await game(id => window.tinyking.renderer.screenPosition(id), id);
+        const dx = Math.max(-350, Math.min(350, 800 - point.x));
+        const dy = Math.max(-220, Math.min(220, 350 - point.y));
+        await page.mouse.move(800, 550);
+        await page.mouse.down();
+        await page.mouse.move(800 + dx, 550 + dy, { steps: 8 });
+        await page.mouse.up();
+        await page.waitForTimeout(100);
+      }
+      // A discovered route can extend beyond the current camera. Widen the
+      // view with the player's zoom gesture before trying the ground again.
       if (await clickPointFor(id)) return;
-      const point = await game(id => window.tinyking.renderer.screenPosition(id), id);
-      const dx = Math.max(-350, Math.min(350, 800 - point.x));
-      const dy = Math.max(-220, Math.min(220, 350 - point.y));
-      await page.mouse.move(800, 550);
-      await page.mouse.down();
-      await page.mouse.move(800 + dx, 550 + dy, { steps: 8 });
-      await page.mouse.up();
+      await page.mouse.move(800, 350);
+      await page.mouse.wheel(0, 500);
       await page.waitForTimeout(100);
     }
     // A covered trunk can become visible from another side. Turn through the
@@ -295,29 +303,48 @@ async function play(page, alreadyStarted=false) {
 
   const discoverPerson = async () => {
     const steps = [];
-    while (!(await targets()).person.length) {
+    const started = (await selectionState(page)).days;
+    const record = step => {
+      steps.push(step);
+      fs.writeFileSync(path.join(SHOTS, "person-exploration.json"), JSON.stringify(steps, null, 2));
+      console.log("EXPLORE neighbour " + JSON.stringify(step));
+    };
+    for (let attempt = 0; attempt < 48; attempt++) {
+      if ((await targets()).person.length) return;
       const state = await selectionState(page);
+      if (state.days - started >= 1) break;
       const approach = personApproach(state);
-      if (!approach) throw new Error("No reachable living adult neighbour in this world");
       const needs = state.ecs.personable[state.ui.playerId];
-      if (approach.indoors || needs.energy < 20 || needs.tiredness > .9) {
+      if (needs.energy < 20 || needs.tiredness > .9) {
         await closePopup();
         await page.getByRole("button", { name: "Rest", exact: true }).click();
         await finishOrder();
-        steps.push({ person: approach.person, care: "Rest" });
+        record({ care: "Rest", before: state.days, after: (await selectionState(page)).days });
         continue;
       }
-      const moved = await orderOn(approach.moves, "Move here");
-      if (!moved) throw new Error("No clickable discovered approach to a neighbour");
-      await finishOrder();
-      const after = await selectionState(page);
-      const beforeKnown = state.ecs.playable[state.ui.playerId].known.length;
-      const afterKnown = after.ecs.playable[after.ui.playerId].known.length;
-      steps.push({ person: approach.person, moved, beforeKnown, afterKnown });
-      fs.writeFileSync(path.join(SHOTS, "person-exploration.json"), JSON.stringify(steps, null, 2));
-      console.log("EXPLORE neighbour " + JSON.stringify(steps.at(-1)));
-      if (afterKnown <= beforeKnown && !(await targets()).person.length) throw new Error("The neighbour approach revealed no new land or visible person");
+      if (approach) {
+        const moved = await orderOn(approach.moves, "Move here");
+        if (!moved) throw new Error("No clickable discovered approach to a free neighbour");
+        await finishOrder();
+        const after = await selectionState(page);
+        record({ person: approach.person, moved,
+          beforeKnown: state.ecs.playable[state.ui.playerId].known.length,
+          afterKnown: after.ecs.playable[after.ui.playerId].known.length });
+      } else {
+        // Everyone may be at work, on the road, eating or recovering patience.
+        // Advance only through the game's speed control, then look afresh.
+        await closePopup();
+        await speed(NORMAL);
+        try {
+          await page.waitForFunction(day => window.tinyking.days >= day + .5 / 24,
+            state.days, { timeout: 30000 });
+        } finally {
+          await speed(PAUSE);
+        }
+        record({ care: "Wait half an hour", before: state.days, after: (await selectionState(page)).days });
+      }
     }
+    throw new Error("No available clickable neighbour after looking for one game day");
   };
 
   // Shared by the complete playtest and the bounded gift closeout. Keep the
@@ -545,17 +572,18 @@ async function play(page, alreadyStarted=false) {
       await shot("arrived.png");
     }
     check("the completed task leaves the panel", !(await queued()).includes("move_to_here"));
-    await game(id => window.tinyking.ui.actions.select_entity(id, false), person);
-    await page.locator(".person-window").getByRole("button", { name: "Chat", exact: true }).click();
+    // The walk let game time pass. The earlier neighbour may now be busy.
+    await discoverPerson();
+    const chatPerson = await orderOn((await targets()).person, "Chat");
     if (!await game(id => {
       const s = window.tinyking;
       return s.ecs.manager[s.ui.playerId].jobs.some(j => j.job.key == "chat" && j.targetId == id);
-    }, person)) throw new Error("The person panel did not queue Chat with " + person);
-    await waitForChatPanel(page, person);
-    const conversation = await finishChatPanel(page, person, {maxLines:1});
+    }, chatPerson)) throw new Error("The person panel did not queue Chat with " + chatPerson);
+    await waitForChatPanel(page, chatPerson);
+    const conversation = await finishChatPanel(page, chatPerson, {maxLines:1});
     check("Chat pauses the world, chosen lines make contact and End chat releases the panel",
-      conversation.contact && conversation.selected.length && conversation.history.npcId == person,
-      {person,lines:conversation.selected,pops:conversation.pops,contact:conversation.contact});
+      conversation.contact && conversation.selected.length && conversation.history.npcId == chatPerson,
+      {person:chatPerson,lines:conversation.selected,pops:conversation.pops,contact:conversation.contact});
     await closeUp(page, game, "zoom-day.png");
     // Each physical order completes before the next one is issued.
     for (const [key, action, preferred] of [["create_field", "Create Field", fieldTile],

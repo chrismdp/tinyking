@@ -158,3 +158,15 @@ it("chooses a known neighbour who accepts Chat, excluding refusal, sleep and exh
   s.chat = { pairs: { [actor + ":" + friendly]: { resting: 6 } } };
   expect(chatCandidates(s)).toEqual([]);
 });
+
+it("chooses timber near its delivery home after exploring far from camp", () => {
+  const { s, tiles, actor } = distantNeighbour();
+  s.ecs.playable[actor].known = tiles.map(id => Hex().fromPoint(s.ecs.spatial[id]));
+  const nearActor = treeAt(s, tiles[1]), nearHome = treeAt(s, tiles[3]);
+  expect(treeCandidates(s)).toEqual([nearActor, nearHome]);
+  newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[4]], immovable: true }, camp: {},
+    controllable: { controllerId: actor } }]);
+  const before = JSON.stringify(s);
+  expect(treeCandidates(s)).toEqual([nearHome, nearActor]);
+  expect(JSON.stringify(s)).toBe(before);
+});

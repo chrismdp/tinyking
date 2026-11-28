@@ -8,6 +8,7 @@ const { resourcePermission } = require("../src/game/village_customs");
 const { chatUnavailable, chatUnfriendly } = require("../src/game/manager");
 const { patience } = require("../src/game/chat_patience");
 const { isResident } = require("../src/game/residents");
+const { deliveryHome } = require("../src/game/construction");
 
 // All selection runs on detached snapshots. Use the same land, permission and
 // navigation rules as the game, restricted to what the player has discovered.
@@ -45,7 +46,11 @@ function designationCandidates(s, { action = "create_field", allowTrees = false,
 }
 
 function treeCandidates(s, exclude = []) {
-  const { e, available, reachable, distance } = context(s, exclude);
+  const { e, actor, available, reachable } = context(s, exclude);
+  // Chopping delivers every log home. Exploring towards people must not
+  // turn this into repeated hauls from the far side of the map.
+  const home = e.spatial[deliveryHome(s, actor)] || e.spatial[actor];
+  const distance = id => Math.hypot(e.spatial[id].x - home.x, e.spatial[id].y - home.y);
   return Object.keys(e.good || {}).filter(id => e.good[id].type == "wood" && e.good[id].amount > 0 &&
     !e.haulable?.[id] && available(id) && reachable(id))
     .sort((a, b) => distance(a) - distance(b) || a.localeCompare(b));

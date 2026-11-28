@@ -53,6 +53,31 @@ function restartCandidates(s, action, preferred, exclude = []) {
   return ids.includes(preferred) ? [preferred, ...ids.filter(id => id != preferred)] : ids;
 }
 
+// Assisted selection may locate a distant neighbour in the snapshot, but each
+// Move here target stays within the continuously discovered part of the route.
+function personApproach(s) {
+  const e = s.ecs, actor = s.ui.playerId, p = e.spatial[actor];
+  const key = id => String(Hex().fromPoint(e.spatial[id]));
+  const known = new Set(e.playable[actor].known.map(h => String(Hex(h))));
+  const start = tileContents(s, actor).find(id => e.mappable[id]);
+  const distance = id => Math.hypot(e.spatial[id].x - p.x, e.spatial[id].y - p.y);
+  const indoors = id => !!e.interior?.[id]?.buildingId;
+  const people = Object.keys(e.personable || {}).filter(id => id != actor && e.spatial[id] &&
+    !e.personable[id].dead && e.personable[id].age >= 18 && e.controllable[id]?.controllerId != actor)
+    .sort((a, b) => Number(indoors(a)) - Number(indoors(b)) || distance(a) - distance(b) || a.localeCompare(b));
+  for (const person of people) {
+    const goal = tileContents(s, person).find(id => e.mappable[id]);
+    const route = goal && path(s, start, goal);
+    if (!route) continue;
+    const unseen = route.findIndex(step => !known.has(key(step.id)));
+    const prefix = unseen < 0 ? route : route.slice(0, unseen);
+    const moves = prefix.map(step => step.id).reverse().filter(id => distance(id) > 100 &&
+      !e.mappable[id].buildingPlot && !tileContents(s, id).some(other => e.building?.[other]));
+    return { person, moves, indoors: indoors(person) };
+  }
+  return null;
+}
+
 function worldIdentity(s, url, servedSeed) {
   const requested = new URL(url).searchParams.get("seed");
   const expectedSeed = requested ? (isNaN(+requested) ? requested : +requested) : servedSeed;
@@ -62,4 +87,4 @@ function worldIdentity(s, url, servedSeed) {
     matches: expectedSeed !== undefined && seed === expectedSeed };
 }
 
-module.exports = { designationCandidates, treeCandidates, restartCandidates, worldIdentity };
+module.exports = { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach };

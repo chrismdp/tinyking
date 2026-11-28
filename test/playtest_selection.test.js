@@ -3,7 +3,8 @@ jest.mock("../scripts/game-register", () => ({}));
 import { newEntities } from "game/entities";
 import { Hex, Grid, ALL_SIDES } from "game/hex";
 import { addBidirectionalLink } from "game/pathfinding";
-import { designationCandidates, treeCandidates, restartCandidates, worldIdentity } from "../scripts/playtest-selection";
+import { rowOfTiles } from "./support/world";
+import { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach } from "../scripts/playtest-selection";
 
 function world() {
   const s = { ecs: { nextId: 1 }, space: {}, redraws: [], ui: {}, map: { seed: 9876 } };
@@ -100,4 +101,41 @@ it("honours an explicit URL seed and rejects an absent or unready world", () => 
   expect(worldIdentity({}, "http://localhost/?seed=13").loaded).toBe(false);
   delete s.ecs.spatial[s.ui.playerId];
   expect(worldIdentity(s, "http://localhost/?seed=13").loaded).toBe(false);
+});
+
+function distantNeighbour() {
+  const { state: s, tiles, villager: actor } = rowOfTiles(6);
+  s.ui.playerId = actor;
+  s.ecs.playable[actor] = { known: tiles.slice(0, 3).map(id => Hex().fromPoint(s.ecs.spatial[id])) };
+  const [person] = newEntities(s, [{ spatial: { ...s.ecs.spatial[tiles[5]] },
+    personable: { age: 30 }, controllable: { controllerId: "other" } }]);
+  return { s, tiles, actor, person };
+}
+
+it("finds a route towards a distant neighbour but orders only its discovered prefix", () => {
+  const { s, tiles, person } = distantNeighbour();
+  const before = JSON.stringify(s);
+  expect(personApproach(s)).toMatchObject({ person, moves: [tiles[2], tiles[1]], indoors: false });
+  expect(JSON.stringify(s)).toBe(before);
+  s.ecs.playable[s.ui.playerId].known = [tiles[0], tiles[1], tiles[4]].map(id => Hex().fromPoint(s.ecs.spatial[id]));
+  expect(personApproach(s).moves).toEqual([tiles[1]]);
+});
+
+it("ignores dead people and the player's household, and prefers an outdoor adult", () => {
+  const { s, tiles, actor, person } = distantNeighbour();
+  newEntities(s, [
+    { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30, dead: true }, controllable: { controllerId: "other" } },
+    { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30 }, controllable: { controllerId: actor } },
+    { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 12 }, controllable: { controllerId: "other" } },
+    { spatial: { ...s.ecs.spatial[tiles[1]] }, personable: { age: 30 }, controllable: { controllerId: "other" }, interior: { buildingId: "house" } }
+  ]);
+  expect(personApproach(s).person).toBe(person);
+  s.ecs.interior[person] = { buildingId: "house" };
+  expect(personApproach(s).indoors).toBe(true);
+});
+
+it("returns no neighbour when no living other-household adult is reachable", () => {
+  const { s, tiles } = distantNeighbour();
+  s.ecs.walkable[tiles[2]].neighbours = {};
+  expect(personApproach(s)).toBeNull();
 });

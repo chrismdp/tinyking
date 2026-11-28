@@ -20,7 +20,7 @@ const fs = require("fs");
 const os = require("os");
 const { chromium } = require("playwright-core");
 const { snapshot, shelterCandidates, discoverTimber, earnTimberRights, returnToLocalView, waitForChatPanel, finishChatPanel, observeWork, waitForStartMenu, waitForCharacter } = require("./acceptance-selection");
-const { designationCandidates, treeCandidates, restartCandidates, worldIdentity } = require("./playtest-selection");
+const { designationCandidates, treeCandidates, restartCandidates, worldIdentity, personApproach } = require("./playtest-selection");
 const { decompressGame } = require("../src/game/save_game");
 const { browserClickPoint } = require("./click-selection");
 const TARGETED = process.argv.includes("--acceptance-fixes");
@@ -293,12 +293,40 @@ async function play(page, alreadyStarted=false) {
     }, {build, trees});
   };
 
+  const discoverPerson = async () => {
+    const steps = [];
+    while (!(await targets()).person.length) {
+      const state = await selectionState(page);
+      const approach = personApproach(state);
+      if (!approach) throw new Error("No reachable living adult neighbour in this world");
+      const needs = state.ecs.personable[state.ui.playerId];
+      if (approach.indoors || needs.energy < 20 || needs.tiredness > .9) {
+        await closePopup();
+        await page.getByRole("button", { name: "Rest", exact: true }).click();
+        await finishOrder();
+        steps.push({ person: approach.person, care: "Rest" });
+        continue;
+      }
+      const moved = await orderOn(approach.moves, "Move here");
+      if (!moved) throw new Error("No clickable discovered approach to a neighbour");
+      await finishOrder();
+      const after = await selectionState(page);
+      const beforeKnown = state.ecs.playable[state.ui.playerId].known.length;
+      const afterKnown = after.ecs.playable[after.ui.playerId].known.length;
+      steps.push({ person: approach.person, moved, beforeKnown, afterKnown });
+      fs.writeFileSync(path.join(SHOTS, "person-exploration.json"), JSON.stringify(steps, null, 2));
+      console.log("EXPLORE neighbour " + JSON.stringify(steps.at(-1)));
+      if (afterKnown <= beforeKnown && !(await targets()).person.length) throw new Error("The neighbour approach revealed no new land or visible person");
+    }
+  };
+
   // Shared by the complete playtest and the bounded gift closeout. Keep the
   // original receipt/ownership and <=10 physical-handoff assertion intact.
   const giveGift = async () => {
     // Choose an actual gathered item. The planner fetches and delivers it.
     await speed(PAUSE);
     await closePopup();
+    await discoverPerson();
     const giftPerson = await orderOn((await targets()).person, "Give a gift");
     if (!giftPerson) throw new Error("No visible person available for a gift");
     const giftButton = page.locator(".talk-chooser > button").first();
@@ -470,6 +498,7 @@ async function play(page, alreadyStarted=false) {
     fs.writeFileSync(path.join(SHOTS, "designation-clearing.json"), JSON.stringify({ site: clearing, after }, null, 2));
 
     // --- Orders from the popups (still paused) ------------------------------------------
+    await discoverPerson();
     const t = await targets();
     const plannedField = designationCandidates(await selectionState(page))[0]?.id;
     if (!plannedField) throw new Error("No legal reachable field site in discovered land");
